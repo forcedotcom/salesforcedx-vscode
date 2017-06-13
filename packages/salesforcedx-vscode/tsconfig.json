@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "lib": [
+            "es6"
+        ],
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "rootDir": ".",
+        "outDir": "dist",
+        "preserveConstEnums": true,
+        "strictNullChecks": true
+    },
+    "exclude": [
+        "node_modules",
+        ".vscode-test"
+    ]
+}

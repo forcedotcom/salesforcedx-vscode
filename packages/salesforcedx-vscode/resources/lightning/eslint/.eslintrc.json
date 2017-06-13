@@ -1,0 +1,296 @@
+{
+	"eslintrc": false,
+	"env": {
+		"browser": true
+	},
+	"parserOptions": {
+		"ecmaVersion": 5
+	},
+	"globals": {
+		"$A": true,
+		"AuraContext": true,
+		"AuraSerializationService": true,
+		"AuraExpressionService": true,
+		"AuraEventService": true,
+		"AuraLocalizationService": true,
+		"AuraStorageService": true,
+		"AuraStyleService": true,
+		"MetricsService": true,
+		"AuraDevToolService": true,
+		"Component": true,
+		"CKEDITOR": true,
+		"FORCE": true,
+		"moment": true,
+		"exports": true,
+		"iScroll": true,
+		"unescape": true,
+		"Promise": true
+	},
+	"rules": {
+		// custom rules
+		"ecma-intrinsics": 2,
+		"new-rule-template": 0,
+		"secure-document": 2,
+		"aura-api": 2,
+		"secure-window": 2,
+		// platform rules that as immutable
+		"no-alert": 2,
+		"no-array-constructor": 2, // help with instanceof
+		"no-bitwise": 1, // usually a typo | -> ||
+		"no-caller": 2, // strict mode compliance
+		"no-catch-shadow": 2,
+		"no-cond-assign": 2,
+		"no-console": 2,
+		"no-constant-condition": 2,
+		"no-control-regex": 1,
+		"no-debugger": 2,
+		"no-delete-var": 1, // for perf reasons, we might want to set this to 2
+		"no-div-regex": 1,
+		"no-dupe-keys": 2,
+		"no-dupe-args": 2,
+		"no-duplicate-case": 2,
+		"no-else-return": 0,
+		"no-empty-character-class": 2,
+		"no-eq-null": 1,
+		"no-eval": 2,
+		"no-ex-assign": 2,
+		"no-extend-native": 2,
+		"no-extra-bind": 2,
+		"no-extra-boolean-cast": 2,
+		"no-fallthrough": 2, // switch fallthrough
+		"no-floating-decimal": 1, // var num = .5;
+		"no-func-assign": 2,
+		"no-implied-eval": 2,
+		"no-inner-declarations": [
+			2,
+			"functions"
+		],
+		"no-invalid-regexp": 2,
+		"no-irregular-whitespace": 2,
+		"no-iterator": 2,
+		"no-label-var": 2,
+		"no-labels": 2,
+		"no-loop-func": 2,
+		"no-multi-str": 2,
+		"no-native-reassign": 2,
+		"no-negated-in-lhs": 2,
+		"no-nested-ternary": 1,
+		"no-new": 2,
+		"no-new-func": 2,
+		"no-new-object": 2,
+		"no-new-wrappers": 2,
+		"no-obj-calls": 2,
+		"no-octal": 2,
+		"no-octal-escape": 2,
+		"no-param-reassign": 1,
+		"no-plusplus": 1,
+		"no-proto": 2,
+		"no-redeclare": 2,
+		"no-regex-spaces": 2,
+		"no-return-assign": 2,
+		"no-script-url": 2,
+		"no-self-compare": 2,
+		"no-sequences": 2, // var a = (3, 5);
+		"no-shadow": 2,
+		"no-shadow-restricted-names": 2,
+		"no-sparse-arrays": 2,
+		"no-ternary": 0,
+		"no-throw-literal": 1,
+		"no-undef": 1,
+		"no-undef-init": 1,
+		"no-undefined": 0,
+		"no-underscore-dangle": 0,
+		"no-unreachable": 2,
+		"no-unused-expressions": 0,
+		"no-unused-vars": [
+			1,
+			{
+				"vars": "all",
+				"args": "after-used"
+			}
+		],
+		"no-use-before-define": [
+			2,
+			{
+				"functions": false
+			}
+		],
+		"no-void": 2,
+		"no-var": 0,
+		"no-with": 2,
+		"consistent-return": 1,
+		"default-case": 2,
+		"dot-notation": [
+			1,
+			{
+				"allowKeywords": true
+			}
+		],
+		"eqeqeq": [
+			"error",
+			"smart"
+		],
+		"guard-for-in": 1,
+		"handle-callback-err": 1,
+		"new-parens": 2,
+		"radix": 2,
+		"strict": [
+			2,
+			"global"
+		],
+		"use-isnan": 2,
+		"valid-typeof": 2,
+		"wrap-iife": [
+			1,
+			"any"
+		],
+		// aside from this list, ./code-style-rules.js will have the rules that are not
+		// important for the code to function, but just stylish.
+		// code style rules, these are the default value, but the user can
+		// customize them via --config in the linter by providing custom values
+		// for each of these rules.
+		"no-trailing-spaces": 1,
+		"no-spaced-func": 1,
+		"no-mixed-spaces-and-tabs": 0,
+		"no-multi-spaces": 0,
+		"no-multiple-empty-lines": 0,
+		"no-lone-blocks": 1,
+		"no-lonely-if": 1,
+		"no-inline-comments": 0,
+		"no-extra-parens": 0,
+		"no-extra-semi": 1,
+		"no-warning-comments": [
+			0,
+			{
+				"terms": [
+					"todo",
+					"fixme",
+					"xxx"
+				],
+				"location": "start"
+			}
+		],
+		"block-scoped-var": 1,
+		"brace-style": [
+			1,
+			"1tbs"
+		],
+		"camelcase": 1,
+		"comma-dangle": [
+			1,
+			"never"
+		],
+		"comma-spacing": 1,
+		"comma-style": 1,
+		"complexity": [
+			0,
+			11
+		],
+		"consistent-this": [
+			0,
+			"that"
+		],
+		"curly": [
+			1,
+			"all"
+		],
+		"eol-last": 0,
+		"func-names": 0,
+		"func-style": [
+			0,
+			"declaration"
+		],
+		"generator-star-spacing": 0,
+		"indent": 0,
+		"key-spacing": 0,
+		"keyword-spacing": [
+			0
+		],
+		"max-depth": [
+			0,
+			4
+		],
+		"max-len": [
+			0,
+			80,
+			4
+		],
+		"max-nested-callbacks": [
+			0,
+			2
+		],
+		"max-params": [
+			0,
+			3
+		],
+		"max-statements": [
+			0,
+			10
+		],
+		"new-cap": 0,
+		"newline-after-var": 0,
+		"one-var": [
+			0,
+			"never"
+		],
+		"operator-assignment": [
+			0,
+			"always"
+		],
+		"padded-blocks": 0,
+		"quote-props": 0,
+		"quotes": 0,
+		"semi": 1,
+		"semi-spacing": [
+			0,
+			{
+				"before": false,
+				"after": true
+			}
+		],
+		"sort-vars": 0,
+		"space-after-function-name": [
+			0,
+			"never"
+		],
+		"space-before-blocks": [
+			0,
+			"always"
+		],
+		"space-before-function-paren": [
+			0,
+			"always"
+		],
+		"space-before-function-parentheses": [
+			0,
+			"always"
+		],
+		"space-in-brackets": [
+			0,
+			"never"
+		],
+		"space-in-parens": [
+			0,
+			"never"
+		],
+		"space-infix-ops": 0,
+		"space-unary-ops": [
+			1,
+			{
+				"words": true,
+				"nonwords": false
+			}
+		],
+		"spaced-comment": [
+			0,
+			"always"
+		],
+		"vars-on-top": 0,
+		"valid-jsdoc": 0,
+		"wrap-regex": 0,
+		"yoda": [
+			1,
+			"never"
+		]
+	}
+}

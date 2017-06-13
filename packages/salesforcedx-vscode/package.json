@@ -1,0 +1,91 @@
+{
+  "name": "salesforcedx-vscode",
+  "displayName": "Salesforce Code Editor for Visual Studio Code",
+  "description": "Tools for developing on the Salesforce DX platform.",
+  "version": "0.1.0",
+  "publisher": "salesforce",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.10.0"
+  },
+  "categories": [
+    "Languages",
+    "Debuggers",
+    "Other"
+  ],
+  "devDependencies": {
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "mocha": "3.2.0",
+    "typescript": "2.3.4",
+    "vscode": "1.1.0"
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p .",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
+  "main": "./dist/src/salesforcedx",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sfdx.force.auth.web.login",
+        "title": "force:auth:web:login"
+      },
+      {
+        "command": "sfdx.force.org.create",
+        "title": "force:org:create"
+      },
+      {
+        "command": "sfdx.force.org.open",
+        "title": "force:org:open"
+      },
+      {
+        "command": "sfdx.force.source.pull",
+        "title": "force:source:pull"
+      },
+      {
+        "command": "sfdx.force.source.push",
+        "title": "force:source:push"
+      },
+      {
+        "command": "sfdx.force.source.status",
+        "title": "force:source:status"
+      },
+      {
+        "command": "sfdx.force.apex.test.run",
+        "title": "force:apex:test:run"
+      }
+    ],
+    "languages": [
+      {
+        "id": "apex",
+        "aliases": [
+          "Apex",
+          "apex"
+        ],
+        "extensions": [
+          ".cls",
+          ".trigger"
+        ],
+        "configuration": "./syntaxes/apex.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "apex",
+        "scopeName": "source.apex",
+        "path": "./syntaxes/apex.tmLanguage"
+      }
+    ]
+  },
+  "dependencies": {
+    "expand-home-dir": "0.0.3",
+    "path-exists": "3.0.0",
+    "portfinder": "1.0.12",
+    "vscode-languageclient": "3.3.0"
+  }
+}
