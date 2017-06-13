@@ -1,0 +1,10 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "files.exclude": {
+        "dist": false // set this to true to hide the "dist" folder with the compiled JS files
+    },
+    "search.exclude": {
+        "dist": true // set this to false to include "dist" folder in search results
+    },
+    "typescript.tsdk": "./node_modules/typescript/lib" // we want to use the TS server from our node_modules folder to control its version
+}

@@ -1,0 +1,22 @@
+// A launch configuration that compiles the extension and then opens it inside a new window
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Extensions",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}/packages"
+            ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/packages/salesforce-vscode-apex/dist/src/**/*.js",
+                "${workspaceRoot}/packages/salesforce-vscode-core/dist/src/**/*.js"
+            ],
+            "preLaunchTask": "npm"
+        }
+    ]
+}

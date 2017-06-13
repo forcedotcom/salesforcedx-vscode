@@ -29,7 +29,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/out/test/**/*.js"
+                "${workspaceRoot}/dist/test/**/*.js"
             ],
             "preLaunchTask": "npm"
         }

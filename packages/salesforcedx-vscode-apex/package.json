@@ -1,7 +1,7 @@
 {
-  "name": "salesforcedx-vscode",
-  "displayName": "Salesforce Code Editor for Visual Studio Code",
-  "description": "Tools for developing on the Salesforce DX platform.",
+  "name": "salesforcedx-vscode-apex",
+  "displayName": "Apex Code Editor for Visual Studio Code",
+  "description": "Provides code-completion for the Apex programming language",
   "version": "0.1.0",
   "publisher": "salesforce",
   "license": "MIT",
@@ -9,9 +9,7 @@
     "vscode": "^1.10.0"
   },
   "categories": [
-    "Languages",
-    "Debuggers",
-    "Other"
+    "Languages"
   ],
   "devDependencies": {
     "@types/mocha": "2.2.38",
@@ -22,7 +20,9 @@
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
-    "compile": "tsc -watch -p .",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p .",
+    "clean": "rm -rf node_modules && rm -rf dist",
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "activationEvents": [
@@ -30,36 +30,6 @@
   ],
   "main": "./dist/src/salesforcedx",
   "contributes": {
-    "commands": [
-      {
-        "command": "sfdx.force.auth.web.login",
-        "title": "force:auth:web:login"
-      },
-      {
-        "command": "sfdx.force.org.create",
-        "title": "force:org:create"
-      },
-      {
-        "command": "sfdx.force.org.open",
-        "title": "force:org:open"
-      },
-      {
-        "command": "sfdx.force.source.pull",
-        "title": "force:source:pull"
-      },
-      {
-        "command": "sfdx.force.source.push",
-        "title": "force:source:push"
-      },
-      {
-        "command": "sfdx.force.source.status",
-        "title": "force:source:status"
-      },
-      {
-        "command": "sfdx.force.apex.test.run",
-        "title": "force:apex:test:run"
-      }
-    ],
     "languages": [
       {
         "id": "apex",
