@@ -2,7 +2,7 @@
 
 ## Pre-requisites
 
-This repository uses (Lerna)[https://lernajs.io/] to manage it as a
+This repository uses [Lerna](https://lernajs.io/) to manage it as a
 _monorepo_.  Please install Lerna globally using `npm install --global
 lerna@^2.0.0-beta.0`.
 
