@@ -6,6 +6,7 @@
             "es6"
         ],
         "sourceMap": true,
+        "declaration": true,
         "moduleResolution": "node",
         "noImplicitAny": true,
         "rootDir": ".",
@@ -15,6 +16,7 @@
     },
     "exclude": [
         "node_modules",
-        ".vscode-test"
+        ".vscode-test",
+        "dist"
     ]
 }

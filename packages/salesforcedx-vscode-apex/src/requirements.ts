@@ -11,7 +11,7 @@ const expandHomeDir = require('expand-home-dir');
 const isWindows = process.platform.indexOf('win') === 0;
 const JAVAC_FILENAME = 'javac' + (isWindows ? '.exe' : '');
 
-interface RequirementsData {
+export interface RequirementsData {
     java_home: string;
 }
 
