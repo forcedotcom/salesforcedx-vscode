@@ -1,7 +1,8 @@
-tsconfig.json
-
 .vscode/**
-screenshots/**
-scripts/**
-src/**
+.vscode-test/**
 dist/test/**
+test/**
+src/**
+**/*.map
+.gitignore
+tsconfig.json
