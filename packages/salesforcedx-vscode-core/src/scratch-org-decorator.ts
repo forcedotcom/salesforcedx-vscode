@@ -2,33 +2,33 @@ import { window, workspace, StatusBarItem, StatusBarAlignment } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const CONFIG_FILE = (path.join(workspace.rootPath!, '.sfdx/sfdx-config.json'));
+const CONFIG_FILE = path.join(workspace.rootPath!, '.sfdx/sfdx-config.json');
 
 let statusBarItem: StatusBarItem;
 
 export function showOrg() {
-    if (!statusBarItem) {
-        statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
-        statusBarItem.command= 'sfdx.force.org.open';
-        statusBarItem.show();
-    }
-    displayDefaultUserName(CONFIG_FILE);
+  if (!statusBarItem) {
+    statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
+    statusBarItem.command = 'sfdx.force.org.open';
+    statusBarItem.show();
+  }
+  displayDefaultUserName(CONFIG_FILE);
 }
 
 export function monitorConfigChanges() {
-    let watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-    watcher.onDidChange(uri => {
-        displayDefaultUserName(uri.fsPath);
-    });
+  let watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
+  watcher.onDidChange(uri => {
+    displayDefaultUserName(uri.fsPath);
+  });
 }
 
 function displayDefaultUserName(configPath: string) {
-    fs.readFile(configPath, (err, data) => {
-        if (!err) {
-            const config = JSON.parse(data.toString());
-            if (config['defaultusername']) {
-                statusBarItem.text = `$(browser) ${config['defaultusername']}`;
-            }
-        }
-    });
+  fs.readFile(configPath, (err, data) => {
+    if (!err) {
+      const config = JSON.parse(data.toString());
+      if (config['defaultusername']) {
+        statusBarItem.text = `$(browser) ${config['defaultusername']}`;
+      }
+    }
+  });
 }
