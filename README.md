@@ -33,7 +33,7 @@ installed normally through npm.
    and from the launch configuration dropdown, pick "Launch Extensions".
 
 For more information, consult the VS Code
-(doc)[https://code.visualstudio.com/docs/extensions/debugging-extensions]
+[doc](https://code.visualstudio.com/docs/extensions/debugging-extensions)
 on how to run and debug extensions.
 
 Note: There are issues with source maps from running the extensions from
