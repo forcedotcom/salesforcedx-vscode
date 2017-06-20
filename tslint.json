@@ -1,0 +1,100 @@
+// From https://github.com/palantir/tslint/blob/master/docs/sample.tslint.json
+{
+    "rules": {
+        "class-name": true,
+        "curly": true,
+        "forin": true,
+        "jsdoc-format": true,
+        "label-position": true,
+        "member-access": true,
+        "new-parens": true,
+        "no-any": false,
+        "no-arg": true,
+        "no-bitwise": true,
+        "no-conditional-assignment": true,
+        "no-consecutive-blank-lines": false,
+        "no-console": [
+            true,
+            "debug",
+            "info",
+            "time",
+            "timeEnd",
+            "trace"
+        ],
+        "no-construct": true,
+        "no-debugger": true,
+        "no-duplicate-variable": true,
+        "no-empty": true,
+        "no-eval": true,
+        "no-inferrable-types": [
+            true,
+            "ignore-params"
+        ],
+        "no-internal-module": true,
+        "no-invalid-this": [
+            true,
+            "check-function-in-method"
+        ],
+        "no-shadowed-variable": true,
+        "no-switch-case-fall-through": true,
+        "no-trailing-whitespace": true,
+        "no-unused-expression": true,
+        "no-unused-variable": true,
+        "no-var-keyword": true,
+        "no-var-requires": true,
+        "one-line": [
+            true,
+            "check-open-brace",
+            "check-catch",
+            "check-else",
+            "check-finally",
+            "check-whitespace"
+        ],
+        "quotemark": [
+            true,
+            "single",
+            "avoid-escape"
+        ],
+        "semicolon": [
+            true,
+            "always"
+        ],
+        "triple-equals": [
+            true,
+            "allow-null-check",
+            "allow-undefined-check"
+        ],
+        "typedef-whitespace": [
+            true,
+            {
+                "call-signature": "nospace",
+                "index-signature": "nospace",
+                "parameter": "nospace",
+                "property-declaration": "nospace",
+                "variable-declaration": "nospace"
+            },
+            {
+                "call-signature": "space",
+                "index-signature": "space",
+                "parameter": "space",
+                "property-declaration": "space",
+                "variable-declaration": "space"
+            }
+        ],
+        "use-isnan": true,
+        "variable-name": [
+            true,
+            "check-format",
+            "allow-leading-underscore",
+            "ban-keywords"
+        ],
+        "whitespace": [
+            true,
+            "check-branch",
+            "check-decl",
+            "check-operator",
+            "check-separator",
+            "check-type"
+        ]
+    }
+}
