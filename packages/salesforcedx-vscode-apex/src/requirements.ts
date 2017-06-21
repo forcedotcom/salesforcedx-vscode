@@ -22,7 +22,7 @@ export interface RequirementsData {
  * Returns a promise that will resolve to a RequirementsData if all requirements are resolved.
  */
 export async function resolveRequirements(): Promise<RequirementsData> {
-  let javaHome = await checkJavaRuntime();
+  const javaHome = await checkJavaRuntime();
   await checkJavaVersion(javaHome);
   return Promise.resolve({ java_home: javaHome });
 }
