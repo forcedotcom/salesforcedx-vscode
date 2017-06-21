@@ -43,6 +43,16 @@ For more information, consult the VS Code
 [doc](https://code.visualstudio.com/docs/extensions/debugging-extensions) on how
 to run and debug extensions.
 
+When you are ready to commit
+
+1. Run `lerna run lint` to run tslint in more thorough mode to identify any
+   errors.
+1. Some of the items can be fixed using `tstlint --project . fix`. Some you
+   might need to fix them manually.
+
+This linting steps should be done later as part of the continuous integration
+runs but that is how you would check locally first.
+
 ## List of Useful commands
 
 ### `lerna bootstrap`
