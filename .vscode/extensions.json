@@ -9,6 +9,7 @@
 		"dbaeumer.vscode-eslint",
 		"eg2.tslint",
 		// Formatting
-		"esbenp.prettier-vscode"
+		"esbenp.prettier-vscode",
+		"stkb.rewrap"
 	]
 }
