@@ -25,7 +25,7 @@ export function forceOrgCreate() {
   channel.appendLine('force:org:create');
 
   vscode.workspace.findFiles('config/*.json', '').then(files => {
-    let fileItems: vscode.QuickPickItem[] = files.map(file => {
+    const fileItems: vscode.QuickPickItem[] = files.map(file => {
       return {
         label: path.basename(file.toString()),
         description: file.fsPath
@@ -34,8 +34,8 @@ export function forceOrgCreate() {
     vscode.window.showQuickPick(fileItems).then(selection => {
       if (selection) {
         status.showStatus('Creating org');
-        let rootPath = vscode.workspace.rootPath!;
-        let selectionPath = path.relative(
+        const rootPath = vscode.workspace.rootPath!;
+        const selectionPath = path.relative(
           rootPath,
           selection.description.toString()
         );
@@ -135,7 +135,7 @@ export function forceApexTestRun(testClass?: string) {
     );
   } else {
     vscode.workspace.findFiles('**/*.testSuite-meta.xml', '').then(files => {
-      let fileItems: vscode.QuickPickItem[] = files.map(file => {
+      const fileItems: vscode.QuickPickItem[] = files.map(file => {
         return {
           label: path
             .basename(file.toString())

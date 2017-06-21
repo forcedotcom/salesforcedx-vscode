@@ -7,31 +7,31 @@ import * as scratchOrgDecorator from './scratch-org-decorator';
 import * as commands from './commands';
 
 function registerCommands(): vscode.Disposable {
-  let forceAuthWebLoginCmd = vscode.commands.registerCommand(
+  const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     commands.forceAuthWebLogin
   );
-  let forceOrgCreateCmd = vscode.commands.registerCommand(
+  const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
     commands.forceOrgCreate
   );
-  let forceOrgOpenCmd = vscode.commands.registerCommand(
+  const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
     commands.forceOrgOpen
   );
-  let forceSourcePullCmd = vscode.commands.registerCommand(
+  const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
     commands.forceSourcePull
   );
-  let forceSourcePushCmd = vscode.commands.registerCommand(
+  const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
     commands.forceSourcePush
   );
-  let forceSourceStatusCmd = vscode.commands.registerCommand(
+  const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
     commands.forceSourceStatus
   );
-  let forceApexTestRunCmd = vscode.commands.registerCommand(
+  const forceApexTestRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.run',
     commands.forceApexTestRun
   );
