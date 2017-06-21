@@ -7,7 +7,6 @@ import * as requirements from './requirements';
 import {
   LanguageClient,
   LanguageClientOptions,
-  ServerOptions,
   StreamInfo
 } from 'vscode-languageclient';
 

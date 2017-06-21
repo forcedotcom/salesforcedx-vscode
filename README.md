@@ -78,3 +78,13 @@ This runs `npm test` on each of the packages. The `--concurrency 1` is
 essential for VS Code extension tests since they require an instance of
 Code to run in. And, only one instance of that can be running at a
 single time.
+
+### `lerna run lint`
+
+This runs `npm lint` on each of the packages. If there are no
+errors/warnings from tslint, then you get a clean output. But, if they
+are errors from tslint, you will see a long error that can be confusing
+– just focus on the tslint errors. The results of this is deeper than
+what the tslint extension in VS Code does because of [semantic lint
+rules](https://palantir.github.io/tslint/usage/type-checking/) which
+requires a tsconfig.json to be passed to tslint.

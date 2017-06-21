@@ -1,8 +1,5 @@
 import * as vscode from 'vscode';
-import * as child_process from 'child_process';
-import * as path from 'path';
-import * as net from 'net';
-import * as status from './status';
+
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import * as commands from './commands';
 
@@ -36,10 +33,12 @@ function registerCommands(): vscode.Disposable {
     commands.forceApexTestRun
   );
   return vscode.Disposable.from(
+    forceAuthWebLoginCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,
     forceSourcePushCmd,
+    forceSourceStatusCmd,
     forceApexTestRunCmd
   );
 }

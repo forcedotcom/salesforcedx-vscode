@@ -3,7 +3,7 @@ import * as child_process from 'child_process';
 import * as path from 'path';
 import * as status from './status';
 
-let channel = vscode.window.createOutputChannel('Salesforce');
+const channel = vscode.window.createOutputChannel('Salesforce');
 
 export function forceAuthWebLogin() {
   channel.appendLine('force:auth:web:login');

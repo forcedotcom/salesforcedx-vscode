@@ -1,17 +1,13 @@
 // From https://github.com/redhat-developer/vscode-java
 // Original version licensed under the Eclipse Public License (EPL)
 
-import { workspace, Uri } from 'vscode';
+import { workspace } from 'vscode';
 import * as cp from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+
 import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
-
-const isWindows = process.platform.indexOf('win') === 0;
-const JAVAC_FILENAME = 'javac' + (isWindows ? '.exe' : '');
 
 export interface RequirementsData {
   java_home: string;

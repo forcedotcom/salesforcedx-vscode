@@ -25,6 +25,7 @@
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -p ./",
+    "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "rm -rf node_modules && rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
