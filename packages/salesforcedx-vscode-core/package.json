@@ -1,4 +1,5 @@
 {
+  "preview": true,
   "name": "salesforcedx-vscode-core",
   "displayName": "SFDX CLI integration for Visual Studio Code",
   "description": "Provides integration with the SFDX CLI",
