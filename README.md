@@ -38,6 +38,8 @@ You would usually do the following each time you close/reopen VS Code:
    runs `lerna run --parallel watch`).
 1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac)
    and from the launch configuration dropdown, pick "Launch Extensions".
+1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac)
+   and from the launch configuration dropdown, pick "Launch * Tests".
 
 For more information, consult the VS Code
 [doc](https://code.visualstudio.com/docs/extensions/debugging-extensions)
@@ -64,9 +66,15 @@ This runs `npm run compile` on each of the package in packages.
 
 This run `npm run clean` on each of the package in packages.
 
-### `learn run --parallel watch`
+### `lerna run --parallel watch`
 
 This runs `npm run watch` on each of the package in packages. The
 `--parallel` flag tell it to run each in a separate process so that it
 won't block the main thread.
 
+### `lerna run test --concurrency 1`
+
+This runs `npm test` on each of the packages. The `--concurrency 1` is
+essential for VS Code extension tests since they require an instance of
+Code to run in. And, only one instance of that can be running at a
+single time.
