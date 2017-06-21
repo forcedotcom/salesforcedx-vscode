@@ -13,8 +13,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/packages/salesforce-vscode-apex/dist/src/**/*.js",
-                "${workspaceRoot}/packages/salesforce-vscode-core/dist/src/**/*.js"
+                "${workspaceRoot}/packages/*/dist/src/**/*.js"
             ],
             "preLaunchTask": "npm"
         }

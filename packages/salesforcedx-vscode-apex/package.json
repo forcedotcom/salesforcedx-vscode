@@ -29,7 +29,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./dist/src/salesforcedx",
+  "main": "./dist/src",
   "contributes": {
     "languages": [
       {

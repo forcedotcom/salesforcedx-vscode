@@ -36,10 +36,6 @@ For more information, consult the VS Code
 [doc](https://code.visualstudio.com/docs/extensions/debugging-extensions)
 on how to run and debug extensions.
 
-Note: There are issues with source maps from running the extensions from
-the root-level. Thus, you might need to set the breakpoints in the
-generated .js files instead of the .ts files.
-
 ## List of Useful commands
 
 ### `lerna bootstrap`
