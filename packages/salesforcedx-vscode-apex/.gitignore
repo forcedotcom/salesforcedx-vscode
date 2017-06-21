@@ -1,16 +1,4 @@
 #
-# TypeScript generated files
-#
-
-dist/
-
-#
-# Istanbul code coverage files
-#
-
-coverage/
-
-#
 # https://github.com/github/gitignore/blob/master/Node.gitignore
 #
 
@@ -54,3 +42,12 @@ jspm_packages
 
 # Generated vscode package
 *.vsix
+
+# VS Code tests
+.vscode-test/**
+
+# TypeScript generated files
+out/
+
+# Istanbul code coverage files
+coverage/

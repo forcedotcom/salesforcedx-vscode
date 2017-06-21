@@ -13,9 +13,41 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/packages/*/dist/src/**/*.js"
+                "${workspaceRoot}/packages/*/out/src/**/*.js"
             ],
-            "preLaunchTask": "npm"
+            "preLaunchTask": "Watch"
+        },
+        {
+            "name": "Launch SalesforceDX VS Code Core Tests",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}/packages",
+                "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-core/out/test"
+            ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/packages/*/out/test/**/*.js"
+            ],
+            "preLaunchTask": "Watch"
+        },
+        {
+            "name": "Launch SalesforceDX VS Code Apex Tests",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}/packages",
+                "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test"
+            ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/packages/*/out/test/**/*.js"
+            ],
+            "preLaunchTask": "Watch"
         }
     ]
 }

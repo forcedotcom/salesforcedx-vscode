@@ -1,6 +1,6 @@
 .vscode/**
 .vscode-test/**
-dist/test/**
+out/test/**
 test/**
 src/**
 **/*.map

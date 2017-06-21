@@ -5,12 +5,14 @@
 1. This repository uses [Lerna](https://lernajs.io/) to manage it as a
    _monorepo_.  Please install Lerna globally using `npm install
 --global lerna`.
+1. We use `tslint` so please install it using `npm install --global
+   tslint`.
 1. It is preferred, though not required, that you use the Insiders
    version of VS Code from
 [here](https://code.visualstudio.com/insiders).
 1. There is a list of recommended extensions for this workspace in
    .vscode/extensions.json. The first time you open VS Code on this
-workspace, it will ask you to install them. **Please do so since it
+workspace, it will ask you to install them. **Please do so since this
 includes the linters and formatters**.
 
 ## Structure
@@ -27,8 +29,13 @@ installed normally through npm.
 1. Clone this repository from git.
 1. `cd` into `salesforcedx-vscode`.
 1. Open the project in VS Code.
-1. `lerna bootstrap`.
-1. `lerna run --parallel watch`.
+
+You would usually do the following each time you close/reopen VS Code:
+
+1. Open the Command Palette > Tasks: Run Task > Bootstrap  (this
+   essentially runs `lerna bootstrap`).
+1. Open the Command Palette > Tasks: Run Task > Watch (this essentially
+   runs `lerna run --parallel watch`).
 1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac)
    and from the launch configuration dropdown, pick "Launch Extensions".
 

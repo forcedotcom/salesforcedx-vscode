@@ -13,7 +13,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/dist/src/**/*.js"
+                "${workspaceRoot}/out/src/**/*.js"
             ],
             "preLaunchTask": "npm"
         },
@@ -24,12 +24,12 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceRoot}",
-                "--extensionTestsPath=${workspaceRoot}/dist/test"
+                "--extensionTestsPath=${workspaceRoot}/out/test"
             ],
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/dist/test/**/*.js"
+                "${workspaceRoot}/out/test/**/*.js"
             ],
             "preLaunchTask": "npm"
         }

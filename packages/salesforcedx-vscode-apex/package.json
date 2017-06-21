@@ -13,9 +13,11 @@
     "Languages"
   ],
   "devDependencies": {
+    "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
+    "chai": "^4.0.2",
     "mocha": "3.2.0",
     "typescript": "2.3.4",
     "vscode": "1.1.0"
@@ -24,13 +26,14 @@
     "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p .",
-    "clean": "rm -rf node_modules && rm -rf dist",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "clean": "rm -rf node_modules && rm -rf out",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./dist/src",
+  "main": "./out/src",
   "contributes": {
     "languages": [
       {
