@@ -32,7 +32,15 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json"
+    "workspaceContains:sfdx-project.json",
+    "onCommand:sfdx.force.auth.web.login",
+    "onCommand:sfdx.force.org.create",
+    "onCommand:sfdx.force.org.open",
+    "onCommand:sfdx.force.source.pull",
+    "onCommand:sfdx.force.source.push",
+    "onCommand:sfdx.force.source.status",
+    "onCommand:sfdx.force.source.status",
+    "onCommand:sfdx.force.apex.test.run"
   ],
   "main": "./out/src",
   "contributes": {
