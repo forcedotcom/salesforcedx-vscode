@@ -14,6 +14,15 @@ describe('CommandBuilder tests', () => {
       expect(actual.command).to.equal('sfdx');
     });
 
+    it('Should store the description', () => {
+      const actual = new CommandBuilder('sfdx')
+        .withDescription('Runs the sfdx top-level command')
+        .build();
+
+      expect(actual.command).to.equal('sfdx');
+      expect(actual.description).to.equal('Runs the sfdx top-level command');
+    });
+
     it('Should store the command arg', () => {
       const actual = new CommandBuilder('sfdx')
         .withArg('force:org:display')

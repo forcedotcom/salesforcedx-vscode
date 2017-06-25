@@ -5,6 +5,7 @@ export class Command {
 
   public constructor(builder: CommandBuilder) {
     this.command = builder.command;
+    this.description = builder.description;
     this.args = builder.args;
   }
 }
