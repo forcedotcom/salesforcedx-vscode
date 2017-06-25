@@ -10,6 +10,8 @@
 		"eg2.tslint",
 		// Formatting
 		"esbenp.prettier-vscode",
-		"stkb.rewrap"
+		"stkb.rewrap",
+		// Testing
+		"spoonscen.es6-mocha-snippets"
 	]
 }
