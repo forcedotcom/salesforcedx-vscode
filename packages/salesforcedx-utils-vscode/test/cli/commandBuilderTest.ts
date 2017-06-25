@@ -1,10 +1,6 @@
 import { expect } from 'chai';
 
-import {
-  Command,
-  CommandBuilder,
-  SfdxCommandBuilder
-} from '../../../src/impl/cli';
+import { Command, CommandBuilder, SfdxCommandBuilder } from '../../src/';
 
 describe('CommandBuilder tests', () => {
   describe('CommandBuilder initialization', () => {
