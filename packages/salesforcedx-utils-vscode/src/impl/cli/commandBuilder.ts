@@ -37,3 +37,9 @@ export class CommandBuilder {
     return new Command(this);
   }
 }
+
+export class SfdxCommandBuilder extends CommandBuilder {
+  public constructor() {
+    super('sfdx');
+  }
+}

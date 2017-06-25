@@ -1,9 +1,13 @@
 import { expect } from 'chai';
 
-import { Command, CommandBuilder } from '../../../src/impl/cli';
+import {
+  Command,
+  CommandBuilder,
+  SfdxCommandBuilder
+} from '../../../src/impl/cli';
 
-describe('Command Builder Tests', () => {
-  describe('Command Builder Initialization', () => {
+describe('CommandBuilder tests', () => {
+  describe('CommandBuilder initialization', () => {
     it('Should store the command string', () => {
       const actual = new CommandBuilder('sfdx').build();
 
@@ -41,6 +45,21 @@ describe('Command Builder Tests', () => {
         '--targetusername',
         'someOrg'
       ]);
+    });
+
+    describe('SfdxCommandBuilder initialization', () => {
+      it('Should have the sfdx command by default', () => {
+        const actual = new SfdxCommandBuilder()
+          .withArg('force:org:display')
+          .withFlag('--targetusername', 'someOrg');
+
+        expect(actual.command).to.equal('sfdx');
+        expect(actual.args).to.eql([
+          'force:org:display',
+          '--targetusername',
+          'someOrg'
+        ]);
+      });
     });
   });
 });
