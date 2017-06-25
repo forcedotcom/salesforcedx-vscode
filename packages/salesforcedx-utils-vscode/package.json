@@ -26,5 +26,5 @@
     "watch": "tsc -watch -p .",
     "clean": "rm -rf node_modules && rm -rf out"
   },
-  "main": "./out/src"
+  "main": "./out/src/"
 }

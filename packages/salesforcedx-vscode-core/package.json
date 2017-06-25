@@ -12,6 +12,9 @@
   "categories": [
     "Other"
   ],
+  "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "0.1.0"
+  },
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
