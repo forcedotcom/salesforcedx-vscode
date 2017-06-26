@@ -3,6 +3,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node",
+            "request": "attach",
+            "protocol": "legacy",
+            "name": "Attach to Process (Legacy Protocol)",
+            "port": 5858,
+            "sourceMaps": true,
+            "outFiles": [
+                "${workspaceRoot}/packages/*/out/**/*.js"
+            ]
+        },
+        {
             "name": "Launch Extensions",
             "type": "extensionHost",
             "request": "launch",
@@ -29,7 +40,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/packages/*/out/test/**/*.js"
+                "${workspaceRoot}/packages/*/out/**/*.js"
             ],
             "preLaunchTask": "Watch"
         },
@@ -45,7 +56,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/packages/*/out/test/**/*.js"
+                "${workspaceRoot}/packages/*/out/**/*.js"
             ],
             "preLaunchTask": "Watch"
         }

@@ -19,6 +19,7 @@
     "@types/path-exists": "^1.0.29",
     "chai": "^4.0.2",
     "mocha": "3.2.0",
+    "nyc": "^11.0.2",
     "typescript": "2.3.4",
     "vscode": "1.1.0"
   },

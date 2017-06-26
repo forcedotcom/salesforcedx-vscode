@@ -56,7 +56,11 @@ export class CommandExecution {
       const timer = Observable.interval(1000);
       timerSubscriber = timer.subscribe(next => {
         if (cancellationToken.isCancellationRequested) {
-          childProcess.kill();
+          try {
+            childProcess.kill();
+          } catch (e) {
+            // This is best effort, by the time we get here, the process might have been killed.
+          }
         }
       });
     }
