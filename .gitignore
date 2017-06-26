@@ -1,5 +1,10 @@
+#
+# https://github.com/github/gitignore/blob/master/Node.gitignore
+#
+
 # TypeScript generated files
 dist/
+out/
 
 # Logs
 logs
@@ -40,9 +45,6 @@ build/Release
 node_modules/
 jspm_packages/
 
-# Typescript v1 declaration files
-typings/
-
 # Optional npm cache directory
 .npm
 
@@ -60,3 +62,9 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# Generated vscode package
+*.vsix
+
+# VS Code tests
+.vscode-test/**
