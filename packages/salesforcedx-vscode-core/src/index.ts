@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import * as commands from './commands';
-import * as utils from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 function registerCommands(): vscode.Disposable {
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
@@ -45,8 +44,6 @@ function registerCommands(): vscode.Disposable {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const a = new utils.CommandBuilder('a');
-
   console.log('SFDX CLI Extension Activated');
   const commands = registerCommands();
   context.subscriptions.push(commands);
