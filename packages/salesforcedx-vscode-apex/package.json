@@ -1,6 +1,6 @@
 {
   "preview": true,
-  "name": "salesforcedx-vscode-apex",
+  "name": "@package/salesforcedx-vscode-apex",
   "displayName": "Apex Code Editor for Visual Studio Code",
   "description": "Provides code-completion for the Apex programming language",
   "version": "0.1.0",
