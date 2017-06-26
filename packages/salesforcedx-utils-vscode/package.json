@@ -20,11 +20,11 @@
     "typescript": "2.3.4"
   },
   "scripts": {
-    "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "rm -rf node_modules && rm -rf out"
+    "clean": "rm -rf node_modules && rm -rf out",
+    "test": "node ./node_modules/.bin/_mocha --recursive out/test"
   },
   "main": "./out/src/"
 }
