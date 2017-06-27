@@ -32,6 +32,10 @@ You would usually do the following each time you close/reopen VS Code:
 
 1. Open the Command Palette > Tasks: Run Task > Bootstrap  (this essentially
    runs `lerna bootstrap`).
+1. If you wish to build, you can invoke Command Palette > Build Task
+   (Ctrl+Shift+B or Cmd+Shift+B on Mac). The errors will show in the Problems
+   panel. There is a known issue with the mapping so clicking on the error won't
+   open the file.
 1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac) and from
    the launch configuration dropdown, pick "Launch Extensions".
 1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac) and from
