@@ -31,6 +31,18 @@
             ],
             "isBackground": true,
             "problemMatcher": "$tsc-watch"
+        },
+        {
+            "taskName": "Compile",
+            "command": "lerna",
+            "isShellCommand": true,
+            "showOutput": "silent",
+            "args": [
+                "run",
+                "compile"
+            ],
+            "isBackground": false,
+            "problemMatcher": "$tsc-watch"
         }
     ]
 }

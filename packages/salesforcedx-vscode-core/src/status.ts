@@ -7,7 +7,7 @@ export function showStatus(status: string) {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, -10);
   }
-  statusBarItem.text = `$(beaker) ${status}`;
+  statusBarItem.text = `$(clock) ${status}`;
   statusTimer = setInterval(
     () => (statusBarItem.text = statusBarItem.text + '.'),
     1000

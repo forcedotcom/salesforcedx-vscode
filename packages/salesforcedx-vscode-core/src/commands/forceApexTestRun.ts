@@ -1,0 +1,91 @@
+import * as path from 'path';
+import * as vscode from 'vscode';
+import {
+  CliCommandExecutor,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { streamCommandOutput } from '../channels';
+import { reportExecutionStatus } from '../notifications';
+import { CancellableStatusBar } from '../statuses';
+
+export function forceApexTestRun(testClass?: string) {
+  if (testClass) {
+    runTestClass(testClass);
+  } else {
+    vscode.workspace.findFiles('**/*.testSuite-meta.xml', '').then(files => {
+      const fileItems: vscode.QuickPickItem[] = files.map(file => {
+        return {
+          label: path
+            .basename(file.toString())
+            .replace('.testSuite-meta.xml', ''),
+          description: file.fsPath
+        };
+      });
+
+      fileItems.push({
+        label: 'All tests',
+        description: 'Runs all tests in the current workspace'
+      });
+
+      vscode.window.showQuickPick(fileItems).then(selection => {
+        if (selection) {
+          if (selection.label === 'All tests') {
+            runAllTests();
+          } else {
+            runTestSuite(selection.label);
+          }
+        }
+      });
+    });
+  }
+}
+
+function runTestClass(testClass: string) {
+  const cancellationTokenSource = new vscode.CancellationTokenSource();
+  const cancellationToken = cancellationTokenSource.token;
+  const execution = new CliCommandExecutor(
+    new SfdxCommandBuilder()
+      .withArg('force:apex:test:run')
+      .withFlag('--classnames', `${testClass}`)
+      .withFlag('--resultformat', 'human')
+      .build(),
+    { cwd: vscode.workspace.rootPath }
+  ).execute(cancellationToken);
+
+  streamCommandOutput(execution);
+  reportExecutionStatus(execution, cancellationToken);
+  CancellableStatusBar.show(execution, cancellationTokenSource);
+}
+
+function runAllTests() {
+  const cancellationTokenSource = new vscode.CancellationTokenSource();
+  const cancellationToken = cancellationTokenSource.token;
+  const execution = new CliCommandExecutor(
+    new SfdxCommandBuilder()
+      .withArg('force:apex:test:run')
+      .withFlag('--resultformat', 'human')
+      .build(),
+    { cwd: vscode.workspace.rootPath }
+  ).execute(cancellationToken);
+
+  streamCommandOutput(execution);
+  reportExecutionStatus(execution, cancellationToken);
+  CancellableStatusBar.show(execution, cancellationTokenSource);
+}
+
+function runTestSuite(testSuiteName: string) {
+  const cancellationTokenSource = new vscode.CancellationTokenSource();
+  const cancellationToken = cancellationTokenSource.token;
+  const execution = new CliCommandExecutor(
+    new SfdxCommandBuilder()
+      .withArg('force:apex:test:run')
+      .withFlag('--suitenames', `${testSuiteName}`)
+      .withFlag('--resultformat', 'human')
+      .build(),
+    { cwd: vscode.workspace.rootPath }
+  ).execute(cancellationToken);
+
+  streamCommandOutput(execution);
+  reportExecutionStatus(execution, cancellationToken);
+  CancellableStatusBar.show(execution, cancellationTokenSource);
+}

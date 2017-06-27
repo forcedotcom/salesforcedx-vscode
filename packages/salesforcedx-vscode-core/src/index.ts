@@ -1,37 +1,54 @@
 import * as vscode from 'vscode';
 
 import * as scratchOrgDecorator from './scratch-org-decorator';
-import * as commands from './commands';
+import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
+import {
+  forceApexTestRun,
+  forceAuthWebLogin,
+  forceOrgCreate,
+  forceOrgOpen,
+  forceSourcePull,
+  forceSourcePush,
+  forceSourceStatus
+} from './commands';
 
 function registerCommands(): vscode.Disposable {
+  // Customer-facing commands
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
-    commands.forceAuthWebLogin
+    forceAuthWebLogin
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
-    commands.forceOrgCreate
+    forceOrgCreate
   );
   const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
-    commands.forceOrgOpen
+    forceOrgOpen
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
-    commands.forceSourcePull
+    forceSourcePull
   );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
-    commands.forceSourcePush
+    forceSourcePush
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
-    commands.forceSourceStatus
+    forceSourceStatus
   );
   const forceApexTestRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.run',
-    commands.forceApexTestRun
+    forceApexTestRun
   );
+
+  // Internal commands
+  const internalCancelCommandExecution = vscode.commands.registerCommand(
+    CANCEL_EXECUTION_COMMAND,
+    cancelCommandExecution
+  );
+
   return vscode.Disposable.from(
     forceAuthWebLoginCmd,
     forceOrgCreateCmd,
@@ -39,7 +56,8 @@ function registerCommands(): vscode.Disposable {
     forceSourcePullCmd,
     forceSourcePushCmd,
     forceSourceStatusCmd,
-    forceApexTestRunCmd
+    forceApexTestRunCmd,
+    internalCancelCommandExecution
   );
 }
 

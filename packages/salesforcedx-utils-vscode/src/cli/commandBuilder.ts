@@ -8,6 +8,12 @@ export class Command {
     this.description = builder.description;
     this.args = builder.args;
   }
+
+  public toString(): string {
+    return this.description
+      ? this.description
+      : `${this.command} ${this.args.join(' ')}`;
+  }
 }
 
 export class CommandBuilder {

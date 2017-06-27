@@ -26,7 +26,7 @@
             "outFiles": [
                 "${workspaceRoot}/packages/*/out/src/**/*.js"
             ],
-            "preLaunchTask": "Watch"
+            "preLaunchTask": "Compile"
         },
         {
             "name": "Launch SalesforceDX VS Code Core Tests",
@@ -42,7 +42,7 @@
             "outFiles": [
                 "${workspaceRoot}/packages/*/out/**/*.js"
             ],
-            "preLaunchTask": "Watch"
+            "preLaunchTask": "Compile"
         },
         {
             "name": "Launch SalesforceDX VS Code Apex Tests",
@@ -58,7 +58,7 @@
             "outFiles": [
                 "${workspaceRoot}/packages/*/out/**/*.js"
             ],
-            "preLaunchTask": "Watch"
+            "preLaunchTask": "Compile"
         }
     ]
 }
