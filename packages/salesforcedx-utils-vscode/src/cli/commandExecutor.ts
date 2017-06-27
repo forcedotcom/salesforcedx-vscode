@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 
-const kill = require('tree-kill');
+import kill = require('tree-kill');
 
 import { Command } from './';
 
