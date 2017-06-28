@@ -9,9 +9,7 @@
   "engines": {
     "vscode": "^1.10.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "0.1.0",
     "vscode-nls": "^2.0.2"

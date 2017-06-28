@@ -9,9 +9,25 @@
   "engines": {
     "vscode": "^1.10.0"
   },
-  "categories": [
-    "Languages"
-  ],
+  "categories": ["Languages"],
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "chai": "^4.0.2",
+    "mocha": "3.2.0",
+    "typescript": "2.3.4",
+    "vscode": "1.1.0"
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean": "rm -rf node_modules && rm -rf out",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
+  },
   "contributes": {
     "languages": [
       {
