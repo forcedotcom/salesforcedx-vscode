@@ -1,0 +1,31 @@
+{
+  "preview": true,
+  "name": "@salesforce/salesforcedx-vscode-lightning",
+  "displayName": "Lightning Code Editor for Visual Studio Code",
+  "description": "Provides syntax highlighting for Lightning framework",
+  "version": "0.1.0",
+  "publisher": "salesforce",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.10.0"
+  },
+  "categories": [
+    "Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "html",
+        "extensions": [
+          ".app",
+          ".cmp",
+          ".design",
+          ".evt",
+          ".intf",
+          ".auradoc",
+          ".tokens"
+        ]
+      }
+    ]
+  }
+}

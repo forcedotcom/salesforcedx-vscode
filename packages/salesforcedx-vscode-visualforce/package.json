@@ -1,0 +1,26 @@
+{
+  "preview": true,
+  "name": "@salesforce/salesforcedx-vscode-visualforce",
+  "displayName": "Visualforce Code Editor for Visual Studio Code",
+  "description": "Provides syntax highlighting for Visualforce framework",
+  "version": "0.1.0",
+  "publisher": "salesforce",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.10.0"
+  },
+  "categories": [
+    "Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "html",
+        "extensions": [
+          ".page",
+          ".component"
+        ]
+      }
+    ]
+  }
+}
