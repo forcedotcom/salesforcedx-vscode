@@ -35,6 +35,7 @@ before_install:
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
       # install CLI
+      echo Installing SFDX CLI
     fi
 
 install:
