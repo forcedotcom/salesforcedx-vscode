@@ -41,4 +41,4 @@ install:
 script:
   - lerna run compile
   - lerna run lint
-  - lerna run test --concurrency 1
+  #- lerna run test --concurrency 1
