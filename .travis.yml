@@ -1,0 +1,29 @@
+language: node_js
+
+sudo: false
+
+node_js:
+  - "6"
+  - "7"
+
+cache:
+  directories:
+    - node_modules
+    - $HOME/.npm
+
+notifications:
+  email: false
+
+matrix:
+  fast_finish: true
+
+os:
+  - osx
+  - linux
+
+install:
+  - npm i -g npm@^2.0.0
+  - npm install lerna@2.0.0-rc.4
+
+script:
+  - npm test
