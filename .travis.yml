@@ -4,7 +4,7 @@ sudo: false
 
 node_js:
   - "6"
-  - "7"
+#  - "7"
 
 cache:
   directories:
@@ -19,11 +19,12 @@ matrix:
 
 os:
   - osx
-  - linux
+#  - linux
 
 install:
-  - npm i -g npm@^2.0.0
-  - npm install lerna@2.0.0-rc.4
+  - npm install
 
 script:
-  - npm test
+  - lerna run compile
+  - lerna run lint
+  - lerna run test --concurrency 1

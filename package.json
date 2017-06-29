@@ -1,5 +1,12 @@
 {
   "devDependencies": {
     "lerna": "^2.0.0-rc.5"
+  },
+  "scripts": {
+    "postinstall": "lerna bootstrap"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forcedotcom/salesforcedx-vscode.git"
   }
 }
