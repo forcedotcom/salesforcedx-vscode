@@ -17,15 +17,22 @@ notifications:
 matrix:
   fast_finish: true
 
+env:
+- SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+- SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
+
 os:
-  - osx
-#  - linux
+#  - osx
+  - linux
 
 before_install:
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
       export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
       sh -e /etc/init.d/xvfb start;
       sleep 3;
+    fi
+  - if [ $TRAVIS_OS_NAME == "osx" ]; then
+      # need to install package
     fi
 
 install:
