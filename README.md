@@ -1,4 +1,6 @@
-# Salesforce Development Tools for Visual Studio Code
+# Salesforce Development Tools for Visual Studio Code 
+
+[![Build Status](https://travis-ci.com/forcedotcom/salesforcedx-vscode.svg?token=CS8GSGJmGgyJRoKddVL6&branch=master)](https://travis-ci.com/forcedotcom/salesforcedx-vscode)
 
 ## Pre-requisites
 
