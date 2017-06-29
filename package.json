@@ -1,6 +1,8 @@
 {
   "devDependencies": {
-    "lerna": "^2.0.0-rc.5"
+    "lerna": "^2.0.0-rc.5",
+    "typescript": "^2.4.0",
+    "tslint": "^5.4.0"
   },
   "scripts": {
     "postinstall": "lerna bootstrap"
@@ -8,5 +10,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forcedotcom/salesforcedx-vscode.git"
+  },
+  "dependencies": {
+    "typescript": "^2.4.1"
   }
 }
