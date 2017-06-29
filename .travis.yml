@@ -18,8 +18,8 @@ matrix:
   fast_finish: true
 
 env:
-- SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
-- SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
+  - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+  - SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
 
 os:
 #  - osx
@@ -27,11 +27,9 @@ os:
 
 before_install:
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      # start framebuffer for UI tests
       export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
       sh -e /etc/init.d/xvfb start;
       sleep 3;
-      # install CLI
     fi
   - if [ $TRAVIS_OS_NAME == "osx" ]; then
       # install CLI
@@ -43,4 +41,4 @@ install:
 script:
   - lerna run compile
   - lerna run lint
-  #- lerna run test --concurrency 1
+# - lerna run test --concurrency 1
