@@ -18,8 +18,9 @@ matrix:
   fast_finish: true
 
 env:
-  - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
-  - SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
+  global:
+    - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+    - SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
 
 os:
   - linux
