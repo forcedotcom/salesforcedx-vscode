@@ -1,8 +1,13 @@
 {
   "preview": true,
-  "name": "@salesforce/salesforcedx-vscode-core",
+  "name": "salesforcedx-vscode-core",
   "displayName": "SFDX CLI integration for Visual Studio Code",
   "description": "Provides integration with the SFDX CLI",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
   "version": "0.1.0",
   "publisher": "salesforce",
   "license": "MIT",
