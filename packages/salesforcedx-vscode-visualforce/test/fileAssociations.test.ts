@@ -12,12 +12,12 @@ async function matchExtensionAsHtml(extension: string) {
   );
 }
 
-suite('Extension tests', () => {
-  test('.page association', async () => {
+describe('Visualforce file association', () => {
+  it('Should support .page association', async () => {
     matchExtensionAsHtml('.page');
   });
 
-  test('.component association', async () => {
+  it('Should support .component association', async () => {
     matchExtensionAsHtml('.component');
   });
 });
