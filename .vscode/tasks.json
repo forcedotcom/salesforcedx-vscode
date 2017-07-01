@@ -1,61 +1,44 @@
-// Available variables which can be used inside of strings.
-// ${workspaceRoot}: the root folder of the team
-// ${file}: the current opened file
-// ${fileBasename}: the current opened file's basename
-// ${fileDirname}: the current opened file's dirname
-// ${fileExtname}: the current opened file's extension
-// ${cwd}: the current working directory of the spawned process
 {
-    "version": "0.1.0",
-    "problemMatcher": "$tsc-watch",
-    "tasks": [
-        {
-            "taskName": "Bootstrap",
-            "command": "lerna",
-            "isShellCommand": true,
-            "showOutput": "silent",
-            "args": [
-                "bootstrap"
-            ],
-            "isBackground": false
-        },
-        {
-            "taskName": "Watch",
-            "command": "lerna",
-            "isShellCommand": true,
-            "showOutput": "silent",
-            "args": [
-                "run",
-                "--parallel",
-                "watch"
-            ],
-            "isBackground": true,
-            "problemMatcher": "$tsc-watch"
-        },
-        {
-            "isBuildCommand": true,
-            "taskName": "Compile",
-            "command": "lerna",
-            "isShellCommand": true,
-            "showOutput": "silent",
-            "args": [
-                "run",
-                "--stream",
-                "compile"
-            ],
-            "isBackground": false,
-            "problemMatcher": {
-                "owner": "typescript",
-                "fileLocation": "relative",
-                "pattern": {
-                    "regexp": "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
-                    "file": 2,
-                    "line": 3,
-                    "severity": 5,
-                    "code": 6,
-                    "message": 7
-                }
-            }
+  "version": "0.1.0",
+  "problemMatcher": "$tsc-watch",
+  "tasks": [
+    {
+      "taskName": "Bootstrap",
+      "command": "lerna",
+      "isShellCommand": true,
+      "showOutput": "silent",
+      "args": ["bootstrap"],
+      "isBackground": false
+    },
+    {
+      "taskName": "Watch",
+      "command": "lerna",
+      "isShellCommand": true,
+      "showOutput": "silent",
+      "args": ["run", "--parallel", "watch"],
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch"
+    },
+    {
+      "isBuildCommand": true,
+      "taskName": "Compile",
+      "command": "lerna",
+      "isShellCommand": true,
+      "showOutput": "silent",
+      "args": ["run", "--stream", "compile"],
+      "isBackground": false,
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "file": 2,
+          "line": 3,
+          "severity": 5,
+          "code": 6,
+          "message": 7
         }
-    ]
+      }
+    }
+  ]
 }

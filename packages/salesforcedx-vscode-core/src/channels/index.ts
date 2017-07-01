@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
+import { get } from '../messages';
 
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 export const DEFAULT_SFDX_CHANNEL = vscode.window.createOutputChannel(
-  'SalesforceDX - CLI'
+  get('channel_name')
 );
 
 export function streamCommandOutput(execution: CommandExecution) {
-  DEFAULT_SFDX_CHANNEL.append('Starting ');
+  DEFAULT_SFDX_CHANNEL.append(get('channel_starting_message'));
   DEFAULT_SFDX_CHANNEL.appendLine(execution.command.toString());
   DEFAULT_SFDX_CHANNEL.appendLine('');
 
@@ -20,8 +21,12 @@ export function streamCommandOutput(execution: CommandExecution) {
 
   execution.processExitSubject.subscribe(data => {
     DEFAULT_SFDX_CHANNEL.append(execution.command.toString());
-    DEFAULT_SFDX_CHANNEL.appendLine(
-      'ended' + data == null ? ` with exit code ${data.toString()}` : ''
-    );
+    if (data) {
+      DEFAULT_SFDX_CHANNEL.appendLine(
+        get('channel_end_with_exit_code', data.toString())
+      );
+    } else {
+      DEFAULT_SFDX_CHANNEL.appendLine(get('channel_end'));
+    }
   });
 }

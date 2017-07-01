@@ -12,32 +12,32 @@ async function matchExtensionAsHtml(extension: string) {
   );
 }
 
-suite('Extension tests', () => {
-  test('.app association', async () => {
+describe('Lightning file association', () => {
+  it('Should support .app association', async () => {
     matchExtensionAsHtml('.app');
   });
 
-  test('.cmp association', async () => {
+  it('Should support .cmp association', async () => {
     matchExtensionAsHtml('.cmp');
   });
 
-  test('.design association', async () => {
+  it('Should support .design association', async () => {
     matchExtensionAsHtml('.design');
   });
 
-  test('.evt association', async () => {
+  it('Should support .evt association', async () => {
     matchExtensionAsHtml('.evt');
   });
 
-  test('.intf association', async () => {
+  it('Should support.intf association', async () => {
     matchExtensionAsHtml('.intf');
   });
 
-  test('.auradoc association', async () => {
+  it('Should support .auradoc association', async () => {
     matchExtensionAsHtml('.auradoc');
   });
 
-  test('.tokens association', async () => {
+  it('Should support .tokens association', async () => {
     matchExtensionAsHtml('.tokens');
   });
 });
