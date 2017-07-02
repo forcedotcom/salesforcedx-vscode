@@ -1,8 +1,13 @@
 {
   "preview": true,
-  "name": "@salesforce/salesforcedx-vscode-apex",
+  "name": "salesforcedx-vscode-apex",
   "displayName": "Apex Code Editor for Visual Studio Code",
   "description": "Provides code-completion for the Apex programming language",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
   "version": "0.1.0",
   "publisher": "salesforce",
   "license": "MIT",

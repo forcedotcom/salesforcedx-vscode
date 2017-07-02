@@ -1,3 +1,3 @@
 ## Introduction
 
-This is the Apex Language Server for Visual Studio Code.
+This is the Apex extension for Visual Studio Code.

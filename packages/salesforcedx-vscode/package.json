@@ -1,0 +1,24 @@
+{
+  "preview": true,
+  "name": "salesforcedx-vscode",
+  "displayName": "Visual Studio Code Extension Pack for Salesforce DX",
+  "description": "Collection of extension for Salesforce DX",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "0.1.0",
+  "publisher": "salesforce",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.10.0"
+  },
+  "categories": ["Extension Packs"],
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-lightning",
+    "salesforce.salesforcedx-vscode-visualforce"
+  ]
+}
