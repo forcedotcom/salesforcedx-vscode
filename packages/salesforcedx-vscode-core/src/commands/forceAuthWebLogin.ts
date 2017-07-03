@@ -3,8 +3,8 @@ import {
   CliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { streamCommandOutput } from '../channels';
-import { reportExecutionStatus } from '../notifications';
+import { channelService } from '../channels';
+import { notificationService } from '../notifications';
 import { CancellableStatusBar } from '../statuses';
 
 export function forceAuthWebLogin() {
@@ -19,7 +19,10 @@ export function forceAuthWebLogin() {
     { cwd: vscode.workspace.rootPath }
   ).execute(cancellationTokenSource.token);
 
-  streamCommandOutput(execution);
-  reportExecutionStatus(execution, cancellationToken);
+  channelService.streamCommandOutput(execution);
+  notificationService.reportCommandExecutionStatus(
+    execution,
+    cancellationToken
+  );
   CancellableStatusBar.show(execution, cancellationTokenSource);
 }

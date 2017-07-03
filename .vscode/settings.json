@@ -1,14 +1,19 @@
-// Place your settings in this file to overwrite default and user settings.
 {
-    "files.exclude": {
-        "out": false // set this to true to hide the "out" folder with the compiled JS files
-    },
-    "search.exclude": {
-        "out": true // set this to false to include "out" folder in search results
-    },
-    "typescript.tsdk": "./node_modules/typescript/lib",
-    "editor.tabSize": 2,
-    "editor.formatOnSave": true,
-    "prettier.singleQuote": true,
-    "rewrap.wrappingColumn": 80
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/.vscode-test": true
+  },
+  "search.exclude": {
+    "**/out": true
+  },
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "prettier.singleQuote": true,
+  "rewrap.wrappingColumn": 80,
+  "typescript.check.tscVersion": false
 }

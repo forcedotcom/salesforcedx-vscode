@@ -2,7 +2,7 @@ import util = require('util');
 
 const locale = 'en_US';
 
-export let get = function(label: string, ...args: any[]): string {
+export let localize = function(label: string, ...args: any[]): string {
   if (!messages[locale]) {
     throw new Error("Locale '" + locale + "' doesn't exist");
   }
@@ -39,6 +39,11 @@ const messages: Messages = {
     channel_name: 'SalesforceDX CLI',
     channel_starting_message: 'Starting ',
     channel_end_with_exit_code: 'ended with exit code %s',
-    channel_end: 'ended'
+    channel_end: 'ended',
+
+    notification_successful_execution_message: 'Successfully executed %s',
+    notification_canceled_execution_message: '%s canceled',
+    notification_unsuccessful_execution_message: 'Failed to execute %s',
+    notification_show_button_text: 'Show'
   }
 };

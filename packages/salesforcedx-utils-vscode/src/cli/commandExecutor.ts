@@ -35,7 +35,7 @@ export class CliCommandExecutor {
 export class CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
-  public readonly processExitSubject: Observable<number | string>;
+  public readonly processExitSubject: Observable<number | string | null>;
   public readonly stdoutSubject: Observable<Buffer | string>;
   public readonly stderrSubject: Observable<Buffer | string>;
 
@@ -50,7 +50,10 @@ export class CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
-    this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
+    this.processExitSubject = Observable.fromEvent(
+      childProcess,
+      'exit'
+    ) as Observable<number | string | null>;
     this.processExitSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
