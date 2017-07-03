@@ -4,8 +4,8 @@ import {
   CliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { streamCommandOutput } from '../channels';
-import { reportExecutionStatus } from '../notifications';
+import { channelService } from '../channels';
+import { notificationService } from '../notifications';
 import { CancellableStatusBar } from '../statuses';
 
 export function forceApexTestRun(testClass?: string) {
@@ -52,8 +52,11 @@ function runTestClass(testClass: string) {
     { cwd: vscode.workspace.rootPath }
   ).execute(cancellationToken);
 
-  streamCommandOutput(execution);
-  reportExecutionStatus(execution, cancellationToken);
+  channelService.streamCommandOutput(execution);
+  notificationService.reportCommandExecutionStatus(
+    execution,
+    cancellationToken
+  );
   CancellableStatusBar.show(execution, cancellationTokenSource);
 }
 
@@ -68,8 +71,11 @@ function runAllTests() {
     { cwd: vscode.workspace.rootPath }
   ).execute(cancellationToken);
 
-  streamCommandOutput(execution);
-  reportExecutionStatus(execution, cancellationToken);
+  channelService.streamCommandOutput(execution);
+  notificationService.reportCommandExecutionStatus(
+    execution,
+    cancellationToken
+  );
   CancellableStatusBar.show(execution, cancellationTokenSource);
 }
 
@@ -85,7 +91,10 @@ function runTestSuite(testSuiteName: string) {
     { cwd: vscode.workspace.rootPath }
   ).execute(cancellationToken);
 
-  streamCommandOutput(execution);
-  reportExecutionStatus(execution, cancellationToken);
+  channelService.streamCommandOutput(execution);
+  notificationService.reportCommandExecutionStatus(
+    execution,
+    cancellationToken
+  );
   CancellableStatusBar.show(execution, cancellationTokenSource);
 }

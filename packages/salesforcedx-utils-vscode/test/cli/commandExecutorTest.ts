@@ -17,7 +17,7 @@ describe('CommandExecutor tests', () => {
       const exitCode = await new Promise<string>((resolve, reject) => {
         execution.processExitSubject.subscribe(
           data => {
-            resolve(data.toString());
+            resolve(data !== null ? data.toString() : '');
           },
           err => {
             reject(err);
@@ -45,7 +45,7 @@ describe('CommandExecutor tests', () => {
       const exitCode = await new Promise<string>((resolve, reject) => {
         execution.processExitSubject.subscribe(
           data => {
-            resolve(data.toString());
+            resolve(data !== null ? data.toString() : '');
           },
           err => {
             reject(err);

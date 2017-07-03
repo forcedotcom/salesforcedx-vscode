@@ -19,10 +19,12 @@
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
+    "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "mocha": "3.2.0",
-    "typescript": "2.3.4",
-    "vscode": "1.1.0"
+    "sinon": "^2.3.6",
+    "typescript": "2.4.0",
+    "vscode": "1.1.2"
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
