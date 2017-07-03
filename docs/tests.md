@@ -69,10 +69,11 @@ There are some optional environment variables to configure the test runner:
 
 | Name        | Description       |
 | ------------|-------------------|
-| `CODE_VERSION` | Version of VS Code to run the tests against (e.g.  `0.10.10`) |
+| `CODE_VERSION` | Version of VS Code to run the tests against (e.g. `0.10.10`) |
 | `CODE_DOWNLOAD_URL` | Full URL of a VS Code drop to use for running tests against |
-| `CODE_TESTS_PATH` | Location of the tests to execute |
-| `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance |
+| `CODE_TESTS_PATH` | Location of the tests to execute (default is `proces.cwd()/out/test` or `process.cwd()/test`) |
+| `CODE_EXTENSIONS_PATH` | Location of the extensions to load (default is `proces.cwd()`) |
+| `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance (default is CODE_TESTS_PATH) |
 
 If you are running this from the top-level root folder, you can issue `lerna run
 test --concurrency 1`. The `--concurrency 1` is vital since, according to the
@@ -87,8 +88,3 @@ See this
 [repository](https://github.com/Microsoft/vscode-extension-vscode/blob/master/bin/test)
 for the actual vscode/bin/test source.
 
-## Unresolved questions
-
-1. How can I run these tests through the CLI with multiple extensions? There
-   doesn't seem to be an way to easily pass the `--extensionDevelopmentPath` to
-   it.
