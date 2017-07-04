@@ -1,6 +1,6 @@
 {
   "preview": true,
-  "name": "salesforcedx-vscode-apex",
+  "name": "salesforcedx-vscode-apex-debugger",
   "displayName": "Apex Debugger for Visual Studio Code",
   "description": "Provides debugging support for the Apex programming language",
   "icon": "images/icon.png",
@@ -12,7 +12,7 @@
   "publisher": "salesforce",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.10.0"
+    "vscode": "^1.13.0"
   },
   "categories": ["Debuggers"]
 }

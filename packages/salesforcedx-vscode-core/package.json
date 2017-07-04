@@ -12,7 +12,7 @@
   "publisher": "salesforce",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.10.0"
+    "vscode": "^1.13.0"
   },
   "categories": ["Other"],
   "dependencies": {
@@ -55,6 +55,22 @@
   ],
   "main": "./out/src",
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "sfdx.force.tasks.view",
+          "name": "Running Tasks"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "sfdx.force.task.stop",
+          "when": "view == sfdx.force.tasks.view"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "sfdx.force.auth.web.login",
@@ -83,6 +99,10 @@
       {
         "command": "sfdx.force.apex.test.run",
         "title": "force:apex:test:run"
+      },
+      {
+        "command": "sfdx.force.task.stop",
+        "title": "Terminate SFDX command"
       }
     ]
   }

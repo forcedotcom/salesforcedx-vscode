@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import {
   CliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { channelService } from '../channels';
 import { notificationService } from '../notifications';
-import { CancellableStatusBar } from '../statuses';
+import { CancellableStatusBar, taskViewService } from '../statuses';
 
 export function forceOrgCreate() {
   vscode.workspace.findFiles('config/*.json', '').then(files => {
@@ -41,6 +41,7 @@ export function forceOrgCreate() {
           cancellationToken
         );
         CancellableStatusBar.show(execution, cancellationTokenSource);
+        taskViewService.addCommandExecution(execution, cancellationTokenSource);
       }
     });
   });
