@@ -4,8 +4,8 @@ import {
   StatusBarAlignment,
   window
 } from 'vscode';
-
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { localize } from '../../src/messages';
 
 export const CANCEL_EXECUTION_COMMAND = 'internal.cancel.execution.command';
 const ALIGNMENT = StatusBarAlignment.Left;
@@ -15,9 +15,17 @@ export const statusBarItem: StatusBarItem = window.createStatusBarItem(
   ALIGNMENT,
   PRIORITY
 );
-let statusTimer: NodeJS.Timer | null;
-let cancellationTokenSource: CancellationTokenSource | null;
+export let statusTimer: NodeJS.Timer | undefined;
+export let cancellationTokenSource: CancellationTokenSource | undefined;
 
+/**
+ * There is only _one_ singleton status bar item (that is cleared/updated). This
+ * file keeps track of that, and this class allows you to interact with it.
+ * Because there is only one status bar item, we can only show one operation at
+ * a time. This has the consequence that if you have multiple operations, it
+ * shows the last one. You can find the list of other running tasks in
+ * {@link TaskViewProvider}.
+ */
 export class CancellableStatusBar {
   public static show(
     execution: CommandExecution,
@@ -32,8 +40,8 @@ export class CancellableStatusBar {
   ) {
     resetStatusBarItem();
 
-    statusBarItem.text = `$(x) ${execution.command}`;
-    statusBarItem.tooltip = 'Click to cancel the command';
+    statusBarItem.text = localize('status_bar_text', execution.command);
+    statusBarItem.tooltip = localize('status_bar_tooltip');
     statusBarItem.command = CANCEL_EXECUTION_COMMAND;
 
     cancellationTokenSource = token;
@@ -46,7 +54,7 @@ export class CancellableStatusBar {
       if (statusTimer) {
         clearInterval(statusTimer);
       }
-      statusBarItem.hide();
+      resetStatusBarItem();
     });
 
     statusBarItem.show();
@@ -57,9 +65,10 @@ function resetStatusBarItem() {
   statusBarItem.text = '';
   statusBarItem.tooltip = '';
   statusBarItem.command = undefined;
+  statusBarItem.hide();
 }
 
-function cycleStatusBarText(item: StatusBarItem) {
+export function cycleStatusBarText(item: StatusBarItem) {
   item.text = item.text + '.';
   if (/\.\.\.\.$/.test(item.text)) {
     // Reset the ellipsis and cycle
@@ -70,9 +79,11 @@ function cycleStatusBarText(item: StatusBarItem) {
 export function cancelCommandExecution() {
   if (cancellationTokenSource) {
     cancellationTokenSource.cancel();
+    cancellationTokenSource = undefined;
     resetStatusBarItem();
     if (statusTimer) {
       clearInterval(statusTimer);
+      statusTimer = undefined;
     }
   }
 }

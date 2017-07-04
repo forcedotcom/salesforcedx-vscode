@@ -34,6 +34,14 @@ type Messages = {
   };
 };
 
+/**
+ * Conventions:
+ * _message: is for unformatted text that will be shown as-is to
+ * the user.
+ * _text: is for text that will appear in the UI, possibly with
+ * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
+ * be localized
+ */
 const messages: Messages = {
   en_US: {
     channel_name: 'SalesforceDX CLI',
@@ -46,6 +54,9 @@ const messages: Messages = {
     notification_unsuccessful_execution_message: 'Failed to execute %s',
     notification_show_button_text: 'Show',
 
-    task_view_running_message: '[Running] %s'
+    task_view_running_message: '[Running] %s',
+
+    status_bar_text: `$(x) %s`,
+    status_bar_tooltip: 'Click to cancel the command'
   }
 };
