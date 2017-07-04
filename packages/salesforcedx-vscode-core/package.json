@@ -58,7 +58,7 @@
       "explorer": [
         {
           "id": "sfdx.force.tasks.view",
-          "name": "Running Tasks"
+          "name": "%running_tasks_title_text%"
         }
       ]
     },
@@ -73,35 +73,35 @@
     "commands": [
       {
         "command": "sfdx.force.auth.web.login",
-        "title": "force:auth:web:login"
+        "title": "%force_auth_web_login_text%"
       },
       {
         "command": "sfdx.force.org.create",
-        "title": "force:org:create"
+        "title": "%force_org_create_text%"
       },
       {
         "command": "sfdx.force.org.open",
-        "title": "force:org:open"
+        "title": "%force_org_open_text%"
       },
       {
         "command": "sfdx.force.source.pull",
-        "title": "force:source:pull"
+        "title": "%force_source_pull_text%"
       },
       {
         "command": "sfdx.force.source.push",
-        "title": "force:source:push"
+        "title": "%force_source_push_text%"
       },
       {
         "command": "sfdx.force.source.status",
-        "title": "force:source:status"
+        "title": "%force_source_status_text%"
       },
       {
         "command": "sfdx.force.apex.test.run",
-        "title": "force:apex:test:run"
+        "title": "%force_apex_test_run_text%"
       },
       {
         "command": "sfdx.force.task.stop",
-        "title": "Terminate SFDX command"
+        "title": "%terminate_sfdx_command_text%"
       }
     ]
   }
