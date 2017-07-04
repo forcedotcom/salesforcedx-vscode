@@ -5,7 +5,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { channelService } from '../channels';
 import { notificationService } from '../notifications';
-import { CancellableStatusBar } from '../statuses';
+import { CancellableStatusBar, taskViewService } from '../statuses';
 
 export function forceAuthWebLogin() {
   const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -25,4 +25,5 @@ export function forceAuthWebLogin() {
     cancellationToken
   );
   CancellableStatusBar.show(execution, cancellationTokenSource);
+  taskViewService.addCommandExecution(execution);
 }

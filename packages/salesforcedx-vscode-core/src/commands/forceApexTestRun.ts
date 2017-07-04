@@ -6,7 +6,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { channelService } from '../channels';
 import { notificationService } from '../notifications';
-import { CancellableStatusBar } from '../statuses';
+import { CancellableStatusBar, taskViewService } from '../statuses';
 
 export function forceApexTestRun(testClass?: string) {
   if (testClass) {
@@ -58,6 +58,7 @@ function runTestClass(testClass: string) {
     cancellationToken
   );
   CancellableStatusBar.show(execution, cancellationTokenSource);
+  taskViewService.addCommandExecution(execution, cancellationTokenSource);
 }
 
 function runAllTests() {
@@ -77,6 +78,7 @@ function runAllTests() {
     cancellationToken
   );
   CancellableStatusBar.show(execution, cancellationTokenSource);
+  taskViewService.addCommandExecution(execution, cancellationTokenSource);
 }
 
 function runTestSuite(testSuiteName: string) {
@@ -97,4 +99,5 @@ function runTestSuite(testSuiteName: string) {
     cancellationToken
   );
   CancellableStatusBar.show(execution, cancellationTokenSource);
+  taskViewService.addCommandExecution(execution, cancellationTokenSource);
 }
