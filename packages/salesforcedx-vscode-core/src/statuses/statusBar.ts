@@ -11,7 +11,7 @@ export const CANCEL_EXECUTION_COMMAND = 'internal.cancel.execution.command';
 const ALIGNMENT = StatusBarAlignment.Left;
 const PRIORITY = -10;
 
-const statusBarItem: StatusBarItem = window.createStatusBarItem(
+export const statusBarItem: StatusBarItem = window.createStatusBarItem(
   ALIGNMENT,
   PRIORITY
 );
@@ -41,7 +41,7 @@ export class CancellableStatusBar {
     if (statusTimer) {
       clearInterval(statusTimer);
     }
-    statusTimer = setInterval(cycleStatusBarText, 1000);
+    statusTimer = setInterval(() => cycleStatusBarText(statusBarItem), 1000);
     execution.processExitSubject.subscribe(data => {
       if (statusTimer) {
         clearInterval(statusTimer);
@@ -59,11 +59,11 @@ function resetStatusBarItem() {
   statusBarItem.command = undefined;
 }
 
-function cycleStatusBarText() {
-  statusBarItem.text = statusBarItem.text + '.';
-  if (/\.\.\.\.$/.test(statusBarItem.text)) {
+function cycleStatusBarText(item: StatusBarItem) {
+  item.text = item.text + '.';
+  if (/\.\.\.\.$/.test(item.text)) {
     // Reset the ellipsis and cycle
-    statusBarItem.text = statusBarItem.text.replace(/\.\.\.\.$/, '');
+    item.text = item.text.replace(/\.\.\.\.$/, '');
   }
 }
 

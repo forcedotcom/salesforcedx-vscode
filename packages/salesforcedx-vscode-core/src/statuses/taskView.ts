@@ -7,6 +7,7 @@ import {
   TreeItemCollapsibleState
 } from 'vscode';
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { localize } from '../messages';
 
 export class TaskViewService implements TreeDataProvider<Task> {
   private static instance: TaskViewService;
@@ -18,7 +19,7 @@ export class TaskViewService implements TreeDataProvider<Task> {
   public readonly onDidChangeTreeData: Event<Task | undefined> = this
     ._onDidChangeTreeData.event;
 
-  constructor() {
+  public constructor() {
     this.tasks = [];
   }
 
@@ -32,19 +33,24 @@ export class TaskViewService implements TreeDataProvider<Task> {
   public addCommandExecution(
     execution: CommandExecution,
     cancellationTokenSource?: CancellationTokenSource
-  ) {
+  ): Task {
     const task = new Task(this, execution, cancellationTokenSource);
     task.monitor();
     this.tasks.push(task);
 
     this._onDidChangeTreeData.fire();
+    return task;
   }
 
-  public removeTask(task: Task) {
+  public removeTask(task: Task): boolean {
     const index = this.tasks.indexOf(task);
-    this.tasks.splice(index, 1);
+    if (index !== -1) {
+      this.tasks.splice(index, 1);
 
-    this._onDidChangeTreeData.fire();
+      this._onDidChangeTreeData.fire();
+      return true;
+    }
+    return false;
   }
 
   public terminateTask(task?: Task) {
@@ -87,7 +93,10 @@ export class Task extends TreeItem {
     execution: CommandExecution,
     cancellationTokenSource?: CancellationTokenSource
   ) {
-    super(`[Running] ${execution.command}`, TreeItemCollapsibleState.None);
+    super(
+      localize('task_view_running_message', execution.command),
+      TreeItemCollapsibleState.None
+    );
 
     this.taskViewProvider = taskViewProvider;
     this.execution = execution;

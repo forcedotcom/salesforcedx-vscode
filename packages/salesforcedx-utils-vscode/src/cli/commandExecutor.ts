@@ -32,6 +32,12 @@ export class CliCommandExecutor {
   }
 }
 
+/**
+ * Represents a command execution (a process has already been spawned for it).
+ * This is tightly coupled with the execution model (child_process).
+ * If we ever use a different executor, this class should be refactored and abstracted
+ * to take an event emitter/observable instead of child_proces.
+ */
 export class CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
@@ -80,9 +86,11 @@ export class CommandExecution {
   }
 }
 
-// This is required because of https://github.com/nodejs/node/issues/6052
-// Basically if a child process spawns it own children  processes, those
-// children (grandchildren) processes are not necessarily killed
+/**
+ * This is required because of https://github.com/nodejs/node/issues/6052
+ * Basically if a child process spawns it own children  processes, those
+ * children (grandchildren) processes are not necessarily killed
+ */
 async function killPromise(processId: number) {
   return new Promise((resolve, reject) => {
     kill(processId, 'SIGKILL', (err: any) => {
