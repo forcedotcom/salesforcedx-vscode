@@ -44,6 +44,8 @@ const messages: Messages = {
     notification_successful_execution_message: 'Successfully executed %s',
     notification_canceled_execution_message: '%s canceled',
     notification_unsuccessful_execution_message: 'Failed to execute %s',
-    notification_show_button_text: 'Show'
+    notification_show_button_text: 'Show',
+
+    task_view_running_message: '[Running] %s'
   }
 };
