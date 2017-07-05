@@ -26,14 +26,18 @@ through npm.
 
 ## Typical workflow
 
+You would only do this once after you cloned the repository.
+
 1. Clone this repository from git.
 1. `cd` into `salesforcedx-vscode`.
+1. `npm install` to bring in all the top-level dependencies
 1. Open the project in VS Code.
 
 You would usually do the following each time you close/reopen VS Code:
 
-1. Open the Command Palette > Tasks: Run Task > Bootstrap  (this essentially
-   runs `lerna bootstrap`).
+1. [Optional] Open the Command Palette > Tasks: Run Task > Bootstrap  (this
+   essentially runs `lerna bootstrap`). This is required if you change the
+   dependencies in any of the package.json.
 1. If you wish to build, you can invoke Command Palette > Build Task
    (Ctrl+Shift+B or Cmd+Shift+B on Mac). The errors will show in the Problems
    panel. There is a known issue with the mapping so clicking on the error won't
