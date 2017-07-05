@@ -25,7 +25,7 @@ export class NotificationService {
   ) {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
     this.reportExecutionStatus(
-      execution.command.command.toString(),
+      execution.command.toString(),
       (execution.processExitSubject as any) as Observable<
         number | string | null
       >,
