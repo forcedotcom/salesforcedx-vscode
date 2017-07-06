@@ -30,6 +30,9 @@ You would only do this once after you cloned the repository.
 
 1. Clone this repository from git.
 1. `cd` into `salesforcedx-vscode`.
+1. We develop on the `develop` branch and release from the `master` branch. At
+   this point, you should do initiate a `git checkout -t origin/develop` unless
+   you are working on releasing.
 1. `npm install` to bring in all the top-level dependencies
 1. Open the project in VS Code.
 
