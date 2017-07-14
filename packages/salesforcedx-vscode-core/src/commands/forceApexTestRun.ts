@@ -1,9 +1,9 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
 import {
   CliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';

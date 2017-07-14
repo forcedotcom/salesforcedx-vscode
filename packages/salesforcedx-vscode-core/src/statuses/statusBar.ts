@@ -1,10 +1,10 @@
+import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancellationTokenSource,
-  StatusBarItem,
   StatusBarAlignment,
+  StatusBarItem,
   window
 } from 'vscode';
-import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { localize } from '../../src/messages';
 
 export const CANCEL_EXECUTION_COMMAND = 'internal.cancel.execution.command';
@@ -51,6 +51,12 @@ export class CancellableStatusBar {
     }
     statusTimer = setInterval(() => cycleStatusBarText(statusBarItem), 1000);
     execution.processExitSubject.subscribe(data => {
+      if (statusTimer) {
+        clearInterval(statusTimer);
+      }
+      resetStatusBarItem();
+    });
+    execution.processErrorSubject.subscribe(data => {
       if (statusTimer) {
         clearInterval(statusTimer);
       }

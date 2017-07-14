@@ -1,9 +1,9 @@
-import { SinonStub, assert, stub } from 'sinon';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
+import { assert, SinonStub, stub } from 'sinon';
 import { CancellationTokenSource, window } from 'vscode';
-import { NotificationService } from '../../src/notifications/notificationService';
 import { DEFAULT_SFDX_CHANNEL } from '../../src/channels/channelService';
 import { localize } from '../../src/messages';
+import { NotificationService } from '../../src/notifications/notificationService';
 
 const SHOW_BUTTON_TEXT = localize('notification_show_button_text');
 
@@ -35,7 +35,7 @@ describe('Notifications', () => {
   });
 
   it('Should notify successful execution', async () => {
-    const observable = new ReplaySubject<number | string | null>();
+    const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
@@ -57,7 +57,7 @@ describe('Notifications', () => {
     mShowInformation = stub(window, 'showInformationMessage').returns(
       Promise.resolve(SHOW_BUTTON_TEXT)
     );
-    const observable = new ReplaySubject<number | string | null>();
+    const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
@@ -74,8 +74,8 @@ describe('Notifications', () => {
   });
 
   it('Should notify cancellation', async () => {
-    const observable = new ReplaySubject<number | string | null>();
-    observable.next(null);
+    const observable = new ReplaySubject<number | undefined>();
+    observable.next(undefined);
     const cancellationTokenSource = new CancellationTokenSource();
     cancellationTokenSource.cancel();
 
@@ -94,11 +94,25 @@ describe('Notifications', () => {
 
   it('Should notify unsuccessful execution', async () => {
     const ABNORMAL_EXIT = -1;
-    const observable = new ReplaySubject<number | string | null>();
+    const observable = new ReplaySubject<number | undefined>();
     observable.next(ABNORMAL_EXIT);
 
     const notificationService = NotificationService.getInstance();
     await notificationService.reportExecutionStatus('mock command', observable);
+
+    assert.calledOnce(mShow);
+    assert.notCalled(mShowInformation);
+    assert.notCalled(mShowWarningMessage);
+    assert.calledWith(mShowErrorMessage, 'Failed to execute mock command');
+  });
+
+  it('Should notify errorneous execution', async () => {
+    const error = new Error('');
+    const observable = new ReplaySubject<Error | undefined>();
+    observable.next(error);
+
+    const notificationService = NotificationService.getInstance();
+    await notificationService.reportExecutionError('mock command', observable);
 
     assert.calledOnce(mShow);
     assert.notCalled(mShowInformation);

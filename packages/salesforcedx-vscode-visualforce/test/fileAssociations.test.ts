@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import { expect } from 'chai';
+import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
 

@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import { Observable } from 'rxjs/Observable';
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { Observable } from 'rxjs/Observable';
+import * as vscode from 'vscode';
 import { DEFAULT_SFDX_CHANNEL } from '../channels';
 import { localize } from '../messages';
 
@@ -26,20 +26,22 @@ export class NotificationService {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
     this.reportExecutionStatus(
       execution.command.toString(),
-      (execution.processExitSubject as any) as Observable<
-        number | string | null
-      >,
+      (execution.processExitSubject as any) as Observable<number | undefined>,
       cancellationToken
+    );
+    this.reportExecutionError(
+      execution.command.toString(),
+      (execution.processErrorSubject as any) as Observable<Error | undefined>
     );
   }
 
   public reportExecutionStatus(
     executionName: string,
-    observable: Observable<number | string | null>,
+    observable: Observable<number | undefined>,
     cancellationToken?: vscode.CancellationToken
   ) {
     observable.subscribe(async data => {
-      if (data !== null && data.toString() === '0') {
+      if (data != undefined && data.toString() === '0') {
         const showButtonText = localize('notification_show_button_text');
         const selection = await vscode.window.showInformationMessage(
           localize('notification_successful_execution_message', executionName),
@@ -64,6 +66,18 @@ export class NotificationService {
           this.channel.show();
         }
       }
+    });
+  }
+
+  public reportExecutionError(
+    executionName: string,
+    observable: Observable<Error | undefined>
+  ) {
+    observable.subscribe(async data => {
+      vscode.window.showErrorMessage(
+        localize('notification_unsuccessful_execution_message', executionName)
+      );
+      this.channel.show();
     });
   }
 }

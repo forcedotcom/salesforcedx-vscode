@@ -1,14 +1,16 @@
-import { expect } from 'chai';
-import { OutputChannel, ViewColumn } from 'vscode';
-import { EOL } from 'os';
 import {
   CliCommandExecutor,
+  CommandBuilder,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { expect } from 'chai';
+import { EOL } from 'os';
+import { OutputChannel, ViewColumn } from 'vscode';
 import {
-  DEFAULT_SFDX_CHANNEL,
-  ChannelService
+  ChannelService,
+  DEFAULT_SFDX_CHANNEL
 } from '../../src/channels/channelService';
+import { localize } from '../../src/messages';
 
 class MockChannel implements OutputChannel {
   public readonly name = 'MockChannel';
@@ -23,7 +25,7 @@ class MockChannel implements OutputChannel {
     this.value += EOL;
   }
 
-  // These methods are not mocked or needed
+  // These methods are not mocked but needed as part of the interface
   // tslint:disable:no-empty
   public clear(): void {}
   public show(preserveFocus?: boolean | undefined): void;
@@ -85,6 +87,27 @@ describe('Channel', () => {
       });
       expect(mChannel.value).to.contain('Error: Unexpected flag --unknown');
       expect(mChannel.value).to.contain('ended with exit code 2');
+    });
+
+    it('Should suggest to install SFDX binary', async () => {
+      const execution = new CliCommandExecutor(
+        new CommandBuilder('sfdx_')
+          .withArg('force')
+          .withArg('--unknown')
+          .build(),
+        {}
+      ).execute();
+
+      channelService.streamCommandOutput(execution);
+
+      await new Promise<string>((resolve, reject) => {
+        execution.processErrorSubject.subscribe(data => {
+          resolve();
+        });
+      });
+      expect(mChannel.value).to.contain(
+        localize('channel_end_with_sfdx_not_found')
+      );
     });
   });
 });

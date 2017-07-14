@@ -22,6 +22,25 @@
       "preLaunchTask": "Compile"
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch SalesforceDX Utils Tests",
+      "program": "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "--recursive",
+        "${workspaceRoot}/packages/salesforcedx-utils-vscode/out/test"
+      ],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "name": "Launch SalesforceDX VS Code Core Tests",
       "type": "extensionHost",
       "request": "launch",

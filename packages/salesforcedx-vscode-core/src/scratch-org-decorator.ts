@@ -1,6 +1,6 @@
-import { window, workspace, StatusBarItem, StatusBarAlignment } from 'vscode';
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
+import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 
 const CONFIG_FILE = path.join(workspace.rootPath!, '.sfdx/sfdx-config.json');
 

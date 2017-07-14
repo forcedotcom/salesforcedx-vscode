@@ -1,22 +1,22 @@
 // tslint:disable:no-unused-expression
 
+import {
+  CliCommandExecutor,
+  CommandExecution,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import { CancellationTokenSource, StatusBarItem } from 'vscode';
-import {
-  SfdxCommandBuilder,
-  CliCommandExecutor,
-  CommandExecution
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { localize } from '../../src/messages';
 import {
   CANCEL_EXECUTION_COMMAND,
-  CancellableStatusBar,
   cancelCommandExecution,
+  CancellableStatusBar,
   cancellationTokenSource,
   cycleStatusBarText,
   statusBarItem,
   statusTimer
 } from '../../src/statuses/statusBar';
-import { localize } from '../../src/messages';
 
 describe('Status Bar', () => {
   let tokenSource: CancellationTokenSource;
