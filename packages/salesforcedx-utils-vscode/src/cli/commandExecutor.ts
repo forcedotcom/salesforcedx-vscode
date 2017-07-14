@@ -1,8 +1,8 @@
-import { spawn, ChildProcess, ExecOptions } from 'child_process';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { ChildProcess, ExecOptions, spawn } from 'child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
+import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 
 // tslint:disable-next-line:no-var-requires
 const kill = require('tree-kill');
@@ -41,7 +41,8 @@ export class CliCommandExecutor {
 export class CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
-  public readonly processExitSubject: Observable<number | string | null>;
+  public readonly processExitSubject: Observable<number | undefined>;
+  public readonly processErrorSubject: Observable<Error | undefined>;
   public readonly stdoutSubject: Observable<Buffer | string>;
   public readonly stderrSubject: Observable<Buffer | string>;
 
@@ -59,7 +60,16 @@ export class CommandExecution {
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
-    ) as Observable<number | string | null>;
+    ) as Observable<number | undefined>;
+    this.processExitSubject.subscribe(next => {
+      if (timerSubscriber) {
+        timerSubscriber.unsubscribe();
+      }
+    });
+    this.processErrorSubject = Observable.fromEvent(
+      childProcess,
+      'error'
+    ) as Observable<Error | undefined>;
     this.processExitSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();

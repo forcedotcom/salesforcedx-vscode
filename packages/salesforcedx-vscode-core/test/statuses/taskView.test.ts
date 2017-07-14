@@ -1,14 +1,15 @@
 // tslint:disable:no-unused-expression
 
-import { stub } from 'sinon';
-import { expect } from 'chai';
-import { CancellationTokenSource } from 'vscode';
 import {
-  SfdxCommandBuilder,
-  CliCommandExecutor
+  CliCommandExecutor,
+  CommandBuilder,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { Task, TaskViewService } from '../../src/statuses/taskView';
+import { expect } from 'chai';
+import { stub } from 'sinon';
+import { CancellationTokenSource } from 'vscode';
 import { localize } from '../../src/messages';
+import { Task, TaskViewService } from '../../src/statuses/taskView';
 
 describe('Task View', () => {
   describe('Task View Provider', () => {
@@ -123,6 +124,25 @@ describe('Task View', () => {
       const taskViewService = new TaskViewService();
       const execution = new CliCommandExecutor(
         new SfdxCommandBuilder().withArg('force').withArg('--help').build(),
+        {}
+      ).execute();
+      taskViewService.addCommandExecution(execution);
+
+      expect(taskViewService.getChildren()).to.have.lengthOf(1);
+
+      await new Promise((resolve, reject) => {
+        taskViewService.onDidChangeTreeData(e => {
+          resolve(e);
+        });
+      });
+
+      expect(taskViewService.getChildren()).to.have.lengthOf(0);
+    });
+
+    it('Should remove itself from Task View if erroneous', async () => {
+      const taskViewService = new TaskViewService();
+      const execution = new CliCommandExecutor(
+        new CommandBuilder('sfdx_').build(),
         {}
       ).execute();
       taskViewService.addCommandExecution(execution);

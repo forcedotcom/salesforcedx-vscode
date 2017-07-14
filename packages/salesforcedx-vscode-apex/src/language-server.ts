@@ -1,14 +1,14 @@
-import * as vscode from 'vscode';
 import * as child_process from 'child_process';
-import * as path from 'path';
 import * as net from 'net';
+import * as path from 'path';
 import * as portFinder from 'portfinder';
-import * as requirements from './requirements';
+import * as vscode from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   StreamInfo
 } from 'vscode-languageclient';
+import * as requirements from './requirements';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;

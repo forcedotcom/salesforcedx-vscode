@@ -1,3 +1,4 @@
+import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancellationTokenSource,
   Event,
@@ -6,7 +7,6 @@ import {
   TreeItem,
   TreeItemCollapsibleState
 } from 'vscode';
-import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { localize } from '../messages';
 
 export class TaskViewService implements TreeDataProvider<Task> {
@@ -105,6 +105,9 @@ export class Task extends TreeItem {
 
   public monitor() {
     this.execution.processExitSubject.subscribe(data => {
+      this.taskViewProvider.removeTask(this);
+    });
+    this.execution.processErrorSubject.subscribe(data => {
       this.taskViewProvider.removeTask(this);
     });
   }

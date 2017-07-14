@@ -1,8 +1,8 @@
 // From https://github.com/redhat-developer/vscode-java
 // Original version licensed under the Eclipse Public License (EPL)
 
-import { workspace } from 'vscode';
 import * as cp from 'child_process';
+import { workspace } from 'vscode';
 
 import pathExists = require('path-exists');
 

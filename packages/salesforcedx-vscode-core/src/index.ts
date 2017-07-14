@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
 
-import * as scratchOrgDecorator from './scratch-org-decorator';
-import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import {
   forceApexTestRun,
   forceAuthWebLogin,
@@ -12,6 +10,8 @@ import {
   forceSourceStatus,
   forceTaskStop
 } from './commands';
+import * as scratchOrgDecorator from './scratch-org-decorator';
+import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { taskViewService } from './statuses';
 
 function registerCommands(): vscode.Disposable {

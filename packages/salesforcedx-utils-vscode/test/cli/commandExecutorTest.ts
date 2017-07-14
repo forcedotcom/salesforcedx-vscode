@@ -1,6 +1,10 @@
 import { expect } from 'chai';
 
-import { CliCommandExecutor, SfdxCommandBuilder } from '../../src/cli';
+import {
+  CliCommandExecutor,
+  CommandBuilder,
+  SfdxCommandBuilder
+} from '../../src/cli';
 
 describe('CommandExecutor tests', () => {
   describe('Handle listeners on stdout and stderr', () => {
@@ -17,7 +21,7 @@ describe('CommandExecutor tests', () => {
       const exitCode = await new Promise<string>((resolve, reject) => {
         execution.processExitSubject.subscribe(
           data => {
-            resolve(data !== null ? data.toString() : '');
+            resolve(data != undefined ? data.toString() : '');
           },
           err => {
             reject(err);
@@ -45,7 +49,7 @@ describe('CommandExecutor tests', () => {
       const exitCode = await new Promise<string>((resolve, reject) => {
         execution.processExitSubject.subscribe(
           data => {
-            resolve(data !== null ? data.toString() : '');
+            resolve(data != undefined ? data.toString() : '');
           },
           err => {
             reject(err);
@@ -56,6 +60,28 @@ describe('CommandExecutor tests', () => {
       expect(exitCode).to.not.equal('0');
       expect(stdout).to.contain('');
       expect(stderr).to.contain('Error: Unexpected flag --unknown');
+    });
+  });
+
+  describe('Handle listeners on error', () => {
+    it('Should relay error event', async () => {
+      const execution = new CliCommandExecutor(
+        new CommandBuilder('bogus').build(),
+        {}
+      ).execute();
+
+      const errorData = await new Promise<string>((resolve, reject) => {
+        execution.processErrorSubject.subscribe(
+          data => {
+            resolve(data != undefined ? data.toString() : '');
+          },
+          err => {
+            reject(err);
+          }
+        );
+      });
+
+      expect(errorData).to.equal('Error: spawn bogus ENOENT');
     });
   });
 });

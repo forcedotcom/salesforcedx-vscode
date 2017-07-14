@@ -47,6 +47,9 @@ const messages: Messages = {
     channel_name: 'SalesforceDX CLI',
     channel_starting_message: 'Starting ',
     channel_end_with_exit_code: 'ended with exit code %s',
+    channel_end_with_sfdx_not_found:
+      'The SFDX CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+    channel_end_with_error: 'ended with error %s',
     channel_end: 'ended',
 
     notification_successful_execution_message: 'Successfully executed %s',

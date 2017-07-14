@@ -37,10 +37,26 @@ export class ChannelService {
     execution.processExitSubject.subscribe(data => {
       this.channel.append(execution.command.toString());
       this.channel.append(' ');
-      if (data !== null) {
+      if (data != undefined) {
         this.channel.appendLine(
           localize('channel_end_with_exit_code', data.toString())
         );
+      } else {
+        this.channel.appendLine(localize('channel_end'));
+      }
+    });
+
+    execution.processErrorSubject.subscribe(data => {
+      this.channel.append(execution.command.toString());
+      this.channel.append(' ');
+      if (data != undefined) {
+        this.channel.appendLine(
+          localize('channel_end_with_error', data.toString())
+        );
+
+        if (/sfdx.*ENOENT/.test(data.message)) {
+          this.channel.appendLine(localize('channel_end_with_sfdx_not_found'));
+        }
       } else {
         this.channel.appendLine(localize('channel_end'));
       }
