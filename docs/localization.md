@@ -72,18 +72,16 @@ import {
 
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
-    const fileName =
-      locale === DEFAULT_LOCALE
-        ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
-        : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
-    return fileName;
+    return locale === DEFAULT_LOCALE
+      ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
+      : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
   }
 
-  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-    const base = new Message(
-      require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-    );
+  const base = new Message(
+    require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
+  );
 
+  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
     try {
       const layer = new Message(
         require(`./${resolveFileName(config.locale)}`).messages,
@@ -95,9 +93,6 @@ function loadMessageBundle(config?: Config): Message {
       return base;
     }
   } else {
-    const base = new Message(
-      require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-    );
     return base;
   }
 }
@@ -110,7 +105,8 @@ export const nls = new Localization(
 
 3. In the same folder (this is important), create files that follow the
    following naming convention i18n.ts for the default English locale, and
-   i18n.{locale_code}.ts for the localized files.
+   i18n.{locale_code}.ts for the localized files. locale_code should match what
+   is at https://code.visualstudio.com/docs/getstarted/locales.
 
 #### i18n.ts
 ```typescript

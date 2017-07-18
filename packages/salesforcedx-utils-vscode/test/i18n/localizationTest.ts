@@ -22,11 +22,11 @@ function loadMessageBundle(config?: Config): Message {
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
   }
 
-  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-    const base = new Message(
-      require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-    );
+  const base = new Message(
+    require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
+  );
 
+  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
     try {
       const layer = new Message(
         require(`./${resolveFileName(config.locale)}`).messages,
@@ -38,9 +38,6 @@ function loadMessageBundle(config?: Config): Message {
       return base;
     }
   } else {
-    const base = new Message(
-      require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-    );
     return base;
   }
 }
@@ -79,7 +76,7 @@ describe('Localization tests', () => {
   it('Should perform substitution in locale if args >=1', () => {
     const nls = new Localization(loadMessageBundle({ locale: 'ja' }));
     expect(nls.localize('key_3_with_args', 'John')).to.be.equals(
-      'こんにちは Johnさん'
+      'こんいちは Johnさん'
     );
   });
 });
