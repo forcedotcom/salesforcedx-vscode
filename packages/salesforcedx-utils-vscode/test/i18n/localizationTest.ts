@@ -22,7 +22,7 @@ function loadMessageBundle(config?: Config): Message {
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
   }
 
-  if (config && config.locale && config.locale) {
+  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
     const base = new Message(
       require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
     );
@@ -53,7 +53,7 @@ describe('Localization tests', () => {
 
   it('Should handle non-default locale', () => {
     const nls = new Localization(loadMessageBundle({ locale: 'ja' }));
-    expect(nls.localize('key_1')).to.be.equals('こんいちは');
+    expect(nls.localize('key_1')).to.be.equals('こんにちは');
   });
 
   it('Should handle unfound locale and default to en', () => {
@@ -79,7 +79,7 @@ describe('Localization tests', () => {
   it('Should perform substitution in locale if args >=1', () => {
     const nls = new Localization(loadMessageBundle({ locale: 'ja' }));
     expect(nls.localize('key_3_with_args', 'John')).to.be.equals(
-      'こんいちは Johnさん'
+      'こんにちは Johnさん'
     );
   });
 });

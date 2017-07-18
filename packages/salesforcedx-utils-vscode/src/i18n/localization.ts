@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import * as util from 'util';
 
 export const BASE_FILE_NAME = 'i18n';
@@ -31,7 +30,6 @@ export type MessageBundle = {
 
 export class Message implements LocalizationProvider {
   private readonly delegate?: Message;
-  private readonly fileName: string;
   private readonly messages: MessageBundle;
 
   public constructor(messages: MessageBundle, delegate?: Message) {

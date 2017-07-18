@@ -1,4 +1,4 @@
 export const messages = {
-  key_1: 'こんいちは',
-  key_3_with_args: 'こんいちは %sさん'
+  key_1: 'こんにちは',
+  key_3_with_args: 'こんにちは %sさん'
 };
