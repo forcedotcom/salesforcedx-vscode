@@ -56,7 +56,7 @@ export class Message implements LocalizationProvider {
       throw new Error("Message '" + label + "' doesn't exist");
     }
 
-    if (args.length > 1) {
+    if (args.length >= 1) {
       const expectedNumArgs = possibleLabel.split('%s').length - 1;
       if (args.length !== expectedNumArgs) {
         throw new Error(

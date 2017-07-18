@@ -22,7 +22,7 @@ function loadMessageBundle(config?: Config): Message {
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
   }
 
-  if (config && config.locale) {
+  if (config && config.locale && config.locale) {
     const base = new Message(
       require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
     );
@@ -69,5 +69,17 @@ describe('Localization tests', () => {
   it('Should error if arg counts do no match', () => {
     const nls = new Localization(loadMessageBundle());
     expect(() => nls.localize('key_3')).to.throw();
+  });
+
+  it('Should perform substitution in default locale if args >=1', () => {
+    const nls = new Localization(loadMessageBundle());
+    expect(nls.localize('key_3_with_args', 'John')).to.be.equals('Hello John');
+  });
+
+  it('Should perform substitution in locale if args >=1', () => {
+    const nls = new Localization(loadMessageBundle({ locale: 'ja' }));
+    expect(nls.localize('key_3_with_args', 'John')).to.be.equals(
+      'こんいちは Johnさん'
+    );
   });
 });
