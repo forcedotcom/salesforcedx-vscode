@@ -1,12 +1,12 @@
 {
   "running_tasks_title_text": "Running Tasks",
 
-  "force_auth_web_login_text": "force:auth:web:login",
-  "force_org_create_text": "force:org:create",
-  "force_org_open_text": "force:org:open",
-  "force_source_pull_text": "force:source:pull",
-  "force_source_push_text": "force:source:push",
-  "force_source_status_text": "force:source:status",
-  "force_apex_test_run_text": "force:apex:test:run",
-  "terminate_sfdx_command_text": "Terminate active SFDX command"
+  "force_auth_web_login_authorize_dev_hub_text": "SFDX: Authorize a Dev Hub",
+  "force_org_create_default_scratch_org_text": "SFDX: Create a Default Scratch Org...",
+  "force_org_open_default_scratch_org_text": "SFDX: Open Default Scratch Org",
+  "force_source_pull_default_scratch_org_text": "SFDX: Pull Source from Default Scratch Org",
+  "force_source_push_default_scratch_org_text": "SFDX: Push Source to Default Scratch Org",
+  "force_source_status_text": "SFDX: View Changes",
+  "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
+  "terminate_sfdx_command_text": "SFDX: Terminate Active Command"
 }

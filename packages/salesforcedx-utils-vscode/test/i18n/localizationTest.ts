@@ -76,7 +76,7 @@ describe('Localization tests', () => {
   it('Should perform substitution in locale if args >=1', () => {
     const nls = new Localization(loadMessageBundle({ locale: 'ja' }));
     expect(nls.localize('key_3_with_args', 'John')).to.be.equals(
-      'こんいちは Johnさん'
+      'こんにちは Johnさん'
     );
   });
 });

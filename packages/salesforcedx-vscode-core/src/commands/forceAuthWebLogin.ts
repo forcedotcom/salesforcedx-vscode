@@ -4,6 +4,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 
@@ -13,6 +14,9 @@ export function forceAuthWebLogin() {
 
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize('force_auth_web_login_authorize_dev_hub_text')
+      )
       .withArg('force:auth:web:login')
       .withArg('--setdefaultdevhubusername')
       .build(),

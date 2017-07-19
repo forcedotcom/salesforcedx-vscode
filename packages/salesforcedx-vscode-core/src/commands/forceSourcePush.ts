@@ -4,6 +4,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 
@@ -12,7 +13,12 @@ export function forceSourcePush() {
   const cancellationToken = cancellationTokenSource.token;
 
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder().withArg('force:source:push').build(),
+    new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize('force_source_push_default_scratch_org_text')
+      )
+      .withArg('force:source:push')
+      .build(),
     { cwd: vscode.workspace.rootPath }
   ).execute(cancellationToken);
 

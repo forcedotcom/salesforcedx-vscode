@@ -5,7 +5,7 @@ import {
   StatusBarItem,
   window
 } from 'vscode';
-import { localize } from '../../src/messages';
+import { nls } from '../../src/messages';
 
 export const CANCEL_EXECUTION_COMMAND = 'internal.cancel.execution.command';
 const ALIGNMENT = StatusBarAlignment.Left;
@@ -40,8 +40,8 @@ export class CancellableStatusBar {
   ) {
     resetStatusBarItem();
 
-    statusBarItem.text = localize('status_bar_text', execution.command);
-    statusBarItem.tooltip = localize('status_bar_tooltip');
+    statusBarItem.text = nls.localize('status_bar_text', execution.command);
+    statusBarItem.tooltip = nls.localize('status_bar_tooltip');
     statusBarItem.command = CANCEL_EXECUTION_COMMAND;
 
     cancellationTokenSource = token;

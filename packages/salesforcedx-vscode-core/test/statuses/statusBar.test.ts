@@ -7,7 +7,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import { CancellationTokenSource, StatusBarItem } from 'vscode';
-import { localize } from '../../src/messages';
+import { nls } from '../../src/messages';
 import {
   CANCEL_EXECUTION_COMMAND,
   cancelCommandExecution,
@@ -36,9 +36,9 @@ describe('Status Bar', () => {
     expect(cancellationTokenSource).to.not.be.undefined;
     expect(statusTimer).to.not.be.undefined;
     expect(statusBarItem.text).to.equal(
-      localize('status_bar_text', execution.command)
+      nls.localize('status_bar_text', execution.command)
     );
-    expect(statusBarItem.tooltip).to.equal(localize('status_bar_tooltip'));
+    expect(statusBarItem.tooltip).to.equal(nls.localize('status_bar_tooltip'));
     expect(statusBarItem.command).to.equal(CANCEL_EXECUTION_COMMAND);
   });
 

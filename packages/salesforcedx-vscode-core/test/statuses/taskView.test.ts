@@ -8,7 +8,7 @@ import {
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { CancellationTokenSource } from 'vscode';
-import { localize } from '../../src/messages';
+import { nls } from '../../src/messages';
 import { Task, TaskViewService } from '../../src/statuses/taskView';
 
 describe('Task View', () => {
@@ -29,7 +29,7 @@ describe('Task View', () => {
 
       expect(taskViewService.getChildren()).to.have.lengthOf(1);
       expect(taskViewService.getChildren()[0].label).to.be.equal(
-        localize('task_view_running_message', 'sfdx force --help')
+        nls.localize('task_view_running_message', 'sfdx force --help')
       );
     });
 

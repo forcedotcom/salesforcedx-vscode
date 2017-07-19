@@ -7,7 +7,7 @@ import {
   TreeItem,
   TreeItemCollapsibleState
 } from 'vscode';
-import { localize } from '../messages';
+import { nls } from '../messages';
 
 export class TaskViewService implements TreeDataProvider<Task> {
   private static instance: TaskViewService;
@@ -94,7 +94,7 @@ export class Task extends TreeItem {
     cancellationTokenSource?: CancellationTokenSource
   ) {
     super(
-      localize('task_view_running_message', execution.command),
+      nls.localize('task_view_running_message', execution.command),
       TreeItemCollapsibleState.None
     );
 

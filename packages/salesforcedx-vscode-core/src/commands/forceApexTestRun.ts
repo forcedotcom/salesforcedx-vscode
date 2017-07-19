@@ -5,6 +5,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 
@@ -45,6 +46,7 @@ function runTestClass(testClass: string) {
   const cancellationToken = cancellationTokenSource.token;
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_apex_test_run_text'))
       .withArg('force:apex:test:run')
       .withFlag('--classnames', `${testClass}`)
       .withFlag('--resultformat', 'human')
@@ -66,6 +68,7 @@ function runAllTests() {
   const cancellationToken = cancellationTokenSource.token;
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_apex_test_run_text'))
       .withArg('force:apex:test:run')
       .withFlag('--resultformat', 'human')
       .build(),
@@ -86,6 +89,7 @@ function runTestSuite(testSuiteName: string) {
   const cancellationToken = cancellationTokenSource.token;
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_apex_test_run_text'))
       .withArg('force:apex:test:run')
       .withFlag('--suitenames', `${testSuiteName}`)
       .withFlag('--resultformat', 'human')

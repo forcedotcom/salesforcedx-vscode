@@ -10,7 +10,7 @@ import {
   ChannelService,
   DEFAULT_SFDX_CHANNEL
 } from '../../src/channels/channelService';
-import { localize } from '../../src/messages';
+import { nls } from '../../src/messages';
 
 class MockChannel implements OutputChannel {
   public readonly name = 'MockChannel';
@@ -106,7 +106,7 @@ describe('Channel', () => {
         });
       });
       expect(mChannel.value).to.contain(
-        localize('channel_end_with_sfdx_not_found')
+        nls.localize('channel_end_with_sfdx_not_found')
       );
     });
   });

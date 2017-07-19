@@ -2,7 +2,7 @@ import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { DEFAULT_SFDX_CHANNEL } from '../channels';
-import { localize } from '../messages';
+import { nls } from '../messages';
 
 export class NotificationService {
   private readonly channel: vscode.OutputChannel;
@@ -42,9 +42,9 @@ export class NotificationService {
   ) {
     observable.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
-        const showButtonText = localize('notification_show_button_text');
+        const showButtonText = nls.localize('notification_show_button_text');
         const selection = await vscode.window.showInformationMessage(
-          localize('notification_successful_execution_message', executionName),
+          nls.localize('notification_successful_execution_text', executionName),
           showButtonText
         );
         if (selection && selection === showButtonText) {
@@ -53,13 +53,13 @@ export class NotificationService {
       } else {
         if (cancellationToken && cancellationToken.isCancellationRequested) {
           vscode.window.showWarningMessage(
-            localize('notification_canceled_execution_message', executionName)
+            nls.localize('notification_canceled_execution_text', executionName)
           );
           this.channel.show();
         } else {
           vscode.window.showErrorMessage(
-            localize(
-              'notification_unsuccessful_execution_message',
+            nls.localize(
+              'notification_unsuccessful_execution_text',
               executionName
             )
           );
@@ -75,7 +75,7 @@ export class NotificationService {
   ) {
     observable.subscribe(async data => {
       vscode.window.showErrorMessage(
-        localize('notification_unsuccessful_execution_message', executionName)
+        nls.localize('notification_unsuccessful_execution_text', executionName)
       );
       this.channel.show();
     });
