@@ -3,6 +3,7 @@
 
 import * as cp from 'child_process';
 import { workspace } from 'vscode';
+import { nls } from './messages';
 
 import pathExists = require('path-exists');
 
@@ -23,36 +24,39 @@ export async function resolveRequirements(): Promise<RequirementsData> {
   return Promise.resolve({ java_home: javaHome });
 }
 
-function checkJavaRuntime(): Promise<any> {
+function checkJavaRuntime(): Promise<string> {
   return new Promise((resolve, reject) => {
     let source: string;
     let javaHome: string = readJavaConfig();
+
     if (javaHome) {
-      source = 'The java.home variable defined in VS Code settings';
+      source = nls.localize('source_java_home_setting_text');
     } else {
       javaHome = process.env['JDK_HOME'];
+
       if (javaHome) {
-        source = 'The JDK_HOME environment variable';
+        source = nls.localize('source_jdk_home_env_var_text');
       } else {
         javaHome = process.env['JAVA_HOME'];
-        source = 'The JAVA_HOME environment variable';
+        source = nls.localize('source_java_home_env_var_text');
       }
     }
+
     if (javaHome) {
       javaHome = expandHomeDir(javaHome);
       if (!pathExists.sync(javaHome)) {
-        reject(`${source} points to a missing folder`);
+        reject(nls.localize('source_missing_text', source));
       }
       return resolve(javaHome);
     }
 
-    reject('Java runtime could not be located');
+    reject(nls.localize('java_runtime_missing_text'));
   });
 }
 
 function readJavaConfig(): string {
   const config = workspace.getConfiguration();
-  return config.get<string>('java.home', '');
+  return config.get<string>('salesforcedx-vscode-apex.java.home', '');
 }
 
 function checkJavaVersion(javaHome: string): Promise<any> {
@@ -63,9 +67,7 @@ function checkJavaVersion(javaHome: string): Promise<any> {
       {},
       (error, stdout, stderr) => {
         if (stderr.indexOf('1.8') < 0) {
-          reject(
-            'Java 8 is required to run. Please download and install a JRE.'
-          );
+          reject(nls.localize('wrong_java_version_text'));
         } else {
           resolve(true);
         }
