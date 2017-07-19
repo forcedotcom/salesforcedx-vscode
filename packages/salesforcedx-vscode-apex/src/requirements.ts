@@ -9,6 +9,8 @@ import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
+// tslint:disable-next-line:no-var-requires
+const findJavaHome = require('find-java-home');
 
 export interface RequirementsData {
   java_home: string;
@@ -45,12 +47,19 @@ function checkJavaRuntime(): Promise<string> {
     if (javaHome) {
       javaHome = expandHomeDir(javaHome);
       if (!pathExists.sync(javaHome)) {
-        reject(nls.localize('source_missing_text', source));
+        return reject(nls.localize('source_missing_text', source));
       }
       return resolve(javaHome);
     }
 
-    reject(nls.localize('java_runtime_missing_text'));
+    // Last resort, try to automatically detect
+    findJavaHome((err: Error, home: string) => {
+      if (err) {
+        return reject(nls.localize('java_runtime_missing_text'));
+      } else {
+        return resolve(home);
+      }
+    });
   });
 }
 
