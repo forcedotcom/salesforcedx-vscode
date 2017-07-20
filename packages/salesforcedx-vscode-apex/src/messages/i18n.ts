@@ -17,5 +17,5 @@ export const messages = {
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting',
   wrong_java_version_text:
-    'Java 8 (or higher) is required to turn. Please download and install it.'
+    'Java 8 is required to turn. Please download and install it.'
 };
