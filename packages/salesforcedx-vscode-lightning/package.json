@@ -31,7 +31,7 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "rm -rf node_modules && rm -rf out",
+    "clean": "shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
