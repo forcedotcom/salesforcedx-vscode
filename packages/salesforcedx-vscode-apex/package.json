@@ -38,6 +38,17 @@
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "%configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-apex.java.home": {
+          "type": ["string", "null"],
+          "default": null,
+          "description": "%java_home_description%"
+        }
+      }
+    },
     "languages": [
       {
         "id": "apex",

@@ -1,0 +1,4 @@
+{
+  "configuration_title": "SalesforceDX Apex Configuration",
+  "java_home_description": "Specifies the folder path to the Java 8 runtime used to launch the Apex Language Server (e.g., /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home)"
+}
