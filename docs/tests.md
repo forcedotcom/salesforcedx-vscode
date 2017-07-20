@@ -29,7 +29,7 @@ There are configurations already created for you at the top level
 
 ```json
     {
-        "name": "Launch SalesforceDX VS Code Apex Tests",
+        "name": "Launch Salesforce DX VS Code Apex Tests",
         "type": "extensionHost",
         "request": "launch",
         "runtimeExecutable": "${execPath}",
@@ -43,7 +43,7 @@ There are configurations already created for you at the top level
         "outFiles": [
             "${workspaceRoot}/packages/*/out/test/**/*.js"
         ],
-        "preLaunchTask": "Watch"
+        "preLaunchTask": "Compile"
     }
 ```
 

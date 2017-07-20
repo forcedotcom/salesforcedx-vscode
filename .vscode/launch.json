@@ -24,7 +24,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch SalesforceDX Utils Tests",
+      "name": "Launch Salesforce DX Utils Tests",
       "program": "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
@@ -41,7 +41,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch SalesforceDX VS Code Core Tests",
+      "name": "Launch Salesforce DX VS Code Core Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -55,7 +55,7 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch SalesforceDX VS Code Apex Tests",
+      "name": "Launch Salesforce DX VS Code Apex Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -69,7 +69,7 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch SalesforceDX VS Code Lightning Tests",
+      "name": "Launch Salesforce DX VS Code Lightning Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -83,7 +83,7 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch SalesforceDX VS Code Visualforce Tests",
+      "name": "Launch Salesforce DX VS Code Visualforce Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
