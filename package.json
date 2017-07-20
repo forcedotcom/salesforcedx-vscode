@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "lerna": "2.0.0",
+    "shx": "^0.2.2",
     "tslint": "5.5.0",
     "typescript": "2.4.0",
     "vsce": "1.29.0"
