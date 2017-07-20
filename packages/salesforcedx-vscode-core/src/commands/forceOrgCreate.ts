@@ -5,6 +5,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 
@@ -28,6 +29,9 @@ export function forceOrgCreate() {
         );
         const execution = new CliCommandExecutor(
           new SfdxCommandBuilder()
+            .withDescription(
+              nls.localize('force_org_create_default_scratch_org_text')
+            )
             .withArg('force:org:create')
             .withFlag('-f', `${selectionPath}`)
             .withArg('--setdefaultusername')

@@ -10,7 +10,7 @@ import {
   ChannelService,
   DEFAULT_SFDX_CHANNEL
 } from '../../src/channels/channelService';
-import { localize } from '../../src/messages';
+import { nls } from '../../src/messages';
 
 class MockChannel implements OutputChannel {
   public readonly name = 'MockChannel';
@@ -50,7 +50,7 @@ describe('Channel', () => {
     });
 
     it('Should have proper name', () => {
-      expect(DEFAULT_SFDX_CHANNEL.name).to.equal('SalesforceDX CLI');
+      expect(DEFAULT_SFDX_CHANNEL.name).to.equal('Salesforce DX CLI');
     });
 
     it('Should pipe stdout on successful command execution', async () => {
@@ -106,7 +106,7 @@ describe('Channel', () => {
         });
       });
       expect(mChannel.value).to.contain(
-        localize('channel_end_with_sfdx_not_found')
+        nls.localize('channel_end_with_sfdx_not_found')
       );
     });
   });

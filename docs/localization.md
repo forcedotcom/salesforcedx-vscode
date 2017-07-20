@@ -137,3 +137,12 @@ nls.localize('some_key');
 5. You can have as many folders as you want for localization. Just ensure that
    you copy the loader snippet to each one. It's customary to put all of them in
    one folder for smaller extensions though.
+
+6. To test your localization changes, you _cannot_ just launch VS Code in
+   development mode. You need to package up a .vsix, install that .vsix and be
+   sure to follow the instructions at
+   https://code.visualstudio.com/docs/getstarted/locales#_configure-language-command
+   to configure your language. For CJK languages, I have found that using the
+   `code . --locale=ja` to not work as well as using the command palette to
+   configure the language.
+

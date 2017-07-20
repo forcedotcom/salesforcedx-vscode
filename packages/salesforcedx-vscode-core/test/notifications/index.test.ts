@@ -2,10 +2,10 @@ import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { assert, SinonStub, stub } from 'sinon';
 import { CancellationTokenSource, window } from 'vscode';
 import { DEFAULT_SFDX_CHANNEL } from '../../src/channels/channelService';
-import { localize } from '../../src/messages';
+import { nls } from '../../src/messages';
 import { NotificationService } from '../../src/notifications/notificationService';
 
-const SHOW_BUTTON_TEXT = localize('notification_show_button_text');
+const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');
 
 // tslint:disable:no-empty
 describe('Notifications', () => {
@@ -44,7 +44,7 @@ describe('Notifications', () => {
     assert.notCalled(mShow);
     assert.calledWith(
       mShowInformation,
-      'Successfully executed mock command',
+      'mock command successfully ran',
       SHOW_BUTTON_TEXT
     );
     assert.notCalled(mShowWarningMessage);
@@ -66,7 +66,7 @@ describe('Notifications', () => {
     assert.calledOnce(mShow);
     assert.calledWith(
       mShowInformation,
-      'Successfully executed mock command',
+      'mock command successfully ran',
       SHOW_BUTTON_TEXT
     );
     assert.notCalled(mShowWarningMessage);
@@ -88,7 +88,7 @@ describe('Notifications', () => {
 
     assert.calledOnce(mShow);
     assert.notCalled(mShowInformation);
-    assert.calledWith(mShowWarningMessage, 'mock command canceled');
+    assert.calledWith(mShowWarningMessage, 'mock command was canceled');
     assert.notCalled(mShowErrorMessage);
   });
 
@@ -103,7 +103,7 @@ describe('Notifications', () => {
     assert.calledOnce(mShow);
     assert.notCalled(mShowInformation);
     assert.notCalled(mShowWarningMessage);
-    assert.calledWith(mShowErrorMessage, 'Failed to execute mock command');
+    assert.calledWith(mShowErrorMessage, 'mock command failed to run');
   });
 
   it('Should notify errorneous execution', async () => {
@@ -117,6 +117,6 @@ describe('Notifications', () => {
     assert.calledOnce(mShow);
     assert.notCalled(mShowInformation);
     assert.notCalled(mShowWarningMessage);
-    assert.calledWith(mShowErrorMessage, 'Failed to execute mock command');
+    assert.calledWith(mShowErrorMessage, 'mock command failed to run');
   });
 });

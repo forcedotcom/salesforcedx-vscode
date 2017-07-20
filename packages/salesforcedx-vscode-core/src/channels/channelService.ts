@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { localize } from '../messages';
+import { nls } from '../messages';
 
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 export const DEFAULT_SFDX_CHANNEL = vscode.window.createOutputChannel(
-  localize('channel_name')
+  nls.localize('channel_name')
 );
 
 export class ChannelService {
@@ -23,9 +23,11 @@ export class ChannelService {
   }
 
   public streamCommandOutput(execution: CommandExecution) {
-    this.channel.append(localize('channel_starting_message'));
+    this.channel.append(nls.localize('channel_starting_message'));
     this.channel.appendLine(execution.command.toString());
     this.channel.appendLine('');
+
+    this.channel.appendLine(execution.command.toCommand());
 
     execution.stderrSubject.subscribe(data =>
       this.channel.append(data.toString())
@@ -35,30 +37,32 @@ export class ChannelService {
     );
 
     execution.processExitSubject.subscribe(data => {
-      this.channel.append(execution.command.toString());
+      this.channel.append(execution.command.toCommand());
       this.channel.append(' ');
       if (data != undefined) {
         this.channel.appendLine(
-          localize('channel_end_with_exit_code', data.toString())
+          nls.localize('channel_end_with_exit_code', data.toString())
         );
       } else {
-        this.channel.appendLine(localize('channel_end'));
+        this.channel.appendLine(nls.localize('channel_end'));
       }
     });
 
     execution.processErrorSubject.subscribe(data => {
-      this.channel.append(execution.command.toString());
+      this.channel.append(execution.command.toCommand());
       this.channel.append(' ');
       if (data != undefined) {
         this.channel.appendLine(
-          localize('channel_end_with_error', data.toString())
+          nls.localize('channel_end_with_error', data.toString())
         );
 
         if (/sfdx.*ENOENT/.test(data.message)) {
-          this.channel.appendLine(localize('channel_end_with_sfdx_not_found'));
+          this.channel.appendLine(
+            nls.localize('channel_end_with_sfdx_not_found')
+          );
         }
       } else {
-        this.channel.appendLine(localize('channel_end'));
+        this.channel.appendLine(nls.localize('channel_end'));
       }
     });
   }

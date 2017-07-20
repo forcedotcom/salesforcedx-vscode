@@ -14,6 +14,10 @@ export class Command {
       ? this.description
       : `${this.command} ${this.args.join(' ')}`;
   }
+
+  public toCommand(): string {
+    return `${this.command} ${this.args.join(' ')}`;
+  }
 }
 
 export class CommandBuilder {
