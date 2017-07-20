@@ -50,7 +50,7 @@ describe('Channel', () => {
     });
 
     it('Should have proper name', () => {
-      expect(DEFAULT_SFDX_CHANNEL.name).to.equal('SalesforceDX CLI');
+      expect(DEFAULT_SFDX_CHANNEL.name).to.equal('Salesforce DX CLI');
     });
 
     it('Should pipe stdout on successful command execution', async () => {

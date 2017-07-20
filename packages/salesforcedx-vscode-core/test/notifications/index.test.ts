@@ -44,7 +44,7 @@ describe('Notifications', () => {
     assert.notCalled(mShow);
     assert.calledWith(
       mShowInformation,
-      'mock command successfully executed',
+      'mock command successfully ran',
       SHOW_BUTTON_TEXT
     );
     assert.notCalled(mShowWarningMessage);
@@ -66,7 +66,7 @@ describe('Notifications', () => {
     assert.calledOnce(mShow);
     assert.calledWith(
       mShowInformation,
-      'mock command successfully executed',
+      'mock command successfully ran',
       SHOW_BUTTON_TEXT
     );
     assert.notCalled(mShowWarningMessage);
@@ -103,7 +103,7 @@ describe('Notifications', () => {
     assert.calledOnce(mShow);
     assert.notCalled(mShowInformation);
     assert.notCalled(mShowWarningMessage);
-    assert.calledWith(mShowErrorMessage, 'mock command failed to execute');
+    assert.calledWith(mShowErrorMessage, 'mock command failed to run');
   });
 
   it('Should notify errorneous execution', async () => {
@@ -117,6 +117,6 @@ describe('Notifications', () => {
     assert.calledOnce(mShow);
     assert.notCalled(mShowInformation);
     assert.notCalled(mShowWarningMessage);
-    assert.calledWith(mShowErrorMessage, 'mock command failed to execute');
+    assert.calledWith(mShowErrorMessage, 'mock command failed to run');
   });
 });

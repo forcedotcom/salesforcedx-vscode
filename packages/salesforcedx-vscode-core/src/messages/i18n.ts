@@ -9,7 +9,7 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
-  channel_name: 'SalesforceDX CLI',
+  channel_name: 'Salesforce DX CLI',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
@@ -17,9 +17,9 @@ export const messages = {
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
-  notification_successful_execution_text: '%s successfully executed',
+  notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',
-  notification_unsuccessful_execution_text: '%s failed to execute',
+  notification_unsuccessful_execution_text: '%s failed to run',
   notification_show_button_text: 'Show',
 
   task_view_running_message: '[Running] %s',
