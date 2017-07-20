@@ -12,6 +12,8 @@ const expandHomeDir = require('expand-home-dir');
 // tslint:disable-next-line:no-var-requires
 const findJavaHome = require('find-java-home');
 
+export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
+
 export interface RequirementsData {
   java_home: string;
 }
