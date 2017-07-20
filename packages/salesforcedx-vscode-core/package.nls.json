@@ -8,5 +8,5 @@
   "force_source_push_default_scratch_org_text": "SFDX: Push Source to Default Scratch Org",
   "force_source_status_text": "View All Changes (Local and in Default Scratch Org)",
   "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
-  "terminate_sfdx_command_text": "SFDX: Terminate Active Command"
+  "terminate_sfdx_command_text": "SFDX: Cancel Active Command"
 }
