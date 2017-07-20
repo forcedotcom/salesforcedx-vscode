@@ -1,12 +1,17 @@
 import * as vscode from 'vscode';
+import { APEX_LANGUAGE_SERVER_CHANNEL } from './channel';
 import * as languageServer from './language-server';
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('SalesforceDX Apex Language Server Extension Activated');
+  APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
+    'SalesforceDX Apex Language Server Extension Activated'
+  );
   const apexServer = languageServer.createLanguageServer(context).start();
   context.subscriptions.push(apexServer);
 }
 
 export function deactivate() {
-  console.log('SalesforceDX Apex Language Server Extension Deactivated');
+  APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
+    'SalesforceDX Apex Language Server Extension Deactivated'
+  );
 }
