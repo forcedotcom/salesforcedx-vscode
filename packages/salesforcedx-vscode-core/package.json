@@ -101,7 +101,7 @@
       },
       {
         "command": "sfdx.force.task.stop",
-        "title": "%terminate_sfdx_command_text%"
+        "title": "%cancel_sfdx_command_text%"
       }
     ]
   }
