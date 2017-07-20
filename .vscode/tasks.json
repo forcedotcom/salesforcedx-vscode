@@ -4,28 +4,28 @@
   "tasks": [
     {
       "taskName": "Bootstrap",
-      "command": "lerna",
+      "command": "npm",
       "isShellCommand": true,
       "showOutput": "silent",
-      "args": ["bootstrap"],
+      "args": ["run", "bootstrap"],
       "isBackground": false
     },
     {
       "taskName": "Watch",
-      "command": "lerna",
+      "command": "npm",
       "isShellCommand": true,
       "showOutput": "silent",
-      "args": ["run", "--parallel", "watch"],
+      "args": ["run", "watch"],
       "isBackground": true,
       "problemMatcher": "$tsc-watch"
     },
     {
       "isBuildCommand": true,
       "taskName": "Compile",
-      "command": "lerna",
+      "command": "npm",
       "isShellCommand": true,
       "showOutput": "silent",
-      "args": ["run", "--stream", "compile"],
+      "args": ["run", "compile"],
       "isBackground": false,
       "problemMatcher": {
         "owner": "typescript",

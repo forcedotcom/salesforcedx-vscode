@@ -66,7 +66,9 @@ runs but that is how you would check locally first.
 
 ## List of Useful commands
 
-### `lerna bootstrap`
+_These commands assume that they are executed from the top-level directory. Internally, they delegate to `lerna` to call them on each npm module in the packages directory._
+
+### `npm run bootstrap`
 
 This bootstraps the packages by issuing an `npm install` on each package and
 also symlinking any package that are part of the packages folder.
@@ -77,27 +79,27 @@ modules.
 If you change the dependencies in your package.json, you will also need to run
 this command.
 
-### `lerna run compile`
+### `npm run compile`
 
 This runs `npm run compile` on each of the package in packages.
 
-### `lerna run clean`
+### `npm run clean`
 
 This run `npm run clean` on each of the package in packages.
 
-### `lerna run --parallel watch`
+### `npm run watch`
 
 This runs `npm run watch` on each of the package in packages. The `--parallel`
 flag tell it to run each in a separate process so that it won't block the main
 thread.
 
-### `lerna run test --concurrency 1`
+### `npm run test`
 
 This runs `npm test` on each of the packages. The `--concurrency 1` is essential
 for VS Code extension tests since they require an instance of Code to run in.
 And, only one instance of that can be running at a single time.
 
-### `lerna run lint`
+### `npm run lint`
 
 This runs `npm lint` on each of the packages. If there are no errors/warnings
 from tslint, then you get a clean output. But, if they are errors from tslint,
