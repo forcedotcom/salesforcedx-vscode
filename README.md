@@ -15,6 +15,23 @@
    it will ask you to install them. **Please do so since this includes the
    linters and formatters**.
 
+## Pre-requisites for Windows Development
+
+These are instructions for _developing_ the extensions on Windows since there
+are some quirkiness with the way Windows behaves. This does not affect the
+actual extensions that we distribute.
+
+1. Same as above.
+1. You should have use the Bash Shell instead of Powershell or the Command Prompt.
+1. You should install VS Code Insiders from
+   [here](https://code.visualstudio.com/insiders). Without this, you won't be
+   able to run the end-to-end tests while VS Code is open. You will see an error
+   of the form "Running extension tests from the command line is currently only
+   supported if no other instance of Code is running." To circumvent that you,
+   you could close VS Code each time you run the tests. Or you can install the
+   Insiders version so that it can run the tests in Code while you work in the
+   Insiders version.
+
 ## Structure
 
 ### Packages
@@ -39,7 +56,7 @@ You would only do this once after you cloned the repository.
 You would usually do the following each time you close/reopen VS Code:
 
 1. [Optional] Open the Command Palette > Tasks: Run Task > Bootstrap  (this
-   essentially runs `lerna bootstrap`). This is required if you change the
+   essentially runs `npm run bootstrap`). This is required if you change the
    dependencies in any of the package.json.
 1. If you wish to build, you can invoke Command Palette > Build Task
    (Ctrl+Shift+B or Cmd+Shift+B on Mac). The errors will show in the Problems
@@ -56,9 +73,9 @@ to run and debug extensions.
 
 When you are ready to commit
 
-1. Run `lerna run lint` to run tslint in more thorough mode to identify any
+1. Run `npm run lint` to run tslint in more thorough mode to identify any
    errors.
-1. Some of the items can be fixed using `tstlint --project . fix`. Some you
+1. Some of the items can be fixed using `tslint --project . fix`. Some you
    might need to fix them manually.
 
 This linting steps should be done later as part of the continuous integration
