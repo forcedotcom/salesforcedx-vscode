@@ -2,7 +2,7 @@
 
 This is a guide for publishing to the Visual Studio Code Marketplace. Most
 contributors will not need to worry about publishing. However, it might be
-worthwhile familiaring yourself with the steps in case you need to share the
+worthwhile familiarizing yourself with the steps in case you need to share the
 extensions through the .vsix files.
 
 # Goal
@@ -49,7 +49,7 @@ the .vsix are neither signed nor verified. To ensure that they have not been
 tampered with, we generate a SHA256 of the contents and publish that to
 https://developer.salesforce.com/media/vscode/SHA256
 
-### Prequisite
+### Prerequisite
 
 * You have access to our S3 bucket at s3://dfc-data-production/media/vscode
 * You have the [AWS CLI](https://aws.amazon.com/cli/) installed and configured
@@ -66,7 +66,7 @@ https://developer.salesforce.com/media/vscode/SHA256
 
 ## Pushing .vsix to Visual Studio Marketplace
 
-### Prequisite
+### Prerequisite
 
 * You have a personal access token that for the salesforce publisher id that is
   exported as `VSCE_PERSONAL_ACCESS_TOKEN`. 
@@ -78,7 +78,7 @@ https://developer.salesforce.com/media/vscode/SHA256
    it to the Visual Studio Code Marketplace.
 
 It's **crucial** that you publish the .vsix that you had before so that the
-SHA256 match. If you were to repackage, the SHA256 woudl be different.
+SHA256 match. If you were to repackage, the SHA256 would be different.
 
 # Tips
 
