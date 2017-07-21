@@ -2,10 +2,12 @@
   "name": "@salesforce/salesforcedx-utils-vscode",
   "displayName": "SFDX Utilities for VS Code",
   "description": "Provides utilies to interface the SFDX libraries with VS Code",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "salesforce",
   "license": "MIT",
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "dependencies": {
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0"
@@ -23,8 +25,8 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "rm -rf node_modules && rm -rf out",
-    "test": "node ./node_modules/.bin/_mocha --recursive out/test",
+    "clean": "shx rm -rf node_modules && shx rm -rf out",
+    "test": "./node_modules/.bin/_mocha --recursive out/test",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "main": "./out/src/"

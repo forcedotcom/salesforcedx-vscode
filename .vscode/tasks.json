@@ -4,28 +4,27 @@
   "tasks": [
     {
       "taskName": "Bootstrap",
-      "command": "lerna",
+      "command": "npm",
       "isShellCommand": true,
       "showOutput": "silent",
-      "args": ["bootstrap"],
+      "args": ["run", "bootstrap"],
       "isBackground": false
     },
     {
-      "taskName": "Watch",
-      "command": "lerna",
+      "taskName": "Clean",
+      "command": "npm",
       "isShellCommand": true,
       "showOutput": "silent",
-      "args": ["run", "--parallel", "watch"],
-      "isBackground": true,
-      "problemMatcher": "$tsc-watch"
+      "args": ["run", "clean"],
+      "isBackground": false
     },
     {
       "isBuildCommand": true,
       "taskName": "Compile",
-      "command": "lerna",
+      "command": "npm",
       "isShellCommand": true,
       "showOutput": "silent",
-      "args": ["run", "--stream", "compile"],
+      "args": ["run", "compile"],
       "isBackground": false,
       "problemMatcher": {
         "owner": "typescript",
@@ -39,6 +38,32 @@
           "message": 7
         }
       }
+    },
+    {
+      "taskName": "Lint",
+      "command": "npm",
+      "isShellCommand": true,
+      "showOutput": "silent",
+      "args": ["run", "lint"],
+      "isBackground": false
+    },
+    {
+      "isTestCommand": true,
+      "taskName": "Test",
+      "command": "npm",
+      "isShellCommand": true,
+      "showOutput": "silent",
+      "args": ["run", "test"],
+      "isBackground": false
+    },
+    {
+      "taskName": "Watch",
+      "command": "npm",
+      "isShellCommand": true,
+      "showOutput": "silent",
+      "args": ["run", "watch"],
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch"
     }
   ]
 }

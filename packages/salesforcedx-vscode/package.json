@@ -2,19 +2,27 @@
   "preview": true,
   "name": "salesforcedx-vscode",
   "displayName": "Visual Studio Code Extension Pack for Salesforce DX",
-  "description": "Collection of extension for Salesforce DX",
+  "description": "Collection of extensions for Salesforce DX",
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "salesforce",
   "license": "MIT",
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": ["Extension Packs"],
+  "scripts": {
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js"
+  },
+  "categories": [
+    "Extension Packs"
+  ],
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core",

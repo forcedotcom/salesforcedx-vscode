@@ -43,6 +43,6 @@ install:
   - npm install
 
 script:
-  - lerna run compile
-  - lerna run lint
+  - npm run compile
+  - npm run lint
 # - lerna run test --concurrency 1
