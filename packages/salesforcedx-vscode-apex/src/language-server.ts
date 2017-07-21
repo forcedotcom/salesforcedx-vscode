@@ -8,6 +8,8 @@ import {
   LanguageClientOptions,
   StreamInfo
 } from 'vscode-languageclient';
+import { APEX_LANGUAGE_SERVER_CHANNEL } from './channel';
+import { nls } from './messages';
 import * as requirements from './requirements';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
@@ -76,13 +78,15 @@ async function createServer(
             console.log(lspProcess);
 
             lspProcess.stdout.on('data', data => {
-              console.log(`${data}`);
+              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
             });
             lspProcess.stderr.on('data', data => {
-              console.log(`${data}`);
+              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
             });
             lspProcess.on('close', code => {
-              console.log(`language server exited with code: ${code}`);
+              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
+                `${nls.localize('client_name')} exited with code: ${code}`
+              );
             });
           });
       });
@@ -121,7 +125,7 @@ export function createLanguageServer(
 
   const client = new LanguageClient(
     'apex',
-    'Apex Language Server',
+    nls.localize('client_name'),
     () => createServer(context),
     clientOptions
   );
