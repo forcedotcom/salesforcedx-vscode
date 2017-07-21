@@ -27,9 +27,13 @@ shell.exec('npm run test');
 // This will still make a commit in Git with the tag of the version used
 const nextVersion = process.env['VERSION_INCREMENT'];
 if (nextVersion) {
-  shell.exec(`lerna publish --exact --repo-version ${nextVersion} --skip-npm`);
+  shell.exec(
+    `lerna publish --force-publish --exact --repo-version ${nextVersion} --yes --skip-npm`
+  );
 } else {
-  shell.exec('lerna publish --exact --cd-version minor --yes --skip-npm');
+  shell.exec(
+    'lerna publish --force-publish --exact --cd-version minor --yes --skip-npm'
+  );
 }
 
 // Generate the .vsix files
