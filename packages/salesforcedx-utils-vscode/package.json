@@ -24,7 +24,7 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test": "node ./node_modules/.bin/_mocha --recursive out/test",
+    "test": "./node_modules/.bin/_mocha --recursive out/test",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "main": "./out/src/"
