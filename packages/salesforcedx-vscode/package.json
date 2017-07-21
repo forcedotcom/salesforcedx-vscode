@@ -8,7 +8,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "salesforce",
   "license": "MIT",
   "engines": {
@@ -20,7 +20,9 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
-  "categories": ["Extension Packs"],
+  "categories": [
+    "Extension Packs"
+  ],
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core",
