@@ -8,13 +8,15 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "salesforce",
   "license": "MIT",
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": ["Languages"],
+  "categories": [
+    "Languages"
+  ],
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
@@ -42,7 +44,10 @@
     "languages": [
       {
         "id": "html",
-        "extensions": [".page", ".component"]
+        "extensions": [
+          ".page",
+          ".component"
+        ]
       }
     ]
   }
