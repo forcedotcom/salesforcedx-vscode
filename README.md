@@ -22,13 +22,16 @@ are some quirkiness with the way Windows behaves. This does not affect the
 actual extensions that we distribute.
 
 1. Same as above.
-1. You should have use the Bash Shell instead of Powershell or the Command Prompt.
+1. You should use Bash Shell instead of Powershell or the Command Prompt.
+1. If you want to use the integrated terminal in VS Code, you can see that
+   following the instructions
+   [here](https://code.visualstudio.com/docs/editor/integrated-terminal#_windows);
 1. You should install VS Code Insiders from
    [here](https://code.visualstudio.com/insiders). Without this, you won't be
    able to run the end-to-end tests while VS Code is open. You will see an error
    of the form "Running extension tests from the command line is currently only
-   supported if no other instance of Code is running." To circumvent that you,
-   you could close VS Code each time you run the tests. Or you can install the
+   supported if no other instance of Code is running." To circumvent that you
+   could close VS Code each time you run the tests. Or, you can install the
    Insiders version so that it can run the tests in Code while you work in the
    Insiders version.
 
