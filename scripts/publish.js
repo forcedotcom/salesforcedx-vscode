@@ -38,14 +38,14 @@ shell.exec(`npm run vscode:package`);
 // Generate the SHA256 and append to the file
 shell.exec(`npm run vscode:sha256`);
 
-// Publish to VS Code Marketplace
-shell.exec(`npm run vscode:publish`);
-
 // Push the SHA256 to AWS
 shell.exec('aws s3 cp SHA256 s3://dfc-data-production/media/vscode/SHA256');
 
 // Add SHA256 to git
 shell.exec(`git add SHA256`);
+
+// Publish to VS Code Marketplace
+shell.exec(`npm run vscode:publish`);
 
 // Perform these steps manually for now
 // Git commit
