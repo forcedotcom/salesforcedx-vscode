@@ -4,10 +4,8 @@
   "description": "Provides utilies to interface the SFDX libraries with VS Code",
   "version": "0.2.0",
   "publisher": "salesforce",
-  "license": "MIT",
-  "categories": [
-    "Other"
-  ],
+  "license": "BSD-3-Clause",
+  "categories": ["Other"],
   "dependencies": {
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0"

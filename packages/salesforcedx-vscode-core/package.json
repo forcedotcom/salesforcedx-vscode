@@ -10,13 +10,11 @@
   },
   "version": "0.2.0",
   "publisher": "salesforce",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "0.2.0",
     "rxjs": "^5.4.1"

@@ -10,13 +10,11 @@
   },
   "version": "0.2.0",
   "publisher": "salesforce",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Languages"
-  ],
+  "categories": ["Languages"],
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
