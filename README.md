@@ -2,6 +2,14 @@
 
 [![Build Status](https://travis-ci.com/forcedotcom/salesforcedx-vscode.svg?token=CS8GSGJmGgyJRoKddVL6&branch=develop)](https://travis-ci.com/forcedotcom/salesforcedx-vscode)
 
+## Introduction
+
+This repository contains the source code for our Visual Studio Code (VS Code)
+extensions for Salesforce DX.
+
+We will be publishing these extensions to the VS Code Marketplace shortly and
+wil make an announcement when they are available.
+
 ## Pre-requisites
 
 1. This repository uses [Lerna](https://lernajs.io/) to manage it as a
@@ -40,9 +48,7 @@ actual extensions that we distribute.
 ### Packages
 
 The packages directory contains the different npm packages. The naming
-convention is that anything with 'vscode' is a VS Code extension. Anything
-without 'vscode' is a standalone npm package that can be installed normally
-through npm.
+convention is that anything with 'salesforcedx-vscode' is a VS Code extension.
 
 ## Typical workflow
 
@@ -86,7 +92,9 @@ runs but that is how you would check locally first.
 
 ## List of Useful commands
 
-_These commands assume that they are executed from the top-level directory. Internally, they delegate to `lerna` to call them on each npm module in the packages directory._
+_These commands assume that they are executed from the top-level directory.
+Internally, they delegate to `lerna` to call them on each npm module in the
+packages directory._
 
 ### `npm run bootstrap`
 
