@@ -8,7 +8,7 @@ This repository contains the source code for our Visual Studio Code (VS Code)
 extensions for Salesforce DX.
 
 We will be publishing these extensions to the VS Code Marketplace shortly and
-wil make an announcement when they are available.
+will make an announcement when they are available.
 
 ## Pre-requisites
 

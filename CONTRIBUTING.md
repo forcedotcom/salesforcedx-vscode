@@ -10,5 +10,4 @@
    needed changes, and merge it in.
 
 External contributors will be required to sign a Contributor's License
-Agreement. You can find this file [here](SFDC_CLA.pdf).  Please sign, scan, and
-send to osscore@salesforce.com. We look forward to collaborating with you!
+Agreement. You can do so by going to https://cla.salesforce.com/sign-cla.
