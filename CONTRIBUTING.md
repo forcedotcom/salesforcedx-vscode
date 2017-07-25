@@ -4,7 +4,7 @@
    let you know if there is already an effort in progress.
 1. Fork this repository.
 1. The [README](README.md) has details on how to set up your environment.
-1. (optional) Create a _topic_ branch based on the correct branch (usually the **develop** branch, see [Branches section](#Branches) below). 
+1. Create a _topic_ branch in your fork based on the correct branch (usually the **develop** branch, see [Branches section](#Branches) below). Note, this step is recommended but technically not required if contributing using a fork.
 1. Edit the code in your fork.
 1. Sign CLA (see [CLA](#CLA) below)
 1. Send us a pull request when you are done. We'll review your code, suggest any
