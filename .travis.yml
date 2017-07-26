@@ -45,4 +45,5 @@ install:
 script:
   - npm run compile
   - npm run lint
-# - lerna run test --concurrency 1
+  - npm run vscode:prepublish
+  - npm run test
