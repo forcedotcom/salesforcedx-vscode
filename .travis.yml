@@ -1,6 +1,6 @@
 language: node_js
 
-sudo: false
+sudo: required
 
 node_js:
   - "6"
@@ -21,6 +21,9 @@ env:
   global:
     - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
     - SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
+    - SFDX_AUTOUPDATE_DISABLE=true
+    - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
+    - SFDX_DOMAIN_RETRY=300
 
 os:
   - linux
@@ -32,11 +35,20 @@ before_install:
       export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
       sh -e /etc/init.d/xvfb start;
       sleep 3;
+      # install CLI
+      echo Installing SFDX CLI Linux
+      wget -qO- $SFDX_URL_LINUX | tar xJf -
+      "./sfdx/install"
+      export PATH=./sfdx/$(pwd):$PATH
+      sfdx update
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
       # install CLI
-      echo Installing SFDX CLI
+      echo Installing SFDX CLI macOS
+      wget -q $SFDX_URL_OSX
+      sudo installer -pkg sfdx-osx.pkg -target /
+      sfdx update
     fi
 
 install:
@@ -45,5 +57,4 @@ install:
 script:
   - npm run compile
   - npm run lint
-  - npm run vscode:prepublish
   - npm run test
