@@ -1,0 +1,18 @@
+environment:
+  ELECTRON_RUN_AS_NODE: 1
+  SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-windows-amd64.exe
+  SFDX_AUTOUPDATE_DISABLE: true
+  SFDX_DOMAIN_RETRY: 300
+
+install:
+  - ps: Install-Product node 7.4.0 x64
+  - npm install
+
+build_script:
+  - npm run compile
+  - npm run lint
+
+test_script:
+  - node --version
+  - npm --version
+#  - npm run test
