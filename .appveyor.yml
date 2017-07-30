@@ -22,7 +22,7 @@ install:
   - curl -fsSL -o sfdx-windows-amd64.tar.xz %SFDX_URL_WINDOWS%
   - 7z x sfdx-windows-amd64.tar.xz
   - 7z x sfdx-windows-amd64.tar
-  - SET PATH="%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%"
+  - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
   - sfdx update
 
 build_script:
