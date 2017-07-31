@@ -25,7 +25,7 @@ shell.exec('npm run test');
 // lerna publish
 // --skip-npm to increment the version number in all packages but not publish to npmjs
 // This will still make a commit in Git with the tag of the version used
-const nextVersion = process.env['VERSION_INCREMENT'];
+const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 if (nextVersion) {
   shell.exec(
     `lerna publish --force-publish --exact --repo-version ${nextVersion} --yes --skip-npm`
@@ -42,17 +42,25 @@ shell.exec(`npm run vscode:package`);
 // Generate the SHA256 and append to the file
 shell.exec(`npm run vscode:sha256`);
 
+// Concatenate the contents to the proper SHA256.md
+shell.exec('./scripts/concatenate-sha256.js');
+
+// Remove the temp SHA256 file
+shell.rm('./SHA256');
+
 // Push the SHA256 to AWS
-shell.exec('aws s3 cp SHA256 s3://dfc-data-production/media/vscode/SHA256');
+shell.exec(
+  'aws s3 cp ./SHA256.md s3://dfc-data-production/media/vscode/SHA256.md'
+);
 
 // Add SHA256 to git
-shell.exec(`git add SHA256`);
+shell.exec(`git add SHA256.md`);
+
+// Git commit
+shell.exec(`git commit -m "Updated SHA256"`);
 
 // Publish to VS Code Marketplace
 shell.exec(`npm run vscode:publish`);
 
-// Perform these steps manually for now
-// Git commit
-// shell.exec(`git commit -m "Updated SHA256"`);
 // Push back to GitHub
-//shell.exec(`git push`);
+// shell.exec(`git push`);

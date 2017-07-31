@@ -18,11 +18,14 @@ For more information about publishing take a look at
 
 # Steps
 
-The scripts/publish.js contains the end-to-end flow. It is possible to run each step manually.
+The scripts/publish.js contains the end-to-end flow. You run this from the
+**top-level** directory.
 
 The files under scripts use [shelljs/shx](https://github.com/shelljs/shx) and
 [shelljs/shelljs](https://github.com/shelljs/shelljs) to write scripts in a
 portable manner across platforms.
+
+It is possible to run each step manually as illustrated below.
 
 ## Packaging as .vsix
 
