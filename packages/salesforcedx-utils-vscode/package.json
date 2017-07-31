@@ -14,11 +14,17 @@
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
-    "@types/mocha": "2.2.38",
+    "@types/glob": "^5.0.30",
+    "@types/mocha": "^2.2.38",
     "@types/node": "^6.0.40",
     "chai": "^4.0.2",
-    "mocha": "3.2.0",
+    "decache": "^4.1.0",
+    "glob": "^7.1.2",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
     "nyc": "^11.0.2",
+    "remap-istanbul": "^0.9.5",
+    "source-map-support": "^0.4.15",
     "typescript": "2.4.0"
   },
   "scripts": {
