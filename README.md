@@ -34,7 +34,7 @@ and will make an announcement when they are available.
 ## Getting Started
 
 If you are interested in contributing, please take a look at the
-[CONTRIBUTING](contributing.md) guide.
+[CONTRIBUTING](CONTRIBUTING.md) guide.
 
 If you are interested in building the extensions locally, please take a look at
 the publishing [doc](docs/publishing.md).
