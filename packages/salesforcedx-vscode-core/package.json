@@ -3,6 +3,7 @@
   "name": "salesforcedx-vscode-core",
   "displayName": "SFDX CLI integration for Visual Studio Code",
   "description": "Provides integration with the SFDX CLI",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#ECECEC",

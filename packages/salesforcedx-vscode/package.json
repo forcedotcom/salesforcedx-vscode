@@ -3,6 +3,7 @@
   "name": "salesforcedx-vscode",
   "displayName": "Visual Studio Code Extension Pack for Salesforce DX",
   "description": "Collection of extensions for Salesforce DX",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#ECECEC",
