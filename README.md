@@ -1,6 +1,7 @@
 # Salesforce Development Tools for Visual Studio Code 
 
-[![Build Status](https://travis-ci.org/forcedotcom/salesforcedx-vscode.svg?branch=develop)](https://travis-ci.org/forcedotcom/salesforcedx-vscode)
+[![Build Status Linux and macOS](https://travis-ci.org/forcedotcom/salesforcedx-vscode.svg?branch=develop)](https://travis-ci.org/forcedotcom/salesforcedx-vscode)
+[![Build status Windows](https://ci.appveyor.com/api/projects/status/n0ef03jpdl95jugj/branch/develop?svg=true)](https://ci.appveyor.com/project/guw/salesforcedx-vscode/branch/develop)
 
 ## Introduction
 
