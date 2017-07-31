@@ -1,5 +1,7 @@
 ## Pre-requisites
 
+1. We are using Node 7. If you need to work with multiple versions of Node, you
+   might consider using [nvm](https://github.com/creationix/nvm).
 1. This repository uses [Lerna](https://lernajs.io/) to manage it as a
    _monorepo_.  Please install Lerna globally using `npm install --global
    lerna`.
