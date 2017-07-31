@@ -2,7 +2,7 @@
 
 [![Build Status Linux and macOS](https://travis-ci.org/forcedotcom/salesforcedx-vscode.svg?branch=develop)](https://travis-ci.org/forcedotcom/salesforcedx-vscode)
 [![Build status Windows](https://ci.appveyor.com/api/projects/status/n0ef03jpdl95jugj/branch/develop?svg=true)](https://ci.appveyor.com/project/guw/salesforcedx-vscode/branch/develop)
-[![Dev Dependencies](https://david-dm.org/forcedotcom/salesforcedx-vscode.svg?type=dev)](https://david-dm.org/forcedotcom/salesforcedx-vscode?type=dev)
+[![Dev Dependencies](https://david-dm.org/forcedotcom/salesforcedx-vscode/dev-status.svg)](https://david-dm.org/forcedotcom/salesforcedx-vscode?type=dev)
 
 ## Introduction
 
