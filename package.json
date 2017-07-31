@@ -22,5 +22,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forcedotcom/salesforcedx-vscode.git"
-  }
+  },
+  "license": "BSD-3-Clause"
 }
