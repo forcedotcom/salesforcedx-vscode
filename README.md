@@ -16,14 +16,17 @@ availability in documentation or in press releases or public statements.
 
 Currently, we have the following extensions:
 
-1. salesforcedx-vscode - A top level [extension
+* salesforcedx-vscode - A top level [extension
    pack](https://code.visualstudio.com/docs/extensionAPI/extension-manifest#_extension-packs)
    that will automatically install the following extensions for you.
-1. salesforcedx-vscode-core - Integrations with the SFDX CLI.
-1. salesforcedx-apex - Syntax highlighting, code-completion, etc for Apex.
-1. salesforcedx-vscode-lightning - Basic syntax highlighting, code-completion, etc for Lightning.
-1. salesforcedx-vscode-visualforce - Basic syntax highlighting, code-completion,
-   etc for Visualforce.
+* salesforcedx-vscode-core - This extension interacts with the Salesforce CLI to
+  provide basic Salesforce DX functionality.
+* salesforcedx-vscode-apex - This extension uses the Apex Language Server to
+  provide features such as syntax highlighting and code completion.
+* salesforcedx-vscode-lightning - This extension supports Lightning component
+  bundles. It uses the HTML language server from VS Code.
+* salesforcedx-vscode-visualforce - This extension supports Visualforce pages
+  and components. It uses the HTML language server from VS Code.
 
 We will be publishing these beta extensions to the VS Code Marketplace shortly
 and will make an announcement when they are available.
