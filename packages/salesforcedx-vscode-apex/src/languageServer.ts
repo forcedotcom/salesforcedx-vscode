@@ -114,6 +114,21 @@ function startedInDebugMode(): boolean {
   return false;
 }
 
+// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
+export function code2ProtocolConverter(value: vscode.Uri) {
+  if (/^win32/.test(process.platform)) {
+    // The *first* : is also being encoded which is not the standard for URI on Windows
+    // Here we transform it back to the standard way
+    return value.toString().replace('%3A', ':');
+  } else {
+    return value.toString();
+  }
+}
+
+function protocol2CodeConverter(value: string) {
+  return vscode.Uri.parse(value);
+}
+
 export function createLanguageServer(
   context: vscode.ExtensionContext
 ): LanguageClient {
@@ -127,6 +142,10 @@ export function createLanguageServer(
         vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
+    },
+    uriConverters: {
+      code2Protocol: code2ProtocolConverter,
+      protocol2Code: protocol2CodeConverter
     }
   };
 

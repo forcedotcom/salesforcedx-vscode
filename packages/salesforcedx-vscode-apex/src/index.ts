@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { APEX_LANGUAGE_SERVER_CHANNEL } from './channel';
-import * as languageServer from './language-server';
+import * as languageServer from './languageServer';
 
 export function activate(context: vscode.ExtensionContext) {
   APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
