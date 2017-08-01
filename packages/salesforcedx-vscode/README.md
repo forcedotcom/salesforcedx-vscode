@@ -1,3 +1,5 @@
+# salesforcedx-vscode
+
 ## Salesforce Development Tools for Visual Studio Code  
 
 This extension bundle includes tools for developing on the Salesforce platform using the Salesforce DX development flow in the lightweight, extensible VS Code editor. These tools provide features for working with scratch orgs, Apex, Lightning components, and Visualforce.
