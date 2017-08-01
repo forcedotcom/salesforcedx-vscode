@@ -20,83 +20,86 @@ import { nls } from './messages';
 import * as requirements from './requirements';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
-const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 
 declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
+
+function getFreePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    portFinder.getPort((err, port) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(port);
+      }
+    });
+  });
+}
 
 async function createServer(
   context: vscode.ExtensionContext
 ): Promise<StreamInfo> {
   try {
     const requirementsData = await requirements.resolveRequirements();
-    return new Promise<any>((resolve, reject) => {
-      portFinder.getPort((err, port) => {
-        const uberJar = path.resolve(
-          context.extensionPath,
-          'out',
-          UBER_JAR_NAME
-        );
-        const javaExecutable = path.resolve(
-          `${requirementsData.java_home}/bin/java`
-        );
-        let args: string[];
-        if (DEBUG) {
-          args = [
-            '-cp',
-            uberJar,
-            `-Dapex-lsp.port=${port}`,
-            '-Ddebug.internal.errors=true',
-            '-Ddebug.semantic.errors=false',
-            '-Dtrace.protocol=false',
-            `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT}`,
-            APEX_LANGUAGE_SERVER_MAIN
-          ];
-        } else {
-          args = [
-            '-cp',
-            uberJar,
-            `-Dapex-lsp.port=${port}`,
-            '-Ddebug.internal.errors=true',
-            '-Ddebug.semantic.errors=false',
-            APEX_LANGUAGE_SERVER_MAIN
-          ];
-        }
+    return new Promise<any>(async (resolve, reject) => {
+      const port = await getFreePort();
+      const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
+      const javaExecutable = path.resolve(
+        `${requirementsData.java_home}/bin/java`
+      );
+      let args: string[];
+      if (DEBUG) {
+        args = [
+          '-cp',
+          uberJar,
+          `-Dapex-lsp.port=${port}`,
+          '-Ddebug.internal.errors=true',
+          '-Ddebug.semantic.errors=false',
+          '-Dtrace.protocol=false',
+          `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${port +
+            1}`,
+          APEX_LANGUAGE_SERVER_MAIN
+        ];
+      } else {
+        args = [
+          '-cp',
+          uberJar,
+          `-Dapex-lsp.port=${port}`,
+          '-Ddebug.internal.errors=true',
+          '-Ddebug.semantic.errors=false',
+          APEX_LANGUAGE_SERVER_MAIN
+        ];
+      }
 
-        net
-          .createServer(socket => {
-            resolve({
-              reader: socket,
-              writer: socket
-            });
-          })
-          .listen(port, () => {
-            const options = {
-              cwd: vscode.workspace.rootPath
-            };
-
-            const lspProcess = child_process.spawn(
-              javaExecutable,
-              args,
-              options
-            );
-            console.log('PROCESS INFO');
-            console.log(lspProcess);
-
-            lspProcess.stdout.on('data', data => {
-              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
-            });
-            lspProcess.stderr.on('data', data => {
-              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
-            });
-            lspProcess.on('close', code => {
-              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
-                `${nls.localize('client_name')} exited with code: ${code}`
-              );
-            });
+      net
+        .createServer(socket => {
+          resolve({
+            reader: socket,
+            writer: socket
           });
-      });
+        })
+        .listen(port, () => {
+          const options = {
+            cwd: vscode.workspace.rootPath
+          };
+
+          const lspProcess = child_process.spawn(javaExecutable, args, options);
+          console.log('PROCESS INFO');
+          console.log(lspProcess);
+
+          lspProcess.stdout.on('data', data => {
+            APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
+          });
+          lspProcess.stderr.on('data', data => {
+            APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
+          });
+          lspProcess.on('close', code => {
+            APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
+              `${nls.localize('client_name')} exited with code: ${code}`
+            );
+          });
+        });
     });
   } catch (err) {
     vscode.window.showErrorMessage(err);
