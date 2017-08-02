@@ -6,54 +6,45 @@
  */
 
 import {
-  CliCommandExecutor,
+  Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import {
+  FileSelection,
+  FileSelector,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from './commands';
+
+class ForceOrgCreateExecutor extends SfdxCommandletExecutor<FileSelection> {
+  public build(data: FileSelection): Command {
+    const selectionPath = path.relative(
+      vscode.workspace.rootPath!, // this is safe because of workspaceChecker
+      data.file
+    );
+    return new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize('force_org_create_default_scratch_org_text')
+      )
+      .withArg('force:org:create')
+      .withFlag('-f', `${selectionPath}`)
+      .withArg('--setdefaultusername')
+      .build();
+  }
+}
+
+const workspaceChecker = new SfdxWorkspaceChecker();
+const parameterGatherer = new FileSelector('**/*-scratch-def.json');
 
 export function forceOrgCreate() {
-  vscode.workspace.findFiles('config/*.json', '').then(files => {
-    const fileItems: vscode.QuickPickItem[] = files.map(file => {
-      return {
-        label: path.basename(file.toString()),
-        description: file.fsPath
-      };
-    });
-    vscode.window.showQuickPick(fileItems).then(selection => {
-      if (selection) {
-        const cancellationTokenSource = new vscode.CancellationTokenSource();
-        const cancellationToken = cancellationTokenSource.token;
-
-        const rootPath = vscode.workspace.rootPath!;
-        const selectionPath = path.relative(
-          rootPath,
-          selection.description.toString()
-        );
-        const execution = new CliCommandExecutor(
-          new SfdxCommandBuilder()
-            .withDescription(
-              nls.localize('force_org_create_default_scratch_org_text')
-            )
-            .withArg('force:org:create')
-            .withFlag('-f', `${selectionPath}`)
-            .withArg('--setdefaultusername')
-            .build(),
-          { cwd: rootPath }
-        ).execute(cancellationToken);
-
-        channelService.streamCommandOutput(execution);
-        notificationService.reportCommandExecutionStatus(
-          execution,
-          cancellationToken
-        );
-        CancellableStatusBar.show(execution, cancellationTokenSource);
-        taskViewService.addCommandExecution(execution, cancellationTokenSource);
-      }
-    });
-  });
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    new ForceOrgCreateExecutor()
+  );
+  commandlet.run();
 }
