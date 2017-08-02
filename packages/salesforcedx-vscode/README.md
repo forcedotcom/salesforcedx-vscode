@@ -11,7 +11,7 @@ This release contains a beta version of Salesforce Development Tools for Visual 
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Please consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.  
 
 ---
-![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode/images/overview.gif)  
+![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)  
 
 ### Extensions Included  
 To use Salesforce Development Tools for Visual Studio Code, install all the extensions in this bundle.
