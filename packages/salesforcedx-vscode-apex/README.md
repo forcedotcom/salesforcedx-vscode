@@ -11,17 +11,17 @@ Currently, Visual Studio Code extensions are not signed or verified on the Micro
 
 ## View Code-Completion Suggestions
 To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.  
-![Animation showing code completion of a System.debug() statement](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
+![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
 
 ## Check Syntax Errors in Your Code
 If you leave out a `;`, `}`, or `)`, the syntax error is marked with a red squiggly line in the editor.  
 
 The Problems view in the bottom pane also lists the syntax errors. Double-click the problem to go to the source file.  
-![Problems view, showing a missing semicolon in an Apex class](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/images/apex_problems.png)
+![Problems view, showing a missing semicolon in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_problems.png)
 
 ## View an Outline of Your Apex Class or Trigger
 The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Cmd+Shift+O (macOS) or Ctrl+Shift+O (Windows or Linux). To jump to one of the symbols, select it in the list.  
-![Outline view, showing the symbols in an Apex class](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/images/apex_outline.png)
+![Outline view, showing the symbols in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_outline.png)
 
 ## Monitor Apex Language Server Output
 The Apex Language Server is an implementation of the [Language Server Protocol](https://github.com/Microsoft/language-server-protocol) 3.0 specification. The Language Server Protocol allows a tool (in this case, VS Code) to communicate with a language smartness provider (the server). VS Code uses the Apex Language Server to show outlines of Apex classes and triggers, code-completion suggestions, and syntactic errors. To see all diagnostic information from the Apex Language Server, select **View** > **Output**, then choose **Apex Language Server** from the dropdown menu. The diagnostic information gives you insights into the progress of the language server and shows the problems  encountered.  

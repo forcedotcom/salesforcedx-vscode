@@ -11,21 +11,21 @@ Currently, Visual Studio Code extensions are not signed or verified on the Micro
 
 ## Run Salesforce CLI Commands
 To run a command from the Salesforce Development Tools for Visual Studio Code extensions, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) and type **SFDX** in the command palette.  
-![Command palette, filtered to show SFDX commands](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-core/images/sfdx_commands.png)
+![Command palette, filtered to show SFDX commands](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/sfdx_commands.png)
 
 When a command finishes running (due to success, failure, or cancellation), a notification displays at the top of the window.  
-![Notification that source was successfully pushed to a scratch org](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-core/images/command_success_notification.png)
+![Notification that source was successfully pushed to a scratch org](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/command_success_notification.png)
 
 To see the output of the commands that you run, select **View** > **Output**, and then select **Salesforce DX CLI** from the dropdown menu. Alternatively, click **Show** in the completion notification.  
-![Output view, showing the results of an Apex test run](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-core/images/output_view.png)
+![Output view, showing the results of an Apex test run](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/output_view.png)
 
 ## View Your Active Scratch Org
 A badge in the footer shows your current default scratch org. It uses the org’s auto-generated username or the alias that you chose for the org.  
-![Username for default scratch org, displayed in footer](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-core/images/active_scratch_org.png)
+![Username for default scratch org, displayed in footer](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/active_scratch_org.png)
 
 ## View Your Running Tasks
 To check your running tasks, expand the Running Tasks view in the Explorer.  
-![Running Tasks view, showing that Apex tests are running](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-core/images/running_tasks.png)
+![Running Tasks view, showing that Apex tests are running](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/running_tasks.png)
 
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
