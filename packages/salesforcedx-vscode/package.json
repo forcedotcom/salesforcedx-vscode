@@ -4,6 +4,12 @@
   "displayName": "Visual Studio Code Extension Pack for Salesforce DX",
   "description": "Collection of extensions for Salesforce DX",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#ECECEC",
@@ -21,9 +27,7 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
-  "categories": [
-    "Extension Packs"
-  ],
+  "categories": ["Extension Packs"],
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core",
