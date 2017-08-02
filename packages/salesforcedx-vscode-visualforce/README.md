@@ -14,18 +14,18 @@ Currently, Visual Studio Code extensions are not signed or verified on the Micro
    * HTML portions
    * Embedded CSS and JavaScript portions  
    
-   ![Colored syntax highlighting in a .page file](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_syntax.png)
+   ![Colored syntax highlighting in a .page file](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_syntax.png)
 
 * Code completion
    * HTML tags
    * CSS
    * JavaScript  
    
-   ![Code-completion options in a .page file](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_completion.png)
+   ![Code-completion options in a .page file](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_completion.png)
 
 * Outline view  
 
-   ![List of symbols in a .page file](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_outline.png)
+   ![List of symbols in a .page file](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_outline.png)
 
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
