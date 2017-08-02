@@ -2,7 +2,7 @@
   "preview": true,
   "name": "salesforcedx-vscode",
   "displayName": "Visual Studio Code Extension Pack for Salesforce DX",
-  "description": "Collection of extensions for Salesforce DX",
+  "description": "Collection of extensions for the Salesforce DX development flow",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"

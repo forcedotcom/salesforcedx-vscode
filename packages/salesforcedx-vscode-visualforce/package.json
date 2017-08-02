@@ -2,7 +2,7 @@
   "preview": true,
   "name": "salesforcedx-vscode-visualforce",
   "displayName": "Visualforce Code Editor for Visual Studio Code",
-  "description": "Provides syntax highlighting for Visualforce framework",
+  "description": "Provides syntax highlighting for the Visualforce framework",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
