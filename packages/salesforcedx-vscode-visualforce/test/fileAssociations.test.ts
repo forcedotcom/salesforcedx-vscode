@@ -21,10 +21,10 @@ async function matchExtensionAsHtml(extension: string) {
 
 describe('Visualforce file association', () => {
   it('Should support .page association', async () => {
-    matchExtensionAsHtml('.page');
+    await matchExtensionAsHtml('.page');
   });
 
   it('Should support .component association', async () => {
-    matchExtensionAsHtml('.component');
+    await matchExtensionAsHtml('.component');
   });
 });
