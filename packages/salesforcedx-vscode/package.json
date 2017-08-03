@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.0.0",
+  "version": "40.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,9 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
-  "categories": ["Extension Packs"],
+  "categories": [
+    "Extension Packs"
+  ],
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core",
