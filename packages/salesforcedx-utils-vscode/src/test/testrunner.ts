@@ -26,7 +26,8 @@ if (!tty.getWindowSize) {
 
 let mocha = new Mocha({
   ui: 'tdd',
-  useColors: true
+  useColors: true,
+  reporter: 'mocha-multi-reporters'
 });
 
 function configure(mochaOpts: any): void {

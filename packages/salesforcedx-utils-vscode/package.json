@@ -5,9 +5,7 @@
   "version": "40.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0"
@@ -22,6 +20,8 @@
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
     "source-map-support": "^0.4.15",
@@ -32,7 +32,7 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test": "./node_modules/.bin/_mocha --recursive out/test",
+    "test": "./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "main": "./out/src/"
