@@ -115,10 +115,10 @@ class CoverageRunner {
   constructor(
     private options: ITestRunnerOptions,
     private testsRoot: string,
-    private endRunCallback: any
+    errorRunCallback: (error: string) => any
   ) {
     if (!options.relativeSourcePath) {
-      return endRunCallback(
+      return errorRunCallback(
         'Error - relativeSourcePath must be defined for code coverage to work'
       );
     }
