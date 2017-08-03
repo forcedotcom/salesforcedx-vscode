@@ -21,27 +21,27 @@ async function matchExtensionAsHtml(extension: string) {
 
 describe('Lightning file association', () => {
   it('Should support .app association', async () => {
-    await matchExtensionAsHtml('.app');
+    matchExtensionAsHtml('.app_bogus');
   });
 
   it('Should support .cmp association', async () => {
-    await matchExtensionAsHtml('.cmp');
+    matchExtensionAsHtml('.cmp_bogus');
   });
 
   it('Should support .design association', async () => {
-    await matchExtensionAsHtml('.design');
+    matchExtensionAsHtml('.design_bogus');
   });
 
   it('Should support .evt association', async () => {
-    await matchExtensionAsHtml('.evt');
+    matchExtensionAsHtml('.evt_bogus');
   });
 
   it('Should support.intf association', async () => {
-    await matchExtensionAsHtml('.intf');
+    matchExtensionAsHtml('.intf_bogus');
   });
 
   it('Should support .auradoc association', async () => {
-    await matchExtensionAsHtml('.auradoc');
+    matchExtensionAsHtml('.auradoc_bogus');
   });
 
   it('Should support .tokens association', async () => {
