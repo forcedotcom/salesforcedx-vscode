@@ -1,0 +1,21 @@
+{
+  "preview": true,
+  "name": "salesforcedx-vscode-apex-debugger",
+  "displayName": "Apex Debugger for Visual Studio Code",
+  "description": "Provides debugging support for the Apex programming language",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "40.4.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.13.0"
+  },
+  "categories": [
+    "Debuggers"
+  ]
+}

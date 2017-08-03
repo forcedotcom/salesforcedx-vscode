@@ -1,99 +1,36 @@
-# Salesforce Development Tools for Visual Studio Code
+# Salesforce Development Tools for Visual Studio Code 
 
-## Pre-requisites
+[![Build Status Linux and macOS](https://travis-ci.org/forcedotcom/salesforcedx-vscode.svg?branch=develop)](https://travis-ci.org/forcedotcom/salesforcedx-vscode)
+[![Build status Windows](https://ci.appveyor.com/api/projects/status/n0ef03jpdl95jugj/branch/develop?svg=true)](https://ci.appveyor.com/project/guw/salesforcedx-vscode/branch/develop)
+[![Dev Dependencies](https://david-dm.org/forcedotcom/salesforcedx-vscode/dev-status.svg)](docs/dependencies.md)
 
-1. This repository uses [Lerna](https://lernajs.io/) to manage it as a
-   _monorepo_.  Please install Lerna globally using `npm install --global
-   lerna`.
-1. We use `tslint` so please install it using `npm install --global tslint`.
-1. It is preferred, though not required, that you use the Insiders version of VS
-   Code from [here](https://code.visualstudio.com/insiders).
-1. There is a list of recommended extensions for this workspace in
-   .vscode/extensions.json. The first time you open VS Code on this workspace,
-   it will ask you to install them. **Please do so since this includes the
-   linters and formatters**.
+## Introduction
 
-## Structure
+This repository contains the source code for Salesforce Development Tools for Visual Studio Code: the Visual Studio Code (VS Code) extensions for Salesforce DX.
 
-### Packages
+This release contains a beta version of Salesforce Development Tools for Visual Studio Code, which means it’s a high-quality feature with known limitations. Salesforce Development Tools for Visual Studio Code isn’t generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. We can’t guarantee general availability within any particular time frame or at all. Make your purchase decisions only on the basis of generally available products and features. You can provide feedback and suggestions for Salesforce Development Tools for Visual Studio Code in the [Salesforce DX Beta](https://success.salesforce.com/_ui/core/chatter/groups/GroupProfilePage?g=0F93A000000HTp1) group in the Success Community.
 
-The packages directory contains the different npm packages. The naming
-convention is that anything with 'vscode' is a VS Code extension. Anything
-without 'vscode' is a standalone npm package that can be installed normally
-through npm.
+Currently, we have the following extensions:
 
-## Typical workflow
+* [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)  
+   A top-level [extension pack](https://code.visualstudio.com/docs/extensionAPI/extension-manifest#_extension-packs) that automatically installs the following extensions for you.  
+* [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)  
+   This extension interacts with the Salesforce CLI to provide basic Salesforce DX functionality.
+* [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)  
+   This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
+* [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
+   This extension supports Lightning component bundles. It uses the HTML language server from VS Code.
+* [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
+   This extension supports Visualforce pages and components. It uses the HTML language server from VS Code. 
 
-1. Clone this repository from git.
-1. `cd` into `salesforcedx-vscode`.
-1. Open the project in VS Code.
+We will be publishing these beta extensions to the VS Code Marketplace shortly and will make an announcement when they are available.
 
-You would usually do the following each time you close/reopen VS Code:
+## Getting Started
 
-1. Open the Command Palette > Tasks: Run Task > Bootstrap  (this essentially
-   runs `lerna bootstrap`).
-1. If you wish to build, you can invoke Command Palette > Build Task
-   (Ctrl+Shift+B or Cmd+Shift+B on Mac). The errors will show in the Problems
-   panel. There is a known issue with the mapping so clicking on the error won't
-   open the file.
-1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac) and from
-   the launch configuration dropdown, pick "Launch Extensions".
-1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac) and from
-   the launch configuration dropdown, pick "Launch * Tests".
+If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
-For more information, consult the VS Code
-[doc](https://code.visualstudio.com/docs/extensions/debugging-extensions) on how
-to run and debug extensions.
+If you are interested in building the extensions locally, please take a look at the publishing [doc](docs/publishing.md).
 
-When you are ready to commit
+You can find more information about developing Salesforce Development Tools for Visual Studio Code in the [docs](docs) folder. If the docs don’t cover what you are looking for, please feel free to open an issue. 
 
-1. Run `lerna run lint` to run tslint in more thorough mode to identify any
-   errors.
-1. Some of the items can be fixed using `tstlint --project . fix`. Some you
-   might need to fix them manually.
-
-This linting steps should be done later as part of the continuous integration
-runs but that is how you would check locally first.
-
-## List of Useful commands
-
-### `lerna bootstrap`
-
-This bootstraps the packages by issuing an `npm install` on each package and
-also symlinking any package that are part of the packages folder.
-
-You would want do this as the first step after you have made changes in the
-modules.
-
-If you change the dependencies in your package.json, you will also need to run
-this command.
-
-### `lerna run compile`
-
-This runs `npm run compile` on each of the package in packages.
-
-### `lerna run clean`
-
-This run `npm run clean` on each of the package in packages.
-
-### `lerna run --parallel watch`
-
-This runs `npm run watch` on each of the package in packages. The `--parallel`
-flag tell it to run each in a separate process so that it won't block the main
-thread.
-
-### `lerna run test --concurrency 1`
-
-This runs `npm test` on each of the packages. The `--concurrency 1` is essential
-for VS Code extension tests since they require an instance of Code to run in.
-And, only one instance of that can be running at a single time.
-
-### `lerna run lint`
-
-This runs `npm lint` on each of the packages. If there are no errors/warnings
-from tslint, then you get a clean output. But, if they are errors from tslint,
-you will see a long error that can be confusing – just focus on the tslint
-errors. The results of this is deeper than what the tslint extension in VS Code
-does because of [semantic lint
-rules](https://palantir.github.io/tslint/usage/type-checking/) which requires a
-tsconfig.json to be passed to tslint.
+For information about using the extensions, consult the README.md file for each package.

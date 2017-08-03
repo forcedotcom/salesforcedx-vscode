@@ -1,8 +1,15 @@
-import { spawn, ChildProcess, ExecOptions } from 'child_process';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { ChildProcess, ExecOptions, spawn } from 'child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
+import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 
 // tslint:disable-next-line:no-var-requires
 const kill = require('tree-kill');
@@ -32,10 +39,17 @@ export class CliCommandExecutor {
   }
 }
 
+/**
+ * Represents a command execution (a process has already been spawned for it).
+ * This is tightly coupled with the execution model (child_process).
+ * If we ever use a different executor, this class should be refactored and abstracted
+ * to take an event emitter/observable instead of child_proces.
+ */
 export class CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
-  public readonly processExitSubject: Observable<number | string>;
+  public readonly processExitSubject: Observable<number | undefined>;
+  public readonly processErrorSubject: Observable<Error | undefined>;
   public readonly stdoutSubject: Observable<Buffer | string>;
   public readonly stderrSubject: Observable<Buffer | string>;
 
@@ -50,7 +64,19 @@ export class CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
-    this.processExitSubject = Observable.fromEvent(childProcess, 'exit');
+    this.processExitSubject = Observable.fromEvent(
+      childProcess,
+      'exit'
+    ) as Observable<number | undefined>;
+    this.processExitSubject.subscribe(next => {
+      if (timerSubscriber) {
+        timerSubscriber.unsubscribe();
+      }
+    });
+    this.processErrorSubject = Observable.fromEvent(
+      childProcess,
+      'error'
+    ) as Observable<Error | undefined>;
     this.processExitSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
@@ -77,9 +103,11 @@ export class CommandExecution {
   }
 }
 
-// This is required because of https://github.com/nodejs/node/issues/6052
-// Basically if a child process spawns it own children  processes, those
-// children (grandchildren) processes are not necessarily killed
+/**
+ * This is required because of https://github.com/nodejs/node/issues/6052
+ * Basically if a child process spawns it own children  processes, those
+ * children (grandchildren) processes are not necessarily killed
+ */
 async function killPromise(processId: number) {
   return new Promise((resolve, reject) => {
     kill(processId, 'SIGKILL', (err: any) => {

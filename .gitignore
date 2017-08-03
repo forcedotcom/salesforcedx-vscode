@@ -68,3 +68,6 @@ jspm_packages/
 
 # VS Code tests
 .vscode-test/
+
+# Eclipse
+.project

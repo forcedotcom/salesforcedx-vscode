@@ -1,0 +1,35 @@
+# version format
+version: "{branch}-{build}"
+
+# Do not build on tags (GitHub and BitBucket)
+skip_tags: true
+
+# Do not build feature branch with open Pull Requests
+skip_branch_with_pr: true
+
+# Build on x64 only
+platform: x64
+
+environment:
+  ELECTRON_RUN_AS_NODE: 1
+  SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-v5.7.6-d42cf65-windows-amd64.tar.xz
+  SFDX_AUTOUPDATE_DISABLE: true
+  SFDX_DOMAIN_RETRY: 300
+
+install:
+  - ps: Install-Product node 7.4.0 x64
+  - appveyor-retry npm install
+  - curl -fsSL -o sfdx-windows-amd64.tar.xz %SFDX_URL_WINDOWS%
+  - 7z x sfdx-windows-amd64.tar.xz
+  - 7z x sfdx-windows-amd64.tar
+  - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
+  - sfdx update
+
+build_script:
+  - npm run compile
+  - npm run lint
+
+test_script:
+  - node --version
+  - npm --version
+  - npm run test

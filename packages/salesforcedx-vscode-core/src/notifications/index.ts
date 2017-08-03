@@ -1,30 +1,10 @@
-import * as vscode from 'vscode';
-import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DEFAULT_SFDX_CHANNEL } from '../channels';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-export function reportExecutionStatus(
-  execution: CommandExecution,
-  cancellationToken?: vscode.CancellationToken
-) {
-  execution.processExitSubject.subscribe(async data => {
-    if (data !== null && data !== 'undefined' && data.toString() === '0') {
-      const selection = await vscode.window.showInformationMessage(
-        `Successfully executed ${execution.command}`,
-        'Show'
-      );
-      if (selection && selection === 'Show') {
-        DEFAULT_SFDX_CHANNEL.show();
-      }
-    } else {
-      if (cancellationToken && cancellationToken.isCancellationRequested) {
-        vscode.window.showWarningMessage(`${execution.command} canceled`);
-        DEFAULT_SFDX_CHANNEL.show();
-      } else {
-        vscode.window.showErrorMessage(
-          `Failed to execute ${execution.command}`
-        );
-        DEFAULT_SFDX_CHANNEL.show();
-      }
-    }
-  });
-}
+import { NotificationService } from './notificationService';
+
+export const notificationService = NotificationService.getInstance();

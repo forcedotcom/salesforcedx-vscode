@@ -1,27 +1,11 @@
-import * as vscode from 'vscode';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ChannelService } from './channelService';
 
-export const DEFAULT_SFDX_CHANNEL = vscode.window.createOutputChannel(
-  'SalesforceDX - CLI'
-);
-
-export function streamCommandOutput(execution: CommandExecution) {
-  DEFAULT_SFDX_CHANNEL.append('Starting ');
-  DEFAULT_SFDX_CHANNEL.appendLine(execution.command.toString());
-  DEFAULT_SFDX_CHANNEL.appendLine('');
-
-  execution.stderrSubject.subscribe(data =>
-    DEFAULT_SFDX_CHANNEL.append(data.toString())
-  );
-  execution.stdoutSubject.subscribe(data =>
-    DEFAULT_SFDX_CHANNEL.append(data.toString())
-  );
-
-  execution.processExitSubject.subscribe(data => {
-    DEFAULT_SFDX_CHANNEL.append(execution.command.toString());
-    DEFAULT_SFDX_CHANNEL.appendLine(
-      'ended' + data == null ? ` with exit code ${data.toString()}` : ''
-    );
-  });
-}
+export const channelService = ChannelService.getInstance();
+export { DEFAULT_SFDX_CHANNEL } from './channelService';

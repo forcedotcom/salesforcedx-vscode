@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as vscode from 'vscode';
 
-import * as scratchOrgDecorator from './scratch-org-decorator';
-import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import {
   forceApexTestRun,
   forceAuthWebLogin,
@@ -9,8 +14,12 @@ import {
   forceOrgOpen,
   forceSourcePull,
   forceSourcePush,
-  forceSourceStatus
+  forceSourceStatus,
+  forceTaskStop
 } from './commands';
+import * as scratchOrgDecorator from './scratch-org-decorator';
+import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
+import { taskViewService } from './statuses';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
@@ -42,6 +51,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.apex.test.run',
     forceApexTestRun
   );
+  const forceTaskStopCmd = vscode.commands.registerCommand(
+    'sfdx.force.task.stop',
+    forceTaskStop
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -50,21 +63,33 @@ function registerCommands(): vscode.Disposable {
   );
 
   return vscode.Disposable.from(
+    forceApexTestRunCmd,
     forceAuthWebLoginCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,
     forceSourcePushCmd,
     forceSourceStatusCmd,
-    forceApexTestRunCmd,
+    forceTaskStopCmd,
     internalCancelCommandExecution
   );
 }
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
+
+  // Commands
   const commands = registerCommands();
   context.subscriptions.push(commands);
+
+  // Task View
+  const treeDataProvider = vscode.window.registerTreeDataProvider(
+    'sfdx.force.tasks.view',
+    taskViewService
+  );
+  context.subscriptions.push(treeDataProvider);
+
+  // Scratch Org Decorator
   scratchOrgDecorator.showOrg();
   scratchOrgDecorator.monitorConfigChanges();
 }

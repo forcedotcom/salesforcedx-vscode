@@ -1,6 +1,13 @@
-import { window, workspace, StatusBarItem, StatusBarAlignment } from 'vscode';
-import * as path from 'path';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as fs from 'fs';
+import * as path from 'path';
+import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 
 const CONFIG_FILE = path.join(workspace.rootPath!, '.sfdx/sfdx-config.json');
 

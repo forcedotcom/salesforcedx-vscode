@@ -1,5 +1,12 @@
-import * as vscode from 'vscode';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { expect } from 'chai';
+import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
 
@@ -12,32 +19,32 @@ async function matchExtensionAsHtml(extension: string) {
   );
 }
 
-suite('Extension tests', () => {
-  test('.app association', async () => {
+describe('Lightning file association', () => {
+  it('Should support .app association', async () => {
     matchExtensionAsHtml('.app');
   });
 
-  test('.cmp association', async () => {
+  it('Should support .cmp association', async () => {
     matchExtensionAsHtml('.cmp');
   });
 
-  test('.design association', async () => {
+  it('Should support .design association', async () => {
     matchExtensionAsHtml('.design');
   });
 
-  test('.evt association', async () => {
+  it('Should support .evt association', async () => {
     matchExtensionAsHtml('.evt');
   });
 
-  test('.intf association', async () => {
+  it('Should support.intf association', async () => {
     matchExtensionAsHtml('.intf');
   });
 
-  test('.auradoc association', async () => {
+  it('Should support .auradoc association', async () => {
     matchExtensionAsHtml('.auradoc');
   });
 
-  test('.tokens association', async () => {
+  it('Should support .tokens association', async () => {
     matchExtensionAsHtml('.tokens');
   });
 });

@@ -1,0 +1,12 @@
+{
+  "running_tasks_title_text": "Running Tasks",
+
+  "force_auth_web_login_authorize_dev_hub_text": "SFDX: Authorize a Dev Hub",
+  "force_org_create_default_scratch_org_text": "SFDX: Create a Default Scratch Org...",
+  "force_org_open_default_scratch_org_text": "SFDX: Open Default Scratch Org",
+  "force_source_pull_default_scratch_org_text": "SFDX: Pull Source from Default Scratch Org",
+  "force_source_push_default_scratch_org_text": "SFDX: Push Source to Default Scratch Org",
+  "force_source_status_text": "SFDX: View All Changes (Local and in Default Scratch Org)",
+  "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
+  "cancel_sfdx_command_text": "SFDX: Cancel Active Command"
+}

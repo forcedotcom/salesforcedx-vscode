@@ -1,30 +1,49 @@
 {
   "preview": true,
-  "name": "@salesforce/salesforcedx-vscode-lightning",
-  "displayName": "Lightning Code Editor for Visual Studio Code",
-  "description": "Provides syntax highlighting for Lightning framework",
-  "version": "0.1.0",
-  "publisher": "salesforce",
-  "license": "MIT",
-  "engines": {
-    "vscode": "^1.10.0"
+  "name": "salesforcedx-vscode-lightning",
+  "displayName": "Lightning Component Code Editor for Visual Studio Code",
+  "description": "Provides syntax highlighting for Lightning components",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
-  "categories": ["Languages"],
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "40.4.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.13.0"
+  },
+  "categories": [
+    "Languages"
+  ],
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
+    "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "mocha": "3.2.0",
-    "typescript": "2.3.4",
-    "vscode": "1.1.0"
+    "sinon": "^2.3.6",
+    "typescript": "2.4.0",
+    "vscode": "1.1.2"
   },
   "scripts": {
-    "vscode:prepublish": "tsc -p ./",
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "rm -rf node_modules && rm -rf out",
+    "clean": "shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },

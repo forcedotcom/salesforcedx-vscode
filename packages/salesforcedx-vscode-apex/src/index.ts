@@ -1,17 +1,24 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as vscode from 'vscode';
-
-
-
-
-import * as languageServer from './language-server';
-
+import { APEX_LANGUAGE_SERVER_CHANNEL } from './channel';
+import * as languageServer from './languageServer';
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Salesforce Apex Language Server Extension Activated');
+  APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
+    'Salesforce DX Apex Language Server Extension Activated'
+  );
   const apexServer = languageServer.createLanguageServer(context).start();
   context.subscriptions.push(apexServer);
 }
 
 export function deactivate() {
-  console.log('Salesforce Apex Language Server Extension Deactivated');
+  APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
+    'Salesforce DX Apex Language Server Extension Deactivated'
+  );
 }

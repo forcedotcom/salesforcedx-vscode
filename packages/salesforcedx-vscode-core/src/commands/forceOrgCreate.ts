@@ -1,12 +1,20 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import {
   CliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { streamCommandOutput } from '../channels';
-import { reportExecutionStatus } from '../notifications';
-import { CancellableStatusBar } from '../statuses';
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { nls } from '../messages';
+import { notificationService } from '../notifications';
+import { CancellableStatusBar, taskViewService } from '../statuses';
 
 export function forceOrgCreate() {
   vscode.workspace.findFiles('config/*.json', '').then(files => {
@@ -28,6 +36,9 @@ export function forceOrgCreate() {
         );
         const execution = new CliCommandExecutor(
           new SfdxCommandBuilder()
+            .withDescription(
+              nls.localize('force_org_create_default_scratch_org_text')
+            )
             .withArg('force:org:create')
             .withFlag('-f', `${selectionPath}`)
             .withArg('--setdefaultusername')
@@ -35,9 +46,13 @@ export function forceOrgCreate() {
           { cwd: rootPath }
         ).execute(cancellationToken);
 
-        streamCommandOutput(execution);
-        reportExecutionStatus(execution, cancellationToken);
+        channelService.streamCommandOutput(execution);
+        notificationService.reportCommandExecutionStatus(
+          execution,
+          cancellationToken
+        );
         CancellableStatusBar.show(execution, cancellationTokenSource);
+        taskViewService.addCommandExecution(execution, cancellationTokenSource);
       }
     });
   });

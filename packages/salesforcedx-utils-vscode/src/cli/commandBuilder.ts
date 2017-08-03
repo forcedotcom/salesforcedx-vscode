@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 export class Command {
   public readonly command: string;
   public readonly description?: string;
@@ -13,6 +20,10 @@ export class Command {
     return this.description
       ? this.description
       : `${this.command} ${this.args.join(' ')}`;
+  }
+
+  public toCommand(): string {
+    return `${this.command} ${this.args.join(' ')}`;
   }
 }
 

@@ -1,5 +1,27 @@
 {
   "devDependencies": {
-    "lerna": "^2.0.0-rc.5"
-  }
+    "lerna": "2.0.0",
+    "shx": "^0.2.2",
+    "tslint": "5.5.0",
+    "typescript": "2.4.0",
+    "vsce": "1.29.0"
+  },
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap",
+    "clean": "lerna run clean",
+    "compile": "lerna run --stream compile",
+    "lint": "lerna run lint",
+    "publish": "node scripts/publish.js",
+    "test": "lerna run test --concurrency 1",
+    "vscode:package": "lerna run vscode:package --concurrency 1",
+    "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
+    "vscode:publish": "lerna run vscode:publish --concurrency 1",
+    "watch": "lerna run --parallel watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forcedotcom/salesforcedx-vscode.git"
+  },
+  "license": "BSD-3-Clause"
 }

@@ -1,64 +1,100 @@
-// A launch configuration that compiles the extension and then opens it inside a new window
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "attach",
-            "protocol": "legacy",
-            "name": "Attach to Process (Legacy Protocol)",
-            "port": 5858,
-            "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/packages/*/out/**/*.js"
-            ]
-        },
-        {
-            "name": "Launch Extensions",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}/packages"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/packages/*/out/src/**/*.js"
-            ],
-            "preLaunchTask": "Compile"
-        },
-        {
-            "name": "Launch SalesforceDX VS Code Core Tests",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}/packages",
-                "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-core/out/test"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/packages/*/out/**/*.js"
-            ],
-            "preLaunchTask": "Compile"
-        },
-        {
-            "name": "Launch SalesforceDX VS Code Apex Tests",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}/packages",
-                "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/packages/*/out/**/*.js"
-            ],
-            "preLaunchTask": "Compile"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "protocol": "legacy",
+      "name": "Attach to Process (Legacy Protocol)",
+      "port": 5858,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
+    },
+    {
+      "name": "Launch Extensions",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Salesforce DX Utils Tests",
+      "program": "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "--recursive",
+        "${workspaceRoot}/packages/salesforcedx-utils-vscode/out/test"
+      ],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "Launch Salesforce DX VS Code Core Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-core/out/test"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch Salesforce DX VS Code Apex Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch Salesforce DX VS Code Lightning Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lightning/out/test"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch Salesforce DX VS Code Visualforce Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-visualforce/out/test"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
+    }
+  ]
 }

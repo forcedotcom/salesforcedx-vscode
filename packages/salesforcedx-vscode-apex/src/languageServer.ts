@@ -1,14 +1,23 @@
-import * as vscode from 'vscode';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as child_process from 'child_process';
-import * as path from 'path';
 import * as net from 'net';
+import * as path from 'path';
 import * as portFinder from 'portfinder';
-import * as requirements from './requirements';
+import * as vscode from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   StreamInfo
 } from 'vscode-languageclient';
+import { APEX_LANGUAGE_SERVER_CHANNEL } from './channel';
+import { nls } from './messages';
+import * as requirements from './requirements';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
@@ -76,13 +85,15 @@ async function createServer(
             console.log(lspProcess);
 
             lspProcess.stdout.on('data', data => {
-              console.log(`${data}`);
+              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
             });
             lspProcess.stderr.on('data', data => {
-              console.log(`${data}`);
+              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
             });
             lspProcess.on('close', code => {
-              console.log(`language server exited with code: ${code}`);
+              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
+                `${nls.localize('client_name')} exited with code: ${code}`
+              );
             });
           });
       });
@@ -103,6 +114,21 @@ function startedInDebugMode(): boolean {
   return false;
 }
 
+// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
+export function code2ProtocolConverter(value: vscode.Uri) {
+  if (/^win32/.test(process.platform)) {
+    // The *first* : is also being encoded which is not the standard for URI on Windows
+    // Here we transform it back to the standard way
+    return value.toString().replace('%3A', ':');
+  } else {
+    return value.toString();
+  }
+}
+
+function protocol2CodeConverter(value: string) {
+  return vscode.Uri.parse(value);
+}
+
 export function createLanguageServer(
   context: vscode.ExtensionContext
 ): LanguageClient {
@@ -116,12 +142,16 @@ export function createLanguageServer(
         vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
+    },
+    uriConverters: {
+      code2Protocol: code2ProtocolConverter,
+      protocol2Code: protocol2CodeConverter
     }
   };
 
   const client = new LanguageClient(
     'apex',
-    'Apex Language Server',
+    nls.localize('client_name'),
     () => createServer(context),
     clientOptions
   );

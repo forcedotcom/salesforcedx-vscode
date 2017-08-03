@@ -1,5 +1,12 @@
-import * as vscode from 'vscode';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { expect } from 'chai';
+import * as vscode from 'vscode';
 
 const PERFECT_MATCH = 10;
 
@@ -12,12 +19,12 @@ async function matchExtensionAsHtml(extension: string) {
   );
 }
 
-suite('Extension tests', () => {
-  test('.page association', async () => {
+describe('Visualforce file association', () => {
+  it('Should support .page association', async () => {
     matchExtensionAsHtml('.page');
   });
 
-  test('.component association', async () => {
+  it('Should support .component association', async () => {
     matchExtensionAsHtml('.component');
   });
 });
