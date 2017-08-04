@@ -15,7 +15,101 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Debuggers"
-  ]
+  "categories": ["Debuggers"],
+  "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "40.4.0",
+    "vscode-debugprotocol": "1.19.0",
+    "vscode-debugadapter": "1.19.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/sinon": "1.16.31",
+    "chai": "^4.0.2",
+    "mocha": "3.2.0",
+    "sinon": "1.17.4",
+    "nyc": "^11.0.2",
+    "typescript": "2.4.0",
+    "vscode": "1.1.2",
+    "vscode-debugadapter-testsupport": "1.19.0",
+    "mock-spawn": "0.2.6"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "VSCODE_NLS_CONFIG='\"{\\\"locale\\\":\\\"en-us\\\",\\\"availableLanguages\\\":{}}\"' ./node_modules/.bin/_mocha --recursive out/test",
+    "coverage": "./node_modules/.bin/nyc npm test"
+  },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json",
+    "sfdx.debug.provideInitialConfigurations"
+  ],
+  "main": "./out/src",
+  "contributes": {
+    "breakpoints": [
+      {
+        "language": "apex"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "apex",
+        "label": "Apex Debugger",
+        "program": "./out/src/adapter/apexDebug.js",
+        "runtime": "node",
+        "languages": ["apex"],
+        "configurationSnippets": [
+          {
+            "label": "%launch_snippet_label_text%",
+            "description": "%launch_snippet_description_text%",
+            "body": {
+              "name": "%launch_snippet_name%",
+              "type": "apex",
+              "request": "launch",
+              "userIdFilter": "",
+              "requestTypeFilter": "",
+              "entryPointFilter": "",
+              "sfdxProject": "^\"\\${workspaceRoot}\""
+            }
+          }
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "required": ["sfdxProject"],
+              "userIdFilter": {
+                "type": "string",
+                "description": "%user_id_filter_text%",
+                "default": ""
+              },
+              "requestTypeFilter": {
+                "type": "string",
+                "description": "%request_type_filter_text%",
+                "default": ""
+              },
+              "entryPointFilter": {
+                "type": "string",
+                "description": "%entry_point_filter_text%",
+                "default": ""
+              },
+              "sfdxProject": {
+                "type": "string",
+                "description": "%sfdx_project_text%",
+                "default": "${workspaceRoot}"
+              }
+            }
+          }
+        },
+        "initialConfigurations": "sfdx.debug.provideInitialConfigurations"
+      }
+    ]
+  }
 }

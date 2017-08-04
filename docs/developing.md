@@ -80,6 +80,50 @@ When you are ready to commit
 This linting steps should be done later as part of the continuous integration
 runs but that is how you would check locally first.
 
+## Apex Debugger
+
+Typically, VSCode launches the debug adapter in a separate process and talks to
+it through stdin and stdout. In order to debug the adapter, it has to run in
+server mode. This is achieved by launching the adapter with a port number. The
+launch configuration would be like the following.
+
+```json
+{
+  "name": "Launch Apex Debug adapter",
+  "type": "node",
+  "request": "launch",
+  "cwd": "${workspaceRoot}",
+  "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/adapter/apexDebug.js",
+  "args": ["--server=4711"],
+  "sourceMaps": true,
+  "outFiles": [
+    "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"
+  ]
+}
+```
+
+The extension also has to be launched so you can use the Apex Debugger. However,
+you will need to configure the Apex Debugger to connect to the debug adapter
+server by adding a `debugServer` attribute with the same port number, like the
+following.
+
+```json
+{
+  "name": "Launch Apex Debugger",
+  "type": "apex",
+  "request": "launch",
+  "userIdFilter": "",
+  "requestTypeFilter": "",
+  "entryPointFilter": "",
+  "sfdxProject": "${workspaceRoot}",
+  "debugServer": 4711
+}
+```
+
+For more information, consult the VS Code
+[doc](https://code.visualstudio.com/docs/extensions/example-debuggers) on how to
+develop debugger extensions.
+
 ## List of Useful commands
 
 _These commands assume that they are executed from the top-level directory.

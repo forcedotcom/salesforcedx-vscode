@@ -22,6 +22,18 @@
       "preLaunchTask": "Compile"
     },
     {
+      "name": "Launch Apex Debug adapter",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/adapter/apexDebug.js",
+      "args": ["--server=4711"],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"
+      ]
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Launch Salesforce DX Utils Tests",
@@ -95,6 +107,31 @@
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch Apex Debugger Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "--recursive",
+        "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/test/"
+      ],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Extensions + Apex Debug adapter",
+      "configurations": ["Launch Extensions", "Launch Apex Debug adapter"]
     }
   ]
 }
