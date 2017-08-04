@@ -1,15 +1,21 @@
 {
   "preview": true,
   "name": "salesforcedx-vscode-lightning",
-  "displayName": "Lightning Code Editor for Visual Studio Code",
-  "description": "Provides syntax highlighting for Lightning framework",
+  "displayName": "Lightning Component Code Editor for Visual Studio Code",
+  "description": "Provides syntax highlighting for Lightning components",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.0.0",
+  "version": "40.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {

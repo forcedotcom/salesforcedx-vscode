@@ -1,15 +1,21 @@
 {
   "preview": true,
   "name": "salesforcedx-vscode-core",
-  "displayName": "SFDX CLI integration for Visual Studio Code",
-  "description": "Provides integration with the SFDX CLI",
+  "displayName": "Salesforce CLI integration for Visual Studio Code",
+  "description": "Provides integration with the Salesforce CLI",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.0.0",
+  "version": "40.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -19,7 +25,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.4.0",
     "rxjs": "^5.4.1"
   },
   "devDependencies": {
