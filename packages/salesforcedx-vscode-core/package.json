@@ -73,6 +73,11 @@
           "when": "view == sfdx.force.tasks.view"
         }
       ],
+      "explorer/context": [
+        {
+          "command": "sfdx.force.create.apex"
+        }
+      ],
       "commandPalette": [
         {
           "command": "sfdx.force.auth.web.login",
@@ -140,6 +145,10 @@
       {
         "command": "sfdx.force.task.stop",
         "title": "%cancel_sfdx_command_text%"
+      },
+      {
+        "command": "sfdx.force.create.apex",
+        "title": "%force_create_apex_text%"
       }
     ]
   }

@@ -13,3 +13,4 @@ export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
+export { forceCreateApex } from './forceCreateApex';

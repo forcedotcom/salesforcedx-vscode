@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import {
   forceApexTestRun,
   forceAuthWebLogin,
+  forceCreateApex,
   forceOrgCreate,
   forceOrgOpen,
   forceSourcePull,
@@ -55,6 +56,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.task.stop',
     forceTaskStop
   );
+  const forceCreateApexCmd = vscode.commands.registerCommand(
+    'sfdx.force.create.apex',
+    forceCreateApex
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -71,6 +76,7 @@ function registerCommands(): vscode.Disposable {
     forceSourcePushCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
+    forceCreateApexCmd,
     internalCancelCommandExecution
   );
 }
