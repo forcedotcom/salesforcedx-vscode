@@ -11,6 +11,7 @@
 export interface Predicate<T> {
   apply(item: T): PredicateResponse;
 }
+
 export class PredicateResponse {
   public result: boolean;
   public message: string;
