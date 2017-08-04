@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandExecution,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
@@ -145,7 +140,6 @@ describe('Debugger session service', () => {
     let origSpawn: any, mySpawn: any;
     const childProcess = require('child_process');
     const mockSpawn = require('mock-spawn');
-    const cmd: Command = new SfdxCommandBuilder().build();
 
     beforeEach(() => {
       origSpawn = childProcess.spawn;

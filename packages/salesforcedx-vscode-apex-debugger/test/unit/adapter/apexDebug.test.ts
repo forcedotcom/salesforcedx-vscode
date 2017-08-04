@@ -7,11 +7,7 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  DebugSession,
-  InitializedEvent,
-  OutputEvent
-} from 'vscode-debugadapter';
+import { OutputEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { LaunchRequestArguments } from '../../../src/adapter/apexDebug';
 import { SessionService } from '../../../src/core/sessionService';
