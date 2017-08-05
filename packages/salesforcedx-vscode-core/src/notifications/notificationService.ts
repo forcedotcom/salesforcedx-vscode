@@ -11,6 +11,9 @@ import * as vscode from 'vscode';
 import { DEFAULT_SFDX_CHANNEL } from '../channels';
 import { nls } from '../messages';
 
+/**
+ * A centralized location for all notification functionalities.
+ */
 export class NotificationService {
   private readonly channel: vscode.OutputChannel;
   private static instance: NotificationService;
@@ -24,6 +27,30 @@ export class NotificationService {
       NotificationService.instance = new NotificationService(channel);
     }
     return NotificationService.instance;
+  }
+
+  // Prefer these over directly calling the vscode.show* functions
+  // We can expand these to be facades that gather analytics of failures.
+
+  public showErrorMessage(
+    message: string,
+    ...items: string[]
+  ): Thenable<string | undefined> {
+    return vscode.window.showErrorMessage(message, ...items);
+  }
+
+  public showInformationMessage(
+    message: string,
+    ...items: string[]
+  ): Thenable<string | undefined> {
+    return vscode.window.showInformationMessage(message, ...items);
+  }
+
+  public showWarningMessage(
+    message: string,
+    ...items: string[]
+  ): Thenable<string | undefined> {
+    return vscode.window.showWarningMessage(message, ...items);
   }
 
   public reportCommandExecutionStatus(
@@ -50,7 +77,7 @@ export class NotificationService {
     observable.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
         const showButtonText = nls.localize('notification_show_button_text');
-        const selection = await vscode.window.showInformationMessage(
+        const selection = await this.showInformationMessage(
           nls.localize('notification_successful_execution_text', executionName),
           showButtonText
         );
@@ -59,12 +86,12 @@ export class NotificationService {
         }
       } else {
         if (cancellationToken && cancellationToken.isCancellationRequested) {
-          vscode.window.showWarningMessage(
+          this.showWarningMessage(
             nls.localize('notification_canceled_execution_text', executionName)
           );
           this.channel.show();
         } else {
-          vscode.window.showErrorMessage(
+          this.showErrorMessage(
             nls.localize(
               'notification_unsuccessful_execution_text',
               executionName
@@ -81,7 +108,7 @@ export class NotificationService {
     observable: Observable<Error | undefined>
   ) {
     observable.subscribe(async data => {
-      vscode.window.showErrorMessage(
+      this.showErrorMessage(
         nls.localize('notification_unsuccessful_execution_text', executionName)
       );
       this.channel.show();

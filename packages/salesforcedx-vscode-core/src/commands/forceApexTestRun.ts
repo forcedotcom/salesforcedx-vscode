@@ -6,109 +6,76 @@
  */
 
 import {
-  CliCommandExecutor,
+  Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from './commands';
 
-export function forceApexTestRun(testClass?: string) {
-  if (testClass) {
-    runTestClass(testClass);
-  } else {
-    vscode.workspace.findFiles('**/*.testSuite-meta.xml', '').then(files => {
-      const fileItems: vscode.QuickPickItem[] = files.map(file => {
-        return {
-          label: path
-            .basename(file.toString())
-            .replace('.testSuite-meta.xml', ''),
-          description: file.fsPath
-        };
-      });
-
-      fileItems.push({
-        label: 'All tests',
-        description: 'Runs all tests in the current workspace'
-      });
-
-      vscode.window.showQuickPick(fileItems).then(selection => {
-        if (selection) {
-          if (selection.label === 'All tests') {
-            runAllTests();
-          } else {
-            runTestSuite(selection.label);
-          }
-        }
-      });
+class TestsSelector implements ParametersGatherer<vscode.QuickPickItem> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<vscode.QuickPickItem>
+  > {
+    const files = await vscode.workspace.findFiles('**/*.testSuite-meta.xml');
+    const fileItems = files.map(file => {
+      return {
+        label: path
+          .basename(file.toString())
+          .replace('.testSuite-meta.xml', ''),
+        description: file.fsPath
+      };
     });
+
+    fileItems.push({
+      label: nls.localize('force_apex_test_run_all_test_label'),
+      description: nls.localize('force_apex_test_run_all_tests_desription_text')
+    });
+
+    const selection = await vscode.window.showQuickPick(fileItems);
+    return selection
+      ? { type: 'CONTINUE', data: selection }
+      : { type: 'CANCEL' };
   }
 }
 
-function runTestClass(testClass: string) {
-  const cancellationTokenSource = new vscode.CancellationTokenSource();
-  const cancellationToken = cancellationTokenSource.token;
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_test_run_text'))
-      .withArg('force:apex:test:run')
-      .withFlag('--classnames', `${testClass}`)
-      .withFlag('--resultformat', 'human')
-      .build(),
-    { cwd: vscode.workspace.rootPath }
-  ).execute(cancellationToken);
-
-  channelService.streamCommandOutput(execution);
-  notificationService.reportCommandExecutionStatus(
-    execution,
-    cancellationToken
-  );
-  CancellableStatusBar.show(execution, cancellationTokenSource);
-  taskViewService.addCommandExecution(execution, cancellationTokenSource);
+class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
+  vscode.QuickPickItem
+> {
+  public build(data: vscode.QuickPickItem): Command {
+    if (data.label === nls.localize('force_apex_test_run_all_test_label')) {
+      return new SfdxCommandBuilder()
+        .withDescription(nls.localize('force_apex_test_run_text'))
+        .withArg('force:apex:test:run')
+        .withFlag('--resultformat', 'human')
+        .build();
+    } else {
+      return new SfdxCommandBuilder()
+        .withDescription(nls.localize('force_apex_test_run_text'))
+        .withArg('force:apex:test:run')
+        .withFlag('--suitenames', `${data.label}`)
+        .withFlag('--resultformat', 'human')
+        .build();
+    }
+  }
 }
 
-function runAllTests() {
-  const cancellationTokenSource = new vscode.CancellationTokenSource();
-  const cancellationToken = cancellationTokenSource.token;
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_test_run_text'))
-      .withArg('force:apex:test:run')
-      .withFlag('--resultformat', 'human')
-      .build(),
-    { cwd: vscode.workspace.rootPath }
-  ).execute(cancellationToken);
+const workspaceChecker = new SfdxWorkspaceChecker();
+const parameterGatherer = new TestsSelector();
 
-  channelService.streamCommandOutput(execution);
-  notificationService.reportCommandExecutionStatus(
-    execution,
-    cancellationToken
+export function forceApexTestRun() {
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    new ForceApexTestRunExecutor()
   );
-  CancellableStatusBar.show(execution, cancellationTokenSource);
-  taskViewService.addCommandExecution(execution, cancellationTokenSource);
-}
-
-function runTestSuite(testSuiteName: string) {
-  const cancellationTokenSource = new vscode.CancellationTokenSource();
-  const cancellationToken = cancellationTokenSource.token;
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_test_run_text'))
-      .withArg('force:apex:test:run')
-      .withFlag('--suitenames', `${testSuiteName}`)
-      .withFlag('--resultformat', 'human')
-      .build(),
-    { cwd: vscode.workspace.rootPath }
-  ).execute(cancellationToken);
-
-  channelService.streamCommandOutput(execution);
-  notificationService.reportCommandExecutionStatus(
-    execution,
-    cancellationToken
-  );
-  CancellableStatusBar.show(execution, cancellationTokenSource);
-  taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  commandlet.run();
 }
