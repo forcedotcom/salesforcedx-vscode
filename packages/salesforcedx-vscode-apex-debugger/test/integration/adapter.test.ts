@@ -12,10 +12,11 @@ describe('Debugger adapter - integration', () => {
   describe('Session', () => {
     let dc: DebugClient;
 
-    before(() => {
+    before(async () => {
       dc = new DebugClient('node', './out/src/adapter/apexDebug.js', 'apex');
-      // Use dc.start(4711) to debug tests
-      return dc.start();
+      // Use dc.start(4711) to debug the adapter during
+      // tests (adapter needs to be launched in debug mode separately).
+      await dc.start();
     });
 
     after(() => {
@@ -24,17 +25,16 @@ describe('Debugger adapter - integration', () => {
 
     describe('Attach', () => {
       it('Should send initialized event', async () => {
-        dc.initializeRequest();
+        await dc.initializeRequest();
         dc.waitForEvent('initialized');
       });
 
-      it('Should not attach', () => {
-        dc
-          .attachRequest({})
-          .then(() => {
-            expect.fail('Debugger client should have thrown an error');
-          })
-          .catch();
+      it('Should not attach', async () => {
+        try {
+          await dc.attachRequest({});
+          expect.fail('Debugger client should have thrown an error');
+          // tslint:disable-next-line:no-empty
+        } catch (error) {}
       });
     });
   });

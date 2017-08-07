@@ -28,22 +28,22 @@ export class SessionService {
     return SessionService.instance;
   }
 
-  public withUserFilter(filter: string): SessionService {
+  public withUserFilter(filter?: string): SessionService {
     this.userFilter = filter || '';
     return this;
   }
 
-  public withRequestFilter(filter: string): SessionService {
+  public withRequestFilter(filter?: string): SessionService {
     this.requestFilter = filter || '';
     return this;
   }
 
-  public withEntryFilter(filter: string): SessionService {
+  public withEntryFilter(filter?: string): SessionService {
     this.entryFilter = filter || '';
     return this;
   }
 
-  public forProject(project: string): SessionService {
+  public forProject(project?: string): SessionService {
     this.project = project || '';
     return this;
   }
@@ -113,10 +113,10 @@ export class SessionService {
   ): Promise<CommandOutput> {
     const outputHolder = new CommandOutput();
     execution.stderrSubject.subscribe(data =>
-      outputHolder.saveStdErr(data.toString())
+      outputHolder.setStdErr(data.toString())
     );
     execution.stdoutSubject.subscribe(data =>
-      outputHolder.saveStdOut(data.toString())
+      outputHolder.setStdOut(data.toString())
     );
 
     return new Promise<CommandOutput>((resolve, reject) => {
@@ -125,7 +125,7 @@ export class SessionService {
           try {
             const respObj = JSON.parse(outputHolder.getStdOut());
             if (respObj && respObj.result && respObj.result.id) {
-              outputHolder.saveId(respObj.result.id);
+              outputHolder.setId(respObj.result.id);
             }
             // tslint:disable-next-line:no-empty
           } catch (e) {}
@@ -133,8 +133,8 @@ export class SessionService {
           try {
             const respObj = JSON.parse(outputHolder.getStdErr());
             if (respObj) {
-              outputHolder.saveCmdMsg(respObj.message);
-              outputHolder.saveCmdAction(respObj.action);
+              outputHolder.setCmdMsg(respObj.message);
+              outputHolder.setCmdAction(respObj.action);
             }
             // tslint:disable-next-line:no-empty
           } catch (e) {}

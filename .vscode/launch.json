@@ -31,7 +31,8 @@
       "sourceMaps": true,
       "outFiles": [
         "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"
-      ]
+      ],
+      "preLaunchTask": "Compile"
     },
     {
       "type": "node",
@@ -112,6 +113,7 @@
       "name": "Launch Apex Debugger Tests",
       "type": "node",
       "request": "launch",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger",
       "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
@@ -123,7 +125,9 @@
         "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/test/"
       ],
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/**/*.js"
+      ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
     }

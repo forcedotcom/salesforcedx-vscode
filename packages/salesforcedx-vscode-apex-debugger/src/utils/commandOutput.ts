@@ -12,23 +12,23 @@ export class CommandOutput {
   private cmdMsg: string;
   private cmdAction: string;
 
-  public saveId(id: string): void {
+  public setId(id: string): void {
     this.objectId = id;
   }
 
-  public saveStdErr(err: string): void {
+  public setStdErr(err: string): void {
     this.stdErr = err;
   }
 
-  public saveStdOut(out: string): void {
+  public setStdOut(out: string): void {
     this.stdOut = out;
   }
 
-  public saveCmdMsg(msg: string): void {
+  public setCmdMsg(msg: string): void {
     this.cmdMsg = msg;
   }
 
-  public saveCmdAction(action: string): void {
+  public setCmdAction(action: string): void {
     this.cmdAction = action;
   }
 

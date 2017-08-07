@@ -11,7 +11,6 @@ import {
   LaunchRequestArguments
 } from '../../../src/adapter/apexDebug';
 import { SessionService } from '../../../src/core/sessionService';
-import { CommandOutput } from '../../../src/utils/commandOutput';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponse: DebugProtocol.Response;
@@ -56,31 +55,17 @@ export class ApexDebugForTest extends ApexDebug {
     super.attachRequest(response, args);
   }
 
-  public launchReq(
+  public async launchReq(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
-  ): void {
+  ): Promise<void> {
     super.launchRequest(response, args);
   }
 
-  public finalizeLaunchReq(
-    response: DebugProtocol.LaunchResponse,
-    cmdResponse: CommandOutput
-  ): void {
-    super.finalizeLaunch(response, cmdResponse);
-  }
-
-  public disconnectReq(
+  public async disconnectReq(
     response: DebugProtocol.DisconnectResponse,
     args: DebugProtocol.DisconnectArguments
-  ): void {
+  ): Promise<void> {
     super.disconnectRequest(response, args);
-  }
-
-  public finalizeDisconnectReq(
-    response: DebugProtocol.DisconnectResponse,
-    cmdResponse: CommandOutput
-  ): void {
-    super.finalizeDisconnect(response, cmdResponse);
   }
 }

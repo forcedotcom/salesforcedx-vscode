@@ -14,16 +14,18 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { SessionService } from '../core/sessionService';
 import { nls } from '../messages';
 import { CommandOutput } from '../utils/commandOutput';
+import os = require('os');
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
-  userIdFilter: string;
-  requestTypeFilter: string;
-  entryPointFilter: string;
+  userIdFilter?: string;
+  requestTypeFilter?: string;
+  entryPointFilter?: string;
   sfdxProject: string;
 }
 
 export class ApexDebug extends DebugSession {
+  private static TWO_NL = `${os.EOL}${os.EOL}`;
   protected mySessionService = SessionService.getInstance();
   private sfdxProject: string;
 
@@ -43,26 +45,17 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
-  protected launchRequest(
+  protected async launchRequest(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
-  ): void {
+  ): Promise<void> {
     this.sfdxProject = args.sfdxProject;
-    this.mySessionService
+    const cmdResponse = await this.mySessionService
       .forProject(args.sfdxProject)
       .withUserFilter(args.userIdFilter)
       .withEntryFilter(args.entryPointFilter)
       .withRequestFilter(args.requestTypeFilter)
-      .start()
-      .then(cmdResponse => {
-        this.finalizeLaunch(response, cmdResponse);
-      });
-  }
-
-  protected finalizeLaunch(
-    response: DebugProtocol.LaunchResponse,
-    cmdResponse: CommandOutput
-  ): void {
+      .start();
     if (this.mySessionService.isConnected()) {
       response.success = true;
       this.logToDebugConsole(
@@ -76,40 +69,31 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
-  protected disconnectRequest(
+  protected async disconnectRequest(
     response: DebugProtocol.DisconnectResponse,
     args: DebugProtocol.DisconnectArguments
-  ): void {
+  ): Promise<void> {
     if (this.mySessionService.isConnected()) {
-      this.mySessionService.stop().then(cmdResponse => {
-        this.finalizeDisconnect(response, cmdResponse);
-      });
+      const cmdResponse = await this.mySessionService.stop();
+      if (!this.mySessionService.isConnected()) {
+        response.success = true;
+        this.logToDebugConsole(
+          nls.localize('session_terminated_text', cmdResponse.getId())
+        );
+      } else {
+        response.success = false;
+        response.message = cmdResponse.getCmdMsg();
+        this.suggestErrorAction(cmdResponse.getCmdAction());
+      }
     } else {
       response.success = true;
-      this.sendResponse(response);
-    }
-  }
-
-  protected finalizeDisconnect(
-    response: DebugProtocol.DisconnectResponse,
-    cmdResponse: CommandOutput
-  ): void {
-    if (!this.mySessionService.isConnected()) {
-      response.success = true;
-      this.logToDebugConsole(
-        nls.localize('session_terminated_text', cmdResponse.getId())
-      );
-    } else {
-      response.success = false;
-      response.message = cmdResponse.getCmdMsg();
-      this.suggestErrorAction(cmdResponse.getCmdAction());
     }
     this.sendResponse(response);
   }
 
   private logToDebugConsole(msg: string): void {
     if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}\n\n`));
+      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`));
     }
   }
 
@@ -117,7 +101,7 @@ export class ApexDebug extends DebugSession {
     if (msg && msg.length !== 0) {
       this.sendEvent(
         new OutputEvent(
-          `${nls.localize('try_this_text')}:\n${msg}\n\n`,
+          `${nls.localize('try_this_text')}:${os.EOL}${msg}${ApexDebug.TWO_NL}`,
           'stderr'
         )
       );

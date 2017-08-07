@@ -10,31 +10,31 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
 import { CommandOutput } from '../../../src/utils/commandOutput';
+import childProcess = require('child_process');
 
 describe('Debugger session service', () => {
   let service: SessionService;
   const cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
   const cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
   const cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
+  const mockSpawn = require('mock-spawn');
 
   beforeEach(() => {
     service = new SessionService();
   });
 
   describe('Helpers', () => {
-    it('Should detect an Apex Debugger session ID', () => {
+    it('Should detect an Apex Debugger session ID by key prefix', () => {
       expect(service.isApexDebuggerSessionId('07aFAKE')).to.equal(true);
     });
 
-    it('Should not detect an Apex Debugger session ID', () => {
+    it('Should not detect an Apex Debugger session ID by key prefix', () => {
       expect(service.isApexDebuggerSessionId('FAKE')).to.equal(false);
     });
   });
 
   describe('Start', () => {
     let origSpawn: any, mySpawn: any;
-    const childProcess = require('child_process');
-    const mockSpawn = require('mock-spawn');
 
     beforeEach(() => {
       origSpawn = childProcess.spawn;
@@ -138,8 +138,6 @@ describe('Debugger session service', () => {
 
   describe('Stop', () => {
     let origSpawn: any, mySpawn: any;
-    const childProcess = require('child_process');
-    const mockSpawn = require('mock-spawn');
 
     beforeEach(() => {
       origSpawn = childProcess.spawn;

@@ -66,12 +66,12 @@ describe('Debugger adapter - unit', () => {
   });
 
   describe('Launch', () => {
-    let sessionStartSpy: sinon.SinonSpy;
+    let sessionStartSpy: sinon.SinonStub;
     let sessionProjectSpy: sinon.SinonSpy;
     let sessionUserFilterSpy: sinon.SinonSpy;
     let sessionEntryFilterSpy: sinon.SinonSpy;
     let sessionRequestFilterSpy: sinon.SinonSpy;
-    let sessionConnectedSpy: sinon.SinonSpy;
+    let sessionConnectedSpy: sinon.SinonStub;
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
 
@@ -106,41 +106,27 @@ describe('Debugger adapter - unit', () => {
     });
 
     afterEach(() => {
-      if (sessionStartSpy) {
-        sessionStartSpy.restore();
-      }
+      sessionStartSpy.restore();
       sessionProjectSpy.restore();
       sessionUserFilterSpy.restore();
       sessionEntryFilterSpy.restore();
       sessionRequestFilterSpy.restore();
-      if (sessionConnectedSpy) {
-        sessionConnectedSpy.restore();
-      }
+      sessionConnectedSpy.restore();
     });
 
-    it('Should use session service', () => {
-      sessionStartSpy = sinon.stub(SessionService.prototype, 'start', () =>
-        Promise.resolve(new CommandOutput())
-      );
+    it('Should launch and connect', async () => {
+      const cmdResponse = new CommandOutput();
+      cmdResponse.setId('07aFAKE');
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(cmdResponse));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
 
-      adapter.launchReq(response, args);
+      await adapter.launchReq(response, args);
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
-    });
-
-    it('Should finalize launch and connect', () => {
-      const cmdResponse = new CommandOutput();
-      cmdResponse.saveId('07aFAKE');
-      sessionConnectedSpy = sinon.stub(
-        SessionService.prototype,
-        'isConnected',
-        () => {
-          return true;
-        }
-      );
-
-      adapter.finalizeLaunchReq(response, cmdResponse);
-
       expect(adapter.getResponse().success).to.equal(true);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
@@ -150,20 +136,20 @@ describe('Debugger adapter - unit', () => {
       );
     });
 
-    it('Should finalize launch and not connect', () => {
+    it('Should launch and not connect', async () => {
       const cmdResponse = new CommandOutput();
-      cmdResponse.saveCmdMsg('There was an error');
-      cmdResponse.saveCmdAction('Try again');
-      sessionConnectedSpy = sinon.stub(
-        SessionService.prototype,
-        'isConnected',
-        () => {
-          return false;
-        }
-      );
+      cmdResponse.setCmdMsg('There was an error');
+      cmdResponse.setCmdAction('Try again');
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(cmdResponse));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(false);
 
-      adapter.finalizeLaunchReq(response, cmdResponse);
+      await adapter.launchReq(response, args);
 
+      expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse().success).to.equal(false);
       expect(adapter.getResponse().message).to.equal('There was an error');
       expect(adapter.getEvents()[0].event).to.equal('output');
@@ -174,8 +160,8 @@ describe('Debugger adapter - unit', () => {
   });
 
   describe('Disconnect', () => {
-    let sessionStopSpy: sinon.SinonSpy;
-    let sessionConnectedSpy: sinon.SinonSpy;
+    let sessionStopSpy: sinon.SinonStub;
+    let sessionConnectedSpy: sinon.SinonStub;
     let response: DebugProtocol.DisconnectResponse;
     let args: DebugProtocol.DisconnectArguments;
 
@@ -192,56 +178,35 @@ describe('Debugger adapter - unit', () => {
     });
 
     afterEach(() => {
-      sessionStopSpy.restore();
+      if (sessionStopSpy) {
+        sessionStopSpy.restore();
+      }
       sessionConnectedSpy.restore();
     });
 
-    it('Should use session service if connected', () => {
-      sessionConnectedSpy = sinon.stub(
-        SessionService.prototype,
-        'isConnected',
-        () => {
-          return true;
-        }
-      );
-      sessionStopSpy = sinon.stub(SessionService.prototype, 'stop', () =>
-        Promise.resolve(new CommandOutput())
-      );
+    it('Should not use session service if not connected', async () => {
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(false);
 
-      adapter.disconnectReq(response, args);
+      await adapter.disconnectReq(response, args);
 
-      expect(sessionStopSpy.calledOnce).to.equal(true);
-    });
-
-    it('Should not use session service if not connected', () => {
-      sessionConnectedSpy = sinon.stub(
-        SessionService.prototype,
-        'isConnected',
-        () => {
-          return false;
-        }
-      );
-      sessionStopSpy = sinon.spy(SessionService.prototype, 'stop');
-
-      adapter.disconnectReq(response, args);
-
-      expect(sessionStopSpy.calledOnce).to.equal(false);
       expect(adapter.getResponse()).to.deep.equal(response);
     });
 
-    it('Should finalize disconnect and stop', () => {
+    it('Should try to disconnect and stop', async () => {
       const cmdResponse = new CommandOutput();
-      cmdResponse.saveId('07aFAKE');
-      sessionConnectedSpy = sinon.stub(
-        SessionService.prototype,
-        'isConnected',
-        () => {
-          return false;
-        }
-      );
+      cmdResponse.setId('07aFAKE');
+      sessionStopSpy = sinon
+        .stub(SessionService.prototype, 'stop')
+        .returns(Promise.resolve(cmdResponse));
+      sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
+      sessionConnectedSpy.onCall(0).returns(true);
+      sessionConnectedSpy.onCall(1).returns(false);
 
-      adapter.finalizeDisconnectReq(response, cmdResponse);
+      await adapter.disconnectReq(response, args);
 
+      expect(sessionStopSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse()).to.deep.equal(response);
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
@@ -250,20 +215,20 @@ describe('Debugger adapter - unit', () => {
       );
     });
 
-    it('Should finalize disconnect and not stop', () => {
+    it('Should try to disconnect and not stop', async () => {
       const cmdResponse = new CommandOutput();
-      cmdResponse.saveCmdMsg('This was an error');
-      cmdResponse.saveCmdAction('Try again');
-      sessionConnectedSpy = sinon.stub(
-        SessionService.prototype,
-        'isConnected',
-        () => {
-          return true;
-        }
-      );
+      cmdResponse.setCmdMsg('This was an error');
+      cmdResponse.setCmdAction('Try again');
+      sessionStopSpy = sinon
+        .stub(SessionService.prototype, 'stop')
+        .returns(Promise.resolve(cmdResponse));
+      sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
+      sessionConnectedSpy.onCall(0).returns(true);
+      sessionConnectedSpy.onCall(1).returns(true);
 
-      adapter.finalizeDisconnectReq(response, cmdResponse);
+      await adapter.disconnectReq(response, args);
 
+      expect(sessionStopSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse().success).to.equal(false);
       expect(adapter.getResponse().message).to.equal('This was an error');
       expect(adapter.getEvents()[0].event).to.equal('output');

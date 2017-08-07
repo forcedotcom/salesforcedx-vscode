@@ -25,27 +25,27 @@
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
-    "@types/sinon": "1.16.31",
+    "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "mocha": "3.2.0",
-    "sinon": "1.17.4",
+    "sinon": "^2.3.6",
     "nyc": "^11.0.2",
     "typescript": "2.4.0",
     "vscode": "1.1.2",
     "vscode-debugadapter-testsupport": "1.19.0",
-    "mock-spawn": "0.2.6"
+    "mock-spawn": "0.2.6",
+    "cross-env": "5.0.4"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "VSCODE_NLS_CONFIG='\"{\\\"locale\\\":\\\"en-us\\\",\\\"availableLanguages\\\":{}}\"' ./node_modules/.bin/_mocha --recursive out/test",
+    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG='\"{\"locale\":\"en-us\",\"availableLanguages\":{}}\"' ./node_modules/.bin/_mocha --recursive out/test",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "activationEvents": [
