@@ -21,10 +21,9 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Languages"
-  ],
+  "categories": ["Languages"],
   "devDependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "40.4.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
@@ -47,9 +46,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "configuration": {
@@ -57,10 +54,7 @@
       "title": "%configuration_title%",
       "properties": {
         "salesforcedx-vscode-apex.java.home": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "default": null,
           "description": "%java_home_description%"
         }
@@ -69,14 +63,8 @@
     "languages": [
       {
         "id": "apex",
-        "aliases": [
-          "Apex",
-          "apex"
-        ],
-        "extensions": [
-          ".cls",
-          ".trigger"
-        ],
+        "aliases": ["Apex", "apex"],
+        "extensions": [".cls", ".trigger"],
         "configuration": "./syntaxes/apex.configuration.json"
       }
     ],
