@@ -23,6 +23,7 @@ install:
   - 7z x sfdx-windows-amd64.tar
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
   - sfdx update
+  - npm install -g codecov 
 
 build_script:
   - npm run compile
@@ -34,6 +35,5 @@ test_script:
   - npm run test
 
 on_finish:
-  - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\packages\salesforcedx-utils-vscode\test-results.xml))
-  - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\packages\salesforcedx-vscode-core\test-results.xml))
+  - codecov
  
