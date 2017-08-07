@@ -38,7 +38,7 @@ class ForceOrgCreateExecutor extends SfdxCommandletExecutor<FileSelection> {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new FileSelector('**/*-scratch-def.json');
+const parameterGatherer = new FileSelector('config/**/*-scratch-def.json');
 
 export function forceOrgCreate() {
   const commandlet = new SfdxCommandlet(
