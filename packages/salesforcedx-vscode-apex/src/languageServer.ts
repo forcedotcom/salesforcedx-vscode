@@ -107,10 +107,16 @@ async function createServer(
 }
 
 function deleteDbIfExists(): void {
-  const workspace = vscode.workspace.rootPath;
-  const dbPath = workspace + '/.sfdx/tools/apex.db';
-  if (workspace !== undefined && fs.exists(dbPath)) {
-    fs.unlinkSync(dbPath);
+  if (vscode.workspace.rootPath) {
+    const dbPath = path.join(
+      vscode.workspace.rootPath,
+      '.sfdx',
+      'tools',
+      'apex.db'
+    );
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+    }
   }
 }
 
