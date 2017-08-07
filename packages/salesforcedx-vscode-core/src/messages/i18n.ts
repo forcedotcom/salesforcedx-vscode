@@ -29,6 +29,11 @@ export const messages = {
   notification_unsuccessful_execution_text: '%s failed to run',
   notification_show_button_text: 'Show',
 
+  predicates_no_folder_opened_text:
+    'No folder opened. Open a Salesforce DX project in VS Code.',
+  predicates_no_sfdx_project_found_text:
+    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
+
   task_view_running_message: '[Running] %s',
 
   status_bar_text: `$(x) %s`,
@@ -50,5 +55,8 @@ export const messages = {
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
 
-  force_apex_test_run_text: 'SFDX: Invoke Apex Tests...'
+  force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
+  force_apex_test_run_all_test_label: 'All tests',
+  force_apex_test_run_all_tests_desription_text:
+    'Runs all tests in the current project'
 };

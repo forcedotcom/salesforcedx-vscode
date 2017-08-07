@@ -21,9 +21,7 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.4.0",
     "rxjs": "^5.4.1"
@@ -53,17 +51,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.force.auth.web.login",
-    "onCommand:sfdx.force.org.create",
-    "onCommand:sfdx.force.org.open",
-    "onCommand:sfdx.force.source.pull",
-    "onCommand:sfdx.force.source.push",
-    "onCommand:sfdx.force.source.status",
-    "onCommand:sfdx.force.source.status",
-    "onCommand:sfdx.force.apex.test.run"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "views": {
@@ -79,6 +67,40 @@
         {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "sfdx.force.auth.web.login",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.open",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.pull",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.push",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.status",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.task.stop",
+          "when": "sfdx:project_opened"
         }
       ]
     },
