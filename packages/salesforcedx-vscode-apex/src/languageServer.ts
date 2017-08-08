@@ -6,6 +6,7 @@
  */
 
 import * as child_process from 'child_process';
+import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
 import * as portFinder from 'portfinder';
@@ -30,6 +31,7 @@ async function createServer(
   context: vscode.ExtensionContext
 ): Promise<StreamInfo> {
   try {
+    deleteDbIfExists();
     const requirementsData = await requirements.resolveRequirements();
     return new Promise<any>((resolve, reject) => {
       portFinder.getPort((err, port) => {
@@ -101,6 +103,20 @@ async function createServer(
   } catch (err) {
     vscode.window.showErrorMessage(err);
     throw err;
+  }
+}
+
+function deleteDbIfExists(): void {
+  if (vscode.workspace.rootPath) {
+    const dbPath = path.join(
+      vscode.workspace.rootPath,
+      '.sfdx',
+      'tools',
+      'apex.db'
+    );
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+    }
   }
 }
 
