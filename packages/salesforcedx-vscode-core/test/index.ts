@@ -18,7 +18,7 @@
 // a possible error to the callback or null if none.
 
 // tslint:disable-next-line:no-var-requires
-const testRunner = require('vscode/lib/testrunner');
+const testRunner = require('@salesforce/salesforcedx-utils-vscode/out/src/test/testrunner');
 
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info

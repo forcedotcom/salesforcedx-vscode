@@ -23,6 +23,7 @@ install:
   - 7z x sfdx-windows-amd64.tar
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
   - sfdx update
+  - npm install -g codecov 
 
 build_script:
   - npm run compile
@@ -32,3 +33,7 @@ test_script:
   - node --version
   - npm --version
   - npm run test
+
+on_finish:
+  - codecov
+ 

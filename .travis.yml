@@ -52,8 +52,10 @@ before_install:
 
 install:
   - npm install
+  - npm install -g codecov 
 
 script:
   - npm run compile
   - npm run lint
   - npm run test
+  - codecov
