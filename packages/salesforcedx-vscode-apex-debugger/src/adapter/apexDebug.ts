@@ -64,7 +64,7 @@ export class ApexDebug extends DebugSession {
     } else {
       response.success = false;
       response.message = cmdResponse.getCmdMsg();
-      this.suggestErrorAction(cmdResponse.getCmdAction());
+      this.showCommandResult(cmdResponse);
     }
     this.sendResponse(response);
   }
@@ -83,7 +83,7 @@ export class ApexDebug extends DebugSession {
       } else {
         response.success = false;
         response.message = cmdResponse.getCmdMsg();
-        this.suggestErrorAction(cmdResponse.getCmdAction());
+        this.showCommandResult(cmdResponse);
       }
     } else {
       response.success = true;
@@ -97,11 +97,23 @@ export class ApexDebug extends DebugSession {
     }
   }
 
-  private suggestErrorAction(msg: string): void {
-    if (msg && msg.length !== 0) {
+  private showCommandResult(cmdResponse: CommandOutput): void {
+    if (cmdResponse.getStdOut()) {
       this.sendEvent(
         new OutputEvent(
-          `${nls.localize('try_this_text')}:${os.EOL}${msg}${ApexDebug.TWO_NL}`,
+          `${nls.localize(
+            'command_output_help_text'
+          )}:${os.EOL}${cmdResponse.getStdOut()}${ApexDebug.TWO_NL}`,
+          'stderr'
+        )
+      );
+    }
+    if (cmdResponse.getStdErr()) {
+      this.sendEvent(
+        new OutputEvent(
+          `${nls.localize(
+            'command_error_help_text'
+          )}:${os.EOL}${cmdResponse.getStdErr()}${ApexDebug.TWO_NL}`,
           'stderr'
         )
       );

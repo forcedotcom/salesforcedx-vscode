@@ -138,6 +138,9 @@ describe('Debugger adapter - unit', () => {
 
     it('Should launch and not connect', async () => {
       const cmdResponse = new CommandOutput();
+      cmdResponse.setStdErr(
+        '{"message":"There was an error", "action":"Try again"}'
+      );
       cmdResponse.setCmdMsg('There was an error');
       cmdResponse.setCmdAction('Try again');
       sessionStartSpy = sinon
@@ -217,6 +220,9 @@ describe('Debugger adapter - unit', () => {
 
     it('Should try to disconnect and not stop', async () => {
       const cmdResponse = new CommandOutput();
+      cmdResponse.setStdErr(
+        '{"message":"There was an error", "action":"Try again"}'
+      );
       cmdResponse.setCmdMsg('This was an error');
       cmdResponse.setCmdAction('Try again');
       sessionStopSpy = sinon

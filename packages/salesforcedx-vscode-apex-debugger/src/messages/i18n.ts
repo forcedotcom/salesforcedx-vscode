@@ -18,5 +18,6 @@
 export const messages = {
   session_started_text: 'Apex Debugger session started with ID %s.',
   session_terminated_text: 'Apex Debugger session terminated with ID %s.',
-  try_this_text: 'Try this:'
+  command_output_help_text: 'Command returned the following output',
+  command_error_help_text: 'Command returned the following error'
 };
