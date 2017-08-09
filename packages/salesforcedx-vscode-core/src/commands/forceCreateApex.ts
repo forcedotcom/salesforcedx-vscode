@@ -17,6 +17,32 @@ import { nls } from '../messages';
 // import { notificationService } from '../notifications';
 // import { CancellableStatusBar, taskViewService } from '../statuses';
 
+function getDirs(srcPath: string) {
+  const result = fs
+    .readdirSync(srcPath)
+    .map(function(name) {
+      const x = path.join(srcPath, name);
+    })
+    .filter(function(source) {
+      const y = fs.lstatSync(source).isDirectory();
+      return y;
+    });
+
+  return result;
+}
+
+function flatten(lists: string[][]) {
+  const result = lists.reduce(function(a: string[], b: string[]) {
+    return a.concat(b);
+  }, []);
+  return result;
+}
+
+function getDirsRecursive(srcPath: string): string[] {
+  const idk = getDirs(srcPath).map(src => getDirsRecursive(src));
+  return [srcPath, ...flatten(idk)];
+}
+
 export async function forceCreateApex(dir?: any) {
   console.log('create apex class extension activated');
   console.log('dir: ' + dir);
@@ -47,6 +73,7 @@ export async function forceCreateApex(dir?: any) {
         const rootPath = vscode.workspace.rootPath
           ? vscode.workspace.rootPath
           : '';
+        const dirs = getDirsRecursive(rootPath);
         let directoryName;
         if (editor === undefined) {
           directoryName = '';
