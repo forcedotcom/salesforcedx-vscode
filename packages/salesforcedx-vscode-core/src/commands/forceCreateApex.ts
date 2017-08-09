@@ -18,29 +18,21 @@ import { nls } from '../messages';
 // import { CancellableStatusBar, taskViewService } from '../statuses';
 
 function getDirs(srcPath: string) {
-  const result = fs
+  return fs
     .readdirSync(srcPath)
-    .map(function(name) {
-      const x = path.join(srcPath, name);
-    })
-    .filter(function(source) {
-      const y = fs.lstatSync(source).isDirectory();
-      return y;
-    });
-
-  return result;
+    .map(name => path.join(srcPath, name))
+    .filter(source => fs.lstatSync(source).isDirectory());
 }
 
 function flatten(lists: string[][]) {
-  const result = lists.reduce(function(a: string[], b: string[]) {
-    return a.concat(b);
-  }, []);
-  return result;
+  return lists.reduce((a, b) => a.concat(b), []);
 }
 
 function getDirsRecursive(srcPath: string): string[] {
-  const idk = getDirs(srcPath).map(src => getDirsRecursive(src));
-  return [srcPath, ...flatten(idk)];
+  return [
+    srcPath,
+    ...flatten(getDirs(srcPath).map(src => getDirsRecursive(src)))
+  ];
 }
 
 export async function forceCreateApex(dir?: any) {
@@ -84,36 +76,38 @@ export async function forceCreateApex(dir?: any) {
           );
         }
 
-        const dirInputOptions = <vscode.InputBoxOptions>{
-          prompt:
-            'Please enter desired directory (default is top level workspace directory)',
-          value: directoryName
-        };
-
-        vscode.window.showInputBox(dirInputOptions).then(dirName => {
-          if (dirName === undefined) {
-            return;
-          }
-          const cancellationTokenSource = new vscode.CancellationTokenSource();
-          const cancellationToken = cancellationTokenSource.token;
-          const execution = new CliCommandExecutor(
-            new SfdxCommandBuilder()
-              .withDescription(nls.localize('force_create_apex_text'))
-              .withArg('force:apex:class:create')
-              .withFlag('--classname', fileName)
-              .withFlag('--template', selection)
-              .withFlag('--outputdir', !dirName ? '.' : dirName)
-              .build(),
-            { cwd: vscode.workspace.rootPath }
-          ).execute(cancellationToken);
-          console.log(execution.command.toCommand());
-          execution.stdoutSubject.subscribe(data => {
-            console.log(data.toString());
+        // const dirInputOptions = <vscode.InputBoxOptions>{
+        //   prompt:
+        //     'Please enter desired directory (default is top level workspace directory)',
+        //   value: directoryName
+        // };
+        // vscode.window.showInputBox(dirInputOptions).then(dirName => {
+        const dirInputOptions = vscode.window
+          .showQuickPick(dirs)
+          .then(dirName => {
+            if (dirName === undefined) {
+              return;
+            }
+            const cancellationTokenSource = new vscode.CancellationTokenSource();
+            const cancellationToken = cancellationTokenSource.token;
+            const execution = new CliCommandExecutor(
+              new SfdxCommandBuilder()
+                .withDescription(nls.localize('force_create_apex_text'))
+                .withArg('force:apex:class:create')
+                .withFlag('--classname', fileName)
+                .withFlag('--template', selection)
+                .withFlag('--outputdir', !dirName ? '.' : dirName)
+                .build(),
+              { cwd: vscode.workspace.rootPath }
+            ).execute(cancellationToken);
+            console.log(execution.command.toCommand());
+            execution.stdoutSubject.subscribe(data => {
+              console.log(data.toString());
+            });
+            execution.stderrSubject.subscribe(data => {
+              console.log(data.toString());
+            });
           });
-          execution.stderrSubject.subscribe(data => {
-            console.log(data.toString());
-          });
-        });
       });
 
       // vscode.commands
