@@ -6,16 +6,21 @@
  */
 
 import {
-  CliCommandExecutor,
+  Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import fs = require('fs');
-// import { channelService } from '../channels';
 import { nls } from '../messages';
-// import { notificationService } from '../notifications';
-// import { CancellableStatusBar, taskViewService } from '../statuses';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from './commands';
 
 function getDirs(srcPath: string) {
   return fs
@@ -35,120 +40,53 @@ function getDirsRecursive(srcPath: string): string[] {
   ];
 }
 
-export async function forceCreateApex(dir?: any) {
-  console.log('create apex class extension activated');
-  console.log('dir: ' + dir);
-  vscode.window
-    .showQuickPick([
+class SelectFilePath implements ParametersGatherer<{}> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    const rootPath = vscode.workspace.rootPath ? vscode.workspace.rootPath : '';
+    const fileNameInputOptions = <vscode.InputBoxOptions>{
+      prompt: 'Please enter desired filename'
+    };
+    const dirs = getDirsRecursive(rootPath);
+
+    const template = await vscode.window.showQuickPick([
       'DefaultApexClass',
       'ApexException',
       'ApexUnitTest',
       'InboundEmailService'
-    ])
-    .then(selection => {
-      if (!selection) {
-        return;
-      }
+    ]);
+    const fileName = await vscode.window.showInputBox(fileNameInputOptions);
+    const outputdir = await vscode.window.showQuickPick(dirs);
 
-      // input boxes for template/filename/path
-      const fileNameInputOptions = <vscode.InputBoxOptions>{
-        prompt: 'Please enter desired filename',
-        value: selection
-      };
+    return template && fileName && outputdir
+      ? { type: 'CONTINUE', data: { template, fileName, outputdir } }
+      : { type: 'CANCEL' };
+  }
+}
 
-      vscode.window.showInputBox(fileNameInputOptions).then(fileName => {
-        if (!fileName || fileName === '') {
-          return;
-        }
+class ForceCreateApexExecutor extends SfdxCommandletExecutor<{}> {
+  public build(data: {
+    template: string;
+    fileName: string;
+    outputdir: string;
+  }): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_create_apex_text'))
+      .withArg('force:apex:class:create')
+      .withFlag('--classname', data.fileName)
+      .withFlag('--template', data.template)
+      .withFlag('--outputdir', data.outputdir)
+      .build();
+  }
+}
 
-        const editor = vscode.window.activeTextEditor;
-        const rootPath = vscode.workspace.rootPath
-          ? vscode.workspace.rootPath
-          : '';
-        const dirs = getDirsRecursive(rootPath);
-        let directoryName;
-        if (editor === undefined) {
-          directoryName = '';
-        } else {
-          directoryName = path.relative(
-            rootPath,
-            path.dirname(editor.document.fileName)
-          );
-        }
+const workspaceChecker = new SfdxWorkspaceChecker();
+const parameterGatherer = new SelectFilePath();
 
-        // const dirInputOptions = <vscode.InputBoxOptions>{
-        //   prompt:
-        //     'Please enter desired directory (default is top level workspace directory)',
-        //   value: directoryName
-        // };
-        // vscode.window.showInputBox(dirInputOptions).then(dirName => {
-        const dirInputOptions = vscode.window
-          .showQuickPick(dirs)
-          .then(dirName => {
-            if (dirName === undefined) {
-              return;
-            }
-            const cancellationTokenSource = new vscode.CancellationTokenSource();
-            const cancellationToken = cancellationTokenSource.token;
-            const execution = new CliCommandExecutor(
-              new SfdxCommandBuilder()
-                .withDescription(nls.localize('force_create_apex_text'))
-                .withArg('force:apex:class:create')
-                .withFlag('--classname', fileName)
-                .withFlag('--template', selection)
-                .withFlag('--outputdir', !dirName ? '.' : dirName)
-                .build(),
-              { cwd: vscode.workspace.rootPath }
-            ).execute(cancellationToken);
-            console.log(execution.command.toCommand());
-            execution.stdoutSubject.subscribe(data => {
-              console.log(data.toString());
-            });
-            execution.stderrSubject.subscribe(data => {
-              console.log(data.toString());
-            });
-          });
-      });
-
-      // vscode.commands
-      //   .executeCommand('explorer.newFile', function(x: any) {
-      //     console.log(x);
-      //   })
-      //   .then(y => {
-      //     console.log(y);
-      //     const fswatcher = vscode.workspace.createFileSystemWatcher(
-      //       '**',
-      //       false,
-      //       true,
-      //       true
-      //     );
-      //     fswatcher.onDidCreate(e => {
-      //       console.log(e);
-      //       const fileName = path.basename(e.fsPath);
-      //       const directoryName = path.dirname(e.fsPath);
-      //       fs.rename(e.fsPath, e.fsPath + '.cls');
-      //       fswatcher.dispose();
-
-      //       const cancellationTokenSource = new vscode.CancellationTokenSource();
-      //       const cancellationToken = cancellationTokenSource.token;
-      //       const execution = new CliCommandExecutor(
-      //         new SfdxCommandBuilder()
-      //           .withDescription(nls.localize('force_create_apex_text'))
-      //           .withArg('force:apex:class:create')
-      //           .withFlag('--classname', fileName)
-      //           .withFlag('--template', selection)
-      //           .withFlag('--outputdir', directoryName)
-      //           .build(),
-      //         { cwd: vscode.workspace.rootPath }
-      //       ).execute(cancellationToken);
-      //       console.log(execution.command.toCommand());
-      //       execution.stdoutSubject.subscribe(data => {
-      //         console.log(data.toString());
-      //       });
-      //       execution.stderrSubject.subscribe(data => {
-      //         console.log(data.toString());
-      //       });
-      //     });
-      //   });
-    });
+export async function forceCreateApex(dir?: any) {
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    new ForceCreateApexExecutor()
+  );
+  commandlet.run();
 }
