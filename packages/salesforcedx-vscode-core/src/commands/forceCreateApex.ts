@@ -41,15 +41,20 @@ function getDirsRecursive(srcPath: string): string[] {
 }
 
 class SelectFilePath implements ParametersGatherer<{}> {
+  private explorerDir: string | undefined;
+  public constructor(explorerDir?: { path: string }) {
+    this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
+  }
   public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
     const rootPath = vscode.workspace.rootPath ? vscode.workspace.rootPath : '';
     const fileNameInputOptions = <vscode.InputBoxOptions>{
       prompt: 'Please enter desired filename'
     };
-    const dirs = getDirsRecursive(rootPath);
 
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
-    const outputdir = await vscode.window.showQuickPick(dirs);
+    const outputdir = this.explorerDir
+      ? this.explorerDir
+      : await vscode.window.showQuickPick(getDirsRecursive(rootPath));
     return fileName && outputdir
       ? {
           type: 'CONTINUE',
@@ -88,9 +93,9 @@ class ForceCreateApexExecutor extends SfdxCommandletExecutor<{}> {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new SelectFilePath();
 
-export async function forceCreateApex(dir?: any) {
+export async function forceCreateApex(explorerDir?: any) {
+  const parameterGatherer = new SelectFilePath(explorerDir);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

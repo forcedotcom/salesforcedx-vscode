@@ -75,7 +75,8 @@
       ],
       "explorer/context": [
         {
-          "command": "sfdx.force.create.apex"
+          "command": "sfdx.force.create.apex",
+          "when": "explorerResourceIsFolder"
         }
       ],
       "commandPalette": [
