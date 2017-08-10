@@ -8,10 +8,18 @@
 import {
   DebugSession,
   InitializedEvent,
-  OutputEvent
+  OutputEvent,
+  TerminatedEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { SessionService } from '../core/sessionService';
+import {
+  ApexDebuggerEventType,
+  DebuggerMessage,
+  SessionService,
+  StreamingClientInfo,
+  StreamingClientInfoBuilder,
+  StreamingService
+} from '../core';
 import { nls } from '../messages';
 import { CommandOutput } from '../utils/commandOutput';
 import os = require('os');
@@ -27,6 +35,7 @@ export interface LaunchRequestArguments
 export class ApexDebug extends DebugSession {
   private static TWO_NL = `${os.EOL}${os.EOL}`;
   protected mySessionService = SessionService.getInstance();
+  protected myStreamingService = StreamingService.getInstance();
   private sfdxProject: string;
 
   protected initializeRequest(
@@ -50,6 +59,26 @@ export class ApexDebug extends DebugSession {
     args: LaunchRequestArguments
   ): Promise<void> {
     this.sfdxProject = args.sfdxProject;
+    response.success = false;
+
+    try {
+      const isStreamingConnected = await this.connectStreaming(
+        args.sfdxProject
+      );
+      if (!isStreamingConnected) {
+        this.sendResponse(response);
+        return;
+      }
+    } catch (error) {
+      this.errorToDebugConsole(
+        `${nls.localize(
+          'streaming_handshake_error_text'
+        )}:${os.EOL}${error}${os.EOL}`
+      );
+      this.sendResponse(response);
+      return;
+    }
+
     const cmdResponse = await this.mySessionService
       .forProject(args.sfdxProject)
       .withUserFilter(args.userIdFilter)
@@ -62,7 +91,6 @@ export class ApexDebug extends DebugSession {
         nls.localize('session_started_text', cmdResponse.getId())
       );
     } else {
-      response.success = false;
       response.message = cmdResponse.getCmdMsg();
       this.showCommandResult(cmdResponse);
     }
@@ -73,6 +101,7 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.DisconnectResponse,
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
+    this.myStreamingService.disconnect();
     if (this.mySessionService.isConnected()) {
       const cmdResponse = await this.mySessionService.stop();
       if (!this.mySessionService.isConnected()) {
@@ -91,9 +120,15 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
-  private logToDebugConsole(msg: string): void {
+  private logToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`));
+    }
+  }
+
+  private errorToDebugConsole(msg?: string): void {
+    if (msg && msg.length !== 0) {
+      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'stderr'));
     }
   }
 
@@ -117,6 +152,66 @@ export class ApexDebug extends DebugSession {
           'stderr'
         )
       );
+    }
+  }
+
+  public async connectStreaming(project: string): Promise<boolean> {
+    const clientInfos: StreamingClientInfo[] = [];
+    for (const channel of [
+      StreamingService.SYSTEM_EVENT_CHANNEL,
+      StreamingService.USER_EVENT_CHANNEL
+    ]) {
+      const clientInfo = new StreamingClientInfoBuilder()
+        .forChannel(channel)
+        .withConnectedHandler(() => {
+          this.logToDebugConsole(
+            nls.localize('streaming_connected_text', channel)
+          );
+        })
+        .withDisconnectedHandler(() => {
+          this.logToDebugConsole(
+            nls.localize('streaming_disconnected_text', channel)
+          );
+        })
+        .withErrorHandler((message: string) => {
+          this.errorToDebugConsole(message);
+        })
+        .withMsgHandler((message: any) => {
+          const data = message as DebuggerMessage;
+          if (data && data.sobject) {
+            this.handleEvent(data);
+          }
+        })
+        .build();
+      clientInfos.push(clientInfo);
+    }
+
+    return this.myStreamingService.subscribe(project, clientInfos);
+  }
+
+  public handleEvent(msg: DebuggerMessage): void {
+    const type: ApexDebuggerEventType = (<any>ApexDebuggerEventType)[
+      msg.sobject.Type
+    ];
+    switch (type) {
+      case ApexDebuggerEventType.SessionTerminated: {
+        this.handleSessionTerminatedEvent(msg);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+
+  private handleSessionTerminatedEvent(msg: DebuggerMessage): void {
+    if (
+      this.mySessionService.isConnected() &&
+      this.mySessionService.getSessionId() === msg.sobject.SessionId
+    ) {
+      this.errorToDebugConsole(msg.sobject.Description);
+      this.mySessionService.forceStop();
+      this.sendEvent(new TerminatedEvent());
     }
   }
 }

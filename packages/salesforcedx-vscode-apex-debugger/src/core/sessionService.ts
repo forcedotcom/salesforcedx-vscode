@@ -108,6 +108,11 @@ export class SessionService {
     return Promise.resolve(result);
   }
 
+  public forceStop(): void {
+    this.sessionId = '';
+    this.connected = false;
+  }
+
   private async getCmdResult(
     execution: CommandExecution
   ): Promise<CommandOutput> {

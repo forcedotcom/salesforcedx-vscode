@@ -16,8 +16,14 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
+  command_error_help_text: 'Command returned the following error',
+  command_output_help_text: 'Command returned the following output',
   session_started_text: 'Apex Debugger session started with ID %s.',
   session_terminated_text: 'Apex Debugger session terminated with ID %s.',
-  command_output_help_text: 'Command returned the following output',
-  command_error_help_text: 'Command returned the following error'
+  streaming_connected_text: 'Connected to Streaming API channel %s.',
+  streaming_disconnected_text: 'Disconnected from Streaming API channel %s.',
+  streaming_handshake_error_text:
+    'Streaming API handshake failed with the following error',
+  streaming_handshake_timeout_text:
+    'Streaming API handshake failed due to a socket timeout. Check your connection and try again.'
 };

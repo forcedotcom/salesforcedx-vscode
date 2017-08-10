@@ -19,7 +19,8 @@
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.5.1",
     "vscode-debugprotocol": "1.19.0",
-    "vscode-debugadapter": "1.19.0"
+    "vscode-debugadapter": "1.19.0",
+    "faye": "1.1.2"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",

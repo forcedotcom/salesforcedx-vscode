@@ -14,9 +14,6 @@ import childProcess = require('child_process');
 
 describe('Debugger session service', () => {
   let service: SessionService;
-  const cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
-  const cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
-  const cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
   const mockSpawn = require('mock-spawn');
 
   beforeEach(() => {
@@ -35,18 +32,24 @@ describe('Debugger session service', () => {
 
   describe('Start', () => {
     let origSpawn: any, mySpawn: any;
+    let cmdWithArgSpy: sinon.SinonSpy;
+    let cmdWithFlagSpy: sinon.SinonSpy;
+    let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
       childProcess.spawn = mySpawn;
+      cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
+      cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
+      cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
     });
 
     afterEach(() => {
       childProcess.spawn = origSpawn;
-      cmdWithArgSpy.reset();
-      cmdWithFlagSpy.reset();
-      cmdBuildSpy.reset();
+      cmdWithArgSpy.restore();
+      cmdWithFlagSpy.restore();
+      cmdBuildSpy.restore();
     });
 
     it('Should start successfully', async () => {
@@ -138,18 +141,24 @@ describe('Debugger session service', () => {
 
   describe('Stop', () => {
     let origSpawn: any, mySpawn: any;
+    let cmdWithArgSpy: sinon.SinonSpy;
+    let cmdWithFlagSpy: sinon.SinonSpy;
+    let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
       childProcess.spawn = mySpawn;
+      cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
+      cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
+      cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
     });
 
     afterEach(() => {
       childProcess.spawn = origSpawn;
-      cmdWithArgSpy.reset();
-      cmdWithFlagSpy.reset();
-      cmdBuildSpy.reset();
+      cmdWithArgSpy.restore();
+      cmdWithFlagSpy.restore();
+      cmdBuildSpy.restore();
     });
 
     it('Should stop successfully', async () => {
@@ -234,6 +243,16 @@ describe('Debugger session service', () => {
       expect(cmdOutput.getCmdAction()).to.equal('Try again');
       expect(service.isConnected()).to.equal(true);
       expect(service.getSessionId()).to.an('undefined');
+    });
+
+    it('Should reset connected status if forced to stop', async () => {
+      mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07aFAKE"}}'));
+
+      await service.start();
+      service.forceStop();
+
+      expect(service.isConnected()).to.equal(false);
+      expect(service.getSessionId()).to.equal('');
     });
   });
 });

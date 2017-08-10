@@ -10,7 +10,14 @@ import * as sinon from 'sinon';
 import { OutputEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { LaunchRequestArguments } from '../../../src/adapter/apexDebug';
-import { SessionService } from '../../../src/core/sessionService';
+import {
+  ApexDebuggerEvent,
+  DebuggerMessage,
+  SessionService,
+  StreamingClientInfo,
+  StreamingEvent,
+  StreamingService
+} from '../../../src/core';
 import { nls } from '../../../src/messages';
 import { CommandOutput } from '../../../src/utils/commandOutput';
 import { ApexDebugForTest } from './apexDebugForTest';
@@ -23,7 +30,10 @@ describe('Debugger adapter - unit', () => {
     let args: DebugProtocol.InitializeRequestArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new SessionService());
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService()
+      );
       response = {
         command: '',
         success: true,
@@ -47,7 +57,10 @@ describe('Debugger adapter - unit', () => {
     let args: DebugProtocol.AttachRequestArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new SessionService());
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService()
+      );
       response = {
         command: '',
         success: true,
@@ -72,11 +85,15 @@ describe('Debugger adapter - unit', () => {
     let sessionEntryFilterSpy: sinon.SinonSpy;
     let sessionRequestFilterSpy: sinon.SinonSpy;
     let sessionConnectedSpy: sinon.SinonStub;
+    let streamingSubscribeSpy: sinon.SinonStub;
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new SessionService());
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService()
+      );
       sessionProjectSpy = sinon.spy(SessionService.prototype, 'forProject');
       sessionUserFilterSpy = sinon.spy(
         SessionService.prototype,
@@ -112,9 +129,10 @@ describe('Debugger adapter - unit', () => {
       sessionEntryFilterSpy.restore();
       sessionRequestFilterSpy.restore();
       sessionConnectedSpy.restore();
+      streamingSubscribeSpy.restore();
     });
 
-    it('Should launch and connect', async () => {
+    it('Should launch successfully', async () => {
       const cmdResponse = new CommandOutput();
       cmdResponse.setId('07aFAKE');
       sessionStartSpy = sinon
@@ -123,6 +141,9 @@ describe('Debugger adapter - unit', () => {
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
         .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
 
       await adapter.launchReq(response, args);
 
@@ -136,7 +157,7 @@ describe('Debugger adapter - unit', () => {
       );
     });
 
-    it('Should launch and not connect', async () => {
+    it('Should not launch if session service errors out', async () => {
       const cmdResponse = new CommandOutput();
       cmdResponse.setStdErr(
         '{"message":"There was an error", "action":"Try again"}'
@@ -149,6 +170,9 @@ describe('Debugger adapter - unit', () => {
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
         .returns(false);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
 
       await adapter.launchReq(response, args);
 
@@ -160,16 +184,44 @@ describe('Debugger adapter - unit', () => {
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string('Try again');
     });
+
+    it('Should not launch if streaming service errors out', async () => {
+      const cmdResponse = new CommandOutput();
+      cmdResponse.setId('07aFAKE');
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(cmdResponse));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(false));
+
+      await adapter.launchReq(response, args);
+
+      expect(sessionStartSpy.called).to.equal(false);
+      expect(adapter.getResponse().success).to.equal(false);
+      expect(adapter.getEvents().length).to.equal(0);
+    });
   });
 
   describe('Disconnect', () => {
     let sessionStopSpy: sinon.SinonStub;
     let sessionConnectedSpy: sinon.SinonStub;
+    let streamingDisconnectSpy: sinon.SinonStub;
     let response: DebugProtocol.DisconnectResponse;
     let args: DebugProtocol.DisconnectArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new SessionService());
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService()
+      );
+      streamingDisconnectSpy = sinon.stub(
+        StreamingService.prototype,
+        'disconnect'
+      );
       response = {
         command: '',
         success: true,
@@ -185,6 +237,7 @@ describe('Debugger adapter - unit', () => {
         sessionStopSpy.restore();
       }
       sessionConnectedSpy.restore();
+      streamingDisconnectSpy.restore();
     });
 
     it('Should not use session service if not connected', async () => {
@@ -195,6 +248,7 @@ describe('Debugger adapter - unit', () => {
       await adapter.disconnectReq(response, args);
 
       expect(adapter.getResponse()).to.deep.equal(response);
+      expect(streamingDisconnectSpy.calledOnce).to.equal(true);
     });
 
     it('Should try to disconnect and stop', async () => {
@@ -216,6 +270,7 @@ describe('Debugger adapter - unit', () => {
       ).to.have.string(
         nls.localize('session_terminated_text', cmdResponse.getId())
       );
+      expect(streamingDisconnectSpy.calledOnce).to.equal(true);
     });
 
     it('Should try to disconnect and not stop', async () => {
@@ -241,6 +296,139 @@ describe('Debugger adapter - unit', () => {
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string('Try again');
+      expect(streamingDisconnectSpy.calledOnce).to.equal(true);
+    });
+  });
+
+  describe('Streaming', () => {
+    let streamingSubscribeSpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService()
+      );
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve());
+    });
+
+    afterEach(() => {
+      streamingSubscribeSpy.restore();
+    });
+
+    it('Should call streaming service subscribe', () => {
+      adapter.connectStreaming('foo');
+
+      expect(streamingSubscribeSpy.calledOnce).to.equal(true);
+      expect(streamingSubscribeSpy.getCall(0).args.length).to.equal(2);
+      expect(streamingSubscribeSpy.getCall(0).args[0]).to.equal('foo');
+      expect(streamingSubscribeSpy.getCall(0).args[1].length).to.equal(2);
+      for (const obj of streamingSubscribeSpy.getCall(0).args[1]) {
+        expect(obj).to.be.instanceof(StreamingClientInfo);
+        const clientInfo = obj as StreamingClientInfo;
+        expect(clientInfo.channel).to.be.oneOf([
+          StreamingService.SYSTEM_EVENT_CHANNEL,
+          StreamingService.USER_EVENT_CHANNEL
+        ]);
+        // tslint:disable:no-unused-expression
+        expect(clientInfo.connectedHandler).to.not.be.undefined;
+        expect(clientInfo.disconnectedHandler).to.not.be.undefined;
+        expect(clientInfo.errorHandler).to.not.be.undefined;
+        expect(clientInfo.messageHandler).to.not.be.undefined;
+        // tslint:enable:no-unused-expression
+      }
+    });
+  });
+
+  describe('Debugger event SessionTerminated', () => {
+    let sessionService: SessionService;
+    let sessionConnectedSpy: sinon.SinonStub;
+    let sessionIdSpy: sinon.SinonSpy;
+    let sessionStopSpy: sinon.SinonSpy;
+
+    beforeEach(() => {
+      sessionService = new SessionService();
+      adapter = new ApexDebugForTest(sessionService, new StreamingService());
+    });
+
+    afterEach(() => {
+      sessionConnectedSpy.restore();
+      sessionIdSpy.restore();
+      sessionStopSpy.restore();
+    });
+
+    it('Should stop session service', () => {
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      sessionIdSpy = sinon
+        .stub(SessionService.prototype, 'getSessionId')
+        .returns('123');
+      sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
+      const message = <DebuggerMessage>{
+        event: <StreamingEvent>{},
+        sobject: <ApexDebuggerEvent>{
+          SessionId: '123',
+          Type: 'SessionTerminated',
+          Description: 'foo'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(sessionStopSpy.calledOnce).to.equal(true);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(
+        (adapter.getEvents()[0] as OutputEvent).body.output
+      ).to.have.string('foo');
+      expect(adapter.getEvents()[1].event).to.equal('terminated');
+    });
+
+    it('Should not stop session service if session IDs do not match', () => {
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      sessionIdSpy = sinon
+        .stub(SessionService.prototype, 'getSessionId')
+        .returns('123');
+      sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
+      const message = <DebuggerMessage>{
+        event: <StreamingEvent>{},
+        sobject: <ApexDebuggerEvent>{
+          SessionId: '456',
+          Type: 'SessionTerminated',
+          Description: 'foo'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(sessionStopSpy.called).to.equal(false);
+      expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('Should not stop session service if it is not connected', () => {
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(false);
+      sessionIdSpy = sinon
+        .stub(SessionService.prototype, 'getSessionId')
+        .returns('123');
+      sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
+      const message = <DebuggerMessage>{
+        event: <StreamingEvent>{},
+        sobject: <ApexDebuggerEvent>{
+          SessionId: '123',
+          Type: 'SessionTerminated',
+          Description: 'foo'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(sessionStopSpy.called).to.equal(false);
+      expect(adapter.getEvents().length).to.equal(0);
     });
   });
 });
