@@ -48,17 +48,20 @@ class SelectFilePath implements ParametersGatherer<{}> {
     };
     const dirs = getDirsRecursive(rootPath);
 
-    const template = await vscode.window.showQuickPick([
-      'DefaultApexClass',
-      'ApexException',
-      'ApexUnitTest',
-      'InboundEmailService'
-    ]);
+    // const template = await vscode.window.showQuickPick([
+    //   'DefaultApexClass',
+    //   'ApexException',
+    //   'ApexUnitTest',
+    //   'InboundEmailService'
+    // ]);
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
     const outputdir = await vscode.window.showQuickPick(dirs);
 
-    return template && fileName && outputdir
-      ? { type: 'CONTINUE', data: { template, fileName, outputdir } }
+    return fileName && outputdir
+      ? {
+          type: 'CONTINUE',
+          data: { template: 'DefaultApexClass', fileName, outputdir }
+        }
       : { type: 'CANCEL' };
   }
 }
@@ -69,6 +72,17 @@ class ForceCreateApexExecutor extends SfdxCommandletExecutor<{}> {
     fileName: string;
     outputdir: string;
   }): Command {
+    const fswatcher = vscode.workspace.createFileSystemWatcher(
+      '**/*.cls',
+      false,
+      true,
+      true
+    );
+    fswatcher.onDidCreate(function(e) {
+      vscode.workspace
+        .openTextDocument(e)
+        .then(document => vscode.window.showTextDocument(document));
+    });
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_create_apex_text'))
       .withArg('force:apex:class:create')
