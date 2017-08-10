@@ -15,15 +15,17 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.4.0",
+  "version": "40.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.5.0",
     "rxjs": "^5.4.1"
   },
   "devDependencies": {
@@ -51,7 +53,9 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "main": "./out/src",
   "contributes": {
     "views": {
