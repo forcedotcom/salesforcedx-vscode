@@ -33,11 +33,23 @@ function flatten(lists: string[][]) {
   return lists.reduce((a, b) => a.concat(b), []);
 }
 
-function getDirsRecursive(srcPath: string): string[] {
-  return [
+function getDirsRecursive(srcPath: string, prioritize?: string): string[] {
+  const unprioritizedDirs = [
     srcPath,
     ...flatten(getDirs(srcPath).map(src => getDirsRecursive(src)))
   ];
+  if (prioritize) {
+    const notPrioritized: string[] = [];
+    const prioritized = unprioritizedDirs.filter(dir => {
+      if (dir.includes(prioritize)) {
+        return true;
+      } else {
+        notPrioritized.push(dir);
+      }
+    });
+    return prioritized.concat(notPrioritized);
+  }
+  return unprioritizedDirs;
 }
 
 class SelectFilePath implements ParametersGatherer<{}> {
@@ -54,7 +66,9 @@ class SelectFilePath implements ParametersGatherer<{}> {
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
     const outputdir = this.explorerDir
       ? this.explorerDir
-      : await vscode.window.showQuickPick(getDirsRecursive(rootPath));
+      : await vscode.window.showQuickPick(
+          getDirsRecursive(rootPath, 'classes')
+        );
     return fileName && outputdir
       ? {
           type: 'CONTINUE',
