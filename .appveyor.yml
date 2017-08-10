@@ -11,7 +11,6 @@ skip_branch_with_pr: true
 platform: x64
 
 environment:
-  ELECTRON_RUN_AS_NODE: 1
   SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-v5.7.6-d42cf65-windows-amd64.tar.xz
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300

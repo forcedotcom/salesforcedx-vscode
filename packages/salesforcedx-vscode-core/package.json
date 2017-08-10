@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.4.0",
+  "version": "40.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,7 +25,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.5.0",
     "rxjs": "^5.4.1"
   },
   "devDependencies": {
@@ -54,15 +54,7 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.force.auth.web.login",
-    "onCommand:sfdx.force.org.create",
-    "onCommand:sfdx.force.org.open",
-    "onCommand:sfdx.force.source.pull",
-    "onCommand:sfdx.force.source.push",
-    "onCommand:sfdx.force.source.status",
-    "onCommand:sfdx.force.source.status",
-    "onCommand:sfdx.force.apex.test.run"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
   "contributes": {
@@ -79,6 +71,40 @@
         {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "sfdx.force.auth.web.login",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.open",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.pull",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.push",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.status",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.task.stop",
+          "when": "sfdx:project_opened"
         }
       ]
     },
