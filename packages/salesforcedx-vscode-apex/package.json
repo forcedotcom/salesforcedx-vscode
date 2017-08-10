@@ -23,7 +23,6 @@
   },
   "categories": ["Languages"],
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.4.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",

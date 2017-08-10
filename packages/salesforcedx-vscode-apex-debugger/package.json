@@ -17,7 +17,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.5.1",
     "vscode-debugprotocol": "1.19.0",
     "vscode-debugadapter": "1.19.0"
   },
