@@ -48,15 +48,8 @@ class SelectFilePath implements ParametersGatherer<{}> {
     };
     const dirs = getDirsRecursive(rootPath);
 
-    // const template = await vscode.window.showQuickPick([
-    //   'DefaultApexClass',
-    //   'ApexException',
-    //   'ApexUnitTest',
-    //   'InboundEmailService'
-    // ]);
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
     const outputdir = await vscode.window.showQuickPick(dirs);
-
     return fileName && outputdir
       ? {
           type: 'CONTINUE',
@@ -82,6 +75,7 @@ class ForceCreateApexExecutor extends SfdxCommandletExecutor<{}> {
       vscode.workspace
         .openTextDocument(e)
         .then(document => vscode.window.showTextDocument(document));
+      fswatcher.dispose();
     });
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_create_apex_text'))
