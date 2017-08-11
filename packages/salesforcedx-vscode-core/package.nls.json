@@ -9,5 +9,5 @@
   "force_source_status_text": "SFDX: View All Changes (Local and in Default Scratch Org)",
   "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
   "cancel_sfdx_command_text": "SFDX: Cancel Active Command",
-  "force_create_apex_text": "SFDX: Create Apex Class"
+  "force_apex_class_create": "SFDX: Create Apex Class"
 }

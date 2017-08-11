@@ -105,7 +105,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       fswatcher.dispose();
     });
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_create_apex_text'))
+      .withDescription(nls.localize('force_apex_class_create'))
       .withArg('force:apex:class:create')
       .withFlag('--classname', data.fileName)
       .withFlag('--template', 'DefaultApexClass')

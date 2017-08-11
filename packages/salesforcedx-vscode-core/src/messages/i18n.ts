@@ -63,5 +63,5 @@ export const messages = {
   force_apex_test_run_all_tests_desription_text:
     'Runs all tests in the current project',
 
-  force_create_apex_text: 'SFDX: Create Apex Class'
+  force_apex_class_create: 'SFDX: Create Apex Class'
 };

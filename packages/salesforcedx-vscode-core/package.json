@@ -75,7 +75,7 @@
       ],
       "explorer/context": [
         {
-          "command": "sfdx.force.create.apex",
+          "command": "sfdx.force.apex.class.create",
           "when": "explorerResourceIsFolder"
         }
       ],
@@ -110,6 +110,10 @@
         },
         {
           "command": "sfdx.force.task.stop",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.class.create",
           "when": "sfdx:project_opened"
         }
       ]
@@ -148,8 +152,8 @@
         "title": "%cancel_sfdx_command_text%"
       },
       {
-        "command": "sfdx.force.create.apex",
-        "title": "%force_create_apex_text%"
+        "command": "sfdx.force.apex.class.create",
+        "title": "%force_apex_class_create%"
       }
     ]
   }
