@@ -6,13 +6,17 @@
  */
 
 import {
+  CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { CancellableStatusBar, taskViewService } from '../statuses';
 import fs = require('fs');
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
 import {
   CancelResponse,
   ContinueResponse,
@@ -87,23 +91,7 @@ class SelectFilePath implements ParametersGatherer<DirFileNameSelection> {
 class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
-  public build(data: {
-    template: string;
-    fileName: string;
-    outputdir: string;
-  }): Command {
-    const fswatcher = vscode.workspace.createFileSystemWatcher(
-      '**/*.cls',
-      false,
-      true,
-      true
-    );
-    fswatcher.onDidCreate(function(e) {
-      vscode.workspace
-        .openTextDocument(e)
-        .then(document => vscode.window.showTextDocument(document));
-      fswatcher.dispose();
-    });
+  public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_class_create'))
       .withArg('force:apex:class:create')
@@ -111,6 +99,29 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--template', 'DefaultApexClass')
       .withFlag('--outputdir', data.outputdir)
       .build();
+  }
+
+  public execute(response: ContinueResponse<DirFileNameSelection>): void {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: vscode.workspace.rootPath
+    }).execute(cancellationToken);
+
+    execution.stdoutSubject.subscribe(async data => {
+      if (data != undefined && data.toString() === '0') {
+        vscode.workspace
+          .openTextDocument(
+            response.data.outputdir + '/' + response.data.fileName
+          )
+          .then(document => vscode.window.showTextDocument(document));
+      }
+    });
+
+    channelService.streamCommandOutput(execution);
+    CancellableStatusBar.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 
