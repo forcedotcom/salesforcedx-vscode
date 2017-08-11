@@ -16,6 +16,7 @@ import { nls } from '../messages';
 import {
   CancelResponse,
   ContinueResponse,
+  DirFileNameSelection,
   ParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -52,33 +53,40 @@ function getDirsRecursive(srcPath: string, prioritize?: string): string[] {
   return unprioritizedDirs;
 }
 
-class SelectFilePath implements ParametersGatherer<{}> {
+class SelectFilePath implements ParametersGatherer<DirFileNameSelection> {
   private explorerDir: string | undefined;
   public constructor(explorerDir?: { path: string }) {
     this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
   }
-  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<DirFileNameSelection>
+  > {
     const rootPath = vscode.workspace.rootPath ? vscode.workspace.rootPath : '';
     const fileNameInputOptions = <vscode.InputBoxOptions>{
-      prompt: 'Please enter desired filename'
+      prompt: nls.localize('force_apex_class_create_enter_file_name')
     };
 
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
     const outputdir = this.explorerDir
       ? this.explorerDir
       : await vscode.window.showQuickPick(
-          getDirsRecursive(rootPath, 'classes')
+          getDirsRecursive(rootPath, 'classes'),
+          <vscode.QuickPickOptions>{
+            placeHolder: nls.localize('force_apex_class_create_enter_dir_name')
+          }
         );
     return fileName && outputdir
       ? {
           type: 'CONTINUE',
-          data: { template: 'DefaultApexClass', fileName, outputdir }
+          data: { fileName, outputdir }
         }
       : { type: 'CANCEL' };
   }
 }
 
-class ForceCreateApexExecutor extends SfdxCommandletExecutor<{}> {
+class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
+  DirFileNameSelection
+> {
   public build(data: {
     template: string;
     fileName: string;
@@ -100,7 +108,7 @@ class ForceCreateApexExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(nls.localize('force_create_apex_text'))
       .withArg('force:apex:class:create')
       .withFlag('--classname', data.fileName)
-      .withFlag('--template', data.template)
+      .withFlag('--template', 'DefaultApexClass')
       .withFlag('--outputdir', data.outputdir)
       .build();
   }
@@ -108,12 +116,12 @@ class ForceCreateApexExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceCreateApex(explorerDir?: any) {
+export async function forceApexClassCreate(explorerDir?: any) {
   const parameterGatherer = new SelectFilePath(explorerDir);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceCreateApexExecutor()
+    new ForceApexClassCreateExecutor()
   );
   commandlet.run();
 }

@@ -41,6 +41,9 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
 
+  force_apex_class_create_enter_file_name: 'Enter desired filename',
+  force_apex_class_create_enter_dir_name: 'Enter desired directory',
+
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
 

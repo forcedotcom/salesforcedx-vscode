@@ -87,6 +87,11 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
   }
 }
 
+export type DirFileNameSelection = {
+  fileName: string;
+  outputdir: string;
+};
+
 // Command Execution
 ////////////////////
 export interface CommandletExecutor<T> {
