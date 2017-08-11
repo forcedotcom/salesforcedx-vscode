@@ -50,12 +50,12 @@ export interface DebuggerMessage {
 }
 
 export class StreamingClientInfo {
-  public channel: string;
-  public timeout: number;
-  public errorHandler: Function;
-  public connectedHandler: Function;
-  public disconnectedHandler: Function;
-  public messageHandler: Function;
+  public readonly channel: string;
+  public readonly timeout: number;
+  public readonly errorHandler: (reason: string) => void;
+  public readonly connectedHandler: () => void;
+  public readonly disconnectedHandler: () => void;
+  public readonly messageHandler: (message: any) => void;
 
   public constructor(builder: StreamingClientInfoBuilder) {
     this.channel = builder.channel;
@@ -70,10 +70,10 @@ export class StreamingClientInfo {
 export class StreamingClientInfoBuilder {
   public channel: string;
   public timeout: number;
-  public errorHandler: Function;
-  public connectedHandler: Function;
-  public disconnectedHandler: Function;
-  public messageHandler: Function;
+  public errorHandler: (reason: string) => void;
+  public connectedHandler: () => void;
+  public disconnectedHandler: () => void;
+  public messageHandler: (message: any) => void;
 
   public forChannel(channel: string): StreamingClientInfoBuilder {
     this.channel = channel;
@@ -85,24 +85,28 @@ export class StreamingClientInfoBuilder {
     return this;
   }
 
-  public withErrorHandler(handler: Function): StreamingClientInfoBuilder {
+  public withErrorHandler(
+    handler: (reason: string) => void
+  ): StreamingClientInfoBuilder {
     this.errorHandler = handler;
     return this;
   }
 
-  public withConnectedHandler(handler: Function): StreamingClientInfoBuilder {
+  public withConnectedHandler(handler: () => void): StreamingClientInfoBuilder {
     this.connectedHandler = handler;
     return this;
   }
 
   public withDisconnectedHandler(
-    handler: Function
+    handler: () => void
   ): StreamingClientInfoBuilder {
     this.disconnectedHandler = handler;
     return this;
   }
 
-  public withMsgHandler(handler: Function): StreamingClientInfoBuilder {
+  public withMsgHandler(
+    handler: (message: any) => void
+  ): StreamingClientInfoBuilder {
     this.messageHandler = handler;
     return this;
   }
@@ -134,8 +138,10 @@ export class StreamingClient {
   }
 
   public async subscribe(): Promise<void> {
-    let subscribeAccept: Function, subscribeReject: Function;
-    const returnPromise = new Promise<void>((resolve, reject) => {
+    let subscribeAccept: () => void, subscribeReject: () => void;
+    const returnPromise = new Promise<
+      void
+    >((resolve: () => void, reject: () => void) => {
       subscribeAccept = resolve;
       subscribeReject = reject;
     });
@@ -152,7 +158,7 @@ export class StreamingClient {
       }
     });
     this.client.addExtension({
-      incoming: (message: any, callback: Function) => {
+      incoming: (message: any, callback: (message: any) => void) => {
         if (message && message.data) {
           const data = message.data as DebuggerMessage;
           if (data && data.event && data.event.replayId) {
@@ -184,7 +190,7 @@ export class StreamingClient {
         }
         callback(message);
       },
-      outgoing: (message: any, callback: Function) => {
+      outgoing: (message: any, callback: (message: any) => void) => {
         if (message.channel === '/meta/subscribe' && this.isReplaySupported) {
           if (!message.ext) {
             message.ext = {};

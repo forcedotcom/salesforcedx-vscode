@@ -94,28 +94,32 @@ describe('Debugger session service', () => {
     it('Should not start successfully with wrong ID', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"FAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service
-        .forProject('project')
-        .withUserFilter('user')
-        .withRequestFilter('request')
-        .withEntryFilter('entrypoint')
-        .start();
-
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"id":"FAKE"}}');
-      expect(cmdOutput.getId()).to.equal('FAKE');
-      expect(service.isConnected()).to.equal(false);
-      expect(service.getSessionId()).to.equal('');
+      try {
+        await service
+          .forProject('project')
+          .withUserFilter('user')
+          .withRequestFilter('request')
+          .withEntryFilter('entrypoint')
+          .start();
+        expect.fail('Should have failed');
+      } catch (error) {
+        expect(error).to.equal('{"result":{"id":"FAKE"}}');
+        expect(service.isConnected()).to.equal(false);
+        expect(service.getSessionId()).to.equal('');
+      }
     });
 
     it('Should not start successfully with unexpected response format', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"notid":"FAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service.start();
-
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"notid":"FAKE"}}');
-      expect(cmdOutput.getId()).to.an('undefined');
-      expect(service.isConnected()).to.equal(false);
-      expect(service.getSessionId()).to.equal('');
+      try {
+        await service.start();
+        expect.fail('Should have failed');
+      } catch (error) {
+        expect(error).to.equal('{"result":{"notid":"FAKE"}}');
+        expect(service.isConnected()).to.equal(false);
+        expect(service.getSessionId()).to.an('undefined');
+      }
     });
 
     it('Should not start successfully with error message & action', async () => {
@@ -127,15 +131,16 @@ describe('Debugger session service', () => {
         )
       );
 
-      const cmdOutput: CommandOutput = await service.start();
-
-      expect(cmdOutput.getStdErr()).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
-      expect(cmdOutput.getCmdMsg()).to.equal('There was an error');
-      expect(cmdOutput.getCmdAction()).to.equal('Try again');
-      expect(service.isConnected()).to.equal(false);
-      expect(service.getSessionId()).to.equal('');
+      try {
+        await service.start();
+        expect.fail('Should have failed');
+      } catch (error) {
+        expect(error).to.equal(
+          '{"message":"There was an error", "action":"Try again"}'
+        );
+        expect(service.isConnected()).to.equal(false);
+        expect(service.getSessionId()).to.an('undefined');
+      }
     });
   });
 
@@ -206,23 +211,27 @@ describe('Debugger session service', () => {
     it('Should not stop successfully with wrong ID', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"FAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service.stop();
-
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"id":"FAKE"}}');
-      expect(cmdOutput.getId()).to.equal('FAKE');
-      expect(service.isConnected()).to.equal(true);
-      expect(service.getSessionId()).to.an('undefined');
+      try {
+        await service.stop();
+        expect.fail('Should have failed');
+      } catch (error) {
+        expect(error).to.equal('{"result":{"id":"FAKE"}}');
+        expect(service.isConnected()).to.equal(true);
+        expect(service.getSessionId()).to.an('undefined');
+      }
     });
 
     it('Should not stop successfully with unexpected response format', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"notid":"FAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service.stop();
-
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"notid":"FAKE"}}');
-      expect(cmdOutput.getId()).to.an('undefined');
-      expect(service.isConnected()).to.equal(true);
-      expect(service.getSessionId()).to.an('undefined');
+      try {
+        await service.stop();
+        expect.fail('Should have failed');
+      } catch (error) {
+        expect(error).to.equal('{"result":{"notid":"FAKE"}}');
+        expect(service.isConnected()).to.equal(false);
+        expect(service.getSessionId()).to.an('undefined');
+      }
     });
 
     it('Should not stop successfully with error message & action', async () => {
@@ -234,15 +243,16 @@ describe('Debugger session service', () => {
         )
       );
 
-      const cmdOutput: CommandOutput = await service.stop();
-
-      expect(cmdOutput.getStdErr()).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
-      expect(cmdOutput.getCmdMsg()).to.equal('There was an error');
-      expect(cmdOutput.getCmdAction()).to.equal('Try again');
-      expect(service.isConnected()).to.equal(true);
-      expect(service.getSessionId()).to.an('undefined');
+      try {
+        await service.stop();
+        expect.fail('Should have failed');
+      } catch (error) {
+        expect(error).to.equal(
+          '{"message":"There was an error", "action":"Try again"}'
+        );
+        expect(service.isConnected()).to.equal(false);
+        expect(service.getSessionId()).to.an('undefined');
+      }
     });
 
     it('Should reset connected status if forced to stop', async () => {

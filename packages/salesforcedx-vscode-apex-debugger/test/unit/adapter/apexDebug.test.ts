@@ -158,15 +158,13 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should not launch if session service errors out', async () => {
-      const cmdResponse = new CommandOutput();
-      cmdResponse.setStdErr(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
-      cmdResponse.setCmdMsg('There was an error');
-      cmdResponse.setCmdAction('Try again');
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
-        .returns(Promise.resolve(cmdResponse));
+        .returns(
+          Promise.reject(
+            '{"message":"There was an error", "action":"Try again"}'
+          )
+        );
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
         .returns(false);
@@ -274,15 +272,13 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should try to disconnect and not stop', async () => {
-      const cmdResponse = new CommandOutput();
-      cmdResponse.setStdErr(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
-      cmdResponse.setCmdMsg('This was an error');
-      cmdResponse.setCmdAction('Try again');
       sessionStopSpy = sinon
         .stub(SessionService.prototype, 'stop')
-        .returns(Promise.resolve(cmdResponse));
+        .returns(
+          Promise.reject(
+            '{"message":"There was an error", "action":"Try again"}'
+          )
+        );
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
       sessionConnectedSpy.onCall(0).returns(true);
       sessionConnectedSpy.onCall(1).returns(true);
@@ -291,12 +287,53 @@ describe('Debugger adapter - unit', () => {
 
       expect(sessionStopSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse().success).to.equal(false);
-      expect(adapter.getResponse().message).to.equal('This was an error');
+      expect(adapter.getResponse().message).to.equal('There was an error');
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string('Try again');
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
+    });
+  });
+
+  describe('Logging', () => {
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService()
+      );
+    });
+
+    it('Should not log without an error', () => {
+      adapter.tryToParseSfdxError(<DebugProtocol.Response>{});
+
+      expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('Should error to console with unexpected error schema', () => {
+      adapter.tryToParseSfdxError(
+        <DebugProtocol.Response>{},
+        '{"subject":"There was an error", "action":"Try again"}'
+      );
+
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(
+        (adapter.getEvents()[0] as OutputEvent).body.output
+      ).to.have.string(
+        '{"subject":"There was an error", "action":"Try again"}'
+      );
+    });
+
+    it('Should error to console with non JSON', () => {
+      adapter.tryToParseSfdxError(
+        <DebugProtocol.Response>{},
+        'There was an error"}'
+      );
+
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(
+        (adapter.getEvents()[0] as OutputEvent).body.output
+      ).to.have.string('There was an error');
     });
   });
 

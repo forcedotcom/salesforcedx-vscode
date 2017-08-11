@@ -66,33 +66,34 @@ export class ApexDebug extends DebugSession {
         args.sfdxProject
       );
       if (!isStreamingConnected) {
-        this.sendResponse(response);
-        return;
+        return this.sendResponse(response);
       }
     } catch (error) {
-      this.errorToDebugConsole(
-        `${nls.localize(
-          'streaming_handshake_error_text'
-        )}:${os.EOL}${error}${os.EOL}`
-      );
-      this.sendResponse(response);
-      return;
+      this.tryToParseSfdxError(response, error);
+      return this.sendResponse(response);
     }
 
-    const cmdResponse = await this.mySessionService
-      .forProject(args.sfdxProject)
-      .withUserFilter(args.userIdFilter)
-      .withEntryFilter(args.entryPointFilter)
-      .withRequestFilter(args.requestTypeFilter)
-      .start();
-    if (this.mySessionService.isConnected()) {
-      response.success = true;
-      this.logToDebugConsole(
-        nls.localize('session_started_text', cmdResponse.getId())
-      );
-    } else {
-      response.message = cmdResponse.getCmdMsg();
-      this.showCommandResult(cmdResponse);
+    try {
+      const cmdResponse = await this.mySessionService
+        .forProject(args.sfdxProject)
+        .withUserFilter(args.userIdFilter)
+        .withEntryFilter(args.entryPointFilter)
+        .withRequestFilter(args.requestTypeFilter)
+        .start();
+      if (this.mySessionService.isConnected()) {
+        response.success = true;
+        this.logToDebugConsole(
+          nls.localize('session_started_text', cmdResponse.getId())
+        );
+      } else {
+        this.errorToDebugConsole(
+          `${nls.localize(
+            'command_output_help_text'
+          )}:${os.EOL}${cmdResponse.getStdOut()}`
+        );
+      }
+    } catch (error) {
+      this.tryToParseSfdxError(response, error);
     }
     this.sendResponse(response);
   }
@@ -101,18 +102,25 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.DisconnectResponse,
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
+    response.success = false;
     this.myStreamingService.disconnect();
     if (this.mySessionService.isConnected()) {
-      const cmdResponse = await this.mySessionService.stop();
-      if (!this.mySessionService.isConnected()) {
-        response.success = true;
-        this.logToDebugConsole(
-          nls.localize('session_terminated_text', cmdResponse.getId())
-        );
-      } else {
-        response.success = false;
-        response.message = cmdResponse.getCmdMsg();
-        this.showCommandResult(cmdResponse);
+      try {
+        const cmdResponse = await this.mySessionService.stop();
+        if (!this.mySessionService.isConnected()) {
+          response.success = true;
+          this.logToDebugConsole(
+            nls.localize('session_terminated_text', cmdResponse.getId())
+          );
+        } else {
+          this.errorToDebugConsole(
+            `${nls.localize(
+              'command_output_help_text'
+            )}:${os.EOL}${cmdResponse.getStdOut()}`
+          );
+        }
+      } catch (error) {
+        this.tryToParseSfdxError(response, error);
       }
     } else {
       response.success = true;
@@ -132,30 +140,37 @@ export class ApexDebug extends DebugSession {
     }
   }
 
-  private showCommandResult(cmdResponse: CommandOutput): void {
-    if (cmdResponse.getStdOut()) {
-      this.sendEvent(
-        new OutputEvent(
-          `${nls.localize(
-            'command_output_help_text'
-          )}:${os.EOL}${cmdResponse.getStdOut()}${ApexDebug.TWO_NL}`,
-          'stderr'
-        )
-      );
+  public tryToParseSfdxError(
+    response: DebugProtocol.Response,
+    error?: any
+  ): void {
+    if (!error) {
+      return;
     }
-    if (cmdResponse.getStdErr()) {
-      this.sendEvent(
-        new OutputEvent(
-          `${nls.localize(
-            'command_error_help_text'
-          )}:${os.EOL}${cmdResponse.getStdErr()}${ApexDebug.TWO_NL}`,
-          'stderr'
-        )
+    try {
+      const errorObj = JSON.parse(error);
+      if (errorObj && errorObj.message) {
+        response.message = errorObj.message;
+        if (errorObj.action) {
+          this.errorToDebugConsole(
+            `${nls.localize(
+              'command_error_help_text'
+            )}:${os.EOL}${errorObj.action}`
+          );
+        }
+      } else {
+        this.errorToDebugConsole(
+          `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
+        );
+      }
+    } catch (e) {
+      this.errorToDebugConsole(
+        `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
       );
     }
   }
 
-  public async connectStreaming(project: string): Promise<boolean> {
+  public async connectStreaming(projectPath: string): Promise<boolean> {
     const clientInfos: StreamingClientInfo[] = [];
     for (const channel of [
       StreamingService.SYSTEM_EVENT_CHANNEL,
@@ -173,8 +188,8 @@ export class ApexDebug extends DebugSession {
             nls.localize('streaming_disconnected_text', channel)
           );
         })
-        .withErrorHandler((message: string) => {
-          this.errorToDebugConsole(message);
+        .withErrorHandler((reason: string) => {
+          this.errorToDebugConsole(reason);
         })
         .withMsgHandler((message: any) => {
           const data = message as DebuggerMessage;
@@ -186,16 +201,16 @@ export class ApexDebug extends DebugSession {
       clientInfos.push(clientInfo);
     }
 
-    return this.myStreamingService.subscribe(project, clientInfos);
+    return this.myStreamingService.subscribe(projectPath, clientInfos);
   }
 
-  public handleEvent(msg: DebuggerMessage): void {
+  public handleEvent(message: DebuggerMessage): void {
     const type: ApexDebuggerEventType = (<any>ApexDebuggerEventType)[
-      msg.sobject.Type
+      message.sobject.Type
     ];
     switch (type) {
       case ApexDebuggerEventType.SessionTerminated: {
-        this.handleSessionTerminatedEvent(msg);
+        this.handleSessionTerminatedEvent(message);
         break;
       }
       default: {
@@ -204,12 +219,12 @@ export class ApexDebug extends DebugSession {
     }
   }
 
-  private handleSessionTerminatedEvent(msg: DebuggerMessage): void {
+  private handleSessionTerminatedEvent(message: DebuggerMessage): void {
     if (
       this.mySessionService.isConnected() &&
-      this.mySessionService.getSessionId() === msg.sobject.SessionId
+      this.mySessionService.getSessionId() === message.sobject.SessionId
     ) {
-      this.errorToDebugConsole(msg.sobject.Description);
+      this.errorToDebugConsole(message.sobject.Description);
       this.mySessionService.forceStop();
       this.sendEvent(new TerminatedEvent());
     }

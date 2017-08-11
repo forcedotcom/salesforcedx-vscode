@@ -17,7 +17,6 @@
  */
 export const messages = {
   command_error_help_text: 'Command returned the following error',
-  command_output_help_text: 'Command returned the following output',
   session_started_text: 'Apex Debugger session started with ID %s.',
   session_terminated_text: 'Apex Debugger session terminated with ID %s.',
   streaming_connected_text: 'Connected to Streaming API channel %s.',

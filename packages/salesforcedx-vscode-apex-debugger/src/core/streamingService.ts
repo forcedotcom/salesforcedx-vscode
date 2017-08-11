@@ -47,10 +47,10 @@ export class StreamingService {
   }
 
   public async subscribe(
-    project: string,
+    projectPath: string,
     clientInfos: StreamingClientInfo[]
   ): Promise<boolean> {
-    const orgInfo = await this.getOrgInfo(project);
+    const orgInfo = await this.getOrgInfo(projectPath);
     const apiVersion = '41.0';
     const instanceUrl = orgInfo.instanceUrl;
     const urlElements = [instanceUrl, 'cometd', apiVersion];
@@ -90,13 +90,13 @@ export class StreamingService {
     return false;
   }
 
-  public async getOrgInfo(projectDir: string): Promise<OrgInfo> {
+  public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:org:display')
         .withArg('--json')
         .build(),
-      { cwd: projectDir }
+      { cwd: projectPath }
     ).execute();
 
     return this.getCmdResult(execution);
@@ -111,23 +111,31 @@ export class StreamingService {
       outputHolder.setStdOut(data.toString())
     );
 
-    return new Promise<OrgInfo>((resolve, reject) => {
-      execution.processExitSubject.subscribe(data => {
-        if (data != undefined && data.toString() === '0') {
-          try {
-            const cmdResult = JSON.parse(outputHolder.getStdOut());
-            if (cmdResult && cmdResult.result) {
-              const orgInfo = cmdResult.result as OrgInfo;
-              return resolve(orgInfo);
+    return new Promise<
+      OrgInfo
+    >(
+      (
+        resolve: (result: OrgInfo) => void,
+        reject: (reason: string) => void
+      ) => {
+        execution.processExitSubject.subscribe(data => {
+          if (data != undefined && data.toString() === '0') {
+            try {
+              const cmdResult = JSON.parse(outputHolder.getStdOut());
+              if (cmdResult && cmdResult.result) {
+                const orgInfo = cmdResult.result as OrgInfo;
+                return resolve(orgInfo);
+              } else {
+                return reject(outputHolder.getStdOut());
+              }
+            } catch (e) {
+              return reject(outputHolder.getStdOut());
             }
-            // tslint:disable-next-line:no-empty
-          } catch (e) {
-            reject(outputHolder.getStdOut());
+          } else {
+            return reject(outputHolder.getStdErr());
           }
-        } else {
-          reject(outputHolder.getStdErr());
-        }
-      });
-    });
+        });
+      }
+    );
   }
 }
