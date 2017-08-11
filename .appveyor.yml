@@ -24,6 +24,10 @@ install:
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
   - sfdx update
   - npm install -g codecov 
+  - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" devhub.key"
+  - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
+  - del devhub.key
+
 
 build_script:
   - npm run compile
