@@ -75,3 +75,6 @@ jspm_packages/
 
 # Eclipse
 .project
+
+# no keys
+*.key

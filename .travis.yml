@@ -49,6 +49,12 @@ before_install:
       sudo installer -pkg sfdx-osx.pkg -target /
       sfdx update
     fi
+  - |
+    # the key should be stored in Travis Repository Setting, wrapped in quotes and newlines replaced with \n
+    echo -e $SFDX_CI_DEVHUB_JWTKEY > devhub.key
+    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
+    rm devhub.key
+
 
 install:
   - npm install
