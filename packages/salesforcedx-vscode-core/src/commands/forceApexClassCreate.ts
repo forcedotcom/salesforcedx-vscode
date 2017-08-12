@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import fs = require('fs');
+import glob = require('glob');
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import {
@@ -27,22 +28,8 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-function getDirs(srcPath: string) {
-  return fs
-    .readdirSync(srcPath)
-    .map(name => path.join(srcPath, name))
-    .filter(source => fs.lstatSync(source).isDirectory());
-}
-
-function flatten(lists: string[][]) {
-  return lists.reduce((a, b) => a.concat(b), []);
-}
-
-function getDirsRecursive(srcPath: string, prioritize?: string): string[] {
-  const unprioritizedDirs = [
-    srcPath,
-    ...flatten(getDirs(srcPath).map(src => getDirsRecursive(src)))
-  ];
+function globDirs(srcPath: string, prioritize?: string): string[] {
+  const unprioritizedDirs = new glob.GlobSync(srcPath + '/**/').found;
   if (prioritize) {
     const notPrioritized: string[] = [];
     const prioritized = unprioritizedDirs.filter(dir => {
@@ -74,7 +61,7 @@ class SelectFilePath implements ParametersGatherer<DirFileNameSelection> {
     const outputdir = this.explorerDir
       ? this.explorerDir
       : await vscode.window.showQuickPick(
-          getDirsRecursive(rootPath, 'classes'),
+          globDirs(rootPath, 'classes'),
           <vscode.QuickPickOptions>{
             placeHolder: nls.localize('force_apex_class_create_enter_dir_name')
           }

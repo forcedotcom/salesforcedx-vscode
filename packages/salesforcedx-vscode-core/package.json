@@ -30,11 +30,13 @@
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
+    "@types/glob": "^5.0.30",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "glob": "^7.1.2",
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
