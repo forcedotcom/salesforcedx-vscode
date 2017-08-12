@@ -149,7 +149,6 @@ export class StreamingClient {
     this.client.on('transport:down', async () => {
       if (this.connected) {
         this.connected = false;
-        this.sendSubscribeRequest();
       } else {
         this.clientInfo.errorHandler(
           nls.localize('streaming_handshake_timeout_text')
@@ -170,10 +169,7 @@ export class StreamingClient {
             if (message.ext && message.ext['replay'] === true) {
               this.isReplaySupported = true;
             }
-            this.connected = true;
             this.shouldDisconnect = false;
-            this.clientInfo.connectedHandler();
-            subscribeAccept();
           } else {
             this.connected = false;
             this.clientInfo.errorHandler(
@@ -183,10 +179,21 @@ export class StreamingClient {
             );
             subscribeReject();
           }
-        }
-        if (this.shouldDisconnect && this.connected) {
-          this.client.disconnect();
-          this.connected = this.shouldDisconnect = false;
+        } else if (
+          message.channel === '/meta/connect' &&
+          !this.shouldDisconnect
+        ) {
+          const wasConnected = this.connected;
+          this.connected = message.successful;
+          if (!wasConnected && this.connected) {
+            this.clientInfo.connectedHandler();
+            subscribeAccept();
+          } else if (wasConnected && !this.connected) {
+            this.clientInfo.disconnectedHandler();
+            this.sendSubscribeRequest();
+          }
+        } else if (message.channel === '/meta/disconnect') {
+          this.shouldDisconnect = true;
         }
         callback(message);
       },
