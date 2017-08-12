@@ -109,11 +109,11 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
 
-    execution.stdoutSubject.subscribe(async data => {
+    execution.processExitSubject.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
         vscode.workspace
           .openTextDocument(
-            response.data.outputdir + '/' + response.data.fileName
+            response.data.outputdir + '/' + response.data.fileName + '.cls'
           )
           .then(document => vscode.window.showTextDocument(document));
       }
