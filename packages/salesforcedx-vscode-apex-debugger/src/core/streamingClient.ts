@@ -149,6 +149,7 @@ export class StreamingClient {
     this.client.on('transport:down', async () => {
       if (this.connected) {
         this.connected = false;
+        this.clientInfo.disconnectedHandler();
       } else {
         this.clientInfo.errorHandler(
           nls.localize('streaming_handshake_timeout_text')

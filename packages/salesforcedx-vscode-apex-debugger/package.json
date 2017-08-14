@@ -46,8 +46,11 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/_mocha --recursive out/test",
+    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
     "coverage": "./node_modules/.bin/nyc npm test"
+  },
+  "nyc": {
+    "reporter": ["text-summary", "lcov"]
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
