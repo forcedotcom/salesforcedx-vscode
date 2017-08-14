@@ -35,5 +35,8 @@
     "test": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
+  "nyc": {
+    "reporter": ["text-summary", "lcov"]
+  },
   "main": "./out/src/"
 }
