@@ -10,14 +10,11 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { CancellableStatusBar, taskViewService } from '../statuses';
-import fs = require('fs');
 import glob = require('glob');
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import {
   CancelResponse,
   ContinueResponse,
@@ -28,27 +25,28 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-function globDirs(srcPath: string, prioritize?: string): string[] {
-  const unprioritizedDirs = new glob.GlobSync(srcPath + '/**/').found;
-  if (prioritize) {
-    const notPrioritized: string[] = [];
-    const prioritized = unprioritizedDirs.filter(dir => {
-      if (dir.includes(prioritize)) {
-        return true;
-      } else {
-        notPrioritized.push(dir);
-      }
-    });
-    return prioritized.concat(notPrioritized);
-  }
-  return unprioritizedDirs;
-}
-
 class SelectFilePath implements ParametersGatherer<DirFileNameSelection> {
   private explorerDir: string | undefined;
   public constructor(explorerDir?: { path: string }) {
     this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
   }
+
+  public globDirs(srcPath: string, prioritize?: string): string[] {
+    const unprioritizedDirs = new glob.GlobSync(srcPath + '/**/').found;
+    if (prioritize) {
+      const notPrioritized: string[] = [];
+      const prioritized = unprioritizedDirs.filter(dir => {
+        if (dir.includes(prioritize)) {
+          return true;
+        } else {
+          notPrioritized.push(dir);
+        }
+      });
+      return prioritized.concat(notPrioritized);
+    }
+    return unprioritizedDirs;
+  }
+
   public async gather(): Promise<
     CancelResponse | ContinueResponse<DirFileNameSelection>
   > {
@@ -61,7 +59,7 @@ class SelectFilePath implements ParametersGatherer<DirFileNameSelection> {
     const outputdir = this.explorerDir
       ? this.explorerDir
       : await vscode.window.showQuickPick(
-          globDirs(rootPath, 'classes'),
+          this.globDirs(rootPath, 'classes'),
           <vscode.QuickPickOptions>{
             placeHolder: nls.localize('force_apex_class_create_enter_dir_name')
           }
