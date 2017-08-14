@@ -32,7 +32,7 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test": "./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
+    "test": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "main": "./out/src/"
