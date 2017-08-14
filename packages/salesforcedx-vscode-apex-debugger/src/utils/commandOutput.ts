@@ -9,8 +9,6 @@ export class CommandOutput {
   private objectId: string;
   private stdErr: string;
   private stdOut: string;
-  private cmdMsg: string;
-  private cmdAction: string;
 
   public setId(id: string): void {
     this.objectId = id;
@@ -24,14 +22,6 @@ export class CommandOutput {
     this.stdOut = out;
   }
 
-  public setCmdMsg(msg: string): void {
-    this.cmdMsg = msg;
-  }
-
-  public setCmdAction(action: string): void {
-    this.cmdAction = action;
-  }
-
   public getId(): string {
     return this.objectId;
   }
@@ -42,13 +32,5 @@ export class CommandOutput {
 
   public getStdOut(): string {
     return this.stdOut;
-  }
-
-  public getCmdMsg(): string {
-    return this.cmdMsg;
-  }
-
-  public getCmdAction(): string {
-    return this.cmdAction;
   }
 }

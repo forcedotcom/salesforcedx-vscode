@@ -19,7 +19,7 @@ export class SessionService {
   private entryFilter: string;
   private project: string;
   private sessionId: string;
-  private connected: boolean;
+  private connected = false;
 
   public static getInstance() {
     if (!SessionService.instance) {
@@ -75,15 +75,16 @@ export class SessionService {
         .build(),
       { cwd: this.project }
     ).execute();
-    const result = await this.getCmdResult(execution);
+    const result = await this.getIdFromCommandResult(execution);
     if (this.isApexDebuggerSessionId(result.getId())) {
       this.sessionId = result.getId();
       this.connected = true;
+      return Promise.resolve(result);
     } else {
       this.sessionId = '';
       this.connected = false;
+      return Promise.reject(result.getStdOut());
     }
-    return Promise.resolve(result);
   }
 
   public async stop(): Promise<CommandOutput> {
@@ -98,17 +99,23 @@ export class SessionService {
         .build(),
       { cwd: this.project }
     ).execute();
-    const result = await this.getCmdResult(execution);
+    const result = await this.getIdFromCommandResult(execution);
     if (this.isApexDebuggerSessionId(result.getId())) {
       this.sessionId = '';
       this.connected = false;
+      return Promise.resolve(result);
     } else {
       this.connected = true;
+      return Promise.reject(result.getStdOut());
     }
-    return Promise.resolve(result);
   }
 
-  private async getCmdResult(
+  public forceStop(): void {
+    this.sessionId = '';
+    this.connected = false;
+  }
+
+  private async getIdFromCommandResult(
     execution: CommandExecution
   ): Promise<CommandOutput> {
     const outputHolder = new CommandOutput();
@@ -119,28 +126,31 @@ export class SessionService {
       outputHolder.setStdOut(data.toString())
     );
 
-    return new Promise<CommandOutput>((resolve, reject) => {
-      execution.processExitSubject.subscribe(data => {
-        if (data != undefined && data.toString() === '0') {
-          try {
-            const respObj = JSON.parse(outputHolder.getStdOut());
-            if (respObj && respObj.result && respObj.result.id) {
-              outputHolder.setId(respObj.result.id);
+    return new Promise<
+      CommandOutput
+    >(
+      (
+        resolve: (result: CommandOutput) => void,
+        reject: (reason: string) => void
+      ) => {
+        execution.processExitSubject.subscribe(data => {
+          if (data != undefined && data.toString() === '0') {
+            try {
+              const respObj = JSON.parse(outputHolder.getStdOut());
+              if (respObj && respObj.result && respObj.result.id) {
+                outputHolder.setId(respObj.result.id);
+                return resolve(outputHolder);
+              } else {
+                return reject(outputHolder.getStdOut());
+              }
+            } catch (e) {
+              return reject(outputHolder.getStdOut());
             }
-            // tslint:disable-next-line:no-empty
-          } catch (e) {}
-        } else {
-          try {
-            const respObj = JSON.parse(outputHolder.getStdErr());
-            if (respObj) {
-              outputHolder.setCmdMsg(respObj.message);
-              outputHolder.setCmdAction(respObj.action);
-            }
-            // tslint:disable-next-line:no-empty
-          } catch (e) {}
-        }
-        return resolve(outputHolder);
-      });
-    });
+          } else {
+            return reject(outputHolder.getStdErr());
+          }
+        });
+      }
+    );
   }
 }

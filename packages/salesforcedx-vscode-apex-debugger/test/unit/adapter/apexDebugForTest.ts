@@ -10,13 +10,16 @@ import {
   ApexDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexDebug';
-import { SessionService } from '../../../src/core/sessionService';
+import { SessionService, StreamingService } from '../../../src/core';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponse: DebugProtocol.Response;
   private receivedEvents: DebugProtocol.Event[];
 
-  constructor(sessionService: SessionService, timeout?: number) {
+  constructor(
+    sessionService: SessionService,
+    streamingService: StreamingService
+  ) {
     super();
     this.receivedEvents = new Array();
     this.mySessionService = sessionService;
@@ -59,13 +62,13 @@ export class ApexDebugForTest extends ApexDebug {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
-    super.launchRequest(response, args);
+    return super.launchRequest(response, args);
   }
 
   public async disconnectReq(
     response: DebugProtocol.DisconnectResponse,
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
-    super.disconnectRequest(response, args);
+    return super.disconnectRequest(response, args);
   }
 }
