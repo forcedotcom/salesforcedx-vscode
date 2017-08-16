@@ -38,6 +38,11 @@ export class ApexDebug extends DebugSession {
   protected myStreamingService = StreamingService.getInstance();
   private sfdxProject: string;
 
+  constructor() {
+    super();
+    this.setDebuggerLinesStartAt1(true);
+  }
+
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
