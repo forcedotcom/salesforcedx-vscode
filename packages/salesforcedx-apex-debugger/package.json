@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
-  "description": "Implements VSCode debug protocol for Apex Debugger",
+  "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
   "version": "40.5.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
