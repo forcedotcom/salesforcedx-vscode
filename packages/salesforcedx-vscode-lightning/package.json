@@ -21,7 +21,12 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": ["Languages"],
+  "categories": [
+    "Languages"
+  ],
+  "dependencies": {
+    "@salesforce/salesforcedx-slds-linter": "40.9.0"
+  },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.9.0",
     "@types/chai": "^4.0.0",
@@ -42,11 +47,14 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
+  "main": "./out/src",
   "contributes": {
     "languages": [
       {

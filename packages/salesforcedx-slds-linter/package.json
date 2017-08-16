@@ -1,0 +1,52 @@
+{
+  "name": "@salesforce/salesforcedx-slds-linter",
+  "displayName": "SFDX SLDS Linting for VS Code",
+  "description": "Provides linting for deprecated SLDS class names",
+  "version": "40.9.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "categories": [
+    "Other"
+  ],
+  "engines": {
+    "vscode": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/glob": "^5.0.30",
+    "@types/mocha": "^2.2.38",
+    "@types/node": "^6.0.40",
+    "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
+    "decache": "^4.1.0",
+    "glob": "^7.1.2",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
+    "nyc": "^11.0.2",
+    "remap-istanbul": "^0.9.5",
+    "source-map-support": "^0.4.15",
+    "typescript": "2.4.0",
+    "vscode": "1.1.2"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "cross-env CODE_TESTS_WORKSPACE='./assets/sfdx-simple' node ./node_modules/vscode/bin/test"
+  },
+  "nyc": {
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "3.3.0",
+    "vscode-languageserver": "^3.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.9.0"
+  }
+}
