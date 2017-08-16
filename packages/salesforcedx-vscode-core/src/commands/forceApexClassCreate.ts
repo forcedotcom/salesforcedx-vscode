@@ -17,6 +17,7 @@ import glob = require('glob');
 import { nls } from '../messages';
 import {
   CancelResponse,
+  CompositeParametersGatherer,
   ContinueResponse,
   DirFileNameSelection,
   ParametersGatherer,
@@ -24,35 +25,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-
-class SelectFilePath implements ParametersGatherer<DirFileNameSelection> {
-  private explorerDir: string | undefined;
-  private gatherers: ParametersGatherer<any>[] = [];
-
-  public add(gatherer: ParametersGatherer<any>) {
-    this.gatherers.push(gatherer);
-  }
-
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<DirFileNameSelection>
-  > {
-    const aggregatedData: any = {};
-    for (const gatherer of this.gatherers) {
-      const input = await gatherer.gather();
-      if (input.type === 'CONTINUE') {
-        Object.keys(input.data).map(
-          key => (aggregatedData[key] = input.data[key])
-        );
-      } else {
-        return input;
-      }
-    }
-    return {
-      type: 'CONTINUE',
-      data: aggregatedData
-    };
-  }
-}
 
 class SelectFileName implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
@@ -147,13 +119,13 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new SelectFilePath();
 const fileNameGatherer = new SelectFileName();
 
 export async function forceApexClassCreate(explorerDir?: any) {
   const outputDirGatherer = new SelectDirPath(explorerDir);
-  parameterGatherer.add(fileNameGatherer);
-  parameterGatherer.add(outputDirGatherer);
+  const parameterGatherer = new CompositeParametersGatherer<
+    DirFileNameSelection
+  >(fileNameGatherer, outputDirGatherer);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
