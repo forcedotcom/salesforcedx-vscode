@@ -26,11 +26,11 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}",
-      "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/adapter/apexDebug.js",
+      "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
       "args": ["--server=4711"],
       "sourceMaps": true,
       "outFiles": [
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/**/*.js"
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/**/*.js"
       ],
       "preLaunchTask": "Compile"
     },
@@ -113,8 +113,8 @@
       "name": "Launch Apex Debugger Tests",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger",
-      "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/node_modules/mocha/bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
+      "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -122,11 +122,11 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/test/"
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/test/"
       ],
       "sourceMaps": true,
       "outFiles": [
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/**/*.js"
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/**/*.js"
       ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
