@@ -49,7 +49,7 @@ export interface ParametersGatherer<T> {
 }
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  protected readonly gatherers: ParametersGatherer<any>[];
+  private readonly gatherers: ParametersGatherer<any>[];
   public constructor(...gatherers: ParametersGatherer<any>[]) {
     this.gatherers = gatherers;
   }
@@ -73,6 +73,7 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
     };
   }
 }
+
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
     return { type: 'CONTINUE', data: {} };

@@ -10,6 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { CancellableStatusBar, taskViewService } from '../statuses';
@@ -25,6 +26,8 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+
+const APEX_FILE_EXTENSION = '.cls';
 
 class SelectFileName implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
@@ -47,12 +50,18 @@ class SelectDirPath implements ParametersGatherer<{ outputdir: string }> {
     this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
   }
 
-  public globDirs(srcPath: string, prioritize?: string): string[] {
-    const unprioritizedDirs = new glob.GlobSync(srcPath + '/**/').found;
-    if (prioritize) {
+  public globDirs(srcPath: string, priorityKeyword?: string): string[] {
+    const unprioritizedRelDirs = new glob.GlobSync(
+      path.join(srcPath, '**/')
+    ).found.map(value => {
+      let relativePath = path.relative(srcPath, path.join(value, '/'));
+      relativePath = path.join(relativePath, '');
+      return relativePath;
+    });
+    if (priorityKeyword) {
       const notPrioritized: string[] = [];
-      const prioritized = unprioritizedDirs.filter(dir => {
-        if (dir.includes(prioritize)) {
+      const prioritized = unprioritizedRelDirs.filter(dir => {
+        if (dir.includes(priorityKeyword)) {
           return true;
         } else {
           notPrioritized.push(dir);
@@ -60,21 +69,26 @@ class SelectDirPath implements ParametersGatherer<{ outputdir: string }> {
       });
       return prioritized.concat(notPrioritized);
     }
-    return unprioritizedDirs;
+    return unprioritizedRelDirs;
   }
 
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ outputdir: string }>
   > {
-    const rootPath = vscode.workspace.rootPath ? vscode.workspace.rootPath : '';
-    const outputdir = this.explorerDir
-      ? this.explorerDir
-      : await vscode.window.showQuickPick(
-          this.globDirs(rootPath, 'classes'),
-          <vscode.QuickPickOptions>{
-            placeHolder: nls.localize('force_apex_class_create_enter_dir_name')
-          }
-        );
+    const rootPath = vscode.workspace.rootPath;
+    let outputdir;
+    if (rootPath) {
+      outputdir = this.explorerDir
+        ? this.explorerDir
+        : await vscode.window.showQuickPick(
+            this.globDirs(rootPath, 'classes'),
+            <vscode.QuickPickOptions>{
+              placeHolder: nls.localize(
+                'force_apex_class_create_enter_dir_name'
+              )
+            }
+          );
+    }
     return outputdir
       ? { type: 'CONTINUE', data: { outputdir } }
       : { type: 'CANCEL' };
@@ -106,7 +120,10 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       if (data != undefined && data.toString() === '0') {
         vscode.workspace
           .openTextDocument(
-            response.data.outputdir + '/' + response.data.fileName + '.cls'
+            path.join(
+              response.data.outputdir,
+              response.data.fileName + APEX_FILE_EXTENSION
+            )
           )
           .then(document => vscode.window.showTextDocument(document));
       }
