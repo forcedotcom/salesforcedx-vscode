@@ -25,6 +25,7 @@
     "Other"
   ],
   "dependencies": {
+    "glob": "^7.1.2",
     "@salesforce/salesforcedx-utils-vscode": "40.5.1",
     "rxjs": "^5.4.1"
   },
@@ -36,7 +37,6 @@
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
-    "glob": "^7.1.2",
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",

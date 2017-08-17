@@ -117,10 +117,15 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      if (data != undefined && data.toString() === '0') {
+      if (
+        data != undefined &&
+        data.toString() === '0' &&
+        vscode.workspace.rootPath
+      ) {
         vscode.workspace
           .openTextDocument(
             path.join(
+              vscode.workspace.rootPath,
               response.data.outputdir,
               response.data.fileName + APEX_FILE_EXTENSION
             )
