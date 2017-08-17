@@ -5,18 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as child_process from 'child_process';
 import * as fs from 'fs';
-import * as net from 'net';
 import * as path from 'path';
-import * as portFinder from 'portfinder';
 import * as vscode from 'vscode';
 import {
+  Executable,
   LanguageClient,
-  LanguageClientOptions,
-  StreamInfo
+  LanguageClientOptions
 } from 'vscode-languageclient';
-import { APEX_LANGUAGE_SERVER_CHANNEL } from './channel';
 import { nls } from './messages';
 import * as requirements from './requirements';
 
@@ -29,77 +25,43 @@ const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 async function createServer(
   context: vscode.ExtensionContext
-): Promise<StreamInfo> {
+): Promise<Executable> {
   try {
     deleteDbIfExists();
     const requirementsData = await requirements.resolveRequirements();
-    return new Promise<any>((resolve, reject) => {
-      portFinder.getPort((err, port) => {
-        const uberJar = path.resolve(
-          context.extensionPath,
-          'out',
-          UBER_JAR_NAME
-        );
-        const javaExecutable = path.resolve(
-          `${requirementsData.java_home}/bin/java`
-        );
-        let args: string[];
-        if (DEBUG) {
-          args = [
-            '-cp',
-            uberJar,
-            `-Dapex-lsp.port=${port}`,
-            '-Ddebug.internal.errors=true',
-            '-Ddebug.semantic.errors=false',
-            '-Dtrace.protocol=false',
-            `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT}`,
-            APEX_LANGUAGE_SERVER_MAIN
-          ];
-        } else {
-          args = [
-            '-cp',
-            uberJar,
-            `-Dapex-lsp.port=${port}`,
-            '-Ddebug.internal.errors=true',
-            '-Ddebug.semantic.errors=false',
-            APEX_LANGUAGE_SERVER_MAIN
-          ];
-        }
+    const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
+    const javaExecutable = path.resolve(
+      `${requirementsData.java_home}/bin/java`
+    );
+    let args: string[];
+    if (DEBUG) {
+      args = [
+        '-cp',
+        uberJar,
+        '-Ddebug.internal.errors=true',
+        '-Ddebug.semantic.errors=false',
+        '-Dtrace.protocol=false',
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`,
+        APEX_LANGUAGE_SERVER_MAIN
+      ];
+    } else {
+      args = [
+        '-cp',
+        uberJar,
+        '-Ddebug.internal.errors=true',
+        '-Ddebug.semantic.errors=false',
+        APEX_LANGUAGE_SERVER_MAIN
+      ];
+    }
 
-        net
-          .createServer(socket => {
-            resolve({
-              reader: socket,
-              writer: socket
-            });
-          })
-          .listen(port, () => {
-            const options = {
-              cwd: vscode.workspace.rootPath
-            };
-
-            const lspProcess = child_process.spawn(
-              javaExecutable,
-              args,
-              options
-            );
-            console.log('PROCESS INFO');
-            console.log(lspProcess);
-
-            lspProcess.stdout.on('data', data => {
-              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
-            });
-            lspProcess.stderr.on('data', data => {
-              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(`${data}`);
-            });
-            lspProcess.on('close', code => {
-              APEX_LANGUAGE_SERVER_CHANNEL.appendLine(
-                `${nls.localize('client_name')} exited with code: ${code}`
-              );
-            });
-          });
-      });
-    });
+    return {
+      options: {
+        env: process.env,
+        stdio: 'pipe'
+      },
+      command: javaExecutable,
+      args: args
+    };
   } catch (err) {
     vscode.window.showErrorMessage(err);
     throw err;
@@ -124,7 +86,11 @@ function startedInDebugMode(): boolean {
   const args = (process as any).execArgv;
   if (args) {
     return args.some(
-      (arg: any) => /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg)
+      (arg: any) =>
+        /^--debug=?/.test(arg) ||
+        /^--debug-brk=?/.test(arg) ||
+        /^--inspect=?/.test(arg) ||
+        /^--inspect-brk=?/.test(arg)
     );
   }
   return false;
@@ -145,9 +111,9 @@ function protocol2CodeConverter(value: string) {
   return vscode.Uri.parse(value);
 }
 
-export function createLanguageServer(
+export async function createLanguageServer(
   context: vscode.ExtensionContext
-): LanguageClient {
+): Promise<LanguageClient> {
   const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
     documentSelector: ['apex'],
@@ -165,10 +131,11 @@ export function createLanguageServer(
     }
   };
 
+  const server = await createServer(context);
   const client = new LanguageClient(
     'apex',
     nls.localize('client_name'),
-    () => createServer(context),
+    server,
     clientOptions
   );
   return client;
