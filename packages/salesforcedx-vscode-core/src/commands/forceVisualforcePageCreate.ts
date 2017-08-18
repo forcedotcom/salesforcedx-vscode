@@ -14,16 +14,13 @@ import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
-import glob = require('glob');
-import { nls } from '../messages';
 import {
-  CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
   DirFileNameSelection,
-  ParametersGatherer,
   SelectDirPath,
   SelectFileName,
   SfdxCommandlet,
@@ -86,7 +83,7 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 
 export async function forceVisualforcePageCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, 'pages');
+  const outputDirGatherer = new SelectDirPath(explorerDir, '/pages');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

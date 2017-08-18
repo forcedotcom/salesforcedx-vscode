@@ -18,11 +18,9 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import {
-  CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
   DirFileNameSelection,
-  ParametersGatherer,
   SelectDirPath,
   SelectFileName,
   SfdxCommandlet,
