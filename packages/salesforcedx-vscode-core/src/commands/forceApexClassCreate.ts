@@ -11,8 +11,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
+import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import glob = require('glob');
 import { nls } from '../messages';
@@ -134,6 +136,10 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       }
     });
 
+    notificationService.reportExecutionError(
+      execution.command.toString(),
+      (execution.stderrSubject as any) as Observable<Error | undefined>
+    );
     channelService.streamCommandOutput(execution);
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
