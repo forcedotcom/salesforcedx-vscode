@@ -172,7 +172,7 @@ export class SelectDirPath
     let outputdir;
     if (rootPath) {
       outputdir = this.explorerDir
-        ? this.explorerDir
+        ? path.relative(rootPath, this.explorerDir)
         : await vscode.window.showQuickPick(
             this.globDirs(rootPath, 'classes'),
             <vscode.QuickPickOptions>{
