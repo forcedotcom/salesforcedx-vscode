@@ -41,6 +41,10 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
 
+  force_apex_class_create_enter_file_name: 'Enter desired filename',
+  force_apex_class_create_enter_dir_name:
+    "Enter desired directory (Press 'Enter' to confirm or 'Escape' to cancel)",
+
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
 
@@ -58,5 +62,7 @@ export const messages = {
   force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
   force_apex_test_run_all_test_label: 'All tests',
   force_apex_test_run_all_tests_desription_text:
-    'Runs all tests in the current project'
+    'Runs all tests in the current project',
+
+  force_apex_class_create: 'SFDX: Create Apex Class'
 };

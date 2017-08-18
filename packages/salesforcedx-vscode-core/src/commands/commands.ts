@@ -48,6 +48,32 @@ export interface ParametersGatherer<T> {
   gather(): Promise<CancelResponse | ContinueResponse<T>>;
 }
 
+export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
+  private readonly gatherers: ParametersGatherer<any>[];
+  public constructor(...gatherers: ParametersGatherer<any>[]) {
+    this.gatherers = gatherers;
+  }
+  public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
+    const aggregatedData: any = {};
+    for (const gatherer of this.gatherers) {
+      const input = await gatherer.gather();
+      if (input.type === 'CONTINUE') {
+        Object.keys(input.data).map(
+          key => (aggregatedData[key] = input.data[key])
+        );
+      } else {
+        return {
+          type: 'CANCEL'
+        };
+      }
+    }
+    return {
+      type: 'CONTINUE',
+      data: aggregatedData
+    };
+  }
+}
+
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
     return { type: 'CONTINUE', data: {} };
@@ -86,6 +112,11 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
       : { type: 'CANCEL' };
   }
 }
+
+export type DirFileNameSelection = {
+  fileName: string;
+  outputdir: string;
+};
 
 // Command Execution
 ////////////////////

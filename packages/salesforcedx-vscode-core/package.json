@@ -25,11 +25,13 @@
     "Other"
   ],
   "dependencies": {
+    "glob": "^7.1.2",
     "@salesforce/salesforcedx-utils-vscode": "40.5.1",
     "rxjs": "^5.4.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
+    "@types/glob": "^5.0.30",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
@@ -73,6 +75,12 @@
           "when": "view == sfdx.force.tasks.view"
         }
       ],
+      "explorer/context": [
+        {
+          "command": "sfdx.force.apex.class.create",
+          "when": "explorerResourceIsFolder"
+        }
+      ],
       "commandPalette": [
         {
           "command": "sfdx.force.auth.web.login",
@@ -104,6 +112,10 @@
         },
         {
           "command": "sfdx.force.task.stop",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.class.create",
           "when": "sfdx:project_opened"
         }
       ]
@@ -140,6 +152,10 @@
       {
         "command": "sfdx.force.task.stop",
         "title": "%cancel_sfdx_command_text%"
+      },
+      {
+        "command": "sfdx.force.apex.class.create",
+        "title": "%force_apex_class_create%"
       }
     ]
   }
