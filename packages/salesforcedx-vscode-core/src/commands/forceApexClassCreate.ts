@@ -85,7 +85,7 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 
 export async function forceApexClassCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir);
+  const outputDirGatherer = new SelectDirPath(explorerDir, 'classes');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

@@ -138,9 +138,11 @@ export class SelectFileName
 export class SelectDirPath
   implements ParametersGatherer<{ outputdir: string }> {
   private explorerDir: string | undefined;
+  private globKeyWord: string | undefined;
 
-  public constructor(explorerDir?: { path: string }) {
+  public constructor(explorerDir?: { path: string }, globKeyWord?: string) {
     this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
+    this.globKeyWord = globKeyWord;
   }
 
   public globDirs(srcPath: string, priorityKeyword?: string): string[] {
@@ -174,7 +176,7 @@ export class SelectDirPath
       outputdir = this.explorerDir
         ? path.relative(rootPath, this.explorerDir)
         : await vscode.window.showQuickPick(
-            this.globDirs(rootPath, 'classes'),
+            this.globDirs(rootPath, this.globKeyWord),
             <vscode.QuickPickOptions>{
               placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
             }

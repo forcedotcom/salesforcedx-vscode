@@ -78,11 +78,19 @@
         },
         {
           "command": "sfdx.force.visualforce.component.create",
+<<<<<<< HEAD
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.page.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
+=======
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "sfdx.force.visualforce.page.create",
+          "when": "explorerResourceIsFolder"
+>>>>>>> Add vf page create and pass gatherer keyword for prioritized glob
         }
       ],
       "commandPalette": [
@@ -124,6 +132,10 @@
         },
         {
           "command": "sfdx.force.visualforce.component.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.visualforce.page.create",
           "when": "sfdx:project_opened"
         }
       ]
@@ -168,6 +180,10 @@
       {
         "command": "sfdx.force.visualforce.component.create",
         "title": "%force_visualforce_component_create_text%"
+      },
+      {
+        "command": "sfdx.force.visualforce.page.create",
+        "title": "%force_visualforce_page_create_text%"
       }
     ]
   }

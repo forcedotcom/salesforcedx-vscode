@@ -31,16 +31,16 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-const VF_CMP_EXTENSION = '.component';
+const VF_PAGE_EXTENSION = '.page';
 
-class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
+class ForceVisualForcePageCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_visualforce_component_create_text'))
-      .withArg('force:visualforce:component:create')
-      .withFlag('--componentname', data.fileName)
+      .withDescription(nls.localize('force_visualforce_page_create_text'))
+      .withArg('force:visualforce:page:create')
+      .withFlag('--pagename', data.fileName)
       .withFlag('--label', data.fileName)
       .withFlag('--outputdir', data.outputdir)
       .build();
@@ -65,7 +65,7 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
             path.join(
               vscode.workspace.rootPath,
               response.data.outputdir,
-              response.data.fileName + VF_CMP_EXTENSION
+              response.data.fileName + VF_PAGE_EXTENSION
             )
           )
           .then(document => vscode.window.showTextDocument(document));
@@ -85,15 +85,15 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 
-export async function forceVisualforceComponentCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, 'components');
+export async function forceVisualforcePageCreate(explorerDir?: any) {
+  const outputDirGatherer = new SelectDirPath(explorerDir, 'pages');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceVisualForceComponentCreateExecutor()
+    new ForceVisualForcePageCreateExecutor()
   );
   commandlet.run();
 }
