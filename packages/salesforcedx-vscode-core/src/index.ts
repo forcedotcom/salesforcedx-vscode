@@ -16,7 +16,8 @@ import {
   forceSourcePull,
   forceSourcePush,
   forceSourceStatus,
-  forceTaskStop
+  forceTaskStop,
+  forceVisualforceComponentCreate
 } from './commands';
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
@@ -60,6 +61,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.apex.class.create',
     forceApexClassCreate
   );
+  const forceVisualforceComponentCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.visualforce.component.create',
+    forceVisualforceComponentCreate
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -77,6 +82,7 @@ function registerCommands(): vscode.Disposable {
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
+    forceVisualforceComponentCreateCmd,
     internalCancelCommandExecution
   );
 }

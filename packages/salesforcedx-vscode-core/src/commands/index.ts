@@ -14,3 +14,6 @@ export { forceSourcePush } from './forceSourcePush';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './forceApexClassCreate';
+export {
+  forceVisualforceComponentCreate
+} from './forceVisualforceComponentCreate';

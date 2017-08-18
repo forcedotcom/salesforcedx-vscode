@@ -75,6 +75,14 @@
         {
           "command": "sfdx.force.apex.class.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.visualforce.component.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.visualforce.page.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
       "commandPalette": [
@@ -112,6 +120,10 @@
         },
         {
           "command": "sfdx.force.apex.class.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.visualforce.component.create",
           "when": "sfdx:project_opened"
         }
       ]
@@ -151,7 +163,11 @@
       },
       {
         "command": "sfdx.force.apex.class.create",
-        "title": "%force_apex_class_create%"
+        "title": "%force_apex_class_create_text%"
+      },
+      {
+        "command": "sfdx.force.visualforce.component.create",
+        "title": "%force_visualforce_component_create_text%"
       }
     ]
   }
