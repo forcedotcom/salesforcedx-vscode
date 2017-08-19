@@ -11,6 +11,15 @@
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
     },
     {
+      "type": "node",
+      "request": "attach",
+      "protocol": "inspector",
+      "name": "Attach to Process for Integration Tests",
+      "port": 9229,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/integration-tests/*/out/**/*.js"]
+    },
+    {
       "name": "Launch Extensions",
       "type": "extensionHost",
       "request": "launch",

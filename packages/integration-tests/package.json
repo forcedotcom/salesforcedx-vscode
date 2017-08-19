@@ -1,0 +1,33 @@
+{
+  "name": "salesforcedx-vscode-integration-tests",
+  "description": "Integration tests for Salesforce DX Extensions for VS Code",
+  "version": "0.0.1",
+  "license": "BSD-3-Clause",
+  "main": "./out/src/main.js",
+  "engines": {
+    "vscode": "1.13.0"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "pretest": "npm run compile && node ../../scripts/download-vscode-for-integration-tests",
+    "test": "node out/src/main.js"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/rimraf": "0.0.28",
+    "@types/shelljs": "^0.7.4",
+    "@types/webdriverio": "^4.6.1",
+    "@types/electron": "~1.4.37",
+    "chai": "^4.0.2",
+    "mocha": "3.2.0",
+    "rimraf": "^2.6.1",
+    "shelljs": "^0.7.8",
+    "spectron": "~3.6.4",
+    "typescript": "2.4.0",
+    "vscode": "1.1.2"
+  }
+}
