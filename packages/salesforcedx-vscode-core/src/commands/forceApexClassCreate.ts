@@ -80,24 +80,16 @@ class SelectDirPath implements ParametersGatherer<{ outputdir: string }> {
     const rootPath = vscode.workspace.rootPath;
     let outputdir;
     if (rootPath) {
-      const normalizedRoot = path.normalize(rootPath);
-      if (this.explorerDir) {
-        if (process.platform === 'win32') {
-          outputdir = path.normalize(this.explorerDir.substr(1));
-        } else {
-          outputdir = path.normalize(this.explorerDir);
-        }
-      } else {
-        const relativeDir = await vscode.window.showQuickPick(
-          this.globDirs(rootPath, 'classes'),
-          <vscode.QuickPickOptions>{
-            placeHolder: nls.localize('force_apex_class_create_enter_dir_name')
-          }
-        );
-        if (relativeDir) {
-          outputdir = path.join(normalizedRoot, relativeDir);
-        }
-      }
+      outputdir = this.explorerDir
+        ? this.explorerDir
+        : await vscode.window.showQuickPick(
+            this.globDirs(rootPath, 'classes'),
+            <vscode.QuickPickOptions>{
+              placeHolder: nls.localize(
+                'force_apex_class_create_enter_dir_name'
+              )
+            }
+          );
     }
     return outputdir
       ? { type: 'CONTINUE', data: { outputdir } }
