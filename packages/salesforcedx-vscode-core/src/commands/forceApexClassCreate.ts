@@ -48,8 +48,8 @@ class SelectFileName implements ParametersGatherer<{ fileName: string }> {
 class SelectDirPath implements ParametersGatherer<{ outputdir: string }> {
   private explorerDir: string | undefined;
 
-  public constructor(explorerDir?: { path: string }) {
-    this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
+  public constructor(explorerDir?: vscode.Uri) {
+    this.explorerDir = explorerDir ? explorerDir.fsPath : explorerDir;
   }
 
   public globDirs(srcPath: string, priorityKeyword?: string): string[] {
@@ -81,7 +81,7 @@ class SelectDirPath implements ParametersGatherer<{ outputdir: string }> {
     let outputdir;
     if (rootPath) {
       outputdir = this.explorerDir
-        ? path.relative(rootPath, this.explorerDir)
+        ? this.explorerDir
         : await vscode.window.showQuickPick(
             this.globDirs(rootPath, 'classes'),
             <vscode.QuickPickOptions>{
@@ -127,7 +127,6 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
         vscode.workspace
           .openTextDocument(
             path.join(
-              vscode.workspace.rootPath,
               response.data.outputdir,
               response.data.fileName + APEX_FILE_EXTENSION
             )

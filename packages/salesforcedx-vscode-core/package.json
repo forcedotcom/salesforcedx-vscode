@@ -21,9 +21,7 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "glob": "^7.1.2",
     "@salesforce/salesforcedx-utils-vscode": "40.5.1",
@@ -55,9 +53,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "views": {
@@ -78,7 +74,7 @@
       "explorer/context": [
         {
           "command": "sfdx.force.apex.class.create",
-          "when": "explorerResourceIsFolder"
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
       "commandPalette": [
