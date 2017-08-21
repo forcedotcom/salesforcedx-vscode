@@ -48,8 +48,8 @@ class SelectFileName implements ParametersGatherer<{ fileName: string }> {
 class SelectDirPath implements ParametersGatherer<{ outputdir: string }> {
   private explorerDir: string | undefined;
 
-  public constructor(explorerDir?: { path: string }) {
-    this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
+  public constructor(explorerDir?: { fsPath: string }) {
+    this.explorerDir = explorerDir ? explorerDir.fsPath : explorerDir;
   }
 
   public globDirs(srcPath: string, priorityKeyword?: string): string[] {
