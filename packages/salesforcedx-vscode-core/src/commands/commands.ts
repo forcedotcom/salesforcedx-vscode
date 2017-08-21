@@ -140,8 +140,8 @@ export class SelectDirPath
   private explorerDir: string | undefined;
   private globKeyWord: string | undefined;
 
-  public constructor(explorerDir?: { path: string }, globKeyWord?: string) {
-    this.explorerDir = explorerDir ? explorerDir.path : explorerDir;
+  public constructor(explorerDir?: vscode.Uri, globKeyWord?: string) {
+    this.explorerDir = explorerDir ? explorerDir.fsPath : explorerDir;
     this.globKeyWord = globKeyWord;
   }
 

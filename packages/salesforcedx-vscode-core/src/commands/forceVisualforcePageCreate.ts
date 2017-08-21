@@ -83,7 +83,7 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 
 export async function forceVisualforcePageCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, '/pages');
+  const outputDirGatherer = new SelectDirPath(explorerDir, 'pages');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);
