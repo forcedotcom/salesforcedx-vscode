@@ -6,16 +6,16 @@
  *
  */
 
+import * as glob from 'glob';
 import * as path from 'path';
 import Mocha = require('mocha');
 
 const mocha = new Mocha({ ui: 'bdd', timeout: 360000, slow: 5000 });
 mocha.useColors(true);
 
-// Add the integration tests here
-mocha.addFile(
-  path.join(process.cwd(), 'out', 'scenarios', 'scaffolding.test.js')
-);
+const files = glob.sync('out/**/*.test.js', { cwd: process.cwd() });
+
+files.forEach(f => mocha.addFile(path.join(process.cwd(), f)));
 
 mocha.run(failures => {
   process.exit(failures);
