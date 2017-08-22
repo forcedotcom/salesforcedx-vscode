@@ -28,17 +28,17 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-const APEX_FILE_EXTENSION = '.cls';
+const VF_PAGE_EXTENSION = '.page';
 
-class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
+class ForceVisualForcePageCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_class_create_text'))
-      .withArg('force:apex:class:create')
-      .withFlag('--classname', data.fileName)
-      .withFlag('--template', 'DefaultApexClass')
+      .withDescription(nls.localize('force_visualforce_page_create_text'))
+      .withArg('force:visualforce:page:create')
+      .withFlag('--pagename', data.fileName)
+      .withFlag('--label', data.fileName)
       .withFlag('--outputdir', data.outputdir)
       .build();
   }
@@ -62,7 +62,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
             path.join(
               vscode.workspace.rootPath,
               response.data.outputdir,
-              response.data.fileName + APEX_FILE_EXTENSION
+              response.data.fileName + VF_PAGE_EXTENSION
             )
           )
           .then(document => vscode.window.showTextDocument(document));
@@ -82,15 +82,15 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 
-export async function forceApexClassCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, 'classes');
+export async function forceVisualforcePageCreate(explorerDir?: any) {
+  const outputDirGatherer = new SelectDirPath(explorerDir, 'pages');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceApexClassCreateExecutor()
+    new ForceVisualForcePageCreateExecutor()
   );
   commandlet.run();
 }

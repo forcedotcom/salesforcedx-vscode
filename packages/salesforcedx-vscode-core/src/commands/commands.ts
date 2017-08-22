@@ -11,7 +11,9 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import glob = require('glob');
 import { channelService } from '../channels';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { CancellableStatusBar, taskViewService } from '../statuses';
@@ -117,6 +119,74 @@ export type DirFileNameSelection = {
   fileName: string;
   outputdir: string;
 };
+
+export class SelectFileName
+  implements ParametersGatherer<{ fileName: string }> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ fileName: string }>
+  > {
+    const fileNameInputOptions = <vscode.InputBoxOptions>{
+      prompt: nls.localize('parameter_gatherer_enter_file_name')
+    };
+    const fileName = await vscode.window.showInputBox(fileNameInputOptions);
+    return fileName
+      ? { type: 'CONTINUE', data: { fileName } }
+      : { type: 'CANCEL' };
+  }
+}
+
+export class SelectDirPath
+  implements ParametersGatherer<{ outputdir: string }> {
+  private explorerDir: string | undefined;
+  private globKeyWord: string | undefined;
+
+  public constructor(explorerDir?: vscode.Uri, globKeyWord?: string) {
+    this.explorerDir = explorerDir ? explorerDir.fsPath : explorerDir;
+    this.globKeyWord = globKeyWord;
+  }
+
+  public globDirs(srcPath: string, priorityKeyword?: string): string[] {
+    const unprioritizedRelDirs = new glob.GlobSync(
+      path.join(srcPath, '**/')
+    ).found.map(value => {
+      let relativePath = path.relative(srcPath, path.join(value, '/'));
+      relativePath = path.join(relativePath, '');
+      return relativePath;
+    });
+    if (priorityKeyword) {
+      const notPrioritized: string[] = [];
+      const prioritized = unprioritizedRelDirs.filter(dir => {
+        if (dir.includes(priorityKeyword)) {
+          return true;
+        } else {
+          notPrioritized.push(dir);
+        }
+      });
+      return prioritized.concat(notPrioritized);
+    }
+    return unprioritizedRelDirs;
+  }
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ outputdir: string }>
+  > {
+    const rootPath = vscode.workspace.rootPath;
+    let outputdir;
+    if (rootPath) {
+      outputdir = this.explorerDir
+        ? path.relative(rootPath, this.explorerDir)
+        : await vscode.window.showQuickPick(
+            this.globDirs(rootPath, this.globKeyWord),
+            <vscode.QuickPickOptions>{
+              placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+            }
+          );
+    }
+    return outputdir
+      ? { type: 'CONTINUE', data: { outputdir } }
+      : { type: 'CANCEL' };
+  }
+}
 
 // Command Execution
 ////////////////////
