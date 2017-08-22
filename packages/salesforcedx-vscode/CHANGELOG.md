@@ -1,3 +1,16 @@
+## 40.7.0 - August 24, 2017
+
+### Changed
+    
+#### salesforcedx-vscode-apex
+
+* Switched the Apex Language Server to use standard input/output instead of creating a local socket ([PR #53](https://github.com/forcedotcom/salesforcedx-vscode/pull/53)).
+
+### Added
+#### salesforcedx-vscode-core
+
+* SFDX: Create Apex Class command ([PR #47](https://github.com/forcedotcom/salesforcedx-vscode/pull/47)).
+* SFDX: Create Visualforce Component and SFDX: Create Visualforce Page commands ([PR #55](https://github.com/forcedotcom/salesforcedx-vscode/pull/55)).
 ## 40.5.0 - August 10, 2017
 
 ### Bug Fixes
