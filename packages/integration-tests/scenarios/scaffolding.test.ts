@@ -66,4 +66,60 @@ describe('Scaffolding commands', () => {
       await common.closeTab();
     }
   });
+
+  it('Should create Visualforce component', async () => {
+    // Invoke SFDX: Create Visualforce Component command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Create Visualforce Component');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    const fileName = `vfComponent_${new Date().getTime()}`;
+
+    // Enter file name
+    await common.type(fileName);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultpages');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Check that the new apex class is opened in a new tab
+    const visualforceComponentTab = await common.getTab(
+      `${fileName}.component`
+    );
+    expect(visualforceComponentTab).to.be.not.undefined;
+    if (visualforceComponentTab) {
+      await common.closeTab();
+    }
+  });
+
+  it('Should create Visualforce page', async () => {
+    // Invoke SFDX: Create Visualforce Page command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Create Visualforce Page');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    const fileName = `vfPage_${new Date().getTime()}`;
+
+    // Enter file name
+    await common.type(fileName);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultpages');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Check that the new apex class is opened in a new tab
+    const visualforcePageTab = await common.getTab(`${fileName}.page`);
+    expect(visualforcePageTab).to.be.not.undefined;
+    if (visualforcePageTab) {
+      await common.closeTab();
+    }
+  });
 });
