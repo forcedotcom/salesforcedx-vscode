@@ -56,7 +56,7 @@ before_install:
     echo -e $SFDX_CI_DEVHUB_JWTKEY > devhub.key
     sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
     rm devhub.key
-
+    curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
 install:
   - npm install
@@ -68,9 +68,5 @@ script:
   - npm run test
   - codecov
 
-addons:
-  artifacts:
-    s3_region: "us-west-1"
-    paths:
-      - ./packages/integration-tests/test_data
-    working_dir: $TRAVIS_BUILD_DIR
+after_failure:
+  - artifacts upload --key $ARTIFACTS_KEY --secret $ARTIFACTS_SECRET --bucket $ARTIFACTS_BUCKET packages/integration-tests/test_data
