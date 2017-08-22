@@ -14,10 +14,10 @@
       "type": "node",
       "request": "attach",
       "protocol": "inspector",
-      "name": "Attach to Process for Integration Tests",
+      "name": "Attach to Process (Inspector Protocol)",
       "port": 9229,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/integration-tests/*/out/**/*.js"]
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
     },
     {
       "name": "Launch Extensions",

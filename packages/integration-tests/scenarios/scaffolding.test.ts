@@ -54,8 +54,8 @@ describe('Scaffolding commands', () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    // Enter desired location
-    await common.type('force-app/main/default/classes');
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultclasses');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 

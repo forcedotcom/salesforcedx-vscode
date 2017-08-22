@@ -35,7 +35,7 @@ let linuxExecutable = path.join(
   'VSCode-linux-x64',
   'code'
 );
-const windowsExecutable = path.join(testRunFolderAbsolute, 'Code');
+const windowsExecutable = path.join(testRunFolderAbsolute, 'Code.exe');
 
 if (
   [
@@ -112,19 +112,18 @@ function getKeybindings(location: string): Promise<any> {
 ////////////////////////
 
 function runTests(): void {
-  // For normal execution
-  const proc = child_process.spawn(process.execPath, [
-    path.join('out', 'src', 'mocha-runner.js')
-  ]);
+  let proc: child_process.ChildProcess;
 
-  // For debugging purposes
-  // 1. Comment out the section "normal execution above"
-  // 2. Uncomment the section below
-  // 3. Connect using the "Attach to Process for Integration Tests" in VS Code
-  // const proc = child_process.spawn(process.execPath, [
-  //   '--inspect-brk',
-  //   path.join('out', 'src', 'mocha-runner.js')
-  // ]);
+  if (process.env.DEBUG_SPECTRON) {
+    proc = child_process.spawn(process.execPath, [
+      '--inspect-brk',
+      path.join('out', 'src', 'mocha-runner.js')
+    ]);
+  } else {
+    proc = child_process.spawn(process.execPath, [
+      path.join('out', 'src', 'mocha-runner.js')
+    ]);
+  }
 
   proc.stdout.on('data', data => {
     console.log(data.toString());
