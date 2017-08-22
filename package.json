@@ -14,6 +14,7 @@
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
     "test": "lerna run test --concurrency 1",
+    "test:without-integration-tests": "lerna run test --ignore integration-tests --concurrency 1",
     "vscode:package": "lerna run vscode:package --concurrency 1",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
