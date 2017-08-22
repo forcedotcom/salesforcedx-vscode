@@ -17,7 +17,7 @@ import {
 
 const TITLE = 'Scaffolding Commands Tests';
 
-const workspacePath = path.join(
+const WORKSPACE_PATH = path.join(
   createWorkspace(path.join(process.cwd(), 'assets', 'sfdx-simple')),
   'sfdx-simple'
 );
@@ -28,7 +28,7 @@ describe('Scaffolding commands', () => {
 
   beforeEach(async () => {
     app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [
-      workspacePath
+      WORKSPACE_PATH
     ]);
     common = new CommonActions(app);
 
@@ -41,6 +41,7 @@ describe('Scaffolding commands', () => {
   });
 
   it('Should create Apex class', async () => {
+    // Invoke SFDX: Create Apex Class command by name
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Apex Class');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
@@ -48,14 +49,21 @@ describe('Scaffolding commands', () => {
 
     const fileName = `apexClass_${new Date().getTime()}`;
 
+    // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
+
+    // Enter desired location
     await common.type('force-app/main/default/classes');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
     // Check that the new apex class is opened in a new tab
-    expect(await common.getTab(`${fileName}.cls`)).to.be.not.undefined;
+    const apexClassTab = await common.getTab(`${fileName}.cls`);
+    expect(apexClassTab).to.be.not.undefined;
+    if (apexClassTab) {
+      await common.closeTab();
+    }
   });
 });
