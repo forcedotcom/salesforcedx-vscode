@@ -31,6 +31,7 @@ install:
 
 
 build_script:
+  - java -version
   - npm run compile
   - npm run lint
 
