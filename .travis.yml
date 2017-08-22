@@ -67,3 +67,10 @@ script:
   - npm run lint
   - npm run test
   - codecov
+
+addons:
+  artifacts:
+    s3_region: "us-west-1"
+    paths:
+      - ./packages/integration-tests/test_data
+    working_dir: $TRAVIS_BUILD_DIR
