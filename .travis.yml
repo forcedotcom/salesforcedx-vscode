@@ -61,6 +61,7 @@ install:
   - npm install -g codecov 
 
 script:
+  - java -version
   - npm run compile
   - npm run lint
   - npm run test
