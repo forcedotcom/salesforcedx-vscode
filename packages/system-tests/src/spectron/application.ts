@@ -13,6 +13,7 @@ import { Application } from 'spectron';
 import { Screenshot } from '../helpers/screenshot';
 import { SpectronClient } from './client';
 
+const WEBDRIVER_PORT = 7777;
 const SALESFORCEDX_EXTENSIONS = path.join(process.cwd(), '..');
 export const VSCODE_BINARY_PATH = process.env.VSCODE_BINARY_PATH;
 
@@ -56,6 +57,7 @@ export class SpectronApplication {
     }
 
     this.spectron = new Application({
+      port: WEBDRIVER_PORT,
       path: electronPath,
       args: args,
       chromeDriverArgs: chromeDriverArgs,

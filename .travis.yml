@@ -73,9 +73,6 @@ script:
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
       # Due to slowness of OS X on Travis
       # https://github.com/travis-ci/travis-ci/issues/6095
-      npm run test:without-integration-tests
+      npm run test:without-system-tests
     fi
   - codecov
-
-after_failure:
-  - artifacts upload --key $ARTIFACTS_KEY --secret $ARTIFACTS_SECRET --bucket $ARTIFACTS_BUCKET packages/integration-tests/test_data
