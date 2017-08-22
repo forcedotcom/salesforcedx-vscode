@@ -9,6 +9,8 @@
   },
   "scripts": {
     "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
     "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "pretest": "npm run compile && node ../../scripts/download-vscode-for-integration-tests",

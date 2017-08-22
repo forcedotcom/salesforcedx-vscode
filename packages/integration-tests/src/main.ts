@@ -23,11 +23,6 @@ const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
 
 const version = process.env.CODE_VERSION || '*';
 
-const downloadPlatform =
-  process.platform === 'darwin'
-    ? 'darwin'
-    : process.platform === 'win32' ? 'win32-archive' : 'linux-x64';
-
 const darwinExecutable = path.join(
   testRunFolderAbsolute,
   'Visual Studio Code.app',
