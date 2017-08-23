@@ -115,7 +115,7 @@ describe('Scaffolding commands', () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    // Check that the new apex class is opened in a new tab
+    // Check that the new visualforce class is opened in a new tab
     const visualforcePageTab = await common.getTab(`${fileName}.page`);
     expect(visualforcePageTab).to.be.not.undefined;
     if (visualforcePageTab) {
@@ -124,7 +124,7 @@ describe('Scaffolding commands', () => {
   });
 
   it('Should create Lightning app', async () => {
-    // Invoke SFDX: Create Visualforce Page command by name
+    // Invoke SFDX: Create Lightning App command by name
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Lightning App');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
@@ -142,7 +142,7 @@ describe('Scaffolding commands', () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    // Check that the new apex class is opened in a new tab
+    // Check that the new lightnign app is opened in a new tab
     const visualforcePageTab = await common.getTab(`${fileName}.app`);
     expect(visualforcePageTab).to.be.not.undefined;
     if (visualforcePageTab) {
