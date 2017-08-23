@@ -107,6 +107,27 @@ describe('Command Utilities', () => {
   });
 
   describe('CompositeParametersGatherer', () => {
+    it('Should proceed to next gatherer if previous gatherer in composite gatherer is CONTINUE', async () => {
+      const compositeParameterGatherer = new CompositeParametersGatherer(
+        new class implements ParametersGatherer<{}> {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        }(),
+        new class implements ParametersGatherer<{}> {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        }()
+      );
+
+      const response = await compositeParameterGatherer.gather();
+      expect(response.type).to.equal('CONTINUE');
+    });
     it('Should not proceed to next gatherer if previous gatherer in composite gatherer is CANCEL', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
         new class implements ParametersGatherer<{}> {
@@ -136,13 +157,6 @@ describe('Command Utilities', () => {
           }
         }(),
         new CompositeParametersGatherer(
-          new class implements ParametersGatherer<{}> {
-            public async gather(): Promise<
-              CancelResponse | ContinueResponse<{}>
-            > {
-              return { type: 'CONTINUE', data: {} };
-            }
-          }(),
           new class implements ParametersGatherer<{}> {
             public async gather(): Promise<
               CancelResponse | ContinueResponse<{}>
