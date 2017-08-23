@@ -13,14 +13,14 @@ shell.set('+v');
  *    committed.
  */
 
+// Clean
+shell.exec('npm run clean');
+
 // Bootstrap
 shell.exec('npm run bootstrap');
 
 // Compile
 shell.exec('npm run compile');
-
-// Test
-shell.exec('npm run test');
 
 // lerna publish
 // --skip-npm to increment the version number in all packages but not publish to npmjs
