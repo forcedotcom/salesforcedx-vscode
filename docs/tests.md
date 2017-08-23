@@ -3,7 +3,7 @@
 There are several kinds of tests for the VS Code Extensions. This document
 describes them and give pointers on how to run/debug them.
 
-These tests are describe in the order in which we prefer to write them. Always
+These tests are described in the order in which we prefer to write them. Always
 prefer unit tests, integration tests, and system tests, in that order.
 
 To run all tests, execute `npm run compile && npm run test` from the top-level
@@ -12,8 +12,8 @@ folder.
 ## Standalone (sans VS Code) Tests
 
 We have several modules that do not have any dependencies on VS Code. For
-instance, the salesforce-apex-debugger and salesforce-utils-vscode module. You
-would write tests using Mocha and Chai as you would normally for NPM modules.
+instance, the salesforce-apex-debugger and salesforce-utils-vscode modules. You
+would write such tests using Mocha and Chai as you normally would for NPM modules.
 
 ## VS Code Integration Tests
 
@@ -107,7 +107,7 @@ for the actual vscode/bin/test source.
 
 We have several system (end-to-end) tests written using
 [Spectron](https://github.com/electron/spectron). These tests exercise the
-end-to-end flow from the perspective of user. These tests borrow heavily from
+end-to-end flow from the perspective of the user. These tests borrow heavily from
 how the VS Code team does its [smoke
 tests](https://github.com/Microsoft/vscode/issues/25291).
 
@@ -117,7 +117,7 @@ tests](https://github.com/Microsoft/vscode/issues/25291).
    `application.ts` to use a different port for webdriver.
 1. Ensure that system tests go into `packages/system-tests`.
 1. Ensure that tests are in the `packages/system-tests/scenarios` folder.
-1. Ensure that your test files are named like .test.ts. The .test. in the middle is essential
+1. Ensure that your test files are named like .test.ts. The .test. in the middle is essential.
 
 ### General Flow
 
@@ -133,7 +133,8 @@ together to minimize the setup time.
 
 ## Running System Tests
 
-From the top-level folder, execute `npm run test:system-tests`
+From the top-level folder, execute `npm run test:system-tests` to execute _only_
+the system tests.
 
 ## Debugging System Tests
 
