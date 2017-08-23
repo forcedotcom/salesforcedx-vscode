@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ApexPage xmlns='urn:metadata.tooling.soap.sforce.com' >
+  <apiVersion>38.0</apiVersion>
+  <availableInTouch>false</availableInTouch>
+  <confirmationTokenRequired>false</confirmationTokenRequired>
+  <label>DemoPage</label>
+</ApexPage>
