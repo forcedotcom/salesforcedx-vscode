@@ -6,6 +6,8 @@
  */
 
 import { expect } from 'chai';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import {
   CancelResponse,
   CommandletExecutor,
@@ -13,6 +15,7 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   ParametersGatherer,
+  SelectDirPath,
   SfdxCommandlet
 } from '../../src/commands/commands';
 
@@ -175,6 +178,57 @@ describe('Command Utilities', () => {
       await commandlet.run();
 
       expect(executed).to.be.true;
+    });
+
+    it('Should not call executor if composite gatherer is CANCEL', async () => {
+      const commandlet = new SfdxCommandlet(
+        new class {
+          public check(): boolean {
+            return true;
+          }
+        }(),
+        new CompositeParametersGatherer(
+          new class implements ParametersGatherer<{}> {
+            public async gather(): Promise<
+              CancelResponse | ContinueResponse<{}>
+            > {
+              return { type: 'CANCEL' };
+            }
+          }()
+        ),
+        new class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
+            throw new Error('This should not be called');
+          }
+        }()
+      );
+
+      await commandlet.run();
+    });
+  });
+  describe('Prioritized Glob Directories', () => {
+    it('Glob dirs returns correct number of directories and relative path', async () => {
+      const dirPathGatherer = new SelectDirPath();
+      if (!vscode.workspace.rootPath) {
+        throw new Error('Test workspace should be opened');
+      }
+      const dirList: string[] = dirPathGatherer.globDirs(
+        vscode.workspace.rootPath
+      );
+      expect(dirList[0]).to.not.contain('sampleWorkspace');
+      expect(dirList.length).to.equal(10);
+    });
+    it('Glob dirs moves dirs containing the keyword to the top of list and give relative path to workspace', async () => {
+      const dirPathGatherer = new SelectDirPath();
+      if (!vscode.workspace.rootPath) {
+        throw new Error('Test workspace should be opened');
+      }
+      const dirList: string[] = dirPathGatherer.globDirs(
+        vscode.workspace.rootPath,
+        'classes'
+      );
+      expect(dirList[0]).to.equal('force-app/main/default/classes');
+      expect(dirList[1]).to.equal('force-app/test/default/classes');
     });
   });
 });

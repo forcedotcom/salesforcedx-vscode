@@ -68,6 +68,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
+        "${workspaceRoot}/packages/salesforcedx-vscode-core/test/sampleWorkspace",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
         "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-core/out/test"
       ],
