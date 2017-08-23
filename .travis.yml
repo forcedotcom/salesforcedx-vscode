@@ -23,7 +23,7 @@ env:
     - SFDX_AUTOUPDATE_DISABLE=true
     - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
     - SFDX_DOMAIN_RETRY=300
-    - CODE_TESTS_WORKSPACE=$TRAVIS_BUILD_DIR/packages/salesforcedx-vscode-core/test/sampleWorkspace/
+    - CODE_TESTS_WORKSPACE=$TRAVIS_BUILD_DIR/packages/system-tests/sfdx-simple
 
 os:
   - linux

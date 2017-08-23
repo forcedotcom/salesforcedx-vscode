@@ -214,8 +214,8 @@ describe('Command Utilities', () => {
       const dirList: string[] = dirPathGatherer.globDirs(
         vscode.workspace.rootPath
       );
-      expect(dirList[0]).to.not.contain('sampleWorkspace');
-      expect(dirList.length).to.equal(10);
+      expect(dirList[0]).to.not.contain('sfdx-simple');
+      expect(dirList.length).to.equal(12);
     });
     it('Glob dirs moves dirs containing the keyword to the top of list and give relative path to workspace', async () => {
       const dirPathGatherer = new SelectDirPath();
