@@ -2,8 +2,11 @@
   "devDependencies": {
     "istanbul": "1.1.0-alpha.1",
     "lerna": "2.0.0",
+<<<<<<< HEAD
     "prettier": "1.6.0",
     "remap-istanbul": "^0.9.5",
+=======
+>>>>>>> End-to-end system tests with Spectron (#59)
     "shx": "0.2.2",
     "tslint": "5.5.0",
     "typescript": "2.4.0",

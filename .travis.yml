@@ -73,8 +73,12 @@ script:
   - npm run lint
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+<<<<<<< HEAD
       npm run test:without-system-tests
       npm run coverage:system-tests
+=======
+      npm run test
+>>>>>>> End-to-end system tests with Spectron (#59)
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
@@ -83,6 +87,9 @@ script:
       npm run test:without-system-tests
     fi
   - codecov
+<<<<<<< HEAD
 
 after_script:
   - rm $SFDX_CI_KEY_LOCATION
+=======
+>>>>>>> End-to-end system tests with Spectron (#59)
