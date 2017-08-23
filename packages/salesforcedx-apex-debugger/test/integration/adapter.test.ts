@@ -24,9 +24,8 @@ describe('Debugger adapter - integration', () => {
     });
 
     describe('Attach', () => {
-      it('Should send initialized event', async () => {
+      it('Should send initialized response', async () => {
         await dc.initializeRequest();
-        dc.waitForEvent('initialized');
       });
 
       it('Should not attach', async () => {

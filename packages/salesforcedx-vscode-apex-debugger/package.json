@@ -24,6 +24,7 @@
   "devDependencies": {
     "vscode": "1.1.4"
   },
+  "extensionDependencies": ["salesforce.salesforcedx-vscode-apex"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",

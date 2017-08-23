@@ -13,7 +13,12 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
+  LineBpsInTyperef,
+  LineBreakpointInfo
+} from '../breakpoints/lineBreakpoint';
+import {
   ApexDebuggerEventType,
+  BreakpointService,
   DebuggerMessage,
   SessionService,
   StreamingClientInfo,
@@ -33,14 +38,17 @@ export interface LaunchRequestArguments
 }
 
 export class ApexDebug extends DebugSession {
-  private static TWO_NL = `${os.EOL}${os.EOL}`;
   protected mySessionService = SessionService.getInstance();
+  protected myBreakpointService = BreakpointService.getInstance();
   protected myStreamingService = StreamingService.getInstance();
-  private sfdxProject: string;
+  protected sfdxProject: string;
+
+  private static TWO_NL = `${os.EOL}${os.EOL}`;
 
   constructor() {
     super();
     this.setDebuggerLinesStartAt1(true);
+    this.setDebuggerPathFormat('uri');
   }
 
   protected initializeRequest(
@@ -48,7 +56,6 @@ export class ApexDebug extends DebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.sendResponse(response);
-    this.sendEvent(new InitializedEvent());
   }
 
   protected attachRequest(
@@ -100,6 +107,7 @@ export class ApexDebug extends DebugSession {
     } catch (error) {
       this.tryToParseSfdxError(response, error);
     }
+    this.myBreakpointService.clearSavedBreakpoints();
     this.sendResponse(response);
   }
 
@@ -133,6 +141,102 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
+  protected async setBreakPointsRequest(
+    response: DebugProtocol.SetBreakpointsResponse,
+    args: DebugProtocol.SetBreakpointsArguments
+  ): Promise<void> {
+    if (args.source && args.source.path) {
+      const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
+      const uriPath = this.convertClientPathToDebugger(args.source.path);
+
+      try {
+        const linesToSetBreakpoint = await this.myBreakpointService.reconcileBreakpoints(
+          this.sfdxProject,
+          this.mySessionService.getSessionId(),
+          uriPath,
+          args.lines
+        );
+
+        for (const clientLine of linesToSetBreakpoint) {
+          const serverLine = this.convertClientLineToDebugger(clientLine);
+          const typeref = this.myBreakpointService.getTyperefFor(
+            uriPath,
+            serverLine
+          );
+          if (typeref && typeref.length > 0) {
+            const cmdOutput = await this.myBreakpointService.createLineBreakpoint(
+              this.sfdxProject,
+              this.mySessionService.getSessionId(),
+              typeref,
+              serverLine
+            );
+            this.myBreakpointService.cacheLiveBreakpoint(
+              uriPath,
+              clientLine,
+              cmdOutput.getId()
+            );
+            processedBreakpoints.push(
+              <DebugProtocol.Breakpoint>{
+                verified: true,
+                source: args.source,
+                line: clientLine
+              }
+            );
+          } else {
+            processedBreakpoints.push(
+              <DebugProtocol.Breakpoint>{
+                verified: false,
+                source: args.source,
+                line: clientLine
+              }
+            );
+          }
+        }
+
+        response.success = true;
+        response.body = {
+          breakpoints: processedBreakpoints
+        };
+      } catch (error) {
+        this.tryToParseSfdxError(response, error);
+      }
+    }
+
+    this.sendResponse(response);
+  }
+
+  protected customRequest(
+    command: string,
+    response: DebugProtocol.Response,
+    args: any
+  ): void {
+    switch (command) {
+      case 'lineBreakpointInfo':
+        const lineBpInfo: LineBreakpointInfo[] = args;
+        if (lineBpInfo && lineBpInfo.length > 0) {
+          const lineNumberMapping: Map<string, LineBpsInTyperef[]> = new Map();
+          for (const info of lineBpInfo) {
+            if (!lineNumberMapping.has(info.uri)) {
+              lineNumberMapping.set(info.uri, []);
+            }
+            const validLines: LineBpsInTyperef = {
+              typeref: info.typeref,
+              lines: info.lines
+            };
+            lineNumberMapping.get(info.uri)!.push(validLines);
+          }
+          this.myBreakpointService.setValidLines(lineNumberMapping);
+        }
+        // Make sure we have tried to query the language server
+        // before allowing VS Code to set breakpoints.
+        this.sendEvent(new InitializedEvent());
+        break;
+      default:
+        break;
+    }
+    this.sendResponse(response);
+  }
+
   private logToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`));
@@ -153,6 +257,7 @@ export class ApexDebug extends DebugSession {
       return;
     }
     try {
+      response.success = false;
       const errorObj = JSON.parse(error);
       if (errorObj && errorObj.message) {
         response.message = errorObj.message;
