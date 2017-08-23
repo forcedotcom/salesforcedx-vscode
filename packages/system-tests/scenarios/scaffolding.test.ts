@@ -122,4 +122,36 @@ describe('Scaffolding commands', () => {
       await common.closeTab();
     }
   });
+
+  it('Should create Lightning app', async () => {
+    // Invoke SFDX: Create Visualforce Page command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Create Lightning App');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    const fileName = `lightningApp_${new Date().getTime()}`;
+
+    // Enter file name
+    await common.type(fileName);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultaura');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Check that the new apex class is opened in a new tab
+    const visualforcePageTab = await common.getTab(`${fileName}.app`);
+    expect(visualforcePageTab).to.be.not.undefined;
+    if (visualforcePageTab) {
+      await common.closeTab();
+    }
+
+    await app.command('workbench.action.quickOpen');
+    await common.type(fileName);
+    const elCount = await common.getQuickOpenElements();
+    expect(elCount).to.equal(6);
+  });
 });

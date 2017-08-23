@@ -94,6 +94,7 @@ function registerCommands(): vscode.Disposable {
     forceApexClassCreateCmd,
     forceVisualforceComponentCreateCmd,
     forceVisualforcePageCreateCmd,
+    forceLightningAppCreateCmd,
     internalCancelCommandExecution
   );
 }
