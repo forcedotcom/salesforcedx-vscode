@@ -6,21 +6,43 @@ shell.set('+v');
 
 /*
  * Assumptions:
- * 0. The script is running locally - it's not optimized for Travis workflow
+ * 0. You have shelljs installed globally using `npm install -g shelljs`.
+ * 1. The script is running locally - it's not optimized for Travis workflow
  *    yet.
- * 1. The script is running in the right branch.
- * 2. The script is running in a clean environment - all changes have been
- *    committed.
+ * 2. The script is running in the right branch (e.g., release/vxx.y.z)
  */
 
-// Bootstrap
-shell.exec('npm run bootstrap');
+// Checks that you have access to our bucket on AWS
+const awsExitCode = shell.exec(
+  'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',
+  {
+    silent: true
+  }
+).code;
+if (awsExitCode !== 0) {
+  console.log(
+    'You do not have the s3 command line installed or you do not have access to the aws s3 bucket.'
+  );
+  exit(-1);
+}
+
+// Checks that you have access to the salesforce publisher
+const publishers = shell.exec('vsce ls-publishers', { silent: true }).stdout;
+if (!publishers.includes('salesforce')) {
+  console.log(
+    'You do not have the vsce command line installed or you do not have access to the salesforce publisher id as part of vsce.'
+  );
+  exit(-1);
+}
+
+// Real-clean
+shell.exec('git clean -xfd');
+
+// Install and bootstrap
+shell.exec('npm install');
 
 // Compile
 shell.exec('npm run compile');
-
-// Test
-shell.exec('npm run test');
 
 // lerna publish
 // --skip-npm to increment the version number in all packages but not publish to npmjs

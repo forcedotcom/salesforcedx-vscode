@@ -9,15 +9,17 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.5.1",
+  "version": "40.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.15.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "40.5.1"
+    "@salesforce/salesforcedx-apex-debugger": "40.7.0"
   },
   "devDependencies": {
     "vscode": "1.1.4"
@@ -29,7 +31,7 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "activationEvents": [
@@ -49,7 +51,9 @@
         "label": "Apex Debugger",
         "program": "./node_modules/@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
         "runtime": "node",
-        "languages": ["apex"],
+        "languages": [
+          "apex"
+        ],
         "configurationSnippets": [
           {
             "label": "%launch_snippet_label_text%",
@@ -68,7 +72,9 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": ["sfdxProject"],
+              "required": [
+                "sfdxProject"
+              ],
               "userIdFilter": {
                 "type": "string",
                 "description": "%user_id_filter_text%",

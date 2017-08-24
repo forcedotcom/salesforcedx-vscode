@@ -2,18 +2,20 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "40.5.1",
+  "version": "40.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.15.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.5.1",
-    "vscode-debugprotocol": "1.22.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.7.0",
+    "faye": "1.1.2",
     "vscode-debugadapter": "1.22.0",
-    "faye": "1.1.2"
+    "vscode-debugprotocol": "1.22.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -21,23 +23,26 @@
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "5.0.4",
     "mocha": "3.2.0",
-    "sinon": "^2.3.6",
+    "mock-spawn": "0.2.6",
     "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
     "typescript": "2.4.0",
     "vscode": "1.1.4",
-    "vscode-debugadapter-testsupport": "1.22.0",
-    "mock-spawn": "0.2.6",
-    "cross-env": "5.0.4"
+    "vscode-debugadapter-testsupport": "1.22.0"
   },
   "scripts": {
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
