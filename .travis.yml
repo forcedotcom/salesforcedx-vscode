@@ -67,7 +67,8 @@ script:
   - npm run lint
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-      npm run test
+      npm run test:without-system-tests
+      npm run coverage:system-tests
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
