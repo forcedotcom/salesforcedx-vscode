@@ -7,12 +7,13 @@
 
 import * as path from 'path';
 
-import { Disposable, ExtensionContext, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   SettingMonitor,
+  TextEdit,
   TransportKind
 } from 'vscode-languageclient';
 
@@ -60,6 +61,19 @@ export function createLanguageServer(
     serverOptions,
     clientOptions
   );
+
+  function applyTextEdit(uri: string, documentVersion: number, edits: TextEdit) {
+    const textEditor = window.activeTextEditor;
+    console.log('Hello');
+    if (textEditor) {
+      textEditor.edit(mutator => {
+        mutator.replace(client.protocol2CodeConverter.asRange(edits.range), edits.newText);
+      }
+      );
+    }
+  }
+
+  context.subscriptions.push(commands.registerCommand('deprecatedClassName', applyTextEdit));
 
   return client;
 }

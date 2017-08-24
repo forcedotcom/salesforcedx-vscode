@@ -3,6 +3,10 @@
 import {
   CompletionItem,
   CompletionItemKind,
+  Command,
+  CodeActionRequest,
+  CodeActionParams,
+  CodeActionContext,
   createConnection,
   Diagnostic,
   DiagnosticSeverity,
@@ -12,10 +16,13 @@ import {
   IPCMessageReader,
   IPCMessageWriter,
   TextDocument,
+  TextEdit,
   TextDocumentPositionParams,
   TextDocuments,
   TextDocumentSyncKind
 } from 'vscode-languageserver';
+
+import * as vscode from 'vscode';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport
 const connection: IConnection = createConnection(
@@ -42,7 +49,8 @@ connection.onInitialize((params): InitializeResult => {
       // Tell the client that the server support code complete
       completionProvider: {
         resolveProvider: true
-      }
+      },
+      codeActionProvider: true
     }
   };
 });
@@ -90,22 +98,53 @@ function validateTextDocument(textDocument: TextDocument): void {
       const fixedString = found[0].replace('--', '_');
       problems++;
       diagnostics.push({
+        code: 0,
         severity: DiagnosticSeverity.Warning,
         range: {
           start: { line: i, character: index },
-          end: { line: i, character: index }
+          end: { line: i, character: index + foundStringLength }
         },
         message: `Deprecated SLDS class name (v2.3.1): ${line.substr(
           index,
           foundStringLength
         )} should be ${fixedString}`,
-        source: 'ex'
+        source: `${fixedString}`
       });
     }
   }
   // Send the computed diagnostics to VSCode.
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+
 }
+
+connection.onCodeAction((params) => {
+  const uri = params.textDocument;
+  const range = params.range;
+  const diagnostics = params.context.diagnostics;
+  let result: Command[] = [];
+  const documentVersion: number = -1;
+
+  for (let i = 0; i < diagnostics.length; i++) {
+    let diagnostic = diagnostics[i];
+
+    let code = diagnostic.code;
+
+    switch (code) {
+      case 0: {
+        result.push(
+          Command.create('Fix: Deprecated SLDS class name',
+            'deprecatedClassName', uri, documentVersion, {
+              range: diagnostic.range,
+              newText: diagnostic.source
+            })
+        );
+      }
+    }
+  }
+
+  return result;
+}
+);
 
 connection.onDidChangeWatchedFiles(change => {
   // Monitored files have change in VSCode
@@ -150,21 +189,21 @@ let t: Thenable<string>;
 
 /*
 connection.onDidOpenTextDocument((params) => {
-	// A text document got opened in VSCode.
-	// params.textDocument.uri uniquely identifies the document. For documents store on disk this is a file URI.
-	// params.textDocument.text the initial full content of the document.
-	connection.console.log(`${params.textDocument.uri} opened.`);
+  // A text document got opened in VSCode.
+  // params.textDocument.uri uniquely identifies the document. For documents store on disk this is a file URI.
+  // params.textDocument.text the initial full content of the document.
+  connection.console.log(`${params.textDocument.uri} opened.`);
 });
 connection.onDidChangeTextDocument((params) => {
-	// The content of a text document did change in VSCode.
-	// params.textDocument.uri uniquely identifies the document.
-	// params.contentChanges describe the content changes to the document.
-	connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
+  // The content of a text document did change in VSCode.
+  // params.textDocument.uri uniquely identifies the document.
+  // params.contentChanges describe the content changes to the document.
+  connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
 });
 connection.onDidCloseTextDocument((params) => {
-	// A text document got closed in VSCode.
-	// params.textDocument.uri uniquely identifies the document.
-	connection.console.log(`${params.textDocument.uri} closed.`);
+  // A text document got closed in VSCode.
+  // params.textDocument.uri uniquely identifies the document.
+  connection.console.log(`${params.textDocument.uri} closed.`);
 });
 */
 
