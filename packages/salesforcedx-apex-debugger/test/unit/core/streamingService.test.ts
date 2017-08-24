@@ -24,7 +24,7 @@ describe('Debugger streaming service', () => {
     let origSpawn: any, mySpawn: any;
     let clientIsConnectedSpy: sinon.SinonStub;
     let clientSubscribeSpy: sinon.SinonStub;
-    const orgInfo = <OrgInfo>{
+    const orgInfo: OrgInfo = {
       username: 'name',
       devHubId: 'devHubId',
       id: 'id',
@@ -186,7 +186,7 @@ describe('Debugger streaming service', () => {
     });
 
     it('Should return org info successfully', async () => {
-      const orgInfo = <OrgInfo>{
+      const orgInfo: OrgInfo = {
         username: 'name',
         devHubId: 'devHubId',
         id: 'id',

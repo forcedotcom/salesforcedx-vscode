@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
   ApexBreakpointLocation,
-  LineBpsInTyperef
+  LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
 import { CommandOutput } from '../../../src/utils/commandOutput';
@@ -34,13 +34,16 @@ describe('Debugger breakpoint service', () => {
     });
 
     it('Should get valid typeref', () => {
-      const lineNumberMapping: Map<string, LineBpsInTyperef[]> = new Map();
+      const lineNumberMapping: Map<
+        string,
+        LineBreakpointsInTyperef[]
+      > = new Map();
       lineNumberMapping.set('file:///foo.cls', [
-        <LineBpsInTyperef>{ typeref: 'foo', lines: [1, 2] },
-        <LineBpsInTyperef>{ typeref: 'foo$inner', lines: [3, 4] }
+        { typeref: 'foo', lines: [1, 2] },
+        { typeref: 'foo$inner', lines: [3, 4] }
       ]);
       lineNumberMapping.set('file:///bar.cls', [
-        <LineBpsInTyperef>{ typeref: 'bar', lines: [3, 4] }
+        { typeref: 'bar', lines: [3, 4] }
       ]);
       service.setValidLines(lineNumberMapping);
 
@@ -50,44 +53,47 @@ describe('Debugger breakpoint service', () => {
     });
 
     it('Should not get typeref', () => {
-      const lineNumberMapping: Map<string, LineBpsInTyperef[]> = new Map();
+      const lineNumberMapping: Map<
+        string,
+        LineBreakpointsInTyperef[]
+      > = new Map();
       lineNumberMapping.set('file:///foo.cls', [
-        <LineBpsInTyperef>{ typeref: 'foo', lines: [1, 2] },
-        <LineBpsInTyperef>{ typeref: 'foo$inner', lines: [3, 4] }
+        { typeref: 'foo', lines: [1, 2] },
+        { typeref: 'foo$inner', lines: [3, 4] }
       ]);
       lineNumberMapping.set('file:///bar.cls', [
-        <LineBpsInTyperef>{ typeref: 'bar', lines: [3, 4] }
+        { typeref: 'bar', lines: [3, 4] }
       ]);
       service.setValidLines(lineNumberMapping);
 
       const actualTyperef = service.getTyperefFor('file:///xyz.cls', 3);
 
-      expect(actualTyperef).to.equal('');
+      expect(actualTyperef).to.equal(undefined);
     });
 
     it('Should cache breakpoint', () => {
       const expectedCache: Map<string, ApexBreakpointLocation[]> = new Map();
       expectedCache.set('file:///foo.cls', [
-        <ApexBreakpointLocation>{ line: 1, breakpointId: '07bFAKE1' },
-        <ApexBreakpointLocation>{ line: 2, breakpointId: '07bFAKE2' }
+        { line: 1, breakpointId: '07bFAKE1' },
+        { line: 2, breakpointId: '07bFAKE2' }
       ]);
       expectedCache.set('file:///bar.cls', [
-        <ApexBreakpointLocation>{ line: 3, breakpointId: '07bFAKE3' }
+        { line: 3, breakpointId: '07bFAKE3' }
       ]);
 
-      service.cacheLiveBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.cacheLiveBreakpoint('file:///foo.cls', 2, '07bFAKE2');
-      service.cacheLiveBreakpoint('file:///bar.cls', 3, '07bFAKE3');
+      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheBreakpoint('file:///bar.cls', 3, '07bFAKE3');
 
-      expect(service.getCachedBreakpoints()).to.deep.equal(expectedCache);
+      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
     });
 
     it('Should clear cached breakpoints', () => {
-      service.cacheLiveBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
 
       service.clearSavedBreakpoints();
 
-      expect(service.getCachedBreakpoints().size).to.equal(0);
+      expect(service.getBreakpointCache().size).to.equal(0);
     });
   });
 
@@ -330,16 +336,16 @@ describe('Debugger breakpoint service', () => {
       deleteLineBreakpointSpy = sinon
         .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
         .returns(Promise.resolve(new CommandOutput()));
-      service.cacheLiveBreakpoint('file:///foo.cls', 3, '07bFAKE3');
-      service.cacheLiveBreakpoint('file:///foo.cls', 4, '07bFAKE4');
-      service.cacheLiveBreakpoint('file:///foo.cls', 5, '07bFAKE5');
-      service.cacheLiveBreakpoint('file:///bar.cls', 1, '07bFAKE1');
+      service.cacheBreakpoint('file:///foo.cls', 3, '07bFAKE3');
+      service.cacheBreakpoint('file:///foo.cls', 4, '07bFAKE4');
+      service.cacheBreakpoint('file:///foo.cls', 5, '07bFAKE5');
+      service.cacheBreakpoint('file:///bar.cls', 1, '07bFAKE1');
       const expectedCache: Map<string, ApexBreakpointLocation[]> = new Map();
       expectedCache.set('file:///foo.cls', [
-        <ApexBreakpointLocation>{ line: 3, breakpointId: '07bFAKE3' }
+        { line: 3, breakpointId: '07bFAKE3' }
       ]);
       expectedCache.set('file:///bar.cls', [
-        <ApexBreakpointLocation>{ line: 1, breakpointId: '07bFAKE1' }
+        { line: 1, breakpointId: '07bFAKE1' }
       ]);
 
       const bpsToCreate = await service.reconcileBreakpoints(
@@ -359,7 +365,7 @@ describe('Debugger breakpoint service', () => {
         'someProjectPath',
         '07bFAKE5'
       ]);
-      expect(service.getCachedBreakpoints()).to.deep.equal(expectedCache);
+      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
     });
   });
 });

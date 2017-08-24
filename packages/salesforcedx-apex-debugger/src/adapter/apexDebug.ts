@@ -13,8 +13,8 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
-  LineBpsInTyperef,
-  LineBreakpointInfo
+  LineBreakpointInfo,
+  LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
 import {
   ApexDebuggerEventType,
@@ -163,33 +163,29 @@ export class ApexDebug extends DebugSession {
             uriPath,
             serverLine
           );
-          if (typeref && typeref.length > 0) {
+          if (typeref) {
             const cmdOutput = await this.myBreakpointService.createLineBreakpoint(
               this.sfdxProject,
               this.mySessionService.getSessionId(),
               typeref,
               serverLine
             );
-            this.myBreakpointService.cacheLiveBreakpoint(
+            this.myBreakpointService.cacheBreakpoint(
               uriPath,
               clientLine,
               cmdOutput.getId()
             );
-            processedBreakpoints.push(
-              <DebugProtocol.Breakpoint>{
-                verified: true,
-                source: args.source,
-                line: clientLine
-              }
-            );
+            processedBreakpoints.push({
+              verified: true,
+              source: args.source,
+              line: clientLine
+            });
           } else {
-            processedBreakpoints.push(
-              <DebugProtocol.Breakpoint>{
-                verified: false,
-                source: args.source,
-                line: clientLine
-              }
-            );
+            processedBreakpoints.push({
+              verified: false,
+              source: args.source,
+              line: clientLine
+            });
           }
         }
 
@@ -214,12 +210,15 @@ export class ApexDebug extends DebugSession {
       case 'lineBreakpointInfo':
         const lineBpInfo: LineBreakpointInfo[] = args;
         if (lineBpInfo && lineBpInfo.length > 0) {
-          const lineNumberMapping: Map<string, LineBpsInTyperef[]> = new Map();
+          const lineNumberMapping: Map<
+            string,
+            LineBreakpointsInTyperef[]
+          > = new Map();
           for (const info of lineBpInfo) {
             if (!lineNumberMapping.has(info.uri)) {
               lineNumberMapping.set(info.uri, []);
             }
-            const validLines: LineBpsInTyperef = {
+            const validLines: LineBreakpointsInTyperef = {
               typeref: info.typeref,
               lines: info.lines
             };

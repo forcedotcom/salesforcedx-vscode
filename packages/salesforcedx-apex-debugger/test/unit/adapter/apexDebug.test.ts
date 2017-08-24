@@ -11,8 +11,8 @@ import { OutputEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { LaunchRequestArguments } from '../../../src/adapter/apexDebug';
 import {
-  LineBpsInTyperef,
-  LineBreakpointInfo
+  LineBreakpointInfo,
+  LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import {
   ApexDebuggerEvent,
@@ -338,7 +338,7 @@ describe('Debugger adapter - unit', () => {
       );
       breakpointCacheSpy = sinon.spy(
         BreakpointService.prototype,
-        'cacheLiveBreakpoint'
+        'cacheBreakpoint'
       );
       sessionIdSpy = sinon
         .stub(SessionService.prototype, 'getSessionId')
@@ -377,8 +377,8 @@ describe('Debugger adapter - unit', () => {
       adapter.setSfdxProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
-        <DebugProtocol.SetBreakpointsResponse>{},
-        <DebugProtocol.SetBreakpointsArguments>{
+        {} as DebugProtocol.SetBreakpointsResponse,
+        {
           source: {
             path: 'foo.cls'
           },
@@ -415,18 +415,18 @@ describe('Debugger adapter - unit', () => {
         ]);
       }
 
-      const expectedResp = <DebugProtocol.SetBreakpointsResponse>{
+      const expectedResp = {
         success: true,
         body: {
           breakpoints: [
-            <DebugProtocol.Breakpoint>{
+            {
               verified: true,
               source: {
                 path: 'foo.cls'
               },
               line: 1
             },
-            <DebugProtocol.Breakpoint>{
+            {
               verified: true,
               source: {
                 path: 'foo.cls'
@@ -435,7 +435,7 @@ describe('Debugger adapter - unit', () => {
             }
           ]
         }
-      };
+      } as DebugProtocol.SetBreakpointsResponse;
       expect(adapter.getResponse()).to.deep.equal(expectedResp);
     });
 
@@ -454,8 +454,8 @@ describe('Debugger adapter - unit', () => {
       adapter.setSfdxProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
-        <DebugProtocol.SetBreakpointsResponse>{},
-        <DebugProtocol.SetBreakpointsArguments>{
+        {} as DebugProtocol.SetBreakpointsResponse,
+        {
           source: {
             path: 'foo.cls'
           },
@@ -481,18 +481,18 @@ describe('Debugger adapter - unit', () => {
         ]);
       }
 
-      const expectedResp = <DebugProtocol.SetBreakpointsResponse>{
+      const expectedResp = {
         success: true,
         body: {
           breakpoints: [
-            <DebugProtocol.Breakpoint>{
+            {
               verified: false,
               source: {
                 path: 'foo.cls'
               },
               line: 1
             },
-            <DebugProtocol.Breakpoint>{
+            {
               verified: false,
               source: {
                 path: 'foo.cls'
@@ -501,7 +501,7 @@ describe('Debugger adapter - unit', () => {
             }
           ]
         }
-      };
+      } as DebugProtocol.SetBreakpointsResponse;
       expect(adapter.getResponse()).to.deep.equal(expectedResp);
     });
 
@@ -517,8 +517,8 @@ describe('Debugger adapter - unit', () => {
       adapter.setSfdxProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
-        <DebugProtocol.SetBreakpointsResponse>{},
-        <DebugProtocol.SetBreakpointsArguments>{
+        {} as DebugProtocol.SetBreakpointsResponse,
+        {
           source: {
             path: 'foo.cls'
           },
@@ -565,7 +565,7 @@ describe('Debugger adapter - unit', () => {
       it('Should not save line number mapping', () => {
         adapter.customRequest(
           'lineBreakpointInfo',
-          <DebugProtocol.Response>{},
+          {} as DebugProtocol.Response,
           null
         );
 
@@ -580,19 +580,19 @@ describe('Debugger adapter - unit', () => {
           { uri: 'file:///bar.cls', typeref: 'bar', lines: [1, 2, 3] },
           { uri: 'file:///bar.cls', typeref: 'bar$inner', lines: [4, 5, 6] }
         ];
-        const expected: Map<string, LineBpsInTyperef[]> = new Map();
+        const expected: Map<string, LineBreakpointsInTyperef[]> = new Map();
         expected.set('file:///foo.cls', [
-          <LineBpsInTyperef>{ typeref: 'foo', lines: [1, 2, 3] },
-          <LineBpsInTyperef>{ typeref: 'foo$inner', lines: [4, 5, 6] }
+          { typeref: 'foo', lines: [1, 2, 3] },
+          { typeref: 'foo$inner', lines: [4, 5, 6] }
         ]);
         expected.set('file:///bar.cls', [
-          <LineBpsInTyperef>{ typeref: 'bar', lines: [1, 2, 3] },
-          <LineBpsInTyperef>{ typeref: 'bar$inner', lines: [4, 5, 6] }
+          { typeref: 'bar', lines: [1, 2, 3] },
+          { typeref: 'bar$inner', lines: [4, 5, 6] }
         ]);
 
         adapter.customRequest(
           'lineBreakpointInfo',
-          <DebugProtocol.Response>{},
+          {} as DebugProtocol.Response,
           info
         );
 
@@ -614,14 +614,14 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should not log without an error', () => {
-      adapter.tryToParseSfdxError(<DebugProtocol.Response>{});
+      adapter.tryToParseSfdxError({} as DebugProtocol.Response);
 
       expect(adapter.getEvents().length).to.equal(0);
     });
 
     it('Should error to console with unexpected error schema', () => {
       adapter.tryToParseSfdxError(
-        <DebugProtocol.Response>{},
+        {} as DebugProtocol.Response,
         '{"subject":"There was an error", "action":"Try again"}'
       );
 
@@ -635,7 +635,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should error to console with non JSON', () => {
       adapter.tryToParseSfdxError(
-        <DebugProtocol.Response>{},
+        {} as DebugProtocol.Response,
         'There was an error"}'
       );
 
@@ -715,9 +715,9 @@ describe('Debugger adapter - unit', () => {
         .stub(SessionService.prototype, 'getSessionId')
         .returns('123');
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
-      const message = <DebuggerMessage>{
-        event: <StreamingEvent>{},
-        sobject: <ApexDebuggerEvent>{
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
           SessionId: '123',
           Type: 'SessionTerminated',
           Description: 'foo'
@@ -742,9 +742,9 @@ describe('Debugger adapter - unit', () => {
         .stub(SessionService.prototype, 'getSessionId')
         .returns('123');
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
-      const message = <DebuggerMessage>{
-        event: <StreamingEvent>{},
-        sobject: <ApexDebuggerEvent>{
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
           SessionId: '456',
           Type: 'SessionTerminated',
           Description: 'foo'
@@ -765,9 +765,9 @@ describe('Debugger adapter - unit', () => {
         .stub(SessionService.prototype, 'getSessionId')
         .returns('123');
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
-      const message = <DebuggerMessage>{
-        event: <StreamingEvent>{},
-        sobject: <ApexDebuggerEvent>{
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
           SessionId: '123',
           Type: 'SessionTerminated',
           Description: 'foo'

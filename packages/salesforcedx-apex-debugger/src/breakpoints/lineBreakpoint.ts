@@ -11,7 +11,7 @@ export interface LineBreakpointInfo {
   lines: number[];
 }
 
-export interface LineBpsInTyperef {
+export interface LineBreakpointsInTyperef {
   typeref: string;
   lines: number[];
 }

@@ -12,14 +12,17 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ApexBreakpointLocation,
-  LineBpsInTyperef
+  LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
 import { CommandOutput } from '../utils/commandOutput';
 
 export class BreakpointService {
   private static instance: BreakpointService;
-  private lineNumberMapping: Map<string, LineBpsInTyperef[]> = new Map();
-  private liveBreakpoints: Map<string, ApexBreakpointLocation[]> = new Map();
+  private lineNumberMapping: Map<
+    string,
+    LineBreakpointsInTyperef[]
+  > = new Map();
+  private breakpointCache: Map<string, ApexBreakpointLocation[]> = new Map();
 
   public static getInstance() {
     if (!BreakpointService.instance) {
@@ -29,7 +32,7 @@ export class BreakpointService {
   }
 
   public setValidLines(
-    lineNumberMapping: Map<string, LineBpsInTyperef[]>
+    lineNumberMapping: Map<string, LineBreakpointsInTyperef[]>
   ): void {
     this.lineNumberMapping = lineNumberMapping;
   }
@@ -38,7 +41,7 @@ export class BreakpointService {
     return id != null && id.startsWith('07b');
   }
 
-  public getTyperefFor(uri: string, line: number): string {
+  public getTyperefFor(uri: string, line: number): string | undefined {
     const linesInTyperefs = this.lineNumberMapping.get(uri);
     if (linesInTyperefs) {
       for (const linesInTyperef of linesInTyperefs) {
@@ -49,27 +52,24 @@ export class BreakpointService {
         }
       }
     }
-    return '';
   }
 
-  public cacheLiveBreakpoint(
+  public cacheBreakpoint(
     uriArg: string,
     lineArg: number,
     breakpointIdArg: string
   ) {
-    if (!this.liveBreakpoints.has(uriArg)) {
-      this.liveBreakpoints.set(uriArg, []);
+    if (!this.breakpointCache.has(uriArg)) {
+      this.breakpointCache.set(uriArg, []);
     }
-    this.liveBreakpoints.get(uriArg)!.push(
-      <ApexBreakpointLocation>{
-        line: lineArg,
-        breakpointId: breakpointIdArg
-      }
-    );
+    this.breakpointCache.get(uriArg)!.push({
+      line: lineArg,
+      breakpointId: breakpointIdArg
+    });
   }
 
-  public getCachedBreakpoints(): Map<string, ApexBreakpointLocation[]> {
-    return this.liveBreakpoints;
+  public getBreakpointCache(): Map<string, ApexBreakpointLocation[]> {
+    return this.breakpointCache;
   }
 
   public async createLineBreakpoint(
@@ -128,7 +128,7 @@ export class BreakpointService {
     clientLines?: number[]
   ): Promise<number[]> {
     const lineBpsStillEnabled: ApexBreakpointLocation[] = [];
-    const lineBpsActuallyEnabled = this.liveBreakpoints.get(uri);
+    const lineBpsActuallyEnabled = this.breakpointCache.get(uri);
     if (clientLines && clientLines.length > 0 && lineBpsActuallyEnabled) {
       for (
         let clientLineIdx = 0;
@@ -156,13 +156,13 @@ export class BreakpointService {
         await this.deleteLineBreakpoint(projectPath, serverBp.breakpointId);
       }
     }
-    this.liveBreakpoints.set(uri, lineBpsStillEnabled);
+    this.breakpointCache.set(uri, lineBpsStillEnabled);
 
     return clientLines ? Promise.resolve(clientLines) : Promise.resolve([]);
   }
 
   public clearSavedBreakpoints(): void {
-    this.liveBreakpoints.clear();
+    this.breakpointCache.clear();
   }
 
   private async getIdFromCommandResult(
