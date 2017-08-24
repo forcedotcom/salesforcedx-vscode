@@ -15,15 +15,17 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.5.1",
+  "version": "40.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": ["Languages"],
+  "categories": [
+    "Languages"
+  ],
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.5.1",
+    "@salesforce/salesforcedx-utils-vscode": "40.7.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
@@ -50,7 +52,10 @@
     "languages": [
       {
         "id": "html",
-        "extensions": [".page", ".component"]
+        "extensions": [
+          ".page",
+          ".component"
+        ]
       }
     ]
   }
