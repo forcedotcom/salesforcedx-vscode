@@ -31,13 +31,18 @@ It is possible to run each step manually as illustrated below.
 
 ### Prerequisite
 
-* Lerna is properly installed.
+* Lerna is properly installed (`npm install -g lerna@2.0.0`).
+* shelljs is properly installed (`npm install -g shelljs`).
+* You have a clean workspace. You can use `git clean -xfd` to get to a pristine
+  stage.
+* All tests have been run prior to publishing. We don't run the tests during the
+  publishing cycle since it generates artifacts that we do not want to include
+  in the packaged extensions.
 
 ### Steps
 
-1. `npm run bootstrap` to install all the dependencies and to symlink interdependent local modules.
+1. `npm install` to install all the dependencies and to symlink interdependent local modules.
 1. `npm run compile` to compile all the TypeScript files.
-1. `npm run test` to run all the tests.
 1. `lerna publish ...` will increment the version in the individual package.json
    to prepare for publication. **This also commits the changes to git and adds a
    tag.**
@@ -82,6 +87,29 @@ https://developer.salesforce.com/media/vscode/SHA256
 
 It's **crucial** that you publish the .vsix that you had before so that the
 SHA256 match. If you were to repackage, the SHA256 would be different.
+
+## Merging back from the release branch into develop and master
+
+### Prerequisite
+
+* Artifacts have been published.
+
+### Steps
+
+See this
+[guide](https://www.atlassian.com/git/tutorials/comparing-workflows#gitflow-workflow)
+from Atlassian on the flow. These steps are manual because you might encounter merge conflicts.
+
+1. `git push tags` to push the tags to GitHub.
+1. `git checkout master`
+1. `git pull` to get the latest changes (there shouldn't be any since you are
+   the person releasing).
+1. `git merge release/vxx.y.z`
+1. `git push`
+1. `git checkout develop`
+1. `git pull` to get the latest changes.
+1. `git merge release/vxx.y.z`
+1. `git push`
 
 # Tips
 
