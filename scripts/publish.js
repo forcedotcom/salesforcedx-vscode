@@ -13,9 +13,6 @@ shell.set('+v');
  *    committed.
  */
 
-// Clean
-shell.exec('npm run clean');
-
 // Bootstrap
 shell.exec('npm run bootstrap');
 
