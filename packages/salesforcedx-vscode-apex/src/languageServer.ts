@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects/out/src/generator';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -28,6 +29,7 @@ async function createServer(
 ): Promise<Executable> {
   try {
     deleteDbIfExists();
+    generateFauxClasses();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
     const javaExecutable = path.resolve(
@@ -79,6 +81,19 @@ function deleteDbIfExists(): void {
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
     }
+  }
+}
+
+async function generateFauxClasses(): Promise<void> {
+  const generator = new FauxClassGenerator();
+  if (vscode.workspace.rootPath) {
+    const promise = generator.generate(vscode.workspace.rootPath.toString());
+    promise.then(res => {
+      console.log('success');
+    });
+    promise.catch(function(reason) {
+      console.log('failed to generate');
+    });
   }
 }
 

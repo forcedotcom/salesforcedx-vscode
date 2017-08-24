@@ -79,6 +79,7 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.8.0",
+    "@salesforce/salesforcedx-sobjects": "40.8.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
