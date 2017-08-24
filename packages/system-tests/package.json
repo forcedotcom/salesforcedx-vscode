@@ -2,19 +2,11 @@
   "name": "system-tests",
   "description": "System tests for Salesforce DX Extensions for VS Code",
   "version": "0.0.1",
+  "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "./out/src/main.js",
   "engines": {
-    "vscode": "1.13.0"
-  },
-  "scripts": {
-    "compile": "tsc -p ./",
-    "lint": "tslint --project .",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
-    "test": "node out/src/main.js"
+    "vscode": "^1.13.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -25,12 +17,29 @@
     "@types/shelljs": "^0.7.4",
     "@types/webdriverio": "^4.6.1",
     "chai": "^4.0.2",
+    "cross-env": "5.0.4",
+    "decache": "^4.1.0",
     "glob": "^7.1.2",
+    "istanbul": "^0.4.5",
     "mocha": "3.2.0",
+    "remap-istanbul": "^0.9.5",
+    "source-map-support": "^0.4.15",
     "rimraf": "^2.6.1",
     "shelljs": "^0.7.8",
     "spectron": "~3.6.4",
     "typescript": "2.4.0",
     "vscode": "1.1.2"
-  }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
+    "test": "node out/src/main.js",
+    "coverage": "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && ./node_modules/.bin/cross-env COLLECT_COVERAGE=1 npm run test"
+  },
+  "activationEvents": ["*"],
+  "main": "./out/src"
 }
