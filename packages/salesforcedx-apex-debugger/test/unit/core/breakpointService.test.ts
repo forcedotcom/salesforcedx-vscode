@@ -95,6 +95,23 @@ describe('Debugger breakpoint service', () => {
 
       expect(service.getBreakpointCache().size).to.equal(0);
     });
+
+    it('Should find existing breakpoints', () => {
+      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheBreakpoint('file:///bar.cls', 3, '07bFAKE3');
+
+      const savedBreakpoints = service.getBreakpointsFor('file:///foo.cls');
+      expect(savedBreakpoints).to.have.same.members([1, 2]);
+    });
+
+    it('Should not find existing breakpoints', () => {
+      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+
+      const savedBreakpoints = service.getBreakpointsFor('file:///bar.cls');
+      expect(savedBreakpoints.length).to.equal(0);
+    });
   });
 
   describe('Create line breakpoint', () => {

@@ -45,10 +45,8 @@ export class BreakpointService {
     const linesInTyperefs = this.lineNumberMapping.get(uri);
     if (linesInTyperefs) {
       for (const linesInTyperef of linesInTyperefs) {
-        for (const validLine of linesInTyperef.lines) {
-          if (validLine === line) {
-            return linesInTyperef.typeref;
-          }
+        if (linesInTyperef.lines.indexOf(line) >= 0) {
+          return linesInTyperef.typeref;
         }
       }
     }
@@ -70,6 +68,17 @@ export class BreakpointService {
 
   public getBreakpointCache(): Map<string, ApexBreakpointLocation[]> {
     return this.breakpointCache;
+  }
+
+  public getBreakpointsFor(uri: string): number[] {
+    const lines: number[] = [];
+    const existingBreakpoints = this.breakpointCache.get(uri);
+    if (existingBreakpoints) {
+      for (const breakpointInfo of existingBreakpoints) {
+        lines.push(breakpointInfo.line);
+      }
+    }
+    return lines;
   }
 
   public async createLineBreakpoint(
@@ -131,23 +140,17 @@ export class BreakpointService {
     const lineBpsActuallyEnabled = this.breakpointCache.get(uri);
     if (clientLines && clientLines.length > 0 && lineBpsActuallyEnabled) {
       for (
-        let clientLineIdx = 0;
-        clientLineIdx < clientLines.length;
-        clientLineIdx++
+        let serverBpIdx = 0;
+        serverBpIdx < lineBpsActuallyEnabled.length;
+        serverBpIdx++
       ) {
-        for (
-          let serverBpIdx = 0;
-          serverBpIdx < lineBpsActuallyEnabled.length;
-          serverBpIdx++
-        ) {
-          if (
-            clientLines[clientLineIdx] ===
-            lineBpsActuallyEnabled[serverBpIdx].line
-          ) {
-            lineBpsStillEnabled.push(lineBpsActuallyEnabled[serverBpIdx]);
-            clientLines.splice(clientLineIdx, 1);
-            lineBpsActuallyEnabled.splice(serverBpIdx, 1);
-          }
+        const clientLineIdx = clientLines.indexOf(
+          lineBpsActuallyEnabled[serverBpIdx].line
+        );
+        if (clientLineIdx >= 0) {
+          lineBpsStillEnabled.push(lineBpsActuallyEnabled[serverBpIdx]);
+          clientLines.splice(clientLineIdx, 1);
+          lineBpsActuallyEnabled.splice(serverBpIdx, 1);
         }
       }
     }

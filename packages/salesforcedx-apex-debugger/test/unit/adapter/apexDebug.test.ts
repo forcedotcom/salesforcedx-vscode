@@ -325,6 +325,7 @@ describe('Debugger adapter - unit', () => {
 
   describe('Set line breakpoint request', () => {
     let breakpointReconcileSpy: sinon.SinonStub;
+    let breakpointGetSpy: sinon.SinonSpy;
     let breakpointGetTyperefSpy: sinon.SinonStub;
     let breakpointCreateSpy: sinon.SinonStub;
     let breakpointCacheSpy: sinon.SinonSpy;
@@ -335,6 +336,10 @@ describe('Debugger adapter - unit', () => {
         new SessionService(),
         new StreamingService(),
         new BreakpointService()
+      );
+      breakpointGetSpy = sinon.spy(
+        BreakpointService.prototype,
+        'getBreakpointsFor'
       );
       breakpointCacheSpy = sinon.spy(
         BreakpointService.prototype,
@@ -348,6 +353,9 @@ describe('Debugger adapter - unit', () => {
     afterEach(() => {
       if (breakpointReconcileSpy) {
         breakpointReconcileSpy.restore();
+      }
+      if (breakpointGetSpy) {
+        breakpointGetSpy.restore();
       }
       if (breakpointGetTyperefSpy) {
         breakpointGetTyperefSpy.restore();
@@ -392,6 +400,10 @@ describe('Debugger adapter - unit', () => {
         '07aFAKE',
         'file:///foo.cls',
         bpLines
+      ]);
+      expect(breakpointGetSpy.calledOnce).to.equal(true);
+      expect(breakpointGetSpy.getCall(0).args).to.have.same.members([
+        'file:///foo.cls'
       ]);
       expect(breakpointGetTyperefSpy.calledTwice).to.equal(true);
       expect(breakpointCreateSpy.calledTwice).to.equal(true);

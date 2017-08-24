@@ -147,20 +147,29 @@ export class ApexDebug extends DebugSession {
   ): Promise<void> {
     if (args.source && args.source.path) {
       const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
-      const uriPath = this.convertClientPathToDebugger(args.source.path);
+      const uri = this.convertClientPathToDebugger(args.source.path);
 
       try {
         const linesToSetBreakpoint = await this.myBreakpointService.reconcileBreakpoints(
           this.sfdxProject,
           this.mySessionService.getSessionId(),
-          uriPath,
+          uri,
           args.lines
         );
+        for (const existingBreakpoints of this.myBreakpointService.getBreakpointsFor(
+          uri
+        )) {
+          processedBreakpoints.push({
+            verified: true,
+            source: args.source,
+            line: existingBreakpoints
+          });
+        }
 
         for (const clientLine of linesToSetBreakpoint) {
           const serverLine = this.convertClientLineToDebugger(clientLine);
           const typeref = this.myBreakpointService.getTyperefFor(
-            uriPath,
+            uri,
             serverLine
           );
           if (typeref) {
@@ -171,7 +180,7 @@ export class ApexDebug extends DebugSession {
               serverLine
             );
             this.myBreakpointService.cacheBreakpoint(
-              uriPath,
+              uri,
               clientLine,
               cmdOutput.getId()
             );
