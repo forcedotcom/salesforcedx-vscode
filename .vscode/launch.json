@@ -68,7 +68,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
+        "${workspaceRoot}/packages/salesforcedx-vscode-core/test/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
         "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-core/out/test"
       ],

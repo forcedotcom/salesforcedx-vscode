@@ -142,10 +142,10 @@ describe('Scaffolding commands', () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    // Check that the new lightnign app is opened in a new tab
-    const visualforcePageTab = await common.getTab(`${fileName}.app`);
-    expect(visualforcePageTab).to.be.not.undefined;
-    if (visualforcePageTab) {
+    // Check that the new lightning app is opened in a new tab
+    const lightningAppTab = await common.getTab(`${fileName}.app`);
+    expect(lightningAppTab).to.be.not.undefined;
+    if (lightningAppTab) {
       await common.closeTab();
     }
 

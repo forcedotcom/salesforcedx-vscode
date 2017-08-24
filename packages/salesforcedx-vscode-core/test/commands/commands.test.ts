@@ -20,6 +20,7 @@ import {
 
 // tslint:disable:no-unused-expression
 describe('Command Utilities', () => {
+  const WORKSPACE_NAME = 'sfdx-simple';
   describe('EmptyParametersGatherer', () => {
     it('Should always return continue with empty object as data', async () => {
       const gatherer = new EmptyParametersGatherer();
@@ -130,6 +131,7 @@ describe('Command Utilities', () => {
       const response = await compositeParameterGatherer.gather();
       expect(response.type).to.equal('CONTINUE');
     });
+
     it('Should not proceed to next gatherer if previous gatherer in composite gatherer is CANCEL', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
         new class implements ParametersGatherer<{}> {
@@ -150,6 +152,7 @@ describe('Command Utilities', () => {
 
       await compositeParameterGatherer.gather();
     });
+
     it('Should call executor if composite gatherer is CONTINUE', async () => {
       let executed = false;
       const commandlet = new SfdxCommandlet(
@@ -205,6 +208,7 @@ describe('Command Utilities', () => {
       await commandlet.run();
     });
   });
+
   describe('Prioritized Glob Directories', () => {
     it('Glob dirs returns correct number of directories and relative path', async () => {
       const dirPathGatherer = new SelectDirPath();
@@ -214,9 +218,10 @@ describe('Command Utilities', () => {
       const dirList: string[] = dirPathGatherer.globDirs(
         vscode.workspace.rootPath
       );
-      expect(dirList[0]).to.not.contain('sfdx-simple');
+      expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
       expect(dirList.length).to.equal(12);
     });
+
     it('Glob dirs moves dirs containing the keyword to the top of list and give relative path to workspace', async () => {
       const dirPathGatherer = new SelectDirPath();
       if (!vscode.workspace.rootPath) {
