@@ -15,7 +15,6 @@ import {
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import {
-  ApexDebuggerEvent,
   BreakpointService,
   DebuggerMessage,
   SessionService,
