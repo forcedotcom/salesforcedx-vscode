@@ -14,36 +14,34 @@ const remapIstanbulExecutable = path.join(
   'remap-istanbul'
 );
 
-const unMappedCoverage = path.join(
+const coverageParentFolder = path.join(
   __dirname,
   '..',
   'packages',
   'system-tests',
-  'coverage',
-  'coverage.json'
-);
-const finalCoverageJson = path.join(
-  __dirname,
-  '..',
-  'packages',
-  'system-tests',
-  'coverage',
-  'coverage-mapped.json'
-);
-const finalCoverageLcov = path.join(
-  __dirname,
-  '..',
-  'packages',
-  'system-tests',
-  'coverage',
-  'lcov.info'
+  'coverage'
 );
 
-shell.exec(
-  `${remapIstanbulExecutable} --input ${unMappedCoverage} --output ${finalCoverageJson}`
-);
-shell.exec(
-  `${remapIstanbulExecutable} --input ${unMappedCoverage} --output ${finalCoverageLcov} --type lcovonly`
-);
-shell.rm(`${unMappedCoverage}`);
-shell.mv(`${finalCoverageJson}`, `${unMappedCoverage}`);
+shell
+  .find(coverageParentFolder)
+  .filter(file => file.match(/coverage\.json$/))
+  .forEach(file => {
+    console.log(file);
+    const unMappedCoverageFile = file;
+    const mappedCoverageFile = path.join(
+      path.dirname(unMappedCoverageFile),
+      'coverage-final.json'
+    );
+    const mappedLcovFile = path.join(
+      path.dirname(unMappedCoverageFile),
+      'lcov.info'
+    );
+    shell.exec(
+      `${remapIstanbulExecutable} --input ${unMappedCoverageFile} --output ${mappedCoverageFile}`
+    );
+    shell.exec(
+      `${remapIstanbulExecutable} --input ${unMappedCoverageFile} --output ${mappedLcovFile} --type lcovonly`
+    );
+    shell.rm(`${unMappedCoverageFile}`);
+    shell.mv(`${mappedCoverageFile}`, `${unMappedCoverageFile}`);
+  });

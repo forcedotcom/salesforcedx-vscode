@@ -14,7 +14,13 @@ export function deactivate() {
     console.log('System tests unloading...');
     const coverage = (global as any).__coverage__;
     if (coverage) {
-      const coverageFolder = path.join(__dirname, '..', '..', 'coverage');
+      const coverageFolder = path.join(
+        __dirname,
+        '..',
+        '..',
+        'coverage',
+        `${new Date().getTime()}`
+      );
       shell.mkdir('-p', coverageFolder);
       const writeStream = fs.createWriteStream(
         path.join(coverageFolder, 'coverage.json')
