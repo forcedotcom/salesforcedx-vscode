@@ -3,6 +3,10 @@
 import {
   CompletionItem,
   CompletionItemKind,
+  Command,
+  CodeActionRequest,
+  CodeActionParams,
+  CodeActionContext,
   createConnection,
   Diagnostic,
   DiagnosticSeverity,
@@ -12,10 +16,13 @@ import {
   IPCMessageReader,
   IPCMessageWriter,
   TextDocument,
+  TextEdit,
   TextDocumentPositionParams,
   TextDocuments,
   TextDocumentSyncKind
 } from 'vscode-languageserver';
+
+import * as vscode from 'vscode';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport
 const connection: IConnection = createConnection(
@@ -42,7 +49,8 @@ connection.onInitialize((params): InitializeResult => {
       // Tell the client that the server support code complete
       completionProvider: {
         resolveProvider: true
-      }
+      },
+      codeActionProvider: true
     }
   };
 });
@@ -76,8 +84,10 @@ connection.onDidChangeConfiguration(change => {
   documents.all().forEach(validateTextDocument);
 });
 
+let activeDiagnostics: Diagnostic[] = [];
+
 function validateTextDocument(textDocument: TextDocument): void {
-  const diagnostics: Diagnostic[] = [];
+  activeDiagnostics = [];
   const lines = textDocument.getText().split(/\r?\n/g);
   let problems = 0;
   for (let i = 0; i < lines.length; i++) {
@@ -89,22 +99,109 @@ function validateTextDocument(textDocument: TextDocument): void {
       const foundStringLength = found[0].length;
       const fixedString = found[0].replace('--', '_');
       problems++;
-      diagnostics.push({
+      const diagnostic = <Diagnostic>{
+        code: `0${fixedString}`,
         severity: DiagnosticSeverity.Warning,
         range: {
           start: { line: i, character: index },
-          end: { line: i, character: index }
+          end: { line: i, character: index + foundStringLength }
         },
         message: `Deprecated SLDS class name (v2.3.1): ${line.substr(
           index,
           foundStringLength
         )} should be ${fixedString}`,
-        source: 'ex'
-      });
+        source: 'slds'
+      };
+      activeDiagnostics.push(diagnostic);
     }
   }
+
+  console.log(`${activeDiagnostics}`);
   // Send the computed diagnostics to VSCode.
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: activeDiagnostics });
+
+}
+
+connection.onCodeAction((params) => {
+  const uri = params.textDocument.uri;
+  const range = params.range;
+  const diagnostics = params.context.diagnostics;
+  const result: Command[] = [];
+  const edits: TextEdit[] = [];
+  const fixAllEdits: TextEdit[] = [];
+  let code = '';
+
+  for (const diagnostic of diagnostics) {
+    const codeStr = <string>diagnostic.code;
+    code = codeStr[0];
+    const replacementStr = codeStr.slice(1, );
+
+    switch (code) {
+      case '0': {
+        edits.push({
+          range: diagnostic.range,
+          newText: replacementStr
+        });
+
+        result.push(
+          Command.create(`Fix: ${diagnostic.message}`,
+            'deprecatedClassName', uri, edits)
+        );
+      }
+    }
+  }
+
+  sameCodeActions(result, uri, code);
+  allCodeActions(result, uri);
+
+  return result;
+}
+);
+
+function allCodeActions(result: Command[], uri: string) {
+  const fixAllEdits: TextEdit[] = [];
+
+  if (activeDiagnostics.length > 1) {
+    for (const codeAction of activeDiagnostics) {
+      const codeStr = <string>codeAction.code;
+      const replacementStr = codeStr.slice(1, );
+      fixAllEdits.push({
+        range: codeAction.range,
+        newText: replacementStr
+      });
+    }
+    result.push(
+      Command.create(`Fix: All fixable problems`,
+        'deprecatedClassName', uri, fixAllEdits)
+    );
+  }
+}
+
+function sameCodeActions(result: Command[], uri: string, problem: string) {
+  const fixSameEdits: TextEdit[] = [];
+  let codeMessage;
+
+  if (activeDiagnostics.length > 1) {
+    for (const codeAction of activeDiagnostics) {
+      const code = <string>codeAction.code;
+      if (code[0] === problem) {
+        const codeStr = <string>codeAction.code;
+        const replacementStr = codeStr.slice(1, );
+        fixSameEdits.push({
+          range: codeAction.range,
+          newText: replacementStr
+        });
+
+        codeMessage = 'Fix: All SLDS deprecated class names';
+      }
+
+
+    }
+    result.push(
+      Command.create(`Fix: All ${codeMessage}`,
+        'deprecatedClassName', uri, fixSameEdits)
+    );
+  }
 }
 
 connection.onDidChangeWatchedFiles(change => {
@@ -150,21 +247,21 @@ let t: Thenable<string>;
 
 /*
 connection.onDidOpenTextDocument((params) => {
-	// A text document got opened in VSCode.
-	// params.textDocument.uri uniquely identifies the document. For documents store on disk this is a file URI.
-	// params.textDocument.text the initial full content of the document.
-	connection.console.log(`${params.textDocument.uri} opened.`);
+  // A text document got opened in VSCode.
+  // params.textDocument.uri uniquely identifies the document. For documents store on disk this is a file URI.
+  // params.textDocument.text the initial full content of the document.
+  connection.console.log(`${params.textDocument.uri} opened.`);
 });
 connection.onDidChangeTextDocument((params) => {
-	// The content of a text document did change in VSCode.
-	// params.textDocument.uri uniquely identifies the document.
-	// params.contentChanges describe the content changes to the document.
-	connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
+  // The content of a text document did change in VSCode.
+  // params.textDocument.uri uniquely identifies the document.
+  // params.contentChanges describe the content changes to the document.
+  connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
 });
 connection.onDidCloseTextDocument((params) => {
-	// A text document got closed in VSCode.
-	// params.textDocument.uri uniquely identifies the document.
-	connection.console.log(`${params.textDocument.uri} closed.`);
+  // A text document got closed in VSCode.
+  // params.textDocument.uri uniquely identifies the document.
+  connection.console.log(`${params.textDocument.uri} closed.`);
 });
 */
 

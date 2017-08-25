@@ -7,12 +7,13 @@
 
 import * as path from 'path';
 
-import { Disposable, ExtensionContext, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   SettingMonitor,
+  TextEdit,
   TransportKind
 } from 'vscode-languageclient';
 
@@ -58,6 +59,25 @@ export function createLanguageServer(
     serverOptions,
     clientOptions
   );
+
+  function applyTextEdit(uri: string, edits: TextEdit[]) {
+    const textEditor = window.activeTextEditor;
+    if (textEditor && textEditor.document.uri.toString() === uri) {
+      console.log(edits);
+      textEditor.edit(mutator => {
+        for (let edit of edits) {
+          mutator.replace(client.protocol2CodeConverter.asRange(edit.range), edit.newText);
+        }
+      }
+      ).then((success) => {
+        if (!success) {
+          window.showErrorMessage('Failed to apply SLDS Validator fixes to the document');
+        }
+      });
+    }
+  }
+
+  context.subscriptions.push(commands.registerCommand('deprecatedClassName', applyTextEdit));
 
   return client;
 }
