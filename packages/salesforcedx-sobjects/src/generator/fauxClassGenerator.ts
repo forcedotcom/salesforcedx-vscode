@@ -9,34 +9,36 @@ import {
   CommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as fs from 'fs';
+import * as path from 'path';
 import { SObjectDescribe, SObjectDescribeGlobal } from '../describe';
 import { CommandOutput } from '../utils/commandOutput';
 
 export class FauxClassGenerator {
   private describeResult: string[];
 
-  public async generate(projectPath: string) {
+  public async generate(projectPath: string, type: string) {
     const describeGlobal = new SObjectDescribeGlobal();
     const describe = new SObjectDescribe();
-    const sobjects = await describeGlobal.describeGlobal(projectPath);
+    const sobjects = await describeGlobal.describeGlobal(projectPath, type);
     console.log(sobjects.length);
-    for (let i = 0; i < sobjects.length && i < 5; i++) {
+    for (let i = 0; i < sobjects.length; i++) {
       const describeResult = await describe.describe(projectPath, sobjects[i]);
       if (describeResult && describeResult.result) {
-        //generateFauxClass(sobject.result);
+        const sobject = describeResult.result;
+        //this.generateFauxClass(projectPath, sobject);
       }
-      console.log('i: ' + i);
     }
   }
 
-  public async generateFauxClass(sobject: any): Promise<void> {
-    let subscribeAccept: () => void, subscribeReject: () => void;
-    const returnPromise = new Promise<
-      void
-    >((resolve: () => void, reject: () => void) => {
-      subscribeAccept = resolve;
-      subscribeReject = reject;
-    });
-    return returnPromise;
+  public async generateFauxClass(
+    projectPath: string,
+    sobject: any
+  ): Promise<void> {
+    const folderPath = path.join(projectPath, '.sfdx', 'sobjects');
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+    const isCustom = sobject.custom;
   }
 }
