@@ -13,13 +13,14 @@ import {
 import { CommandOutput } from '../utils/commandOutput';
 
 export class SObjectDescribeGlobal {
-  private describeResult: string[];
-
-  public async describeGlobal(projectPath: string): Promise<string[]> {
+  public async describeGlobal(
+    projectPath: string,
+    type: string
+  ): Promise<string[]> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:schema:sobject:list')
-        .withFlag('--sobjecttypecategory', 'custom')
+        .withFlag('--sobjecttypecategory', type)
         .withArg('--json')
         .build(),
       { cwd: projectPath }
@@ -41,20 +42,33 @@ export class SObjectDescribeGlobal {
         resolve: (result: string[]) => void,
         reject: (reason: string) => void
       ) => {
-        execution.processExitSubject.subscribe(data => {
-          if (data != undefined && data.toString() === '0') {
-            try {
-              execution.stdoutSubject.subscribe(realdata => {
-                const result = JSON.parse(realdata.toString()) as string[];
-                return resolve(result);
-              });
-            } catch (e) {
-              return reject(outputHolder.getStdOut());
+        execution.processExitSubject.subscribe(
+          data => {
+            if (data != undefined && data.toString() === '0') {
+              try {
+                execution.stdoutSubject.subscribe(realData => {
+                  const output = JSON.parse(realData.toString());
+                  if (output && output.result) {
+                    const describeResult = output.result as string[];
+                    return resolve(describeResult);
+                  } else {
+                    reject(realData.toString());
+                  }
+                });
+              } catch (e) {
+                return reject(outputHolder.getStdOut());
+              }
+            } else {
+              return reject(outputHolder.getStdErr());
             }
-          } else {
-            return reject(outputHolder.getStdErr());
+          },
+          err => {
+            console.log('error');
+          },
+          () => {
+            console.log('completed');
           }
-        });
+        );
       }
     );
   }
