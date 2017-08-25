@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   CancelResponse,
@@ -232,8 +233,12 @@ describe('Command Utilities', () => {
         vscode.workspace.rootPath,
         'classes'
       );
-      expect(dirList[0]).to.equal('force-app/main/default/classes');
-      expect(dirList[1]).to.equal('force-app/test/default/classes');
+      expect(dirList[0]).to.equal(
+        path.join('force-app', 'main', 'default', 'classes')
+      );
+      expect(dirList[1]).to.equal(
+        path.join('force-app', 'test', 'default', 'classes')
+      );
     });
   });
 });
