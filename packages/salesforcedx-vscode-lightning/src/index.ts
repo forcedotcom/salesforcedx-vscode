@@ -10,8 +10,25 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('SFDX SLDS Linter Extension Activated');
-  const sldsServer = languageServer.createLanguageServer(context).start();
-  context.subscriptions.push(sldsServer);
+  vscode.workspace
+    .findFiles('**/staticresources/*.resource', '**/node_modules/**')
+    .then(
+      // all good
+      (result: vscode.Uri[]) => {
+        for (let i = 0; i < result.length; i++) {
+          if (result[i].path.search(/(SLDS|slds)[0-9]+/g) !== -1) {
+            return;
+          }
+        }
+        const sldsServer = languageServer.createLanguageServer(context).start();
+        context.subscriptions.push(sldsServer);
+      },
+      // rejected
+      (reason: any) => {
+        // output error
+        vscode.window.showErrorMessage(reason);
+      }
+    );
 }
 
 export function deactivate() {
