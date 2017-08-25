@@ -144,7 +144,6 @@ the system tests.
 1. `DEBUG_SPECTRON=1 npm run test:system-tests`.
 1. Use the "Attach to Process (Inspector Protocol)" debug configuration to
    attach to the process (uses port 9229).
-<<<<<<< HEAD
 
 ## Coverage numbers from System Tests
 
@@ -183,5 +182,3 @@ coverage:system-tests`.
 
 Tip: Depending on what you are trying to do, it is likely that you need to
 rebuild the modules after the coverage tests to get to a pristine state.
-=======
->>>>>>> End-to-end system tests with Spectron (#59)
