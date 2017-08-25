@@ -22,15 +22,28 @@ const unMappedCoverage = path.join(
   'coverage',
   'coverage.json'
 );
-const finalCoverage = path.join(
+const finalCoverageJson = path.join(
   __dirname,
   '..',
   'packages',
   'system-tests',
   'coverage',
-  'coverage-final.json'
+  'coverage-mapped.json'
+);
+const finalCoverageLcov = path.join(
+  __dirname,
+  '..',
+  'packages',
+  'system-tests',
+  'coverage',
+  'lcov.info'
 );
 
 shell.exec(
-  `${remapIstanbulExecutable} --input ${unMappedCoverage} --output ${finalCoverage}`
+  `${remapIstanbulExecutable} --input ${unMappedCoverage} --output ${finalCoverageJson}`
 );
+shell.exec(
+  `${remapIstanbulExecutable} --input ${unMappedCoverage} --output ${finalCoverageLcov} --type lcovonly`
+);
+shell.rm(`${unMappedCoverage}`);
+shell.mv(`${finalCoverageJson}`, `${unMappedCoverage}`);

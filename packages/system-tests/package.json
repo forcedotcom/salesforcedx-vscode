@@ -38,7 +38,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
     "test": "node out/src/main.js",
-    "coverage": "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && ./node_modules/.bin/cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
+    "coverage": "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
   },
   "activationEvents": ["*"],
   "main": "./out/src"
