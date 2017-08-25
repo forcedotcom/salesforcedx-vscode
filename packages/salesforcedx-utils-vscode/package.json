@@ -30,7 +30,7 @@
     "typescript": "2.4.0"
   },
   "engines": {
-    "vscode": "^1.15.0"
+    "vscode": "^1.13.0"
   },
   "scripts": {
     "compile": "tsc -p ./",
