@@ -1,6 +1,8 @@
 {
   "devDependencies": {
     "lerna": "2.0.0",
+    "istanbul": "1.1.0-alpha.1",
+    "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
     "tslint": "5.5.0",
     "typescript": "2.4.0",
@@ -16,6 +18,7 @@
     "test": "lerna run test --concurrency 1",
     "test:without-system-tests": "lerna run test --ignore system-tests --concurrency 1",
     "test:system-tests": "lerna run test --scope system-tests --concurrency 1",
+    "coverage:system-tests": "lerna run coverage --scope system-tests --concurrency 1",
     "vscode:package": "lerna run vscode:package --concurrency 1",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
