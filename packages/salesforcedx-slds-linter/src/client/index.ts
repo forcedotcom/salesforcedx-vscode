@@ -62,14 +62,20 @@ export function createLanguageServer(
     clientOptions
   );
 
-  function applyTextEdit(uri: string, documentVersion: number, edits: TextEdit) {
+  function applyTextEdit(uri: string, edits: TextEdit[]) {
     const textEditor = window.activeTextEditor;
-    console.log('Hello');
-    if (textEditor) {
+    if (textEditor && textEditor.document.uri.toString() === uri) {
+      console.log(edits);
       textEditor.edit(mutator => {
-        mutator.replace(client.protocol2CodeConverter.asRange(edits.range), edits.newText);
+        for (let edit of edits) {
+          mutator.replace(client.protocol2CodeConverter.asRange(edit.range), edit.newText);
+        }
       }
-      );
+      ).then((success) => {
+        if (!success) {
+          window.showErrorMessage('Failed to apply SLDS Validator fixes to the document');
+        }
+      });
     }
   }
 
