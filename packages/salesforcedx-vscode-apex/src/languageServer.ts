@@ -87,7 +87,10 @@ function deleteDbIfExists(): void {
 async function generateFauxClasses(): Promise<void> {
   const generator = new FauxClassGenerator();
   if (vscode.workspace.rootPath) {
-    const promise = generator.generate(vscode.workspace.rootPath.toString());
+    const promise = generator.generate(
+      vscode.workspace.rootPath.toString(),
+      'custom'
+    );
     promise.then(res => {
       console.log('success');
     });

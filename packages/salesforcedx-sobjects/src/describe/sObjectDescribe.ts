@@ -180,9 +180,7 @@ export class SObjectDescribe {
     execution.stderrSubject.subscribe(data =>
       outputHolder.setStdErr(data.toString())
     );
-    execution.stdoutSubject.subscribe(data =>
-      outputHolder.setStdOut(data.toString())
-    );
+    let buffer = '';
 
     return new Promise<
       DescribeSObjectResult
@@ -194,26 +192,23 @@ export class SObjectDescribe {
         execution.processExitSubject.subscribe(data => {
           if (data != undefined && data.toString() === '0') {
             try {
-              const output = outputHolder.getStdOut();
-              const cmdResult = JSON.parse(output);
-              if (cmdResult && cmdResult.result) {
-                const orgInfo = cmdResult.result as DescribeSObjectResult;
-                return resolve(orgInfo);
-              } else {
-                return reject(outputHolder.getStdOut());
-              }
+              execution.stdoutSubject.subscribe(realData => {
+                const output = realData.toString();
+                buffer = buffer.concat(output);
+                try {
+                  const describeResult = JSON.parse(
+                    buffer.toString()
+                  ) as DescribeSObjectResult;
+                  return resolve(describeResult);
+                } catch (e) {
+                  // JSON syntax error. realData has not finished streaming
+                }
+              });
             } catch (e) {
-              const output = outputHolder.getStdErr();
-              return reject(output);
+              return reject(outputHolder.getStdErr());
             }
           } else {
-            const output = outputHolder.getStdErr();
-            return reject(output);
-          }
-        });
-        execution.processErrorSubject.subscribe(data => {
-          if (data) {
-            console.log(data.message);
+            return reject(outputHolder.getStdErr());
           }
         });
       }
