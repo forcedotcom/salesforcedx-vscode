@@ -37,7 +37,8 @@ build_script:
 test_script:
   - node --version
   - npm --version
-  - npm run test
+  - npm run test:without-system-tests
+  - npm run coverage:system-tests
 
 on_finish:
   - codecov

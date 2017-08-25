@@ -141,3 +141,41 @@ the system tests.
 1. `DEBUG_SPECTRON=1 npm run test:system-tests`.
 1. Use the "Attach to Process (Inspector Protocol)" debug configuration to
    attach to the process (uses port 9229).
+
+## Coverage numbers from System Tests
+
+System tests exercise a wide range of modules and, thus, are well-suited for
+providing an upper bound on our coverage numbers. However, they are harder to
+instrument since they are not isolated to one module; **all** modules need to be
+instrumented.
+
+The dynamic loading technique that we use with `testrunner.ts` is not sufficient
+since it _decaches_ the require cache and forces it to load dynamically
+instrumented files. That is only sufficient for that particular module. When you
+need to instrument all modules, you need a parent _module_ that can load
+everything. Such a module is not impossible but might deviate from usual user
+interactions, i.e., there is too much magic going on that we might not be able
+to trust the coverage numbers.
+
+Thus, instead of dynamic instrumentation, we opt for static instrumentation.
+
+1. Build all the modules, like normal, and write their JS files and source maps
+   to disk.
+1. Use `istanbul` (version 1.0 and above) that supports source maps to
+   instrument the newly build modules from step 1 and write it out to disk.
+1. `istanbul` works by source instrumentation and maintaining a global map of
+   files to covered locations called `__coverage__`.
+1. At the end of our extension deactivation, we grab the value of the
+   `__coverage__` variable and write it out into coverage/coverage.json
+1. The `coverage/coverage.json` file still uses the JS line numbers. We then use
+   `remap-istanbul` to remap the line numbers to their TypeScript counterparts.
+1. Then we replace the original `coverage/coverage.json` with this new version
+   and generate the corresponding coverage.lcov.
+1. `coverage/coverage.json` and `lcov.info` are uploaded to codecov.io.
+
+Because we are changing the built modules and writing to file, the steps above
+have to be explicitly requested using the command `npm run
+coverage:system-tests`.
+
+Tip: Depending on what you are trying to do, it is likely that you need to
+rebuild the modules after the coverage tests to get to a pristine state.
