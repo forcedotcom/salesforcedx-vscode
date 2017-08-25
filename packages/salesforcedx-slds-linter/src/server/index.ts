@@ -84,8 +84,10 @@ connection.onDidChangeConfiguration(change => {
   documents.all().forEach(validateTextDocument);
 });
 
+let activeDiagnostics: Diagnostic[] = [];
+
 function validateTextDocument(textDocument: TextDocument): void {
-  const diagnostics: Diagnostic[] = [];
+  activeDiagnostics = [];
   const lines = textDocument.getText().split(/\r?\n/g);
   let problems = 0;
   for (let i = 0; i < lines.length; i++) {
@@ -97,8 +99,8 @@ function validateTextDocument(textDocument: TextDocument): void {
       const foundStringLength = found[0].length;
       const fixedString = found[0].replace('--', '_');
       problems++;
-      diagnostics.push({
-        code: 0,
+      const diagnostic = <Diagnostic>{
+        code: `0${fixedString}`,
         severity: DiagnosticSeverity.Warning,
         range: {
           start: { line: i, character: index },
@@ -108,43 +110,99 @@ function validateTextDocument(textDocument: TextDocument): void {
           index,
           foundStringLength
         )} should be ${fixedString}`,
-        source: `${fixedString}`
-      });
+        source: 'slds'
+      };
+      activeDiagnostics.push(diagnostic);
     }
   }
+
+  console.log(`${activeDiagnostics}`);
   // Send the computed diagnostics to VSCode.
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics: activeDiagnostics });
 
 }
 
 connection.onCodeAction((params) => {
-  const uri = params.textDocument;
+  const uri = params.textDocument.uri;
   const range = params.range;
   const diagnostics = params.context.diagnostics;
-  let result: Command[] = [];
-  const documentVersion: number = -1;
+  const result: Command[] = [];
+  const edits: TextEdit[] = [];
+  const fixAllEdits: TextEdit[] = [];
+  let code = '';
 
-  for (let i = 0; i < diagnostics.length; i++) {
-    let diagnostic = diagnostics[i];
-
-    let code = diagnostic.code;
+  for (const diagnostic of diagnostics) {
+    const codeStr = <string>diagnostic.code;
+    code = codeStr[0];
+    const replacementStr = codeStr.slice(1, );
 
     switch (code) {
-      case 0: {
+      case '0': {
+        edits.push({
+          range: diagnostic.range,
+          newText: replacementStr
+        });
+
         result.push(
-          Command.create('Fix: Deprecated SLDS class name',
-            'deprecatedClassName', uri, documentVersion, {
-              range: diagnostic.range,
-              newText: diagnostic.source
-            })
+          Command.create(`Fix: ${diagnostic.message}`,
+            'deprecatedClassName', uri, edits)
         );
       }
     }
   }
 
+  sameCodeActions(result, uri, code);
+  allCodeActions(result, uri);
+
   return result;
 }
 );
+
+function allCodeActions(result: Command[], uri: string) {
+  const fixAllEdits: TextEdit[] = [];
+
+  if (activeDiagnostics.length > 1) {
+    for (const codeAction of activeDiagnostics) {
+      const codeStr = <string>codeAction.code;
+      const replacementStr = codeStr.slice(1, );
+      fixAllEdits.push({
+        range: codeAction.range,
+        newText: replacementStr
+      });
+    }
+    result.push(
+      Command.create(`Fix: All fixable problems`,
+        'deprecatedClassName', uri, fixAllEdits)
+    );
+  }
+}
+
+function sameCodeActions(result: Command[], uri: string, problem: string) {
+  const fixSameEdits: TextEdit[] = [];
+  let codeMessage;
+
+  if (activeDiagnostics.length > 1) {
+    for (const codeAction of activeDiagnostics) {
+      const code = <string>codeAction.code;
+      if (code[0] === problem) {
+        const codeStr = <string>codeAction.code;
+        const replacementStr = codeStr.slice(1, );
+        fixSameEdits.push({
+          range: codeAction.range,
+          newText: replacementStr
+        });
+
+        codeMessage = 'Fix: All SLDS deprecated class names';
+      }
+
+
+    }
+    result.push(
+      Command.create(`Fix: All ${codeMessage}`,
+        'deprecatedClassName', uri, fixSameEdits)
+    );
+  }
+}
 
 connection.onDidChangeWatchedFiles(change => {
   // Monitored files have change in VSCode
