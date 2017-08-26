@@ -29,6 +29,9 @@
     "source-map-support": "^0.4.15",
     "typescript": "2.4.0"
   },
+  "engines": {
+    "vscode": "^1.13.0"
+  },
   "scripts": {
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
@@ -42,6 +45,5 @@
       "text-summary",
       "lcov"
     ]
-  },
-  "main": "./out/src/"
+  }
 }

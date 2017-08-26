@@ -16,6 +16,7 @@ export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './forceApexClassCreate';
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
+export { forceLightningAppCreate } from './forceLightningAppCreate';
 export {
   forceVisualforceComponentCreate
 } from './forceVisualforceComponentCreate';

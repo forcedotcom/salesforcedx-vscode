@@ -12,6 +12,7 @@ import {
   forceApexTestRun,
   forceAuthWebLogin,
   forceDataSoqlQuery,
+  forceLightningAppCreate,
   forceOrgCreate,
   forceOrgOpen,
   forceSourcePull,
@@ -71,6 +72,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.visualforce.page.create',
     forceVisualforcePageCreate
   );
+  const forceLightningAppCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.app.create',
+    forceLightningAppCreate
+  );
   const forceDataSoqlQueryCmd = vscode.commands.registerCommand(
     'sfdx.force.data.soql.query',
     forceDataSoqlQuery
@@ -95,6 +100,7 @@ function registerCommands(): vscode.Disposable {
     forceApexClassCreateCmd,
     forceVisualforceComponentCreateCmd,
     forceVisualforcePageCreateCmd,
+    forceLightningAppCreateCmd,
     internalCancelCommandExecution
   );
 }

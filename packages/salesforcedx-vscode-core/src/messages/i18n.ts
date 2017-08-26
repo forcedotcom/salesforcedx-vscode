@@ -68,6 +68,8 @@ export const messages = {
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
 
+  force_lightning_app_create_text: 'SFDX: Create Lightning App',
+
   force_data_soql_query_text: 'SFDX: Execute SOQL Query',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query'
 };

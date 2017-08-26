@@ -35,6 +35,7 @@
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
@@ -51,7 +52,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
+    "test": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
@@ -82,6 +83,10 @@
         },
         {
           "command": "sfdx.force.visualforce.page.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.app.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
@@ -128,6 +133,10 @@
         },
         {
           "command": "sfdx.force.visualforce.page.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.app.create",
           "when": "sfdx:project_opened"
         }
       ]
@@ -176,6 +185,10 @@
       {
         "command": "sfdx.force.visualforce.page.create",
         "title": "%force_visualforce_page_create_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.app.create",
+        "title": "%force_lightning_app_create_text%"
       },
       {
         "command": "sfdx.force.data.soql.query",
