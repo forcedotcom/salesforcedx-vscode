@@ -11,6 +11,7 @@ import {
   forceApexClassCreate,
   forceApexTestRun,
   forceAuthWebLogin,
+  forceDataSoqlQuery,
   forceDebuggerStop,
   forceLightningAppCreate,
   forceLightningComponentCreate,
@@ -105,6 +106,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.debugger.stop',
     forceDebuggerStop
   );
+  const forceDataSoqlQueryCmd = vscode.commands.registerCommand(
+    'sfdx.force.data.soql.query',
+    forceDataSoqlQuery
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -115,6 +120,7 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
+    forceDataSoqlQueryCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,

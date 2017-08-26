@@ -256,6 +256,10 @@
       {
         "command": "sfdx.force.debugger.stop",
         "title": "%force_debugger_stop_text%"
+      },
+      {
+        "command": "sfdx.force.data.soql.query",
+        "title": "%force_data_soql_query_text%"
       }
     ]
   }
