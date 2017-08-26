@@ -188,6 +188,22 @@ export class SelectDirPath
   }
 }
 
+export type UserInput = {
+  input: string;
+};
+
+export class GetUserInput implements ParametersGatherer<{ input: string }> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ input: string }>
+  > {
+    const userInputOptions = <vscode.InputBoxOptions>{
+      prompt: nls.localize('parameter_gatherer_enter_soql_query')
+    };
+    const input = await vscode.window.showInputBox(userInputOptions);
+    return input ? { type: 'CONTINUE', data: { input } } : { type: 'CANCEL' };
+  }
+}
+
 // Command Execution
 ////////////////////
 export interface CommandletExecutor<T> {
