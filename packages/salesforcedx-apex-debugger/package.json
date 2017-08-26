@@ -8,9 +8,7 @@
   "engines": {
     "vscode": "^1.15.0"
   },
-  "categories": [
-    "Debuggers"
-  ],
+  "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.7.0",
     "faye": "1.1.2",
@@ -33,6 +31,7 @@
     "vscode-debugadapter-testsupport": "1.22.0"
   },
   "scripts": {
+    "vscode:package": "npm prune --production",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
@@ -40,9 +39,6 @@
     "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
   },
   "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
+    "reporter": ["text-summary", "lcov"]
   }
 }

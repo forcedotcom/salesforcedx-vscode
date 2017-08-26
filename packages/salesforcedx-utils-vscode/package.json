@@ -5,9 +5,7 @@
   "version": "40.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0"
@@ -33,6 +31,7 @@
     "vscode": "^1.13.0"
   },
   "scripts": {
+    "vscode:package": "npm prune --production",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
@@ -41,9 +40,6 @@
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
+    "reporter": ["text-summary", "lcov"]
   }
 }

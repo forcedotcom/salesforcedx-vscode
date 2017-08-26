@@ -12,6 +12,15 @@ shell.set('+v');
  * 2. The script is running in the right branch (e.g., release/vxx.y.z)
  */
 
+// Checks that you are running this with Node v7.9.0
+const nodeVersion = shell.exec('node -v', { silent: true });
+if (!nodeVersion.includes('v7.9.0')) {
+  console.log(
+    'You do not have the right version of node. We require version 7.9.0'
+  );
+  exit(-1);
+}
+
 // Checks that you have access to our bucket on AWS
 const awsExitCode = shell.exec(
   'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',
