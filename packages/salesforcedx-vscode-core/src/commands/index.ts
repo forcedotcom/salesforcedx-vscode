@@ -19,4 +19,4 @@ export { forceLightningAppCreate } from './forceLightningAppCreate';
 export {
   forceVisualforceComponentCreate
 } from './forceVisualforceComponentCreate';
-export { forceLightningCmpCreate } from './forceLightningCmpCreate';
+export { forceLightningComponentCreate } from './forceLightningComponentCreate';

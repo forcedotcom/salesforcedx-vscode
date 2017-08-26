@@ -30,7 +30,7 @@ import {
 
 const LIGHTNING_CMP_EXTENSION = '.cmp';
 
-class ForceLightningCmpCreateExecutor extends SfdxCommandletExecutor<
+class ForceLightningComponentCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
   public build(data: DirFileNameSelection): Command {
@@ -83,7 +83,7 @@ class ForceLightningCmpCreateExecutor extends SfdxCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 
-export async function forceLightningCmpCreate(explorerDir?: any) {
+export async function forceLightningComponentCreate(explorerDir?: any) {
   const outputDirGatherer = new SelectDirPath(explorerDir, 'aura');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
@@ -91,7 +91,7 @@ export async function forceLightningCmpCreate(explorerDir?: any) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceLightningCmpCreateExecutor()
+    new ForceLightningComponentCreateExecutor()
   );
   commandlet.run();
 }
