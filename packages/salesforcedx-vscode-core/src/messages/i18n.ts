@@ -66,5 +66,6 @@ export const messages = {
 
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
-  force_visualforce_page_create_text: 'SFDX: Create Visualforce Page'
+  force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
+  force_lightning_app_create_text: 'SFDX: Create Lightning App'
 };
