@@ -156,7 +156,7 @@ describe('Scaffolding commands', () => {
   });
 
   it('Should create Lightning component', async () => {
-    // Invoke SFDX: Create Visualforce Page command by name
+    // Invoke SFDX: Create Lightning Component command by name
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Lightning Component');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
@@ -169,16 +169,21 @@ describe('Scaffolding commands', () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    // Check that the new apex class is opened in a new tab
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultaura');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Check that the new lightning cmp is opened in a new tab
     const lightningComponentTab = await common.getTab(`${fileName}.cmp`);
     expect(lightningComponentTab).to.be.not.undefined;
     if (lightningComponentTab) {
       await common.closeTab();
     }
 
-    // Enter desired location (without slashes so it's OS-independent)
-    await common.type('force-appmaindefaultaura');
-    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.command('workbench.action.quickOpen');
+    await common.type(fileName);
+    const elCount = await common.getQuickOpenElements();
+    expect(elCount).to.equal(6);
   });
 });
