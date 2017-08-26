@@ -186,4 +186,36 @@ describe('Scaffolding commands', () => {
     const elCount = await common.getQuickOpenElements();
     expect(elCount).to.equal(6);
   });
+
+  it('Should create Lightning event', async () => {
+    // Invoke SFDX: Create Lightning event command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Create Lightning Event');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    const fileName = `lightningEvt_${new Date().getTime()}`;
+
+    // Enter file name
+    await common.type(fileName);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultaura');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Check that the new lightning evt is opened in a new tab
+    const lightningEventTab = await common.getTab(`${fileName}.evt`);
+    expect(lightningEventTab).to.be.not.undefined;
+    if (lightningEventTab) {
+      await common.closeTab();
+    }
+
+    await app.command('workbench.action.quickOpen');
+    await common.type(fileName);
+    const elCount = await common.getQuickOpenElements();
+    expect(elCount).to.equal(2);
+  });
 });
