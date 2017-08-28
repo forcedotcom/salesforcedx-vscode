@@ -12,18 +12,18 @@ import {
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
+import { SObjectDescribe } from '../../src/describe/sObjectDescribe';
 import { SObjectDescribeGlobal } from '../../src/describe/sObjectDescribeGlobal';
 import { CommandOutput } from '../../src/utils/commandOutput';
 import childProcess = require('child_process');
 
 describe('Fetch sObjects', () => {
+  const sobjectdescribe = new SObjectDescribe();
   const describeGlobal = new SObjectDescribeGlobal();
 
   const scratchDefFileName = 'sfdx-project.json';
-  const scratchFileContent = '{}';
   before(() => {
     console.log(process.cwd());
-    fs.writeFileSync(scratchDefFileName, scratchFileContent);
 
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
@@ -36,17 +36,27 @@ describe('Fetch sObjects', () => {
 
   after(() => {
     //
-    fs.unlinkSync(scratchDefFileName);
   });
 
   describe('Command line interaction', () => {
-    it('Should have the sfdx command by default', async () => {
-      const cmdOutput: string[] = await describeGlobal.describeGlobal(
-        'anyPath',
-        'custom'
+    it('Should be able to call describe global', done => {
+      const cmdOutput: Promise<string[]> = describeGlobal.describeGlobal(
+        process.cwd(),
+        'all'
       );
+      cmdOutput
+        .then(result => {
+          expect(result).to.equal('');
+        })
+        .then(done, done);
 
-      expect(cmdOutput.length).to.equal(2);
+      //expect(cmdOutput.length).to.equal(2);
     });
+  });
+
+  it('Should be able to call describe', async () => {
+    const cmdOutput = await sobjectdescribe.describe(process.cwd(), 'Account');
+
+    expect(cmdOutput.result.name).to.equal('Account');
   });
 });
