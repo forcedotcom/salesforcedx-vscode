@@ -31,7 +31,7 @@ export class FauxClassGenerator {
     }
   }
 
-  public async generateFauxClass(
+  private async generateFauxClass(
     projectPath: string,
     sobject: any
   ): Promise<void> {
