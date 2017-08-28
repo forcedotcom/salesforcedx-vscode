@@ -185,7 +185,16 @@ function sameCodeActions(result: Command[], uri: string, problem: string) {
           newText: replacementStr
         });
 
-        codeMessage = 'SLDS deprecated class names';
+        switch (problem) {
+          case '0': {
+            codeMessage = 'SLDS deprecated class names';
+            break;
+          }
+          default: {
+            codeMessage = 'same problems';
+          }
+        }
+
       }
     }
     result.push(

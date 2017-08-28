@@ -69,7 +69,6 @@ export function createLanguageServer(
   function applyTextEdit(uri: string, edits: TextEdit[]) {
     const textEditor = window.activeTextEditor;
     if (textEditor && textEditor.document.uri.toString() === uri) {
-      console.log(edits);
       textEditor
         .edit(mutator => {
           for (let edit of edits) {
