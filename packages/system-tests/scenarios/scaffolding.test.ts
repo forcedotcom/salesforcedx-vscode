@@ -239,7 +239,7 @@ describe('Scaffolding commands', () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    // Check that the new lightning evt is opened in a new tab
+    // Check that the new lightning intf is opened in a new tab
     const lightningInterfaceTab = await common.getTab(`${fileName}.intf`);
     expect(lightningInterfaceTab).to.be.not.undefined;
     if (lightningInterfaceTab) {
