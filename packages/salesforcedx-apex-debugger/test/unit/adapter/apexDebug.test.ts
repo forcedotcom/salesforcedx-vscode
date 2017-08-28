@@ -11,7 +11,11 @@ import { OutputEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { LaunchRequestArguments } from '../../../src/adapter/apexDebug';
 import {
-  ApexDebuggerEvent,
+  LineBreakpointInfo,
+  LineBreakpointsInTyperef
+} from '../../../src/breakpoints/lineBreakpoint';
+import {
+  BreakpointService,
   DebuggerMessage,
   SessionService,
   StreamingClientInfo,
@@ -26,13 +30,19 @@ describe('Debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
 
   describe('Initialize', () => {
+    let breakpointClearSpy: sinon.SinonSpy;
     let response: DebugProtocol.InitializeResponse;
     let args: DebugProtocol.InitializeRequestArguments;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
         new SessionService(),
-        new StreamingService()
+        new StreamingService(),
+        new BreakpointService()
+      );
+      breakpointClearSpy = sinon.spy(
+        BreakpointService.prototype,
+        'clearSavedBreakpoints'
       );
       response = {
         command: '',
@@ -46,9 +56,16 @@ describe('Debugger adapter - unit', () => {
       };
     });
 
-    it('Should send InitializedEvent', async () => {
+    afterEach(() => {
+      breakpointClearSpy.restore();
+    });
+
+    it('Should only send custom event to fetch breakpoint info', async () => {
       adapter.initializeReq(response, args);
-      expect(adapter.getEvents()[0].event).to.equal('initialized');
+
+      expect(breakpointClearSpy.calledOnce).to.equal(true);
+      expect(adapter.getEvents().length).to.equal(1);
+      expect(adapter.getEvents()[0].event).to.equal('getLineBreakpointInfo');
     });
   });
 
@@ -59,7 +76,8 @@ describe('Debugger adapter - unit', () => {
     beforeEach(() => {
       adapter = new ApexDebugForTest(
         new SessionService(),
-        new StreamingService()
+        new StreamingService(),
+        new BreakpointService()
       );
       response = {
         command: '',
@@ -73,7 +91,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should not attach', () => {
       adapter.attachReq(response, args);
-      const actualResp: DebugProtocol.Response = adapter.getResponse();
+      const actualResp: DebugProtocol.Response = adapter.getResponse(0);
       expect(actualResp.success).to.equal(false);
     });
   });
@@ -85,6 +103,7 @@ describe('Debugger adapter - unit', () => {
     let sessionEntryFilterSpy: sinon.SinonSpy;
     let sessionRequestFilterSpy: sinon.SinonSpy;
     let sessionConnectedSpy: sinon.SinonStub;
+    let breakpointHasLineNumberMappingSpy: sinon.SinonStub;
     let streamingSubscribeSpy: sinon.SinonStub;
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
@@ -92,7 +111,8 @@ describe('Debugger adapter - unit', () => {
     beforeEach(() => {
       adapter = new ApexDebugForTest(
         new SessionService(),
-        new StreamingService()
+        new StreamingService(),
+        new BreakpointService()
       );
       sessionProjectSpy = sinon.spy(SessionService.prototype, 'forProject');
       sessionUserFilterSpy = sinon.spy(
@@ -130,6 +150,7 @@ describe('Debugger adapter - unit', () => {
       sessionRequestFilterSpy.restore();
       sessionConnectedSpy.restore();
       streamingSubscribeSpy.restore();
+      breakpointHasLineNumberMappingSpy.restore();
     });
 
     it('Should launch successfully', async () => {
@@ -144,17 +165,21 @@ describe('Debugger adapter - unit', () => {
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
         .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
 
       await adapter.launchReq(response, args);
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
-      expect(adapter.getResponse().success).to.equal(true);
+      expect(adapter.getResponse(0).success).to.equal(true);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string(
         nls.localize('session_started_text', cmdResponse.getId())
       );
+      expect(adapter.getEvents()[1].event).to.equal('initialized');
     });
 
     it('Should not launch if session service errors out', async () => {
@@ -171,12 +196,15 @@ describe('Debugger adapter - unit', () => {
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
         .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
 
       await adapter.launchReq(response, args);
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
-      expect(adapter.getResponse().success).to.equal(false);
-      expect(adapter.getResponse().message).to.equal('There was an error');
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getResponse(0).message).to.equal('There was an error');
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
@@ -195,11 +223,36 @@ describe('Debugger adapter - unit', () => {
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
         .returns(Promise.resolve(false));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
 
       await adapter.launchReq(response, args);
 
       expect(sessionStartSpy.called).to.equal(false);
-      expect(adapter.getResponse().success).to.equal(false);
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('Should not launch without line number mapping', async () => {
+      const cmdResponse = new CommandOutput();
+      cmdResponse.setId('07aFAKE');
+      sessionStartSpy = sinon.stub(SessionService.prototype, 'start');
+      sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
+      streamingSubscribeSpy = sinon.stub(
+        StreamingService.prototype,
+        'subscribe'
+      );
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(false);
+
+      await adapter.launchReq(response, args);
+      expect(sessionStartSpy.called).to.equal(false);
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getResponse(0).message).to.equal(
+        nls.localize('session_language_server_error_text')
+      );
       expect(adapter.getEvents().length).to.equal(0);
     });
   });
@@ -208,17 +261,23 @@ describe('Debugger adapter - unit', () => {
     let sessionStopSpy: sinon.SinonStub;
     let sessionConnectedSpy: sinon.SinonStub;
     let streamingDisconnectSpy: sinon.SinonStub;
+    let breakpointClearSpy: sinon.SinonSpy;
     let response: DebugProtocol.DisconnectResponse;
     let args: DebugProtocol.DisconnectArguments;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
         new SessionService(),
-        new StreamingService()
+        new StreamingService(),
+        new BreakpointService()
       );
       streamingDisconnectSpy = sinon.stub(
         StreamingService.prototype,
         'disconnect'
+      );
+      breakpointClearSpy = sinon.spy(
+        BreakpointService.prototype,
+        'clearSavedBreakpoints'
       );
       response = {
         command: '',
@@ -236,6 +295,7 @@ describe('Debugger adapter - unit', () => {
       }
       sessionConnectedSpy.restore();
       streamingDisconnectSpy.restore();
+      breakpointClearSpy.restore();
     });
 
     it('Should not use session service if not connected', async () => {
@@ -245,8 +305,9 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.disconnectReq(response, args);
 
-      expect(adapter.getResponse()).to.deep.equal(response);
+      expect(adapter.getResponse(0)).to.deep.equal(response);
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
+      expect(breakpointClearSpy.called).to.equal(false);
     });
 
     it('Should try to disconnect and stop', async () => {
@@ -262,13 +323,14 @@ describe('Debugger adapter - unit', () => {
       await adapter.disconnectReq(response, args);
 
       expect(sessionStopSpy.calledOnce).to.equal(true);
-      expect(adapter.getResponse()).to.deep.equal(response);
+      expect(adapter.getResponse(0)).to.deep.equal(response);
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string(
         nls.localize('session_terminated_text', cmdResponse.getId())
       );
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
+      expect(breakpointClearSpy.called).to.equal(false);
     });
 
     it('Should try to disconnect and not stop', async () => {
@@ -286,13 +348,315 @@ describe('Debugger adapter - unit', () => {
       await adapter.disconnectReq(response, args);
 
       expect(sessionStopSpy.calledOnce).to.equal(true);
-      expect(adapter.getResponse().success).to.equal(false);
-      expect(adapter.getResponse().message).to.equal('There was an error');
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getResponse(0).message).to.equal('There was an error');
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string('Try again');
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
+      expect(breakpointClearSpy.called).to.equal(false);
+    });
+  });
+
+  describe('Set line breakpoint request', () => {
+    let breakpointReconcileSpy: sinon.SinonStub;
+    let breakpointGetSpy: sinon.SinonSpy;
+    let breakpointGetTyperefSpy: sinon.SinonStub;
+    let breakpointCreateSpy: sinon.SinonStub;
+    let breakpointCacheSpy: sinon.SinonSpy;
+    let sessionIdSpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService()
+      );
+      breakpointGetSpy = sinon.spy(
+        BreakpointService.prototype,
+        'getBreakpointsFor'
+      );
+      breakpointCacheSpy = sinon.spy(
+        BreakpointService.prototype,
+        'cacheBreakpoint'
+      );
+      sessionIdSpy = sinon
+        .stub(SessionService.prototype, 'getSessionId')
+        .returns('07aFAKE');
+    });
+
+    afterEach(() => {
+      if (breakpointReconcileSpy) {
+        breakpointReconcileSpy.restore();
+      }
+      if (breakpointGetSpy) {
+        breakpointGetSpy.restore();
+      }
+      if (breakpointGetTyperefSpy) {
+        breakpointGetTyperefSpy.restore();
+      }
+      if (breakpointCreateSpy) {
+        breakpointCreateSpy.restore();
+      }
+      if (breakpointCacheSpy) {
+        breakpointCacheSpy.restore();
+      }
+      sessionIdSpy.restore();
+    });
+
+    it('Should create breakpoint', async () => {
+      const cmdResponse = new CommandOutput();
+      cmdResponse.setId('07bFAKE');
+      const bpLines = [1, 2];
+      breakpointReconcileSpy = sinon
+        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
+        .returns(Promise.resolve(bpLines));
+      breakpointGetTyperefSpy = sinon
+        .stub(BreakpointService.prototype, 'getTyperefFor')
+        .returns('namespace/foo$inner');
+      breakpointCreateSpy = sinon
+        .stub(BreakpointService.prototype, 'createLineBreakpoint')
+        .returns(cmdResponse);
+      adapter.setSfdxProject('someProjectPath');
+
+      await adapter.setBreakPointsReq(
+        {} as DebugProtocol.SetBreakpointsResponse,
+        {
+          source: {
+            path: 'foo.cls'
+          },
+          lines: bpLines
+        }
+      );
+
+      expect(breakpointReconcileSpy.calledOnce).to.equal(true);
+      expect(breakpointReconcileSpy.getCall(0).args).to.deep.equal([
+        'someProjectPath',
+        '07aFAKE',
+        'file:///foo.cls',
+        bpLines
+      ]);
+      expect(breakpointGetSpy.calledOnce).to.equal(true);
+      expect(breakpointGetSpy.getCall(0).args).to.have.same.members([
+        'file:///foo.cls'
+      ]);
+      expect(breakpointGetTyperefSpy.calledTwice).to.equal(true);
+      expect(breakpointCreateSpy.calledTwice).to.equal(true);
+      expect(breakpointCacheSpy.calledTwice).to.equal(true);
+
+      for (let i = 0; i < bpLines.length; i++) {
+        expect(breakpointGetTyperefSpy.getCall(i).args).to.have.same.members([
+          'file:///foo.cls',
+          bpLines[i]
+        ]);
+        expect(breakpointCreateSpy.getCall(i).args).to.have.same.members([
+          'someProjectPath',
+          '07aFAKE',
+          'namespace/foo$inner',
+          bpLines[i]
+        ]);
+        expect(breakpointCacheSpy.getCall(i).args).to.have.same.members([
+          'file:///foo.cls',
+          bpLines[i],
+          '07bFAKE'
+        ]);
+      }
+
+      const expectedResp = {
+        success: true,
+        body: {
+          breakpoints: [
+            {
+              verified: true,
+              source: {
+                path: 'foo.cls'
+              },
+              line: 1
+            },
+            {
+              verified: true,
+              source: {
+                path: 'foo.cls'
+              },
+              line: 2
+            }
+          ]
+        }
+      } as DebugProtocol.SetBreakpointsResponse;
+      expect(adapter.getResponse(0)).to.deep.equal(expectedResp);
+    });
+
+    it('Should not create breakpoint', async () => {
+      const bpLines = [1, 2];
+      breakpointReconcileSpy = sinon
+        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
+        .returns(Promise.resolve(bpLines));
+      breakpointGetTyperefSpy = sinon
+        .stub(BreakpointService.prototype, 'getTyperefFor')
+        .returns('');
+      breakpointCreateSpy = sinon.stub(
+        BreakpointService.prototype,
+        'createLineBreakpoint'
+      );
+      adapter.setSfdxProject('someProjectPath');
+
+      await adapter.setBreakPointsReq(
+        {} as DebugProtocol.SetBreakpointsResponse,
+        {
+          source: {
+            path: 'foo.cls'
+          },
+          lines: bpLines
+        }
+      );
+
+      expect(breakpointReconcileSpy.calledOnce).to.equal(true);
+      expect(breakpointReconcileSpy.getCall(0).args).to.deep.equal([
+        'someProjectPath',
+        '07aFAKE',
+        'file:///foo.cls',
+        bpLines
+      ]);
+      expect(breakpointGetTyperefSpy.calledTwice).to.equal(true);
+      expect(breakpointCreateSpy.called).to.equal(false);
+      expect(breakpointCacheSpy.called).to.equal(false);
+
+      for (let i = 0; i < bpLines.length; i++) {
+        expect(breakpointGetTyperefSpy.getCall(i).args).to.have.same.members([
+          'file:///foo.cls',
+          bpLines[i]
+        ]);
+      }
+
+      const expectedResp = {
+        success: true,
+        body: {
+          breakpoints: [
+            {
+              verified: false,
+              source: {
+                path: 'foo.cls'
+              },
+              line: 1
+            },
+            {
+              verified: false,
+              source: {
+                path: 'foo.cls'
+              },
+              line: 2
+            }
+          ]
+        }
+      } as DebugProtocol.SetBreakpointsResponse;
+      expect(adapter.getResponse(0)).to.deep.equal(expectedResp);
+    });
+
+    it('Should output error', async () => {
+      const bpLines = [1, 2];
+      breakpointReconcileSpy = sinon
+        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
+        .returns(
+          Promise.reject(
+            '{"message":"There was an error", "action":"Try again"}'
+          )
+        );
+      adapter.setSfdxProject('someProjectPath');
+
+      await adapter.setBreakPointsReq(
+        {} as DebugProtocol.SetBreakpointsResponse,
+        {
+          source: {
+            path: 'foo.cls'
+          },
+          lines: bpLines
+        }
+      );
+
+      expect(breakpointReconcileSpy.calledOnce).to.equal(true);
+      expect(breakpointReconcileSpy.getCall(0).args).to.deep.equal([
+        'someProjectPath',
+        '07aFAKE',
+        'file:///foo.cls',
+        bpLines
+      ]);
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getResponse(0).message).to.equal('There was an error');
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(
+        (adapter.getEvents()[0] as OutputEvent).body.output
+      ).to.have.string('Try again');
+    });
+  });
+
+  describe('Custom request', () => {
+    describe('Line breakpoint info', () => {
+      let setValidLinesSpy: sinon.SinonSpy;
+      const initializedResponse = {
+        request_seq: 1,
+        seq: 0,
+        success: true,
+        type: 'response'
+      } as DebugProtocol.InitializeResponse;
+
+      beforeEach(() => {
+        adapter = new ApexDebugForTest(
+          new SessionService(),
+          new StreamingService(),
+          new BreakpointService()
+        );
+        setValidLinesSpy = sinon.spy(
+          BreakpointService.prototype,
+          'setValidLines'
+        );
+      });
+
+      afterEach(() => {
+        setValidLinesSpy.restore();
+      });
+
+      it('Should not save line number mapping', () => {
+        adapter.customRequest(
+          'lineBreakpointInfo',
+          {} as DebugProtocol.Response,
+          null
+        );
+
+        expect(setValidLinesSpy.called).to.equal(false);
+        expect(adapter.getResponse(0)).to.deep.equal(initializedResponse);
+        expect(adapter.getResponse(1).success).to.equal(true);
+      });
+
+      it('Should save line number mapping', () => {
+        const info: LineBreakpointInfo[] = [
+          { uri: 'file:///foo.cls', typeref: 'foo', lines: [1, 2, 3] },
+          { uri: 'file:///foo.cls', typeref: 'foo$inner', lines: [4, 5, 6] },
+          { uri: 'file:///bar.cls', typeref: 'bar', lines: [1, 2, 3] },
+          { uri: 'file:///bar.cls', typeref: 'bar$inner', lines: [4, 5, 6] }
+        ];
+        const expected: Map<string, LineBreakpointsInTyperef[]> = new Map();
+        expected.set('file:///foo.cls', [
+          { typeref: 'foo', lines: [1, 2, 3] },
+          { typeref: 'foo$inner', lines: [4, 5, 6] }
+        ]);
+        expected.set('file:///bar.cls', [
+          { typeref: 'bar', lines: [1, 2, 3] },
+          { typeref: 'bar$inner', lines: [4, 5, 6] }
+        ]);
+
+        adapter.customRequest(
+          'lineBreakpointInfo',
+          {} as DebugProtocol.Response,
+          info
+        );
+
+        expect(setValidLinesSpy.calledOnce).to.equal(true);
+        expect(setValidLinesSpy.getCall(0).args.length).to.equal(1);
+        expect(setValidLinesSpy.getCall(0).args[0]).to.deep.equal(expected);
+        expect(adapter.getResponse(0)).to.deep.equal(initializedResponse);
+        expect(adapter.getResponse(1).success).to.equal(true);
+      });
     });
   });
 
@@ -300,19 +664,20 @@ describe('Debugger adapter - unit', () => {
     beforeEach(() => {
       adapter = new ApexDebugForTest(
         new SessionService(),
-        new StreamingService()
+        new StreamingService(),
+        new BreakpointService()
       );
     });
 
     it('Should not log without an error', () => {
-      adapter.tryToParseSfdxError(<DebugProtocol.Response>{});
+      adapter.tryToParseSfdxError({} as DebugProtocol.Response);
 
       expect(adapter.getEvents().length).to.equal(0);
     });
 
     it('Should error to console with unexpected error schema', () => {
       adapter.tryToParseSfdxError(
-        <DebugProtocol.Response>{},
+        {} as DebugProtocol.Response,
         '{"subject":"There was an error", "action":"Try again"}'
       );
 
@@ -326,7 +691,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should error to console with non JSON', () => {
       adapter.tryToParseSfdxError(
-        <DebugProtocol.Response>{},
+        {} as DebugProtocol.Response,
         'There was an error"}'
       );
 
@@ -343,7 +708,8 @@ describe('Debugger adapter - unit', () => {
     beforeEach(() => {
       adapter = new ApexDebugForTest(
         new SessionService(),
-        new StreamingService()
+        new StreamingService(),
+        new BreakpointService()
       );
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
@@ -379,14 +745,16 @@ describe('Debugger adapter - unit', () => {
   });
 
   describe('Debugger event SessionTerminated', () => {
-    let sessionService: SessionService;
     let sessionConnectedSpy: sinon.SinonStub;
-    let sessionIdSpy: sinon.SinonSpy;
+    let sessionIdSpy: sinon.SinonStub;
     let sessionStopSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      sessionService = new SessionService();
-      adapter = new ApexDebugForTest(sessionService, new StreamingService());
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService()
+      );
     });
 
     afterEach(() => {
@@ -403,9 +771,9 @@ describe('Debugger adapter - unit', () => {
         .stub(SessionService.prototype, 'getSessionId')
         .returns('123');
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
-      const message = <DebuggerMessage>{
-        event: <StreamingEvent>{},
-        sobject: <ApexDebuggerEvent>{
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
           SessionId: '123',
           Type: 'SessionTerminated',
           Description: 'foo'
@@ -430,9 +798,9 @@ describe('Debugger adapter - unit', () => {
         .stub(SessionService.prototype, 'getSessionId')
         .returns('123');
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
-      const message = <DebuggerMessage>{
-        event: <StreamingEvent>{},
-        sobject: <ApexDebuggerEvent>{
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
           SessionId: '456',
           Type: 'SessionTerminated',
           Description: 'foo'
@@ -453,9 +821,9 @@ describe('Debugger adapter - unit', () => {
         .stub(SessionService.prototype, 'getSessionId')
         .returns('123');
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
-      const message = <DebuggerMessage>{
-        event: <StreamingEvent>{},
-        sobject: <ApexDebuggerEvent>{
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
           SessionId: '123',
           Type: 'SessionTerminated',
           Description: 'foo'

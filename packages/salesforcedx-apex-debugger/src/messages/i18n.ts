@@ -17,6 +17,8 @@
  */
 export const messages = {
   command_error_help_text: 'Command returned the following error',
+  session_language_server_error_text:
+    'Apex language server could not provide information about valid breakpoints.',
   session_started_text: 'Apex Debugger session started with ID %s.',
   session_terminated_text: 'Apex Debugger session terminated with ID %s.',
   streaming_connected_text: 'Connected to Streaming API channel %s.',

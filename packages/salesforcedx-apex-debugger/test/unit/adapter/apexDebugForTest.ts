@@ -10,23 +10,33 @@ import {
   ApexDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexDebug';
-import { SessionService, StreamingService } from '../../../src/core';
+import {
+  BreakpointService,
+  SessionService,
+  StreamingService
+} from '../../../src/core';
 
 export class ApexDebugForTest extends ApexDebug {
-  private receivedResponse: DebugProtocol.Response;
-  private receivedEvents: DebugProtocol.Event[];
+  private receivedResponses: DebugProtocol.Response[] = [];
+  private receivedEvents: DebugProtocol.Event[] = [];
 
   constructor(
     sessionService: SessionService,
-    streamingService: StreamingService
+    streamingService: StreamingService,
+    breakpointService: BreakpointService
   ) {
     super();
-    this.receivedEvents = new Array();
     this.mySessionService = sessionService;
+    this.myStreamingService = streamingService;
+    this.myBreakpointService = breakpointService;
   }
 
-  public getResponse(): DebugProtocol.Response {
-    return this.receivedResponse;
+  public getResponse(index: number): DebugProtocol.Response {
+    return this.receivedResponses[index];
+  }
+
+  public getResponses(): DebugProtocol.Response[] {
+    return this.receivedResponses;
   }
 
   public getEvents(): DebugProtocol.Event[] {
@@ -34,10 +44,7 @@ export class ApexDebugForTest extends ApexDebug {
   }
 
   public sendResponse(response: DebugProtocol.Response): void {
-    if (this.receivedResponse) {
-      throw new Error('Should not receive more than one response');
-    }
-    this.receivedResponse = response;
+    this.receivedResponses.push(response);
   }
 
   public sendEvent(event: DebugProtocol.Event): void {
@@ -70,5 +77,24 @@ export class ApexDebugForTest extends ApexDebug {
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
     return super.disconnectRequest(response, args);
+  }
+
+  public async setBreakPointsReq(
+    response: DebugProtocol.SetBreakpointsResponse,
+    args: DebugProtocol.SetBreakpointsArguments
+  ): Promise<void> {
+    return super.setBreakPointsRequest(response, args);
+  }
+
+  public customRequest(
+    command: string,
+    response: DebugProtocol.Response,
+    args: any
+  ): void {
+    return super.customRequest(command, response, args);
+  }
+
+  public setSfdxProject(projectPath: string): void {
+    this.sfdxProject = projectPath;
   }
 }

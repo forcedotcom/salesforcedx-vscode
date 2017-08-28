@@ -31,6 +31,16 @@
       "preLaunchTask": "Compile"
     },
     {
+      "name": "Launch Extensions without compile",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"]
+    },
+    {
       "name": "Launch Apex Debug adapter",
       "type": "node",
       "request": "launch",
@@ -38,9 +48,7 @@
       "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
       "args": ["--server=4711"],
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {

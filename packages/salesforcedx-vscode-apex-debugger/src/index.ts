@@ -31,7 +31,23 @@ function registerCommands(): vscode.Disposable {
       );
     }
   );
-  return vscode.Disposable.from(initialDebugConfig);
+  const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
+    async event => {
+      if (event && event.session) {
+        if (event.event === 'getLineBreakpointInfo') {
+          const sfdxApex = vscode.extensions.getExtension(
+            'salesforce.salesforcedx-vscode-apex'
+          );
+          if (sfdxApex && sfdxApex.exports) {
+            const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
+            event.session.customRequest('lineBreakpointInfo', lineBpInfo);
+            console.log('Retrieved line breakpoint info from language server');
+          }
+        }
+      }
+    }
+  );
+  return vscode.Disposable.from(initialDebugConfig, customEventHandler);
 }
 
 export function activate(context: vscode.ExtensionContext) {

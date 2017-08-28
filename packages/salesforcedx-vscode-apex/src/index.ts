@@ -6,12 +6,29 @@
  */
 
 import * as vscode from 'vscode';
+import { LanguageClient } from 'vscode-languageclient';
+import { DEBUGGER_LINE_BREAKPOINTS } from './constants';
 import * as languageServer from './languageServer';
 
+let languageClient: LanguageClient | undefined;
+
 export async function activate(context: vscode.ExtensionContext) {
-  const languageClient = await languageServer.createLanguageServer(context);
+  languageClient = await languageServer.createLanguageServer(context);
   const handle = languageClient.start();
   context.subscriptions.push(handle);
+
+  const exportedApi = {
+    getLineBreakpointInfo
+  };
+  return exportedApi;
+}
+
+async function getLineBreakpointInfo(): Promise<{}> {
+  let response = {};
+  if (languageClient) {
+    response = await languageClient.sendRequest(DEBUGGER_LINE_BREAKPOINTS);
+  }
+  return Promise.resolve(response);
 }
 
 // tslint:disable-next-line:no-empty

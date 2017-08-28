@@ -7,13 +7,19 @@
 
 import {
   DebugSession,
+  Event,
   InitializedEvent,
   OutputEvent,
   TerminatedEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
+  LineBreakpointInfo,
+  LineBreakpointsInTyperef
+} from '../breakpoints/lineBreakpoint';
+import {
   ApexDebuggerEventType,
+  BreakpointService,
   DebuggerMessage,
   SessionService,
   StreamingClientInfo,
@@ -33,22 +39,25 @@ export interface LaunchRequestArguments
 }
 
 export class ApexDebug extends DebugSession {
-  private static TWO_NL = `${os.EOL}${os.EOL}`;
   protected mySessionService = SessionService.getInstance();
+  protected myBreakpointService = BreakpointService.getInstance();
   protected myStreamingService = StreamingService.getInstance();
-  private sfdxProject: string;
+  protected sfdxProject: string;
+
+  private static TWO_NL = `${os.EOL}${os.EOL}`;
 
   constructor() {
     super();
     this.setDebuggerLinesStartAt1(true);
+    this.setDebuggerPathFormat('uri');
   }
 
   protected initializeRequest(
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
   ): void {
-    this.sendResponse(response);
-    this.sendEvent(new InitializedEvent());
+    this.myBreakpointService.clearSavedBreakpoints();
+    this.sendEvent(new Event('getLineBreakpointInfo'));
   }
 
   protected attachRequest(
@@ -63,8 +72,12 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
-    this.sfdxProject = args.sfdxProject;
     response.success = false;
+
+    if (!this.myBreakpointService.hasLineNumberMapping()) {
+      response.message = nls.localize('session_language_server_error_text');
+      return this.sendResponse(response);
+    }
 
     try {
       const isStreamingConnected = await this.connectStreaming(
@@ -78,6 +91,7 @@ export class ApexDebug extends DebugSession {
       return this.sendResponse(response);
     }
 
+    this.sfdxProject = args.sfdxProject;
     try {
       const cmdResponse = await this.mySessionService
         .forProject(args.sfdxProject)
@@ -100,6 +114,7 @@ export class ApexDebug extends DebugSession {
     } catch (error) {
       this.tryToParseSfdxError(response, error);
     }
+    this.sendEvent(new InitializedEvent());
     this.sendResponse(response);
   }
 
@@ -133,6 +148,116 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
+  protected async setBreakPointsRequest(
+    response: DebugProtocol.SetBreakpointsResponse,
+    args: DebugProtocol.SetBreakpointsArguments
+  ): Promise<void> {
+    if (args.source && args.source.path) {
+      const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
+      const uri = this.convertClientPathToDebugger(args.source.path);
+
+      try {
+        const linesToSetBreakpoint = await this.myBreakpointService.reconcileBreakpoints(
+          this.sfdxProject,
+          this.mySessionService.getSessionId(),
+          uri,
+          args.lines
+        );
+        for (const existingBreakpoints of this.myBreakpointService.getBreakpointsFor(
+          uri
+        )) {
+          processedBreakpoints.push({
+            verified: true,
+            source: args.source,
+            line: existingBreakpoints
+          });
+        }
+
+        for (const clientLine of linesToSetBreakpoint) {
+          const serverLine = this.convertClientLineToDebugger(clientLine);
+          const typeref = this.myBreakpointService.getTyperefFor(
+            uri,
+            serverLine
+          );
+          if (typeref) {
+            const cmdOutput = await this.myBreakpointService.createLineBreakpoint(
+              this.sfdxProject,
+              this.mySessionService.getSessionId(),
+              typeref,
+              serverLine
+            );
+            this.myBreakpointService.cacheBreakpoint(
+              uri,
+              clientLine,
+              cmdOutput.getId()
+            );
+            processedBreakpoints.push({
+              verified: true,
+              source: args.source,
+              line: clientLine
+            });
+          } else {
+            processedBreakpoints.push({
+              verified: false,
+              source: args.source,
+              line: clientLine
+            });
+          }
+        }
+
+        response.success = true;
+        response.body = {
+          breakpoints: processedBreakpoints
+        };
+      } catch (error) {
+        this.tryToParseSfdxError(response, error);
+      }
+    }
+
+    this.sendResponse(response);
+  }
+
+  protected customRequest(
+    command: string,
+    response: DebugProtocol.Response,
+    args: any
+  ): void {
+    switch (command) {
+      case 'lineBreakpointInfo':
+        const lineBpInfo: LineBreakpointInfo[] = args;
+        if (lineBpInfo && lineBpInfo.length > 0) {
+          const lineNumberMapping: Map<
+            string,
+            LineBreakpointsInTyperef[]
+          > = new Map();
+          for (const info of lineBpInfo) {
+            if (!lineNumberMapping.has(info.uri)) {
+              lineNumberMapping.set(info.uri, []);
+            }
+            const validLines: LineBreakpointsInTyperef = {
+              typeref: info.typeref,
+              lines: info.lines
+            };
+            lineNumberMapping.get(info.uri)!.push(validLines);
+          }
+          this.myBreakpointService.setValidLines(lineNumberMapping);
+        }
+        this.sendResponse(
+          {
+            request_seq: 1,
+            seq: 0,
+            success: true,
+            type: 'response'
+          } as DebugProtocol.InitializeResponse
+        );
+        break;
+      default:
+        break;
+    }
+    response.success = true;
+    this.sendResponse(response);
+  }
+
   private logToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`));
@@ -153,6 +278,7 @@ export class ApexDebug extends DebugSession {
       return;
     }
     try {
+      response.success = false;
       const errorObj = JSON.parse(error);
       if (errorObj && errorObj.message) {
         response.message = errorObj.message;
