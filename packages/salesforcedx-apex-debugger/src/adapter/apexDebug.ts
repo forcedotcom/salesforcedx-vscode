@@ -7,6 +7,7 @@
 
 import {
   DebugSession,
+  Event,
   InitializedEvent,
   OutputEvent,
   TerminatedEvent
@@ -55,7 +56,8 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
   ): void {
-    this.sendResponse(response);
+    this.myBreakpointService.clearSavedBreakpoints();
+    this.sendEvent(new Event('getLineBreakpointInfo'));
   }
 
   protected attachRequest(
@@ -70,8 +72,12 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
-    this.sfdxProject = args.sfdxProject;
     response.success = false;
+
+    if (!this.myBreakpointService.hasLineNumberMapping()) {
+      response.message = nls.localize('session_language_server_error_text');
+      return this.sendResponse(response);
+    }
 
     try {
       const isStreamingConnected = await this.connectStreaming(
@@ -85,6 +91,7 @@ export class ApexDebug extends DebugSession {
       return this.sendResponse(response);
     }
 
+    this.sfdxProject = args.sfdxProject;
     try {
       const cmdResponse = await this.mySessionService
         .forProject(args.sfdxProject)
@@ -107,7 +114,7 @@ export class ApexDebug extends DebugSession {
     } catch (error) {
       this.tryToParseSfdxError(response, error);
     }
-    this.myBreakpointService.clearSavedBreakpoints();
+    this.sendEvent(new InitializedEvent());
     this.sendResponse(response);
   }
 
@@ -235,13 +242,19 @@ export class ApexDebug extends DebugSession {
           }
           this.myBreakpointService.setValidLines(lineNumberMapping);
         }
-        // Make sure we have tried to query the language server
-        // before allowing VS Code to set breakpoints.
-        this.sendEvent(new InitializedEvent());
+        this.sendResponse(
+          {
+            request_seq: 1,
+            seq: 0,
+            success: true,
+            type: 'response'
+          } as DebugProtocol.InitializeResponse
+        );
         break;
       default:
         break;
     }
+    response.success = true;
     this.sendResponse(response);
   }
 

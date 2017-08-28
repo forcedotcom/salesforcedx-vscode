@@ -37,6 +37,10 @@ export class BreakpointService {
     this.lineNumberMapping = lineNumberMapping;
   }
 
+  public hasLineNumberMapping(): boolean {
+    return this.lineNumberMapping && this.lineNumberMapping.size > 0;
+  }
+
   public isApexDebuggerBreakpointId(id: string): boolean {
     return id != null && id.startsWith('07b');
   }

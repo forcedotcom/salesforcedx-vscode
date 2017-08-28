@@ -33,6 +33,10 @@ describe('Debugger breakpoint service', () => {
       expect(service.isApexDebuggerBreakpointId('FAKE')).to.equal(false);
     });
 
+    it('Should not have line number mapping', () => {
+      expect(service.hasLineNumberMapping()).to.equal(false);
+    });
+
     it('Should get valid typeref', () => {
       const lineNumberMapping: Map<
         string,
@@ -50,6 +54,7 @@ describe('Debugger breakpoint service', () => {
       const actualTyperef = service.getTyperefFor('file:///foo.cls', 3);
 
       expect(actualTyperef).to.equal('foo$inner');
+      expect(service.hasLineNumberMapping()).to.equal(true);
     });
 
     it('Should not get typeref', () => {
