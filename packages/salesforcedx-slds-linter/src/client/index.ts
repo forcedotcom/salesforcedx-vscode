@@ -7,7 +7,13 @@
 
 import * as path from 'path';
 
-import { commands, Disposable, ExtensionContext, window, workspace } from 'vscode';
+import {
+  commands,
+  Disposable,
+  ExtensionContext,
+  window,
+  workspace
+} from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -47,7 +53,7 @@ export function createLanguageServer(
     // Register the server for plain text documents
     documentSelector: ['plaintext', 'html'],
     synchronize: {
-      // Synchronize the setting section 'languageServerExample' to the server
+      // Synchronize the setting section 'sldsLanguageServer' to the server
       configurationSection: 'sldsLanguageServer'
     }
   };
@@ -64,20 +70,28 @@ export function createLanguageServer(
     const textEditor = window.activeTextEditor;
     if (textEditor && textEditor.document.uri.toString() === uri) {
       console.log(edits);
-      textEditor.edit(mutator => {
-        for (let edit of edits) {
-          mutator.replace(client.protocol2CodeConverter.asRange(edit.range), edit.newText);
-        }
-      }
-      ).then((success) => {
-        if (!success) {
-          window.showErrorMessage('Failed to apply SLDS Validator fixes to the document');
-        }
-      });
+      textEditor
+        .edit(mutator => {
+          for (let edit of edits) {
+            mutator.replace(
+              client.protocol2CodeConverter.asRange(edit.range),
+              edit.newText
+            );
+          }
+        })
+        .then(success => {
+          if (!success) {
+            window.showErrorMessage(
+              'Failed to apply SLDS Validator fixes to the document'
+            );
+          }
+        });
     }
   }
 
-  context.subscriptions.push(commands.registerCommand('deprecatedClassName', applyTextEdit));
+  context.subscriptions.push(
+    commands.registerCommand('deprecatedClassName', applyTextEdit)
+  );
 
   return client;
 }
