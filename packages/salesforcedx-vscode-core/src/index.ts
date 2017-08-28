@@ -12,6 +12,7 @@ import {
   forceApexTestRun,
   forceAuthWebLogin,
   forceLightningAppCreate,
+  forceLightningComponentCreate,
   forceOrgCreate,
   forceOrgOpen,
   forceSourcePull,
@@ -75,6 +76,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.app.create',
     forceLightningAppCreate
   );
+  const forceLightningComponentCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.component.create',
+    forceLightningComponentCreate
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -95,6 +100,7 @@ function registerCommands(): vscode.Disposable {
     forceVisualforceComponentCreateCmd,
     forceVisualforcePageCreateCmd,
     forceLightningAppCreateCmd,
+    forceLightningComponentCreateCmd,
     internalCancelCommandExecution
   );
 }
