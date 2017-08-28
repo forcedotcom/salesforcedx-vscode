@@ -11,8 +11,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../messages';
 import {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
   GetUserInput,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -26,7 +24,6 @@ class ForceDataSoqlQueryExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(nls.localize('force_data_soql_query_text'))
       .withArg('force:data:soql:query')
       .withFlag('--query', `${data.input}`)
-      .withJson()
       .build();
   }
 }
