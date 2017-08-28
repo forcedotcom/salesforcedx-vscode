@@ -21,7 +21,9 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.7.0",
     "glob": "^7.1.2",
