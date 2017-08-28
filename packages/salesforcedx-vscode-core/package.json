@@ -21,9 +21,7 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.7.0",
     "glob": "^7.1.2",
@@ -142,6 +140,10 @@
         {
           "command": "sfdx.force.lightning.app.create",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.execute",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -193,6 +195,10 @@
       {
         "command": "sfdx.force.lightning.app.create",
         "title": "%force_lightning_app_create_text%"
+      },
+      {
+        "command": "sfdx.force.apex.execute",
+        "title": "%force_apex_execute_text%"
       }
     ]
   }

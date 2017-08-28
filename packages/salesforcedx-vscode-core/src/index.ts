@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 
 import {
   forceApexClassCreate,
+  forceApexExecute,
   forceApexTestRun,
   forceAuthWebLogin,
   forceLightningAppCreate,
@@ -75,6 +76,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.app.create',
     forceLightningAppCreate
   );
+  const forceApexExecuteCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute',
+    forceApexExecute
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -83,6 +88,7 @@ function registerCommands(): vscode.Disposable {
   );
 
   return vscode.Disposable.from(
+    forceApexExecuteCmd,
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
     forceOrgCreateCmd,
