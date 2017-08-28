@@ -19,3 +19,5 @@ export { forceLightningAppCreate } from './forceLightningAppCreate';
 export {
   forceVisualforceComponentCreate
 } from './forceVisualforceComponentCreate';
+export { forceLightningComponentCreate } from './forceLightningComponentCreate';
+export { forceLightningEventCreate } from './forceLightningEventCreate';

@@ -21,9 +21,7 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.7.0",
     "glob": "^7.1.2",
@@ -56,9 +54,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "views": {
@@ -91,6 +87,14 @@
         },
         {
           "command": "sfdx.force.lightning.app.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.component.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.event.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
@@ -141,6 +145,14 @@
         },
         {
           "command": "sfdx.force.lightning.app.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.component.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.event.create",
           "when": "sfdx:project_opened"
         }
       ]
@@ -193,6 +205,14 @@
       {
         "command": "sfdx.force.lightning.app.create",
         "title": "%force_lightning_app_create_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.component.create",
+        "title": "%force_lightning_component_create_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.event.create",
+        "title": "%force_lightning_event_create_text%"
       }
     ]
   }
