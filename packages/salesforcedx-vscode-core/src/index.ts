@@ -14,6 +14,7 @@ import {
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
+  forceLightningInterfaceCreate,
   forceOrgCreate,
   forceOrgOpen,
   forceSourcePull,
@@ -85,6 +86,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.event.create',
     forceLightningEventCreate
   );
+  const forceLightningInterfaceCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.interface.create',
+    forceLightningInterfaceCreate
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -107,6 +112,7 @@ function registerCommands(): vscode.Disposable {
     forceLightningAppCreateCmd,
     forceLightningComponentCreateCmd,
     forceLightningEventCreateCmd,
+    forceLightningInterfaceCreateCmd,
     internalCancelCommandExecution
   );
 }

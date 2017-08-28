@@ -21,3 +21,4 @@ export {
 } from './forceVisualforceComponentCreate';
 export { forceLightningComponentCreate } from './forceLightningComponentCreate';
 export { forceLightningEventCreate } from './forceLightningEventCreate';
+export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';

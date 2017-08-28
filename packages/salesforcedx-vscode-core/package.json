@@ -96,6 +96,10 @@
         {
           "command": "sfdx.force.lightning.event.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.interface.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
       "commandPalette": [
@@ -153,6 +157,10 @@
         },
         {
           "command": "sfdx.force.lightning.event.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.interface.create",
           "when": "sfdx:project_opened"
         }
       ]
@@ -213,6 +221,10 @@
       {
         "command": "sfdx.force.lightning.event.create",
         "title": "%force_lightning_event_create_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.interface.create",
+        "title": "%force_lightning_interface_create_text%"
       }
     ]
   }
