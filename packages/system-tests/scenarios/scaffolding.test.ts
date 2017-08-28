@@ -219,4 +219,36 @@ describe('Scaffolding commands', () => {
     const elCount = await common.getQuickOpenElements();
     expect(elCount).to.equal(2);
   });
+
+  it('Should create Lightning interface', async () => {
+    // Invoke SFDX: Create Lightning interface command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Create Lightning Interface');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    const fileName = `lightningIntf_${new Date().getTime()}`;
+
+    // Enter file name
+    await common.type(fileName);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultaura');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Check that the new lightning intf is opened in a new tab
+    const lightningInterfaceTab = await common.getTab(`${fileName}.intf`);
+    expect(lightningInterfaceTab).to.be.not.undefined;
+    if (lightningInterfaceTab) {
+      await common.closeTab();
+    }
+
+    await app.command('workbench.action.quickOpen');
+    await common.type(fileName);
+    const elCount = await common.getQuickOpenElements();
+    expect(elCount).to.equal(2);
+  });
 });
