@@ -12,6 +12,17 @@ shell.set('+v');
  * 2. The script is running in the right branch (e.g., release/vxx.y.z)
  */
 
+// Checks that you are running this with Node v7.9.0 and above
+const [version, major, minor, patch] = process.version.match(
+  /^v(\d+)\.?(\d+)\.?(\*|\d+)$/
+);
+if (major !== 7 || minor < 9) {
+  console.log(
+    'You do not have the right version of node. We require version 7.9.0 and above (but not Node 8, yet).'
+  );
+  exit(-1);
+}
+
 // Checks that you have access to our bucket on AWS
 const awsExitCode = shell.exec(
   'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',

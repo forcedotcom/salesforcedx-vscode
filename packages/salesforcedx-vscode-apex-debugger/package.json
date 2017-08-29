@@ -15,9 +15,7 @@
   "engines": {
     "vscode": "^1.15.0"
   },
-  "categories": [
-    "Debuggers"
-  ],
+  "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-apex-debugger": "40.7.0"
   },
@@ -52,9 +50,7 @@
         "label": "Apex Debugger",
         "program": "./node_modules/@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
         "runtime": "node",
-        "languages": [
-          "apex"
-        ],
+        "languages": ["apex"],
         "configurationSnippets": [
           {
             "label": "%launch_snippet_label_text%",
@@ -73,9 +69,7 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": [
-                "sfdxProject"
-              ],
+              "required": ["sfdxProject"],
               "userIdFilter": {
                 "type": "string",
                 "description": "%user_id_filter_text%",
