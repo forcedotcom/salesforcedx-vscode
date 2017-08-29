@@ -10,6 +10,7 @@ import {
   ApexDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexDebug';
+import { OrgInfo } from '../../../src/commands';
 import {
   BreakpointService,
   SessionService,
@@ -86,6 +87,17 @@ export class ApexDebugForTest extends ApexDebug {
     return super.setBreakPointsRequest(response, args);
   }
 
+  public async continueReq(
+    response: DebugProtocol.ContinueResponse,
+    args: DebugProtocol.ContinueArguments
+  ): Promise<void> {
+    return super.continueRequest(response, args);
+  }
+
+  public threadsReq(response: DebugProtocol.ThreadsResponse): void {
+    super.threadsRequest(response);
+  }
+
   public customRequest(
     command: string,
     response: DebugProtocol.Response,
@@ -96,5 +108,17 @@ export class ApexDebugForTest extends ApexDebug {
 
   public setSfdxProject(projectPath: string): void {
     this.sfdxProject = projectPath;
+  }
+
+  public setOrgInfo(orgInfo: OrgInfo): void {
+    this.orgInfo = orgInfo;
+  }
+
+  public addRequestThread(requestId: string): void {
+    this.requestThreads.push(requestId);
+  }
+
+  public getRequestThreads(): string[] {
+    return this.requestThreads;
   }
 }

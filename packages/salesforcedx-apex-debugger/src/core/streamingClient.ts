@@ -147,10 +147,7 @@ export class StreamingClient {
     });
 
     this.client.on('transport:down', async () => {
-      if (this.connected) {
-        this.connected = false;
-        this.clientInfo.disconnectedHandler();
-      } else {
+      if (!this.connected) {
         this.clientInfo.errorHandler(
           nls.localize('streaming_handshake_timeout_text')
         );
@@ -161,8 +158,10 @@ export class StreamingClient {
       incoming: (message: any, callback: (message: any) => void) => {
         if (message && message.data) {
           const data = message.data as DebuggerMessage;
-          if (data && data.event && data.event.replayId) {
+          if (data && data.event && this.replayId < data.event.replayId) {
             this.replayId = data.event.replayId;
+          } else {
+            return;
           }
         }
         if (message.channel === '/meta/handshake') {
