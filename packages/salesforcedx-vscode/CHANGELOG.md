@@ -1,3 +1,9 @@
+## 40.8.0 - August 31, 2017
+
+### Added
+#### salesforcedx-vscode-core
+
+* SFDX: Create Lightning App, SFDX: Create Lightning Component, SFDX: Create Lightning Event, and SFDX: Create Lightning Interface commands ([PR #62](https://github.com/forcedotcom/salesforcedx-vscode/pull/62), [PR #70](https://github.com/forcedotcom/salesforcedx-vscode/pull/70), [PR #76](https://github.com/forcedotcom/salesforcedx-vscode/pull/76), [PR #77](https://github.com/forcedotcom/salesforcedx-vscode/pull/77))
 ## 40.7.0 - August 24, 2017
 
 ### Changed
