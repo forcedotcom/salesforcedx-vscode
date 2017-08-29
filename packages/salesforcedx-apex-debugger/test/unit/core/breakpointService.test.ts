@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  CommandOutput,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
@@ -13,7 +16,6 @@ import {
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
-import { CommandOutput } from '../../../src/utils/commandOutput';
 import childProcess = require('child_process');
 
 describe('Debugger breakpoint service', () => {
@@ -145,15 +147,14 @@ describe('Debugger breakpoint service', () => {
     it('Should create successfully', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07bFAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service.createLineBreakpoint(
+      const cmdOutput = await service.createLineBreakpoint(
         'someProjectPath',
         '07aFAKE',
         'foo$inner',
         1
       );
 
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"id":"07bFAKE"}}');
-      expect(cmdOutput.getId()).to.equal('07bFAKE');
+      expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
         'force:data:record:create'
       ]);
@@ -255,13 +256,12 @@ describe('Debugger breakpoint service', () => {
     it('Should delete successfully', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07bFAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service.deleteLineBreakpoint(
+      const cmdOutput = await service.deleteLineBreakpoint(
         'someProjectPath',
         '07bFAKE'
       );
 
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"id":"07bFAKE"}}');
-      expect(cmdOutput.getId()).to.equal('07bFAKE');
+      expect(cmdOutput).to.equal('07bFAKE');
       expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
         'force:data:record:delete'
       ]);

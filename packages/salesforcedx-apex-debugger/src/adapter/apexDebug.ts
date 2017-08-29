@@ -27,7 +27,6 @@ import {
   StreamingService
 } from '../core';
 import { nls } from '../messages';
-import { CommandOutput } from '../utils/commandOutput';
 import os = require('os');
 
 export interface LaunchRequestArguments
@@ -93,7 +92,7 @@ export class ApexDebug extends DebugSession {
 
     this.sfdxProject = args.sfdxProject;
     try {
-      const cmdResponse = await this.mySessionService
+      const sessionId = await this.mySessionService
         .forProject(args.sfdxProject)
         .withUserFilter(args.userIdFilter)
         .withEntryFilter(args.entryPointFilter)
@@ -101,14 +100,10 @@ export class ApexDebug extends DebugSession {
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
-        this.logToDebugConsole(
-          nls.localize('session_started_text', cmdResponse.getId())
-        );
+        this.logToDebugConsole(nls.localize('session_started_text', sessionId));
       } else {
         this.errorToDebugConsole(
-          `${nls.localize(
-            'command_output_help_text'
-          )}:${os.EOL}${cmdResponse.getStdOut()}`
+          `${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`
         );
       }
     } catch (error) {
@@ -126,17 +121,17 @@ export class ApexDebug extends DebugSession {
     this.myStreamingService.disconnect();
     if (this.mySessionService.isConnected()) {
       try {
-        const cmdResponse = await this.mySessionService.stop();
+        const terminatedSessionId = await this.mySessionService.stop();
         if (!this.mySessionService.isConnected()) {
           response.success = true;
           this.logToDebugConsole(
-            nls.localize('session_terminated_text', cmdResponse.getId())
+            nls.localize('session_terminated_text', terminatedSessionId)
           );
         } else {
           this.errorToDebugConsole(
             `${nls.localize(
-              'command_output_help_text'
-            )}:${os.EOL}${cmdResponse.getStdOut()}`
+              'command_error_help_text'
+            )}:${os.EOL}${terminatedSessionId}`
           );
         }
       } catch (error) {
@@ -180,7 +175,7 @@ export class ApexDebug extends DebugSession {
             serverLine
           );
           if (typeref) {
-            const cmdOutput = await this.myBreakpointService.createLineBreakpoint(
+            const breakpointId = await this.myBreakpointService.createLineBreakpoint(
               this.sfdxProject,
               this.mySessionService.getSessionId(),
               typeref,
@@ -189,7 +184,7 @@ export class ApexDebug extends DebugSession {
             this.myBreakpointService.cacheBreakpoint(
               uri,
               clientLine,
-              cmdOutput.getId()
+              breakpointId
             );
             processedBreakpoints.push({
               verified: true,
@@ -242,14 +237,12 @@ export class ApexDebug extends DebugSession {
           }
           this.myBreakpointService.setValidLines(lineNumberMapping);
         }
-        this.sendResponse(
-          {
-            request_seq: 1,
-            seq: 0,
-            success: true,
-            type: 'response'
-          } as DebugProtocol.InitializeResponse
-        );
+        this.sendResponse({
+          request_seq: 1,
+          seq: 0,
+          success: true,
+          type: 'response'
+        } as DebugProtocol.InitializeResponse);
         break;
       default:
         break;

@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  CommandOutput,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
-import { CommandOutput } from '../../../src/utils/commandOutput';
 import childProcess = require('child_process');
 
 describe('Debugger session service', () => {
@@ -55,10 +57,9 @@ describe('Debugger session service', () => {
     it('Should start successfully', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07aFAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service.start();
+      const cmdOutput = await service.start();
 
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"id":"07aFAKE"}}');
-      expect(cmdOutput.getId()).to.equal('07aFAKE');
+      expect(cmdOutput).to.equal('07aFAKE');
       expect(service.isConnected()).to.equal(true);
       expect(service.getSessionId()).to.equal('07aFAKE');
     });
@@ -169,10 +170,9 @@ describe('Debugger session service', () => {
     it('Should stop successfully', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07aFAKE"}}'));
 
-      const cmdOutput: CommandOutput = await service.stop();
+      const cmdOutput = await service.stop();
 
-      expect(cmdOutput.getStdOut()).to.equal('{"result":{"id":"07aFAKE"}}');
-      expect(cmdOutput.getId()).to.equal('07aFAKE');
+      expect(cmdOutput).to.equal('07aFAKE');
       expect(service.isConnected()).to.equal(false);
       expect(service.getSessionId()).to.equal('');
     });

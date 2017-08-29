@@ -8,9 +8,9 @@
 import {
   CliCommandExecutor,
   CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '../utils/commandOutput';
 
 export class SessionService {
   private static instance: SessionService;
@@ -60,7 +60,7 @@ export class SessionService {
     return id != null && id.startsWith('07a');
   }
 
-  public async start(): Promise<CommandOutput> {
+  public async start(): Promise<string> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:create')
@@ -75,19 +75,23 @@ export class SessionService {
         .build(),
       { cwd: this.project }
     ).execute();
-    const result = await this.getIdFromCommandResult(execution);
-    if (this.isApexDebuggerSessionId(result.getId())) {
-      this.sessionId = result.getId();
+
+    const output = new CommandOutput();
+    const result = await output.getCmdResult(execution);
+
+    //const result = await this.getIdFromCommandResult(execution);
+    if (result.id && this.isApexDebuggerSessionId(result.id)) {
+      this.sessionId = result.id;
       this.connected = true;
-      return Promise.resolve(result);
+      return Promise.resolve(this.sessionId);
     } else {
       this.sessionId = '';
       this.connected = false;
-      return Promise.reject(result.getStdOut());
+      return Promise.reject(output.getStdOut());
     }
   }
 
-  public async stop(): Promise<CommandOutput> {
+  public async stop(): Promise<string> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:update')
@@ -99,14 +103,17 @@ export class SessionService {
         .build(),
       { cwd: this.project }
     ).execute();
-    const result = await this.getIdFromCommandResult(execution);
-    if (this.isApexDebuggerSessionId(result.getId())) {
+    const output = new CommandOutput();
+    const result = await output.getCmdResult(execution);
+
+    //const result = await this.getIdFromCommandResult(execution);
+    if (result.id && this.isApexDebuggerSessionId(result.id)) {
       this.sessionId = '';
       this.connected = false;
-      return Promise.resolve(result);
+      return Promise.resolve(result.id);
     } else {
       this.connected = true;
-      return Promise.reject(result.getStdOut());
+      return Promise.reject(output.getStdOut());
     }
   }
 
