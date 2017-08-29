@@ -16,7 +16,6 @@ import {
 } from '../src/spectron/application';
 
 const TITLE = 'Scaffolding Commands Tests';
-const NUM_FILES_CREATED_LIGHTNING_APP_EVT = 6;
 
 const WORKSPACE_PATH = path.join(
   createWorkspace(path.join(process.cwd(), 'assets', 'sfdx-simple')),
@@ -149,11 +148,6 @@ describe('Scaffolding commands', () => {
     if (lightningAppTab) {
       await common.closeTab();
     }
-
-    await app.command('workbench.action.quickOpen');
-    await common.type(fileName);
-    const elCount = await common.getQuickOpenElements();
-    expect(elCount).to.equal(NUM_FILES_CREATED_LIGHTNING_APP_EVT);
   });
 
   it('Should create Lightning component', async () => {
@@ -181,11 +175,6 @@ describe('Scaffolding commands', () => {
     if (lightningComponentTab) {
       await common.closeTab();
     }
-
-    await app.command('workbench.action.quickOpen');
-    await common.type(fileName);
-    const elCount = await common.getQuickOpenElements();
-    expect(elCount).to.equal(NUM_FILES_CREATED_LIGHTNING_APP_EVT);
   });
 
   it('Should create Lightning event', async () => {
@@ -213,11 +202,6 @@ describe('Scaffolding commands', () => {
     if (lightningEventTab) {
       await common.closeTab();
     }
-
-    await app.command('workbench.action.quickOpen');
-    await common.type(fileName);
-    const elCount = await common.getQuickOpenElements();
-    expect(elCount).to.equal(2);
   });
 
   it('Should create Lightning interface', async () => {
@@ -245,10 +229,5 @@ describe('Scaffolding commands', () => {
     if (lightningInterfaceTab) {
       await common.closeTab();
     }
-
-    await app.command('workbench.action.quickOpen');
-    await common.type(fileName);
-    const elCount = await common.getQuickOpenElements();
-    expect(elCount).to.equal(2);
   });
 });
