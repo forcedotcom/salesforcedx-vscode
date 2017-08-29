@@ -207,45 +207,6 @@ export type TempFile = {
   fileName: string;
 };
 
-export class CreateApexTempFile
-  implements ParametersGatherer<{ fileName: string }> {
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ fileName: string }>
-  > {
-    if (vscode.workspace.rootPath) {
-      const fileName = path.join(
-        vscode.workspace.rootPath,
-        '.sfdx',
-        'tools',
-        'tempApex.input'
-      );
-      const editor = await vscode.window.activeTextEditor;
-
-      if (!editor || editor.selection.isEmpty) {
-        return { type: 'CANCEL' };
-      }
-      const document = editor.document;
-      const writeFile = await writeFileAsync(fileName, document.getText());
-      return writeFile
-        ? { type: 'CONTINUE', data: { fileName } }
-        : { type: 'CANCEL' };
-    }
-    return { type: 'CANCEL' };
-  }
-}
-
-function writeFileAsync(fileName: string, inputText: string) {
-  return new Promise(function(resolve, reject) {
-    fs.writeFile(fileName, inputText, function(err: any, result: any) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(true);
-      }
-    });
-  });
-}
-
 export class SelectFileName
   implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
