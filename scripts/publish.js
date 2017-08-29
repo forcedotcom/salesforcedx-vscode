@@ -69,6 +69,9 @@ if (nextVersion) {
   );
 }
 
+// Reformat with prettier since lerna changes the formatting in package.json
+shell.exec('./scripts/reformat-with-prettier.js');
+
 // Generate the .vsix files
 shell.exec(`npm run vscode:package`);
 
