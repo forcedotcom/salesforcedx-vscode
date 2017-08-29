@@ -31,6 +31,7 @@
     "vscode-debugadapter-testsupport": "1.22.0"
   },
   "scripts": {
+    "vscode:package": "npm prune --production",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
