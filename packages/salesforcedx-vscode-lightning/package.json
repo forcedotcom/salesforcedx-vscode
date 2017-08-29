@@ -49,10 +49,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "sfdx.debug.provideInitialConfigurations"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "languages": [
