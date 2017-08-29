@@ -8,9 +8,9 @@
 import {
   CliCommandExecutor,
   CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '../utils/commandOutput';
 import { StreamingClient, StreamingClientInfo } from './streamingClient';
 
 export interface OrgInfo {
@@ -99,7 +99,8 @@ export class StreamingService {
       { cwd: projectPath }
     ).execute();
 
-    return this.getCmdResult(execution);
+    const output = new CommandOutput();
+    return output.getCmdResult(execution);
   }
 
   private async getCmdResult(execution: CommandExecution): Promise<OrgInfo> {
