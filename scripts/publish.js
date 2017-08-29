@@ -16,7 +16,7 @@ shell.set('+v');
 const [version, major, minor, patch] = process.version.match(
   /^v(\d+)\.?(\d+)\.?(\*|\d+)$/
 );
-if (major !== 7 || minor < 9) {
+if (parseInt(major) !== 7 || parseInt(minor) < 9) {
   console.log(
     'You do not have the right version of node. We require version 7.9.0 and above (but not Node 8, yet).'
   );
