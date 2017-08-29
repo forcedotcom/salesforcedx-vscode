@@ -23,6 +23,7 @@ import {
 } from 'vscode-languageserver';
 
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport
 const connection: IConnection = createConnection(
@@ -90,10 +91,10 @@ function validateTextDocument(textDocument: TextDocument): void {
           start: { line: i, character: index },
           end: { line: i, character: index + foundStringLength }
         },
-        message: `Deprecated SLDS class name (v2.3.1): ${line.substr(
+        message: nls.localize('deprecated_class_name', line.substr(
           index,
           foundStringLength
-        )} should be ${fixedString}`,
+        ), fixedString),
         source: 'slds'
       };
       activeDiagnostics.push(diagnostic);
@@ -131,7 +132,7 @@ connection.onCodeAction(params => {
 
         result.push(
           Command.create(
-            `Fix: ${diagnostic.message}`,
+            nls.localize('fix_problem', diagnostic.message),
             'deprecatedClassName',
             uri,
             edits
@@ -161,7 +162,7 @@ function allCodeActions(result: Command[], uri: string) {
     }
     result.push(
       Command.create(
-        `Fix: All fixable problems`,
+        nls.localize('fix_all'),
         'deprecatedClassName',
         uri,
         fixAllEdits
@@ -187,7 +188,7 @@ function sameCodeActions(result: Command[], uri: string, problem: string) {
 
         switch (problem) {
           case '0': {
-            codeMessage = 'SLDS deprecated class names';
+            codeMessage = nls.localize('general_deprecated_class_name');
             break;
           }
           default: {
@@ -199,7 +200,7 @@ function sameCodeActions(result: Command[], uri: string, problem: string) {
     }
     result.push(
       Command.create(
-        `Fix: All ${codeMessage}`,
+        nls.localize('fix_same', codeMessage),
         'deprecatedClassName',
         uri,
         fixSameEdits

@@ -6,6 +6,7 @@
  */
 
 import * as path from 'path';
+import { nls } from '../messages';
 
 import {
   commands,
@@ -81,7 +82,7 @@ export function createLanguageServer(
         .then(success => {
           if (!success) {
             window.showErrorMessage(
-              'Failed to apply SLDS Validator fixes to the document'
+              nls.localize('fix_error')
             );
           }
         });
