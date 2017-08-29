@@ -19,8 +19,9 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import {
+  CancelResponse,
   ContinueResponse,
-  CreateApexTempFile,
+  ParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -29,7 +30,6 @@ import {
 
 class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: TempFile): Command {
-    console.log('aaa');
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_execute_text'))
       .withArg('force:apex:execute')
@@ -56,6 +56,47 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
+}
+
+class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ fileName: string }>
+  > {
+    if (vscode.workspace.rootPath) {
+      const fileName = path.join(
+        vscode.workspace.rootPath,
+        '.sfdx',
+        'tools',
+        'tempApex.input'
+      );
+      const editor = await vscode.window.activeTextEditor;
+
+      if (!editor || editor.selection.isEmpty) {
+        return { type: 'CANCEL' };
+      }
+      const document = editor.document;
+      const writeFile = await writeFileAsync(
+        fileName,
+        document.getText(editor.selection)
+      );
+      return writeFile
+        ? { type: 'CONTINUE', data: { fileName } }
+        : { type: 'CANCEL' };
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
+export function writeFileAsync(fileName: string, inputText: string) {
+  return new Promise(function(resolve, reject) {
+    fs.writeFile(fileName, inputText, function(err: any, result: any) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
