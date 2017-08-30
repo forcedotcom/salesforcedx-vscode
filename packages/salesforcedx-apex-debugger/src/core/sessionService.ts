@@ -5,67 +5,125 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StreamingClient, StreamingClientInfo } from './streamingClient';
+import {
+  CliCommandExecutor,
+  CommandOutput,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
-export class StreamingService {
-  public static SYSTEM_EVENT_CHANNEL = '/systemTopic/ApexDebuggerSystemEvent';
-  public static USER_EVENT_CHANNEL = '/systemTopic/ApexDebuggerEvent';
-  public static DEFAULT_TIMEOUT = 14400;
-  private static instance: StreamingService;
-  private clients: StreamingClient[] = [];
+export class SessionService {
+  private static instance: SessionService;
+  private userFilter: string;
+  private requestFilter: string;
+  private entryFilter: string;
+  private project: string;
+  private sessionId: string;
+  private connected = false;
 
   public static getInstance() {
-    if (!StreamingService.instance) {
-      StreamingService.instance = new StreamingService();
+    if (!SessionService.instance) {
+      SessionService.instance = new SessionService();
     }
-    return StreamingService.instance;
+    return SessionService.instance;
   }
 
-  public getClients(): StreamingClient[] {
-    return this.clients;
+  public withUserFilter(filter?: string): SessionService {
+    this.userFilter = filter || '';
+    return this;
   }
 
-  public async subscribe(
-    projectPath: string,
-    instanceUrl: string,
-    accessToken: string,
-    clientInfos: StreamingClientInfo[]
-  ): Promise<boolean> {
-    const apiVersion = '41.0';
-    const urlElements = [instanceUrl, 'cometd', apiVersion];
-    const streamUrl = urlElements.join('/');
-
-    for (const clientInfo of clientInfos) {
-      const streamingClient = new StreamingClient(
-        streamUrl,
-        accessToken,
-        clientInfo
-      );
-      this.clients.push(streamingClient);
-    }
-
-    for (const client of this.clients) {
-      await client.subscribe();
-    }
-    return Promise.resolve(this.isReady());
+  public withRequestFilter(filter?: string): SessionService {
+    this.requestFilter = filter || '';
+    return this;
   }
 
-  public disconnect(): void {
-    for (const client of this.clients) {
-      client.disconnect();
-    }
-    this.clients = [];
+  public withEntryFilter(filter?: string): SessionService {
+    this.entryFilter = filter || '';
+    return this;
   }
 
-  public isReady(): boolean {
-    if (this.clients && this.clients.length > 0) {
-      for (const client of this.clients) {
-        if (!client.isConnected()) {
-          return false;
-        }
+  public forProject(project?: string): SessionService {
+    this.project = project || '';
+    return this;
+  }
+
+  public isConnected(): boolean {
+    return this.connected;
+  }
+
+  public getSessionId(): string {
+    return this.sessionId;
+  }
+
+  public isApexDebuggerSessionId(id: string): boolean {
+    return id != null && id.startsWith('07a');
+  }
+
+  public async start(): Promise<string> {
+    const execution = new CliCommandExecutor(
+      new SfdxCommandBuilder()
+        .withArg('force:data:record:create')
+        .withFlag('--sobjecttype', 'ApexDebuggerSession')
+        .withFlag(
+          '--values',
+          `UserIdFilter='${this.userFilter}' EntryPointFilter='${this
+            .entryFilter}' RequestTypeFilter='${this.requestFilter}'`
+        )
+        .withArg('--usetoolingapi')
+        .withArg('--json')
+        .build(),
+      { cwd: this.project }
+    ).execute();
+
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sessionId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerSessionId(sessionId)) {
+        this.sessionId = sessionId;
+        this.connected = true;
+        return Promise.resolve(this.sessionId);
+      } else {
+        this.sessionId = '';
+        this.connected = false;
+        return Promise.reject(result);
       }
-      return true;
+    } catch (e) {
+      return Promise.reject(result);
     }
-    return false;
+  }
+
+  public async stop(): Promise<string> {
+    const execution = new CliCommandExecutor(
+      new SfdxCommandBuilder()
+        .withArg('force:data:record:update')
+        .withFlag('--sobjecttype', 'ApexDebuggerSession')
+        .withFlag('--sobjectid', this.sessionId)
+        .withFlag('--values', "Status='Detach'")
+        .withArg('--usetoolingapi')
+        .withArg('--json')
+        .build(),
+      { cwd: this.project }
+    ).execute();
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sessionId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerSessionId(sessionId)) {
+        this.sessionId = '';
+        this.connected = false;
+        return Promise.resolve(sessionId);
+      } else {
+        this.connected = true;
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(result);
+    }
+  }
+
+  public forceStop(): void {
+    this.sessionId = '';
+    this.connected = false;
   }
 }
