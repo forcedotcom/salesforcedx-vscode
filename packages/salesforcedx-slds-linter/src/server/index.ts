@@ -47,10 +47,6 @@ connection.onInitialize((params): InitializeResult => {
     capabilities: {
       // Tell the client that the server works in FULL text document sync mode
       textDocumentSync: documents.syncKind,
-      // Tell the client that the server support code complete
-      completionProvider: {
-        resolveProvider: true
-      },
       codeActionProvider: true
     }
   };
@@ -101,7 +97,6 @@ function validateTextDocument(textDocument: TextDocument): void {
     }
   }
 
-  console.log(`${activeDiagnostics}`);
   // Send the computed diagnostics to VSCode.
   connection.sendDiagnostics({
     uri: textDocument.uri,
@@ -214,5 +209,6 @@ connection.onDidChangeWatchedFiles(change => {
   connection.console.log('We received an file change event');
 });
 
+let t: Thenable<string>;
 // Listen on the connection
 connection.listen();
