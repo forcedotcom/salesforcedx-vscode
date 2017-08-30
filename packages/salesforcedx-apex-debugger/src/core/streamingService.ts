@@ -7,10 +7,9 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '../utils/commandOutput';
 import { StreamingClient, StreamingClientInfo } from './streamingClient';
 
 export interface OrgInfo {
@@ -99,43 +98,13 @@ export class StreamingService {
       { cwd: projectPath }
     ).execute();
 
-    return this.getCmdResult(execution);
-  }
-
-  private async getCmdResult(execution: CommandExecution): Promise<OrgInfo> {
-    const outputHolder = new CommandOutput();
-    execution.stderrSubject.subscribe(data =>
-      outputHolder.setStdErr(data.toString())
-    );
-    execution.stdoutSubject.subscribe(data =>
-      outputHolder.setStdOut(data.toString())
-    );
-
-    return new Promise<
-      OrgInfo
-    >(
-      (
-        resolve: (result: OrgInfo) => void,
-        reject: (reason: string) => void
-      ) => {
-        execution.processExitSubject.subscribe(data => {
-          if (data != undefined && data.toString() === '0') {
-            try {
-              const cmdResult = JSON.parse(outputHolder.getStdOut());
-              if (cmdResult && cmdResult.result) {
-                const orgInfo = cmdResult.result as OrgInfo;
-                return resolve(orgInfo);
-              } else {
-                return reject(outputHolder.getStdOut());
-              }
-            } catch (e) {
-              return reject(outputHolder.getStdOut());
-            }
-          } else {
-            return reject(outputHolder.getStdErr());
-          }
-        });
-      }
-    );
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const orgInfo = JSON.parse(result).result as OrgInfo;
+      return Promise.resolve(orgInfo);
+    } catch (e) {
+      return Promise.reject(result);
+    }
   }
 }

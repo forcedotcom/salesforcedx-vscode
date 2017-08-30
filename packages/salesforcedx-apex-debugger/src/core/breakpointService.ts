@@ -7,14 +7,13 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ApexBreakpointLocation,
   LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
-import { CommandOutput } from '../utils/commandOutput';
 
 export class BreakpointService {
   private static instance: BreakpointService;
@@ -90,7 +89,7 @@ export class BreakpointService {
     sessionId: string,
     typeref: string,
     line: number
-  ): Promise<CommandOutput> {
+  ): Promise<string> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:create')
@@ -104,18 +103,25 @@ export class BreakpointService {
         .build(),
       { cwd: projectPath }
     ).execute();
-    const result = await this.getIdFromCommandResult(execution);
-    if (this.isApexDebuggerBreakpointId(result.getId())) {
-      return Promise.resolve(result);
-    } else {
-      return Promise.reject(result.getStdOut());
+
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const breakpointId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerBreakpointId(breakpointId)) {
+        return Promise.resolve(breakpointId);
+      } else {
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(result);
     }
   }
 
   public async deleteLineBreakpoint(
     projectPath: string,
     breakpointId: string
-  ): Promise<CommandOutput> {
+  ): Promise<string> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:delete')
@@ -126,11 +132,17 @@ export class BreakpointService {
         .build(),
       { cwd: projectPath }
     ).execute();
-    const result = await this.getIdFromCommandResult(execution);
-    if (this.isApexDebuggerBreakpointId(result.getId())) {
-      return Promise.resolve(result);
-    } else {
-      return Promise.reject(result.getStdOut());
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const deletedBreakpointId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerBreakpointId(deletedBreakpointId)) {
+        return Promise.resolve(deletedBreakpointId);
+      } else {
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(result);
     }
   }
 
@@ -170,44 +182,5 @@ export class BreakpointService {
 
   public clearSavedBreakpoints(): void {
     this.breakpointCache.clear();
-  }
-
-  private async getIdFromCommandResult(
-    execution: CommandExecution
-  ): Promise<CommandOutput> {
-    const outputHolder = new CommandOutput();
-    execution.stderrSubject.subscribe(data =>
-      outputHolder.setStdErr(data.toString())
-    );
-    execution.stdoutSubject.subscribe(data =>
-      outputHolder.setStdOut(data.toString())
-    );
-
-    return new Promise<
-      CommandOutput
-    >(
-      (
-        resolve: (result: CommandOutput) => void,
-        reject: (reason: string) => void
-      ) => {
-        execution.processExitSubject.subscribe(data => {
-          if (data != undefined && data.toString() === '0') {
-            try {
-              const respObj = JSON.parse(outputHolder.getStdOut());
-              if (respObj && respObj.result && respObj.result.id) {
-                outputHolder.setId(respObj.result.id);
-                return resolve(outputHolder);
-              } else {
-                return reject(outputHolder.getStdOut());
-              }
-            } catch (e) {
-              return reject(outputHolder.getStdOut());
-            }
-          } else {
-            return reject(outputHolder.getStdErr());
-          }
-        });
-      }
-    );
   }
 }

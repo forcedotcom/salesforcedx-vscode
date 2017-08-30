@@ -7,10 +7,9 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '../utils/commandOutput';
 
 export class SessionService {
   private static instance: SessionService;
@@ -60,7 +59,7 @@ export class SessionService {
     return id != null && id.startsWith('07a');
   }
 
-  public async start(): Promise<CommandOutput> {
+  public async start(): Promise<string> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:create')
@@ -75,19 +74,26 @@ export class SessionService {
         .build(),
       { cwd: this.project }
     ).execute();
-    const result = await this.getIdFromCommandResult(execution);
-    if (this.isApexDebuggerSessionId(result.getId())) {
-      this.sessionId = result.getId();
-      this.connected = true;
-      return Promise.resolve(result);
-    } else {
-      this.sessionId = '';
-      this.connected = false;
-      return Promise.reject(result.getStdOut());
+
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sessionId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerSessionId(sessionId)) {
+        this.sessionId = sessionId;
+        this.connected = true;
+        return Promise.resolve(this.sessionId);
+      } else {
+        this.sessionId = '';
+        this.connected = false;
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(result);
     }
   }
 
-  public async stop(): Promise<CommandOutput> {
+  public async stop(): Promise<string> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:update')
@@ -99,58 +105,25 @@ export class SessionService {
         .build(),
       { cwd: this.project }
     ).execute();
-    const result = await this.getIdFromCommandResult(execution);
-    if (this.isApexDebuggerSessionId(result.getId())) {
-      this.sessionId = '';
-      this.connected = false;
-      return Promise.resolve(result);
-    } else {
-      this.connected = true;
-      return Promise.reject(result.getStdOut());
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sessionId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerSessionId(sessionId)) {
+        this.sessionId = '';
+        this.connected = false;
+        return Promise.resolve(sessionId);
+      } else {
+        this.connected = true;
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(result);
     }
   }
 
   public forceStop(): void {
     this.sessionId = '';
     this.connected = false;
-  }
-
-  private async getIdFromCommandResult(
-    execution: CommandExecution
-  ): Promise<CommandOutput> {
-    const outputHolder = new CommandOutput();
-    execution.stderrSubject.subscribe(data =>
-      outputHolder.setStdErr(data.toString())
-    );
-    execution.stdoutSubject.subscribe(data =>
-      outputHolder.setStdOut(data.toString())
-    );
-
-    return new Promise<
-      CommandOutput
-    >(
-      (
-        resolve: (result: CommandOutput) => void,
-        reject: (reason: string) => void
-      ) => {
-        execution.processExitSubject.subscribe(data => {
-          if (data != undefined && data.toString() === '0') {
-            try {
-              const respObj = JSON.parse(outputHolder.getStdOut());
-              if (respObj && respObj.result && respObj.result.id) {
-                outputHolder.setId(respObj.result.id);
-                return resolve(outputHolder);
-              } else {
-                return reject(outputHolder.getStdOut());
-              }
-            } catch (e) {
-              return reject(outputHolder.getStdOut());
-            }
-          } else {
-            return reject(outputHolder.getStdErr());
-          }
-        });
-      }
-    );
   }
 }

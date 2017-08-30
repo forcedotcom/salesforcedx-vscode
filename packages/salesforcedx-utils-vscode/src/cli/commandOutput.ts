@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CommandExecution } from './commandExecutor';
+
 export class CommandOutput {
   private objectId: string;
   private stdErr: string;
@@ -32,5 +34,23 @@ export class CommandOutput {
 
   public getStdOut(): string {
     return this.stdOut;
+  }
+
+  public async getCmdResult(execution: CommandExecution): Promise<string> {
+    return new Promise<
+      any
+    >((resolve: (result: any) => void, reject: (reason: string) => void) => {
+      execution.processExitSubject.subscribe(data => {
+        if (data != undefined && data.toString() === '0') {
+          execution.stdoutSubject.subscribe(realData => {
+            return resolve(realData.toString());
+          });
+        } else {
+          execution.stderrSubject.subscribe(realData => {
+            reject(realData.toString());
+          });
+        }
+      });
+    });
   }
 }
