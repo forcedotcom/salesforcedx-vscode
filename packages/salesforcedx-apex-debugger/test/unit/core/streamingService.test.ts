@@ -234,7 +234,10 @@ describe('Debugger streaming service', () => {
       try {
         await service.getOrgInfo('foo');
       } catch (error) {
-        expect(error).to.equal('{ not valid JSON');
+        expect(error).to.be.an.instanceOf(SyntaxError);
+        expect(error.message).to.equal(
+          'Unexpected token n in JSON at position 2'
+        );
       }
     });
   });

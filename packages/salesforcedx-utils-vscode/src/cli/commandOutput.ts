@@ -36,30 +36,19 @@ export class CommandOutput {
     return this.stdOut;
   }
 
-  public async getCmdResult(execution: CommandExecution): Promise<any> {
-    const outputHolder = new CommandOutput();
-    execution.stderrSubject.subscribe(data =>
-      outputHolder.setStdErr(data.toString())
-    );
-
+  public async getCmdResult(execution: CommandExecution): Promise<string> {
     return new Promise<
       any
     >((resolve: (result: any) => void, reject: (reason: string) => void) => {
       execution.processExitSubject.subscribe(data => {
         if (data != undefined && data.toString() === '0') {
-          try {
-            execution.stdoutSubject.subscribe(realData => {
-              const cmdOutput = realData.toString();
-              const cmdResult = JSON.parse(cmdOutput.toString());
-              if (cmdResult && cmdResult.result) {
-                return resolve(cmdResult.result);
-              }
-            });
-          } catch (e) {
-            return reject(outputHolder.getStdOut());
-          }
+          execution.stdoutSubject.subscribe(realData => {
+            return resolve(realData.toString());
+          });
         } else {
-          return reject(outputHolder.getStdErr());
+          execution.stderrSubject.subscribe(realData => {
+            reject(realData.toString());
+          });
         }
       });
     });

@@ -76,18 +76,21 @@ export class SessionService {
       { cwd: this.project }
     ).execute();
 
-    const output = new CommandOutput();
-    const result = await output.getCmdResult(execution);
-
-    //const result = await this.getIdFromCommandResult(execution);
-    if (result.id && this.isApexDebuggerSessionId(result.id)) {
-      this.sessionId = result.id;
-      this.connected = true;
-      return Promise.resolve(this.sessionId);
-    } else {
-      this.sessionId = '';
-      this.connected = false;
-      return Promise.reject(output.getStdOut());
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sessionId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerSessionId(sessionId)) {
+        this.sessionId = sessionId;
+        this.connected = true;
+        return Promise.resolve(this.sessionId);
+      } else {
+        this.sessionId = '';
+        this.connected = false;
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 
@@ -103,17 +106,20 @@ export class SessionService {
         .build(),
       { cwd: this.project }
     ).execute();
-    const output = new CommandOutput();
-    const result = await output.getCmdResult(execution);
-
-    //const result = await this.getIdFromCommandResult(execution);
-    if (result.id && this.isApexDebuggerSessionId(result.id)) {
-      this.sessionId = '';
-      this.connected = false;
-      return Promise.resolve(result.id);
-    } else {
-      this.connected = true;
-      return Promise.reject(output.getStdOut());
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sessionId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerSessionId(sessionId)) {
+        this.sessionId = '';
+        this.connected = false;
+        return Promise.resolve(sessionId);
+      } else {
+        this.connected = true;
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 

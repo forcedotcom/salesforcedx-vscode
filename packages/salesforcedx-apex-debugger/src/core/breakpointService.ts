@@ -105,12 +105,17 @@ export class BreakpointService {
       { cwd: projectPath }
     ).execute();
 
-    const output = new CommandOutput();
-    const result = await output.getCmdResult(execution);
-    if (result.id && this.isApexDebuggerBreakpointId(result.id)) {
-      return Promise.resolve(result.id);
-    } else {
-      return Promise.reject(result);
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const breakpointId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerBreakpointId(breakpointId)) {
+        return Promise.resolve(breakpointId);
+      } else {
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 
@@ -128,12 +133,17 @@ export class BreakpointService {
         .build(),
       { cwd: projectPath }
     ).execute();
-    const output = new CommandOutput();
-    const result = await output.getCmdResult(execution);
-    if (result.id && this.isApexDebuggerBreakpointId(result.id)) {
-      return Promise.resolve(result.id);
-    } else {
-      return Promise.reject(result);
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const deletedBreakpointId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerBreakpointId(deletedBreakpointId)) {
+        return Promise.resolve(deletedBreakpointId);
+      } else {
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 

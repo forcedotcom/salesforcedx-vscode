@@ -155,10 +155,10 @@ describe('Debugger adapter - unit', () => {
 
     it('Should launch successfully', async () => {
       const cmdResponse = new CommandOutput();
-      cmdResponse.setId('07aFAKE');
+      const sessionId = '07aFAKE';
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
-        .returns(Promise.resolve(cmdResponse));
+        .returns(Promise.resolve(sessionId));
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
         .returns(true);
@@ -176,9 +176,7 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
-      ).to.have.string(
-        nls.localize('session_started_text', cmdResponse.getId())
-      );
+      ).to.have.string(nls.localize('session_started_text', sessionId));
       expect(adapter.getEvents()[1].event).to.equal('initialized');
     });
 
@@ -213,10 +211,10 @@ describe('Debugger adapter - unit', () => {
 
     it('Should not launch if streaming service errors out', async () => {
       const cmdResponse = new CommandOutput();
-      cmdResponse.setId('07aFAKE');
+      const sessionId = '07aFAKE';
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
-        .returns(Promise.resolve(cmdResponse));
+        .returns(Promise.resolve(sessionId));
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
         .returns(true);
@@ -236,7 +234,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should not launch without line number mapping', async () => {
       const cmdResponse = new CommandOutput();
-      cmdResponse.setId('07aFAKE');
+      const sessionId = '07aFAKE';
       sessionStartSpy = sinon.stub(SessionService.prototype, 'start');
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
       streamingSubscribeSpy = sinon.stub(
@@ -312,10 +310,10 @@ describe('Debugger adapter - unit', () => {
 
     it('Should try to disconnect and stop', async () => {
       const cmdResponse = new CommandOutput();
-      cmdResponse.setId('07aFAKE');
+      const sessionId = '07aFAKE';
       sessionStopSpy = sinon
         .stub(SessionService.prototype, 'stop')
-        .returns(Promise.resolve(cmdResponse));
+        .returns(Promise.resolve(sessionId));
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
       sessionConnectedSpy.onCall(0).returns(true);
       sessionConnectedSpy.onCall(1).returns(false);
@@ -326,9 +324,7 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getResponse(0)).to.deep.equal(response);
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
-      ).to.have.string(
-        nls.localize('session_terminated_text', cmdResponse.getId())
-      );
+      ).to.have.string(nls.localize('session_terminated_text', sessionId));
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
       expect(breakpointClearSpy.called).to.equal(false);
     });
@@ -406,8 +402,7 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should create breakpoint', async () => {
-      const cmdResponse = new CommandOutput();
-      cmdResponse.setId('07bFAKE');
+      const breakpointId = '07bFAKE';
       const bpLines = [1, 2];
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileBreakpoints')
@@ -417,7 +412,7 @@ describe('Debugger adapter - unit', () => {
         .returns('namespace/foo$inner');
       breakpointCreateSpy = sinon
         .stub(BreakpointService.prototype, 'createLineBreakpoint')
-        .returns(cmdResponse);
+        .returns(breakpointId);
       adapter.setSfdxProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
