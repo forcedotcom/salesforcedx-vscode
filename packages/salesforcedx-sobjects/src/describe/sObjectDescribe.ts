@@ -7,10 +7,9 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '../utils/commandOutput';
 
 export interface SObject {
   actionOverrides: any[];
@@ -157,61 +156,23 @@ export interface DescribeSObjectResult {
 }
 
 export class SObjectDescribe {
-  public async describe(
-    projectPath: string,
-    sobject: string
-  ): Promise<DescribeSObjectResult> {
+  public async describe(projectPath: string, type: string): Promise<SObject> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:schema:sobject:describe')
-        .withFlag('--sobjecttype', sobject)
+        .withFlag('--sobjecttype', type)
         .withArg('--json')
         .build(),
       { cwd: projectPath }
     ).execute();
 
-    return this.getCmdResult(execution);
-  }
-
-  private async getCmdResult(
-    execution: CommandExecution
-  ): Promise<DescribeSObjectResult> {
-    const outputHolder = new CommandOutput();
-    execution.stderrSubject.subscribe(data =>
-      outputHolder.setStdErr(data.toString())
-    );
-    let buffer = '';
-
-    return new Promise<
-      DescribeSObjectResult
-    >(
-      (
-        resolve: (result: DescribeSObjectResult) => void,
-        reject: (reason: string) => void
-      ) => {
-        execution.processExitSubject.subscribe(data => {
-          if (data != undefined && data.toString() === '0') {
-            try {
-              execution.stdoutSubject.subscribe(realData => {
-                const output = realData.toString();
-                buffer = buffer.concat(output);
-                try {
-                  const describeResult = JSON.parse(
-                    buffer.toString()
-                  ) as DescribeSObjectResult;
-                  return resolve(describeResult);
-                } catch (e) {
-                  // JSON syntax error. realData has not finished streaming
-                }
-              });
-            } catch (e) {
-              return reject(outputHolder.getStdErr());
-            }
-          } else {
-            return reject(outputHolder.getStdErr());
-          }
-        });
-      }
-    );
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sobject = JSON.parse(result).result as SObject;
+      return Promise.resolve(sobject);
+    } catch (e) {
+      return Promise.reject(result);
+    }
   }
 }

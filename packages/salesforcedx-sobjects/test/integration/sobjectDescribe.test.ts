@@ -7,6 +7,7 @@
 
 import {
   CliCommandExecutor,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
@@ -14,21 +15,21 @@ import * as fs from 'fs';
 import * as sinon from 'sinon';
 import { SObjectDescribe } from '../../src/describe/sObjectDescribe';
 import { SObjectDescribeGlobal } from '../../src/describe/sObjectDescribeGlobal';
-import { CommandOutput } from '../../src/utils/commandOutput';
 import childProcess = require('child_process');
 
 describe('Fetch sObjects', () => {
   const sobjectdescribe = new SObjectDescribe();
   const describeGlobal = new SObjectDescribeGlobal();
 
-  const scratchDefFileName = 'sfdx-project.json';
-  before(() => {
+  const scratchDefFilePath = 'config/sfdx-project.json';
+  before(function(done) {
     console.log(process.cwd());
 
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:org:create')
-        .withFlag('--definitionfile', scratchDefFileName)
+        .withFlag('--definitionfile', scratchDefFilePath)
+        .withArg('--json')
         .build(),
       { cwd: process.cwd() }
     ).execute();
@@ -39,24 +40,37 @@ describe('Fetch sObjects', () => {
   });
 
   describe('Command line interaction', () => {
-    it('Should be able to call describe global', done => {
-      const cmdOutput: Promise<string[]> = describeGlobal.describeGlobal(
+    it('Should be able to call describe global', async function() {
+      const cmdOutput = await describeGlobal.describeGlobal(
         process.cwd(),
-        'all'
+        'custom'
       );
-      cmdOutput
-        .then(result => {
-          expect(result).to.equal('');
-        })
-        .then(done, done);
+      expect(cmdOutput.length).to.be.equal(0);
 
-      //expect(cmdOutput.length).to.equal(2);
+      // cmdOutput = await describeGlobal.describeGlobal(
+      //   process.cwd(),
+      //   'standard'
+      // );
+      // expect(cmdOutput.length).to.be.equal(396);
     });
+
+    // it('Should be able to call describe global', done => {
+    //   const cmdOutput: Promise<string[]> = describeGlobal.describeGlobal(
+    //     process.cwd(),
+    //     'all'
+    //   );
+    //   cmdOutput
+    //     .then(result => {
+    //       expect(result).to.equal('');
+    //     })
+    //     .then(done, done);
+
+    //   //expect(cmdOutput.length).to.equal(2);
+    // });
   });
 
   it('Should be able to call describe', async () => {
     const cmdOutput = await sobjectdescribe.describe(process.cwd(), 'Account');
-
-    expect(cmdOutput.result.name).to.equal('Account');
+    expect(cmdOutput.name).to.equal('Account');
   });
 });
