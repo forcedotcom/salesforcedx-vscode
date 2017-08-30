@@ -7,7 +7,6 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -115,7 +114,7 @@ export class BreakpointService {
         return Promise.reject(result);
       }
     } catch (e) {
-      return Promise.reject(e);
+      return Promise.reject(result);
     }
   }
 
@@ -143,7 +142,7 @@ export class BreakpointService {
         return Promise.reject(result);
       }
     } catch (e) {
-      return Promise.reject(e);
+      return Promise.reject(result);
     }
   }
 

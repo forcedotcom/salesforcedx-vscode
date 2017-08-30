@@ -7,7 +7,6 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -90,7 +89,7 @@ export class SessionService {
         return Promise.reject(result);
       }
     } catch (e) {
-      return Promise.reject(e);
+      return Promise.reject(result);
     }
   }
 
@@ -119,51 +118,12 @@ export class SessionService {
         return Promise.reject(result);
       }
     } catch (e) {
-      return Promise.reject(e);
+      return Promise.reject(result);
     }
   }
 
   public forceStop(): void {
     this.sessionId = '';
     this.connected = false;
-  }
-
-  private async getIdFromCommandResult(
-    execution: CommandExecution
-  ): Promise<CommandOutput> {
-    const outputHolder = new CommandOutput();
-    execution.stderrSubject.subscribe(data =>
-      outputHolder.setStdErr(data.toString())
-    );
-    execution.stdoutSubject.subscribe(data =>
-      outputHolder.setStdOut(data.toString())
-    );
-
-    return new Promise<
-      CommandOutput
-    >(
-      (
-        resolve: (result: CommandOutput) => void,
-        reject: (reason: string) => void
-      ) => {
-        execution.processExitSubject.subscribe(data => {
-          if (data != undefined && data.toString() === '0') {
-            try {
-              const respObj = JSON.parse(outputHolder.getStdOut());
-              if (respObj && respObj.result && respObj.result.id) {
-                outputHolder.setId(respObj.result.id);
-                return resolve(outputHolder);
-              } else {
-                return reject(outputHolder.getStdOut());
-              }
-            } catch (e) {
-              return reject(outputHolder.getStdOut());
-            }
-          } else {
-            return reject(outputHolder.getStdErr());
-          }
-        });
-      }
-    );
   }
 }
