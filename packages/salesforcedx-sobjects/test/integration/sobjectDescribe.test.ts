@@ -71,7 +71,6 @@ describe('Fetch sObjects', () => {
 
   it('Should be able to call describe', async () => {
     const cmdOutput = await sobjectdescribe.describe(process.cwd(), 'Account');
-
     expect(cmdOutput.name).to.equal('Account');
   });
 });
