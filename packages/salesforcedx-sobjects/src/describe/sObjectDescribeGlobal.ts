@@ -7,10 +7,9 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '../utils/commandOutput';
 
 export class SObjectDescribeGlobal {
   public async describeGlobal(
@@ -26,50 +25,13 @@ export class SObjectDescribeGlobal {
       { cwd: projectPath }
     ).execute();
 
-    return this.getCmdResult(execution);
-  }
-
-  private async getCmdResult(execution: CommandExecution): Promise<string[]> {
-    const outputHolder = new CommandOutput();
-    execution.stderrSubject.subscribe(data =>
-      outputHolder.setStdErr(data.toString())
-    );
-
-    return new Promise<
-      string[]
-    >(
-      (
-        resolve: (result: string[]) => void,
-        reject: (reason: string) => void
-      ) => {
-        execution.processExitSubject.subscribe(
-          data => {
-            if (data != undefined && data.toString() === '0') {
-              try {
-                execution.stdoutSubject.subscribe(realData => {
-                  const output = JSON.parse(realData.toString());
-                  if (output && output.result) {
-                    const describeResult = output.result as string[];
-                    return resolve(describeResult);
-                  } else {
-                    reject(realData.toString());
-                  }
-                });
-              } catch (e) {
-                return reject(outputHolder.getStdOut());
-              }
-            } else {
-              return reject(outputHolder.getStdErr());
-            }
-          },
-          err => {
-            console.log('error');
-          },
-          () => {
-            console.log('completed');
-          }
-        );
-      }
-    );
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sobjects = JSON.parse(result).result as string[];
+      return Promise.resolve(sobjects);
+    } catch (e) {
+      return Promise.reject(result);
+    }
   }
 }

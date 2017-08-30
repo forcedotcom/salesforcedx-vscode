@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SObjectDescribe } from '../describe';
 
+
 export class FauxClassGenerator {
   public async generate(projectPath: string, type: string) {
     const describe = new SObjectDescribe();
