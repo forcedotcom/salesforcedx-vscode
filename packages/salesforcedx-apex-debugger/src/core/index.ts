@@ -16,4 +16,4 @@ export {
   StreamingClientInfoBuilder,
   StreamingEvent
 } from './streamingClient';
-export { OrgInfo, StreamingService } from './streamingService';
+export { StreamingService } from './streamingService';

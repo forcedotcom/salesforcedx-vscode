@@ -12,6 +12,7 @@
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.7.0",
     "faye": "1.1.2",
+    "request-light": "0.2.1",
     "vscode-debugadapter": "1.22.0",
     "vscode-debugprotocol": "1.22.0"
   },
