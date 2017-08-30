@@ -99,8 +99,14 @@ export class StreamingService {
       { cwd: projectPath }
     ).execute();
 
-    const output = new CommandOutput();
-    return output.getCmdResult(execution);
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const orgInfo = JSON.parse(result).result as OrgInfo;
+      return Promise.resolve(orgInfo);
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 
   private async getCmdResult(execution: CommandExecution): Promise<OrgInfo> {

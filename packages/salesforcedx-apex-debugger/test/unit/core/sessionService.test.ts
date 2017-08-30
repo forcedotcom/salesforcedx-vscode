@@ -119,7 +119,7 @@ describe('Debugger session service', () => {
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
         expect(service.isConnected()).to.equal(false);
-        expect(service.getSessionId()).to.an('undefined');
+        expect(service.getSessionId()).to.equal('');
       }
     });
 
@@ -229,7 +229,7 @@ describe('Debugger session service', () => {
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
-        expect(service.isConnected()).to.equal(false);
+        expect(service.isConnected()).to.equal(true);
         expect(service.getSessionId()).to.an('undefined');
       }
     });
