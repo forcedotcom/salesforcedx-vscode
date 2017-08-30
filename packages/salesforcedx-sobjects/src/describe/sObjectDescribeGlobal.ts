@@ -7,10 +7,16 @@
 
 import {
   CliCommandExecutor,
+<<<<<<< HEAD
   CommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CommandOutput } from '../utils/commandOutput';
+=======
+  CommandOutput,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+>>>>>>> Rebase from refactorCmdOutput
 
 export class SObjectDescribeGlobal {
   public async describeGlobal(
@@ -26,6 +32,7 @@ export class SObjectDescribeGlobal {
       { cwd: projectPath }
     ).execute();
 
+<<<<<<< HEAD
     return this.getCmdResult(execution);
   }
 
@@ -71,5 +78,15 @@ export class SObjectDescribeGlobal {
         );
       }
     );
+=======
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sobjects = JSON.parse(result).result as string[];
+      return Promise.resolve(sobjects);
+    } catch (e) {
+      return Promise.reject(result);
+    }
+>>>>>>> Rebase from refactorCmdOutput
   }
 }

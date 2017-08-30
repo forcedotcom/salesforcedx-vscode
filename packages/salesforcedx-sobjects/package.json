@@ -10,7 +10,7 @@
     "vscode": "^1.15.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.5.1",
+    "@salesforce/salesforcedx-utils-vscode": "40.8.0",
     "jsforce": "1.7.1"
   },
   "devDependencies": {
@@ -28,6 +28,7 @@
     "cross-env": "5.0.4"
   },
   "scripts": {
+    "vscode:package": "npm prune --production",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",

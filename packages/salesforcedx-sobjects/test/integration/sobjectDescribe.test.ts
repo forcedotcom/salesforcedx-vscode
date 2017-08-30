@@ -7,56 +7,85 @@
 
 import {
   CliCommandExecutor,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
-import * as fs from 'fs';
-import * as sinon from 'sinon';
+import * as jsforce from 'jsforce';
 import { SObjectDescribe } from '../../src/describe/sObjectDescribe';
-import { SObjectDescribeGlobal } from '../../src/describe/sObjectDescribeGlobal';
-import { CommandOutput } from '../../src/utils/commandOutput';
-import childProcess = require('child_process');
 
-describe('Fetch sObjects', () => {
+describe('Fetch sObjects', function() {
+  // tslint:disable-next-line:no-invalid-this
+  this.timeout(10000);
+  let username: string;
   const sobjectdescribe = new SObjectDescribe();
-  const describeGlobal = new SObjectDescribeGlobal();
-
-  const scratchDefFileName = 'sfdx-project.json';
-  before(() => {
-    console.log(process.cwd());
-
+  const scratchDefFilePath =
+    '/packages/salesforcedx-sobjects/test/integration/config/project-scratch-def.json';
+  before(async function() {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:org:create')
-        .withFlag('--definitionfile', scratchDefFileName)
+        .withFlag('--definitionfile', process.cwd() + scratchDefFilePath)
+        .withArg('--json')
         .build(),
       { cwd: process.cwd() }
     ).execute();
+    const cmdOutput = new CommandOutput();
+
+    const result = await cmdOutput.getCmdResult(execution);
+    username = JSON.parse(result).result.username;
+    await createCustomObject(username);
   });
 
-  after(() => {
-    //
-  });
-
-  describe('Command line interaction', () => {
-    it('Should be able to call describe global', done => {
-      const cmdOutput: Promise<string[]> = describeGlobal.describeGlobal(
-        process.cwd(),
-        'all'
-      );
-      cmdOutput
-        .then(result => {
-          expect(result).to.equal('');
-        })
-        .then(done, done);
-
-      //expect(cmdOutput.length).to.equal(2);
-    });
-  });
-
-  it('Should be able to call describe', async () => {
-    const cmdOutput = await sobjectdescribe.describe(process.cwd(), 'Account');
-
-    expect(cmdOutput.result.name).to.equal('Account');
+  it('Should be able to call describe global', async function() {
+    const cmdOutput = await sobjectdescribe.describeGlobal(
+      process.cwd(),
+      'custom',
+      username
+    );
+    expect(cmdOutput.length).to.be.equal(1);
+    expect(cmdOutput[0]).to.be.equal('SampleObject__c');
   });
 });
+
+async function createCustomObject(username: string) {
+  let orgInfo: any;
+  const execution = new CliCommandExecutor(
+    new SfdxCommandBuilder()
+      .withArg('force:org:display')
+      .withFlag('--targetusername', username)
+      .withArg('--json')
+      .build(),
+    { cwd: process.cwd() }
+  ).execute();
+  const cmdOutput = new CommandOutput();
+  const result = await cmdOutput.getCmdResult(execution);
+  orgInfo = JSON.parse(result).result;
+  const token = orgInfo.accessToken;
+  const url = orgInfo.instanceUrl;
+
+  const conn = new jsforce.Connection({
+    accessToken: token,
+    instanceUrl: url
+  });
+  const customObject = {
+    fullName: 'SampleObject__c',
+    label: 'Sample Object',
+    pluralLabel: 'Sample Object',
+    nameField: {
+      type: 'Text',
+      label: 'Sample Object'
+    },
+    deploymentStatus: 'Deployed',
+    sharingModel: 'ReadWrite'
+  };
+  const mdapi = (conn as any).metadata;
+  await mdapi.create('CustomObject', customObject, function(
+    err: any,
+    metadata: any
+  ) {
+    if (err) {
+      Promise.reject(err);
+    }
+  });
+}
