@@ -154,7 +154,6 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should launch successfully', async () => {
-      const cmdResponse = new CommandOutput();
       const sessionId = '07aFAKE';
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
@@ -210,7 +209,6 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should not launch if streaming service errors out', async () => {
-      const cmdResponse = new CommandOutput();
       const sessionId = '07aFAKE';
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
@@ -233,8 +231,6 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should not launch without line number mapping', async () => {
-      const cmdResponse = new CommandOutput();
-      const sessionId = '07aFAKE';
       sessionStartSpy = sinon.stub(SessionService.prototype, 'start');
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
       streamingSubscribeSpy = sinon.stub(
@@ -309,7 +305,6 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should try to disconnect and stop', async () => {
-      const cmdResponse = new CommandOutput();
       const sessionId = '07aFAKE';
       sessionStopSpy = sinon
         .stub(SessionService.prototype, 'stop')
