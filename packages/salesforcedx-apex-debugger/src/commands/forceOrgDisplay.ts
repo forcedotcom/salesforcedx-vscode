@@ -7,7 +7,6 @@
 
 import {
   CliCommandExecutor,
-  CommandExecution,
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
