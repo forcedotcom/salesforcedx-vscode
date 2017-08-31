@@ -15,15 +15,17 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.7.0",
+  "version": "40.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": ["Languages"],
+  "categories": [
+    "Languages"
+  ],
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.8.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
@@ -42,8 +44,7 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
