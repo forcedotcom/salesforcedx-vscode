@@ -119,6 +119,13 @@ export class ApexDebugForTest extends ApexDebug {
     super.threadsRequest(response);
   }
 
+  public stackTraceReq(
+    response: DebugProtocol.StackTraceResponse,
+    args: DebugProtocol.StackTraceArguments
+  ): Promise<void> {
+    return super.stackTraceRequest(response, args);
+  }
+
   public customRequest(
     command: string,
     response: DebugProtocol.Response,
