@@ -7,7 +7,6 @@
 
 import { basename } from 'path';
 import {
-  ContinuedEvent,
   DebugSession,
   Event,
   InitializedEvent,
@@ -619,7 +618,6 @@ export class ApexDebug extends DebugSession {
       const threadId = this.requestThreads.indexOf(message.sobject.RequestId);
       if (threadId >= 0) {
         this.logEvent(message);
-        this.sendEvent(new ContinuedEvent(threadId, false));
       }
     }
   }
@@ -639,7 +637,7 @@ export class ApexDebug extends DebugSession {
           message.sobject.BreakpointId ? 'breakpoint' : 'step',
           this.requestThreads.indexOf(message.sobject.RequestId)
         );
-        (<DebugProtocol.StoppedEvent>stoppedEvent).body.allThreadsStopped = false;
+        (<DebugProtocol.StoppedEvent>stoppedEvent).body.allThreadsStopped = true;
         this.sendEvent(stoppedEvent);
       }
     }

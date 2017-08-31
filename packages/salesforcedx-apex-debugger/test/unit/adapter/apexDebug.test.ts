@@ -8,7 +8,6 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
-  ContinuedEvent,
   OutputEvent,
   Source,
   StackFrame,
@@ -1372,11 +1371,8 @@ describe('Debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().length).to.equal(1);
-      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents().length).to.equal(1);
       expect(adapter.getEvents()[0].event).to.equal('output');
-      expect(adapter.getEvents()[1].event).to.equal('continued');
-      const threadEvent = adapter.getEvents()[1] as ContinuedEvent;
-      expect(threadEvent.body.threadId).to.equal(0);
     });
 
     it('Should not handle unknown request', () => {
@@ -1438,9 +1434,12 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents().length).to.equal(2);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal('stopped');
-      const threadEvent = adapter.getEvents()[1] as StoppedEvent;
-      expect(threadEvent.body.reason).to.equal('breakpoint');
-      expect(threadEvent.body.threadId).to.equal(0);
+      const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
+      expect(stoppedEvent.body).to.deep.equal({
+        threadId: 0,
+        reason: 'breakpoint',
+        allThreadsStopped: true
+      });
     });
 
     it('Should send stepping stopped event', () => {
