@@ -28,7 +28,10 @@ import {
   ForceOrgDisplay,
   OrgInfo,
   RunCommand,
-  StateCommand
+  StateCommand,
+  StepIntoCommand,
+  StepOutCommand,
+  StepOverCommand
 } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
@@ -509,7 +512,7 @@ export class ApexDebug extends DebugSession {
         })
         .withMsgHandler((message: any) => {
           const data = message as DebuggerMessage;
-          if (data && data.sobject) {
+          if (data && data.sobject && data.event) {
             this.handleEvent(data);
           }
         })
@@ -521,20 +524,22 @@ export class ApexDebug extends DebugSession {
       projectPath,
       instanceUrl,
       accessToken,
-      clientInfos
+      clientInfos[0],
+      clientInfos[1]
     );
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    if (
-      !this.mySessionService.isConnected() ||
-      this.mySessionService.getSessionId() !== message.sobject.SessionId
-    ) {
-      return;
-    }
     const type: ApexDebuggerEventType = (<any>ApexDebuggerEventType)[
       message.sobject.Type
     ];
+    if (
+      !this.mySessionService.isConnected() ||
+      this.mySessionService.getSessionId() !== message.sobject.SessionId ||
+      this.myStreamingService.hasProcessedEvent(type, message.event.replayId)
+    ) {
+      return;
+    }
     switch (type) {
       case ApexDebuggerEventType.RequestFinished: {
         this.handleRequestFinished(message);
@@ -564,6 +569,7 @@ export class ApexDebug extends DebugSession {
         break;
       }
     }
+    this.myStreamingService.markEventProcessed(type, message.event.replayId);
   }
 
   public logEvent(message: DebuggerMessage): void {

@@ -11,6 +11,19 @@ import * as sinon from 'sinon';
 import { StreamingClient, StreamingClientInfoBuilder } from '../../../src/core';
 
 describe('Debugger streaming client', () => {
+  describe('Helpers', () => {
+    it('Should set & get replay ID', () => {
+      const client = new StreamingClient(
+        'https://www.salesforce.com',
+        '123',
+        new StreamingClientInfoBuilder().build()
+      );
+      client.setReplayId(2);
+
+      expect(client.getReplayId()).to.equal(2);
+    });
+  });
+
   describe('Faye', () => {
     let fayeHeaderSpy: sinon.SinonSpy;
 
@@ -23,8 +36,7 @@ describe('Debugger streaming client', () => {
     });
 
     it('Should set headers', () => {
-      // tslint:disable-next-line:no-unused-expression
-      new StreamingClient(
+      const client = new StreamingClient(
         'https://www.salesforce.com',
         '123',
         new StreamingClientInfoBuilder().build()
@@ -39,6 +51,7 @@ describe('Debugger streaming client', () => {
         'Content-Type',
         'application/json'
       ]);
+      expect(client.getReplayId()).to.equal(-1);
     });
   });
 });

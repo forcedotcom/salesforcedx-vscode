@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { OrgInfo } from '../../../src/commands/forceOrgDisplay';
 import {
+  ApexDebuggerEventType,
   StreamingClient,
   StreamingClientInfoBuilder,
   StreamingService
@@ -69,7 +70,8 @@ describe('Debugger streaming service', () => {
         'foo',
         'https://www.salesforce.com',
         '123',
-        [new StreamingClientInfoBuilder().build()]
+        new StreamingClientInfoBuilder().build(),
+        new StreamingClientInfoBuilder().build()
       );
       expect(isStreamingConnected).to.equal(true);
     });
@@ -83,7 +85,8 @@ describe('Debugger streaming service', () => {
         'foo',
         'https://www.salesforce.com',
         '123',
-        [new StreamingClientInfoBuilder().build()]
+        new StreamingClientInfoBuilder().build(),
+        new StreamingClientInfoBuilder().build()
       );
       expect(isStreamingConnected).to.equal(false);
     });
@@ -92,81 +95,312 @@ describe('Debugger streaming service', () => {
   describe('Disconnect', () => {
     let service: StreamingService;
     let clientDisconnectSpy: sinon.SinonStub;
+    let clientIsConnectedSpy: sinon.SinonStub;
+    let clientSubscribeSpy: sinon.SinonStub;
 
     beforeEach(() => {
       service = new StreamingService();
       clientDisconnectSpy = sinon.stub(StreamingClient.prototype, 'disconnect');
+      clientIsConnectedSpy = sinon
+        .stub(StreamingClient.prototype, 'isConnected')
+        .returns(true);
+      clientSubscribeSpy = sinon
+        .stub(StreamingClient.prototype, 'subscribe')
+        .returns(Promise.resolve());
     });
 
     afterEach(() => {
       clientDisconnectSpy.restore();
+      clientIsConnectedSpy.restore();
+      clientSubscribeSpy.restore();
     });
 
     it('Should not error out without any clients', () => {
-      service.disconnect();
-
-      expect(service.getClients().length).to.equal(0);
+      try {
+        service.disconnect();
+      } catch (error) {
+        expect.fail('Should not have thrown an exception');
+      }
     });
 
-    it('Should call streaming client disconnect', () => {
-      const client = new StreamingClient(
+    it('Should call streaming client disconnect', async () => {
+      await service.subscribe(
+        'foo',
         'https://www.salesforce.com',
-        '',
+        '123',
+        new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
-      service.getClients().push(client);
 
       service.disconnect();
 
-      expect(clientDisconnectSpy.calledOnce).to.equal(true);
-      expect(service.getClients().length).to.equal(0);
+      expect(clientDisconnectSpy.calledTwice).to.equal(true);
     });
   });
 
   describe('Is ready', () => {
     let service: StreamingService;
     let clientIsConnectedSpy: sinon.SinonStub;
+    let clientSubscribeSpy: sinon.SinonStub;
 
     beforeEach(() => {
       service = new StreamingService();
+      clientSubscribeSpy = sinon
+        .stub(StreamingClient.prototype, 'subscribe')
+        .returns(Promise.resolve());
     });
 
     afterEach(() => {
       if (clientIsConnectedSpy) {
         clientIsConnectedSpy.restore();
       }
+      clientSubscribeSpy.restore();
     });
 
     it('Should not be ready without any clients', () => {
       expect(service.isReady()).to.equal(false);
     });
 
-    it('Should not be ready if client is not ready', () => {
+    it('Should not be ready if client is not ready', async () => {
       clientIsConnectedSpy = sinon
         .stub(StreamingClient.prototype, 'isConnected')
         .returns(false);
-      const client = new StreamingClient(
+      await service.subscribe(
+        'foo',
         'https://www.salesforce.com',
-        '',
+        '123',
+        new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
-      service.getClients().push(client);
 
       expect(service.isReady()).to.equal(false);
     });
 
-    it('Should be ready if client is ready', () => {
+    it('Should be ready if client is ready', async () => {
       clientIsConnectedSpy = sinon
         .stub(StreamingClient.prototype, 'isConnected')
         .returns(true);
-      const client = new StreamingClient(
+      await service.subscribe(
+        'foo',
         'https://www.salesforce.com',
-        '',
+        '123',
+        new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
-      service.getClients().push(client);
 
       expect(service.isReady()).to.equal(true);
+    });
+  });
+
+  describe('Get client based on event type', () => {
+    let service: StreamingService;
+    let clientSubscribeSpy: sinon.SinonStub;
+    let clientIsConnectedSpy: sinon.SinonStub;
+    const systemEventClient = new StreamingClientInfoBuilder()
+      .forChannel(StreamingService.SYSTEM_EVENT_CHANNEL)
+      .build();
+    const userEventClient = new StreamingClientInfoBuilder()
+      .forChannel(StreamingService.USER_EVENT_CHANNEL)
+      .build();
+
+    before(async () => {
+      service = new StreamingService();
+      clientSubscribeSpy = sinon
+        .stub(StreamingClient.prototype, 'subscribe')
+        .returns(Promise.resolve());
+      clientIsConnectedSpy = sinon
+        .stub(StreamingClient.prototype, 'isConnected')
+        .returns(true);
+      await service.subscribe(
+        'foo',
+        'https://www.salesforce.com',
+        '123',
+        systemEventClient,
+        userEventClient
+      );
+    });
+
+    after(() => {
+      clientSubscribeSpy.restore();
+      clientIsConnectedSpy.restore();
+    });
+
+    it('Should handle ApexException', () => {
+      const client = service.getClient(ApexDebuggerEventType.ApexException)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.USER_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle Debug', () => {
+      const client = service.getClient(ApexDebuggerEventType.Debug)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.USER_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle LogLine', () => {
+      const client = service.getClient(ApexDebuggerEventType.ApexException)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.USER_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle OrgChange', () => {
+      const client = service.getClient(ApexDebuggerEventType.OrgChange)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle Ready', () => {
+      const client = service.getClient(ApexDebuggerEventType.Ready)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle RequestFinished', () => {
+      const client = service.getClient(ApexDebuggerEventType.RequestFinished)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle RequestStarted', () => {
+      const client = service.getClient(ApexDebuggerEventType.RequestStarted)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle Resumed', () => {
+      const client = service.getClient(ApexDebuggerEventType.Resumed)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle SessionTerminated', () => {
+      const client = service.getClient(
+        ApexDebuggerEventType.SessionTerminated
+      )!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle Stopped', () => {
+      const client = service.getClient(ApexDebuggerEventType.Stopped)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle SystemGack', () => {
+      const client = service.getClient(ApexDebuggerEventType.SystemGack)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle SystemInfo', () => {
+      const client = service.getClient(ApexDebuggerEventType.SystemInfo)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should handle SystemWarning', () => {
+      const client = service.getClient(ApexDebuggerEventType.SystemWarning)!;
+
+      expect(client.getClientInfo().channel).to.equal(
+        StreamingService.SYSTEM_EVENT_CHANNEL
+      );
+    });
+
+    it('Should not handle Heartbeat', () => {
+      const client = service.getClient(ApexDebuggerEventType.HeartBeat)!;
+
+      expect(client).to.equal(undefined);
+    });
+  });
+
+  describe('Replay ID', () => {
+    let service: StreamingService;
+    let clientSubscribeSpy: sinon.SinonStub;
+    let clientIsConnectedSpy: sinon.SinonStub;
+    let clientSetReplayIdSpy: sinon.SinonSpy;
+    const systemEventClient = new StreamingClientInfoBuilder()
+      .forChannel(StreamingService.SYSTEM_EVENT_CHANNEL)
+      .build();
+    const userEventClient = new StreamingClientInfoBuilder()
+      .forChannel(StreamingService.USER_EVENT_CHANNEL)
+      .build();
+
+    beforeEach(async () => {
+      service = new StreamingService();
+      clientSubscribeSpy = sinon
+        .stub(StreamingClient.prototype, 'subscribe')
+        .returns(Promise.resolve());
+      clientIsConnectedSpy = sinon
+        .stub(StreamingClient.prototype, 'isConnected')
+        .returns(true);
+      clientSetReplayIdSpy = sinon.spy(
+        StreamingClient.prototype,
+        'setReplayId'
+      );
+      await service.subscribe(
+        'foo',
+        'https://www.salesforce.com',
+        '123',
+        systemEventClient,
+        userEventClient
+      );
+    });
+
+    afterEach(() => {
+      clientSubscribeSpy.restore();
+      clientIsConnectedSpy.restore();
+      clientSetReplayIdSpy.restore();
+    });
+
+    it('Should not have processed event', () => {
+      expect(
+        service.hasProcessedEvent(ApexDebuggerEventType.Stopped, 2)
+      ).to.equal(false);
+    });
+
+    it('Should have processed event', () => {
+      service.markEventProcessed(ApexDebuggerEventType.Stopped, 2);
+
+      expect(
+        service.hasProcessedEvent(ApexDebuggerEventType.Stopped, 2)
+      ).to.equal(true);
+    });
+
+    it('Should have processed event if client cannot be determined', () => {
+      expect(
+        service.hasProcessedEvent(ApexDebuggerEventType.HeartBeat, 2)
+      ).to.equal(true);
+    });
+
+    it('Should not mark event processed if client cannot be determined', () => {
+      service.markEventProcessed(ApexDebuggerEventType.HeartBeat, 2);
+
+      expect(clientSetReplayIdSpy.called).to.equal(false);
     });
   });
 });
