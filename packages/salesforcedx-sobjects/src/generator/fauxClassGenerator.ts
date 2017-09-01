@@ -7,7 +7,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { SObjectDescribe } from '../describe';
+<<<<<<< HEAD
 
+=======
+>>>>>>> Initial working integration test
 
 export class FauxClassGenerator {
   public async generate(projectPath: string, type: string) {
