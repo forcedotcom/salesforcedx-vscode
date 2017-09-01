@@ -1180,7 +1180,7 @@ describe('Debugger adapter - unit', () => {
       sessionIdSpy.restore();
     });
 
-    it('Should send stopped event', () => {
+    it('Should send breakpoint stopped event', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1203,16 +1203,36 @@ describe('Debugger adapter - unit', () => {
       expect(threadEvent.body.threadId).to.equal(0);
     });
 
-    it('Should not handle without breakpoint ID', () => {
+    it('Should send stepping stopped event', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
           SessionId: '123',
           Type: 'Stopped',
-          RequestId: '07cFAKE'
+          RequestId: '07cFAKE-without-breakpoint'
         }
       };
-      adapter.addRequestThread('07cFAKE');
+      adapter.addRequestThread('07cFAKE-without-breakpoint');
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getRequestThreads().length).to.equal(1);
+      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[1].event).to.equal('stopped');
+      const threadEvent = adapter.getEvents()[1] as StoppedEvent;
+      expect(threadEvent.body.reason).to.equal('step');
+      expect(threadEvent.body.threadId).to.equal(0);
+    });
+
+    it('Should not handle without request ID', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'Stopped'
+        }
+      };
 
       adapter.handleEvent(message);
 
