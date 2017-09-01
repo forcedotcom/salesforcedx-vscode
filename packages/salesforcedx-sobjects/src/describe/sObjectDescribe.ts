@@ -156,21 +156,53 @@ export interface DescribeSObjectResult {
 }
 
 export class SObjectDescribe {
-  public async describe(projectPath: string, type: string): Promise<SObject> {
-    const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:schema:sobject:describe')
-        .withFlag('--sobjecttype', type)
-        .withArg('--json')
-        .build(),
-      { cwd: projectPath }
-    ).execute();
+  public async describeSObject(
+    projectPath: string,
+    type: string,
+    username?: string
+  ): Promise<SObject> {
+    const builder = new SfdxCommandBuilder()
+      .withArg('force:schema:sobject:describe')
+      .withFlag('--sobjecttype', type);
+    if (username) {
+      builder.args.push('--targetusername', username);
+    }
+    const command = builder.withJson().build();
+    const execution = new CliCommandExecutor(command, {
+      cwd: projectPath
+    }).execute();
 
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
       const sobject = JSON.parse(result).result as SObject;
       return Promise.resolve(sobject);
+    } catch (e) {
+      return Promise.reject(result);
+    }
+  }
+
+  public async describeGlobal(
+    projectPath: string,
+    type: string,
+    username?: string
+  ): Promise<string[]> {
+    const builder = new SfdxCommandBuilder()
+      .withArg('force:schema:sobject:list')
+      .withFlag('--sobjecttypecategory', type);
+    if (username) {
+      builder.args.push('--targetusername', username);
+    }
+    const command = builder.withJson().build();
+    const execution = new CliCommandExecutor(command, {
+      cwd: projectPath
+    }).execute();
+
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const sobjects = JSON.parse(result).result as string[];
+      return Promise.resolve(sobjects);
     } catch (e) {
       return Promise.reject(result);
     }

@@ -6,16 +6,15 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { SObjectDescribe, SObjectDescribeGlobal } from '../describe';
+import { SObjectDescribe } from '../describe';
 
 export class FauxClassGenerator {
   public async generate(projectPath: string, type: string) {
-    const describeGlobal = new SObjectDescribeGlobal();
     const describe = new SObjectDescribe();
-    const sobjects = await describeGlobal.describeGlobal(projectPath, type);
+    const sobjects = await describe.describeGlobal(projectPath, type);
     console.log(sobjects.length);
     for (let i = 0; i < sobjects.length; i++) {
-      const sobject = await describe.describe(projectPath, sobjects[i]);
+      const sobject = await describe.describeSObject(projectPath, sobjects[i]);
       console.log(sobject.name);
       this.generateFauxClass(projectPath, sobject);
     }

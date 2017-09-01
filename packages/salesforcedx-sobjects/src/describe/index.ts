@@ -6,4 +6,3 @@
  */
 
 export { SObjectDescribe } from './sObjectDescribe';
-export { SObjectDescribeGlobal } from './sObjectDescribeGlobal';
