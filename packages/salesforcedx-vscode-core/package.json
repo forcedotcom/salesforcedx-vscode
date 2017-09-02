@@ -21,9 +21,7 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "^40.10.0",
     "glob": "^7.1.2",
@@ -185,8 +183,12 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.apex.execute",
-          "when": "sfdx:project_opened"
+          "command": "sfdx.force.apex.execute.selection",
+          "when": "sfdx:project_opened && editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.apex.execute.document",
+          "when": "sfdx:project_opened && !editorHasSelection"
         }
       ]
     },
@@ -264,8 +266,12 @@
         "title": "%force_debugger_stop_text%"
       },
       {
-        "command": "sfdx.force.apex.execute",
-        "title": "%force_apex_execute_text%"
+        "command": "sfdx.force.apex.execute.document",
+        "title": "%force_apex_execute_document_text%"
+      },
+      {
+        "command": "sfdx.force.apex.execute.selection",
+        "title": "%force_apex_execute_selection_text%"
       }
     ]
   }

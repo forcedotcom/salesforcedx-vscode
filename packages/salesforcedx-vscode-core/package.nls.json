@@ -25,5 +25,8 @@
   "force_source_status_remote_text":
     "SFDX: View Changes in Default Scratch Org",
   "force_debugger_stop_text": "SFDX: Stop Apex Debugger Session",
-  "force_apex_execute_text": "SFDX: Execute Anonymous Apex"
+  "force_apex_execute_document_text":
+    "SFDX: Execute Anonymous Apex with Editor Contents",
+  "force_apex_execute_selection_text":
+    "SFDX: Execute Anonymous Apex with Current Selection"
 }

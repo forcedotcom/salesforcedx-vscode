@@ -36,6 +36,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('--apexcodefile', data.fileName)
       .build();
   }
+
   public execute(response: ContinueResponse<TempFile>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -71,14 +72,22 @@ class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
       );
       const editor = await vscode.window.activeTextEditor;
 
-      if (!editor || editor.selection.isEmpty) {
+      if (!editor) {
         return { type: 'CANCEL' };
       }
+
+      let writeFile;
       const document = editor.document;
-      const writeFile = await writeFileAsync(
-        fileName,
-        document.getText(editor.selection)
-      );
+
+      if (editor.selection.isEmpty) {
+        writeFile = await writeFileAsync(fileName, document.getText());
+      } else {
+        writeFile = await writeFileAsync(
+          fileName,
+          document.getText(editor.selection)
+        );
+      }
+
       return writeFile
         ? { type: 'CONTINUE', data: { fileName } }
         : { type: 'CANCEL' };
@@ -102,7 +111,7 @@ export function writeFileAsync(fileName: string, inputText: string) {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new CreateApexTempFile();
 
-export async function forceApexExecute(explorerDir?: any) {
+export async function forceApexExecute(withSelection?: any) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     fileNameGatherer,
