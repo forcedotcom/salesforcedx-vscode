@@ -76,9 +76,15 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.app.create',
     forceLightningAppCreate
   );
-  const forceApexExecuteCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.execute',
-    forceApexExecute
+  const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.document',
+    forceApexExecute,
+    false
+  );
+  const forceApexExecuteSelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.selection',
+    forceApexExecute,
+    true
   );
 
   // Internal commands
@@ -88,7 +94,8 @@ function registerCommands(): vscode.Disposable {
   );
 
   return vscode.Disposable.from(
-    forceApexExecuteCmd,
+    forceApexExecuteDocumentCmd,
+    forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
     forceOrgCreateCmd,
