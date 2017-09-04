@@ -2,9 +2,6 @@
   "name": "@salesforce/salesforcedx-slds-linter",
   "displayName": "SFDX SLDS Linting for VS Code",
   "description": "Provides linting for deprecated SLDS class names",
-<<<<<<< HEAD"version": "40.8.0",
-======="version": "40.5.1",
->>>>>>>1928208aca0b918203775fc1286f5936a434fb3e"publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
     "Other"
