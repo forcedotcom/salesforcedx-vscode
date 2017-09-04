@@ -58,6 +58,10 @@ documents.onDidChangeContent(change => {
   validateTextDocument(change.document);
 });
 
+documents.onDidOpen(change => {
+  validateTextDocument(change.document);
+});
+
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration(change => {

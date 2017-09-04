@@ -25,7 +25,7 @@
     "Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "40.5.1"
+    "@salesforce/salesforcedx-slds-linter": "40.8.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.8.0",
