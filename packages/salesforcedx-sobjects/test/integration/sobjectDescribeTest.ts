@@ -20,7 +20,7 @@ describe('Fetch sObjects', function() {
   let username: string;
   const sobjectdescribe = new SObjectDescribe();
   const scratchDefFilePath =
-    '/packages/salesforcedx-sobjects/test/integration/config/project-scratch-def.json';
+    '/test/integration/config/project-scratch-def.json';
   before(async function() {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
