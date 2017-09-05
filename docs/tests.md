@@ -6,6 +6,9 @@ describes them and give pointers on how to run/debug them.
 These tests are described in the order in which we prefer to write them. Always
 prefer unit tests, integration tests, and system tests, in that order.
 
+Ensure that you have set a default dev hub, through one of the `sfdx force:auth:*` commands,
+passing in the `--setdefaultdevhubusername` flag
+
 To run all tests, execute `npm run compile && npm run test` from the top-level
 folder.
 

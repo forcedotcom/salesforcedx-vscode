@@ -155,6 +155,12 @@ export interface DescribeSObjectResult {
   result: SObject;
 }
 
+export enum SObjectCategory {
+  ALL,
+  STANDARD,
+  CUSTOM
+}
+
 export class SObjectDescribe {
   public async describeSObject(
     projectPath: string,
@@ -184,12 +190,12 @@ export class SObjectDescribe {
 
   public async describeGlobal(
     projectPath: string,
-    type: string,
+    type: SObjectCategory,
     username?: string
   ): Promise<string[]> {
     const builder = new SfdxCommandBuilder()
       .withArg('force:schema:sobject:list')
-      .withFlag('--sobjecttypecategory', type);
+      .withFlag('--sobjecttypecategory', type.toString());
     if (username) {
       builder.args.push('--targetusername', username);
     }

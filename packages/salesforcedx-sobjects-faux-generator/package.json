@@ -1,6 +1,6 @@
 {
-  "name": "@salesforce/salesforcedx-sobjects",
-  "displayName": "Salesforce Faux SObject Generator",
+  "name": "@salesforce/salesforcedx-sobjects-faux-generator",
+  "displayName": "Salesforce SObject Faux Generator",
   "description":
     "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
   "version": "40.8.0",
@@ -15,18 +15,19 @@
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
+    "@types/jsforce": "^1.7.1",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "5.0.4",
     "jsforce": "1.7.1",
     "mocha": "3.2.0",
-    "sinon": "^2.3.6",
-    "nyc": "^11.0.2",
-    "typescript": "2.4.0",
-    "vscode": "1.1.4",
     "mock-spawn": "0.2.6",
-    "cross-env": "5.0.4"
+    "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
+    "typescript": "2.4.0",
+    "vscode": "1.1.4"
   },
   "scripts": {
     "vscode:package": "npm prune --production",

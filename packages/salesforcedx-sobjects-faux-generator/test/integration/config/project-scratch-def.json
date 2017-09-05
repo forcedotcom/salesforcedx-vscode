@@ -2,7 +2,7 @@
   "orgName": "Your Company",
   "edition": "Developer",
   "orgPreferences": {
-    "enabled": ["Translation"],
+    "enabled": [],
     "disabled": []
   }
 }

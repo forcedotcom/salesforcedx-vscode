@@ -12,20 +12,30 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as jsforce from 'jsforce';
-import { SObjectDescribe } from '../../src/describe/sObjectDescribe';
+import * as path from 'path';
+import {
+  SObjectCategory,
+  SObjectDescribe
+} from '../../src/describe/sObjectDescribe';
 
 describe('Fetch sObjects', function() {
   // tslint:disable-next-line:no-invalid-this
   this.timeout(10000);
   let username: string;
   const sobjectdescribe = new SObjectDescribe();
-  const scratchDefFilePath =
-    '/test/integration/config/project-scratch-def.json';
+  const scratchDefFilePath = path.join(
+    __dirname,
+    'test',
+    'integration',
+    'config',
+    'project-scratch-def.json'
+  );
+
   before(async function() {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:org:create')
-        .withFlag('--definitionfile', process.cwd() + scratchDefFilePath)
+        .withFlag('--definitionfile', scratchDefFilePath)
         .withArg('--json')
         .build(),
       { cwd: process.cwd() }
@@ -40,7 +50,7 @@ describe('Fetch sObjects', function() {
   it('Should be able to call describe global', async function() {
     const cmdOutput = await sobjectdescribe.describeGlobal(
       process.cwd(),
-      'custom',
+      SObjectCategory.CUSTOM,
       username
     );
     expect(cmdOutput.length).to.be.equal(1);
