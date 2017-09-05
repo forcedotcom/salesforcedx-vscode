@@ -21,6 +21,11 @@ import {
 } from '../../../src/breakpoints/lineBreakpoint';
 import { ForceOrgDisplay, OrgInfo, RunCommand } from '../../../src/commands';
 import {
+  GET_LINE_BREAKPOINT_INFO_EVENT,
+  LINE_BREAKPOINT_INFO_REQUEST,
+  SHOW_MESSAGE_EVENT
+} from '../../../src/constants';
+import {
   BreakpointService,
   DebuggerMessage,
   SessionService,
@@ -28,6 +33,10 @@ import {
   StreamingEvent,
   StreamingService
 } from '../../../src/core';
+import {
+  VscodeDebuggerMessage,
+  VscodeDebuggerMessageType
+} from '../../../src/index';
 import { nls } from '../../../src/messages';
 import { ApexDebugForTest } from './apexDebugForTest';
 
@@ -70,7 +79,9 @@ describe('Debugger adapter - unit', () => {
 
       expect(breakpointClearSpy.calledOnce).to.equal(true);
       expect(adapter.getEvents().length).to.equal(1);
-      expect(adapter.getEvents()[0].event).to.equal('getLineBreakpointInfo');
+      expect(adapter.getEvents()[0].event).to.equal(
+        GET_LINE_BREAKPOINT_INFO_EVENT
+      );
     });
   });
 
@@ -600,12 +611,10 @@ describe('Debugger adapter - unit', () => {
         new BreakpointService()
       );
       adapter.setSfdxProject('someProjectPath');
-      adapter.setOrgInfo(
-        {
-          instanceUrl: 'https://www.salesforce.com',
-          accessToken: '123'
-        } as OrgInfo
-      );
+      adapter.setOrgInfo({
+        instanceUrl: 'https://www.salesforce.com',
+        accessToken: '123'
+      } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -725,7 +734,7 @@ describe('Debugger adapter - unit', () => {
 
       it('Should not save line number mapping', () => {
         adapter.customRequest(
-          'lineBreakpointInfo',
+          LINE_BREAKPOINT_INFO_REQUEST,
           {} as DebugProtocol.Response,
           null
         );
@@ -753,7 +762,7 @@ describe('Debugger adapter - unit', () => {
         ]);
 
         adapter.customRequest(
-          'lineBreakpointInfo',
+          LINE_BREAKPOINT_INFO_REQUEST,
           {} as DebugProtocol.Response,
           info
         );
@@ -820,7 +829,8 @@ describe('Debugger adapter - unit', () => {
           BreakpointId: '07bFAKE',
           RequestId: '07cFAKE',
           Type: 'Stopped',
-          Line: 5
+          Line: 5,
+          Description: 'Request was stopped'
         }
       };
 
@@ -831,7 +841,7 @@ describe('Debugger adapter - unit', () => {
       ).to.have.string(
         `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${msg.sobject
           .RequestId} | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${msg
-          .sobject.Line}`
+          .sobject.Line} | Request was stopped`
       );
     });
   });
@@ -1208,6 +1218,68 @@ describe('Debugger adapter - unit', () => {
 
       expect(adapter.getRequestThreads().length).to.equal(1);
       expect(adapter.getEvents().length).to.equal(0);
+    });
+  });
+
+  describe('Debugger event SystemWarning', () => {
+    let sessionConnectedSpy: sinon.SinonStub;
+    let sessionIdSpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService()
+      );
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      sessionIdSpy = sinon
+        .stub(SessionService.prototype, 'getSessionId')
+        .returns('123');
+      adapter.addRequestThread('07cFAKE');
+    });
+
+    afterEach(() => {
+      sessionConnectedSpy.restore();
+      sessionIdSpy.restore();
+    });
+
+    it('Should send events with description', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'SystemWarning',
+          Description: 'foo'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[1].event).to.equal(SHOW_MESSAGE_EVENT);
+      const showMessageEvent = adapter.getEvents()[1] as DebugProtocol.Event;
+      expect(showMessageEvent.body).to.deep.equal({
+        type: VscodeDebuggerMessageType.Warning,
+        message: 'foo'
+      } as VscodeDebuggerMessage);
+    });
+
+    it('Should not send event without description', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'SystemWarning'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getEvents().length).to.equal(1);
+      expect(adapter.getEvents()[0].event).to.equal('output');
     });
   });
 });

@@ -5,6 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  GET_LINE_BREAKPOINT_INFO_EVENT,
+  LINE_BREAKPOINT_INFO_REQUEST,
+  SHOW_MESSAGE_EVENT,
+  VscodeDebuggerMessage,
+  VscodeDebuggerMessageType
+} from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
 
 const initialDebugConfigurations = {
@@ -34,14 +41,35 @@ function registerCommands(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session) {
-        if (event.event === 'getLineBreakpointInfo') {
+        if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
           const sfdxApex = vscode.extensions.getExtension(
             'salesforce.salesforcedx-vscode-apex'
           );
           if (sfdxApex && sfdxApex.exports) {
             const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-            event.session.customRequest('lineBreakpointInfo', lineBpInfo);
+            event.session.customRequest(
+              LINE_BREAKPOINT_INFO_REQUEST,
+              lineBpInfo
+            );
             console.log('Retrieved line breakpoint info from language server');
+          }
+        } else if (event.event === SHOW_MESSAGE_EVENT) {
+          const eventBody = event.body as VscodeDebuggerMessage;
+          if (eventBody && eventBody.type && eventBody.message) {
+            switch (eventBody.type as VscodeDebuggerMessageType) {
+              case VscodeDebuggerMessageType.Info: {
+                vscode.window.showInformationMessage(eventBody.message);
+                break;
+              }
+              case VscodeDebuggerMessageType.Warning: {
+                vscode.window.showWarningMessage(eventBody.message);
+                break;
+              }
+              case VscodeDebuggerMessageType.Error: {
+                vscode.window.showErrorMessage(eventBody.message);
+                break;
+              }
+            }
           }
         }
       }

@@ -23,6 +23,11 @@ import {
 } from '../breakpoints/lineBreakpoint';
 import { ForceOrgDisplay, OrgInfo, RunCommand } from '../commands';
 import {
+  GET_LINE_BREAKPOINT_INFO_EVENT,
+  LINE_BREAKPOINT_INFO_REQUEST,
+  SHOW_MESSAGE_EVENT
+} from '../constants';
+import {
   ApexDebuggerEventType,
   BreakpointService,
   DebuggerMessage,
@@ -31,6 +36,7 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
+import { VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../index';
 import { nls } from '../messages';
 import os = require('os');
 
@@ -64,7 +70,7 @@ export class ApexDebug extends DebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
-    this.sendEvent(new Event('getLineBreakpointInfo'));
+    this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
   protected attachRequest(
@@ -256,7 +262,7 @@ export class ApexDebug extends DebugSession {
     args: any
   ): void {
     switch (command) {
-      case 'lineBreakpointInfo':
+      case LINE_BREAKPOINT_INFO_REQUEST:
         const lineBpInfo: LineBreakpointInfo[] = args;
         if (lineBpInfo && lineBpInfo.length > 0) {
           const lineNumberMapping: Map<
@@ -406,6 +412,10 @@ export class ApexDebug extends DebugSession {
         this.handleStopped(message);
         break;
       }
+      case ApexDebuggerEventType.SystemWarning: {
+        this.handleSystemWarning(message);
+        break;
+      }
       default: {
         break;
       }
@@ -426,6 +436,9 @@ export class ApexDebug extends DebugSession {
     }
     if (message.sobject.Line) {
       logMessage += ` | Line: ${message.sobject.Line}`;
+    }
+    if (message.sobject.Description) {
+      logMessage += ` | ${message.sobject.Description}`;
     }
 
     this.logToDebugConsole(logMessage);
@@ -483,6 +496,18 @@ export class ApexDebug extends DebugSession {
           )
         );
       }
+    }
+  }
+
+  private handleSystemWarning(message: DebuggerMessage): void {
+    this.logEvent(message);
+    if (message.sobject.Description) {
+      this.sendEvent(
+        new Event(SHOW_MESSAGE_EVENT, {
+          type: VscodeDebuggerMessageType.Warning,
+          message: message.sobject.Description
+        } as VscodeDebuggerMessage)
+      );
     }
   }
 }
