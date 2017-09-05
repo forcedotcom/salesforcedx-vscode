@@ -938,8 +938,6 @@ describe('Debugger adapter - unit', () => {
     describe('Line breakpoint info', () => {
       let setValidLinesSpy: sinon.SinonSpy;
       const initializedResponse = {
-        request_seq: 1,
-        seq: 0,
         success: true,
         type: 'response',
         body: {
@@ -952,6 +950,10 @@ describe('Debugger adapter - unit', () => {
           new SessionService(),
           new StreamingService(),
           new BreakpointService()
+        );
+        adapter.initializeReq(
+          initializedResponse,
+          {} as DebugProtocol.InitializeRequestArguments
         );
         setValidLinesSpy = sinon.spy(
           BreakpointService.prototype,

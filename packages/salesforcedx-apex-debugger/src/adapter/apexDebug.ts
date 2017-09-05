@@ -68,6 +68,7 @@ export class ApexDebug extends DebugSession {
   protected requestThreads: string[];
 
   private static TWO_NL = `${os.EOL}${os.EOL}`;
+  private initializedResponse: DebugProtocol.InitializeResponse;
 
   constructor() {
     super();
@@ -81,6 +82,7 @@ export class ApexDebug extends DebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
+    this.initializedResponse = response;
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
@@ -232,7 +234,6 @@ export class ApexDebug extends DebugSession {
         this.tryToParseSfdxError(response, error);
       }
     }
-
     this.sendResponse(response);
   }
 
@@ -425,15 +426,11 @@ export class ApexDebug extends DebugSession {
             typerefMapping
           );
         }
-        this.sendResponse({
-          request_seq: 1,
-          seq: 0,
-          success: true,
-          type: 'response',
-          body: {
-            supportsDelayedStackTraceLoading: false
-          }
-        } as DebugProtocol.InitializeResponse);
+        this.initializedResponse.body = {
+          supportsDelayedStackTraceLoading: false
+        };
+        this.initializedResponse.success = true;
+        this.sendResponse(this.initializedResponse);
         break;
       default:
         break;
@@ -519,13 +516,15 @@ export class ApexDebug extends DebugSession {
         .build();
       clientInfos.push(clientInfo);
     }
+    const systemChannelInfo = clientInfos[0];
+    const userChannelInfo = clientInfos[1];
 
     return this.myStreamingService.subscribe(
       projectPath,
       instanceUrl,
       accessToken,
-      clientInfos[0],
-      clientInfos[1]
+      systemChannelInfo,
+      userChannelInfo
     );
   }
 
