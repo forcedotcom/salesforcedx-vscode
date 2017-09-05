@@ -19,7 +19,14 @@ import {
   LineBreakpointInfo,
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
-import { ForceOrgDisplay, OrgInfo, RunCommand } from '../../../src/commands';
+import {
+  ForceOrgDisplay,
+  OrgInfo,
+  RunCommand,
+  StepIntoCommand,
+  StepOutCommand,
+  StepOverCommand
+} from '../../../src/commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST,
@@ -669,6 +676,70 @@ describe('Debugger adapter - unit', () => {
         '{"message":"There was an error", "action":"Try again"}'
       );
       expect(runSpy.called).to.equal(true);
+    });
+  });
+
+  describe('Stepping', () => {
+    let stepSpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService()
+      );
+      adapter.setSfdxProject('someProjectPath');
+      adapter.setOrgInfo({
+        instanceUrl: 'https://www.salesforce.com',
+        accessToken: '123'
+      } as OrgInfo);
+      adapter.addRequestThread('07cFAKE');
+    });
+
+    afterEach(() => {
+      stepSpy.restore();
+    });
+
+    it('Step into should call proper command', async () => {
+      stepSpy = sinon
+        .stub(StepIntoCommand.prototype, 'execute')
+        .returns(Promise.resolve(''));
+
+      await adapter.stepInRequest(
+        {} as DebugProtocol.StepInResponse,
+        { threadId: 0 } as DebugProtocol.StepInArguments
+      );
+
+      expect(adapter.getResponse(0).success).to.equal(true);
+      expect(stepSpy.calledOnce).to.equal(true);
+    });
+
+    it('Step out should send proper command', async () => {
+      stepSpy = sinon
+        .stub(StepOutCommand.prototype, 'execute')
+        .returns(Promise.resolve(''));
+
+      await adapter.stepOutRequest(
+        {} as DebugProtocol.StepOutResponse,
+        { threadId: 0 } as DebugProtocol.StepOutArguments
+      );
+
+      expect(adapter.getResponse(0).success).to.equal(true);
+      expect(stepSpy.calledOnce).to.equal(true);
+    });
+
+    it('Step over should send proper command', async () => {
+      stepSpy = sinon
+        .stub(StepOverCommand.prototype, 'execute')
+        .returns(Promise.resolve(''));
+
+      await adapter.nextRequest(
+        {} as DebugProtocol.NextResponse,
+        { threadId: 0 } as DebugProtocol.NextArguments
+      );
+
+      expect(adapter.getResponse(0).success).to.equal(true);
+      expect(stepSpy.calledOnce).to.equal(true);
     });
   });
 

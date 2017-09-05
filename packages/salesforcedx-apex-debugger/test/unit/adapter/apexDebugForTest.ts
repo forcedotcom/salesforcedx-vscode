@@ -94,6 +94,27 @@ export class ApexDebugForTest extends ApexDebug {
     return super.continueRequest(response, args);
   }
 
+  public async nextRequest(
+    response: DebugProtocol.NextResponse,
+    args: DebugProtocol.NextArguments
+  ): Promise<void> {
+    super.nextRequest(response, args);
+  }
+
+  public async stepInRequest(
+    response: DebugProtocol.StepInResponse,
+    args: DebugProtocol.StepInArguments
+  ): Promise<void> {
+    super.stepInRequest(response, args);
+  }
+
+  public async stepOutRequest(
+    response: DebugProtocol.StepOutResponse,
+    args: DebugProtocol.StepOutArguments
+  ): Promise<void> {
+    super.stepOutRequest(response, args);
+  }
+
   public threadsReq(response: DebugProtocol.ThreadsResponse): void {
     super.threadsRequest(response);
   }

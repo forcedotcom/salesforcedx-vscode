@@ -91,7 +91,7 @@ describe('Step commands', () => {
     const expectedOptions: XHROptions = {
       type: 'POST',
       url:
-        'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=into',
+        'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=over',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
