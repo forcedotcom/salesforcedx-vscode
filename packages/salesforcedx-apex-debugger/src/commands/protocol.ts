@@ -5,6 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/**
+ * These interfaces were generated with the following semi-automated steps:
+ * 1. Gather sample JSON responses from Apex Debugger APIs.
+ * 2. Input those responses into {@link http://json2ts.com/} to generate Typescript interfaces.
+ * 3. Remove duplicate interfaces that are used in more than one response object.
+ */
 export interface DebuggerResponse {
   referencesResponse: ReferencesResponse;
   frameResponse: FrameResponse;
