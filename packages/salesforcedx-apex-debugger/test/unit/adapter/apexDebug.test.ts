@@ -1307,8 +1307,14 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
-      expect(adapter.getEvents().length).to.equal(0);
+      expect(
+        adapter.getRequestThreads().length,
+        'must have no registered request thread'
+      ).to.equal(0);
+      expect(
+        adapter.getEvents().length,
+        'must not handle an event without a request id'
+      ).to.equal(0);
     });
   });
 
