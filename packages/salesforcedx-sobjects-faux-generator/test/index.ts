@@ -6,12 +6,16 @@
  */
 
 // tslint:disable-next-line:no-var-requires
-import 'mocha';
+// tslint:disable-next-line:variable-name
+import Mocha = require('mocha');
+
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
-mocha = new Mocha({
-  ui: 'bdd', // the TDD UI is being used in extension.test.ts (suite, test, etc.)
-  timeout: 15000
+
+const mocha = new Mocha({
+  ui: 'bdd',
+  timeout: 20000
 });
+mocha.useColors(true);
 
 module.exports = mocha;

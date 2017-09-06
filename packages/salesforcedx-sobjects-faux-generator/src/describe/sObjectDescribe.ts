@@ -156,9 +156,9 @@ export interface DescribeSObjectResult {
 }
 
 export enum SObjectCategory {
-  ALL,
-  STANDARD,
-  CUSTOM
+  ALL = 'ALL',
+  STANDARD = 'STANDARD',
+  CUSTOM = 'CUSTOM'
 }
 
 export class SObjectDescribe {

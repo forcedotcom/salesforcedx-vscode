@@ -18,13 +18,19 @@ import {
   SObjectDescribe
 } from '../../src/describe/sObjectDescribe';
 
+const CUSTOM_OBJECT_NAME = 'SampleObject__c';
+
+// tslint:disable:no-unused-expression
 describe('Fetch sObjects', function() {
   // tslint:disable-next-line:no-invalid-this
-  this.timeout(10000);
+  this.timeout(20000);
   let username: string;
   const sobjectdescribe = new SObjectDescribe();
   const scratchDefFilePath = path.join(
     __dirname,
+    '..',
+    '..',
+    '..',
     'test',
     'integration',
     'config',
@@ -45,16 +51,33 @@ describe('Fetch sObjects', function() {
     const result = await cmdOutput.getCmdResult(execution);
     username = JSON.parse(result).result.username;
     await createCustomObject(username);
+    // const permissionSetId = await createPermissionSet(username);
+    // await assignPermissionSet(permissionSetId, username);
   });
 
-  it('Should be able to call describe global', async function() {
+  it('Should be able to call describeGlobal', async function() {
     const cmdOutput = await sobjectdescribe.describeGlobal(
       process.cwd(),
       SObjectCategory.CUSTOM,
       username
     );
     expect(cmdOutput.length).to.be.equal(1);
-    expect(cmdOutput[0]).to.be.equal('SampleObject__c');
+    expect(cmdOutput[0]).to.be.equal(CUSTOM_OBJECT_NAME);
+  });
+
+  it('Should be able to call describeSObject', async function() {
+    const cmdOutput = await sobjectdescribe.describeSObject(
+      process.cwd(),
+      CUSTOM_OBJECT_NAME,
+      username
+    );
+    expect(cmdOutput.name).to.be.equal(CUSTOM_OBJECT_NAME);
+    expect(cmdOutput.custom).to.be.true;
+    //expect(cmdOutput.fields.length).to.be.equal(1);
+    // const customField = cmdOutput.fields[0];
+    // expect(customField.type).to.be.equal('AutoNumber');
+    // expect(customField.label).to.be.equal('My Custom Number');
+    // expect(customField.precision).to.be.equal('18');
   });
 });
 
@@ -86,6 +109,13 @@ async function createCustomObject(username: string) {
       type: 'Text',
       label: 'Sample Object'
     },
+    fields: {
+      fullName: 'MyCustomField__c',
+      label: 'My Custom Number',
+      type: 'Number',
+      precision: '18',
+      scale: '0'
+    },
     deploymentStatus: 'Deployed',
     sharingModel: 'ReadWrite'
   };
@@ -99,3 +129,22 @@ async function createCustomObject(username: string) {
     }
   });
 }
+
+// async function createPermissionSet(username: string): Promise<string> {
+//   const execution = new CliCommandExecutor(
+//     new SfdxCommandBuilder()
+//       .withArg('force:data:record:update')
+//       .withFlag('--sobjecttype', 'PermissionSet')
+//       .withArg('--json')
+//       .build(),
+//     { cwd: process.cwd() }
+//   ).execute();
+//   const cmdOutput = new CommandOutput();
+//   const result = await cmdOutput.getCmdResult(execution);
+//   const permissionSetId = JSON.parse(result).result.id as string;
+//   return Promise.resolve(permissionSetId);
+// }
+
+// async function assignPermissionSet(id: string, username: string) {
+//   //
+// }
