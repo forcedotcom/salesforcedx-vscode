@@ -77,27 +77,29 @@ function validateTextDocument(textDocument: TextDocument): void {
   let problems = 0;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const found = line.match(/slds\S*--[A-Za-z0-9_-]+/) || [];
-    const index = found.index || -1;
+    const found = line.match(/slds\S*--[A-Za-z0-9_-]+/g) || [];
+    for (const match of found) {
+      const index = line.search(match) || -1;
 
-    if (index >= 0) {
-      const foundStringLength = found[0].length;
-      const fixedString = found[0].replace('--', '_');
-      problems++;
-      const diagnostic = <Diagnostic>{
-        code: `0${fixedString}`,
-        severity: DiagnosticSeverity.Warning,
-        range: {
-          start: { line: i, character: index },
-          end: { line: i, character: index + foundStringLength }
-        },
-        message: nls.localize('deprecated_class_name', line.substr(
-          index,
-          foundStringLength
-        ), fixedString),
-        source: 'slds'
-      };
-      activeDiagnostics.push(diagnostic);
+      if (index >= 0) {
+        const foundStringLength = match.length;
+        const fixedString = match.replace('--', '_');
+        problems++;
+        const diagnostic = <Diagnostic>{
+          code: `0${fixedString}`,
+          severity: DiagnosticSeverity.Warning,
+          range: {
+            start: { line: i, character: index },
+            end: { line: i, character: index + foundStringLength }
+          },
+          message: nls.localize('deprecated_class_name', line.substr(
+            index,
+            foundStringLength
+          ), fixedString),
+          source: 'slds'
+        };
+        activeDiagnostics.push(diagnostic);
+      }
     }
   }
 
