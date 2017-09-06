@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { basename } from 'path';
 import {
-  ContinuedEvent,
   DebugSession,
   Event,
   InitializedEvent,
   OutputEvent,
+  Source,
+  StackFrame,
   StoppedEvent,
   TerminatedEvent,
   Thread,
@@ -22,9 +24,11 @@ import {
   LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
 import {
+  DebuggerResponse,
   ForceOrgDisplay,
   OrgInfo,
   RunCommand,
+  StateCommand,
   StepIntoCommand,
   StepOutCommand,
   StepOverCommand
@@ -64,6 +68,7 @@ export class ApexDebug extends DebugSession {
   protected requestThreads: string[];
 
   private static TWO_NL = `${os.EOL}${os.EOL}`;
+  private initializedResponse: DebugProtocol.InitializeResponse;
 
   constructor() {
     super();
@@ -77,6 +82,7 @@ export class ApexDebug extends DebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
+    this.initializedResponse = response;
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
@@ -228,7 +234,6 @@ export class ApexDebug extends DebugSession {
         this.tryToParseSfdxError(response, error);
       }
     }
-
     this.sendResponse(response);
   }
 
@@ -237,6 +242,7 @@ export class ApexDebug extends DebugSession {
     args: DebugProtocol.ContinueArguments
   ): Promise<void> {
     response.success = false;
+    response.body = { allThreadsContinued: false };
     if (args.threadId >= 0 && args.threadId < this.requestThreads.length) {
       const requestId = this.requestThreads[args.threadId];
       try {
@@ -319,11 +325,75 @@ export class ApexDebug extends DebugSession {
   protected threadsRequest(response: DebugProtocol.ThreadsResponse): void {
     const debuggedThreads: Thread[] = [];
     for (let threadId = 0; threadId < this.requestThreads.length; threadId++) {
-      debuggedThreads.push(new Thread(threadId, this.requestThreads[threadId]));
+      debuggedThreads.push(
+        new Thread(threadId, `Request ID: ${this.requestThreads[threadId]}`)
+      );
     }
     response.success = true;
     response.body = { threads: debuggedThreads };
     this.sendResponse(response);
+  }
+
+  protected async stackTraceRequest(
+    response: DebugProtocol.StackTraceResponse,
+    args: DebugProtocol.StackTraceArguments
+  ): Promise<void> {
+    response.success = false;
+    if (args.threadId < 0 || args.threadId >= this.requestThreads.length) {
+      return this.sendResponse(response);
+    }
+
+    const requestId = this.requestThreads[args.threadId];
+    try {
+      const stateResponse = await new StateCommand(
+        this.orgInfo.instanceUrl,
+        this.orgInfo.accessToken,
+        requestId
+      ).execute();
+      const stateRespObj: DebuggerResponse = JSON.parse(stateResponse);
+      const clientFrames: StackFrame[] = [];
+      if (this.hasStackFrames(stateRespObj)) {
+        const serverFrames = stateRespObj.stateResponse.state.stack.stackFrame;
+        for (let i = 0; i < serverFrames.length; i++) {
+          const sourcePath = this.myBreakpointService.getSourcePathFromTyperef(
+            serverFrames[i].typeRef
+          );
+          clientFrames.push(
+            new StackFrame(
+              i,
+              serverFrames[i].fullName,
+              sourcePath
+                ? new Source(
+                    basename(sourcePath),
+                    this.convertDebuggerPathToClient(sourcePath)
+                  )
+                : undefined,
+              this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
+              0
+            )
+          );
+        }
+      }
+      response.body = { stackFrames: clientFrames };
+      response.success = true;
+    } catch (error) {
+      response.message = error;
+    }
+    this.sendResponse(response);
+  }
+
+  private hasStackFrames(response: DebuggerResponse): boolean {
+    if (
+      response &&
+      response.stateResponse &&
+      response.stateResponse.state &&
+      response.stateResponse.state.stack &&
+      response.stateResponse.state.stack.stackFrame &&
+      response.stateResponse.state.stack.stackFrame.length > 0
+    ) {
+      return true;
+    }
+    return false;
   }
 
   protected customRequest(
@@ -339,6 +409,7 @@ export class ApexDebug extends DebugSession {
             string,
             LineBreakpointsInTyperef[]
           > = new Map();
+          const typerefMapping: Map<string, string> = new Map();
           for (const info of lineBpInfo) {
             if (!lineNumberMapping.has(info.uri)) {
               lineNumberMapping.set(info.uri, []);
@@ -348,15 +419,18 @@ export class ApexDebug extends DebugSession {
               lines: info.lines
             };
             lineNumberMapping.get(info.uri)!.push(validLines);
+            typerefMapping.set(info.typeref, info.uri);
           }
-          this.myBreakpointService.setValidLines(lineNumberMapping);
+          this.myBreakpointService.setValidLines(
+            lineNumberMapping,
+            typerefMapping
+          );
         }
-        this.sendResponse({
-          request_seq: 1,
-          seq: 0,
-          success: true,
-          type: 'response'
-        } as DebugProtocol.InitializeResponse);
+        this.initializedResponse.body = {
+          supportsDelayedStackTraceLoading: false
+        };
+        this.initializedResponse.success = true;
+        this.sendResponse(this.initializedResponse);
         break;
       default:
         break;
@@ -435,32 +509,36 @@ export class ApexDebug extends DebugSession {
         })
         .withMsgHandler((message: any) => {
           const data = message as DebuggerMessage;
-          if (data && data.sobject) {
+          if (data && data.sobject && data.event) {
             this.handleEvent(data);
           }
         })
         .build();
       clientInfos.push(clientInfo);
     }
+    const systemChannelInfo = clientInfos[0];
+    const userChannelInfo = clientInfos[1];
 
     return this.myStreamingService.subscribe(
       projectPath,
       instanceUrl,
       accessToken,
-      clientInfos
+      systemChannelInfo,
+      userChannelInfo
     );
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    if (
-      !this.mySessionService.isConnected() ||
-      this.mySessionService.getSessionId() !== message.sobject.SessionId
-    ) {
-      return;
-    }
     const type: ApexDebuggerEventType = (<any>ApexDebuggerEventType)[
       message.sobject.Type
     ];
+    if (
+      !this.mySessionService.isConnected() ||
+      this.mySessionService.getSessionId() !== message.sobject.SessionId ||
+      this.myStreamingService.hasProcessedEvent(type, message.event.replayId)
+    ) {
+      return;
+    }
     switch (type) {
       case ApexDebuggerEventType.RequestFinished: {
         this.handleRequestFinished(message);
@@ -490,6 +568,7 @@ export class ApexDebug extends DebugSession {
         break;
       }
     }
+    this.myStreamingService.markEventProcessed(type, message.event.replayId);
   }
 
   public logEvent(message: DebuggerMessage): void {
@@ -521,6 +600,13 @@ export class ApexDebug extends DebugSession {
         this.logEvent(message);
         this.requestThreads.splice(threadId, 1);
         this.sendEvent(new ThreadEvent('exited', threadId));
+        for (
+          let existingThreadId = 0;
+          existingThreadId < this.requestThreads.length;
+          existingThreadId++
+        ) {
+          this.sendEvent(new StoppedEvent('breakpoint', existingThreadId));
+        }
       }
     }
   }
@@ -529,12 +615,6 @@ export class ApexDebug extends DebugSession {
     if (message.sobject.RequestId) {
       this.logEvent(message);
       this.requestThreads.push(message.sobject.RequestId);
-      this.sendEvent(
-        new ThreadEvent(
-          'started',
-          this.requestThreads.indexOf(message.sobject.RequestId)
-        )
-      );
     }
   }
 
@@ -543,7 +623,6 @@ export class ApexDebug extends DebugSession {
       const threadId = this.requestThreads.indexOf(message.sobject.RequestId);
       if (threadId >= 0) {
         this.logEvent(message);
-        this.sendEvent(new ContinuedEvent(threadId));
       }
     }
   }
@@ -557,22 +636,14 @@ export class ApexDebug extends DebugSession {
   private handleStopped(message: DebuggerMessage): void {
     if (message.sobject.RequestId) {
       const threadId = this.requestThreads.indexOf(message.sobject.RequestId);
-      if (threadId >= 0 && message.sobject.BreakpointId) {
+      if (threadId >= 0) {
         this.logEvent(message);
-        this.sendEvent(
-          new StoppedEvent(
-            'breakpoint',
-            this.requestThreads.indexOf(message.sobject.RequestId)
-          )
+        const stoppedEvent = new StoppedEvent(
+          message.sobject.BreakpointId ? 'breakpoint' : 'step',
+          this.requestThreads.indexOf(message.sobject.RequestId)
         );
-      } else if (threadId >= 0) {
-        this.logEvent(message);
-        this.sendEvent(
-          new StoppedEvent(
-            'step',
-            this.requestThreads.indexOf(message.sobject.RequestId)
-          )
-        );
+        (<DebugProtocol.StoppedEvent>stoppedEvent).body.allThreadsStopped = true;
+        this.sendEvent(stoppedEvent);
       }
     }
   }

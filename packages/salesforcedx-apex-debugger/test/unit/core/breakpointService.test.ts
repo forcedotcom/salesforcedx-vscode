@@ -21,6 +21,16 @@ import childProcess = require('child_process');
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;
   const mockSpawn = require('mock-spawn');
+  const lineNumberMapping: Map<string, LineBreakpointsInTyperef[]> = new Map();
+  const typerefMapping: Map<string, string> = new Map();
+  lineNumberMapping.set('file:///foo.cls', [
+    { typeref: 'foo', lines: [1, 2] },
+    { typeref: 'foo$inner', lines: [3, 4] }
+  ]);
+  lineNumberMapping.set('file:///bar.cls', [{ typeref: 'bar', lines: [3, 4] }]);
+  typerefMapping.set('foo', 'file:///foo.cls');
+  typerefMapping.set('foo$inner', 'file:///foo.cls');
+  typerefMapping.set('bar', 'file:///bar.cls');
 
   describe('Helpers', () => {
     beforeEach(() => {
@@ -40,18 +50,7 @@ describe('Debugger breakpoint service', () => {
     });
 
     it('Should get valid typeref', () => {
-      const lineNumberMapping: Map<
-        string,
-        LineBreakpointsInTyperef[]
-      > = new Map();
-      lineNumberMapping.set('file:///foo.cls', [
-        { typeref: 'foo', lines: [1, 2] },
-        { typeref: 'foo$inner', lines: [3, 4] }
-      ]);
-      lineNumberMapping.set('file:///bar.cls', [
-        { typeref: 'bar', lines: [3, 4] }
-      ]);
-      service.setValidLines(lineNumberMapping);
+      service.setValidLines(lineNumberMapping, typerefMapping);
 
       const actualTyperef = service.getTyperefFor('file:///foo.cls', 3);
 
@@ -60,22 +59,27 @@ describe('Debugger breakpoint service', () => {
     });
 
     it('Should not get typeref', () => {
-      const lineNumberMapping: Map<
-        string,
-        LineBreakpointsInTyperef[]
-      > = new Map();
-      lineNumberMapping.set('file:///foo.cls', [
-        { typeref: 'foo', lines: [1, 2] },
-        { typeref: 'foo$inner', lines: [3, 4] }
-      ]);
-      lineNumberMapping.set('file:///bar.cls', [
-        { typeref: 'bar', lines: [3, 4] }
-      ]);
-      service.setValidLines(lineNumberMapping);
+      service.setValidLines(lineNumberMapping, typerefMapping);
 
       const actualTyperef = service.getTyperefFor('file:///xyz.cls', 3);
 
       expect(actualTyperef).to.equal(undefined);
+    });
+
+    it('Should get valid uri from typeref', () => {
+      service.setValidLines(lineNumberMapping, typerefMapping);
+
+      const uri = service.getSourcePathFromTyperef('foo$inner');
+
+      expect(uri).to.equal('file:///foo.cls');
+    });
+
+    it('Should not get uri from typeref', () => {
+      service.setValidLines(lineNumberMapping, typerefMapping);
+
+      const uri = service.getSourcePathFromTyperef('xyz');
+
+      expect(uri).to.equal(undefined);
     });
 
     it('Should cache breakpoint', () => {
