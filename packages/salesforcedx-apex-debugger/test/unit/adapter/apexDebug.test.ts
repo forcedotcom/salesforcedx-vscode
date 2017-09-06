@@ -210,12 +210,12 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents()[1].event).to.equal('initialized');
     });
 
-    it('Should not launch if session service errors out', async () => {
+    it('Should not launch if ApexDebuggerSession object is not accessible', async () => {
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
         .returns(
           Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
+            '{"message":"entity type cannot be inserted: Apex Debugger Session", "action":"Try again"}'
           )
         );
       sessionConnectedSpy = sinon
@@ -232,7 +232,9 @@ describe('Debugger adapter - unit', () => {
 
       expect(sessionStartSpy.calledOnce).to.equal(true);
       expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getResponse(0).message).to.equal('There was an error');
+      expect(adapter.getResponse(0).message).to.equal(
+        nls.localize('session_no_entity_access_text')
+      );
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
@@ -1182,12 +1184,18 @@ describe('Debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(sessionStopSpy.calledOnce).to.equal(true);
-      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents().length).to.equal(3);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string('foo');
-      expect(adapter.getEvents()[1].event).to.equal('terminated');
+      expect(adapter.getEvents()[1].event).to.equal(SHOW_MESSAGE_EVENT);
+      const showMessageEvent = adapter.getEvents()[1] as DebugProtocol.Event;
+      expect(showMessageEvent.body).to.deep.equal({
+        type: VscodeDebuggerMessageType.Error,
+        message: 'foo'
+      } as VscodeDebuggerMessage);
+      expect(adapter.getEvents()[2].event).to.equal('terminated');
     });
 
     it('Should not stop session service if session IDs do not match', () => {
