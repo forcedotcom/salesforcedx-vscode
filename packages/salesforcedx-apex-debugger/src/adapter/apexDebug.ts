@@ -21,7 +21,14 @@ import {
   LineBreakpointInfo,
   LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
-import { ForceOrgDisplay, OrgInfo, RunCommand } from '../commands';
+import {
+  ForceOrgDisplay,
+  OrgInfo,
+  RunCommand,
+  StepIntoCommand,
+  StepOutCommand,
+  StepOverCommand
+} from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST,
@@ -234,6 +241,69 @@ export class ApexDebug extends DebugSession {
       const requestId = this.requestThreads[args.threadId];
       try {
         await new RunCommand(
+          this.orgInfo.instanceUrl,
+          this.orgInfo.accessToken,
+          requestId
+        ).execute();
+        response.success = true;
+      } catch (error) {
+        response.message = error;
+      }
+    }
+    this.sendResponse(response);
+  }
+
+  protected async nextRequest(
+    response: DebugProtocol.NextResponse,
+    args: DebugProtocol.NextArguments
+  ): Promise<void> {
+    response.success = false;
+    if (args.threadId >= 0 && args.threadId < this.requestThreads.length) {
+      const requestId = this.requestThreads[args.threadId];
+      try {
+        await new StepOverCommand(
+          this.orgInfo.instanceUrl,
+          this.orgInfo.accessToken,
+          requestId
+        ).execute();
+        response.success = true;
+      } catch (error) {
+        response.message = error;
+      }
+    }
+    this.sendResponse(response);
+  }
+
+  protected async stepInRequest(
+    response: DebugProtocol.StepInResponse,
+    args: DebugProtocol.StepInArguments
+  ): Promise<void> {
+    response.success = false;
+    if (args.threadId >= 0 && args.threadId < this.requestThreads.length) {
+      const requestId = this.requestThreads[args.threadId];
+      try {
+        await new StepIntoCommand(
+          this.orgInfo.instanceUrl,
+          this.orgInfo.accessToken,
+          requestId
+        ).execute();
+        response.success = true;
+      } catch (error) {
+        response.message = error;
+      }
+    }
+    this.sendResponse(response);
+  }
+
+  protected async stepOutRequest(
+    response: DebugProtocol.StepOutResponse,
+    args: DebugProtocol.StepOutArguments
+  ): Promise<void> {
+    response.success = false;
+    if (args.threadId >= 0 && args.threadId < this.requestThreads.length) {
+      const requestId = this.requestThreads[args.threadId];
+      try {
+        await new StepOutCommand(
           this.orgInfo.instanceUrl,
           this.orgInfo.accessToken,
           requestId
@@ -492,6 +562,14 @@ export class ApexDebug extends DebugSession {
         this.sendEvent(
           new StoppedEvent(
             'breakpoint',
+            this.requestThreads.indexOf(message.sobject.RequestId)
+          )
+        );
+      } else if (threadId >= 0) {
+        this.logEvent(message);
+        this.sendEvent(
+          new StoppedEvent(
+            'step',
             this.requestThreads.indexOf(message.sobject.RequestId)
           )
         );

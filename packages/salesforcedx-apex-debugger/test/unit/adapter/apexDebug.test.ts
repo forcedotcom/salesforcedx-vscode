@@ -19,7 +19,14 @@ import {
   LineBreakpointInfo,
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
-import { ForceOrgDisplay, OrgInfo, RunCommand } from '../../../src/commands';
+import {
+  ForceOrgDisplay,
+  OrgInfo,
+  RunCommand,
+  StepIntoCommand,
+  StepOutCommand,
+  StepOverCommand
+} from '../../../src/commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST,
@@ -672,6 +679,70 @@ describe('Debugger adapter - unit', () => {
     });
   });
 
+  describe('Stepping', () => {
+    let stepSpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService()
+      );
+      adapter.setSfdxProject('someProjectPath');
+      adapter.setOrgInfo({
+        instanceUrl: 'https://www.salesforce.com',
+        accessToken: '123'
+      } as OrgInfo);
+      adapter.addRequestThread('07cFAKE');
+    });
+
+    afterEach(() => {
+      stepSpy.restore();
+    });
+
+    it('Step into should call proper command', async () => {
+      stepSpy = sinon
+        .stub(StepIntoCommand.prototype, 'execute')
+        .returns(Promise.resolve(''));
+
+      await adapter.stepInRequest(
+        {} as DebugProtocol.StepInResponse,
+        { threadId: 0 } as DebugProtocol.StepInArguments
+      );
+
+      expect(adapter.getResponse(0).success).to.equal(true);
+      expect(stepSpy.calledOnce).to.equal(true);
+    });
+
+    it('Step out should send proper command', async () => {
+      stepSpy = sinon
+        .stub(StepOutCommand.prototype, 'execute')
+        .returns(Promise.resolve(''));
+
+      await adapter.stepOutRequest(
+        {} as DebugProtocol.StepOutResponse,
+        { threadId: 0 } as DebugProtocol.StepOutArguments
+      );
+
+      expect(adapter.getResponse(0).success).to.equal(true);
+      expect(stepSpy.calledOnce).to.equal(true);
+    });
+
+    it('Step over should send proper command', async () => {
+      stepSpy = sinon
+        .stub(StepOverCommand.prototype, 'execute')
+        .returns(Promise.resolve(''));
+
+      await adapter.nextRequest(
+        {} as DebugProtocol.NextResponse,
+        { threadId: 0 } as DebugProtocol.NextArguments
+      );
+
+      expect(adapter.getResponse(0).success).to.equal(true);
+      expect(stepSpy.calledOnce).to.equal(true);
+    });
+  });
+
   describe('Threads request', () => {
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -1180,7 +1251,7 @@ describe('Debugger adapter - unit', () => {
       sessionIdSpy.restore();
     });
 
-    it('Should send stopped event', () => {
+    it('Should send breakpoint stopped event', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1203,21 +1274,47 @@ describe('Debugger adapter - unit', () => {
       expect(threadEvent.body.threadId).to.equal(0);
     });
 
-    it('Should not handle without breakpoint ID', () => {
+    it('Should send stepping stopped event', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
           SessionId: '123',
           Type: 'Stopped',
-          RequestId: '07cFAKE'
+          RequestId: '07cFAKE-without-breakpoint'
         }
       };
-      adapter.addRequestThread('07cFAKE');
+      adapter.addRequestThread('07cFAKE-without-breakpoint');
 
       adapter.handleEvent(message);
 
       expect(adapter.getRequestThreads().length).to.equal(1);
-      expect(adapter.getEvents().length).to.equal(0);
+      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[1].event).to.equal('stopped');
+      const threadEvent = adapter.getEvents()[1] as StoppedEvent;
+      expect(threadEvent.body.reason).to.equal('step');
+      expect(threadEvent.body.threadId).to.equal(0);
+    });
+
+    it('Should not handle without request ID', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'Stopped'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(
+        adapter.getRequestThreads().length,
+        'must have no registered request thread'
+      ).to.equal(0);
+      expect(
+        adapter.getEvents().length,
+        'must not handle an event without a request id'
+      ).to.equal(0);
     });
   });
 

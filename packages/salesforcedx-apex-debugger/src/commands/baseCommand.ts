@@ -8,6 +8,7 @@
 import { xhr, XHROptions, XHRResponse } from 'request-light';
 
 export abstract class BaseCommand {
+  private readonly queryString: string | undefined;
   private readonly commandName: string;
   private readonly instanceUrl: string;
   private readonly accessToken: string;
@@ -18,12 +19,14 @@ export abstract class BaseCommand {
     commandName: string,
     instanceUrl: string,
     accessToken: string,
-    debuggedRequestId: string
+    debuggedRequestId: string,
+    queryString?: string
   ) {
     this.commandName = commandName;
     this.instanceUrl = instanceUrl;
     this.accessToken = accessToken;
     this.debuggedRequestId = debuggedRequestId;
+    this.queryString = queryString;
   }
 
   public async execute(): Promise<string> {
@@ -33,7 +36,10 @@ export abstract class BaseCommand {
       this.commandName,
       this.debuggedRequestId
     ];
-    const debuggerApiUrl = urlElements.join('/');
+    const debuggerApiUrl =
+      this.queryString == null
+        ? urlElements.join('/')
+        : urlElements.join('/').concat('?', this.queryString);
     const options: XHROptions = {
       type: 'POST',
       url: debuggerApiUrl,

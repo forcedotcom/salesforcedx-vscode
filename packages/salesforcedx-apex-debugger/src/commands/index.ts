@@ -7,3 +7,8 @@
 
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export { RunCommand } from './runCommand';
+export {
+  StepIntoCommand,
+  StepOutCommand,
+  StepOverCommand
+} from './stepCommands';
