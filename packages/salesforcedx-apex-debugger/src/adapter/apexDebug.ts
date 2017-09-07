@@ -462,7 +462,16 @@ export class ApexDebug extends DebugSession {
       response.success = false;
       const errorObj = JSON.parse(error);
       if (errorObj && errorObj.message) {
-        response.message = errorObj.message;
+        const errorMessage: string = errorObj.message;
+        if (
+          errorMessage.includes(
+            'entity type cannot be inserted: Apex Debugger Session'
+          )
+        ) {
+          response.message = nls.localize('session_no_entity_access_text');
+        } else {
+          response.message = errorMessage;
+        }
         if (errorObj.action) {
           this.errorToDebugConsole(
             `${nls.localize(
@@ -628,7 +637,15 @@ export class ApexDebug extends DebugSession {
   }
 
   private handleSessionTerminated(message: DebuggerMessage): void {
-    this.errorToDebugConsole(message.sobject.Description);
+    if (message.sobject.Description) {
+      this.errorToDebugConsole(message.sobject.Description);
+      this.sendEvent(
+        new Event(SHOW_MESSAGE_EVENT, {
+          type: VscodeDebuggerMessageType.Error,
+          message: message.sobject.Description
+        } as VscodeDebuggerMessage)
+      );
+    }
     this.mySessionService.forceStop();
     this.sendEvent(new TerminatedEvent());
   }
