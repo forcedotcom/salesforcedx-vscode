@@ -62,6 +62,16 @@ export class BreakpointService {
     return this.typerefMapping.get(typeref);
   }
 
+  public getSourcePathFromPartialTyperef(
+    partialTyperef: string
+  ): string | undefined {
+    for (const typeref of this.typerefMapping.keys()) {
+      if (typeref.endsWith(partialTyperef)) {
+        return this.typerefMapping.get(typeref);
+      }
+    }
+  }
+
   public cacheBreakpoint(
     uriArg: string,
     lineArg: number,

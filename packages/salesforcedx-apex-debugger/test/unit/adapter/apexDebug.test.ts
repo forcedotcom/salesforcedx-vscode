@@ -49,6 +49,7 @@ import {
 } from '../../../src/index';
 import { nls } from '../../../src/messages';
 import { ApexDebugForTest } from './apexDebugForTest';
+import os = require('os');
 
 describe('Debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
@@ -1025,12 +1026,31 @@ describe('Debugger adapter - unit', () => {
   });
 
   describe('Logging', () => {
+    let breakpointService: BreakpointService;
+    const lineNumberMapping: Map<
+      string,
+      LineBreakpointsInTyperef[]
+    > = new Map();
+    const typerefMapping: Map<string, string> = new Map();
+    lineNumberMapping.set('file:///foo.cls', [
+      { typeref: 'foo', lines: [1, 2] },
+      { typeref: 'foo$inner', lines: [3, 4] }
+    ]);
+    lineNumberMapping.set('file:///bar.cls', [
+      { typeref: 'bar', lines: [3, 4] }
+    ]);
+    typerefMapping.set('foo', 'file:///foo.cls');
+    typerefMapping.set('foo$inner', 'file:///foo.cls');
+    typerefMapping.set('bar', 'file:///bar.cls');
+
     beforeEach(() => {
+      breakpointService = new BreakpointService();
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        breakpointService
       );
+      breakpointService.setValidLines(lineNumberMapping, typerefMapping);
     });
 
     it('Should not log without an error', () => {
@@ -1076,21 +1096,24 @@ describe('Debugger adapter - unit', () => {
           SessionId: '07aFAKE',
           BreakpointId: '07bFAKE',
           RequestId: '07cFAKE',
-          Type: 'Stopped',
+          Type: 'Debug',
           Line: 5,
-          Description: 'Request was stopped'
+          Description: 'inner[4]|A user debug message',
+          Stacktrace: 'A stacktrace'
         }
       };
 
       adapter.logEvent(msg);
       expect(adapter.getEvents()[0].event).to.equal('output');
-      expect(
-        (adapter.getEvents()[0] as OutputEvent).body.output
-      ).to.have.string(
+      const outputEvent = adapter.getEvents()[0] as DebugProtocol.OutputEvent;
+      expect(outputEvent.body.output).to.have.string(
         `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${msg.sobject
           .RequestId} | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${msg
-          .sobject.Line} | Request was stopped`
+          .sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject
+          .Stacktrace}`
       );
+      expect(outputEvent.body.source!.path).to.equal('/foo.cls');
+      expect(outputEvent.body.line).to.equal(4);
     });
   });
 
@@ -1140,11 +1163,12 @@ describe('Debugger adapter - unit', () => {
     });
   });
 
-  describe('Debugger event SessionTerminated', () => {
+  describe('Debugger events', () => {
     let sessionConnectedSpy: sinon.SinonStub;
     let sessionIdSpy: sinon.SinonStub;
     let sessionStopSpy: sinon.SinonSpy;
     let eventProcessedSpy: sinon.SinonStub;
+    let markEventProcessedSpy: sinon.SinonSpy;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -1153,16 +1177,6 @@ describe('Debugger adapter - unit', () => {
         new BreakpointService()
       );
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
-    });
-
-    afterEach(() => {
-      sessionConnectedSpy.restore();
-      sessionIdSpy.restore();
-      sessionStopSpy.restore();
-      eventProcessedSpy.restore();
-    });
-
-    it('Should stop session service', () => {
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
         .returns(true);
@@ -1172,6 +1186,21 @@ describe('Debugger adapter - unit', () => {
       eventProcessedSpy = sinon
         .stub(StreamingService.prototype, 'hasProcessedEvent')
         .returns(false);
+      markEventProcessedSpy = sinon.spy(
+        StreamingService.prototype,
+        'markEventProcessed'
+      );
+    });
+
+    afterEach(() => {
+      sessionConnectedSpy.restore();
+      sessionIdSpy.restore();
+      sessionStopSpy.restore();
+      eventProcessedSpy.restore();
+      markEventProcessedSpy.restore();
+    });
+
+    it('[SessionTerminated] - Should stop session service', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1198,16 +1227,7 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents()[2].event).to.equal('terminated');
     });
 
-    it('Should not stop session service if session IDs do not match', () => {
-      sessionConnectedSpy = sinon
-        .stub(SessionService.prototype, 'isConnected')
-        .returns(true);
-      sessionIdSpy = sinon
-        .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
-        .returns(false);
+    it('[SessionTerminated] - Should not stop session service if session IDs do not match', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1223,15 +1243,10 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents().length).to.equal(0);
     });
 
-    it('Should not stop session service if it is not connected', () => {
+    it('[SessionTerminated] - Should not stop session service if it is not connected', () => {
+      sessionConnectedSpy.restore();
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
-        .returns(false);
-      sessionIdSpy = sinon
-        .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
         .returns(false);
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
@@ -1247,37 +1262,8 @@ describe('Debugger adapter - unit', () => {
       expect(sessionStopSpy.called).to.equal(false);
       expect(adapter.getEvents().length).to.equal(0);
     });
-  });
 
-  describe('Debugger event RequestStarted', () => {
-    let sessionConnectedSpy: sinon.SinonStub;
-    let sessionIdSpy: sinon.SinonStub;
-    let eventProcessedSpy: sinon.SinonStub;
-
-    beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService()
-      );
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
-        .returns(false);
-    });
-
-    afterEach(() => {
-      sessionConnectedSpy.restore();
-      sessionIdSpy.restore();
-      eventProcessedSpy.restore();
-    });
-
-    it('Should create new request thread', () => {
-      sessionConnectedSpy = sinon
-        .stub(SessionService.prototype, 'isConnected')
-        .returns(true);
-      sessionIdSpy = sinon
-        .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
+    it('[RequestStarted] - Should create new request thread', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1294,37 +1280,8 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents().length).to.equal(1);
       expect(adapter.getEvents()[0].event).to.equal('output');
     });
-  });
 
-  describe('Debugger event RequestFinished', () => {
-    let sessionConnectedSpy: sinon.SinonStub;
-    let sessionIdSpy: sinon.SinonStub;
-    let eventProcessedSpy: sinon.SinonStub;
-
-    beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService()
-      );
-      sessionConnectedSpy = sinon
-        .stub(SessionService.prototype, 'isConnected')
-        .returns(true);
-      sessionIdSpy = sinon
-        .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
-        .returns(false);
-    });
-
-    afterEach(() => {
-      sessionConnectedSpy.restore();
-      sessionIdSpy.restore();
-      eventProcessedSpy.restore();
-    });
-
-    it('Should delete request thread', () => {
+    it('[RequestFinished] - Should delete request thread', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1353,7 +1310,7 @@ describe('Debugger adapter - unit', () => {
       });
     });
 
-    it('Should not handle unknown request', () => {
+    it('[RequestFinished] - Should not handle unknown request', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1369,37 +1326,8 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getRequestThreads().length).to.equal(1);
       expect(adapter.getEvents().length).to.equal(0);
     });
-  });
 
-  describe('Debugger event Resumed', () => {
-    let sessionConnectedSpy: sinon.SinonStub;
-    let sessionIdSpy: sinon.SinonStub;
-    let eventProcessedSpy: sinon.SinonStub;
-
-    beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService()
-      );
-      sessionConnectedSpy = sinon
-        .stub(SessionService.prototype, 'isConnected')
-        .returns(true);
-      sessionIdSpy = sinon
-        .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
-        .returns(false);
-    });
-
-    afterEach(() => {
-      sessionConnectedSpy.restore();
-      sessionIdSpy.restore();
-      eventProcessedSpy.restore();
-    });
-
-    it('Should send continued event', () => {
+    it('[Resumed] - Should send continued event', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1417,7 +1345,7 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents()[0].event).to.equal('output');
     });
 
-    it('Should not handle unknown request', () => {
+    it('[Resumed] - Should not handle unknown request', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1433,43 +1361,8 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getRequestThreads().length).to.equal(1);
       expect(adapter.getEvents().length).to.equal(0);
     });
-  });
 
-  describe('Debugger event Stopped', () => {
-    let sessionConnectedSpy: sinon.SinonStub;
-    let sessionIdSpy: sinon.SinonStub;
-    let eventProcessedSpy: sinon.SinonStub;
-    let markEventProcessedSpy: sinon.SinonSpy;
-
-    beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService()
-      );
-      sessionConnectedSpy = sinon
-        .stub(SessionService.prototype, 'isConnected')
-        .returns(true);
-      sessionIdSpy = sinon
-        .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
-      markEventProcessedSpy = sinon.spy(
-        StreamingService.prototype,
-        'markEventProcessed'
-      );
-    });
-
-    afterEach(() => {
-      sessionConnectedSpy.restore();
-      sessionIdSpy.restore();
-      eventProcessedSpy.restore();
-      markEventProcessedSpy.restore();
-    });
-
-    it('Should send breakpoint stopped event', () => {
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
-        .returns(false);
+    it('[Stopped] - Should send breakpoint stopped event', () => {
       const message: DebuggerMessage = {
         event: {
           replayId: 0
@@ -1502,10 +1395,7 @@ describe('Debugger adapter - unit', () => {
       ]);
     });
 
-    it('Should send stepping stopped event', () => {
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
-        .returns(false);
+    it('[Stopped] - Should send stepping stopped event', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1527,7 +1417,7 @@ describe('Debugger adapter - unit', () => {
       expect(threadEvent.body.threadId).to.equal(0);
     });
 
-    it('Should not handle without request ID', () => {
+    it('[Stopped] - Should not handle without request ID', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1547,38 +1437,8 @@ describe('Debugger adapter - unit', () => {
         'must not handle an event without a request id'
       ).to.equal(0);
     });
-  });
 
-  describe('Debugger event SystemWarning', () => {
-    let sessionConnectedSpy: sinon.SinonStub;
-    let sessionIdSpy: sinon.SinonStub;
-    let eventProcessedSpy: sinon.SinonStub;
-
-    beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService()
-      );
-      sessionConnectedSpy = sinon
-        .stub(SessionService.prototype, 'isConnected')
-        .returns(true);
-      sessionIdSpy = sinon
-        .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
-      eventProcessedSpy = sinon
-        .stub(StreamingService.prototype, 'hasProcessedEvent')
-        .returns(false);
-      adapter.addRequestThread('07cFAKE');
-    });
-
-    afterEach(() => {
-      sessionConnectedSpy.restore();
-      sessionIdSpy.restore();
-      eventProcessedSpy.restore();
-    });
-
-    it('Should send events with description', () => {
+    it('[SystemWarning] - Should send events with description', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
@@ -1600,12 +1460,81 @@ describe('Debugger adapter - unit', () => {
       } as VscodeDebuggerMessage);
     });
 
-    it('Should not send event without description', () => {
+    it('[SystemWarning] - Should not send event without description', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
           SessionId: '123',
           Type: 'SystemWarning'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getEvents().length).to.equal(1);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+    });
+
+    it('[SystemGack] - Should send events with description', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'SystemGack',
+          Description: 'foo'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[1].event).to.equal(SHOW_MESSAGE_EVENT);
+      const showMessageEvent = adapter.getEvents()[1] as DebugProtocol.Event;
+      expect(showMessageEvent.body).to.deep.equal({
+        type: VscodeDebuggerMessageType.Error,
+        message: 'foo'
+      } as VscodeDebuggerMessage);
+    });
+
+    it('[SystemGack] - Should not send event without description', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'SystemGack'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getEvents().length).to.equal(1);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+    });
+
+    it('[ApexException] - Should log event', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'ApexException',
+          Description: 'foo'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getEvents().length).to.equal(1);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+    });
+
+    it('[Debug] - Should log event', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'Debug',
+          Description: 'foo[8]|real message'
         }
       };
 

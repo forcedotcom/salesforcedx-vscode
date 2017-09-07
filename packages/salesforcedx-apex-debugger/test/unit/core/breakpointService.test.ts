@@ -82,6 +82,22 @@ describe('Debugger breakpoint service', () => {
       expect(uri).to.equal(undefined);
     });
 
+    it('Should get valid uri from partial typeref', () => {
+      service.setValidLines(lineNumberMapping, typerefMapping);
+
+      const uri = service.getSourcePathFromPartialTyperef('inner');
+
+      expect(uri).to.equal('file:///foo.cls');
+    });
+
+    it('Should not get uri from partial typeref', () => {
+      service.setValidLines(lineNumberMapping, typerefMapping);
+
+      const uri = service.getSourcePathFromPartialTyperef('xyz');
+
+      expect(uri).to.equal(undefined);
+    });
+
     it('Should cache breakpoint', () => {
       const expectedCache: Map<string, ApexBreakpointLocation[]> = new Map();
       expectedCache.set('file:///foo.cls', [

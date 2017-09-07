@@ -13,8 +13,8 @@
     "@salesforce/salesforcedx-utils-vscode": "40.9.0",
     "faye": "1.1.2",
     "request-light": "0.2.1",
-    "vscode-debugadapter": "1.22.0",
-    "vscode-debugprotocol": "1.22.0"
+    "vscode-debugadapter": "1.23.0",
+    "vscode-debugprotocol": "1.23.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -29,7 +29,7 @@
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
     "vscode": "1.1.4",
-    "vscode-debugadapter-testsupport": "1.22.0"
+    "vscode-debugadapter-testsupport": "1.23.0"
   },
   "scripts": {
     "vscode:package": "npm prune --production",
