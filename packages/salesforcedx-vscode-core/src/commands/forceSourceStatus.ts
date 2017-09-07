@@ -30,6 +30,9 @@ class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
     if (this.flag === '--local') {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize('force_source_status_local_text'));
+    } else if (this.flag === '--remote') {
+      builder.withArg(this.flag);
+      builder.withDescription(nls.localize('force_source_status_remote_text'));
     }
     return builder.build();
   }
