@@ -27,7 +27,7 @@ class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_status_text'))
       .withArg('force:source:status');
-    if (this.flag === '-l') {
+    if (this.flag === '--local') {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize('force_source_status_local_text'));
     }
