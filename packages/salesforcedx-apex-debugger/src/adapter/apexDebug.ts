@@ -462,14 +462,15 @@ export class ApexDebug extends DebugSession {
       response.success = false;
       const errorObj = JSON.parse(error);
       if (errorObj && errorObj.message) {
+        const errorMessage: string = errorObj.message;
         if (
-          errorObj.message.indexOf(
+          errorMessage.includes(
             'entity type cannot be inserted: Apex Debugger Session'
-          ) !== -1
+          )
         ) {
           response.message = nls.localize('session_no_entity_access_text');
         } else {
-          response.message = errorObj.message;
+          response.message = errorMessage;
         }
         if (errorObj.action) {
           this.errorToDebugConsole(
