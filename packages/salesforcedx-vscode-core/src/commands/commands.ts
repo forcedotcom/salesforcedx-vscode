@@ -207,6 +207,7 @@ export abstract class SfdxCommandletExecutor<T>
     }).execute(cancellationToken);
 
     channelService.streamCommandOutput(execution);
+    channelService.showChannelOutput();
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken

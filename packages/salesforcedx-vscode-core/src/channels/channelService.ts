@@ -71,6 +71,11 @@ export class ChannelService {
       } else {
         this.channel.appendLine(nls.localize('channel_end'));
       }
+      this.channel.appendLine('');
     });
+  }
+
+  public showChannelOutput() {
+    this.channel.show();
   }
 }
