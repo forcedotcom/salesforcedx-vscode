@@ -18,23 +18,38 @@ import {
 } from './commands';
 
 class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
+  private flag: string | undefined;
+  public constructor(flag?: string) {
+    super();
+    this.flag = flag;
+  }
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_status_text'))
-      .withArg('force:source:status')
-      .build();
+      .withArg('force:source:status');
+    if (this.flag === 'l') {
+      builder.withArg(this.flag);
+      builder.withDescription(nls.localize('force_source_status_local_text'));
+    }
+    return builder.build();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceSourceStatusExecutor();
-const commandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
 
-export function forceSourceStatus() {
+export interface FlagParameter {
+  flag: string;
+}
+
+export function forceSourceStatus(this: FlagParameter) {
+  // tslint:disable-next-line:no-invalid-this
+  const flag = this ? this.flag : undefined;
+  const executor = new ForceSourceStatusExecutor(flag);
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    executor
+  );
   commandlet.run();
 }

@@ -54,6 +54,11 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.source.status',
     forceSourceStatus
   );
+  const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.status.local',
+    forceSourceStatus,
+    { flag: '-l' }
+  );
   const forceApexTestRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.run',
     forceApexTestRun

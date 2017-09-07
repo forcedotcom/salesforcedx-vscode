@@ -130,6 +130,10 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.source.status.local",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.apex.test.run",
           "when": "sfdx:project_opened"
         },
@@ -191,6 +195,10 @@
       {
         "command": "sfdx.force.source.status",
         "title": "%force_source_status_text%"
+      },
+      {
+        "command": "sfdx.force.source.status.local",
+        "title": "%force_source_status_local_text%"
       },
       {
         "command": "sfdx.force.apex.test.run",

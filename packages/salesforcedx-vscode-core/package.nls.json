@@ -2,18 +2,24 @@
   "running_tasks_title_text": "Running Tasks",
 
   "force_auth_web_login_authorize_dev_hub_text": "SFDX: Authorize a Dev Hub",
-  "force_org_create_default_scratch_org_text": "SFDX: Create a Default Scratch Org...",
+  "force_org_create_default_scratch_org_text":
+    "SFDX: Create a Default Scratch Org...",
   "force_org_open_default_scratch_org_text": "SFDX: Open Default Scratch Org",
-  "force_source_pull_default_scratch_org_text": "SFDX: Pull Source from Default Scratch Org",
-  "force_source_push_default_scratch_org_text": "SFDX: Push Source to Default Scratch Org",
-  "force_source_status_text": "SFDX: View All Changes (Local and in Default Scratch Org)",
+  "force_source_pull_default_scratch_org_text":
+    "SFDX: Pull Source from Default Scratch Org",
+  "force_source_push_default_scratch_org_text":
+    "SFDX: Push Source to Default Scratch Org",
+  "force_source_status_text":
+    "SFDX: View All Changes (Local and in Default Scratch Org)",
   "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
   "cancel_sfdx_command_text": "SFDX: Cancel Active Command",
   "force_apex_class_create_text": "SFDX: Create Apex Class",
-  "force_visualforce_component_create_text": "SFDX: Create Visualforce Component",
+  "force_visualforce_component_create_text":
+    "SFDX: Create Visualforce Component",
   "force_visualforce_page_create_text": "SFDX: Create Visualforce Page",
   "force_lightning_app_create_text": "SFDX: Create Lightning App",
   "force_lightning_component_create_text": "SFDX: Create Lightning Component",
   "force_lightning_event_create_text": "SFDX: Create Lightning Event",
-  "force_lightning_interface_create_text": "SFDX: Create Lightning Interface"
+  "force_lightning_interface_create_text": "SFDX: Create Lightning Interface",
+  "force_source_status_local_text": "SFDX: View Local Changes"
 }
