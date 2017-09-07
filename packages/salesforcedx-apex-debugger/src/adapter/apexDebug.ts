@@ -439,9 +439,20 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
-  private logToDebugConsole(msg?: string): void {
+  private logToDebugConsole(
+    msg?: string,
+    sourceFile?: Source,
+    sourceLine?: number
+  ): void {
     if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`));
+      const event: DebugProtocol.OutputEvent = new OutputEvent(
+        `${msg}${ApexDebug.TWO_NL}`,
+        'stdout'
+      );
+      event.body.source = sourceFile;
+      event.body.line = sourceLine;
+      event.body.column = 0;
+      this.sendEvent(event);
     }
   }
 
@@ -549,6 +560,14 @@ export class ApexDebug extends DebugSession {
       return;
     }
     switch (type) {
+      case ApexDebuggerEventType.ApexException: {
+        this.handleApexException(message);
+        break;
+      }
+      case ApexDebuggerEventType.Debug: {
+        this.handleDebug(message);
+        break;
+      }
       case ApexDebuggerEventType.RequestFinished: {
         this.handleRequestFinished(message);
         break;
@@ -569,10 +588,17 @@ export class ApexDebug extends DebugSession {
         this.handleStopped(message);
         break;
       }
+      case ApexDebuggerEventType.SystemGack: {
+        this.handleSystemGack(message);
+        break;
+      }
       case ApexDebuggerEventType.SystemWarning: {
         this.handleSystemWarning(message);
         break;
       }
+      case ApexDebuggerEventType.LogLine:
+      case ApexDebuggerEventType.OrgChange:
+      case ApexDebuggerEventType.Ready:
       default: {
         break;
       }
@@ -581,6 +607,8 @@ export class ApexDebug extends DebugSession {
   }
 
   public logEvent(message: DebuggerMessage): void {
+    let eventDescriptionSourceFile: Source | undefined;
+    let eventDescriptionSourceLine: number | undefined;
     let logMessage =
       message.event.createdDate === null
         ? new Date().toUTCString()
@@ -597,9 +625,42 @@ export class ApexDebug extends DebugSession {
     }
     if (message.sobject.Description) {
       logMessage += ` | ${message.sobject.Description}`;
+      const regExp: RegExp = /^(.*)\[(\d+)\]\|/;
+      const matches = message.sobject.Description.match(regExp);
+      if (matches && matches.length === 3) {
+        const possibleClassName = matches[1];
+        const possibleClassLine = parseInt(matches[2]);
+        const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(
+          possibleClassName
+        );
+        if (possibleSourcePath) {
+          eventDescriptionSourceFile = new Source(
+            basename(possibleSourcePath),
+            this.convertDebuggerPathToClient(possibleSourcePath)
+          );
+          eventDescriptionSourceLine = this.convertDebuggerLineToClient(
+            possibleClassLine
+          );
+        }
+      }
+    }
+    if (message.sobject.Stacktrace) {
+      logMessage += ` |${os.EOL}${message.sobject.Stacktrace}`;
     }
 
-    this.logToDebugConsole(logMessage);
+    this.logToDebugConsole(
+      logMessage,
+      eventDescriptionSourceFile,
+      eventDescriptionSourceLine
+    );
+  }
+
+  private handleApexException(message: DebuggerMessage): void {
+    this.logEvent(message);
+  }
+
+  private handleDebug(message: DebuggerMessage): void {
+    this.logEvent(message);
   }
 
   private handleRequestFinished(message: DebuggerMessage): void {
@@ -655,13 +716,25 @@ export class ApexDebug extends DebugSession {
       const threadId = this.requestThreads.indexOf(message.sobject.RequestId);
       if (threadId >= 0) {
         this.logEvent(message);
-        const stoppedEvent = new StoppedEvent(
+        const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
           message.sobject.BreakpointId ? 'breakpoint' : 'step',
           this.requestThreads.indexOf(message.sobject.RequestId)
         );
-        (<DebugProtocol.StoppedEvent>stoppedEvent).body.allThreadsStopped = true;
+        stoppedEvent.body.allThreadsStopped = true;
         this.sendEvent(stoppedEvent);
       }
+    }
+  }
+
+  private handleSystemGack(message: DebuggerMessage): void {
+    this.logEvent(message);
+    if (message.sobject.Description) {
+      this.sendEvent(
+        new Event(SHOW_MESSAGE_EVENT, {
+          type: VscodeDebuggerMessageType.Error,
+          message: message.sobject.Description
+        } as VscodeDebuggerMessage)
+      );
     }
   }
 
