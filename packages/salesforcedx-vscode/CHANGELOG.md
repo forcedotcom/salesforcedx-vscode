@@ -1,3 +1,9 @@
+## 40.9.0 - September 7, 2017
+
+### Added
+#### salesforcedx-vscode-apex
+
+* Go To Definition feature for Apex fields, properties, local variables, and method parameters within the current file. ([PR #88](https://github.com/forcedotcom/salesforcedx-vscode/pull/88))
 ## 40.8.0 - August 31, 2017
 
 ### Added
