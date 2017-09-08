@@ -14,7 +14,7 @@ import Mocha = require('mocha');
 
 const mocha = new Mocha({
   ui: 'bdd',
-  timeout: 20000
+  timeout: 100000
 });
 mocha.useColors(true);
 

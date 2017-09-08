@@ -30,8 +30,6 @@ const sobjectdescribe = new SObjectDescribe();
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', function() {
-  // tslint:disable-next-line:no-invalid-this
-  this.timeout(40000);
   let username: string;
 
   before(async function() {
@@ -83,7 +81,7 @@ describe('Fetch sObjects', function() {
     );
     expect(cmdOutput.name).to.be.equal(CUSTOM_OBJECT_NAME);
     expect(cmdOutput.custom).to.be.true;
-    expect(cmdOutput.fields.length).to.be.greaterThan(0);
+    expect(cmdOutput.fields.length).to.be.least(9);
     const customField = cmdOutput.fields[cmdOutput.fields.length - 1];
     expect(customField.custom).to.be.true;
     expect(customField.precision).to.be.equal(18);
@@ -92,13 +90,13 @@ describe('Fetch sObjects', function() {
   });
 
   it('Should be able to call describeSObject on standard object', async function() {
-    // const cmdOutput = await sobjectdescribe.describeSObject(
-    //   process.cwd(),
-    //   'Account',
-    //   username
-    // );
-    // expect(cmdOutput.name).to.be.equal('Account');
-    // expect(cmdOutput.custom).to.be.false;
-    // expect(cmdOutput.fields.length).to.be.equal(9);
+    const cmdOutput = await sobjectdescribe.describeSObject(
+      process.cwd(),
+      'Account',
+      username
+    );
+    expect(cmdOutput.name).to.be.equal('Account');
+    expect(cmdOutput.custom).to.be.false;
+    expect(cmdOutput.fields.length).to.be.least(59);
   });
 });

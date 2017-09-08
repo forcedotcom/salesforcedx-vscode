@@ -163,7 +163,7 @@
         "-u",
         "tdd",
         "--timeout",
-        "999999",
+        "100000",
         "--colors",
         "--recursive",
         "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/"

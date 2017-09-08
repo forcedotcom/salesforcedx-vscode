@@ -9,13 +9,21 @@ import { CommandExecution } from './commandExecutor';
 
 export class CommandOutput {
   public async getCmdResult(execution: CommandExecution): Promise<string> {
+    let buffer = '';
     return new Promise<
       string
     >((resolve: (result: any) => void, reject: (reason: string) => void) => {
       execution.processExitSubject.subscribe(data => {
         if (data != undefined && data.toString() === '0') {
           execution.stdoutSubject.subscribe(realData => {
-            return resolve(realData.toString());
+            const output = realData.toString();
+            buffer = buffer.concat(output);
+            try {
+              JSON.parse(buffer.toString());
+              return resolve(buffer.toString());
+            } catch (e) {
+              // JSON syntax error. realData has not finished streaming
+            }
           });
         } else {
           execution.stderrSubject.subscribe(realData => {

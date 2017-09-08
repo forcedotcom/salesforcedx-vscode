@@ -19,6 +19,7 @@ export async function createSFDXProject(projectName: string): Promise<void> {
     new SfdxCommandBuilder()
       .withArg('force:project:create')
       .withFlag('--projectname', projectName)
+      .withJson()
       .build(),
     { cwd: process.cwd() }
   ).execute();
