@@ -5,54 +5,64 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import rimraf = require('rimraf');
 import { expect } from 'chai';
-import * as jsforce from 'jsforce';
 import * as path from 'path';
 import {
   SObjectCategory,
   SObjectDescribe
 } from '../../src/describe/sObjectDescribe';
+import * as util from './integrationTestUtil';
 
-const CUSTOM_OBJECT_NAME = 'SampleObject__c';
+const PROJECT_NAME = `project_${new Date().getTime()}`;
+const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
+const CUSTOM_FIELD_FULLNAME = CUSTOM_OBJECT_NAME + '.MyCustomField__c';
+const SIMPLE_OBJECT_DIR = path.join(
+  'test',
+  'integration',
+  'config',
+  'simpleObjectAndField',
+  'objects'
+);
+
+//const util = new TestUtil();
+const sobjectdescribe = new SObjectDescribe();
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', function() {
   // tslint:disable-next-line:no-invalid-this
-  this.timeout(20000);
+  this.timeout(40000);
   let username: string;
-  const sobjectdescribe = new SObjectDescribe();
-  const scratchDefFilePath = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    'test',
-    'integration',
-    'config',
-    'project-scratch-def.json'
-  );
 
   before(async function() {
-    const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:org:create')
-        .withFlag('--definitionfile', scratchDefFilePath)
-        .withArg('--json')
-        .build(),
-      { cwd: process.cwd() }
-    ).execute();
-    const cmdOutput = new CommandOutput();
+    const sourceFolder = path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      SIMPLE_OBJECT_DIR
+    );
+    const permSetName = 'AllowRead';
+    await util.createSFDXProject(PROJECT_NAME);
+    username = await util.createScratchOrg(PROJECT_NAME);
 
-    const result = await cmdOutput.getCmdResult(execution);
-    username = JSON.parse(result).result.username;
-    await createCustomObject(username);
-    // const permissionSetId = await createPermissionSet(username);
-    // await assignPermissionSet(permissionSetId, username);
+    await util.push(sourceFolder, PROJECT_NAME, username);
+    const permissionSetId = await util.createPermissionSet(
+      permSetName,
+      username
+    );
+    await util.createFieldPermissions(
+      permissionSetId,
+      CUSTOM_OBJECT_NAME,
+      CUSTOM_FIELD_FULLNAME,
+      username
+    );
+    await util.assignPermissionSet(permSetName, username);
+  });
+
+  after(function() {
+    const projectPath = path.join(process.cwd(), PROJECT_NAME);
+    rimraf.sync(projectPath);
   });
 
   it('Should be able to call describeGlobal', async function() {
@@ -65,7 +75,7 @@ describe('Fetch sObjects', function() {
     expect(cmdOutput[0]).to.be.equal(CUSTOM_OBJECT_NAME);
   });
 
-  it('Should be able to call describeSObject', async function() {
+  it('Should be able to call describeSObject on custom object', async function() {
     const cmdOutput = await sobjectdescribe.describeSObject(
       process.cwd(),
       CUSTOM_OBJECT_NAME,
@@ -73,78 +83,22 @@ describe('Fetch sObjects', function() {
     );
     expect(cmdOutput.name).to.be.equal(CUSTOM_OBJECT_NAME);
     expect(cmdOutput.custom).to.be.true;
-    //expect(cmdOutput.fields.length).to.be.equal(1);
-    // const customField = cmdOutput.fields[0];
-    // expect(customField.type).to.be.equal('AutoNumber');
-    // expect(customField.label).to.be.equal('My Custom Number');
-    // expect(customField.precision).to.be.equal('18');
+    expect(cmdOutput.fields.length).to.be.greaterThan(0);
+    const customField = cmdOutput.fields[cmdOutput.fields.length - 1];
+    expect(customField.custom).to.be.true;
+    expect(customField.precision).to.be.equal(18);
+    expect(customField.scale).to.be.equal(0);
+    expect(customField.name).to.be.equal('MyCustomField__c');
+  });
+
+  it('Should be able to call describeSObject on standard object', async function() {
+    // const cmdOutput = await sobjectdescribe.describeSObject(
+    //   process.cwd(),
+    //   'Account',
+    //   username
+    // );
+    // expect(cmdOutput.name).to.be.equal('Account');
+    // expect(cmdOutput.custom).to.be.false;
+    // expect(cmdOutput.fields.length).to.be.equal(9);
   });
 });
-
-async function createCustomObject(username: string) {
-  let orgInfo: any;
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:org:display')
-      .withFlag('--targetusername', username)
-      .withArg('--json')
-      .build(),
-    { cwd: process.cwd() }
-  ).execute();
-  const cmdOutput = new CommandOutput();
-  const result = await cmdOutput.getCmdResult(execution);
-  orgInfo = JSON.parse(result).result;
-  const token = orgInfo.accessToken;
-  const url = orgInfo.instanceUrl;
-
-  const conn = new jsforce.Connection({
-    accessToken: token,
-    instanceUrl: url
-  });
-  const customObject = {
-    fullName: 'SampleObject__c',
-    label: 'Sample Object',
-    pluralLabel: 'Sample Object',
-    nameField: {
-      type: 'Text',
-      label: 'Sample Object'
-    },
-    fields: {
-      fullName: 'MyCustomField__c',
-      label: 'My Custom Number',
-      type: 'Number',
-      precision: '18',
-      scale: '0'
-    },
-    deploymentStatus: 'Deployed',
-    sharingModel: 'ReadWrite'
-  };
-  const mdapi = (conn as any).metadata;
-  await mdapi.create('CustomObject', customObject, function(
-    err: any,
-    metadata: any
-  ) {
-    if (err) {
-      Promise.reject(err);
-    }
-  });
-}
-
-// async function createPermissionSet(username: string): Promise<string> {
-//   const execution = new CliCommandExecutor(
-//     new SfdxCommandBuilder()
-//       .withArg('force:data:record:update')
-//       .withFlag('--sobjecttype', 'PermissionSet')
-//       .withArg('--json')
-//       .build(),
-//     { cwd: process.cwd() }
-//   ).execute();
-//   const cmdOutput = new CommandOutput();
-//   const result = await cmdOutput.getCmdResult(execution);
-//   const permissionSetId = JSON.parse(result).result.id as string;
-//   return Promise.resolve(permissionSetId);
-// }
-
-// async function assignPermissionSet(id: string, username: string) {
-//   //
-// }
