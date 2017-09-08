@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 describe('SLDS Deprecated Class Name', () => {
@@ -14,12 +15,11 @@ describe('SLDS Deprecated Class Name', () => {
   before(async () => {
 
     if (vscode.workspace.rootPath) {
-      res = await vscode.workspace.findFiles('**/*.cmp');
+      res = await vscode.workspace.findFiles(path.normalize('**/*.cmp'));
       await vscode.workspace.openTextDocument(res[0]).then(
         document => vscode.window.showTextDocument(document)
       );
     }
-
   });
 
   it('Should create deprecatedClassName command', async () => {
