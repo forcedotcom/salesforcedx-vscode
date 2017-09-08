@@ -22,7 +22,7 @@ export enum SourceStatusFlags {
   Remote = '--remote'
 }
 
-class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;
   public constructor(flag?: SourceStatusFlags) {
     super();
