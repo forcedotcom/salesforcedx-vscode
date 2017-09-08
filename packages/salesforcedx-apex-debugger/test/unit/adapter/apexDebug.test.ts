@@ -215,9 +215,9 @@ describe('Debugger adapter - unit', () => {
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
         .returns(
-          Promise.reject(
-            '{"message":"entity type cannot be inserted: Apex Debugger Session", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"entity type cannot be inserted: Apex Debugger Session", "action":"Try again"}'
+        )
         );
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
@@ -362,9 +362,9 @@ describe('Debugger adapter - unit', () => {
       sessionStopSpy = sinon
         .stub(SessionService.prototype, 'stop')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
       sessionConnectedSpy.onCall(0).returns(true);
@@ -582,9 +582,9 @@ describe('Debugger adapter - unit', () => {
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileBreakpoints')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
       adapter.setSfdxProject('someProjectPath');
 
@@ -642,7 +642,7 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.continueReq(
         {} as DebugProtocol.ContinueResponse,
-        { threadId: 0 } as DebugProtocol.ContinueArguments
+        { threadId: 1 } as DebugProtocol.ContinueArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(true);
@@ -657,7 +657,7 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.continueReq(
         {} as DebugProtocol.ContinueResponse,
-        { threadId: 1 } as DebugProtocol.ContinueArguments
+        { threadId: 2 } as DebugProtocol.ContinueArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
@@ -668,14 +668,14 @@ describe('Debugger adapter - unit', () => {
       runSpy = sinon
         .stub(RunCommand.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
 
       await adapter.continueReq(
         {} as DebugProtocol.ContinueResponse,
-        { threadId: 0 } as DebugProtocol.ContinueArguments
+        { threadId: 1 } as DebugProtocol.ContinueArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
@@ -714,7 +714,7 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.stepInRequest(
         {} as DebugProtocol.StepInResponse,
-        { threadId: 0 } as DebugProtocol.StepInArguments
+        { threadId: 1 } as DebugProtocol.StepInArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(true);
@@ -728,7 +728,7 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.stepOutRequest(
         {} as DebugProtocol.StepOutResponse,
-        { threadId: 0 } as DebugProtocol.StepOutArguments
+        { threadId: 1 } as DebugProtocol.StepOutArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(true);
@@ -742,7 +742,7 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.nextRequest(
         {} as DebugProtocol.NextResponse,
-        { threadId: 0 } as DebugProtocol.NextArguments
+        { threadId: 1 } as DebugProtocol.NextArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(true);
@@ -769,8 +769,8 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getResponse(0).success).to.equal(true);
       const response = adapter.getResponse(0) as DebugProtocol.ThreadsResponse;
       expect(response.body.threads).to.deep.equal([
-        { id: 0, name: 'Request ID: 07cFAKE1' },
-        { id: 1, name: 'Request ID: 07cFAKE2' }
+        { id: 1, name: 'Request ID: 07cFAKE1' },
+        { id: 2, name: 'Request ID: 07cFAKE2' }
       ]);
     });
 
@@ -816,7 +816,7 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.stackTraceReq(
         {} as DebugProtocol.StackTraceResponse,
-        { threadId: 1 } as DebugProtocol.StackTraceArguments
+        { threadId: 2 } as DebugProtocol.StackTraceArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
@@ -827,14 +827,14 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.resolve(
-            '{"stateResponse":{"state":{"stack":{"stackFrame":[]}}}}'
-          )
+        Promise.resolve(
+          '{"stateResponse":{"state":{"stack":{"stackFrame":[]}}}}'
+        )
         );
 
       await adapter.stackTraceReq(
         {} as DebugProtocol.StackTraceResponse,
-        { threadId: 0 } as DebugProtocol.StackTraceArguments
+        { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
 
       expect(stateSpy.called).to.equal(true);
@@ -849,9 +849,9 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.resolve(
-            '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"FooDebug","fullName":"FooDebug.test()","lineNumber":1,"frameNumber":0},{"typeRef":"BarDebug","fullName":"BarDebug.test()","lineNumber":2,"frameNumber":1}]}}}}'
-          )
+        Promise.resolve(
+          '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"FooDebug","fullName":"FooDebug.test()","lineNumber":1,"frameNumber":0},{"typeRef":"BarDebug","fullName":"BarDebug.test()","lineNumber":2,"frameNumber":1}]}}}}'
+        )
         );
       sourcePathSpy = sinon
         .stub(BreakpointService.prototype, 'getSourcePathFromTyperef')
@@ -859,7 +859,7 @@ describe('Debugger adapter - unit', () => {
 
       await adapter.stackTraceReq(
         {} as DebugProtocol.StackTraceResponse,
-        { threadId: 0 } as DebugProtocol.StackTraceArguments
+        { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
 
       expect(stateSpy.called).to.equal(true);
@@ -893,14 +893,14 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.resolve(
-            '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"anon","fullName":"anon.execute()","lineNumber":2,"frameNumber":0}]}}}}'
-          )
+        Promise.resolve(
+          '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"anon","fullName":"anon.execute()","lineNumber":2,"frameNumber":0}]}}}}'
+        )
         );
 
       await adapter.stackTraceReq(
         {} as DebugProtocol.StackTraceResponse,
-        { threadId: 0 } as DebugProtocol.StackTraceArguments
+        { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
 
       expect(stateSpy.called).to.equal(true);
@@ -919,14 +919,14 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
 
       await adapter.stackTraceReq(
         {} as DebugProtocol.StackTraceResponse,
-        { threadId: 0 } as DebugProtocol.StackTraceArguments
+        { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
@@ -990,7 +990,7 @@ describe('Debugger adapter - unit', () => {
         const expectedLineNumberMapping: Map<
           string,
           LineBreakpointsInTyperef[]
-        > = new Map();
+          > = new Map();
         const expectedTyperefMapping: Map<string, string> = new Map();
         expectedLineNumberMapping.set('file:///foo.cls', [
           { typeref: 'foo', lines: [1, 2, 3] },
@@ -1030,7 +1030,7 @@ describe('Debugger adapter - unit', () => {
     const lineNumberMapping: Map<
       string,
       LineBreakpointsInTyperef[]
-    > = new Map();
+      > = new Map();
     const typerefMapping: Map<string, string> = new Map();
     lineNumberMapping.set('file:///foo.cls', [
       { typeref: 'foo', lines: [1, 2] },
@@ -1070,7 +1070,7 @@ describe('Debugger adapter - unit', () => {
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string(
         '{"subject":"There was an error", "action":"Try again"}'
-      );
+        );
     });
 
     it('Should error to console with non JSON', () => {
@@ -1109,8 +1109,8 @@ describe('Debugger adapter - unit', () => {
       expect(outputEvent.body.output).to.have.string(
         `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${msg.sobject
           .RequestId} | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${msg
-          .sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject
-          .Stacktrace}`
+            .sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject
+              .Stacktrace}`
       );
       expect(outputEvent.body.source!.path).to.equal('/foo.cls');
       expect(outputEvent.body.line).to.equal(4);
@@ -1275,8 +1275,8 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
-      expect(adapter.getRequestThreads()[0]).to.equal('07cFAKE');
+      expect(adapter.getRequestThreads().size).to.equal(1);
+      expect(adapter.getRequestThreads().get(1)).to.equal('07cFAKE');
       expect(adapter.getEvents().length).to.equal(1);
       expect(adapter.getEvents()[0].event).to.equal('output');
     });
@@ -1295,19 +1295,13 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
-      expect(adapter.getEvents().length).to.equal(3);
+      expect(adapter.getRequestThreads().size).to.equal(1);
+      expect(adapter.getEvents().length).to.equal(2);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal('thread');
       const threadEvent = adapter.getEvents()[1] as ThreadEvent;
       expect(threadEvent.body.reason).to.equal('exited');
-      expect(threadEvent.body.threadId).to.equal(0);
-      expect(adapter.getEvents()[2].event).to.equal('stopped');
-      const stoppedEvent = adapter.getEvents()[2] as StoppedEvent;
-      expect(stoppedEvent.body).to.deep.equal({
-        threadId: 0,
-        reason: 'breakpoint'
-      });
+      expect(threadEvent.body.threadId).to.equal(1);
     });
 
     it('[RequestFinished] - Should not handle unknown request', () => {
@@ -1323,7 +1317,7 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
+      expect(adapter.getRequestThreads().size).to.equal(1);
       expect(adapter.getEvents().length).to.equal(0);
     });
 
@@ -1340,7 +1334,7 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
+      expect(adapter.getRequestThreads().size).to.equal(1);
       expect(adapter.getEvents().length).to.equal(1);
       expect(adapter.getEvents()[0].event).to.equal('output');
     });
@@ -1358,7 +1352,7 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
+      expect(adapter.getRequestThreads().size).to.equal(1);
       expect(adapter.getEvents().length).to.equal(0);
     });
 
@@ -1378,15 +1372,14 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
+      expect(adapter.getRequestThreads().size).to.equal(1);
       expect(adapter.getEvents().length).to.equal(2);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal('stopped');
       const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
       expect(stoppedEvent.body).to.deep.equal({
-        threadId: 0,
-        reason: 'breakpoint',
-        allThreadsStopped: true
+        threadId: 1,
+        reason: 'breakpoint'
       });
       expect(markEventProcessedSpy.calledOnce).to.equal(true);
       expect(markEventProcessedSpy.getCall(0).args).to.have.same.members([
@@ -1408,13 +1401,13 @@ describe('Debugger adapter - unit', () => {
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().length).to.equal(1);
+      expect(adapter.getRequestThreads().size).to.equal(1);
       expect(adapter.getEvents().length).to.equal(2);
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal('stopped');
       const threadEvent = adapter.getEvents()[1] as StoppedEvent;
       expect(threadEvent.body.reason).to.equal('step');
-      expect(threadEvent.body.threadId).to.equal(0);
+      expect(threadEvent.body.threadId).to.equal(1);
     });
 
     it('[Stopped] - Should not handle without request ID', () => {
@@ -1429,7 +1422,7 @@ describe('Debugger adapter - unit', () => {
       adapter.handleEvent(message);
 
       expect(
-        adapter.getRequestThreads().length,
+        adapter.getRequestThreads().size,
         'must have no registered request thread'
       ).to.equal(0);
       expect(
