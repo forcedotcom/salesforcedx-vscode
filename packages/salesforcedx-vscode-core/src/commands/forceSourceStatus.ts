@@ -17,9 +17,14 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
+export enum SourceStatusFlags {
+  Local = '--local',
+  Remote = '--remote'
+}
+
 class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
-  private flag: string | undefined;
-  public constructor(flag?: string) {
+  private flag: SourceStatusFlags | undefined;
+  public constructor(flag?: SourceStatusFlags) {
     super();
     this.flag = flag;
   }
@@ -27,10 +32,10 @@ class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_status_text'))
       .withArg('force:source:status');
-    if (this.flag === '--local') {
+    if (this.flag === SourceStatusFlags.Local) {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize('force_source_status_local_text'));
-    } else if (this.flag === '--remote') {
+    } else if (this.flag === SourceStatusFlags.Remote) {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize('force_source_status_remote_text'));
     }
@@ -42,7 +47,7 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export interface FlagParameter {
-  flag: string;
+  flag: SourceStatusFlags;
 }
 
 export function forceSourceStatus(this: FlagParameter) {

@@ -123,6 +123,8 @@ function registerCommands(): vscode.Disposable {
     forceLightningComponentCreateCmd,
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
+    forceSourceStatusLocalCmd,
+    forceSourceStatusRemoteCmd,
     internalCancelCommandExecution
   );
 }
