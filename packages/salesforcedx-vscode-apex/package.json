@@ -16,7 +16,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.8.0",
+  "version": "40.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,9 +28,11 @@
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
+    "@types/shelljs": "^0.7.4",
     "chai": "^4.0.2",
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
+    "shelljs": "^0.7.8",
     "typescript": "2.4.0",
     "vscode": "1.1.2"
   },
@@ -78,8 +80,8 @@
     ]
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.8.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "40.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.9.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

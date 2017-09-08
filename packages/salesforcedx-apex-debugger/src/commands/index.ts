@@ -6,4 +6,11 @@
  */
 
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
+export * from './protocol';
 export { RunCommand } from './runCommand';
+export {
+  StepIntoCommand,
+  StepOutCommand,
+  StepOverCommand
+} from './stepCommands';
+export { StateCommand } from './stateCommand';

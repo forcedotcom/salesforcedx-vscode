@@ -21,6 +21,7 @@ export class BreakpointService {
     string,
     LineBreakpointsInTyperef[]
   > = new Map();
+  private typerefMapping: Map<string, string> = new Map();
   private breakpointCache: Map<string, ApexBreakpointLocation[]> = new Map();
 
   public static getInstance() {
@@ -31,9 +32,11 @@ export class BreakpointService {
   }
 
   public setValidLines(
-    lineNumberMapping: Map<string, LineBreakpointsInTyperef[]>
+    lineNumberMapping: Map<string, LineBreakpointsInTyperef[]>,
+    typerefMapping: Map<string, string>
   ): void {
     this.lineNumberMapping = lineNumberMapping;
+    this.typerefMapping = typerefMapping;
   }
 
   public hasLineNumberMapping(): boolean {
@@ -51,6 +54,20 @@ export class BreakpointService {
         if (linesInTyperef.lines.indexOf(line) >= 0) {
           return linesInTyperef.typeref;
         }
+      }
+    }
+  }
+
+  public getSourcePathFromTyperef(typeref: string): string | undefined {
+    return this.typerefMapping.get(typeref);
+  }
+
+  public getSourcePathFromPartialTyperef(
+    partialTyperef: string
+  ): string | undefined {
+    for (const typeref of this.typerefMapping.keys()) {
+      if (typeref.endsWith(partialTyperef)) {
+        return this.typerefMapping.get(typeref);
       }
     }
   }

@@ -5,14 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StreamingClient, StreamingClientInfo } from './streamingClient';
+import {
+  ApexDebuggerEventType,
+  StreamingClient,
+  StreamingClientInfo
+} from './streamingClient';
 
 export class StreamingService {
   public static SYSTEM_EVENT_CHANNEL = '/systemTopic/ApexDebuggerSystemEvent';
   public static USER_EVENT_CHANNEL = '/systemTopic/ApexDebuggerEvent';
   public static DEFAULT_TIMEOUT = 14400;
   private static instance: StreamingService;
-  private clients: StreamingClient[] = [];
+  private readonly apiVersion = '41.0';
+  private systemEventClient: StreamingClient;
+  private userEventClient: StreamingClient;
 
   public static getInstance() {
     if (!StreamingService.instance) {
@@ -21,49 +27,91 @@ export class StreamingService {
     return StreamingService.instance;
   }
 
-  public getClients(): StreamingClient[] {
-    return this.clients;
+  public getClient(type: ApexDebuggerEventType): StreamingClient | undefined {
+    switch (type) {
+      case ApexDebuggerEventType.ApexException:
+      case ApexDebuggerEventType.Debug:
+      case ApexDebuggerEventType.LogLine: {
+        return this.userEventClient;
+      }
+      case ApexDebuggerEventType.OrgChange:
+      case ApexDebuggerEventType.Ready:
+      case ApexDebuggerEventType.RequestFinished:
+      case ApexDebuggerEventType.RequestStarted:
+      case ApexDebuggerEventType.Resumed:
+      case ApexDebuggerEventType.SessionTerminated:
+      case ApexDebuggerEventType.Stopped:
+      case ApexDebuggerEventType.SystemGack:
+      case ApexDebuggerEventType.SystemInfo:
+      case ApexDebuggerEventType.SystemWarning: {
+        return this.systemEventClient;
+      }
+    }
+  }
+
+  public hasProcessedEvent(
+    type: ApexDebuggerEventType,
+    replayId: number
+  ): boolean {
+    const client = this.getClient(type);
+    if (client && replayId > client.getReplayId()) {
+      return false;
+    }
+    return true;
+  }
+
+  public markEventProcessed(
+    type: ApexDebuggerEventType,
+    replayId: number
+  ): void {
+    const client = this.getClient(type);
+    if (client) {
+      client.setReplayId(replayId);
+    }
   }
 
   public async subscribe(
     projectPath: string,
     instanceUrl: string,
     accessToken: string,
-    clientInfos: StreamingClientInfo[]
+    systemEventClientInfo: StreamingClientInfo,
+    userEventClientInfo: StreamingClientInfo
   ): Promise<boolean> {
-    const apiVersion = '41.0';
-    const urlElements = [instanceUrl, 'cometd', apiVersion];
+    const urlElements = [instanceUrl, 'cometd', this.apiVersion];
     const streamUrl = urlElements.join('/');
 
-    for (const clientInfo of clientInfos) {
-      const streamingClient = new StreamingClient(
-        streamUrl,
-        accessToken,
-        clientInfo
-      );
-      this.clients.push(streamingClient);
-    }
+    this.systemEventClient = new StreamingClient(
+      streamUrl,
+      accessToken,
+      systemEventClientInfo
+    );
+    this.userEventClient = new StreamingClient(
+      streamUrl,
+      accessToken,
+      userEventClientInfo
+    );
 
-    for (const client of this.clients) {
-      await client.subscribe();
-    }
+    await this.systemEventClient.subscribe();
+    await this.userEventClient.subscribe();
     return Promise.resolve(this.isReady());
   }
 
   public disconnect(): void {
-    for (const client of this.clients) {
-      client.disconnect();
+    if (this.systemEventClient) {
+      this.systemEventClient.disconnect();
     }
-    this.clients = [];
+    if (this.userEventClient) {
+      this.userEventClient.disconnect();
+    }
   }
 
   public isReady(): boolean {
-    if (this.clients && this.clients.length > 0) {
-      for (const client of this.clients) {
-        if (!client.isConnected()) {
-          return false;
-        }
-      }
+    if (
+      this.systemEventClient &&
+      this.systemEventClient.isConnected() &&
+      this.userEventClient &&
+      this.userEventClient.isConnected()
+    ) {
       return true;
     }
     return false;

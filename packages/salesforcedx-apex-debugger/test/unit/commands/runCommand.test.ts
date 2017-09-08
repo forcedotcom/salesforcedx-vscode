@@ -22,7 +22,7 @@ describe('Run command', () => {
     sendRequestSpy.restore();
   });
 
-  it('Should build request', async () => {
+  it('Should have proper request path', async () => {
     sendRequestSpy = sinon
       .stub(RunCommand.prototype, 'sendRequest')
       .returns(
@@ -42,22 +42,5 @@ describe('Run command', () => {
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
-  });
-
-  it('Should handle run command error', async () => {
-    sendRequestSpy = sinon.stub(RunCommand.prototype, 'sendRequest').returns(
-      Promise.reject({
-        status: 500,
-        responseText: '{"message":"There was an error", "action":"Try again"}'
-      } as XHRResponse)
-    );
-
-    try {
-      await runCommand.execute();
-    } catch (error) {
-      expect(error).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
-    }
   });
 });

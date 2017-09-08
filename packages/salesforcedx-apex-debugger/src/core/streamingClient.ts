@@ -156,14 +156,6 @@ export class StreamingClient {
     });
     this.client.addExtension({
       incoming: (message: any, callback: (message: any) => void) => {
-        if (message && message.data) {
-          const data = message.data as DebuggerMessage;
-          if (data && data.event && this.replayId < data.event.replayId) {
-            this.replayId = data.event.replayId;
-          } else {
-            return;
-          }
-        }
         if (message.channel === '/meta/handshake') {
           if (message.successful === true) {
             if (message.ext && message.ext['replay'] === true) {
@@ -231,5 +223,17 @@ export class StreamingClient {
 
   public isConnected(): boolean {
     return this.connected;
+  }
+
+  public getReplayId(): number {
+    return this.replayId;
+  }
+
+  public setReplayId(replayId: number) {
+    this.replayId = replayId;
+  }
+
+  public getClientInfo(): StreamingClientInfo {
+    return this.clientInfo;
   }
 }
