@@ -36,7 +36,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "cross-env CODE_TESTS_WORKSPACE=./assets/sfdx-simple node ./node_modules/vscode/bin/test"
+    "test": "cross-env CODE_TESTS_WORKSPACE='./assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
   "nyc": {
     "reporter": [

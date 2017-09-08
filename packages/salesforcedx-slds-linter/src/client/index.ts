@@ -27,7 +27,11 @@ export function createLanguageServer(
   // The server is implemented in node
   const serverModule = context.asAbsolutePath(
     path.join(
-      'node_modules/@salesforce/salesforcedx-slds-linter/out/src',
+      'node_modules',
+      '@salesforce',
+      'salesforcedx-slds-linter',
+      'out',
+      'src',
       'server',
       'index.js'
     )
