@@ -1543,5 +1543,21 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents().length).to.equal(1);
       expect(adapter.getEvents()[0].event).to.equal('output');
     });
+
+    it('[SystemInfo] - Should log event', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'SystemInfo',
+          Description: 'Request will not be debugged'
+        }
+      };
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getEvents().length).to.equal(1);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+    });
   });
 });

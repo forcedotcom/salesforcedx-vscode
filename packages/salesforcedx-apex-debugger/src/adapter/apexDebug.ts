@@ -592,6 +592,10 @@ export class ApexDebug extends DebugSession {
         this.handleSystemGack(message);
         break;
       }
+      case ApexDebuggerEventType.SystemInfo: {
+        this.handleSystemInfo(message);
+        break;
+      }
       case ApexDebuggerEventType.SystemWarning: {
         this.handleSystemWarning(message);
         break;
@@ -736,6 +740,10 @@ export class ApexDebug extends DebugSession {
         } as VscodeDebuggerMessage)
       );
     }
+  }
+
+  private handleSystemInfo(message: DebuggerMessage): void {
+    this.logEvent(message);
   }
 
   private handleSystemWarning(message: DebuggerMessage): void {
