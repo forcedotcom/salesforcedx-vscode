@@ -13,12 +13,13 @@ describe('SLDS Deprecated Class Name', () => {
   let res: vscode.Uri[];
 
   before(async () => {
-
     if (vscode.workspace.rootPath) {
-      res = await vscode.workspace.findFiles(path.join('**', '*.cmp'));
-      await vscode.workspace.openTextDocument(res[0]).then(
-        document => vscode.window.showTextDocument(document)
+      res = await vscode.workspace.findFiles(
+        path.join('**', 'DemoComponent.cmp')
       );
+      await vscode.workspace
+        .openTextDocument(res[0])
+        .then(document => vscode.window.showTextDocument(document));
     }
   });
 
