@@ -37,24 +37,39 @@ export class FilePathExistsChecker
   public constructor(fileExtension: string) {
     this.fileExtension = fileExtension;
   }
+  public getGlobPattern(
+    inputs: ContinueResponse<DirFileNameSelection>
+  ): string {
+    const lightningExtensions = ['.app', '.cmp', '.intf', '.evt'];
+    // Lightning creates a top level directory with the name of the
+    // file entered so the glob pattern needs to be different
+    if (lightningExtensions.indexOf(this.fileExtension) !== -1) {
+      return path.join(
+        inputs.data.outputdir,
+        inputs.data.fileName,
+        inputs.data.fileName + this.fileExtension
+      );
+    } else {
+      return path.join(
+        inputs.data.outputdir,
+        inputs.data.fileName + this.fileExtension
+      );
+    }
+  }
   public async check(
     inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
   ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
-      const files = await vscode.workspace.findFiles(
-        path.join(
-          inputs.data.outputdir,
-          inputs.data.fileName + this.fileExtension
-        )
-      );
+      const globPattern = this.getGlobPattern(inputs);
+      const files = await vscode.workspace.findFiles(globPattern);
       // If file does not exist then create it, otherwise prompt user to override the file
       if (files.length === 0) {
         return inputs;
       } else {
         const override = await notificationService.showWarningMessage(
-          'File already exists. Would you like to override?',
-          'Yes',
-          'No'
+          nls.localize('warning_prompt_file_override'),
+          nls.localize('warning_prompt_yes'),
+          nls.localize('warning_prompt_no')
         );
         if (override === 'Yes') {
           return inputs;
@@ -270,9 +285,6 @@ export abstract class SfdxCommandletExecutor<T>
 
 export class SfdxCommandlet<T> {
   private readonly prechecker: PreconditionChecker;
-  // private readonly postchecker: PostconditionChecker<
-  //   T
-  // > = new EmptyPostChecker();
   private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;
   private readonly executor: CommandletExecutor<T>;
