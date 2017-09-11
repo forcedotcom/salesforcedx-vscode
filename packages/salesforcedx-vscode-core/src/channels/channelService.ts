@@ -53,6 +53,7 @@ export class ChannelService {
       } else {
         this.channel.appendLine(nls.localize('channel_end'));
       }
+      this.channel.appendLine('');
     });
 
     execution.processErrorSubject.subscribe(data => {
@@ -71,6 +72,11 @@ export class ChannelService {
       } else {
         this.channel.appendLine(nls.localize('channel_end'));
       }
+      this.channel.appendLine('');
     });
+  }
+
+  public showChannelOutput() {
+    this.channel.show();
   }
 }
