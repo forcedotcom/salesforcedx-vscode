@@ -17,24 +17,49 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
+export enum SourceStatusFlags {
+  Local = '--local',
+  Remote = '--remote'
+}
+
+export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
+  private flag: SourceStatusFlags | undefined;
+
+  public constructor(flag?: SourceStatusFlags) {
+    super();
+    this.flag = flag;
+  }
+
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_status_text'))
-      .withArg('force:source:status')
-      .build();
+      .withArg('force:source:status');
+    if (this.flag === SourceStatusFlags.Local) {
+      builder.withArg(this.flag);
+      builder.withDescription(nls.localize('force_source_status_local_text'));
+    } else if (this.flag === SourceStatusFlags.Remote) {
+      builder.withArg(this.flag);
+      builder.withDescription(nls.localize('force_source_status_remote_text'));
+    }
+    return builder.build();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceSourceStatusExecutor();
-const commandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
 
-export function forceSourceStatus() {
+export interface FlagParameter {
+  flag: SourceStatusFlags;
+}
+
+export function forceSourceStatus(this: FlagParameter) {
+  // tslint:disable-next-line:no-invalid-this
+  const flag = this ? this.flag : undefined;
+  const executor = new ForceSourceStatusExecutor(flag);
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    executor
+  );
   commandlet.run();
 }
