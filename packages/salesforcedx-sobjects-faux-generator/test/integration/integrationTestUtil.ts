@@ -26,7 +26,7 @@ export function createCIKey(keyLocation: string) {
 
 export function deleteCIKey(keyLocation: string) {
   if (fs.existsSync(keyLocation)) {
-    fs.unlink(keyLocation);
+    fs.unlinkSync(keyLocation);
   }
 }
 

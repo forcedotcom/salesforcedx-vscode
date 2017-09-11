@@ -15,7 +15,7 @@ import {
 import * as util from './integrationTestUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
-const keyLocation = path.join(process.cwd(), PROJECT_NAME, 'server.key');
+const keyLocation = path.join(process.cwd(), PROJECT_NAME, 'devhub.key');
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
 const CUSTOM_FIELD_FULLNAME = CUSTOM_OBJECT_NAME + '.MyCustomField__c';
 const SIMPLE_OBJECT_DIR = path.join(
