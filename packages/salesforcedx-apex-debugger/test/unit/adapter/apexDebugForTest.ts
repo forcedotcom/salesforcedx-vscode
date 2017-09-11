@@ -143,10 +143,10 @@ export class ApexDebugForTest extends ApexDebug {
   }
 
   public addRequestThread(requestId: string): void {
-    this.requestThreads.push(requestId);
+    this.requestThreads.set(this.threadId++, requestId);
   }
 
-  public getRequestThreads(): string[] {
+  public getRequestThreads(): Map<number, string> {
     return this.requestThreads;
   }
 }
