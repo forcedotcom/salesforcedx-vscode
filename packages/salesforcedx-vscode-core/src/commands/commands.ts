@@ -30,6 +30,43 @@ export interface PostconditionChecker<T> {
   ): Promise<ContinueResponse<T> | CancelResponse>;
 }
 
+export class LightningFilePathExistsChecker
+  implements PostconditionChecker<DirFileNameSelection> {
+  private fileExtension: string;
+
+  public constructor(fileExtension: string) {
+    this.fileExtension = fileExtension;
+  }
+
+  public async check(
+    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
+  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const files = await vscode.workspace.findFiles(
+        path.join(
+          inputs.data.outputdir,
+          inputs.data.fileName,
+          inputs.data.fileName + this.fileExtension
+        )
+      );
+      // If file does not exist then create it, otherwise prompt user to overwrite the file
+      if (files.length === 0) {
+        return inputs;
+      } else {
+        const overwrite = await notificationService.showWarningMessage(
+          nls.localize('warning_prompt_file_overwrite'),
+          nls.localize('warning_prompt_yes'),
+          nls.localize('warning_prompt_no')
+        );
+        if (overwrite === nls.localize('warning_prompt_yes')) {
+          return inputs;
+        }
+      }
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
 export class FilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
   private fileExtension: string;
@@ -37,41 +74,27 @@ export class FilePathExistsChecker
   public constructor(fileExtension: string) {
     this.fileExtension = fileExtension;
   }
-  public getGlobPattern(
-    inputs: ContinueResponse<DirFileNameSelection>
-  ): string {
-    const lightningExtensions = ['.app', '.cmp', '.intf', '.evt'];
-    // Lightning creates a top level directory with the name of the
-    // file entered so the glob pattern needs to be different
-    if (lightningExtensions.indexOf(this.fileExtension) !== -1) {
-      return path.join(
-        inputs.data.outputdir,
-        inputs.data.fileName,
-        inputs.data.fileName + this.fileExtension
-      );
-    } else {
-      return path.join(
-        inputs.data.outputdir,
-        inputs.data.fileName + this.fileExtension
-      );
-    }
-  }
+
   public async check(
     inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
   ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
-      const globPattern = this.getGlobPattern(inputs);
-      const files = await vscode.workspace.findFiles(globPattern);
-      // If file does not exist then create it, otherwise prompt user to override the file
+      const files = await vscode.workspace.findFiles(
+        path.join(
+          inputs.data.outputdir,
+          inputs.data.fileName + this.fileExtension
+        )
+      );
+      // If file does not exist then create it, otherwise prompt user to overwrite the file
       if (files.length === 0) {
         return inputs;
       } else {
-        const override = await notificationService.showWarningMessage(
-          nls.localize('warning_prompt_file_override'),
+        const overwrite = await notificationService.showWarningMessage(
+          nls.localize('warning_prompt_file_overwrite'),
           nls.localize('warning_prompt_yes'),
           nls.localize('warning_prompt_no')
         );
-        if (override === 'Yes') {
+        if (overwrite === nls.localize('warning_prompt_yes')) {
           return inputs;
         }
       }
