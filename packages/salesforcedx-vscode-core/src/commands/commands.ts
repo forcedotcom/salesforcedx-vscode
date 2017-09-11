@@ -42,19 +42,20 @@ export class LightningFilePathExistsChecker
     inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
   ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
+      const baseFileName = path.join(
+        inputs.data.outputdir,
+        inputs.data.fileName,
+        inputs.data.fileName
+      );
       const files = await vscode.workspace.findFiles(
-        path.join(
-          inputs.data.outputdir,
-          inputs.data.fileName,
-          inputs.data.fileName + this.fileExtension
-        )
+        `{${baseFileName}.app,${baseFileName}.cmp,${baseFileName}.intf,${baseFileName}.evt}`
       );
       // If file does not exist then create it, otherwise prompt user to overwrite the file
       if (files.length === 0) {
         return inputs;
       } else {
         const overwrite = await notificationService.showWarningMessage(
-          nls.localize('warning_prompt_file_overwrite'),
+          nls.localize('warning_prompt_lightning_bundle_overwrite'),
           nls.localize('warning_prompt_yes'),
           nls.localize('warning_prompt_no')
         );
