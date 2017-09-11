@@ -24,6 +24,55 @@ export interface PreconditionChecker {
   check(): boolean;
 }
 
+export interface PostconditionChecker<T> {
+  check(
+    inputs: ContinueResponse<T> | CancelResponse
+  ): Promise<ContinueResponse<T> | CancelResponse>;
+}
+
+export class FilePathExistsChecker
+  implements PostconditionChecker<DirFileNameSelection> {
+  private fileExtension: string;
+
+  public constructor(fileExtension: string) {
+    this.fileExtension = fileExtension;
+  }
+  public async check(
+    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
+  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const files = await vscode.workspace.findFiles(
+        path.join(
+          inputs.data.outputdir,
+          inputs.data.fileName + this.fileExtension
+        )
+      );
+      // If file does not exist then create it, otherwise prompt user to override the file
+      if (files.length === 0) {
+        return inputs;
+      } else {
+        const override = await notificationService.showWarningMessage(
+          'File already exists. Would you like to override?',
+          'Yes',
+          'No'
+        );
+        if (override === 'Yes') {
+          return inputs;
+        }
+      }
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
+export class EmptyPostChecker implements PostconditionChecker<any> {
+  public async check(
+    inputs: ContinueResponse<any> | CancelResponse
+  ): Promise<ContinueResponse<any> | CancelResponse> {
+    return inputs;
+  }
+}
+
 export class SfdxWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
     const result = isSfdxProjectOpened.apply(vscode.workspace);
@@ -220,24 +269,30 @@ export abstract class SfdxCommandletExecutor<T>
 }
 
 export class SfdxCommandlet<T> {
-  private readonly checker: PreconditionChecker;
+  private readonly prechecker: PreconditionChecker;
+  // private readonly postchecker: PostconditionChecker<
+  //   T
+  // > = new EmptyPostChecker();
+  private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;
   private readonly executor: CommandletExecutor<T>;
 
   constructor(
     checker: PreconditionChecker,
     gatherer: ParametersGatherer<T>,
-    executor: CommandletExecutor<T>
+    executor: CommandletExecutor<T>,
+    postchecker = new EmptyPostChecker()
   ) {
-    this.checker = checker;
+    this.prechecker = checker;
     this.gatherer = gatherer;
     this.executor = executor;
+    this.postchecker = postchecker;
   }
 
   public async run(): Promise<void> {
-    if (this.checker.check()) {
-      const inputs = await this.gatherer.gather();
-
+    if (this.prechecker.check()) {
+      let inputs = await this.gatherer.gather();
+      inputs = await this.postchecker.check(inputs);
       switch (inputs.type) {
         case 'CONTINUE':
           return this.executor.execute(inputs);
