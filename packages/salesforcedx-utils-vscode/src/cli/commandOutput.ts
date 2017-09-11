@@ -23,6 +23,7 @@ export class CommandOutput {
               return resolve(buffer.toString());
             } catch (e) {
               // JSON syntax error. realData has not finished streaming
+              reject(realData.toString());
             }
           });
         } else {
