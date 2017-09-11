@@ -30,38 +30,6 @@ export interface PostconditionChecker<T> {
   ): Promise<ContinueResponse<T> | CancelResponse>;
 }
 
-export class LightningFilePathExistsChecker
-  implements PostconditionChecker<DirFileNameSelection> {
-  public async check(
-    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
-  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      const baseFileName = path.join(
-        inputs.data.outputdir,
-        inputs.data.fileName,
-        inputs.data.fileName
-      );
-      const files = await vscode.workspace.findFiles(
-        `{${baseFileName}.app,${baseFileName}.cmp,${baseFileName}.intf,${baseFileName}.evt}`
-      );
-      // If file does not exist then create it, otherwise prompt user to overwrite the file
-      if (files.length === 0) {
-        return inputs;
-      } else {
-        const overwrite = await notificationService.showWarningMessage(
-          nls.localize('warning_prompt_lightning_bundle_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
-        );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
-          return inputs;
-        }
-      }
-    }
-    return { type: 'CANCEL' };
-  }
-}
-
 export class FilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
   private fileExtension: string;
@@ -69,7 +37,6 @@ export class FilePathExistsChecker
   public constructor(fileExtension: string) {
     this.fileExtension = fileExtension;
   }
-
   public async check(
     inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
   ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
@@ -80,16 +47,16 @@ export class FilePathExistsChecker
           inputs.data.fileName + this.fileExtension
         )
       );
-      // If file does not exist then create it, otherwise prompt user to overwrite the file
+      // If file does not exist then create it, otherwise prompt user to override the file
       if (files.length === 0) {
         return inputs;
       } else {
-        const overwrite = await notificationService.showWarningMessage(
-          nls.localize('warning_prompt_file_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+        const override = await notificationService.showWarningMessage(
+          'File already exists. Would you like to override?',
+          'Yes',
+          'No'
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (override === 'Yes') {
           return inputs;
         }
       }
@@ -303,6 +270,9 @@ export abstract class SfdxCommandletExecutor<T>
 
 export class SfdxCommandlet<T> {
   private readonly prechecker: PreconditionChecker;
+  // private readonly postchecker: PostconditionChecker<
+  //   T
+  // > = new EmptyPostChecker();
   private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;
   private readonly executor: CommandletExecutor<T>;
