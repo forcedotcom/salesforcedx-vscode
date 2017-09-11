@@ -11,8 +11,24 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import childProcess = require('child_process');
+import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
+
+// Used only for CI purposes. Must call delete if you call create
+export function createCIKey(keyLocation: string) {
+  const SERVER_KEY = process.env.SFDX_CI_DEVHUB_JWTKEY;
+  console.log('key: ' + SERVER_KEY);
+  if (SERVER_KEY) {
+    fs.writeFileSync(keyLocation, SERVER_KEY);
+  }
+}
+
+export function deleteCIKey(keyLocation: string) {
+  if (fs.existsSync(keyLocation)) {
+    fs.unlink(keyLocation);
+  }
+}
 
 export async function createSFDXProject(projectName: string): Promise<void> {
   const execution = new CliCommandExecutor(

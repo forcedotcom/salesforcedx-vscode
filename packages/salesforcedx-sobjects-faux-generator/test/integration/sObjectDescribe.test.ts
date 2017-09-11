@@ -15,6 +15,7 @@ import {
 import * as util from './integrationTestUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
+const keyLocation = path.join(process.cwd(), PROJECT_NAME, 'server.key');
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
 const CUSTOM_FIELD_FULLNAME = CUSTOM_OBJECT_NAME + '.MyCustomField__c';
 const SIMPLE_OBJECT_DIR = path.join(
@@ -25,14 +26,21 @@ const SIMPLE_OBJECT_DIR = path.join(
   'objects'
 );
 
-//const util = new TestUtil();
 const sobjectdescribe = new SObjectDescribe();
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', function() {
+  // tslint:disable-next-line:no-invalid-this
+  this.timeout(60000);
   let username: string;
 
   before(async function() {
+    await util.createSFDXProject(PROJECT_NAME);
+    console.log('process: ' + process.cwd());
+    util.createCIKey(keyLocation);
+    console.log('key: ' + keyLocation);
+    username = await util.createScratchOrg(PROJECT_NAME);
+
     const sourceFolder = path.join(
       __dirname,
       '..',
@@ -40,25 +48,26 @@ describe('Fetch sObjects', function() {
       '..',
       SIMPLE_OBJECT_DIR
     );
-    const permSetName = 'AllowRead';
-    await util.createSFDXProject(PROJECT_NAME);
-    username = await util.createScratchOrg(PROJECT_NAME);
-
     await util.push(sourceFolder, PROJECT_NAME, username);
+
+    const permSetName = 'AllowRead';
     const permissionSetId = await util.createPermissionSet(
       permSetName,
       username
     );
+
     await util.createFieldPermissions(
       permissionSetId,
       CUSTOM_OBJECT_NAME,
       CUSTOM_FIELD_FULLNAME,
       username
     );
+
     await util.assignPermissionSet(permSetName, username);
   });
 
   after(function() {
+    util.deleteCIKey(keyLocation);
     const projectPath = path.join(process.cwd(), PROJECT_NAME);
     rimraf.sync(projectPath);
   });
