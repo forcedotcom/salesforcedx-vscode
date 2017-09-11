@@ -24,10 +24,12 @@ export enum SourceStatusFlags {
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;
+
   public constructor(flag?: SourceStatusFlags) {
     super();
     this.flag = flag;
   }
+
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_status_text'))
