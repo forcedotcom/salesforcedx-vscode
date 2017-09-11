@@ -83,7 +83,9 @@ class ForceLightningEventCreateExecutor extends SfdxCommandletExecutor<
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
-const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
+const lightningFilePathExistsChecker = new LightningFilePathExistsChecker(
+  LIGHTNING_EVT_EXTENSION
+);
 
 export async function forceLightningEventCreate(explorerDir?: any) {
   const outputDirGatherer = new SelectDirPath(explorerDir, 'aura');
