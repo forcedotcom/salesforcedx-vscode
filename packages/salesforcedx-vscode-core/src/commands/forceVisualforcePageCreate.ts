@@ -92,7 +92,8 @@ export async function forceVisualforcePageCreate(explorerDir?: any) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceVisualForcePageCreateExecutor()
+    new ForceVisualForcePageCreateExecutor(),
+    filePathExistsChecker
   );
   commandlet.run();
 }
