@@ -27,4 +27,8 @@ describe('SLDS Deprecated Class Name', () => {
     const commandList = await vscode.commands.getCommands(true);
     expect(commandList).to.include('sfdx.force.lightning.slds.fix.deprecated.class');
   });
+
+  after(async () => {
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
 });
