@@ -15,7 +15,6 @@
     "@types/mocha": "^2.2.38",
     "@types/node": "^6.0.40",
     "chai": "^4.0.2",
-    "cross-env": "^5.0.5",
     "decache": "^4.1.0",
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",
@@ -32,8 +31,7 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js",
+    "clean": "shx rm -rf node_modules",
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "nyc": {

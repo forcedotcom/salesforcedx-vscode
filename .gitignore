@@ -78,3 +78,6 @@ jspm_packages/
 
 # no keys
 *.key
+
+# SalesforceDX
+.sfdx/

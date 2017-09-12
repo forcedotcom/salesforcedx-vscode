@@ -221,7 +221,6 @@ describe('Command Utilities', () => {
         vscode.workspace.rootPath
       );
       expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
-      expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
     });
 
     it('Glob dirs moves dirs containing the keyword to the top of list and give relative path to workspace', async () => {
