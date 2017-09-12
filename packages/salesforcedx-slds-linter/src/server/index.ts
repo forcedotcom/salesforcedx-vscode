@@ -9,7 +9,6 @@ import {
   InitializeResult,
   IPCMessageReader,
   IPCMessageWriter,
-  TextDocument,
   TextDocuments,
   TextEdit
 } from 'vscode-languageserver';
@@ -46,25 +45,25 @@ connection.onInitialize((params): InitializeResult => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
-  validateTextDocument(change.document);
+  validateTextDocument(change.document.getText(), change.document.uri, connection);
 });
 
 documents.onDidOpen(change => {
-  validateTextDocument(change.document);
+  validateTextDocument(change.document.getText(), change.document.uri, connection);
 });
 
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration(change => {
   // Revalidate any open text documents
-  documents.all().forEach(validateTextDocument);
+  documents.all().forEach(doc => validateTextDocument(doc.getText(), doc.uri, connection));
 });
 
 let activeDiagnostics: Diagnostic[] = [];
 
-function validateTextDocument(textDocument: TextDocument): void {
+export function validateTextDocument(textDocument: String, uri: string, conn: any): void {
   activeDiagnostics = [];
-  const lines = textDocument.getText().split(/\r?\n/g);
+  const lines = textDocument.split(/\r?\n/g);
   let problems = 0;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -95,8 +94,8 @@ function validateTextDocument(textDocument: TextDocument): void {
   }
 
   // Send the computed diagnostics to VSCode.
-  connection.sendDiagnostics({
-    uri: textDocument.uri,
+  conn.sendDiagnostics({
+    uri: uri,
     diagnostics: activeDiagnostics
   });
 }
