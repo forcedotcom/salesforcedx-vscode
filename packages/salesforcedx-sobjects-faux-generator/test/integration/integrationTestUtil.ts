@@ -20,7 +20,7 @@ export function createCIKey(keyLocation: string) {
   const SERVER_KEY = process.env.SFDX_CI_DEVHUB_JWTKEY;
   console.log('key: ' + SERVER_KEY);
   if (SERVER_KEY) {
-    fs.writeFileSync(keyLocation, SERVER_KEY);
+    fs.writeFileSync(keyLocation, SERVER_KEY, { encoding: 'ASCII' });
   }
 }
 
