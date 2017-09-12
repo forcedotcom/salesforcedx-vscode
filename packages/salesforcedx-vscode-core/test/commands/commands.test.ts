@@ -14,6 +14,7 @@ import {
   CompositeParametersGatherer,
   ContinueResponse,
   EmptyParametersGatherer,
+  EmptyPostChecker,
   ParametersGatherer,
   SelectDirPath,
   SfdxCommandlet
@@ -240,6 +241,30 @@ describe('Command Utilities', () => {
       expect(dirList[1]).to.equal(
         path.join('force-app', 'test', 'default', 'classes')
       );
+    });
+  });
+
+  describe('EmptyPostconditionChecker', () => {
+    it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+      const postChecker = new EmptyPostChecker();
+      const input: CancelResponse = { type: 'CANCEL' };
+      const response = await postChecker.check(input);
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return ContinueResponse unchanged if input passed in is ContinueResponse', async () => {
+      const postChecker = new EmptyPostChecker();
+      const input: ContinueResponse<string> = {
+        type: 'CONTINUE',
+        data: 'test'
+      };
+      const response = await postChecker.check(input);
+      expect(response.type).to.equal('CONTINUE');
+      if (response.type === 'CONTINUE') {
+        expect(response.data).to.equal('test');
+      } else {
+        expect.fail('Response should be of type ContinueRsponse');
+      }
     });
   });
 });
