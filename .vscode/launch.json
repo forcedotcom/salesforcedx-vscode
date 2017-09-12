@@ -8,7 +8,9 @@
       "name": "Attach to Process (Legacy Protocol)",
       "port": 5858,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/**/*.js"
+      ]
     },
     {
       "type": "node",
@@ -17,17 +19,23 @@
       "name": "Attach to Process (Inspector Protocol)",
       "port": 9229,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/**/*.js"
+      ]
     },
     {
       "name": "Launch Extensions",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages"
+      ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/src/**/*.js"
+      ],
       "preLaunchTask": "Compile"
     },
     {
@@ -35,10 +43,14 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages"
+      ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"]
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/src/**/*.js"
+      ]
     },
     {
       "name": "Launch Apex Debug adapter",
@@ -46,9 +58,13 @@
       "request": "launch",
       "cwd": "${workspaceRoot}",
       "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
-      "args": ["--server=4711"],
+      "args": [
+        "--server=4711"
+      ],
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/src/**/*.js"
+      ],
       "preLaunchTask": "Compile"
     },
     {
@@ -66,7 +82,9 @@
         "${workspaceRoot}/packages/salesforcedx-utils-vscode/out/test"
       ],
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/**/*.js"
+      ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
     },
@@ -82,7 +100,9 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/**/*.js"
+      ],
       "preLaunchTask": "Compile"
     },
     {
@@ -96,7 +116,9 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/**/*.js"
+      ],
       "preLaunchTask": "Compile"
     },
     {
@@ -105,12 +127,15 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
+        "${workspaceRoot}/packages/salesforcedx-vscode-lightning/assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
         "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lightning/out/test"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/*/out/**/*.js"
+      ],
       "preLaunchTask": "Compile"
     },
     {
@@ -135,7 +160,6 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceRoot}/packages/salesforcedx-slds-linter/assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
         "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-slds-linter/out/test"
       ],
@@ -172,7 +196,10 @@
   "compounds": [
     {
       "name": "Launch Extensions + Apex Debug adapter",
-      "configurations": ["Launch Extensions", "Launch Apex Debug adapter"]
+      "configurations": [
+        "Launch Extensions",
+        "Launch Apex Debug adapter"
+      ]
     }
   ]
 }
