@@ -270,6 +270,49 @@ export class SelectDirPath
   }
 }
 
+export class SelectDirPathStrictKeywordGlob
+  implements ParametersGatherer<{ outputdir: string }> {
+  private explorerDir: string | undefined;
+  private globKeyWord: string | undefined;
+
+  public constructor(explorerDir?: vscode.Uri, globKeyWord?: string) {
+    this.explorerDir = explorerDir ? explorerDir.fsPath : explorerDir;
+    this.globKeyWord = globKeyWord;
+  }
+
+  public globDirs(srcPath: string): string[] {
+    const globPattern = this.globKeyWord
+      ? path.join(srcPath, '**/', this.globKeyWord + '/')
+      : path.join(srcPath, '**/');
+    const relativeDirs = new glob.GlobSync(globPattern).found.map(value => {
+      let relativePath = path.relative(srcPath, path.join(value, '/'));
+      relativePath = path.join(relativePath, '');
+      return relativePath;
+    });
+    return relativeDirs;
+  }
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ outputdir: string }>
+  > {
+    const rootPath = vscode.workspace.rootPath;
+    let outputdir;
+    if (rootPath) {
+      outputdir = this.explorerDir
+        ? path.relative(rootPath, this.explorerDir)
+        : await vscode.window.showQuickPick(
+            this.globDirs(rootPath),
+            <vscode.QuickPickOptions>{
+              placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+            }
+          );
+    }
+    return outputdir
+      ? { type: 'CONTINUE', data: { outputdir } }
+      : { type: 'CANCEL' };
+  }
+}
+
 // Command Execution
 ////////////////////
 export interface CommandletExecutor<T> {
