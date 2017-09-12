@@ -4,9 +4,11 @@
 #### salesforcedx-vscode-apex
 
 * Go To Definition feature for Apex methods and constructors within the current file. ([PR #104](https://github.com/forcedotcom/salesforcedx-vscode/pull/104))
+
 #### salesforcedx-vscode-core
 
-* SFDX: View Local Changes and SFDX: View Changes in Default Scratch Org commands. ([PR #102](https://github.com/forcedotcom/salesforcedx-vscode/pull/102))
+* New commands: SFDX: View Local Changes and SFDX: View Changes in Default Scratch Org. ([PR #102](https://github.com/forcedotcom/salesforcedx-vscode/pull/102))
+
 ## 40.9.0 - September 7, 2017
 
 ### Added
