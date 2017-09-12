@@ -91,7 +91,7 @@ export function createLanguageServer(
   }
 
   context.subscriptions.push(
-    commands.registerCommand('deprecatedClassName', applyTextEdit)
+    commands.registerCommand('sfdx.force.lightning.slds.fix.deprecated.class', applyTextEdit)
   );
 
   return client;

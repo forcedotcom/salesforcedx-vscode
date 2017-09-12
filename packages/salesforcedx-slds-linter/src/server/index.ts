@@ -123,7 +123,7 @@ connection.onCodeAction(params => {
         result.push(
           Command.create(
             nls.localize('fix_problem', diagnostic.message),
-            'deprecatedClassName',
+            'sfdx.force.lightning.slds.fix.deprecated.class',
             uri,
             edits
           )
@@ -153,7 +153,7 @@ function allCodeActions(result: Command[], uri: string) {
     result.push(
       Command.create(
         nls.localize('fix_all'),
-        'deprecatedClassName',
+        'sfdx.force.lightning.slds.fix.deprecated.class',
         uri,
         fixAllEdits
       )
@@ -191,7 +191,7 @@ function sameCodeActions(result: Command[], uri: string, problem: string) {
     result.push(
       Command.create(
         nls.localize('fix_same', codeMessage),
-        'deprecatedClassName',
+        'sfdx.force.lightning.slds.fix.deprecated.class',
         uri,
         fixSameEdits
       )
