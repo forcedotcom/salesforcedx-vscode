@@ -128,12 +128,9 @@ function registerCommands(): vscode.Disposable {
     forceLightningComponentCreateCmd,
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
-<<<<<<< HEAD
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
-=======
     forceDebuggerStopCmd,
->>>>>>> Command to query and stop active debugger session
     internalCancelCommandExecution
   );
 }
