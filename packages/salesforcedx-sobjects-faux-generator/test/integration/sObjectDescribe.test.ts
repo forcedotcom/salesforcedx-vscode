@@ -36,7 +36,6 @@ describe('Fetch sObjects', function() {
 
   before(async function() {
     await util.createSFDXProject(PROJECT_NAME);
-    console.log('process: ' + process.cwd());
     util.createCIKey(keyLocation);
     console.log('key: ' + keyLocation);
     username = await util.createScratchOrg(PROJECT_NAME);
