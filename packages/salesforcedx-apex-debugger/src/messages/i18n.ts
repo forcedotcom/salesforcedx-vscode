@@ -28,5 +28,7 @@ export const messages = {
   streaming_handshake_error_text:
     'Streaming API handshake failed with the following error',
   streaming_handshake_timeout_text:
-    'Streaming API handshake failed due to a socket timeout. Check your connection and try again.'
+    'Streaming API handshake failed due to a socket timeout. Check your connection and try again.',
+  hotswap_warn_text:
+    'Apex classes & triggers should not be modified during an active Apex Debugger session.'
 };
