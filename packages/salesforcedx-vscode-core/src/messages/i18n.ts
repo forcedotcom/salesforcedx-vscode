@@ -74,9 +74,9 @@ export const messages = {
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
-    'File(s) with specified path already exists in workspace. Would you like to overwrite?',
+    'One or more files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_lightning_bundle_overwrite:
-    'Lightning bundle with specified path already exists in workspace. Command may overwrite existing Lightning file(s). Would you like to continue?',
+    'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
   warning_prompt_yes: 'Yes',
   warning_prompt_no: 'No'
 };
