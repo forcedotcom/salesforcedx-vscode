@@ -7,7 +7,8 @@
 
 #### salesforcedx-vscode-core
 
-* New commands: SFDX: View Local Changes and SFDX: View Changes in Default Scratch Org. ([PR #102](https://github.com/forcedotcom/salesforcedx-vscode/pull/102))
+* SFDX: View Local Changes command ([PR #102](https://github.com/forcedotcom/salesforcedx-vscode/pull/102))
+* SFDX: View Changes in Default Scratch Org command ([PR #102](https://github.com/forcedotcom/salesforcedx-vscode/pull/102))
 
 ## 40.9.0 - September 7, 2017
 
