@@ -17,6 +17,8 @@
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
     "test": "lerna run test --concurrency 1",
+    "test:without-apex-debugger-tests":
+      "lerna run test --ignore @salesforce/salesforcedx-apex-debugger --concurrency 1",
     "test:without-system-tests":
       "lerna run test --ignore system-tests --concurrency 1",
     "test:system-tests": "lerna run test --scope system-tests --concurrency 1",
