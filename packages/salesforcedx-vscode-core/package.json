@@ -40,7 +40,8 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
-    "vscode": "1.1.2"
+    "vscode": "1.1.2",
+    "mock-spawn": "0.2.6"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -101,6 +102,10 @@
         },
         {
           "command": "sfdx.force.lightning.interface.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.debugger.stop",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
@@ -171,6 +176,10 @@
         },
         {
           "command": "sfdx.force.lightning.interface.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
         }
       ]
@@ -243,6 +252,10 @@
       {
         "command": "sfdx.force.lightning.interface.create",
         "title": "%force_lightning_interface_create_text%"
+      },
+      {
+        "command": "sfdx.force.debugger.stop",
+        "title": "%force_debugger_stop_text%"
       }
     ]
   }
