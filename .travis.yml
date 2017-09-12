@@ -73,7 +73,8 @@ script:
   - npm run lint
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-      travis_wait npm run test:without-apex-debugger-tests
+      travis_wait npm run test:without-system-tests
+      travis_wait npm run coverage:system-tests
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
