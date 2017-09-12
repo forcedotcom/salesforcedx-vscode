@@ -18,11 +18,13 @@ import * as util from 'util';
 // Used only for CI purposes. Must call delete if you call create
 export function createCIKey(keyLocation: string) {
   const SERVER_KEY = process.env.SFDX_CI_DEVHUB_JWTKEY;
-  const KEY = process.env['SFDX_CI_DEVHUB_JWTKEY'];
   console.log('key: ' + SERVER_KEY);
-  console.log('key2:' + KEY);
   if (SERVER_KEY) {
     fs.writeFileSync(keyLocation, SERVER_KEY);
+    if (fs.existsSync(keyLocation)) {
+      console.log('key exists');
+      console.log('contents: ' + fs.readFileSync(keyLocation));
+    }
   }
 }
 
