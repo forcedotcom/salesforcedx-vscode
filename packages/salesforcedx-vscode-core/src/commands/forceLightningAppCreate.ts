@@ -22,7 +22,7 @@ import {
   ContinueResponse,
   DirFileNameSelection,
   LightningFilePathExistsChecker,
-  SelectDirPath,
+  SelectDirPathStrictKeywordGlob,
   SelectFileName,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -86,7 +86,10 @@ const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
 export async function forceLightningAppCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, 'aura');
+  const outputDirGatherer = new SelectDirPathStrictKeywordGlob(
+    explorerDir,
+    'aura'
+  );
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);
