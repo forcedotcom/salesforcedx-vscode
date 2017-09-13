@@ -33,7 +33,7 @@ Currently, Visual Studio Code extensions are not signed or verified on the Micro
    * Code actions are available on click
    Note: The linter won't run if SLDS is included as a static resource in your project.
 
-   ![SLDS Linter detecting deprecated '--' class name syntax](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/ayesha/add-slds-linter/packages/salesforcedx-vscode-lightning/images/lightning_slds.png)
+   ![SLDS Linter detecting deprecated '--' class name syntax](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-lightning/images/lightning_slds.png)
 
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
