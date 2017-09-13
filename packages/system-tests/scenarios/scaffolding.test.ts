@@ -230,26 +230,4 @@ describe('Scaffolding commands', () => {
       await common.closeTab();
     }
   });
-
-  it('Should prompt warning about file path already existing', async () => {
-    // Try to create the apex class with the same name and path of an already existing file
-    await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create Apex Class');
-    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
-
-    await common.type('DemoController');
-    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
-
-    await common.type('force-appmaindefaultclasses');
-    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
-
-    const isWarningVisible = await app.client.isVisible(
-      'span.message-left-side.severity.app-warning'
-    );
-
-    expect(isWarningVisible).to.be.true;
-  });
 });
