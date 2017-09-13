@@ -17,6 +17,7 @@ import {
   DirFileNameSelection,
   EmptyParametersGatherer,
   EmptyPostChecker,
+  FilePathExistsChecker,
   LightningFilePathExistsChecker,
   ParametersGatherer,
   SelectDirPath,
@@ -275,17 +276,16 @@ describe('Command Utilities', () => {
   describe('LightningFilePathExistsChecker', () => {
     let findFilesSpy: sinon.SinonSpy;
     let warningSpy: sinon.SinonSpy;
+
+    afterEach(() => {
+      findFilesSpy.reset();
+      warningSpy.reset();
+    });
+
     describe('Without notification warning', () => {
       before(() => {
         findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
-        warningSpy = sinon
-          .stub(notificationService, 'showWarningMessage')
-          .returns(nls.localize('warning_prompt_yes'));
-      });
-
-      afterEach(() => {
-        findFilesSpy.reset();
-        warningSpy.reset();
+        warningSpy = sinon.stub(notificationService, 'showWarningMessage');
       });
 
       after(() => {
@@ -311,13 +311,7 @@ describe('Command Utilities', () => {
           type: 'CONTINUE',
           data: {
             fileName: 'test',
-            outputdir: path.join(
-              vscode.workspace.rootPath,
-              'force-app',
-              'main',
-              'default',
-              'aura'
-            )
+            outputdir: path.join('force-app', 'main', 'default', 'aura')
           }
         };
         const response = await postChecker.check(input);
@@ -343,15 +337,11 @@ describe('Command Utilities', () => {
           .returns(nls.localize('warning_prompt_no'));
       });
 
-      afterEach(() => {
-        findFilesSpy.reset();
-        warningSpy.reset();
-      });
-
       after(() => {
         sinon.restore(vscode.workspace);
         sinon.restore(notificationService);
       });
+
       it('Should return ContinueResponse if lightning files exist in specified path and user selects continue', async () => {
         const postChecker = new LightningFilePathExistsChecker();
         const input: ContinueResponse<DirFileNameSelection> = {
@@ -379,6 +369,111 @@ describe('Command Utilities', () => {
           data: {
             fileName: 'DemoApp',
             outputdir: path.join('force-app', 'main', 'default', 'aura')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.called(warningSpy);
+        expect(response.type).to.equal('CANCEL');
+      });
+    });
+  });
+
+  describe('FilePathExistsChecker', () => {
+    let findFilesSpy: sinon.SinonSpy;
+    let warningSpy: sinon.SinonSpy;
+    afterEach(() => {
+      findFilesSpy.reset();
+      warningSpy.reset();
+    });
+
+    describe('Without notification warning', () => {
+      before(() => {
+        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+        warningSpy = sinon.stub(notificationService, 'showWarningMessage');
+      });
+
+      after(() => {
+        sinon.restore(vscode.workspace);
+        sinon.restore(notificationService);
+      });
+
+      it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        const input: CancelResponse = { type: 'CANCEL' };
+        const response = await postChecker.check(input);
+        sinon.assert.notCalled(findFilesSpy);
+        sinon.assert.notCalled(warningSpy);
+        expect(response.type).to.equal('CANCEL');
+      });
+
+      it('Should return ContinueResponse if path specified does not have existing file with specified name', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        if (!vscode.workspace.rootPath) {
+          throw new Error('Test workspace should be opened');
+        }
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'test',
+            outputdir: path.join('force-app', 'main', 'default', 'classes')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.notCalled(warningSpy);
+        expect(response.type).to.equal('CONTINUE');
+        if (response.type === 'CONTINUE') {
+          expect(response).to.equal(input);
+        } else {
+          throw new Error('Response should be of type ContinueResponse');
+        }
+      });
+    });
+
+    describe('With notification warning', () => {
+      before(() => {
+        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+        warningSpy = sinon
+          .stub(notificationService, 'showWarningMessage')
+          .onFirstCall()
+          .returns(nls.localize('warning_prompt_yes'))
+          .onSecondCall()
+          .returns(nls.localize('warning_prompt_no'));
+      });
+
+      after(() => {
+        sinon.restore(vscode.workspace);
+        sinon.restore(notificationService);
+      });
+
+      it('Should return ContinueResponse if files exist in specified path and user selects continue', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'DemoController',
+            outputdir: path.join('force-app', 'main', 'default', 'classes')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.called(warningSpy);
+        expect(response.type).to.equal('CONTINUE');
+        if (response.type === 'CONTINUE') {
+          expect(response).to.equal(input);
+        } else {
+          throw new Error('Response should be of type ContinueResponse');
+        }
+      });
+
+      it('Should return CancelResponse if files exist in specified path and user selects No/Cancel', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'DemoController',
+            outputdir: path.join('force-app', 'main', 'default', 'classes')
           }
         };
         const response = await postChecker.check(input);
