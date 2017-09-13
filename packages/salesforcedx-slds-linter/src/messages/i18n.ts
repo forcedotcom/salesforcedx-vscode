@@ -17,15 +17,15 @@
  */
 export const messages = {
   fix_problem:
-  `Fix: %s`,
+  `Fix this problem: %s`,
   fix_same:
-  `Fix all: %s`,
+  `Fix all instances of: %s`,
   fix_all:
   'Fix all auto-fixable problems',
   fix_error:
-  'Failed to apply SLDS Validator fixes to the document',
+  'Failed to apply SLDS Validator fixes to the document.',
   general_deprecated_class_name:
   'Deprecated SLDS class name',
   deprecated_class_name:
-  `Deprecated SLDS class name (v2.3.1): %s should be %s`
+  `Deprecated SLDS class name (v2.3.1): Change %s to %s`
 };
