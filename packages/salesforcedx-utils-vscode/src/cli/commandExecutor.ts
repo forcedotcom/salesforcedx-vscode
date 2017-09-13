@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ChildProcess, ExecOptions, spawn } from 'child_process';
+import { ChildProcess, spawn, SpawnOptions } from 'child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
@@ -22,9 +22,9 @@ export interface CancellationToken {
 
 export class CliCommandExecutor {
   private readonly command: Command;
-  private readonly options: ExecOptions;
+  private readonly options: SpawnOptions;
 
-  public constructor(command: Command, options: ExecOptions) {
+  public constructor(command: Command, options: SpawnOptions) {
     this.command = command;
     this.options = options;
   }
@@ -64,6 +64,7 @@ export class CommandExecution {
     let timerSubscriber: Subscription | null;
 
     // Process
+
     this.processExitSubject = Observable.fromEvent(
       childProcess,
       'exit'
@@ -77,10 +78,25 @@ export class CommandExecution {
       childProcess,
       'error'
     ) as Observable<Error | undefined>;
-    this.processExitSubject.subscribe(next => {
+    this.processErrorSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
+    });
+
+    childProcess.stdout.setEncoding('utf8');
+
+    childProcess.stdout.on('error', err => {
+      console.log(err);
+    });
+
+    childProcess.stdout.on('end', () => {
+      console.log('end');
+    });
+
+    childProcess.stdout.on('data', chunk => {
+      // Notice there is a perceivable pause between the first chunk of data and the next
+      console.log(`Received ${chunk.length} bytes of data.`);
     });
 
     // Output

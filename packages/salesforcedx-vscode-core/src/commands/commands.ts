@@ -203,7 +203,12 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: vscode.workspace.rootPath,
+      stdio: [
+        'pipe',
+        'pipe', // fs.openSync(path.join(vscode.workspace.rootPath!, 'stdout.txt'), 'w'),
+        'pipe'
+      ]
     }).execute(cancellationToken);
 
     channelService.streamCommandOutput(execution);

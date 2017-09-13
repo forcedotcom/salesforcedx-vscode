@@ -172,6 +172,10 @@
         {
           "command": "sfdx.force.lightning.interface.create",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.sobject.describe.account",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -243,6 +247,10 @@
       {
         "command": "sfdx.force.lightning.interface.create",
         "title": "%force_lightning_interface_create_text%"
+      },
+      {
+        "command": "sfdx.force.sobject.describe.account",
+        "title": "SFDX: SObject Describe Account"
       }
     ]
   }
