@@ -53,7 +53,7 @@ export function createLanguageServer(
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
     // Register the server for plain text documents
-    documentSelector: ['plaintext', 'html'],
+    documentSelector: ['html'],
     synchronize: {
       // Synchronize the setting section 'sldsLanguageServer' to the server
       configurationSection: 'sldsLanguageServer'
