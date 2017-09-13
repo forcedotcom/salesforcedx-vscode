@@ -20,6 +20,8 @@ export const messages = {
   `Fix this problem: %s`,
   fix_same:
   `Fix all instances of: %s`,
+  fix_same_default:
+  `same problems`,
   fix_all:
   'Fix all auto-fixable problems',
   fix_error:

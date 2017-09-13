@@ -13,8 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.workspace.findFiles('**/staticresources/*.resource').then(
     // all good
     (result: vscode.Uri[]) => {
-      for (let i = 0; i < result.length; i++) {
-        if (result[i].path.search(/(SLDS|slds)[0-9]+/g) !== -1) {
+      for (const file of result) {
+        if (file.path.search(/(SLDS|slds)[0-9]+/g) !== -1) {
           return;
         }
       }

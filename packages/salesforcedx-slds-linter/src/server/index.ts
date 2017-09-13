@@ -142,7 +142,7 @@ function allCodeActions(result: Command[], uri: string) {
 
   if (activeDiagnostics.length > 1) {
     for (const codeAction of activeDiagnostics) {
-      const codeStr = <string>codeAction.code;
+      const codeStr = codeAction.code as string;
       const replacementStr = codeStr.slice(1);
       fixAllEdits.push({
         range: codeAction.range,
@@ -166,9 +166,9 @@ function sameCodeActions(result: Command[], uri: string, problem: string) {
 
   if (activeDiagnostics.length > 1) {
     for (const codeAction of activeDiagnostics) {
-      const code = <string>codeAction.code;
+      const code = codeAction.code as string;
       if (code[0] === problem) {
-        const codeStr = <string>codeAction.code;
+        const codeStr = codeAction.code as string;
         const replacementStr = codeStr.slice(1);
         fixSameEdits.push({
           range: codeAction.range,
@@ -181,7 +181,7 @@ function sameCodeActions(result: Command[], uri: string, problem: string) {
             break;
           }
           default: {
-            codeMessage = 'same problems';
+            codeMessage = nls.localize('fix_same_default');
           }
         }
 
