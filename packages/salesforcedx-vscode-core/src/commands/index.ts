@@ -22,3 +22,4 @@ export {
 export { forceLightningComponentCreate } from './forceLightningComponentCreate';
 export { forceLightningEventCreate } from './forceLightningEventCreate';
 export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';
+export { forceSObjectDescribeAccount } from './forceSObjectDescribeAccount';
