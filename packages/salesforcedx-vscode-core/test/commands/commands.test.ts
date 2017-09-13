@@ -20,7 +20,7 @@ import {
   FilePathExistsChecker,
   LightningFilePathExistsChecker,
   ParametersGatherer,
-  SelectDirPath,
+  SelectPrioritizedDirPath,
   SfdxCommandlet
 } from '../../src/commands/commands';
 import { nls } from '../../src/messages';
@@ -220,7 +220,7 @@ describe('Command Utilities', () => {
 
   describe('Prioritized Glob Directories', () => {
     it('Glob dirs returns correct number of directories and relative path', async () => {
-      const dirPathGatherer = new SelectDirPath();
+      const dirPathGatherer = new SelectPrioritizedDirPath();
       if (!vscode.workspace.rootPath) {
         throw new Error('Test workspace should be opened');
       }
@@ -232,7 +232,7 @@ describe('Command Utilities', () => {
     });
 
     it('Glob dirs moves dirs containing the keyword to the top of list and give relative path to workspace', async () => {
-      const dirPathGatherer = new SelectDirPath();
+      const dirPathGatherer = new SelectPrioritizedDirPath();
       if (!vscode.workspace.rootPath) {
         throw new Error('Test workspace should be opened');
       }
