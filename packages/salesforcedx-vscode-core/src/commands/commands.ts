@@ -32,12 +32,6 @@ export interface PostconditionChecker<T> {
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
-  private fileExtension: string;
-
-  public constructor(fileExtension: string) {
-    this.fileExtension = fileExtension;
-  }
-
   public async check(
     inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
   ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
