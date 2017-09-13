@@ -14,7 +14,7 @@ environment:
   SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-v5.7.6-d42cf65-windows-amd64.tar.xz
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
-  SFDX_KEY_LOCATION: %APPVEYOR_BUILD_FOLDER%\sfdx\devhub.key
+  SFDX_KEY_LOCATION: C:\projects\salesforcedx-vscode\devhub.key
 
 install:
   - ps: Install-Product node 7.4.0 x64
