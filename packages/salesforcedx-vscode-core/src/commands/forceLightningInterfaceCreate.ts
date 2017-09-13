@@ -83,9 +83,7 @@ class ForceLightningInterfaceCreateExecutor extends SfdxCommandletExecutor<
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
-const lightningFilePathExistsChecker = new LightningFilePathExistsChecker(
-  LIGHTNING_INT_EXTENSION
-);
+const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
 export async function forceLightningInterfaceCreate(explorerDir?: any) {
   const outputDirGatherer = new SelectDirPath(explorerDir, 'aura');
