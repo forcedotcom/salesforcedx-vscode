@@ -13,17 +13,17 @@ import {
 import childProcess = require('child_process');
 import * as fs from 'fs';
 import * as path from 'path';
+import * as shell from 'shelljs';
 import * as util from 'util';
 
 // Used only for CI purposes. Must call delete if you call create
 export function createCIKey(keyLocation: string) {
   const SERVER_KEY = process.env.SFDX_CI_DEVHUB_JWTKEY;
-  console.log('key: ' + SERVER_KEY);
   if (SERVER_KEY) {
     fs.writeFileSync(keyLocation, SERVER_KEY);
     if (fs.existsSync(keyLocation)) {
       console.log('key exists');
-      console.log('contents: ' + fs.readFileSync(keyLocation));
+      shell.exec('openssl rsa -in ' + keyLocation + ' -check -noout');
     }
   }
 }
