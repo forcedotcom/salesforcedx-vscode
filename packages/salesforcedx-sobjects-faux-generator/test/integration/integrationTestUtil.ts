@@ -17,14 +17,12 @@ import * as shell from 'shelljs';
 import * as util from 'util';
 
 // Used only for CI purposes. Must call delete if you call create
-export function createCIKey(keyLocation: string) {
-  const SERVER_KEY = process.env.SFDX_CI_DEVHUB_JWTKEY;
+export function createCIKey(newLocation: string) {
+  const SERVER_KEY = process.env.SFDX_KEY_LOCATION;
   if (SERVER_KEY) {
-    fs.writeFileSync(keyLocation, SERVER_KEY);
-    if (fs.existsSync(keyLocation)) {
-      console.log('key exists');
-      shell.exec('openssl rsa -in ' + keyLocation + ' -check -noout');
-    }
+    const key = fs.readFileSync(SERVER_KEY);
+    fs.writeFileSync(newLocation, key);
+    shell.exec('openssl rsa -in ' + newLocation + ' -check -noout');
   }
 }
 

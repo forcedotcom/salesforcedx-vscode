@@ -23,6 +23,7 @@ env:
     - SFDX_AUTOUPDATE_DISABLE=true
     - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
     - SFDX_DOMAIN_RETRY=300
+    - SFDX_KEY_LOCATION=./sfdx/devhub.key
 
 os:
   - linux
@@ -54,8 +55,7 @@ before_install:
   - |
     # the key should be stored in Travis Repository Setting, wrapped in quotes and newlines replaced with \n
     echo -e $SFDX_CI_DEVHUB_JWTKEY > devhub.key
-    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
-    rm devhub.key
+    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile $SFDX_KEY_LOCATION --setdefaultdevhubusername --setalias devhub
     curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
 install:
@@ -77,3 +77,6 @@ script:
       npm run test:without-system-tests
     fi
   - codecov
+
+after_script:
+  - rm $SFDX_KEY_LOCATION
