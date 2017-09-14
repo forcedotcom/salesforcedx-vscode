@@ -107,6 +107,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
+        "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
         "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lightning/out/test"
       ],
@@ -127,6 +128,20 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch Salesforce DX VS Code SLDS Linter Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-slds-linter/out/test"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/test/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
