@@ -6,6 +6,9 @@ describes them and give pointers on how to run/debug them.
 These tests are described in the order in which we prefer to write them. Always
 prefer unit tests, integration tests, and system tests, in that order.
 
+Ensure that you have set a default dev hub through the `sfdx force:auth:*` commands, 
+passing in `--setdefaultdevhubusername`.
+
 To run all tests, execute `npm run compile && npm run test` from the top-level
 folder.
 
@@ -88,7 +91,7 @@ There are some optional environment variables to configure the test runner:
 | ------------|-------------------|
 | `CODE_VERSION` | Version of VS Code to run the tests against (e.g. `0.10.10`) |
 | `CODE_DOWNLOAD_URL` | Full URL of a VS Code drop to use for running tests against |
-| `CODE_TESTS_PATH` | Location of the tests to execute (default is `proces.cwd()/out/test` or `process.cwd()/test`) |
+| `CODE_TESTS_PATH` | Location of the tests to execute (default is `process.cwd()/out/test` or `process.cwd()/test`) |
 | `CODE_EXTENSIONS_PATH` | Location of the extensions to load (default is `proces.cwd()`) |
 | `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance (default is CODE_TESTS_PATH) |
 

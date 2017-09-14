@@ -21,9 +21,10 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Languages"
-  ],
+  "categories": ["Languages"],
+  "dependencies": {
+    "@salesforce/salesforcedx-slds-linter": "40.10.0"
+  },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "^40.10.0",
     "@types/chai": "^4.0.0",
@@ -31,6 +32,7 @@
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
@@ -44,10 +46,14 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
+    "test":
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "main": "./out/src",
   "contributes": {
     "languages": [
       {

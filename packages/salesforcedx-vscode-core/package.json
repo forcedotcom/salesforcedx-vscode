@@ -21,9 +21,7 @@
   "engines": {
     "vscode": "^1.13.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "^40.10.0",
     "glob": "^7.1.2",
@@ -42,7 +40,8 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
-    "vscode": "1.1.2"
+    "vscode": "1.1.2",
+    "mock-spawn": "0.2.6"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -52,13 +51,13 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
+    "test":
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "views": {
@@ -103,6 +102,10 @@
         },
         {
           "command": "sfdx.force.lightning.interface.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.debugger.stop",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
@@ -173,6 +176,10 @@
         },
         {
           "command": "sfdx.force.lightning.interface.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
         }
       ]
@@ -245,6 +252,10 @@
       {
         "command": "sfdx.force.lightning.interface.create",
         "title": "%force_lightning_interface_create_text%"
+      },
+      {
+        "command": "sfdx.force.debugger.stop",
+        "title": "%force_debugger_stop_text%"
       }
     ]
   }
