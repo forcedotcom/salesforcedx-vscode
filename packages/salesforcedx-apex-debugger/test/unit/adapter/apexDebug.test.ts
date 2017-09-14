@@ -31,7 +31,6 @@ import {
 } from '../../../src/commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   SHOW_MESSAGE_EVENT
 } from '../../../src/constants';
@@ -216,9 +215,9 @@ describe('Debugger adapter - unit', () => {
       sessionStartSpy = sinon
         .stub(SessionService.prototype, 'start')
         .returns(
-          Promise.reject(
-            '{"message":"entity type cannot be inserted: Apex Debugger Session", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"entity type cannot be inserted: Apex Debugger Session", "action":"Try again"}'
+        )
         );
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
@@ -363,9 +362,9 @@ describe('Debugger adapter - unit', () => {
       sessionStopSpy = sinon
         .stub(SessionService.prototype, 'stop')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
       sessionConnectedSpy.onCall(0).returns(true);
@@ -583,9 +582,9 @@ describe('Debugger adapter - unit', () => {
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileBreakpoints')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
       adapter.setSfdxProject('someProjectPath');
 
@@ -669,9 +668,9 @@ describe('Debugger adapter - unit', () => {
       runSpy = sinon
         .stub(RunCommand.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
 
       await adapter.continueReq(
@@ -828,9 +827,9 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.resolve(
-            '{"stateResponse":{"state":{"stack":{"stackFrame":[]}}}}'
-          )
+        Promise.resolve(
+          '{"stateResponse":{"state":{"stack":{"stackFrame":[]}}}}'
+        )
         );
 
       await adapter.stackTraceReq(
@@ -850,9 +849,9 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.resolve(
-            '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"FooDebug","fullName":"FooDebug.test()","lineNumber":1,"frameNumber":0},{"typeRef":"BarDebug","fullName":"BarDebug.test()","lineNumber":2,"frameNumber":1}]}}}}'
-          )
+        Promise.resolve(
+          '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"FooDebug","fullName":"FooDebug.test()","lineNumber":1,"frameNumber":0},{"typeRef":"BarDebug","fullName":"BarDebug.test()","lineNumber":2,"frameNumber":1}]}}}}'
+        )
         );
       sourcePathSpy = sinon
         .stub(BreakpointService.prototype, 'getSourcePathFromTyperef')
@@ -894,9 +893,9 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.resolve(
-            '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"anon","fullName":"anon.execute()","lineNumber":2,"frameNumber":0}]}}}}'
-          )
+        Promise.resolve(
+          '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"anon","fullName":"anon.execute()","lineNumber":2,"frameNumber":0}]}}}}'
+        )
         );
 
       await adapter.stackTraceReq(
@@ -920,9 +919,9 @@ describe('Debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(StateCommand.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+        Promise.reject(
+          '{"message":"There was an error", "action":"Try again"}'
+        )
         );
 
       await adapter.stackTraceReq(
@@ -991,7 +990,7 @@ describe('Debugger adapter - unit', () => {
         const expectedLineNumberMapping: Map<
           string,
           LineBreakpointsInTyperef[]
-        > = new Map();
+          > = new Map();
         const expectedTyperefMapping: Map<string, string> = new Map();
         expectedLineNumberMapping.set('file:///foo.cls', [
           { typeref: 'foo', lines: [1, 2, 3] },
@@ -1024,32 +1023,6 @@ describe('Debugger adapter - unit', () => {
         expect(adapter.getResponse(1).success).to.equal(true);
       });
     });
-
-    describe('Hotswap warning', () => {
-      beforeEach(() => {
-        adapter = new ApexDebugForTest(
-          new SessionService(),
-          new StreamingService(),
-          new BreakpointService()
-        );
-      });
-
-      it('Should log warning to debug console', () => {
-        adapter.customRequest(
-          HOTSWAP_REQUEST,
-          {} as DebugProtocol.Response,
-          undefined
-        );
-
-        expect(adapter.getEvents().length).to.equal(1);
-        expect(adapter.getEvents()[0].event).to.equal('output');
-        const outputEvent = adapter.getEvents()[0] as DebugProtocol.OutputEvent;
-        expect(outputEvent.body.output).to.have.string(
-          nls.localize('hotswap_warn_text')
-        );
-        expect(outputEvent.body.category).to.equal('console');
-      });
-    });
   });
 
   describe('Logging', () => {
@@ -1057,7 +1030,7 @@ describe('Debugger adapter - unit', () => {
     const lineNumberMapping: Map<
       string,
       LineBreakpointsInTyperef[]
-    > = new Map();
+      > = new Map();
     const typerefMapping: Map<string, string> = new Map();
     lineNumberMapping.set('file:///foo.cls', [
       { typeref: 'foo', lines: [1, 2] },
@@ -1097,7 +1070,7 @@ describe('Debugger adapter - unit', () => {
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string(
         '{"subject":"There was an error", "action":"Try again"}'
-      );
+        );
     });
 
     it('Should error to console with non JSON', () => {
@@ -1136,8 +1109,8 @@ describe('Debugger adapter - unit', () => {
       expect(outputEvent.body.output).to.have.string(
         `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${msg.sobject
           .RequestId} | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${msg
-          .sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject
-          .Stacktrace}`
+            .sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject
+              .Stacktrace}`
       );
       expect(outputEvent.body.source!.path).to.equal('/foo.cls');
       expect(outputEvent.body.line).to.equal(4);

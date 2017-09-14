@@ -9,4 +9,3 @@ export const DEFAULT_STREAMING_TIMEOUT = 14400;
 export const GET_LINE_BREAKPOINT_INFO_EVENT = 'getLineBreakpointInfo';
 export const SHOW_MESSAGE_EVENT = 'showMessage';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
-export const HOTSWAP_REQUEST = 'hotswap';

@@ -11,7 +11,6 @@ import {
   forceApexClassCreate,
   forceApexTestRun,
   forceAuthWebLogin,
-  forceDebuggerStop,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
@@ -101,10 +100,6 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.interface.create',
     forceLightningInterfaceCreate
   );
-  const forceDebuggerStopCmd = vscode.commands.registerCommand(
-    'sfdx.force.debugger.stop',
-    forceDebuggerStop
-  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -130,7 +125,6 @@ function registerCommands(): vscode.Disposable {
     forceLightningInterfaceCreateCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
-    forceDebuggerStopCmd,
     internalCancelCommandExecution
   );
 }
