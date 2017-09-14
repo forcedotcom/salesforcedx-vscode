@@ -270,8 +270,12 @@
         "title": "%force_alias_list_text%"
       },
       {
-        "command": "sfdx.force.org.display",
-        "title": "%force_org_display_text%"
+        "command": "sfdx.force.org.display.default",
+        "title": "%force_org_display_default_text%"
+      },
+      {
+        "command": "sfdx.force.org.display.username",
+        "title": "%force_org_display_username_text%"
       }
     ]
   }
