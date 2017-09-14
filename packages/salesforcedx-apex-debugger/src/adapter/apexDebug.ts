@@ -94,7 +94,7 @@ export class ApexVariable extends Variable {
   private readonly slot: number | undefined;
 
   constructor(value: Value) {
-    super(value.name, ApexVariable.valueAsString(value));
+    super(value.name, ApexVariable.valueAsString(value), value.ref);
     this.declaredTypeRef = value.declaredTypeRef;
     if ((<LocalValue>value).slot !== undefined) {
       this.slot = (<LocalValue>value).slot;
@@ -260,16 +260,12 @@ export class ApexDebug extends LoggingDebugSession {
       this.trace = args.trace.split(',');
       this.traceAll = this.trace.indexOf('all') >= 0;
     }
-    if (this.traceAll || (this.trace && this.trace.indexOf('dap') >= 0)) {
+    if (this.trace && this.trace.indexOf('dap') >= 0) {
+      // only log debug adapter protocol if 'dap' tracing flag is set, ignore traceAll here
       logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/ false);
     } else {
       logger.setup(Logger.LogLevel.Stop, false);
     }
-
-    logger.setup(
-      args.noDebug ? Logger.LogLevel.Warn : Logger.LogLevel.Verbose,
-      false
-    );
 
     response.success = false;
     this.sfdxProject = args.sfdxProject;
@@ -540,6 +536,11 @@ export class ApexDebug extends LoggingDebugSession {
           const frameId = this.stackFrameInfos.create(frameInfo);
           if (i === 0 && stateRespObj.stateResponse.state) {
             // populate first stack frame with info from state response (saves a server round trip)
+            this.log(
+              'va',
+              'stackTraceRequest: state=' +
+                JSON.stringify(stateRespObj.stateResponse.state)
+            );
             if (
               stateRespObj.stateResponse.state.locals &&
               stateRespObj.stateResponse.state.locals.local
@@ -548,7 +549,6 @@ export class ApexDebug extends LoggingDebugSession {
             } else {
               frameInfo.locals = [];
             }
-            this.log('va', `stackTraceRequest: locals=${frameInfo.locals}`);
 
             if (
               stateRespObj.stateResponse.state.statics &&
@@ -559,7 +559,6 @@ export class ApexDebug extends LoggingDebugSession {
             } else {
               frameInfo.statics = [];
             }
-            this.log('va', `stackTraceRequest: statics=${frameInfo.statics}`);
 
             if (
               stateRespObj.stateResponse.state.globals &&
@@ -570,7 +569,6 @@ export class ApexDebug extends LoggingDebugSession {
             } else {
               frameInfo.globals = [];
             }
-            this.log('va', `stackTraceRequest: globals=${frameInfo.globals}`);
           }
 
           clientFrames.push(
@@ -750,6 +748,11 @@ export class ApexDebug extends LoggingDebugSession {
       frameRespObj.frameResponse &&
       frameRespObj.frameResponse.frame
     ) {
+      this.log(
+        'va',
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=${frameInfo.locals}` +
+          JSON.stringify(frameRespObj.frameResponse.frame)
+      );
       if (
         frameRespObj.frameResponse.frame.locals &&
         frameRespObj.frameResponse.frame.locals.local
@@ -758,10 +761,6 @@ export class ApexDebug extends LoggingDebugSession {
       } else {
         frameInfo.locals = [];
       }
-      this.log(
-        'va',
-        `fetchFrameVariables: frame ${frameInfo.frameNumber} locals=${frameInfo.locals}`
-      );
 
       if (
         frameRespObj.frameResponse.frame.statics &&
@@ -771,10 +770,6 @@ export class ApexDebug extends LoggingDebugSession {
       } else {
         frameInfo.statics = [];
       }
-      this.log(
-        'va',
-        `fetchFrameVariables: frame ${frameInfo.frameNumber} statics=${frameInfo.statics}`
-      );
 
       if (
         frameRespObj.frameResponse.frame.globals &&
@@ -784,10 +779,6 @@ export class ApexDebug extends LoggingDebugSession {
       } else {
         frameInfo.globals = [];
       }
-      this.log(
-        'va',
-        `fetchFrameVariables: frame ${frameInfo.frameNumber} globals=${frameInfo.globals}`
-      );
     }
   }
 
