@@ -10,6 +10,9 @@ import {
   DebugSession,
   Event,
   InitializedEvent,
+  logger,
+  Logger,
+  LoggingDebugSession,
   OutputEvent,
   Source,
   StackFrame,
@@ -54,13 +57,25 @@ import os = require('os');
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
+  /** comma separated list of trace selectors. Supported:
+	  * 'all': all
+	  * 'la': launch/attach
+	  * 'ls': load scripts
+	  * 'bp': breakpoints
+	  * 'sm': source maps
+	  * 'va': data structure access
+	  * 'ss': smart steps
+	  * 'rc': ref caching
+	  * 'dap': debug adapter protocol
+	  */
+  trace?: boolean | string;
   userIdFilter?: string;
   requestTypeFilter?: string;
   entryPointFilter?: string;
   sfdxProject: string;
 }
 
-export class ApexDebug extends DebugSession {
+export class ApexDebug extends LoggingDebugSession {
   protected mySessionService = SessionService.getInstance();
   protected myBreakpointService = BreakpointService.getInstance();
   protected myStreamingService = StreamingService.getInstance();
@@ -72,8 +87,11 @@ export class ApexDebug extends DebugSession {
   private static TWO_NL = `${os.EOL}${os.EOL}`;
   private initializedResponse: DebugProtocol.InitializeResponse;
 
+  private trace: string[] | undefined;
+  private traceAll = false;
+
   constructor() {
-    super();
+    super('apex-debug-adapter.log');
     this.setDebuggerLinesStartAt1(true);
     this.setDebuggerPathFormat('uri');
     this.requestThreads = new Map();
@@ -101,6 +119,24 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
+    if (typeof args.trace === 'boolean') {
+      this.trace = args.trace ? ['all'] : undefined;
+      this.traceAll = args.trace;
+    } else if (typeof args.trace === 'string') {
+      this.trace = args.trace.split(',');
+      this.traceAll = this.trace.indexOf('all') >= 0;
+    }
+    if (this.traceAll || (this.trace && this.trace.indexOf('dap') >= 0)) {
+      logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/ false);
+    } else {
+      logger.setup(Logger.LogLevel.Stop, false);
+    }
+
+    logger.setup(
+      args.noDebug ? Logger.LogLevel.Warn : Logger.LogLevel.Verbose,
+      false
+    );
+
     response.success = false;
     this.sfdxProject = args.sfdxProject;
 
@@ -128,7 +164,9 @@ export class ApexDebug extends DebugSession {
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
-        this.logToDebugConsole(nls.localize('session_started_text', sessionId));
+        this.printToDebugConsole(
+          nls.localize('session_started_text', sessionId)
+        );
         this.sendEvent(new InitializedEvent());
       } else {
         this.errorToDebugConsole(
@@ -153,7 +191,7 @@ export class ApexDebug extends DebugSession {
         const terminatedSessionId = await this.mySessionService.stop();
         if (!this.mySessionService.isConnected()) {
           response.success = true;
-          this.logToDebugConsole(
+          this.printToDebugConsole(
             nls.localize('session_terminated_text', terminatedSessionId)
           );
         } else {
@@ -445,7 +483,7 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
-  private logToDebugConsole(
+  protected printToDebugConsole(
     msg?: string,
     sourceFile?: Source,
     sourceLine?: number
@@ -462,15 +500,24 @@ export class ApexDebug extends DebugSession {
     }
   }
 
-  private warnToDebugConsole(msg?: string): void {
+  protected warnToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'console'));
     }
   }
 
-  private errorToDebugConsole(msg?: string): void {
+  protected errorToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
       this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'stderr'));
+    }
+  }
+
+  public log(traceCategory: string, message: string) {
+    if (
+      this.trace &&
+      (this.traceAll || this.trace.indexOf(traceCategory) >= 0)
+    ) {
+      this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
 
@@ -527,12 +574,12 @@ export class ApexDebug extends DebugSession {
       const clientInfo = new StreamingClientInfoBuilder()
         .forChannel(channel)
         .withConnectedHandler(() => {
-          this.logToDebugConsole(
+          this.printToDebugConsole(
             nls.localize('streaming_connected_text', channel)
           );
         })
         .withDisconnectedHandler(() => {
-          this.logToDebugConsole(
+          this.printToDebugConsole(
             nls.localize('streaming_disconnected_text', channel)
           );
         })
@@ -664,7 +711,7 @@ export class ApexDebug extends DebugSession {
       logMessage += ` |${os.EOL}${message.sobject.Stacktrace}`;
     }
 
-    this.logToDebugConsole(
+    this.printToDebugConsole(
       logMessage,
       eventDescriptionSourceFile,
       eventDescriptionSourceLine

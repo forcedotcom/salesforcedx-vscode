@@ -16,6 +16,7 @@ import {
   SessionService,
   StreamingService
 } from '../../../src/core';
+import { Source, OutputEvent } from 'vscode-debugadapter/lib/debugSession';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponses: DebugProtocol.Response[] = [];
@@ -148,5 +149,13 @@ export class ApexDebugForTest extends ApexDebug {
 
   public getRequestThreads(): Map<number, string> {
     return this.requestThreads;
+  }
+
+  public printToDebugConsole(
+    msg?: string,
+    sourceFile?: Source,
+    sourceLine?: number
+  ): void {
+    super.printToDebugConsole(msg, sourceFile, sourceLine);
   }
 }

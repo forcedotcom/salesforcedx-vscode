@@ -125,6 +125,7 @@ describe('Debugger adapter - unit', () => {
   });
 
   describe('Launch', () => {
+    let apexDebugSessionSpy: sinon.SinonSpy;
     let sessionStartSpy: sinon.SinonStub;
     let sessionProjectSpy: sinon.SinonSpy;
     let sessionUserFilterSpy: sinon.SinonSpy;
@@ -283,6 +284,129 @@ describe('Debugger adapter - unit', () => {
         nls.localize('session_language_server_error_text')
       );
       expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('Should configure tracing with boolean', async () => {
+      const sessionId = '07aFAKE';
+      apexDebugSessionSpy = sinon.spy(
+        ApexDebugForTest.prototype,
+        'printToDebugConsole'
+      );
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      args.trace = true;
+      await adapter.launchReq(response, args);
+
+      // when
+      adapter.log('whatever', 'message');
+
+      // then
+      expect(apexDebugSessionSpy.calledOnce).to.equal(true);
+    });
+
+    it('Should not do any tracing by default', async () => {
+      const sessionId = '07aFAKE';
+      apexDebugSessionSpy = sinon.spy(
+        ApexDebugForTest.prototype,
+        'printToDebugConsole'
+      );
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      await adapter.launchReq(response, args);
+
+      // when
+      adapter.log('whatever', 'message');
+
+      // then
+      expect(apexDebugSessionSpy.calledOnce).to.equal(false);
+    });
+
+    it('Should configure tracing for specific category only', async () => {
+      const sessionId = '07aFAKE';
+      apexDebugSessionSpy = sinon.spy(
+        ApexDebugForTest.prototype,
+        'printToDebugConsole'
+      );
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      args.trace = 'category1, category2';
+      await adapter.launchReq(response, args);
+
+      // when
+      adapter.log('category1', 'message');
+      adapter.log('category2', 'message');
+      adapter.log('whatever', 'message');
+
+      // then
+      expect(apexDebugSessionSpy.calledTwice).to.equal(true);
+    });
+
+    it('Should configure tracing for all categories', async () => {
+      const sessionId = '07aFAKE';
+      apexDebugSessionSpy = sinon.spy(
+        ApexDebugForTest.prototype,
+        'printToDebugConsole'
+      );
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      args.trace = 'all';
+      await adapter.launchReq(response, args);
+
+      // when
+      adapter.log('category1', 'message');
+      adapter.log('category2', 'message');
+      adapter.log('whatever', 'message');
+
+      // then
+      expect(apexDebugSessionSpy.calledThrice).to.equal(true);
     });
   });
 
