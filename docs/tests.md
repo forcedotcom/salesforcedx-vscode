@@ -6,11 +6,8 @@ describes them and give pointers on how to run/debug them.
 These tests are described in the order in which we prefer to write them. Always
 prefer unit tests, integration tests, and system tests, in that order.
 
-Ensure that you have set a default dev hub through `sfdx force:auth:web:login --setdefaultdevhubusername`.
-
-If you choose to use the JWT flow, you will have to do the following:
-1. The key file needs to be named devhub.key to match .travis.yml and .appveyor.yml.
-1. Create an environment variable `SFDX_KEY_LOCATION` with the location to your key.
+Ensure that you have set a default dev hub through the `sfdx force:auth:*` commands, 
+passing in `--setdefaultdevhubusername`.
 
 To run all tests, execute `npm run compile && npm run test` from the top-level
 folder.

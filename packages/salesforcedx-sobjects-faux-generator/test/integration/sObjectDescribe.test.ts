@@ -15,7 +15,6 @@ import {
 import * as util from './integrationTestUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
-const keyLocation = path.join(process.cwd(), PROJECT_NAME, 'devhub.key');
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
 const CUSTOM_FIELD_FULLNAME = CUSTOM_OBJECT_NAME + '.MyCustomField__c';
 const SIMPLE_OBJECT_DIR = path.join(
@@ -36,8 +35,6 @@ describe('Fetch sObjects', function() {
 
   before(async function() {
     await util.createSFDXProject(PROJECT_NAME);
-    util.createCIKey(keyLocation);
-    console.log('location: ' + keyLocation);
     username = await util.createScratchOrg(PROJECT_NAME);
 
     const sourceFolder = path.join(
@@ -66,7 +63,6 @@ describe('Fetch sObjects', function() {
   });
 
   after(function() {
-    util.deleteCIKey(keyLocation);
     const projectPath = path.join(process.cwd(), PROJECT_NAME);
     rimraf.sync(projectPath);
   });

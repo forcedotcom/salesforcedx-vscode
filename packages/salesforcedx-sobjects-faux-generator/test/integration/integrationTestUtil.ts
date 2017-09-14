@@ -11,27 +11,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import childProcess = require('child_process');
-import * as fs from 'fs';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as util from 'util';
 
 // Used only for CI purposes. Must call delete if you call create
-export function createCIKey(newLocation: string) {
-  const SERVER_KEY = process.env.SFDX_KEY_LOCATION;
-  if (SERVER_KEY) {
-    const key = fs.readFileSync(SERVER_KEY);
-    fs.writeFileSync(newLocation, key);
-    shell.exec('openssl rsa -in ' + newLocation + ' -check -noout');
-  }
-}
-
-export function deleteCIKey(keyLocation: string) {
-  if (fs.existsSync(keyLocation)) {
-    fs.unlinkSync(keyLocation);
-  }
-}
-
 export async function createSFDXProject(projectName: string): Promise<void> {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
