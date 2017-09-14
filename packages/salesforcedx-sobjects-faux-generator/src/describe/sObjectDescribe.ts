@@ -10,6 +10,9 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ChildProcess, ExecOptions, spawn } from 'child_process';
+import * as jsforce from 'jsforce';
+import { xhr, XHROptions, XHRResponse } from 'request-light';
 
 export interface SObject {
   actionOverrides: any[];
@@ -161,12 +164,55 @@ export enum SObjectCategory {
   CUSTOM = 'CUSTOM'
 }
 
+/*export interface Command {
+  readonly command: string;
+  readonly description?: string;
+  readonly args: string[];
+
+  toString(): string;
+  toCommand(): string;
+}
+
+export interface Options {
+  // Supports "string", "buffer", "array", "uint8array" or "object".
+  encoding?: string;
+}*/
+
 export class SObjectDescribe {
+  private conn: jsforce.Connection;
+  private accessToken: string;
+  private instanceUrl: string;
+  private readonly servicesPath: string = 'services/data/v40.0/sobjects';
+
+  // get the token and url by calling the org - short term, should be able to get it from the sfdx project
+  private async setupConnection(projectPath: string) {
+    if (!this.conn) {
+      let orgInfo: any;
+      const execution = new CliCommandExecutor(
+        new SfdxCommandBuilder()
+          .withArg('force:org:display')
+          .withArg('--json')
+          .build(),
+        { cwd: projectPath }
+      ).execute();
+      const cmdOutput = new CommandOutput();
+      const result = await cmdOutput.getCmdResult(execution);
+      orgInfo = JSON.parse(result).result;
+      this.accessToken = orgInfo.accessToken;
+      this.instanceUrl = orgInfo.instanceUrl;
+
+      this.conn = new jsforce.Connection({
+        accessToken: this.accessToken,
+        instanceUrl: this.instanceUrl
+      });
+    }
+  }
   public async describeSObject(
     projectPath: string,
     type: string,
     username?: string
   ): Promise<SObject> {
+    console.log('SObjectDescribe - ' + type);
     const builder = new SfdxCommandBuilder()
       .withArg('force:schema:sobject:describe')
       .withFlag('--sobjecttype', type);
@@ -179,7 +225,12 @@ export class SObjectDescribe {
     }).execute();
 
     const cmdOutput = new CommandOutput();
-    const result = await cmdOutput.getCmdResult(execution);
+    let result;
+    try {
+      result = await cmdOutput.getCmdResult(execution);
+    } catch (e) {
+      return Promise.reject(e);
+    }
     try {
       const sobject = JSON.parse(result).result as SObject;
       return Promise.resolve(sobject);
@@ -193,6 +244,7 @@ export class SObjectDescribe {
     type: SObjectCategory,
     username?: string
   ): Promise<string[]> {
+    const actualcwd = process.cwd();
     const builder = new SfdxCommandBuilder()
       .withArg('force:schema:sobject:list')
       .withFlag('--sobjecttypecategory', type.toString());
@@ -205,12 +257,84 @@ export class SObjectDescribe {
     }).execute();
 
     const cmdOutput = new CommandOutput();
-    const result = await cmdOutput.getCmdResult(execution);
+    let result: string;
+    try {
+      result = await cmdOutput.getCmdResult(execution);
+    } catch (e) {
+      return Promise.reject(e);
+    }
     try {
       const sobjects = JSON.parse(result).result as string[];
       return Promise.resolve(sobjects);
     } catch (e) {
       return Promise.reject(result);
+    }
+  }
+
+  /*public async describeSObjectBatch(
+    projectPath: string,
+    types: string[],
+    lastProcessed: number,
+    username?: string
+  ): Promise<SObject> {
+    await this.setupConnection(projectPath);
+
+    const requestUrl =
+      '/services/data/v40.0/sobjects/' + types[lastProcessed + 1] + '/describe';
+
+    /*const foo = this.conn.requestGet(
+      requestUrl,
+      {},
+      (dummy: any, data: Object) => {
+        console.log('zippy');
+        const x1 = JSON.stringify(data);
+        const x2 = JSON.parse(x1);
+        const sobject = JSON.parse(JSON.stringify(data)) as SObject;
+        return sobject;
+      }
+    );
+
+    return new Promise<SObject>(resolve => {
+      this.conn.requestGet(requestUrl, {}, (err: any, data: Object) => {
+        const sobject = JSON.parse(JSON.stringify(data)) as SObject;
+        return resolve(sobject);
+      });
+    });*/
+
+  public async describeSObjectBatch(
+    projectPath: string,
+    types: string[],
+    lastProcessed: number,
+    username?: string
+  ): Promise<SObject> {
+    await this.setupConnection(projectPath);
+
+    const urlElements = [
+      this.instanceUrl,
+      this.servicesPath,
+      types[lastProcessed + 1],
+      'describe'
+    ];
+
+    const requestUrl = urlElements.join('/');
+
+    const options: XHROptions = {
+      type: 'GET',
+      url: requestUrl,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `OAuth ${this.accessToken}`
+      }
+    };
+
+    try {
+      const response: XHRResponse = await xhr(options);
+      const sobject = JSON.parse(response.responseText) as SObject;
+      return Promise.resolve(sobject);
+    } catch (error) {
+      const xhrResponse: XHRResponse = error;
+      return Promise.reject(xhrResponse.responseText);
     }
   }
 }

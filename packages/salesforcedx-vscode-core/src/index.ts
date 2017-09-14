@@ -14,6 +14,7 @@ import {
   forceAuthWebLogin,
   forceConfigList,
   forceDebuggerStop,
+  forceGenerateFauxClassesCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
@@ -114,6 +115,7 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.interface.create',
     forceLightningInterfaceCreate
   );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -134,6 +136,11 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.org.display.username',
     forceOrgDisplay,
     { flag: '--targetusername' }
+  );
+
+  const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
+    'sfdx.force.genfauxclasses',
+    forceGenerateFauxClassesCreate
   );
 
   // Internal commands
@@ -167,6 +174,7 @@ function registerCommands(): vscode.Disposable {
     forceAliasListCmd,
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
+    forceGenerateFauxClassesCmd,
     internalCancelCommandExecution
   );
 }

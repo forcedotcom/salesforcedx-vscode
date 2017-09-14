@@ -15,6 +15,10 @@ import {
 } from '../describe';
 
 export class FauxClassGenerator {
+  private SFDX_DIR = '.sfdx';
+  private TOOLS_DIR = 'tools';
+  private SOBJECTS_DIR = 'sobjects';
+
   public async generate(projectPath: string, type: SObjectCategory) {
     const describe = new SObjectDescribe();
     const sobjects = await describe.describeGlobal(projectPath, type);
@@ -22,7 +26,17 @@ export class FauxClassGenerator {
     const customSObjects: SObject[] = [];
     console.log(sobjects.length);
     for (let i = 0; i < sobjects.length; i++) {
-      const sobject = await describe.describeSObject(projectPath, sobjects[i]);
+      let sobject = null;
+      try {
+        sobject = await describe.describeSObjectBatch(
+          projectPath,
+          sobjects,
+          i - 1
+        );
+      } catch (e) {
+        console.log('describe error ' + e);
+        continue;
+      }
       console.log(sobject.name);
       if (sobject.custom) {
         customSObjects.push(sobject);
@@ -33,15 +47,17 @@ export class FauxClassGenerator {
 
     const standardSObjectFolderPath = path.join(
       projectPath,
-      '.sfdx',
-      'tools',
-      'standardObject'
+      this.SFDX_DIR,
+      this.TOOLS_DIR,
+      this.SOBJECTS_DIR,
+      'standardObjects'
     );
     const customSObjectFolderPath = path.join(
       projectPath,
-      '.sfdx',
-      'tools',
-      'customObject'
+      this.SFDX_DIR,
+      this.TOOLS_DIR,
+      this.SOBJECTS_DIR,
+      'customObjects'
     );
 
     for (const sobject of standardSObjects) {
@@ -77,7 +93,11 @@ export class FauxClassGenerator {
           field.name
       );
     } else {
-      decls.push(field.referenceTo + ' ' + field.relationshipName);
+      if (field.referenceTo.length > 1) {
+        decls.push('SObject' + ' ' + field.relationshipName);
+      } else {
+        decls.push(field.referenceTo + ' ' + field.relationshipName);
+      }
       // field.type will be "reference", but the actual type is an Id for Apex
       decls.push('Id ' + field.name);
     }

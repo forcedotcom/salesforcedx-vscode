@@ -52,6 +52,7 @@ export class CommandExecution {
   public readonly processErrorSubject: Observable<Error | undefined>;
   public readonly stdoutSubject: Observable<Buffer | string>;
   public readonly stderrSubject: Observable<Buffer | string>;
+  public readonly processCloseSubject: Observable<number | undefined>;
 
   constructor(
     command: Command,
@@ -73,11 +74,20 @@ export class CommandExecution {
         timerSubscriber.unsubscribe();
       }
     });
+    this.processCloseSubject = Observable.fromEvent(
+      childProcess,
+      'close'
+    ) as Observable<number | undefined>;
+    this.processCloseSubject.subscribe(next => {
+      if (timerSubscriber) {
+        timerSubscriber.unsubscribe();
+      }
+    });
     this.processErrorSubject = Observable.fromEvent(
       childProcess,
       'error'
     ) as Observable<Error | undefined>;
-    this.processExitSubject.subscribe(next => {
+    this.processErrorSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }

@@ -21,7 +21,7 @@ export class CommandOutput {
     return new Promise<
       string
     >((resolve: (result: string) => void, reject: (reason: string) => void) => {
-      execution.processExitSubject.subscribe(data => {
+      execution.processCloseSubject.subscribe(data => {
         if (data != undefined && data.toString() === '0') {
           return resolve(this.buffer);
         } else {
