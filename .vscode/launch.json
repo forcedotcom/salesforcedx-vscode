@@ -45,8 +45,7 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}",
-      "program":
-        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
+      "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
       "args": ["--server=4711"],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
@@ -56,8 +55,7 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Salesforce DX Utils Tests",
-      "program":
-        "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -107,7 +105,6 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
         "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lightning/out/test"
       ],
@@ -131,26 +128,11 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch Salesforce DX VS Code SLDS Linter Tests",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-slds-linter/out/test"
-      ],
-      "stopOnEntry": false,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/test/**/*.js"],
-      "preLaunchTask": "Compile"
-    },
-    {
       "name": "Launch Apex Debugger Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
-      "program":
-        "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -166,28 +148,6 @@
       ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": "Launch SObject Generator Tests",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
-      "program":
-        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "100000",
-        "--colors",
-        "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/**/*.js"
-      ],
-      "preLaunchTask": "Compile"
     }
   ],
   "compounds": [

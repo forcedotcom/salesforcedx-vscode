@@ -35,7 +35,6 @@ import {
 } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   SHOW_MESSAGE_EVENT
 } from '../constants';
@@ -367,9 +366,9 @@ export class ApexDebug extends DebugSession {
               serverFrames[i].fullName,
               sourcePath
                 ? new Source(
-                    basename(sourcePath),
-                    this.convertDebuggerPathToClient(sourcePath)
-                  )
+                  basename(sourcePath),
+                  this.convertDebuggerPathToClient(sourcePath)
+                )
                 : undefined,
               this.convertDebuggerLineToClient(serverFrames[i].lineNumber),
               0
@@ -411,7 +410,7 @@ export class ApexDebug extends DebugSession {
           const lineNumberMapping: Map<
             string,
             LineBreakpointsInTyperef[]
-          > = new Map();
+            > = new Map();
           const typerefMapping: Map<string, string> = new Map();
           for (const info of lineBpInfo) {
             if (!lineNumberMapping.has(info.uri)) {
@@ -435,9 +434,6 @@ export class ApexDebug extends DebugSession {
         this.initializedResponse.success = true;
         this.sendResponse(this.initializedResponse);
         break;
-      case HOTSWAP_REQUEST:
-        this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
-        break;
       default:
         break;
     }
@@ -459,12 +455,6 @@ export class ApexDebug extends DebugSession {
       event.body.line = sourceLine;
       event.body.column = 0;
       this.sendEvent(event);
-    }
-  }
-
-  private warnToDebugConsole(msg?: string): void {
-    if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'console'));
     }
   }
 
@@ -671,9 +661,7 @@ export class ApexDebug extends DebugSession {
     );
   }
 
-  private getThreadIdFromRequestId(
-    requestId: string | undefined
-  ): number | undefined {
+  private getThreadIdFromRequestId(requestId: string | undefined): number | undefined {
     for (const threadId of this.requestThreads.keys()) {
       if (this.requestThreads.get(threadId) === requestId) {
         return threadId;

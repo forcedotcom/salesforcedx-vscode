@@ -7,7 +7,6 @@
 
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
@@ -79,29 +78,10 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(initialDebugConfig, customEventHandler);
 }
 
-function registerFileWatchers(): vscode.Disposable {
-  const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
-  clsWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
-  const trgWatcher = vscode.workspace.createFileSystemWatcher('**/*.trigger');
-  trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
-  return vscode.Disposable.from(clsWatcher, trgWatcher);
-}
-
-function notifyDebuggerSessionFileChanged(): void {
-  if (vscode.debug.activeDebugSession) {
-    vscode.debug.activeDebugSession.customRequest(HOTSWAP_REQUEST);
-  }
-}
-
 export function activate(context: vscode.ExtensionContext) {
   console.log('Apex Debugger Extension Activated');
   const commands = registerCommands();
-  const fileWatchers = registerFileWatchers();
-  context.subscriptions.push(commands, fileWatchers);
+  context.subscriptions.push(commands);
 }
 
 export function deactivate() {
