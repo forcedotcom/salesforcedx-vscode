@@ -22,6 +22,8 @@
   "force_lightning_event_create_text": "SFDX: Create Lightning Event",
   "force_lightning_interface_create_text": "SFDX: Create Lightning Interface",
   "force_source_status_local_text": "SFDX: View Local Changes",
-  "force_source_status_remote_text": "SFDX: View Changes in Default Scratch Org",
-  "force_debugger_stop_text": "SFDX: Stop Apex Debugger Session"
+  "force_source_status_remote_text":
+    "SFDX: View Changes in Default Scratch Org",
+  "force_debugger_stop_text": "SFDX: Stop Apex Debugger Session",
+  "force_config_list_text": "SFDX: List All Config Variables"
 }

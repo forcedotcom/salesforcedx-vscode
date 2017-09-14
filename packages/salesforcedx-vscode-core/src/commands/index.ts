@@ -23,3 +23,4 @@ export { forceLightningComponentCreate } from './forceLightningComponentCreate';
 export { forceLightningEventCreate } from './forceLightningEventCreate';
 export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';
 export { forceDebuggerStop } from './forceDebuggerStop';
+export { forceConfigList } from './forceConfigList';
