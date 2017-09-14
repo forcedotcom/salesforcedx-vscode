@@ -36,7 +36,7 @@ describe('Frame command', () => {
     const expectedOptions: XHROptions = {
       type: 'POST',
       url:
-        'https://www.salesforce.com/services/debug/v41.0/frame/07cFAKE?frame=1',
+        'https://www.salesforce.com/services/debug/v41.0/frame/07cFAKE?stackFrame=1',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

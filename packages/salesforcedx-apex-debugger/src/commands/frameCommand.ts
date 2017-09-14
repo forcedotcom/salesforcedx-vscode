@@ -19,7 +19,7 @@ export class FrameCommand extends BaseCommand {
       instanceUrl,
       accessToken,
       debuggedRequestId,
-      `frame=${frameId}`
+      `stackFrame=${frameId}`
     );
   }
 }
