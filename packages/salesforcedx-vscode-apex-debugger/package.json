@@ -9,7 +9,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.9.0",
+  "version": "40.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -17,7 +17,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "40.9.0"
+    "@salesforce/salesforcedx-apex-debugger": "^40.10.0"
   },
   "devDependencies": {
     "vscode": "1.1.4"
