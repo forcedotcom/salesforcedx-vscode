@@ -8,18 +8,22 @@
 import { basename } from 'path';
 import {
   DebugSession,
+  ErrorDestination,
   Event,
+  Handles,
   InitializedEvent,
   logger,
   Logger,
   LoggingDebugSession,
   OutputEvent,
+  Scope,
   Source,
   StackFrame,
   StoppedEvent,
   TerminatedEvent,
   Thread,
-  ThreadEvent
+  ThreadEvent,
+  Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
@@ -29,12 +33,15 @@ import {
 import {
   DebuggerResponse,
   ForceOrgDisplay,
+  FrameCommand,
+  LocalValue,
   OrgInfo,
   RunCommand,
   StateCommand,
   StepIntoCommand,
   StepOutCommand,
-  StepOverCommand
+  StepOverCommand,
+  Value
 } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
@@ -60,12 +67,7 @@ export interface LaunchRequestArguments
   /** comma separated list of trace selectors. Supported:
 	  * 'all': all
 	  * 'la': launch/attach
-	  * 'ls': load scripts
-	  * 'bp': breakpoints
-	  * 'sm': source maps
-	  * 'va': data structure access
-	  * 'ss': smart steps
-	  * 'rc': ref caching
+	  * 'vh': variable handling
 	  * 'dap': debug adapter protocol
 	  */
   trace?: boolean | string;
@@ -73,6 +75,73 @@ export interface LaunchRequestArguments
   requestTypeFilter?: string;
   entryPointFilter?: string;
   sfdxProject: string;
+}
+
+export class ApexDebugStackFrameInfo {
+  public readonly requestId: string;
+  public readonly frameNumber: number;
+  public globals: Value[];
+  public statics: Value[];
+  public locals: LocalValue[];
+  constructor(requestId: string, frameNumber: number) {
+    this.requestId = requestId;
+    this.frameNumber = frameNumber;
+  }
+}
+
+export type FilterType = 'named' | 'indexed' | 'all';
+
+export interface VariableContainer {
+  Expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number | undefined,
+    count: number | undefined
+  ): Promise<Variable[]>;
+}
+
+export type ScopeType = 'local' | 'static' | 'global';
+
+export class ScopeContainer implements VariableContainer {
+  private type: ScopeType;
+  private frameInfo: ApexDebugStackFrameInfo;
+
+  public constructor(type: ScopeType, frameInfo: ApexDebugStackFrameInfo) {
+    this.type = type;
+    this.frameInfo = frameInfo;
+  }
+
+  public async Expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<Variable[]> {
+    if (!this.frameInfo.locals) {
+      await session.fetchFrameVariables(this.frameInfo);
+    }
+
+    let values: Value[] = [];
+    switch (this.type) {
+      case 'local':
+        values = this.frameInfo.locals ? this.frameInfo.locals : [];
+        break;
+      case 'static':
+        values = this.frameInfo.statics ? this.frameInfo.statics : [];
+        break;
+      case 'global':
+        values = this.frameInfo.globals ? this.frameInfo.globals : [];
+        break;
+      default:
+        values = [];
+        break;
+    }
+
+    return values.map(
+      variable =>
+        new Variable(variable.name, variable.value ? variable.value : '')
+    );
+  }
 }
 
 export class ApexDebug extends LoggingDebugSession {
@@ -83,6 +152,8 @@ export class ApexDebug extends LoggingDebugSession {
   protected orgInfo: OrgInfo;
   protected requestThreads: Map<number, string>;
   protected threadId: number;
+  protected stackFrameInfos = new Handles<ApexDebugStackFrameInfo>();
+  protected variableHandles = new Handles<VariableContainer>();
 
   private static TWO_NL = `${os.EOL}${os.EOL}`;
   private initializedResponse: DebugProtocol.InitializeResponse;
@@ -399,9 +470,49 @@ export class ApexDebug extends LoggingDebugSession {
           const sourcePath = this.myBreakpointService.getSourcePathFromTyperef(
             serverFrames[i].typeRef
           );
+          const frameInfo = new ApexDebugStackFrameInfo(
+            requestId,
+            serverFrames[i].frameNumber
+          );
+          const frameId = this.stackFrameInfos.create(frameInfo);
+          if (i === 0 && stateRespObj.stateResponse.state) {
+            // populate first stack frame with info from state response (saves a server round trip)
+            if (
+              stateRespObj.stateResponse.state.locals &&
+              stateRespObj.stateResponse.state.locals.local
+            ) {
+              frameInfo.locals = stateRespObj.stateResponse.state.locals.local;
+            } else {
+              frameInfo.locals = [];
+            }
+            this.log('va', `stackTraceRequest: locals=${frameInfo.locals}`);
+
+            if (
+              stateRespObj.stateResponse.state.statics &&
+              stateRespObj.stateResponse.state.statics.static
+            ) {
+              frameInfo.statics =
+                stateRespObj.stateResponse.state.statics.static;
+            } else {
+              frameInfo.statics = [];
+            }
+            this.log('va', `stackTraceRequest: statics=${frameInfo.statics}`);
+
+            if (
+              stateRespObj.stateResponse.state.globals &&
+              stateRespObj.stateResponse.state.globals.global
+            ) {
+              frameInfo.globals =
+                stateRespObj.stateResponse.state.globals.global;
+            } else {
+              frameInfo.globals = [];
+            }
+            this.log('va', `stackTraceRequest: globals=${frameInfo.globals}`);
+          }
+
           clientFrames.push(
             new StackFrame(
-              i,
+              frameId,
               serverFrames[i].fullName,
               sourcePath
                 ? new Source(
@@ -481,6 +592,172 @@ export class ApexDebug extends LoggingDebugSession {
     }
     response.success = true;
     this.sendResponse(response);
+  }
+
+  protected async scopesRequest(
+    response: DebugProtocol.ScopesResponse,
+    args: DebugProtocol.ScopesArguments
+  ): Promise<void> {
+    const frameInfo = this.stackFrameInfos.get(args.frameId);
+    if (!frameInfo) {
+      this.sendErrorResponse(
+        response,
+        2020,
+        'stack frame not valid',
+        null,
+        ErrorDestination.Telemetry
+      );
+      return;
+    }
+
+    const scopes = new Array<Scope>();
+    scopes.push(
+      new Scope(
+        'Local',
+        this.variableHandles.create(new ScopeContainer('local', frameInfo)),
+        false
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Static',
+        this.variableHandles.create(new ScopeContainer('static', frameInfo)),
+        false
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Global',
+        this.variableHandles.create(new ScopeContainer('global', frameInfo)),
+        true
+      )
+    );
+
+    response.body = { scopes: scopes };
+    response.success = true;
+
+    this.sendResponse(response);
+  }
+
+  protected async variablesRequest(
+    response: DebugProtocol.VariablesResponse,
+    args: DebugProtocol.VariablesArguments
+  ): Promise<void> {
+    const variablesContainer = this.variableHandles.get(
+      args.variablesReference
+    );
+    if (!variablesContainer) {
+      logger.verbose('no variables container found ');
+      // no container found: return empty variables array
+      response.body = { variables: [] };
+      this.sendResponse(response);
+    }
+
+    const filter: FilterType =
+      args.filter === 'indexed' || args.filter === 'named'
+        ? args.filter
+        : 'all';
+    variablesContainer
+      .Expand(this, filter, args.start, args.count)
+      .then(variables => {
+        variables.sort(ApexDebug.compareVariableNames);
+        response.body = { variables: variables };
+        this.sendResponse(response);
+      })
+      .catch(err => {
+        logger.verbose('error reading variables: ' + err);
+        // in case of error return empty variables array
+        response.body = { variables: [] };
+        this.sendResponse(response);
+      });
+  }
+
+  private static compareVariableNames(v1: Variable, v2: Variable): number {
+    let n1 = v1.name;
+    let n2 = v2.name;
+
+    // convert [n], [n..m] -> n
+    n1 = ApexDebug.extractNumber(n1);
+    n2 = ApexDebug.extractNumber(n2);
+
+    const i1 = parseInt(n1);
+    const i2 = parseInt(n2);
+    const isNum1 = !isNaN(i1);
+    const isNum2 = !isNaN(i2);
+
+    if (isNum1 && !isNum2) {
+      return 1; // numbers after names
+    }
+    if (!isNum1 && isNum2) {
+      return -1; // names before numbers
+    }
+    if (isNum1 && isNum2) {
+      return i1 - i2;
+    }
+    return n1.localeCompare(n2);
+  }
+
+  private static extractNumber(s: string): string {
+    if (s[0] === '[' && s[s.length - 1] === ']') {
+      return s.substring(1, s.length - 1);
+    }
+    return s;
+  }
+
+  public async fetchFrameVariables(
+    frameInfo: ApexDebugStackFrameInfo
+  ): Promise<void> {
+    const frameResponse = await new FrameCommand(
+      this.orgInfo.instanceUrl,
+      this.orgInfo.accessToken,
+      frameInfo.requestId,
+      frameInfo.frameNumber
+    ).execute();
+    const frameRespObj: DebuggerResponse = JSON.parse(frameResponse);
+    if (
+      frameRespObj &&
+      frameRespObj.frameResponse &&
+      frameRespObj.frameResponse.frame
+    ) {
+      if (
+        frameRespObj.frameResponse.frame.locals &&
+        frameRespObj.frameResponse.frame.locals.local
+      ) {
+        frameInfo.locals = frameRespObj.frameResponse.frame.locals.local;
+      } else {
+        frameInfo.locals = [];
+      }
+      this.log(
+        'va',
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} locals=${frameInfo.locals}`
+      );
+
+      if (
+        frameRespObj.frameResponse.frame.statics &&
+        frameRespObj.frameResponse.frame.statics.static
+      ) {
+        frameInfo.statics = frameRespObj.frameResponse.frame.statics.static;
+      } else {
+        frameInfo.statics = [];
+      }
+      this.log(
+        'va',
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} statics=${frameInfo.statics}`
+      );
+
+      if (
+        frameRespObj.frameResponse.frame.globals &&
+        frameRespObj.frameResponse.frame.globals.global
+      ) {
+        frameInfo.globals = frameRespObj.frameResponse.frame.globals.global;
+      } else {
+        frameInfo.globals = [];
+      }
+      this.log(
+        'va',
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} globals=${frameInfo.globals}`
+      );
+    }
   }
 
   protected printToDebugConsole(
@@ -774,11 +1051,23 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private handleStopped(message: DebuggerMessage): void {
+    const reason = message.sobject.BreakpointId ? 'breakpoint' : 'step';
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
+
+    this.log(
+      'la',
+      `handleStopped: got ${reason} event from server for thread ${threadId}`
+    );
     if (threadId !== undefined) {
+      // cleanup everything that's not longer valid after a stop event
+      this.log('va', 'handleStopped: clearing variable cache');
+      this.stackFrameInfos.reset();
+      this.variableHandles.reset();
+
+      // log to console and notify client
       this.logEvent(message);
       const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
-        message.sobject.BreakpointId ? 'breakpoint' : 'step',
+        reason,
         threadId
       );
       this.sendEvent(stoppedEvent);

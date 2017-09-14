@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { OutputEvent, Source } from 'vscode-debugadapter/lib/debugSession';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
   ApexDebug,
@@ -16,7 +17,6 @@ import {
   SessionService,
   StreamingService
 } from '../../../src/core';
-import { Source, OutputEvent } from 'vscode-debugadapter/lib/debugSession';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponses: DebugProtocol.Response[] = [];
