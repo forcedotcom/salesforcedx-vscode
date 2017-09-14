@@ -94,6 +94,11 @@
                 "type": "string",
                 "description": "%sfdx_project_text%",
                 "default": "${workspaceRoot}"
+              },
+              "trace": {
+                "type": ["boolean", "string"],
+                "description": "%trace_text%",
+                "default": false
               }
             }
           }
