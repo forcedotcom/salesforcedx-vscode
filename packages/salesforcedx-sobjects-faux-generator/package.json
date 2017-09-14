@@ -1,0 +1,45 @@
+{
+  "name": "@salesforce/salesforcedx-sobjects-faux-generator",
+  "displayName": "Salesforce SObject Faux Generator",
+  "description":
+    "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
+  "version": "40.10.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.15.0"
+  },
+  "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "40.10.0",
+    "jsforce": "1.7.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/jsforce": "^1.7.1",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/rimraf": "^2.0.2",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "cross-env": "5.0.4",
+    "jsforce": "1.7.1",
+    "mocha": "3.2.0",
+    "mock-spawn": "0.2.6",
+    "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
+    "typescript": "2.4.0",
+    "vscode": "1.1.4"
+  },
+  "scripts": {
+    "vscode:package": "npm prune --production",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out",
+    "test":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
+  },
+  "nyc": {
+    "reporter": ["text-summary", "lcov"]
+  }
+}

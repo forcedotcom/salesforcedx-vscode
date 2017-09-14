@@ -40,6 +40,7 @@ before_install:
       "./sfdx/install"
       export PATH=./sfdx/$(pwd):$PATH
       sfdx update
+      export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
@@ -50,12 +51,12 @@ before_install:
       wget -q $SFDX_URL_OSX
       sudo installer -pkg sfdx-osx.pkg -target /
       sfdx update
+      export SFDX_CI_KEY_LOCATION=/Users/travis/devhub.key
     fi
   - |
     # the key should be stored in Travis Repository Setting, wrapped in quotes and newlines replaced with \n
-    echo -e $SFDX_CI_DEVHUB_JWTKEY > devhub.key
-    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
-    rm devhub.key
+    echo -e $SFDX_CI_DEVHUB_JWTKEY > $SFDX_CI_KEY_LOCATION
+    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile $SFDX_CI_KEY_LOCATION --setdefaultdevhubusername --setalias devhub
     curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
 install:
@@ -77,3 +78,6 @@ script:
       npm run test:without-system-tests
     fi
   - codecov
+
+after_script:
+  - rm $SFDX_CI_KEY_LOCATION
