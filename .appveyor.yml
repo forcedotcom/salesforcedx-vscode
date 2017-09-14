@@ -25,8 +25,8 @@ install:
   - sfdx update
   - npm install -g codecov 
   # the JWT key should be stored base 64 encoded in AppVeyor settings
-  - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" devhub.key"
-  - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
+  - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\projects\devhub.key"
+  - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile C:\projects\devhub.key --setdefaultdevhubusername --setalias devhub
 
 
 build_script:
@@ -40,6 +40,6 @@ test_script:
   - npm run coverage:system-tests
 
 on_finish:
-  - del devhub.key
+  - del C:\projects\devhub.key
   - codecov
  
