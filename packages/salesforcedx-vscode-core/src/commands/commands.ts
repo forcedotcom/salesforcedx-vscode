@@ -24,6 +24,88 @@ export interface PreconditionChecker {
   check(): boolean;
 }
 
+export interface PostconditionChecker<T> {
+  check(
+    inputs: ContinueResponse<T> | CancelResponse
+  ): Promise<ContinueResponse<T> | CancelResponse>;
+}
+
+export class LightningFilePathExistsChecker
+  implements PostconditionChecker<DirFileNameSelection> {
+  public async check(
+    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
+  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const baseFileName = path.join(
+        inputs.data.outputdir,
+        inputs.data.fileName,
+        inputs.data.fileName
+      );
+      const files = await vscode.workspace.findFiles(
+        `{${baseFileName}.app,${baseFileName}.cmp,${baseFileName}.intf,${baseFileName}.evt}`
+      );
+      // If file does not exist then create it, otherwise prompt user to overwrite the file
+      if (files.length === 0) {
+        return inputs;
+      } else {
+        const overwrite = await notificationService.showWarningMessage(
+          nls.localize('warning_prompt_lightning_bundle_overwrite'),
+          nls.localize('warning_prompt_yes'),
+          nls.localize('warning_prompt_no')
+        );
+        if (overwrite === nls.localize('warning_prompt_yes')) {
+          return inputs;
+        }
+      }
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
+export class FilePathExistsChecker
+  implements PostconditionChecker<DirFileNameSelection> {
+  private fileExtension: string;
+
+  public constructor(fileExtension: string) {
+    this.fileExtension = fileExtension;
+  }
+
+  public async check(
+    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
+  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const files = await vscode.workspace.findFiles(
+        path.join(
+          inputs.data.outputdir,
+          inputs.data.fileName + this.fileExtension
+        )
+      );
+      // If file does not exist then create it, otherwise prompt user to overwrite the file
+      if (files.length === 0) {
+        return inputs;
+      } else {
+        const overwrite = await notificationService.showWarningMessage(
+          nls.localize('warning_prompt_file_overwrite'),
+          nls.localize('warning_prompt_yes'),
+          nls.localize('warning_prompt_no')
+        );
+        if (overwrite === nls.localize('warning_prompt_yes')) {
+          return inputs;
+        }
+      }
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
+export class EmptyPostChecker implements PostconditionChecker<any> {
+  public async check(
+    inputs: ContinueResponse<any> | CancelResponse
+  ): Promise<ContinueResponse<any> | CancelResponse> {
+    return inputs;
+  }
+}
+
 export class SfdxWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
     const result = isSfdxProjectOpened.apply(vscode.workspace);
@@ -135,7 +217,7 @@ export class SelectFileName
   }
 }
 
-export class SelectDirPath
+export abstract class SelectDirPath
   implements ParametersGatherer<{ outputdir: string }> {
   private explorerDir: string | undefined;
   private globKeyWord: string | undefined;
@@ -145,6 +227,29 @@ export class SelectDirPath
     this.globKeyWord = globKeyWord;
   }
 
+  public abstract globDirs(srcPath: string, priorityKeyword?: string): string[];
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ outputdir: string }>
+  > {
+    const rootPath = vscode.workspace.rootPath;
+    let outputdir;
+    if (rootPath) {
+      outputdir = this.explorerDir
+        ? path.relative(rootPath, this.explorerDir)
+        : await vscode.window.showQuickPick(
+            this.globDirs(rootPath, this.globKeyWord),
+            <vscode.QuickPickOptions>{
+              placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+            }
+          );
+    }
+    return outputdir
+      ? { type: 'CONTINUE', data: { outputdir } }
+      : { type: 'CANCEL' };
+  }
+}
+export class SelectPrioritizedDirPath extends SelectDirPath {
   public globDirs(srcPath: string, priorityKeyword?: string): string[] {
     const unprioritizedRelDirs = new glob.GlobSync(
       path.join(srcPath, '**/')
@@ -166,25 +271,19 @@ export class SelectDirPath
     }
     return unprioritizedRelDirs;
   }
+}
 
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ outputdir: string }>
-  > {
-    const rootPath = vscode.workspace.rootPath;
-    let outputdir;
-    if (rootPath) {
-      outputdir = this.explorerDir
-        ? path.relative(rootPath, this.explorerDir)
-        : await vscode.window.showQuickPick(
-            this.globDirs(rootPath, this.globKeyWord),
-            <vscode.QuickPickOptions>{
-              placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-            }
-          );
-    }
-    return outputdir
-      ? { type: 'CONTINUE', data: { outputdir } }
-      : { type: 'CANCEL' };
+export class SelectStrictDirPath extends SelectDirPath {
+  public globDirs(srcPath: string, priorityKeyword?: string): string[] {
+    const globPattern = priorityKeyword
+      ? path.join(srcPath, '**/', priorityKeyword + '/')
+      : path.join(srcPath, '**/');
+    const relativeDirs = new glob.GlobSync(globPattern).found.map(value => {
+      let relativePath = path.relative(srcPath, path.join(value, '/'));
+      relativePath = path.join(relativePath, '');
+      return relativePath;
+    });
+    return relativeDirs;
   }
 }
 
@@ -220,24 +319,27 @@ export abstract class SfdxCommandletExecutor<T>
 }
 
 export class SfdxCommandlet<T> {
-  private readonly checker: PreconditionChecker;
+  private readonly prechecker: PreconditionChecker;
+  private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;
   private readonly executor: CommandletExecutor<T>;
 
   constructor(
     checker: PreconditionChecker,
     gatherer: ParametersGatherer<T>,
-    executor: CommandletExecutor<T>
+    executor: CommandletExecutor<T>,
+    postchecker = new EmptyPostChecker()
   ) {
-    this.checker = checker;
+    this.prechecker = checker;
     this.gatherer = gatherer;
     this.executor = executor;
+    this.postchecker = postchecker;
   }
 
   public async run(): Promise<void> {
-    if (this.checker.check()) {
-      const inputs = await this.gatherer.gather();
-
+    if (this.prechecker.check()) {
+      let inputs = await this.gatherer.gather();
+      inputs = await this.postchecker.check(inputs);
       switch (inputs.type) {
         case 'CONTINUE':
           return this.executor.execute(inputs);
