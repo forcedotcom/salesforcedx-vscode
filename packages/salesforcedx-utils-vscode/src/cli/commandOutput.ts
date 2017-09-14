@@ -8,28 +8,24 @@
 import { CommandExecution } from './commandExecutor';
 
 export class CommandOutput {
+  private buffer = '';
+
   public async getCmdResult(execution: CommandExecution): Promise<string> {
-    let buffer = '';
+    execution.stdoutSubject.subscribe(realData => {
+      this.buffer += realData.toString();
+    });
+    execution.stderrSubject.subscribe(realData => {
+      this.buffer += realData.toString();
+    });
+
     return new Promise<
       string
-    >((resolve: (result: any) => void, reject: (reason: string) => void) => {
+    >((resolve: (result: string) => void, reject: (reason: string) => void) => {
       execution.processExitSubject.subscribe(data => {
         if (data != undefined && data.toString() === '0') {
-          execution.stdoutSubject.subscribe(realData => {
-            const output = realData.toString();
-            buffer = buffer.concat(output);
-            try {
-              JSON.parse(buffer.toString());
-              return resolve(buffer.toString());
-            } catch (e) {
-              // JSON syntax error. realData has not finished streaming
-              reject(realData.toString());
-            }
-          });
+          return resolve(this.buffer);
         } else {
-          execution.stderrSubject.subscribe(realData => {
-            reject(realData.toString());
-          });
+          reject(this.buffer);
         }
       });
     });
