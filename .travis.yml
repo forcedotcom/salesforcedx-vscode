@@ -53,8 +53,8 @@ before_install:
     fi
   - |
     # the key should be stored in Travis Repository Setting, wrapped in quotes and newlines replaced with \n
-    echo -e $SFDX_CI_DEVHUB_JWTKEY > /home/travis/build/forcedotcom/devhub.key
-    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile /home/travis/build/forcedotcom/devhub.key --setdefaultdevhubusername --setalias devhub
+    echo -e $SFDX_CI_DEVHUB_JWTKEY > /home/travis/devhub.key
+    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile /home/travis/devhub.key --setdefaultdevhubusername --setalias devhub
     curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
 install:
@@ -78,4 +78,4 @@ script:
   - codecov
 
 after_script:
-  - rm /home/travis/build/forcedotcom/devhub.key
+  - rm /home/travis/devhub.key
