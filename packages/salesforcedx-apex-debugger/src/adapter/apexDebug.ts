@@ -36,6 +36,7 @@ import {
   FrameCommand,
   LocalValue,
   OrgInfo,
+  Reference,
   RunCommand,
   StateCommand,
   StepIntoCommand,
@@ -83,6 +84,7 @@ export class ApexDebugStackFrameInfo {
   public globals: Value[];
   public statics: Value[];
   public locals: LocalValue[];
+  public references: Reference[];
   constructor(requestId: string, frameNumber: number) {
     this.requestId = requestId;
     this.frameNumber = frameNumber;
@@ -569,6 +571,16 @@ export class ApexDebug extends LoggingDebugSession {
             } else {
               frameInfo.globals = [];
             }
+
+            if (
+              stateRespObj.stateResponse.state.references &&
+              stateRespObj.stateResponse.state.references.references
+            ) {
+              frameInfo.references =
+                stateRespObj.stateResponse.state.references.references;
+            } else {
+              frameInfo.globals = [];
+            }
           }
 
           clientFrames.push(
@@ -708,10 +720,14 @@ export class ApexDebug extends LoggingDebugSession {
       args.variablesReference
     );
     if (!variablesContainer) {
-      logger.verbose('no variables container found ');
+      this.log(
+        'va',
+        `variablesRequest: no container for variablesReference=${args.variablesReference}`
+      );
       // no container found: return empty variables array
       response.body = { variables: [] };
       this.sendResponse(response);
+      return;
     }
 
     const filter: FilterType =
@@ -726,7 +742,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.sendResponse(response);
       })
       .catch(err => {
-        logger.verbose('error reading variables: ' + err);
+        this.log('va', `variablesRequest: error reading variables ${err}`);
         // in case of error return empty variables array
         response.body = { variables: [] };
         this.sendResponse(response);
@@ -750,7 +766,7 @@ export class ApexDebug extends LoggingDebugSession {
     ) {
       this.log(
         'va',
-        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=${frameInfo.locals}` +
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` +
           JSON.stringify(frameRespObj.frameResponse.frame)
       );
       if (
