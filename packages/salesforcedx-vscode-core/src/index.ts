@@ -8,6 +8,7 @@
 import * as vscode from 'vscode';
 
 import {
+  forceAliasList,
   forceApexClassCreate,
   forceApexTestRun,
   forceAuthWebLogin,
@@ -18,6 +19,7 @@ import {
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
   forceOrgCreate,
+  forceOrgDisplay,
   forceOrgOpen,
   forceSourcePull,
   forceSourcePush,
@@ -110,6 +112,14 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.config.list',
     forceConfigList
   );
+  const forceAliasListCmd = vscode.commands.registerCommand(
+    'sfdx.force.alias.list',
+    forceAliasList
+  );
+  const forceOrgDisplayCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.display',
+    forceOrgDisplay
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -137,6 +147,8 @@ function registerCommands(): vscode.Disposable {
     forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
     forceConfigListCmd,
+    forceAliasListCmd,
+    forceOrgDisplayCmd,
     internalCancelCommandExecution
   );
 }

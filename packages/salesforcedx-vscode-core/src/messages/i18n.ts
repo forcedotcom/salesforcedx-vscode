@@ -79,5 +79,7 @@ export const messages = {
     'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
   warning_prompt_yes: 'Yes',
   warning_prompt_no: 'No',
-  force_config_list_text: 'SFDX: List All Config Variables'
+  force_config_list_text: 'SFDX: List All Config Variables',
+  force_alias_list_text: 'SFDX: List All Aliases',
+  force_org_display_text: 'SFDX: Show Org Details'
 };

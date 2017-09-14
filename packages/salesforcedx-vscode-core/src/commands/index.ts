@@ -24,3 +24,5 @@ export { forceLightningEventCreate } from './forceLightningEventCreate';
 export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';
 export { forceDebuggerStop } from './forceDebuggerStop';
 export { forceConfigList } from './forceConfigList';
+export { forceAliasList } from './forceAliasList';
+export { forceOrgDisplay } from './forceOrgDisplay';
