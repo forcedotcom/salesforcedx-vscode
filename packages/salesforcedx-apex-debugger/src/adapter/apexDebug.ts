@@ -89,6 +89,68 @@ export class ApexDebugStackFrameInfo {
   }
 }
 
+export class ApexVariable extends Variable {
+  public readonly declaredTypeRef: string;
+  private readonly slot: number | undefined;
+
+  constructor(value: Value) {
+    super(value.name, ApexVariable.valueAsString(value));
+    this.declaredTypeRef = value.declaredTypeRef;
+    if ((<LocalValue>value).slot !== undefined) {
+      this.slot = (<LocalValue>value).slot;
+    }
+  }
+
+  private static valueAsString(value: Value): string {
+    if (!value.value || value.value == null) {
+      return 'null'; // We want to explicitly display null for null values.
+    }
+    if (value.declaredTypeRef === 'java/lang/String') {
+      return `'${value.value}'`; // We want to explicitly quote string values like in Java. This allows us to differentiate null from 'null'.
+    }
+
+    return value.value;
+  }
+
+  public static compareVariables(v1: ApexVariable, v2: ApexVariable): number {
+    // use slots when available
+    if (v1.slot && v2.slot) {
+      return v1.slot - v2.slot;
+    }
+
+    // compare names
+    let n1 = v1.name;
+    let n2 = v2.name;
+
+    // convert [n], [n..m] -> n
+    n1 = ApexVariable.extractNumber(n1);
+    n2 = ApexVariable.extractNumber(n2);
+
+    const i1 = parseInt(n1);
+    const i2 = parseInt(n2);
+    const isNum1 = !isNaN(i1);
+    const isNum2 = !isNaN(i2);
+
+    if (isNum1 && !isNum2) {
+      return 1; // numbers after names
+    }
+    if (!isNum1 && isNum2) {
+      return -1; // names before numbers
+    }
+    if (isNum1 && isNum2) {
+      return i1 - i2;
+    }
+    return n1.localeCompare(n2);
+  }
+
+  private static extractNumber(s: string): string {
+    if (s[0] === '[' && s[s.length - 1] === ']') {
+      return s.substring(1, s.length - 1);
+    }
+    return s;
+  }
+}
+
 export type FilterType = 'named' | 'indexed' | 'all';
 
 export interface VariableContainer {
@@ -97,7 +159,7 @@ export interface VariableContainer {
     filter: FilterType,
     start: number | undefined,
     count: number | undefined
-  ): Promise<Variable[]>;
+  ): Promise<ApexVariable[]>;
 }
 
 export type ScopeType = 'local' | 'static' | 'global';
@@ -116,8 +178,12 @@ export class ScopeContainer implements VariableContainer {
     filter: FilterType,
     start: number,
     count: number
-  ): Promise<Variable[]> {
-    if (!this.frameInfo.locals) {
+  ): Promise<ApexVariable[]> {
+    if (
+      !this.frameInfo.locals &&
+      !this.frameInfo.statics &&
+      !this.frameInfo.globals
+    ) {
       await session.fetchFrameVariables(this.frameInfo);
     }
 
@@ -137,10 +203,7 @@ export class ScopeContainer implements VariableContainer {
         break;
     }
 
-    return values.map(
-      variable =>
-        new Variable(variable.name, variable.value ? variable.value : '')
-    );
+    return values.map(value => new ApexVariable(value));
   }
 }
 
@@ -660,7 +723,7 @@ export class ApexDebug extends LoggingDebugSession {
     variablesContainer
       .Expand(this, filter, args.start, args.count)
       .then(variables => {
-        variables.sort(ApexDebug.compareVariableNames);
+        variables.sort(ApexVariable.compareVariables);
         response.body = { variables: variables };
         this.sendResponse(response);
       })
@@ -670,38 +733,6 @@ export class ApexDebug extends LoggingDebugSession {
         response.body = { variables: [] };
         this.sendResponse(response);
       });
-  }
-
-  private static compareVariableNames(v1: Variable, v2: Variable): number {
-    let n1 = v1.name;
-    let n2 = v2.name;
-
-    // convert [n], [n..m] -> n
-    n1 = ApexDebug.extractNumber(n1);
-    n2 = ApexDebug.extractNumber(n2);
-
-    const i1 = parseInt(n1);
-    const i2 = parseInt(n2);
-    const isNum1 = !isNaN(i1);
-    const isNum2 = !isNaN(i2);
-
-    if (isNum1 && !isNum2) {
-      return 1; // numbers after names
-    }
-    if (!isNum1 && isNum2) {
-      return -1; // names before numbers
-    }
-    if (isNum1 && isNum2) {
-      return i1 - i2;
-    }
-    return n1.localeCompare(n2);
-  }
-
-  private static extractNumber(s: string): string {
-    if (s[0] === '[' && s[s.length - 1] === ']') {
-      return s.substring(1, s.length - 1);
-    }
-    return s;
   }
 
   public async fetchFrameVariables(
