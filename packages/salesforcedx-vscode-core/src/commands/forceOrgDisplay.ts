@@ -19,7 +19,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
+export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
