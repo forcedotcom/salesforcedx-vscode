@@ -61,7 +61,8 @@ export class SpectronApplication {
       path: electronPath,
       args: args,
       chromeDriverArgs: chromeDriverArgs,
-      startTimeout: 10000
+      startTimeout: 10000,
+      requireName: 'nodeRequire'
     });
     this.testRetry += 1; // avoid multiplication by 0 for wait times
     this.screenshot = new Screenshot(this, testName, testRetry);
