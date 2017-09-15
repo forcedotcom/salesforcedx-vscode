@@ -40,7 +40,11 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   public async execute(response: ContinueResponse<{}>): Promise<void> {
     const projectPath: string = <string>vscode.workspace.rootPath;
     const gen: FauxClassGenerator = new FauxClassGenerator();
-    await gen.generate(projectPath, SObjectCategory.STANDARD);
+    try {
+      await gen.generate(projectPath, SObjectCategory.STANDARD);
+    } catch (e) {
+      console.log(e);
+    }
     return;
   }
 }

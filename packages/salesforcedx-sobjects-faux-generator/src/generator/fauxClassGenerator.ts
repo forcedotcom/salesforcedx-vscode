@@ -19,30 +19,49 @@ export class FauxClassGenerator {
   private TOOLS_DIR = 'tools';
   private SOBJECTS_DIR = 'sobjects';
 
-  public async generate(projectPath: string, type: SObjectCategory) {
+  public async generate(
+    projectPath: string,
+    type: SObjectCategory
+  ): Promise<string> {
     const describe = new SObjectDescribe();
     const sobjects = await describe.describeGlobal(projectPath, type);
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
-    console.log(sobjects.length);
-    for (let i = 0; i < sobjects.length; i++) {
-      let sobject = null;
+    let fetchedSObjects: SObject[] = [];
+    let j = 0;
+    while (j < sobjects.length) {
       try {
-        sobject = await describe.describeSObjectBatch(
-          projectPath,
-          sobjects,
-          i - 1
+        fetchedSObjects = fetchedSObjects.concat(
+          await describe.describeSObjectBatch(projectPath, sobjects, j - 1)
         );
+        j = fetchedSObjects.length;
       } catch (e) {
-        console.log('describe error ' + e);
-        continue;
+        Promise.reject('describe error ' + e);
       }
-      console.log(sobject.name);
-      if (sobject.custom) {
-        customSObjects.push(sobject);
+    }
+
+    for (let i = 0; i < fetchedSObjects.length; i++) {
+      console.log(fetchedSObjects[i].name);
+      if (fetchedSObjects[i].custom) {
+        customSObjects.push(fetchedSObjects[i]);
       } else {
-        standardSObjects.push(sobject);
+        standardSObjects.push(fetchedSObjects[i]);
       }
+    }
+
+    if (standardSObjects.length > 0) {
+      console.log(
+        'Fetched ' +
+          standardSObjects.length +
+          ' Standard SObjects from default scratch org'
+      );
+    }
+    if (customSObjects.length > 0) {
+      console.log(
+        'Fetched ' +
+          customSObjects.length +
+          ' Custom SObjects from default scratch org'
+      );
     }
 
     const standardSObjectFolderPath = path.join(
@@ -66,6 +85,8 @@ export class FauxClassGenerator {
     for (const sobject of customSObjects) {
       await this.generateFauxClass(customSObjectFolderPath, sobject);
     }
+
+    return '';
   }
 
   private generateChildRelationship(rel: ChildRelationship): string {

@@ -308,7 +308,7 @@
       },
       {
         "command": "sfdx.force.genfauxclasses",
-        "title": "SFDX: Generate Faux Classes"
+        "title": "%force_generate_faux_classes%"
       }
     ]
   }

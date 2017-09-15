@@ -164,29 +164,24 @@ export enum SObjectCategory {
   CUSTOM = 'CUSTOM'
 }
 
-/*export interface Command {
-  readonly command: string;
-  readonly description?: string;
-  readonly args: string[];
+type SubRequest = { method: string; url: string };
+type BatchRequest = { batchRequests: SubRequest[] };
 
-  toString(): string;
-  toCommand(): string;
-}
+type SubResponse = { statusCode: number; result: SObject };
 
-export interface Options {
-  // Supports "string", "buffer", "array", "uint8array" or "object".
-  encoding?: string;
-}*/
+type BatchResponse = { hasErrors: boolean; results: SubResponse[] };
 
 export class SObjectDescribe {
-  private conn: jsforce.Connection;
   private accessToken: string;
   private instanceUrl: string;
-  private readonly servicesPath: string = 'services/data/v40.0/sobjects';
+  // TODO should get the proper version from ??
+  private readonly servicesPath: string = 'services/data';
+  private readonly sobjectsPart: string = 'v40.0/sobjects';
+  private readonly batchPart: string = 'v40.0/composite/batch';
 
   // get the token and url by calling the org - short term, should be able to get it from the sfdx project
   private async setupConnection(projectPath: string) {
-    if (!this.conn) {
+    if (!this.accessToken) {
       let orgInfo: any;
       const execution = new CliCommandExecutor(
         new SfdxCommandBuilder()
@@ -200,11 +195,6 @@ export class SObjectDescribe {
       orgInfo = JSON.parse(result).result;
       this.accessToken = orgInfo.accessToken;
       this.instanceUrl = orgInfo.instanceUrl;
-
-      this.conn = new jsforce.Connection({
-        accessToken: this.accessToken,
-        instanceUrl: this.instanceUrl
-      });
     }
   }
   public async describeSObject(
@@ -212,30 +202,35 @@ export class SObjectDescribe {
     type: string,
     username?: string
   ): Promise<SObject> {
-    console.log('SObjectDescribe - ' + type);
-    const builder = new SfdxCommandBuilder()
-      .withArg('force:schema:sobject:describe')
-      .withFlag('--sobjecttype', type);
-    if (username) {
-      builder.args.push('--targetusername', username);
-    }
-    const command = builder.withJson().build();
-    const execution = new CliCommandExecutor(command, {
-      cwd: projectPath
-    }).execute();
+    await this.setupConnection(projectPath);
 
-    const cmdOutput = new CommandOutput();
-    let result;
+    const urlElements = [
+      this.instanceUrl,
+      this.servicesPath,
+      this.sobjectsPart,
+      type,
+      'describe'
+    ];
+
+    const requestUrl = urlElements.join('/');
+
+    const options: XHROptions = {
+      type: 'GET',
+      url: requestUrl,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `OAuth ${this.accessToken}`
+      }
+    };
+
     try {
-      result = await cmdOutput.getCmdResult(execution);
-    } catch (e) {
-      return Promise.reject(e);
-    }
-    try {
-      const sobject = JSON.parse(result).result as SObject;
+      const response: XHRResponse = await xhr(options);
+      const sobject = JSON.parse(response.responseText) as SObject;
       return Promise.resolve(sobject);
-    } catch (e) {
-      return Promise.reject(result);
+    } catch (error) {
+      const xhrResponse: XHRResponse = error;
+      return Promise.reject(xhrResponse.responseText);
     }
   }
 
@@ -271,67 +266,53 @@ export class SObjectDescribe {
     }
   }
 
-  /*public async describeSObjectBatch(
-    projectPath: string,
-    types: string[],
-    lastProcessed: number,
-    username?: string
-  ): Promise<SObject> {
-    await this.setupConnection(projectPath);
-
-    const requestUrl =
-      '/services/data/v40.0/sobjects/' + types[lastProcessed + 1] + '/describe';
-
-    /*const foo = this.conn.requestGet(
-      requestUrl,
-      {},
-      (dummy: any, data: Object) => {
-        console.log('zippy');
-        const x1 = JSON.stringify(data);
-        const x2 = JSON.parse(x1);
-        const sobject = JSON.parse(JSON.stringify(data)) as SObject;
-        return sobject;
-      }
-    );
-
-    return new Promise<SObject>(resolve => {
-      this.conn.requestGet(requestUrl, {}, (err: any, data: Object) => {
-        const sobject = JSON.parse(JSON.stringify(data)) as SObject;
-        return resolve(sobject);
-      });
-    });*/
-
   public async describeSObjectBatch(
     projectPath: string,
     types: string[],
     lastProcessed: number,
     username?: string
-  ): Promise<SObject> {
+  ): Promise<SObject[]> {
+    const batchSize = 25;
+
     await this.setupConnection(projectPath);
 
-    const urlElements = [
+    const batchRequest: BatchRequest = { batchRequests: [] };
+
+    for (
+      let i = lastProcessed + 1;
+      i <= lastProcessed + batchSize && i < types.length;
+      i++
+    ) {
+      const urlElements = [this.sobjectsPart, types[i], 'describe'];
+      const requestUrl = urlElements.join('/');
+
+      batchRequest.batchRequests.push({ method: 'GET', url: requestUrl });
+    }
+    const batchUrlElements = [
       this.instanceUrl,
       this.servicesPath,
-      types[lastProcessed + 1],
-      'describe'
+      this.batchPart
     ];
-
-    const requestUrl = urlElements.join('/');
-
+    const batchRequestUrl = batchUrlElements.join('/');
     const options: XHROptions = {
-      type: 'GET',
-      url: requestUrl,
+      type: 'POST',
+      url: batchRequestUrl,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth ${this.accessToken}`
-      }
+      },
+      data: JSON.stringify(batchRequest)
     };
 
     try {
       const response: XHRResponse = await xhr(options);
-      const sobject = JSON.parse(response.responseText) as SObject;
-      return Promise.resolve(sobject);
+      const batchResponse = JSON.parse(response.responseText) as BatchResponse;
+      const fetchedObjects: SObject[] = [];
+      for (const sr of batchResponse.results) {
+        fetchedObjects.push(sr.result);
+      }
+      return Promise.resolve(fetchedObjects);
     } catch (error) {
       const xhrResponse: XHRResponse = error;
       return Promise.reject(xhrResponse.responseText);
