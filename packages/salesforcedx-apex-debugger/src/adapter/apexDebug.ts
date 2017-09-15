@@ -296,7 +296,7 @@ export class ApexDebug extends LoggingDebugSession {
   private variableHandles = new Handles<VariableContainer>();
   private variableContainerReferenceByApexId = new Map<number, number>();
 
-  private static TWO_NL = `${os.EOL}${os.EOL}`;
+  private static LINEBREAK = `${os.EOL}`;
   private initializedResponse: DebugProtocol.InitializeResponse;
 
   private trace: string[] | undefined;
@@ -947,7 +947,10 @@ export class ApexDebug extends LoggingDebugSession {
     requestId: string,
     apexId: number
   ): Promise<void> {
-    this.log('va', `fetchReferences: requestId=${requestId}`);
+    this.log(
+      'va',
+      `fetchReferences: fetching reference with apexId=${apexId} (request ${requestId})`
+    );
     const referencesResponse = await new ReferencesCommand(
       this.orgInfo.instanceUrl,
       this.orgInfo.accessToken,
@@ -963,13 +966,6 @@ export class ApexDebug extends LoggingDebugSession {
       referencesResponseObj.referencesResponse.references &&
       referencesResponseObj.referencesResponse.references.references
     ) {
-      this.log(
-        'va',
-        `fetchReferences: references=` +
-          JSON.stringify(
-            referencesResponseObj.referencesResponse.references.references
-          )
-      );
       this.populateReferences(
         referencesResponseObj.referencesResponse.references.references,
         requestId
@@ -984,7 +980,7 @@ export class ApexDebug extends LoggingDebugSession {
   ): void {
     if (msg && msg.length !== 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(
-        `${msg}${ApexDebug.TWO_NL}`,
+        `${msg}${ApexDebug.LINEBREAK}`,
         'stdout'
       );
       event.body.source = sourceFile;
@@ -996,13 +992,15 @@ export class ApexDebug extends LoggingDebugSession {
 
   protected warnToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'console'));
+      this.sendEvent(
+        new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'console')
+      );
     }
   }
 
   protected errorToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'stderr'));
+      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stderr'));
     }
   }
 
