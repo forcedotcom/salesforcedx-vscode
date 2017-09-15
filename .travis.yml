@@ -28,6 +28,11 @@ os:
   - linux
   - osx
 
+addons:
+  apt:
+    packages:
+      - libsecret-1-dev
+
 before_install:
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
@@ -68,8 +73,8 @@ script:
   - npm run lint
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-      travis_wait npm run test:without-system-tests
-      travis_wait npm run coverage:system-tests
+      npm run test:without-system-tests
+      npm run coverage:system-tests
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
