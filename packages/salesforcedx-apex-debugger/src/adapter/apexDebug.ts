@@ -37,6 +37,7 @@ import {
   LocalValue,
   OrgInfo,
   Reference,
+  ReferencesCommand,
   RunCommand,
   StateCommand,
   StepIntoCommand,
@@ -91,15 +92,31 @@ export class ApexDebugStackFrameInfo {
   }
 }
 
+export enum ApexVariableKind {
+  Global = 10,
+  Static = 20,
+  Local = 30,
+  Field = 40,
+  Collection = 50
+}
+
 export class ApexVariable extends Variable {
   public readonly declaredTypeRef: string;
-  private readonly slot: number | undefined;
+  private readonly slot: number;
+  private readonly kind: ApexVariableKind;
 
-  constructor(value: Value) {
-    super(value.name, ApexVariable.valueAsString(value), value.ref);
+  constructor(
+    value: Value,
+    kind: ApexVariableKind,
+    variableReference?: number
+  ) {
+    super(value.name, ApexVariable.valueAsString(value), variableReference);
     this.declaredTypeRef = value.declaredTypeRef;
+    this.kind = kind;
     if ((<LocalValue>value).slot !== undefined) {
       this.slot = (<LocalValue>value).slot;
+    } else {
+      this.slot = Number.MAX_SAFE_INTEGER;
     }
   }
 
@@ -115,8 +132,13 @@ export class ApexVariable extends Variable {
   }
 
   public static compareVariables(v1: ApexVariable, v2: ApexVariable): number {
+    // group by kind
+    if (v1.kind !== v2.kind) {
+      return v1.kind - v2.kind;
+    }
+
     // use slots when available
-    if (v1.slot && v2.slot) {
+    if (ApexVariable.isLocalOrField(v1)) {
       return v1.slot - v2.slot;
     }
 
@@ -151,12 +173,18 @@ export class ApexVariable extends Variable {
     }
     return s;
   }
+
+  private static isLocalOrField(v1: ApexVariable) {
+    return (
+      v1.kind === ApexVariableKind.Local || v1.kind === ApexVariableKind.Field
+    );
+  }
 }
 
 export type FilterType = 'named' | 'indexed' | 'all';
 
 export interface VariableContainer {
-  Expand(
+  expand(
     session: ApexDebug,
     filter: FilterType,
     start: number | undefined,
@@ -175,7 +203,7 @@ export class ScopeContainer implements VariableContainer {
     this.frameInfo = frameInfo;
   }
 
-  public async Expand(
+  public async expand(
     session: ApexDebug,
     filter: FilterType,
     start: number,
@@ -190,25 +218,71 @@ export class ScopeContainer implements VariableContainer {
     }
 
     let values: Value[] = [];
+    let variableKind: ApexVariableKind;
     switch (this.type) {
       case 'local':
         values = this.frameInfo.locals ? this.frameInfo.locals : [];
+        variableKind = ApexVariableKind.Local;
         break;
       case 'static':
         values = this.frameInfo.statics ? this.frameInfo.statics : [];
+        variableKind = ApexVariableKind.Static;
         break;
       case 'global':
         values = this.frameInfo.globals ? this.frameInfo.globals : [];
+        variableKind = ApexVariableKind.Global;
         break;
       default:
-        values = [];
-        break;
+        return [];
     }
 
-    return values.map(value => new ApexVariable(value));
+    return Promise.all(
+      values.map(async value => {
+        const variableReference = await session.resolveApexIdToVariableReference(
+          this.frameInfo.requestId,
+          value.ref
+        );
+        return new ApexVariable(value, variableKind, variableReference);
+      })
+    );
   }
 }
 
+export class ObjectReferenceContainer implements VariableContainer {
+  private reference: Reference;
+  private requestId: string;
+
+  public constructor(reference: Reference, requestId: string) {
+    this.reference = reference;
+    this.requestId = requestId;
+  }
+
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    if (!this.reference.fields) {
+      // this object is empty
+      return [];
+    }
+
+    return Promise.all(
+      this.reference.fields.map(async value => {
+        const variableReference = await session.resolveApexIdToVariableReference(
+          this.requestId,
+          value.ref
+        );
+        return new ApexVariable(
+          value,
+          ApexVariableKind.Field,
+          variableReference
+        );
+      })
+    );
+  }
+}
 export class ApexDebug extends LoggingDebugSession {
   protected mySessionService = SessionService.getInstance();
   protected myBreakpointService = BreakpointService.getInstance();
@@ -217,8 +291,10 @@ export class ApexDebug extends LoggingDebugSession {
   protected orgInfo: OrgInfo;
   protected requestThreads: Map<number, string>;
   protected threadId: number;
-  protected stackFrameInfos = new Handles<ApexDebugStackFrameInfo>();
-  protected variableHandles = new Handles<VariableContainer>();
+
+  private stackFrameInfos = new Handles<ApexDebugStackFrameInfo>();
+  private variableHandles = new Handles<VariableContainer>();
+  private variableContainerReferenceByApexId = new Map<number, number>();
 
   private static TWO_NL = `${os.EOL}${os.EOL}`;
   private initializedResponse: DebugProtocol.InitializeResponse;
@@ -400,9 +476,7 @@ export class ApexDebug extends LoggingDebugSession {
         }
 
         response.success = true;
-        response.body = {
-          breakpoints: processedBreakpoints
-        };
+        response.body = { breakpoints: processedBreakpoints };
       } catch (error) {
         this.tryToParseSfdxError(response, error);
       }
@@ -576,10 +650,10 @@ export class ApexDebug extends LoggingDebugSession {
               stateRespObj.stateResponse.state.references &&
               stateRespObj.stateResponse.state.references.references
             ) {
-              frameInfo.references =
-                stateRespObj.stateResponse.state.references.references;
-            } else {
-              frameInfo.globals = [];
+              this.populateReferences(
+                stateRespObj.stateResponse.state.references.references,
+                frameInfo.requestId
+              );
             }
           }
 
@@ -735,14 +809,17 @@ export class ApexDebug extends LoggingDebugSession {
         ? args.filter
         : 'all';
     variablesContainer
-      .Expand(this, filter, args.start, args.count)
+      .expand(this, filter, args.start, args.count)
       .then(variables => {
         variables.sort(ApexVariable.compareVariables);
         response.body = { variables: variables };
         this.sendResponse(response);
       })
       .catch(err => {
-        this.log('va', `variablesRequest: error reading variables ${err}`);
+        this.log(
+          'va',
+          `variablesRequest: error reading variables ${err} ${err.stack}`
+        );
         // in case of error return empty variables array
         response.body = { variables: [] };
         this.sendResponse(response);
@@ -795,6 +872,108 @@ export class ApexDebug extends LoggingDebugSession {
       } else {
         frameInfo.globals = [];
       }
+
+      if (
+        frameRespObj.frameResponse.frame.references &&
+        frameRespObj.frameResponse.frame.references.references
+      ) {
+        this.populateReferences(
+          frameRespObj.frameResponse.frame.references.references,
+          frameInfo.requestId
+        );
+      }
+    }
+  }
+
+  protected populateReferences(
+    references: Reference[],
+    requestId: string
+  ): void {
+    references.map(reference => {
+      let variableReference: number;
+      if (reference.type === 'object') {
+        variableReference = this.variableHandles.create(
+          new ObjectReferenceContainer(reference, requestId)
+        );
+        this.log(
+          'va',
+          `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+        );
+      } else {
+        const referenceInfo = JSON.stringify(reference);
+        this.log(
+          'va',
+          `populateReferences: unhandled reference: ${referenceInfo}`
+        );
+        return;
+      }
+
+      // map apex id to container reference
+      this.variableContainerReferenceByApexId.set(
+        reference.id,
+        variableReference
+      );
+    });
+  }
+
+  public async resolveApexIdToVariableReference(
+    requestId: string,
+    apexId: number | undefined
+  ): Promise<number | undefined> {
+    if (!apexId) {
+      return;
+    }
+    if (!this.variableContainerReferenceByApexId.has(apexId)) {
+      await this.fetchReferences(requestId, apexId);
+      if (!this.variableContainerReferenceByApexId.has(apexId)) {
+        this.log(
+          'va',
+          `resolveApexIdToVariableReference: no reference found for apexId ${apexId} (request ${requestId})`
+        );
+        return;
+      }
+    }
+    const variableReference = this.variableContainerReferenceByApexId.get(
+      apexId
+    );
+    this.log(
+      'va',
+      `resolveApexIdToVariableReference: resolved apexId=${apexId} to variableReference=${variableReference}`
+    );
+    return variableReference;
+  }
+
+  public async fetchReferences(
+    requestId: string,
+    apexId: number
+  ): Promise<void> {
+    this.log('va', `fetchReferences: requestId=${requestId}`);
+    const referencesResponse = await new ReferencesCommand(
+      this.orgInfo.instanceUrl,
+      this.orgInfo.accessToken,
+      requestId,
+      apexId
+    ).execute();
+    const referencesResponseObj: DebuggerResponse = JSON.parse(
+      referencesResponse
+    );
+    if (
+      referencesResponseObj &&
+      referencesResponseObj.referencesResponse &&
+      referencesResponseObj.referencesResponse.references &&
+      referencesResponseObj.referencesResponse.references.references
+    ) {
+      this.log(
+        'va',
+        `fetchReferences: references=` +
+          JSON.stringify(
+            referencesResponseObj.referencesResponse.references.references
+          )
+      );
+      this.populateReferences(
+        referencesResponseObj.referencesResponse.references.references,
+        requestId
+      );
     }
   }
 
@@ -1101,6 +1280,7 @@ export class ApexDebug extends LoggingDebugSession {
       this.log('va', 'handleStopped: clearing variable cache');
       this.stackFrameInfos.reset();
       this.variableHandles.reset();
+      this.variableContainerReferenceByApexId.clear();
 
       // log to console and notify client
       this.logEvent(message);

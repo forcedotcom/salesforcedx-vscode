@@ -6,13 +6,37 @@
  */
 
 import { BaseCommand } from './baseCommand';
+import { DebuggerRequest, ReferenceRequest } from './protocol';
 
 export class ReferencesCommand extends BaseCommand {
+  protected static createGetReferenceRequest(
+    apexReferences: number[]
+  ): DebuggerRequest {
+    return {
+      getReferencesRequest: {
+        reference: apexReferences.map(apexReference => {
+          const result: ReferenceRequest = {
+            reference: apexReference
+          };
+          return result;
+        })
+      }
+    };
+  }
+
   public constructor(
     instanceUrl: string,
     accessToken: string,
-    debuggedRequestId: string
+    debuggedRequestId: string,
+    ...apexReferences: number[]
   ) {
-    super('references', instanceUrl, accessToken, debuggedRequestId);
+    super(
+      'references',
+      instanceUrl,
+      accessToken,
+      debuggedRequestId,
+      undefined,
+      ReferencesCommand.createGetReferenceRequest(apexReferences)
+    );
   }
 }

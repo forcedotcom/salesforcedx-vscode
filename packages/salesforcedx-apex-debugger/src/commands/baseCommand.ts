@@ -6,6 +6,7 @@
  */
 
 import { xhr, XHROptions, XHRResponse } from 'request-light';
+import { DebuggerRequest } from './protocol';
 
 export abstract class BaseCommand {
   private readonly queryString: string | undefined;
@@ -14,19 +15,22 @@ export abstract class BaseCommand {
   private readonly accessToken: string;
   private readonly debuggedRequestId: string;
   private readonly debuggerApiPath = 'services/debug/v41.0';
+  private readonly request: DebuggerRequest | undefined;
 
   public constructor(
     commandName: string,
     instanceUrl: string,
     accessToken: string,
     debuggedRequestId: string,
-    queryString?: string
+    queryString?: string,
+    request?: DebuggerRequest
   ) {
     this.commandName = commandName;
     this.instanceUrl = instanceUrl;
     this.accessToken = accessToken;
     this.debuggedRequestId = debuggedRequestId;
     this.queryString = queryString;
+    this.request = request;
   }
 
   public async execute(): Promise<string> {
@@ -47,7 +51,8 @@ export abstract class BaseCommand {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth ${this.accessToken}`
-      }
+      },
+      data: this.request ? JSON.stringify(this.request) : undefined
     };
 
     try {
