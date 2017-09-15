@@ -21,6 +21,7 @@ import {
   LightningFilePathExistsChecker,
   ParametersGatherer,
   SelectPrioritizedDirPath,
+  SelectStrictDirPath,
   SfdxCommandlet
 } from '../../src/commands/commands';
 import { nls } from '../../src/messages';
@@ -218,34 +219,52 @@ describe('Command Utilities', () => {
     });
   });
 
-  describe('Prioritized Glob Directories', () => {
-    it('Glob dirs returns correct number of directories and relative path', async () => {
-      const dirPathGatherer = new SelectPrioritizedDirPath();
-      if (!vscode.workspace.rootPath) {
-        throw new Error('Test workspace should be opened');
-      }
-      const dirList: string[] = dirPathGatherer.globDirs(
-        vscode.workspace.rootPath
-      );
-      expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
-      expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
+  describe('Glob Directories', () => {
+    describe('SelectPrioritizedDirPath', () => {
+      it('Should glob and return correct number of directories', async () => {
+        const dirPathGatherer = new SelectPrioritizedDirPath();
+        if (!vscode.workspace.rootPath) {
+          throw new Error('Test workspace should be opened');
+        }
+        const dirList: string[] = dirPathGatherer.globDirs(
+          vscode.workspace.rootPath
+        );
+        expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
+        expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
+      });
+
+      it('Should return list of relative paths with paths containing keyword prioritized to the top of list', async () => {
+        const dirPathGatherer = new SelectPrioritizedDirPath();
+        if (!vscode.workspace.rootPath) {
+          throw new Error('Test workspace should be opened');
+        }
+        const dirList: string[] = dirPathGatherer.globDirs(
+          vscode.workspace.rootPath,
+          'classes'
+        );
+        expect(dirList[0]).to.equal(
+          path.join('force-app', 'main', 'default', 'classes')
+        );
+        expect(dirList[1]).to.equal(
+          path.join('force-app', 'test', 'default', 'classes')
+        );
+      });
     });
 
-    it('Glob dirs moves dirs containing the keyword to the top of list and give relative path to workspace', async () => {
-      const dirPathGatherer = new SelectPrioritizedDirPath();
-      if (!vscode.workspace.rootPath) {
-        throw new Error('Test workspace should be opened');
-      }
-      const dirList: string[] = dirPathGatherer.globDirs(
-        vscode.workspace.rootPath,
-        'classes'
-      );
-      expect(dirList[0]).to.equal(
-        path.join('force-app', 'main', 'default', 'classes')
-      );
-      expect(dirList[1]).to.equal(
-        path.join('force-app', 'test', 'default', 'classes')
-      );
+    describe('SelectStrictDirPath', () => {
+      it('Should glob and return a list of dirs containing only the keyword', async () => {
+        const strictDirPathGatherer = new SelectStrictDirPath();
+        if (!vscode.workspace.rootPath) {
+          throw new Error('Test workspace should be opened');
+        }
+        const dirList: string[] = strictDirPathGatherer.globDirs(
+          vscode.workspace.rootPath,
+          'aura'
+        );
+        dirList.forEach(value => {
+          expect(value).to.contain('aura');
+        });
+      });
     });
   });
 
