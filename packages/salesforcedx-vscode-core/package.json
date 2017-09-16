@@ -181,6 +181,10 @@
         {
           "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.execute",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -256,6 +260,10 @@
       {
         "command": "sfdx.force.debugger.stop",
         "title": "%force_debugger_stop_text%"
+      },
+      {
+        "command": "sfdx.force.apex.execute",
+        "title": "%force_apex_execute_text%"
       }
     ]
   }
