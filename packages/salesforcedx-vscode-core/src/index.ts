@@ -90,7 +90,6 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.app.create',
     forceLightningAppCreate
   );
-<<<<<<< HEAD
   const forceLightningComponentCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.component.create',
     forceLightningComponentCreate
@@ -107,8 +106,6 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.debugger.stop',
     forceDebuggerStop
   );
-=======
->>>>>>> 2e147a26e743366b6838d3a7d9c4c335b99f7cf3
   const forceDataSoqlQueryCmd = vscode.commands.registerCommand(
     'sfdx.force.data.soql.query',
     forceDataSoqlQuery
