@@ -10,8 +10,8 @@ import { ForceConfigList } from '../../src/commands/forceConfigList';
 import { nls } from '../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Alias List', () => {
-  it('Should build the alias list command', async () => {
+describe('Force Config List', () => {
+  it('Should build the config list command', async () => {
     const configList = new ForceConfigList();
     const configListCommand = configList.build({});
     expect(configListCommand.toCommand()).to.equal('sfdx force:config:list');
