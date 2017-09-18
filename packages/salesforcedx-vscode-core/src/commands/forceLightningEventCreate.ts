@@ -22,8 +22,8 @@ import {
   ContinueResponse,
   DirFileNameSelection,
   LightningFilePathExistsChecker,
-  SelectDirPath,
   SelectFileName,
+  SelectPrioritizedDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -86,7 +86,7 @@ const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
 export async function forceLightningEventCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, 'aura');
+  const outputDirGatherer = new SelectPrioritizedDirPath(explorerDir, 'aura');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

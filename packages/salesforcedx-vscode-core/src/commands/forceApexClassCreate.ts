@@ -22,8 +22,8 @@ import {
   ContinueResponse,
   DirFileNameSelection,
   FilePathExistsChecker,
-  SelectDirPath,
   SelectFileName,
+  SelectPrioritizedDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -85,7 +85,10 @@ const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(APEX_FILE_EXTENSION);
 
 export async function forceApexClassCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, 'classes');
+  const outputDirGatherer = new SelectPrioritizedDirPath(
+    explorerDir,
+    'classes'
+  );
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

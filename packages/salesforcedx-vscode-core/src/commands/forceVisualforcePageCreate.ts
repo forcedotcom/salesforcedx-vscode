@@ -22,8 +22,8 @@ import {
   ContinueResponse,
   DirFileNameSelection,
   FilePathExistsChecker,
-  SelectDirPath,
   SelectFileName,
+  SelectPrioritizedDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -85,7 +85,7 @@ const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(VF_PAGE_EXTENSION);
 
 export async function forceVisualforcePageCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectDirPath(explorerDir, 'pages');
+  const outputDirGatherer = new SelectPrioritizedDirPath(explorerDir, 'pages');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);
