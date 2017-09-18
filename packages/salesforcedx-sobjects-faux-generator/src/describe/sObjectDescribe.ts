@@ -10,8 +10,6 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ChildProcess, ExecOptions, spawn } from 'child_process';
-import * as jsforce from 'jsforce';
 import { xhr, XHROptions, XHRResponse } from 'request-light';
 
 export interface SObject {
@@ -182,16 +180,17 @@ export class SObjectDescribe {
   private readonly batchPart: string = this.versionPrefix + '/composite/batch';
 
   // get the token and url by calling the org - short term, should be able to get it from the sfdx project
-  private async setupConnection(projectPath: string) {
+  private async setupConnection(projectPath: string, username?: string) {
     if (!this.accessToken) {
       let orgInfo: any;
-      const execution = new CliCommandExecutor(
-        new SfdxCommandBuilder()
-          .withArg('force:org:display')
-          .withArg('--json')
-          .build(),
-        { cwd: projectPath }
-      ).execute();
+      const builder = new SfdxCommandBuilder().withArg('force:org:display');
+      if (username) {
+        builder.args.push('--targetusername', username);
+      }
+      const command = builder.withJson().build();
+      const execution = new CliCommandExecutor(command, {
+        cwd: projectPath
+      }).execute();
       const cmdOutput = new CommandOutput();
       const result = await cmdOutput.getCmdResult(execution);
       orgInfo = JSON.parse(result).result;
@@ -241,7 +240,6 @@ export class SObjectDescribe {
     type: SObjectCategory,
     username?: string
   ): Promise<string[]> {
-    const actualcwd = process.cwd();
     const builder = new SfdxCommandBuilder()
       .withArg('force:schema:sobject:list')
       .withFlag('--sobjecttypecategory', type.toString());

@@ -5,6 +5,7 @@
 * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 */
 import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
 import * as path from 'path';
 import {
   ChildRelationship,
@@ -18,6 +19,14 @@ export class FauxClassGenerator {
   private SFDX_DIR = '.sfdx';
   private TOOLS_DIR = 'tools';
   private SOBJECTS_DIR = 'sobjects';
+
+  private createIfNeededOutputFolder(folderPath: string): boolean {
+    if (!fs.existsSync(folderPath)) {
+      mkdirp.sync(folderPath);
+      return fs.existsSync(folderPath);
+    }
+    return true;
+  }
 
   public async generate(
     projectPath: string,
@@ -78,6 +87,16 @@ export class FauxClassGenerator {
       this.SOBJECTS_DIR,
       'customObjects'
     );
+
+    if (!this.createIfNeededOutputFolder(standardSObjectFolderPath)) {
+      console.log('no sobjects output folder ' + standardSObjectFolderPath);
+      return '';
+    }
+
+    if (!this.createIfNeededOutputFolder(customSObjectFolderPath)) {
+      console.log('no sobjects output folder ' + customSObjectFolderPath);
+      return '';
+    }
 
     for (const sobject of standardSObjects) {
       await this.generateFauxClass(standardSObjectFolderPath, sobject);

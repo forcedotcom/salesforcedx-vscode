@@ -1,6 +1,5 @@
 import * as chai from 'chai';
 import * as fs from 'fs';
-import * as path from 'path';
 import { FauxClassGenerator } from '../src/generator/fauxClassGenerator';
 
 const expect = chai.expect;

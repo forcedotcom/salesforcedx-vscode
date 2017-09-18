@@ -8,23 +8,14 @@
 import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
-  CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
 import {
   ContinueResponse,
-  DirFileNameSelection,
   EmptyParametersGatherer,
-  SelectDirPath,
-  SelectFileName,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -50,10 +41,8 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const fileNameGatherer = new SelectFileName();
 
 export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
-  const projectDirGatherer = new SelectDirPath(explorerDir, 'classes');
   const parameterGatherer = new EmptyParametersGatherer();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
