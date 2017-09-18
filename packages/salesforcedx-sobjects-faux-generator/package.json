@@ -41,5 +41,18 @@
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]
+  },
+  "contributes": {
+    "configuration": {
+      "title": "Salesforce DX Gating",
+      "properties": {
+        "sfdx.refreshSObjects.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description":
+            "Enables refresh of SObject definitions from a scratch org"
+        }
+      }
+    }
   }
 }

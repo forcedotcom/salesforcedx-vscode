@@ -176,8 +176,10 @@ export class SObjectDescribe {
   private instanceUrl: string;
   // TODO should get the proper version from ??
   private readonly servicesPath: string = 'services/data';
-  private readonly sobjectsPart: string = 'v40.0/sobjects';
-  private readonly batchPart: string = 'v40.0/composite/batch';
+  private readonly targetVersion = '40.0';
+  private readonly versionPrefix = 'v' + this.targetVersion;
+  private readonly sobjectsPart: string = this.versionPrefix + '/sobjects';
+  private readonly batchPart: string = this.versionPrefix + '/composite/batch';
 
   // get the token and url by calling the org - short term, should be able to get it from the sfdx project
   private async setupConnection(projectPath: string) {

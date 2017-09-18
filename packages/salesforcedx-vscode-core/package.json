@@ -207,6 +207,10 @@
           "command": "sfdx.force.org.display.username",
           "when": "sfdx:project_opened"
         }
+        {
+          "command": "refreshsobjects",
+          "when": "config.sfdx.refreshSObjects.enabled"
+        }
       ]
     },
     "commands": [
@@ -307,8 +311,8 @@
         "title": "%force_org_display_username_text%"
       },
       {
-        "command": "sfdx.force.genfauxclasses",
-        "title": "%force_generate_faux_classes%"
+        "command": "refreshsobjects",
+        "title": "%force_refresh_sobjects%"
       }
     ]
   }
