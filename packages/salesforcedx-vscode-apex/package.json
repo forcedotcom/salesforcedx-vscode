@@ -47,7 +47,7 @@
     "clean":
       "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
+    "test": "echo $(date) && node ./node_modules/vscode/bin/test"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",

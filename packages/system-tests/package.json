@@ -41,7 +41,7 @@
       "npm run compile && node ../../scripts/download-vscode-for-system-tests",
     "test": "node out/src/main.js",
     "coverage":
-      "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
+      "echo $(date) && npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
   },
   "activationEvents": ["*"]
 }

@@ -45,7 +45,7 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
+    "test": "echo $(date) && node ./node_modules/vscode/bin/test"
   },
   "contributes": {
     "languages": [
