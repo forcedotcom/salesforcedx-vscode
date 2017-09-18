@@ -35,12 +35,12 @@ While the test runner is highly configurable, there are certain assumptions that
 will help make writing the tests easier.
 
 1. Ensure that your tests go into the `test` folder.
-1. Ensure that you have an index.ts file in the test folder that follows what is
+2. Ensure that you have an index.ts file in the test folder that follows what is
    in the standard configuration (copy from an existing one if you don't have
    it).
-1. Ensure that your test files are named like <something>.test.ts. The .test. in
+3. Ensure that your test files are named like <something>.test.ts. The .test. in
    the middle is essential
-1. Ensure that your .js test files are compiled into the out/test directory.
+4. Ensure that your .js test files are compiled into the out/test directory.
 
 ### Running interactively
 
