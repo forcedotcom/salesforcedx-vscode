@@ -17,7 +17,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceConfigList extends SfdxCommandletExecutor<{}> {
+export class ForceConfigList extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_config_list_text'))

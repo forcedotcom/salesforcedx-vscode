@@ -17,7 +17,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceAliasList extends SfdxCommandletExecutor<{}> {
+export class ForceAliasList extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_alias_list_text'))
