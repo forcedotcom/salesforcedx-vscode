@@ -27,7 +27,7 @@ describe('force:soql:query commands', () => {
   let app: SpectronApplication;
   let common: CommonActions;
   // tslint:disable-next-line:no-invalid-this
-  this.timeout(10000);
+  // this.timeout(10000);
 
   let username: string;
 
@@ -86,6 +86,7 @@ describe('force:soql:query commands', () => {
     await app.wait();
 
     // TODO Select all text in current active window
+    await app.client.keys(['Cmd', 'a'], false);
 
     // Invoke SFDX: Execute SOQL Query command by name
     await app.command('workbench.action.quickOpen');
