@@ -147,6 +147,10 @@ export class SpectronClient {
     );
   }
 
+  public getMainProcessLogs(): any {
+    return this.spectron.client.getMainProcessLogs();
+  }
+
   public clearElement(selector: string): any {
     return this.spectron.client.clearElement(selector);
   }
