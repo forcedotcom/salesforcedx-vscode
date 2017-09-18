@@ -113,8 +113,8 @@ export class ApexVariable extends Variable {
     super(value.name, ApexVariable.valueAsString(value), variableReference);
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
-    if ((<LocalValue>value).slot !== undefined) {
-      this.slot = (<LocalValue>value).slot;
+    if ((value as LocalValue).slot !== undefined) {
+      this.slot = (value as LocalValue).slot;
     } else {
       this.slot = Number.MAX_SAFE_INTEGER;
     }
@@ -1100,7 +1100,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    const type: ApexDebuggerEventType = (<any>ApexDebuggerEventType)[
+    const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[
       message.sobject.Type
     ];
     if (
