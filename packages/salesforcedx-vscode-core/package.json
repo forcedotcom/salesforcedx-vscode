@@ -184,7 +184,7 @@
         },
         {
           "command": "sfdx.force.data.soql.query.input",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !editorHasSelection"
         },
         {
           "command": "sfdx.force.data.soql.query.selection",
