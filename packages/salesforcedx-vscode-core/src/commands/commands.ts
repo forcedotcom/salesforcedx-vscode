@@ -276,7 +276,7 @@ export class SelectPrioritizedDirPath extends SelectDirPath {
 export class SelectStrictDirPath extends SelectDirPath {
   public globDirs(srcPath: string, priorityKeyword?: string): string[] {
     const globPattern = priorityKeyword
-      ? path.join(srcPath, '**/', priorityKeyword + '/**/')
+      ? path.join(srcPath, '**/', priorityKeyword + '/')
       : path.join(srcPath, '**/');
     const relativeDirs = new glob.GlobSync(globPattern).found.map(value => {
       let relativePath = path.relative(srcPath, path.join(value, '/'));
