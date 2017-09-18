@@ -181,6 +181,14 @@
         {
           "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.execute.selection",
+          "when": "sfdx:project_opened && editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.apex.execute.document",
+          "when": "sfdx:project_opened && !editorHasSelection"
         }
       ]
     },
@@ -256,6 +264,14 @@
       {
         "command": "sfdx.force.debugger.stop",
         "title": "%force_debugger_stop_text%"
+      },
+      {
+        "command": "sfdx.force.apex.execute.document",
+        "title": "%force_apex_execute_document_text%"
+      },
+      {
+        "command": "sfdx.force.apex.execute.selection",
+        "title": "%force_apex_execute_selection_text%"
       }
     ]
   }

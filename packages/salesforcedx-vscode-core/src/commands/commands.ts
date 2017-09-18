@@ -9,6 +9,7 @@ import {
   CliCommandExecutor,
   Command
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import glob = require('glob');
@@ -200,6 +201,10 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 export type DirFileNameSelection = {
   fileName: string;
   outputdir: string;
+};
+
+export type TempFile = {
+  fileName: string;
 };
 
 export class SelectFileName

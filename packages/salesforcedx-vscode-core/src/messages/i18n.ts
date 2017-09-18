@@ -73,6 +73,7 @@ export const messages = {
   force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
+  force_apex_execute_text: 'SFDX: Execute Anonymous Apex',
   warning_prompt_file_overwrite:
     'One or more files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_lightning_bundle_overwrite:

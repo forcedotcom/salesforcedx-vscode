@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 
 import {
   forceApexClassCreate,
+  forceApexExecute,
   forceApexTestRun,
   forceAuthWebLogin,
   forceDebuggerStop,
@@ -105,6 +106,16 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.debugger.stop',
     forceDebuggerStop
   );
+  const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.document',
+    forceApexExecute,
+    false
+  );
+  const forceApexExecuteSelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.selection',
+    forceApexExecute,
+    true
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -113,6 +124,8 @@ function registerCommands(): vscode.Disposable {
   );
 
   return vscode.Disposable.from(
+    forceApexExecuteDocumentCmd,
+    forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
     forceOrgCreateCmd,
