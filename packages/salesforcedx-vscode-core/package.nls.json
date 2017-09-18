@@ -25,5 +25,7 @@
   "force_source_status_remote_text":
     "SFDX: View Changes in Default Scratch Org",
   "force_debugger_stop_text": "SFDX: Stop Apex Debugger Session",
-  "force_data_soql_query_text": "SFDX: Execute SOQL Query"
+  "force_data_soql_query_input_text": "SFDX: Execute SOQL Query",
+  "force_data_soql_query_selection_text":
+    "SFDX: Execute SOQL Query with Current Selection"
 }

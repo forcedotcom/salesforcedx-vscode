@@ -80,6 +80,8 @@ export const messages = {
   warning_prompt_yes: 'Yes',
   warning_prompt_no: 'No',
 
-  force_data_soql_query_text: 'SFDX: Execute SOQL Query',
+  force_data_soql_query_input_text: 'SFDX: Execute SOQL Query',
+  force_data_soql_query_selection_text:
+    'SFDX: Execute SOQL Query from Current Selection',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query'
 };

@@ -106,8 +106,12 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.debugger.stop',
     forceDebuggerStop
   );
-  const forceDataSoqlQueryCmd = vscode.commands.registerCommand(
-    'sfdx.force.data.soql.query',
+  const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
+    'sfdx.force.data.soql.query.input',
+    forceDataSoqlQuery
+  );
+  const forceDataSoqlQuerySelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.data.soql.query.selection',
     forceDataSoqlQuery
   );
 
@@ -120,7 +124,8 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
-    forceDataSoqlQueryCmd,
+    forceDataSoqlQueryInputCmd,
+    forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,

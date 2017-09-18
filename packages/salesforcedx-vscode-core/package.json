@@ -181,6 +181,14 @@
         {
           "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.data.soql.query.input",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.data.soql.query.selection",
+          "when": "sfdx:project_opened && editorHasSelection"
         }
       ]
     },
@@ -258,8 +266,12 @@
         "title": "%force_debugger_stop_text%"
       },
       {
-        "command": "sfdx.force.data.soql.query",
-        "title": "%force_data_soql_query_text%"
+        "command": "sfdx.force.data.soql.query.input",
+        "title": "%force_data_soql_query_input_text%"
+      },
+      {
+        "command": "sfdx.force.data.soql.query.selection",
+        "title": "%force_data_soql_query_selection_text%"
       }
     ]
   }
