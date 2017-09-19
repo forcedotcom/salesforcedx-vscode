@@ -51,6 +51,11 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.source.push',
     forceSourcePush
   );
+  const forceSourcePushForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.push.force',
+    forceSourcePush,
+    { flag: '--forceoverwrite' }
+  );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
     forceSourceStatus
@@ -119,6 +124,7 @@ function registerCommands(): vscode.Disposable {
     forceOrgOpenCmd,
     forceSourcePullCmd,
     forceSourcePushCmd,
+    forceSourcePushForceCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
