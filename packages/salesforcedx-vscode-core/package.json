@@ -185,6 +185,14 @@
         {
           "command": "sfdx.force.config.list",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.data.soql.query.input",
+          "when": "sfdx:project_opened && !editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.data.soql.query.selection",
+          "when": "sfdx:project_opened && editorHasSelection"
         }
       ]
     },
@@ -272,6 +280,14 @@
       {
         "command": "sfdx.force.org.display.default",
         "title": "%force_org_display_default_text%"
+      },
+      {
+        "command": "sfdx.force.data.soql.query.input",
+        "title": "%force_data_soql_query_input_text%"
+      },
+      {
+        "command": "sfdx.force.data.soql.query.selection",
+        "title": "%force_data_soql_query_selection_text%"
       }
     ]
   }
