@@ -70,6 +70,16 @@ export class CommonActions {
     );
   }
 
+  public async getMessageNotification(): Promise<any> {
+    const notification = `span[class="message-left-side"]`;
+    const el = await this.spectron.client.element(notification);
+    if (el.status === 0) {
+      const text = this.spectron.client.getText(notification);
+      return text;
+    }
+    return undefined;
+  }
+
   public async openFirstMatchFile(fileName: string): Promise<any> {
     await this.openQuickOpen();
     await this.type(fileName);
