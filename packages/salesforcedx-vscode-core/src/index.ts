@@ -13,6 +13,7 @@ import {
   forceApexTestRun,
   forceAuthWebLogin,
   forceConfigList,
+  forceDataSoqlQuery,
   forceDebuggerStop,
   forceLightningAppCreate,
   forceLightningComponentCreate,
@@ -125,6 +126,14 @@ function registerCommands(): vscode.Disposable {
     forceOrgDisplay,
     { flag: '--targetusername' }
   );
+  const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
+    'sfdx.force.data.soql.query.input',
+    forceDataSoqlQuery
+  );
+  const forceDataSoqlQuerySelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.data.soql.query.selection',
+    forceDataSoqlQuery
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -135,6 +144,8 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
+    forceDataSoqlQueryInputCmd,
+    forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,
