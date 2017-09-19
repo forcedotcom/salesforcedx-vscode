@@ -43,6 +43,7 @@ import {
   StepIntoCommand,
   StepOutCommand,
   StepOverCommand,
+  Tuple,
   Value
 } from '../commands';
 import {
@@ -120,7 +121,7 @@ export class ApexVariable extends Variable {
     }
   }
 
-  private static valueAsString(value: Value): string {
+  public static valueAsString(value: Value): string {
     if (!value.value || value.value == null) {
       return 'null'; // We want to explicitly display null for null values.
     }
@@ -249,8 +250,8 @@ export class ScopeContainer implements VariableContainer {
 }
 
 export class ObjectReferenceContainer implements VariableContainer {
-  private reference: Reference;
-  private requestId: string;
+  protected reference: Reference;
+  protected requestId: string;
 
   public constructor(reference: Reference, requestId: string) {
     this.reference = reference;
@@ -283,6 +284,144 @@ export class ObjectReferenceContainer implements VariableContainer {
     );
   }
 }
+
+export class CollectionReferenceContainer extends ObjectReferenceContainer {
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    if (!this.reference.value) {
+      // this object is empty
+      return [];
+    }
+
+    return Promise.all(
+      this.reference.value.map(async value => {
+        const variableReference = await session.resolveApexIdToVariableReference(
+          this.requestId,
+          value.ref
+        );
+        return new ApexVariable(
+          value,
+          ApexVariableKind.Collection,
+          variableReference
+        );
+      })
+    );
+  }
+}
+
+export class MapReferenceContainer extends ObjectReferenceContainer {
+  private readonly tupleContainers: Map<number, MapTupleContainer> = new Map();
+
+  public addTupleContainer(
+    reference: number,
+    tupleContainer: MapTupleContainer
+  ): void {
+    this.tupleContainers.set(reference, tupleContainer);
+  }
+
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    const result: ApexVariable[] = [];
+    this.tupleContainers.forEach((container, reference) => {
+      result.push(
+        new ApexVariable(
+          {
+            name: container.keyAsString(),
+            declaredTypeRef: '',
+            nameForMessages: container.keyAsString(),
+            value: container.valueAsString()
+          },
+          ApexVariableKind.Collection,
+          reference
+        )
+      );
+    });
+
+    return result;
+  }
+}
+
+export class MapTupleContainer implements VariableContainer {
+  private tuple: Tuple;
+  private requestId: string;
+
+  public constructor(tuple: Tuple, requestId: string) {
+    this.tuple = tuple;
+    this.requestId = requestId;
+  }
+
+  public keyAsString(): string {
+    return ApexVariable.valueAsString(this.tuple.key);
+  }
+
+  public valueAsString(): string {
+    return ApexVariable.valueAsString(this.tuple.value);
+  }
+
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    if (!this.tuple.key && !this.tuple.value) {
+      // this object is empty
+      return [];
+    }
+
+    const idsToFetch = [];
+    if (this.tuple.key && this.tuple.key.ref) {
+      idsToFetch.push(this.tuple.key.ref);
+    }
+    if (this.tuple.value && this.tuple.value.ref) {
+      idsToFetch.push(this.tuple.value.ref);
+    }
+    await session.fetchReferencesIfNecessary(this.requestId, idsToFetch);
+
+    const variables = [];
+    if (this.tuple.key) {
+      const keyVariableReference = this.tuple.key.ref
+        ? await session.resolveApexIdToVariableReference(
+            this.requestId,
+            this.tuple.key.ref
+          )
+        : undefined;
+      variables.push(
+        new ApexVariable(
+          this.tuple.key,
+          ApexVariableKind.Collection,
+          keyVariableReference
+        )
+      );
+    }
+    if (this.tuple.value) {
+      const valueVariableReference = this.tuple.value.ref
+        ? await session.resolveApexIdToVariableReference(
+            this.requestId,
+            this.tuple.value.ref
+          )
+        : undefined;
+      variables.push(
+        new ApexVariable(
+          this.tuple.value,
+          ApexVariableKind.Collection,
+          valueVariableReference
+        )
+      );
+    }
+
+    return variables;
+  }
+}
+
 export class ApexDebug extends LoggingDebugSession {
   protected mySessionService = SessionService.getInstance();
   protected myBreakpointService = BreakpointService.getInstance();
@@ -899,6 +1038,29 @@ export class ApexDebug extends LoggingDebugSession {
           'va',
           `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
         );
+      } else if (reference.type === 'list' || reference.type === 'set') {
+        variableReference = this.variableHandles.create(
+          new CollectionReferenceContainer(reference, requestId)
+        );
+        this.log(
+          'va',
+          `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+        );
+      } else if (reference.type === 'map') {
+        const mapContainer = new MapReferenceContainer(reference, requestId);
+        // explode all map entried so that we can drill down a map logically
+        if (reference.tuple) {
+          reference.tuple.forEach(tuple => {
+            const tupleContainer = new MapTupleContainer(tuple, requestId);
+            const tupleReference = this.variableHandles.create(tupleContainer);
+            mapContainer.addTupleContainer(tupleReference, tupleContainer);
+          });
+        }
+        variableReference = this.variableHandles.create(mapContainer);
+        this.log(
+          'va',
+          `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+        );
       } else {
         const referenceInfo = JSON.stringify(reference);
         this.log(
@@ -945,17 +1107,17 @@ export class ApexDebug extends LoggingDebugSession {
 
   public async fetchReferences(
     requestId: string,
-    apexId: number
+    ...apexIds: number[]
   ): Promise<void> {
     this.log(
       'va',
-      `fetchReferences: fetching reference with apexId=${apexId} (request ${requestId})`
+      `fetchReferences: fetching references with apexIds=${apexIds} (request ${requestId})`
     );
     const referencesResponse = await new ReferencesCommand(
       this.orgInfo.instanceUrl,
       this.orgInfo.accessToken,
       requestId,
-      apexId
+      ...apexIds
     ).execute();
     const referencesResponseObj: DebuggerResponse = JSON.parse(
       referencesResponse
@@ -971,6 +1133,23 @@ export class ApexDebug extends LoggingDebugSession {
         requestId
       );
     }
+  }
+
+  public async fetchReferencesIfNecessary(
+    requestId: string,
+    apexIds: number[]
+  ): Promise<void> {
+    const apexIdsToFetch = apexIds.filter(
+      apexId => !this.variableContainerReferenceByApexId.has(apexId)
+    );
+    if (apexIdsToFetch.length === 0) {
+      return;
+    }
+    this.log(
+      'va',
+      `fetchReferences: fetching references with apexIds=${apexIdsToFetch} (request ${requestId})`
+    );
+    await this.fetchReferences(requestId, ...apexIdsToFetch);
   }
 
   protected printToDebugConsole(
