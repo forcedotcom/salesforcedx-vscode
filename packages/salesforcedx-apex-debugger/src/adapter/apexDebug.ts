@@ -1410,6 +1410,14 @@ export class ApexDebug extends LoggingDebugSession {
       this.logEvent(message);
       this.requestThreads.delete(threadId);
       this.sendEvent(new ThreadEvent('exited', threadId));
+
+      // cleanup everything that's no longer necessary after all request finished
+      if (this.requestThreads.size === 0) {
+        this.log('va', 'handleRequestFinished: clearing variable cache');
+        this.stackFrameInfos.reset();
+        this.variableHandles.reset();
+        this.variableContainerReferenceByApexId.clear();
+      }
     }
   }
 
@@ -1450,11 +1458,14 @@ export class ApexDebug extends LoggingDebugSession {
       `handleStopped: got ${reason} event from server for thread ${threadId}`
     );
     if (threadId !== undefined) {
-      // cleanup everything that's not longer valid after a stop event
-      this.log('va', 'handleStopped: clearing variable cache');
-      this.stackFrameInfos.reset();
-      this.variableHandles.reset();
-      this.variableContainerReferenceByApexId.clear();
+      // cleanup everything that's no longer valid after a stop event
+      // but only if only one request is currently debugged (we wan't to preserve the info for a second request)
+      if (this.requestThreads.size === 1) {
+        this.log('va', 'handleStopped: clearing variable cache');
+        this.stackFrameInfos.reset();
+        this.variableHandles.reset();
+        this.variableContainerReferenceByApexId.clear();
+      }
 
       // log to console and notify client
       this.logEvent(message);
