@@ -19,4 +19,14 @@ describe('Force Source Status', () => {
       nls.localize('force_org_display_default_text')
     );
   });
+  it('Should build the source command with targetusername flag', async () => {
+    const forceOrgDisplay = new ForceOrgDisplay('--targetusername');
+    const displayCommand = forceOrgDisplay.build({ username: 'test' });
+    expect(displayCommand.toCommand()).to.equal(
+      'sfdx force:org:display --targetusername test'
+    );
+    expect(displayCommand.description).to.equal(
+      nls.localize('force_org_display_username_text')
+    );
+  });
 });
