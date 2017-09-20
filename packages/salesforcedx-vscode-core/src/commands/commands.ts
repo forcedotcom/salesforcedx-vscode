@@ -287,6 +287,25 @@ export class SelectStrictDirPath extends SelectDirPath {
   }
 }
 
+export interface FlagParameter<T> {
+  flag: T;
+}
+
+export class SelectUsername
+  implements ParametersGatherer<{ username: string }> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ username: string }>
+  > {
+    const usernameInputOptions = <vscode.InputBoxOptions>{
+      prompt: nls.localize('parameter_gatherer_enter_username_name')
+    };
+    const username = await vscode.window.showInputBox(usernameInputOptions);
+    return username
+      ? { type: 'CONTINUE', data: { username } }
+      : { type: 'CANCEL' };
+  }
+}
+
 // Command Execution
 ////////////////////
 export interface CommandletExecutor<T> {

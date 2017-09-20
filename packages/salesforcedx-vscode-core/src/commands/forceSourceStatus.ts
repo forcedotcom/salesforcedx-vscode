@@ -12,6 +12,7 @@ import {
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
+  FlagParameter,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -48,11 +49,7 @@ export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export interface FlagParameter {
-  flag: SourceStatusFlags;
-}
-
-export function forceSourceStatus(this: FlagParameter) {
+export function forceSourceStatus(this: FlagParameter<SourceStatusFlags>) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
   const executor = new ForceSourceStatusExecutor(flag);
