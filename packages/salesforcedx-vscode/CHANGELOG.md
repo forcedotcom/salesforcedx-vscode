@@ -3,11 +3,11 @@
 ### Added
 #### salesforcedx-vscode-apex
 
-* Go To Definition feature for Apex fields, properties, methods, and constructors across Apex files. ([PR #114](https://github.com/forcedotcom/salesforcedx-vscode/pull/114))
+* Go To Definition feature for Apex methods, properties, constructors, and class variables across Apex files. ([PR #114](https://github.com/forcedotcom/salesforcedx-vscode/pull/114))
 
 #### salesforcedx-vscode-lightning
 
-* Salesforce Lightning Design System (SLDS) linter for deprecate CSS class names. ([PR #101](https://github.com/forcedotcom/salesforcedx-vscode/pull/101))
+* Salesforce Lightning Design System (SLDS) linter for deprecated CSS class names. ([PR #101](https://github.com/forcedotcom/salesforcedx-vscode/pull/101))
 
 ### Fixed
 #### salesforcedx-vscode-core
