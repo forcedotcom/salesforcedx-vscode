@@ -44,7 +44,7 @@ before_install:
       wget -qO- $SFDX_URL_LINUX | tar xJf -
       "./sfdx/install"
       export PATH=./sfdx/$(pwd):$PATH
-      sfdx update
+      echo $(date) && sfdx update
       export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
     fi
   - |
@@ -55,7 +55,7 @@ before_install:
       echo Installing SFDX CLI macOS
       wget -q $SFDX_URL_OSX
       sudo installer -pkg sfdx-osx.pkg -target /
-      sfdx update
+      echo $(date) && sfdx update
       export SFDX_CI_KEY_LOCATION=/Users/travis/devhub.key
     fi
   - |
@@ -65,12 +65,12 @@ before_install:
     curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
 install:
-  - npm install
-  - npm install -g codecov 
+  - echo $(date) && npm install
+  - echo $(date) && npm install -g codecov 
 
 script:
-  - npm run compile
-  - npm run lint
+  - echo $(date) && npm run compile
+  - echo $(date) && npm run lint
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
       npm run test:without-system-tests
@@ -82,7 +82,7 @@ script:
       # https://github.com/travis-ci/travis-ci/issues/6095
       npm run test:without-system-tests
     fi
-  - codecov
+  - echo $(date) && codecov
 
 after_script:
   - rm $SFDX_CI_KEY_LOCATION

@@ -36,7 +36,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
+    "test": "echo $(date) && node ./node_modules/vscode/bin/test"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]
