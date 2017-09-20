@@ -50,6 +50,11 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.source.pull',
     forceSourcePull
   );
+  const forceSourcePullForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.pull.force',
+    forceSourcePull,
+    { flag: '--forceoverwrite' }
+  );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
     forceSourcePush
@@ -133,6 +138,7 @@ function registerCommands(): vscode.Disposable {
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,
+    forceSourcePullForceCmd,
     forceSourcePushCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,

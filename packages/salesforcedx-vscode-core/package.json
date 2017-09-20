@@ -127,6 +127,10 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.source.pull.force",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.source.push",
           "when": "sfdx:project_opened"
         },
@@ -204,6 +208,10 @@
       {
         "command": "sfdx.force.source.pull",
         "title": "%force_source_pull_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.pull.force",
+        "title": "%force_source_pull_force_default_scratch_org_text%"
       },
       {
         "command": "sfdx.force.source.push",

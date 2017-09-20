@@ -55,6 +55,8 @@ export const messages = {
 
   force_source_pull_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org',
+  force_source_pull_force_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
 
   force_source_push_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org',
