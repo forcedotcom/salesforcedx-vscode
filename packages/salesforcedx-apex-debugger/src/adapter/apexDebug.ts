@@ -886,13 +886,12 @@ export class ApexDebug extends LoggingDebugSession {
   ): Promise<void> {
     const frameInfo = this.stackFrameInfos.get(args.frameId);
     if (!frameInfo) {
-      this.sendErrorResponse(
-        response,
-        2020,
-        'stack frame not valid',
-        null,
-        ErrorDestination.Telemetry
+      this.log(
+        'va',
+        `scopesRequest: no frame info found for stack frame ${args.frameId}`
       );
+      response.body = { scopes: [] };
+      this.sendResponse(response);
       return;
     }
 
@@ -920,8 +919,6 @@ export class ApexDebug extends LoggingDebugSession {
     );
 
     response.body = { scopes: scopes };
-    response.success = true;
-
     this.sendResponse(response);
   }
 
