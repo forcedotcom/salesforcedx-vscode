@@ -20,8 +20,7 @@ To preview a definition, hold down Cmd (macOS) or Ctrl (Windows or Linux) and ho
 
 To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
 
-To jump to the location of a definition, right-click the item and select **Go to Definition**, or press Alt+F12.  
-
+To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.  
 ![Previewing, viewing, and jumping to a definition](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_go_to_definition.gif)
 
 ## Check Syntax Errors in Your Code
