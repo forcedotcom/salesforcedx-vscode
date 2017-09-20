@@ -85,6 +85,5 @@ export const messages = {
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text:
-    'SFDX: Display Org Details for Default Scratch Org',
-  force_org_display_username_text: 'SFDX: Display Org Details...'
+    'SFDX: Display Org Details for Default Scratch Org'
 };
