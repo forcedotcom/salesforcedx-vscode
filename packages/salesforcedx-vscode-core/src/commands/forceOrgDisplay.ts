@@ -13,6 +13,7 @@ import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
   FlagParameter,
+  SelectUsername,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
