@@ -185,6 +185,10 @@
         {
           "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.config.list",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -264,6 +268,18 @@
       {
         "command": "sfdx.force.debugger.stop",
         "title": "%force_debugger_stop_text%"
+      },
+      {
+        "command": "sfdx.force.config.list",
+        "title": "%force_config_list_text%"
+      },
+      {
+        "command": "sfdx.force.alias.list",
+        "title": "%force_alias_list_text%"
+      },
+      {
+        "command": "sfdx.force.org.display.default",
+        "title": "%force_org_display_default_text%"
       }
     ]
   }
