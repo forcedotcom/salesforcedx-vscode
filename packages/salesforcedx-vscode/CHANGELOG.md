@@ -1,3 +1,20 @@
+## 40.11.0 - September 21, 2017
+
+### Added
+#### salesforcedx-vscode-apex
+
+* Go To Definition feature for Apex methods, properties, constructors, and class variables across Apex files. ([PR #114](https://github.com/forcedotcom/salesforcedx-vscode/pull/114))
+
+#### salesforcedx-vscode-lightning
+
+* Salesforce Lightning Design System (SLDS) linter for deprecated CSS class names. ([PR #101](https://github.com/forcedotcom/salesforcedx-vscode/pull/101))
+
+### Fixed
+#### salesforcedx-vscode-core
+
+* Wizards warn about overwriting an existing file. ([PR #106](https://github.com/forcedotcom/salesforcedx-vscode/pull/106))
+* Suggest only 'aura' subdirectories for Lightning wizard commands. ([PR #113](https://github.com/forcedotcom/salesforcedx-vscode/pull/113))
+
 ## 40.10.0 - September 14, 2017
 
 ### Added
