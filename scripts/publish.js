@@ -10,6 +10,7 @@ shell.set('+v');
  * 1. The script is running locally - it's not optimized for Travis workflow
  *    yet.
  * 2. The script is running in the right branch (e.g., release/vxx.y.z)
+ * 3. You have set the next version SALESFORCEDX_VSCODE_VERSION as an environment variable
  */
 
 // Checks that you are running this with Node v7.9.0 and above
@@ -46,6 +47,28 @@ if (!publishers.includes('salesforce')) {
   exit(-1);
 }
 
+// Checks that you have specified the next version as an environment variable, and that it's properly formatted.
+const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
+if (!nextVersion) {
+  console.log(
+    'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
+  );
+  exit(-1);
+} else {
+  const [version, major, minor, patch] = nextVersion.match(
+    /^(\d+)\.(\d+)\.(\d+)$/
+  );
+}
+
+// Checks that a tag of the next version doesn't already exist
+const checkTags = shell.exec('git tag', { silent: true }).stdout;
+if (checkTags.includes(nextVersion)) {
+  console.log(
+    `A git tag already exists. Try running \'git tag -d v${nextVersion}\'`
+  );
+  exit(-1);
+}
+
 // Real-clean
 shell.exec('git clean -xfd');
 
@@ -58,16 +81,9 @@ shell.exec('npm run compile');
 // lerna publish
 // --skip-npm to increment the version number in all packages but not publish to npmjs
 // This will still make a commit in Git with the tag of the version used
-const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-if (nextVersion) {
-  shell.exec(
-    `lerna publish --force-publish --exact --repo-version ${nextVersion} --yes --skip-npm`
-  );
-} else {
-  shell.exec(
-    'lerna publish --force-publish --exact --cd-version minor --yes --skip-npm'
-  );
-}
+shell.exec(
+  `lerna publish --force-publish --exact --repo-version ${nextVersion} --yes --skip-npm`
+);
 
 // Reformat with prettier since lerna changes the formatting in package.json
 shell.exec('./scripts/reformat-with-prettier.js');
