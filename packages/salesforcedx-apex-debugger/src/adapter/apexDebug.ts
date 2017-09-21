@@ -8,7 +8,6 @@
 import { basename } from 'path';
 import {
   DebugSession,
-  ErrorDestination,
   Event,
   Handles,
   InitializedEvent,

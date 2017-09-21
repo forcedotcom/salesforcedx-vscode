@@ -6,47 +6,8 @@
  */
 
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-import {
-  OutputEvent,
-  Source,
-  StackFrame,
-  StoppedEvent,
-  ThreadEvent
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
-import {
-  ApexDebugStackFrameInfo,
-  ApexVariable,
-  ApexVariableKind
-} from '../../../src/adapter/apexDebug';
-import {
-  LineBreakpointInfo,
-  LineBreakpointsInTyperef
-} from '../../../src/breakpoints/lineBreakpoint';
-import { Value, LocalValue } from '../../../src/commands';
-import {
-  GET_LINE_BREAKPOINT_INFO_EVENT,
-  HOTSWAP_REQUEST,
-  LINE_BREAKPOINT_INFO_REQUEST,
-  SHOW_MESSAGE_EVENT
-} from '../../../src/constants';
-import {
-  ApexDebuggerEventType,
-  BreakpointService,
-  DebuggerMessage,
-  SessionService,
-  StreamingClientInfo,
-  StreamingEvent,
-  StreamingService
-} from '../../../src/core';
-import {
-  VscodeDebuggerMessage,
-  VscodeDebuggerMessageType
-} from '../../../src/index';
-import { nls } from '../../../src/messages';
-import { ApexDebugForTest } from './apexDebugForTest';
-import os = require('os');
+import { ApexVariable, ApexVariableKind } from '../../../src/adapter/apexDebug';
+import { LocalValue, Value } from '../../../src/commands';
 
 describe('Debugger adapter variable handling - unit', () => {
   describe('ApexVariable', () => {
@@ -85,6 +46,12 @@ describe('Debugger adapter variable handling - unit', () => {
       };
       variable = new ApexVariable(localvalue, ApexVariableKind.Local, 20);
       expect(variable['slot']).to.equal(localvalue.slot);
+    });
+
+    it('Should correctly print null as "null"', async () => {
+      value.value = undefined;
+      variable = new ApexVariable(value, ApexVariableKind.Local, 20);
+      expect(variable.value).to.equal('null');
     });
   });
 });
