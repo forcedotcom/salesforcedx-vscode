@@ -11,5 +11,5 @@
     "A new configuration for launching Apex Debugger",
   "launch_snippet_name": "Launch Apex Debugger",
   "trace_text":
-    "Produce diagnostic output. Instead of setting this to true you can list one or more selectors separated with commas. The 'all' selector enables very detailed output."
+    "Produce diagnostic output. Instead of setting this to true you can list one or more selectors separated with commas. The 'all' selector enables very detailed output. Other selectors are 'protocol', 'variables', 'launch'"
 }

@@ -65,13 +65,16 @@ import { VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../index';
 import { nls } from '../messages';
 import os = require('os');
 
+const TRACE_ALL = 'all';
+const TRACE_CATEGORY_VARIABLES = 'variables';
+const TRACE_CATEGORY_LAUNCH = 'launch';
+const TRACE_CATEGORY_PROTOCOL = 'protocol';
+
+export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol';
+
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
-  /** comma separated list of trace selectors. Supported:
-	  * 'all': all
-	  * 'la': launch/attach
-	  * 'vh': variable handling
-	  * 'dap': debug adapter protocol
+  /** comma separated list of trace selectors (see TraceCategory)
 	  */
   trace?: boolean | string;
   userIdFilter?: string;
@@ -471,14 +474,14 @@ export class ApexDebug extends LoggingDebugSession {
     args: LaunchRequestArguments
   ): Promise<void> {
     if (typeof args.trace === 'boolean') {
-      this.trace = args.trace ? ['all'] : undefined;
+      this.trace = args.trace ? [TRACE_ALL] : undefined;
       this.traceAll = args.trace;
     } else if (typeof args.trace === 'string') {
       this.trace = args.trace.split(',');
-      this.traceAll = this.trace.indexOf('all') >= 0;
+      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
     }
-    if (this.trace && this.trace.indexOf('dap') >= 0) {
-      // only log debug adapter protocol if 'dap' tracing flag is set, ignore traceAll here
+    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+      // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
       logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/ false);
     } else {
       logger.setup(Logger.LogLevel.Stop, false);
@@ -752,7 +755,7 @@ export class ApexDebug extends LoggingDebugSession {
           if (i === 0 && stateRespObj.stateResponse.state) {
             // populate first stack frame with info from state response (saves a server round trip)
             this.log(
-              'va',
+              TRACE_CATEGORY_VARIABLES,
               'stackTraceRequest: state=' +
                 JSON.stringify(stateRespObj.stateResponse.state)
             );
@@ -887,7 +890,7 @@ export class ApexDebug extends LoggingDebugSession {
     const frameInfo = this.stackFrameInfos.get(args.frameId);
     if (!frameInfo) {
       this.log(
-        'va',
+        TRACE_CATEGORY_VARIABLES,
         `scopesRequest: no frame info found for stack frame ${args.frameId}`
       );
       response.body = { scopes: [] };
@@ -931,7 +934,7 @@ export class ApexDebug extends LoggingDebugSession {
     );
     if (!variablesContainer) {
       this.log(
-        'va',
+        TRACE_CATEGORY_VARIABLES,
         `variablesRequest: no container for variablesReference=${args.variablesReference}`
       );
       // no container found: return empty variables array
@@ -953,7 +956,7 @@ export class ApexDebug extends LoggingDebugSession {
       })
       .catch(err => {
         this.log(
-          'va',
+          TRACE_CATEGORY_VARIABLES,
           `variablesRequest: error reading variables ${err} ${err.stack}`
         );
         // in case of error return empty variables array
@@ -978,7 +981,7 @@ export class ApexDebug extends LoggingDebugSession {
       frameRespObj.frameResponse.frame
     ) {
       this.log(
-        'va',
+        TRACE_CATEGORY_VARIABLES,
         `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` +
           JSON.stringify(frameRespObj.frameResponse.frame)
       );
@@ -1032,7 +1035,7 @@ export class ApexDebug extends LoggingDebugSession {
           new ObjectReferenceContainer(reference, requestId)
         );
         this.log(
-          'va',
+          TRACE_CATEGORY_VARIABLES,
           `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
         );
       } else if (reference.type === 'list' || reference.type === 'set') {
@@ -1040,7 +1043,7 @@ export class ApexDebug extends LoggingDebugSession {
           new CollectionReferenceContainer(reference, requestId)
         );
         this.log(
-          'va',
+          TRACE_CATEGORY_VARIABLES,
           `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
         );
       } else if (reference.type === 'map') {
@@ -1055,13 +1058,13 @@ export class ApexDebug extends LoggingDebugSession {
         }
         variableReference = this.variableHandles.create(mapContainer);
         this.log(
-          'va',
+          TRACE_CATEGORY_VARIABLES,
           `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
         );
       } else {
         const referenceInfo = JSON.stringify(reference);
         this.log(
-          'va',
+          TRACE_CATEGORY_VARIABLES,
           `populateReferences: unhandled reference: ${referenceInfo}`
         );
         return;
@@ -1086,7 +1089,7 @@ export class ApexDebug extends LoggingDebugSession {
       await this.fetchReferences(requestId, apexId);
       if (!this.variableContainerReferenceByApexId.has(apexId)) {
         this.log(
-          'va',
+          TRACE_CATEGORY_VARIABLES,
           `resolveApexIdToVariableReference: no reference found for apexId ${apexId} (request ${requestId})`
         );
         return;
@@ -1096,7 +1099,7 @@ export class ApexDebug extends LoggingDebugSession {
       apexId
     );
     this.log(
-      'va',
+      TRACE_CATEGORY_VARIABLES,
       `resolveApexIdToVariableReference: resolved apexId=${apexId} to variableReference=${variableReference}`
     );
     return variableReference;
@@ -1107,7 +1110,7 @@ export class ApexDebug extends LoggingDebugSession {
     ...apexIds: number[]
   ): Promise<void> {
     this.log(
-      'va',
+      TRACE_CATEGORY_VARIABLES,
       `fetchReferences: fetching references with apexIds=${apexIds} (request ${requestId})`
     );
     const referencesResponse = await new ReferencesCommand(
@@ -1143,7 +1146,7 @@ export class ApexDebug extends LoggingDebugSession {
       return;
     }
     this.log(
-      'va',
+      TRACE_CATEGORY_VARIABLES,
       `fetchReferences: fetching references with apexIds=${apexIdsToFetch} (request ${requestId})`
     );
     await this.fetchReferences(requestId, ...apexIdsToFetch);
@@ -1180,7 +1183,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public log(traceCategory: string, message: string) {
+  public log(traceCategory: TraceCategory, message: string) {
     if (
       this.trace &&
       (this.traceAll || this.trace.indexOf(traceCategory) >= 0)
@@ -1413,7 +1416,10 @@ export class ApexDebug extends LoggingDebugSession {
 
       // cleanup everything that's no longer necessary after all request finished
       if (this.requestThreads.size === 0) {
-        this.log('va', 'handleRequestFinished: clearing variable cache');
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          'handleRequestFinished: clearing variable cache'
+        );
         this.stackFrameInfos.reset();
         this.variableHandles.reset();
         this.variableContainerReferenceByApexId.clear();
@@ -1454,14 +1460,17 @@ export class ApexDebug extends LoggingDebugSession {
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
 
     this.log(
-      'la',
+      TRACE_CATEGORY_LAUNCH,
       `handleStopped: got ${reason} event from server for thread ${threadId}`
     );
     if (threadId !== undefined) {
       // cleanup everything that's no longer valid after a stop event
       // but only if only one request is currently debugged (we wan't to preserve the info for a second request)
       if (this.requestThreads.size === 1) {
-        this.log('va', 'handleStopped: clearing variable cache');
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          'handleStopped: clearing variable cache'
+        );
         this.stackFrameInfos.reset();
         this.variableHandles.reset();
         this.variableContainerReferenceByApexId.clear();
