@@ -12,6 +12,7 @@ import {
   forceApexClassCreate,
   forceApexTestRun,
   forceAuthWebLogin,
+  forceConfigList,
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceLightningAppCreate,
