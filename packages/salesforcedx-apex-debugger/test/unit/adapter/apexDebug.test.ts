@@ -310,7 +310,7 @@ describe('Debugger adapter - unit', () => {
       await adapter.launchReq(response, args);
 
       // when
-      adapter.log('whatever', 'message');
+      adapter.log('variables', 'message');
 
       // then
       expect(apexDebugSessionSpy.calledOnce).to.equal(true);
@@ -339,7 +339,7 @@ describe('Debugger adapter - unit', () => {
       await adapter.launchReq(response, args);
 
       // when
-      adapter.log('whatever', 'message');
+      adapter.log('variables', 'message');
 
       // then
       expect(apexDebugSessionSpy.calledOnce).to.equal(false);
@@ -365,13 +365,13 @@ describe('Debugger adapter - unit', () => {
         .returns(true);
 
       // given
-      args.trace = 'category1, category2';
+      args.trace = 'variables, launch';
       await adapter.launchReq(response, args);
 
       // when
-      adapter.log('category1', 'message');
-      adapter.log('category2', 'message');
-      adapter.log('whatever', 'message');
+      adapter.log('variables', 'message');
+      adapter.log('launch', 'message');
+      adapter.log('protocol', 'message');
 
       // then
       expect(apexDebugSessionSpy.calledTwice).to.equal(true);
@@ -401,9 +401,9 @@ describe('Debugger adapter - unit', () => {
       await adapter.launchReq(response, args);
 
       // when
-      adapter.log('category1', 'message');
-      adapter.log('category2', 'message');
-      adapter.log('whatever', 'message');
+      adapter.log('variables', 'message');
+      adapter.log('launch', 'message');
+      adapter.log('protocol', 'message');
 
       // then
       expect(apexDebugSessionSpy.calledThrice).to.equal(true);
