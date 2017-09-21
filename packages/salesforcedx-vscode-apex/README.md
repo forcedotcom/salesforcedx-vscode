@@ -13,6 +13,16 @@ Currently, Visual Studio Code extensions are not signed or verified on the Micro
 To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.  
 ![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
 
+## View or Jump to Definitions
+You can preview, view, or go to definitions of Apex methods, properties, constructors, and local and class variables.  
+
+To preview a definition, hold down Cmd (macOS) or Ctrl (Windows or Linux) and hover over the item whose definition you want to see.  
+
+To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
+
+To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.  
+![Previewing, viewing, and jumping to a definition](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_go_to_definition.gif)
+
 ## Check Syntax Errors in Your Code
 If you leave out a `;`, `}`, or `)`, the syntax error is marked with a red squiggly line in the editor.  
 

@@ -95,8 +95,11 @@ shell.exec(`git add SHA256.md`);
 // Git commit
 shell.exec(`git commit -m "Updated SHA256"`);
 
+// Add formatting changes
+shell.exec(`git add .`);
+
+// Commit back changes after reformatting
+shell.exec(`git commit -m "Reformat for lerna"`);
+
 // Publish to VS Code Marketplace
 shell.exec(`npm run vscode:publish`);
-
-// Push back to GitHub
-// shell.exec(`git push`);
