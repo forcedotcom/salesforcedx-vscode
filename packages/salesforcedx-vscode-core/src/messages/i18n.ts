@@ -85,5 +85,10 @@ export const messages = {
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text:
-    'SFDX: Display Org Details for Default Scratch Org'
+    'SFDX: Display Org Details for Default Scratch Org',
+
+  force_data_soql_query_input_text: 'SFDX: Execute SOQL Query',
+  force_data_soql_query_selection_text:
+    'SFDX: Execute SOQL Query with Current Selection',
+  parameter_gatherer_enter_soql_query: 'Enter the SOQL query'
 };
