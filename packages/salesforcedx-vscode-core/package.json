@@ -196,6 +196,7 @@
           "when": "sfdx:project_opened"
         },
         {
+
           "command": "sfdx.force.alias.list",
           "when": "sfdx:project_opened"
         },
@@ -206,7 +207,7 @@
         {
           "command": "sfdx.force.org.display.username",
           "when": "sfdx:project_opened"
-        }
+        },
         {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "config.sfdx.refreshSObjects.enabled"
