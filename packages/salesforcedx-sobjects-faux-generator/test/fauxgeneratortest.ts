@@ -5,6 +5,19 @@ import { FauxClassGenerator } from '../src/generator/fauxClassGenerator';
 const expect = chai.expect;
 
 describe('generate fields set', function() {
+  let classPath = '';
+
+  afterEach(() => {
+    if (classPath) {
+      try {
+        fs.unlinkSync(classPath);
+      } catch (e) {
+        console.log(e);
+      }
+      classPath = '';
+    }
+  });
+
   it('generated faux class should contain the proper fields', function() {
     const sobject1 =
       '{ "name": "Sobject1", "fields": [ {"name": "Foo", "type": "string", "referenceTo": []} ], "childRelationships": [] }';
@@ -26,7 +39,7 @@ describe('generate fields set', function() {
       ' ], "childRelationships": [] }';
     const sobjectFolder = './';
     const gen: FauxClassGenerator = new FauxClassGenerator();
-    const classPath = await gen.generateFauxClass(
+    classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
     );
@@ -37,6 +50,14 @@ describe('generate fields set', function() {
 });
 
 describe('generate relationship tests', function() {
+  let classPath = '';
+  afterEach(() => {
+    if (classPath) {
+      fs.unlinkSync(classPath);
+      classPath = '';
+    }
+  });
+
   it('generated faux class should create file with relationship', async function(): Promise<
     void
   > {
@@ -51,7 +72,7 @@ describe('generate relationship tests', function() {
       ' ], "childRelationships": [] }';
     const sobjectFolder = './';
     const gen: FauxClassGenerator = new FauxClassGenerator();
-    const classPath = await gen.generateFauxClass(
+    classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
     );
@@ -76,7 +97,7 @@ describe('generate relationship tests', function() {
       '] }';
     const sobjectFolder = './';
     const gen: FauxClassGenerator = new FauxClassGenerator();
-    const classPath = await gen.generateFauxClass(
+    classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
     );
@@ -96,7 +117,7 @@ describe('generate relationship tests', function() {
       '] }';
     const sobjectFolder = './';
     const gen: FauxClassGenerator = new FauxClassGenerator();
-    const classPath = await gen.generateFauxClass(
+    classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
     );
@@ -123,7 +144,7 @@ describe('generate relationship tests', function() {
       '] }';
     const sobjectFolder = './';
     const gen: FauxClassGenerator = new FauxClassGenerator();
-    const classPath = await gen.generateFauxClass(
+    classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
     );

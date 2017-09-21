@@ -5,8 +5,11 @@
 * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 */
 import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
 import * as path from 'path';
+
+import { EOL } from 'os';
+import { mkdir, rm } from 'shelljs';
+
 import {
   ChildRelationship,
   Field,
@@ -19,19 +22,22 @@ export class FauxClassGenerator {
   private SFDX_DIR = '.sfdx';
   private TOOLS_DIR = 'tools';
   private SOBJECTS_DIR = 'sobjects';
-
-  private createIfNeededOutputFolder(folderPath: string): boolean {
-    if (!fs.existsSync(folderPath)) {
-      mkdirp.sync(folderPath);
-      return fs.existsSync(folderPath);
-    }
-    return true;
-  }
+  private STANDARDOBJECTS_DIR = 'standardObjects';
+  private CUSTOMOBJECTS_DIR = 'customObjects';
 
   public async generate(
     projectPath: string,
     type: SObjectCategory
   ): Promise<string> {
+    const sobjectsFolderPath = path.join(
+      projectPath,
+      this.SFDX_DIR,
+      this.TOOLS_DIR,
+      this.SOBJECTS_DIR
+    );
+
+    this.cleanupSObjectFolders(sobjectsFolderPath);
+
     const describe = new SObjectDescribe();
     const sobjects = await describe.describeGlobal(projectPath, type);
     const standardSObjects: SObject[] = [];
@@ -41,11 +47,11 @@ export class FauxClassGenerator {
     while (j < sobjects.length) {
       try {
         fetchedSObjects = fetchedSObjects.concat(
-          await describe.describeSObjectBatch(projectPath, sobjects, j - 1)
+          await describe.describeSObjectBatch(projectPath, sobjects, j)
         );
         j = fetchedSObjects.length;
       } catch (e) {
-        Promise.reject('describe error ' + e);
+        return Promise.reject('describe error ' + e);
       }
     }
 
@@ -58,65 +64,28 @@ export class FauxClassGenerator {
       }
     }
 
-    if (standardSObjects.length > 0) {
-      console.log(
-        'Fetched ' +
-          standardSObjects.length +
-          ' Standard SObjects from default scratch org'
-      );
-    }
-    if (customSObjects.length > 0) {
-      console.log(
-        'Fetched ' +
-          customSObjects.length +
-          ' Custom SObjects from default scratch org'
-      );
-    }
+    this.logFetchedObjects(standardSObjects, customSObjects);
 
-    const standardSObjectFolderPath = path.join(
-      projectPath,
-      this.SFDX_DIR,
-      this.TOOLS_DIR,
-      this.SOBJECTS_DIR,
-      'standardObjects'
+    this.generateFauxClasses(
+      standardSObjects,
+      path.join(sobjectsFolderPath, this.STANDARDOBJECTS_DIR)
     );
-    const customSObjectFolderPath = path.join(
-      projectPath,
-      this.SFDX_DIR,
-      this.TOOLS_DIR,
-      this.SOBJECTS_DIR,
-      'customObjects'
+    this.generateFauxClasses(
+      customSObjects,
+      path.join(sobjectsFolderPath, this.CUSTOMOBJECTS_DIR)
     );
 
-    if (!this.createIfNeededOutputFolder(standardSObjectFolderPath)) {
-      console.log('no sobjects output folder ' + standardSObjectFolderPath);
-      return '';
-    }
-
-    if (!this.createIfNeededOutputFolder(customSObjectFolderPath)) {
-      console.log('no sobjects output folder ' + customSObjectFolderPath);
-      return '';
-    }
-
-    for (const sobject of standardSObjects) {
-      await this.generateFauxClass(standardSObjectFolderPath, sobject);
-    }
-    for (const sobject of customSObjects) {
-      await this.generateFauxClass(customSObjectFolderPath, sobject);
-    }
-
-    return '';
+    return Promise.resolve('');
   }
 
   private generateChildRelationship(rel: ChildRelationship): string {
     if (rel.relationshipName) {
-      return 'List<' + rel.childSObject + '> ' + rel.relationshipName;
+      return `List<${rel.childSObject}> ${rel.relationshipName}`;
     } else {
       // expect the name to end with Id, then strip off Id
       if (rel.field.endsWith('Id')) {
-        return (
-          rel.childSObject + ' ' + rel.field.slice(0, rel.field.length - 2)
-        );
+        const nameWithoutId = rel.field.slice(0, rel.field.length - 2);
+        return `${rel.childSObject} ${nameWithoutId}`;
       } else {
         return '';
       }
@@ -126,20 +95,16 @@ export class FauxClassGenerator {
   private generateField(field: Field): string[] {
     const decls: string[] = [];
     if (field.referenceTo.length === 0) {
-      decls.push(
-        field.type.charAt(0).toUpperCase() +
-          field.type.slice(1) +
-          ' ' +
-          field.name
-      );
+      const upperCaseFirstChar = field.type.charAt(0).toUpperCase();
+      decls.push(`${upperCaseFirstChar}${field.type.slice(1)} ${field.name}`);
     } else {
       if (field.referenceTo.length > 1) {
-        decls.push('SObject' + ' ' + field.relationshipName);
+        decls.push(`SObject ${field.relationshipName}`);
       } else {
-        decls.push(field.referenceTo + ' ' + field.relationshipName);
+        decls.push(`${field.referenceTo} ${field.relationshipName}`);
       }
       // field.type will be "reference", but the actual type is an Id for Apex
-      decls.push('Id ' + field.name);
+      decls.push(`Id ${field.name}`);
     }
     return decls;
   }
@@ -148,11 +113,18 @@ export class FauxClassGenerator {
     return decl.substr(decl.indexOf(' ') + 1);
   }
 
+  private generateFauxClasses(sobjects: SObject[], targetFolder: string) {
+    if (!this.createIfNeededOutputFolder(targetFolder)) {
+      console.log('no sobjects output folder ' + targetFolder);
+      return;
+    }
+    for (const sobject of sobjects) {
+      this.generateFauxClass(targetFolder, sobject);
+    }
+  }
+
   // VisibleForTesting
-  public async generateFauxClass(
-    folderPath: string,
-    sobject: any
-  ): Promise<string> {
+  public generateFauxClass(folderPath: string, sobject: any): string {
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath);
     }
@@ -204,39 +176,29 @@ export class FauxClassGenerator {
   ): string {
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort(function nameCompare(
-      first: string,
-      second: string
-    ): number {
+    declarations.sort((first: string, second: string): number => {
       return FauxClassGenerator.fieldName(first) >
       FauxClassGenerator.fieldName(second)
         ? 1
         : -1;
     });
 
-    declarations = declarations.filter(function checkDups(
-      value: string,
-      index: number,
-      array: string[]
-    ) {
-      return (
-        !index ||
-        FauxClassGenerator.fieldName(value) !==
-          FauxClassGenerator.fieldName(array[index - 1])
-      );
-    });
+    declarations = declarations.filter(
+      (value: string, index: number, array: string[]): boolean => {
+        return (
+          !index ||
+          FauxClassGenerator.fieldName(value) !==
+            FauxClassGenerator.fieldName(array[index - 1])
+        );
+      }
+    );
 
     const indentAndModifier = '    global ';
-    const generatedClass: string =
-      'global class ' +
-      className +
-      ' \n{\n' +
-      indentAndModifier +
-      declarations.join(';\n' + indentAndModifier) +
-      ';\n\n' +
-      indentAndModifier +
-      className +
-      ' () \n    {\n    }\n}';
+    const classDeclaration = `global class ${className} {${EOL}`;
+    const declarationLines = declarations.join(`;${EOL}${indentAndModifier}`);
+    const classConstructor = `${indentAndModifier}${className} () ${EOL}    {${EOL}    }${EOL}`;
+
+    const generatedClass = `${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
 
     return generatedClass;
   }
@@ -245,5 +207,39 @@ export class FauxClassGenerator {
   public generateFauxClassText(sobject: SObject): string {
     const declarations: string[] = this.generateFauxClassDecls(sobject);
     return this.generateFauxClassTextFromDecls(sobject.name, declarations);
+  }
+
+  private createIfNeededOutputFolder(folderPath: string): boolean {
+    if (!fs.existsSync(folderPath)) {
+      mkdir('-p', folderPath);
+      return fs.existsSync(folderPath);
+    }
+    return true;
+  }
+
+  private cleanupSObjectFolders(baseSObjectsFolder: string) {
+    if (fs.existsSync(baseSObjectsFolder)) {
+      rm('-rf', baseSObjectsFolder);
+    }
+  }
+
+  private logFetchedObjects(
+    standardSObjects: SObject[],
+    customSObjects: SObject[]
+  ) {
+    if (standardSObjects.length > 0) {
+      console.log(
+        'Fetched ' +
+          standardSObjects.length +
+          ' Standard SObjects from default scratch org'
+      );
+    }
+    if (customSObjects.length > 0) {
+      console.log(
+        'Fetched ' +
+          customSObjects.length +
+          ' Custom SObjects from default scratch org'
+      );
+    }
   }
 }

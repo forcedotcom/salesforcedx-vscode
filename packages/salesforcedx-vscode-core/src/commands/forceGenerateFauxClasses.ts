@@ -24,7 +24,7 @@ import {
 class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_force_refresh_sobjects'))
+      .withDescription(nls.localize('force_refresh_sobjects'))
       .build();
   }
 

@@ -172,7 +172,7 @@ type BatchResponse = { hasErrors: boolean; results: SubResponse[] };
 export class SObjectDescribe {
   private accessToken: string;
   private instanceUrl: string;
-  // TODO should get the proper version from ??
+  // TODO should get the proper version from the project config info
   private readonly servicesPath: string = 'services/data';
   private readonly targetVersion = '40.0';
   private readonly versionPrefix = 'v' + this.targetVersion;
@@ -198,12 +198,13 @@ export class SObjectDescribe {
       this.instanceUrl = orgInfo.instanceUrl;
     }
   }
+
   public async describeSObject(
     projectPath: string,
     type: string,
     username?: string
   ): Promise<SObject> {
-    await this.setupConnection(projectPath);
+    await this.setupConnection(projectPath, username);
 
     const urlElements = [
       this.instanceUrl,
@@ -269,18 +270,18 @@ export class SObjectDescribe {
   public async describeSObjectBatch(
     projectPath: string,
     types: string[],
-    lastProcessed: number,
+    nextToProcess: number,
     username?: string
   ): Promise<SObject[]> {
     const batchSize = 25;
 
-    await this.setupConnection(projectPath);
+    await this.setupConnection(projectPath, username);
 
     const batchRequest: BatchRequest = { batchRequests: [] };
 
     for (
-      let i = lastProcessed + 1;
-      i <= lastProcessed + batchSize && i < types.length;
+      let i = nextToProcess;
+      i < nextToProcess + batchSize && i < types.length;
       i++
     ) {
       const urlElements = [this.sobjectsPart, types[i], 'describe'];

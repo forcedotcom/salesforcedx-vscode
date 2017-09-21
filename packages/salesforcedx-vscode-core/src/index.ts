@@ -139,7 +139,7 @@ function registerCommands(): vscode.Disposable {
   );
 
   const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
-    'refreshsobjects',
+    'sfdx.force.internal.refreshsobjects',
     forceGenerateFauxClassesCreate
   );
 

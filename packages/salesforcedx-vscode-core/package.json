@@ -208,7 +208,7 @@
           "when": "sfdx:project_opened"
         }
         {
-          "command": "refreshsobjects",
+          "command": "sfdx.force.internal.refreshsobjects",
           "when": "config.sfdx.refreshSObjects.enabled"
         }
       ]
@@ -311,7 +311,7 @@
         "title": "%force_org_display_username_text%"
       },
       {
-        "command": "refreshsobjects",
+        "command": "sfdx.force.internal.refreshsobjects",
         "title": "%force_refresh_sobjects%"
       }
     ]
