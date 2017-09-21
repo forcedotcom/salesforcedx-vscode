@@ -47,23 +47,4 @@ describe('References command', () => {
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
   });
-
-  it('Should handle run command error', async () => {
-    sendRequestSpy = sinon
-      .stub(ReferencesCommand.prototype, 'sendRequest')
-      .returns(
-        Promise.reject({
-          status: 500,
-          responseText: '{"message":"There was an error", "action":"Try again"}'
-        } as XHRResponse)
-      );
-
-    try {
-      await frameCommand.execute();
-    } catch (error) {
-      expect(error).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
-    }
-  });
 });
