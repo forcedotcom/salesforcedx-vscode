@@ -125,6 +125,11 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.org.display.default',
     forceOrgDisplay
   );
+  const forceOrgDisplayUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.display.username',
+    forceOrgDisplay,
+    { flag: '--targetusername' }
+  );
 
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
@@ -155,6 +160,7 @@ function registerCommands(): vscode.Disposable {
     forceConfigListCmd,
     forceAliasListCmd,
     forceOrgDisplayDefaultCmd,
+    forceOrgDisplayUsernameCmd,
     internalCancelCommandExecution
   );
 }

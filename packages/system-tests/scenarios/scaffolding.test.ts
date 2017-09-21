@@ -231,3 +231,29 @@ describe('Scaffolding commands', () => {
     }
   });
 });
+
+describe('Empty VSCode workspace', () => {
+  let app: SpectronApplication;
+  let common: CommonActions;
+
+  beforeEach(async () => {
+    app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2);
+    common = new CommonActions(app);
+
+    await app.start();
+    await app.wait();
+  });
+
+  afterEach(async () => {
+    return await app.stop();
+  });
+
+  it('Should not show any commands for non-SFDX workspace', async () => {
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX');
+    await app.wait();
+    const quickOpenText = await common.getQuickOpenElementsText();
+    expect(quickOpenText).to.not.be.an('array');
+    expect(quickOpenText).to.equal('No commands matching');
+  });
+});

@@ -13,6 +13,7 @@ import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
   FlagParameter,
+  SelectUsername,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -27,22 +28,31 @@ export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
   }
 
   public build(data: { username?: string }): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_display_default_text'))
-      .withArg('force:org:display')
-      .build();
+      .withArg('force:org:display');
+    if (this.flag === '--targetusername' && data.username) {
+      builder
+        .withDescription(nls.localize('force_org_display_username_text'))
+        .withFlag(this.flag, data.username);
+    }
+    return builder.build();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceOrgDisplay();
-const commandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
 
 export function forceOrgDisplay(this: FlagParameter<string>) {
+  // tslint:disable-next-line:no-invalid-this
+  const flag = this ? this.flag : undefined;
+  const parameterGatherer = flag
+    ? new SelectUsername()
+    : new EmptyParametersGatherer();
+  const executor = new ForceOrgDisplay(flag);
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    executor
+  );
   commandlet.run();
 }
