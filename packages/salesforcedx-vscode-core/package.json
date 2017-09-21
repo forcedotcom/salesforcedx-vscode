@@ -193,6 +193,10 @@
         {
           "command": "sfdx.force.org.display.default",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.display.username",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -280,6 +284,10 @@
       {
         "command": "sfdx.force.org.display.default",
         "title": "%force_org_display_default_text%"
+      },
+      {
+        "command": "sfdx.force.org.display.username",
+        "title": "%force_org_display_username_text%"
       }
     ]
   }
