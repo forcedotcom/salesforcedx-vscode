@@ -124,7 +124,15 @@ export class CommonActions {
       this.spectron.client.elements,
       'div[aria-label="Quick Picker"] .monaco-tree-rows.show-twisties .monaco-tree-row'
     );
+    console.log(elements);
     return elements.value.length;
+  }
+
+  public async getQuickOpenElementsText(): Promise<string[]> {
+    const elements = await this.spectron.client.getText(
+      'div[aria-label="Quick Picker"] .monaco-tree-rows.show-twisties .monaco-tree-row'
+    );
+    return elements;
   }
 
   public async openFile(fileName: string, explorer?: boolean): Promise<any> {

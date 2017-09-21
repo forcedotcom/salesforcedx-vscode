@@ -185,6 +185,14 @@
         {
           "command": "sfdx.force.config.list",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.alias.list",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.display.default",
+          "when": "sfdx:project_opened"
         }
       ]
     },
