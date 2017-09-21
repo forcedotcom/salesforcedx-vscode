@@ -12,11 +12,7 @@ import {
   forceApexClassCreate,
   forceApexTestRun,
   forceAuthWebLogin,
-<<<<<<< HEAD
-  forceConfigList,
-=======
   forceDataSoqlQuery,
->>>>>>> Addes support for force:data:soql:query
   forceDebuggerStop,
   forceLightningAppCreate,
   forceLightningComponentCreate,
