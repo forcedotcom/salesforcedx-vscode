@@ -28,10 +28,6 @@ describe(TITLE, () => {
   let username: string;
 
   before(async () => {
-    path.join(
-      createWorkspace(path.join(process.cwd(), 'assets', 'sfdx-simple')),
-      'sfdx-simple'
-    );
     await util.createSFDXProject(PROJECT_NAME);
     username = await util.createScratchOrg(PROJECT_NAME);
   });
