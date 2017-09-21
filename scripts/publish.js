@@ -10,7 +10,11 @@ shell.set('+v');
  * 1. The script is running locally - it's not optimized for Travis workflow
  *    yet.
  * 2. The script is running in the right branch (e.g., release/vxx.y.z)
- * 3. You have set the next version SALESFORCEDX_VSCODE_VERSION as an environment variable
+ * 
+ * Instructions: 
+ * Run this script with SALESFORCEDX_VSCODE_VERSION as an environment variable
+ * i.e. SALESFORCE_VSCODE_VERSION=x.y.z ./scripts/publish.js
+ * 
  */
 
 // Checks that you are running this with Node v7.9.0 and above
@@ -64,7 +68,7 @@ if (!nextVersion) {
 const checkTags = shell.exec('git tag', { silent: true }).stdout;
 if (checkTags.includes(nextVersion)) {
   console.log(
-    `A git tag already exists. Try running \'git tag -d v${nextVersion}\'`
+    'There is a conflicting git tag. Reclone the repository and start fresh to avoid versioning problems.'
   );
   exit(-1);
 }
