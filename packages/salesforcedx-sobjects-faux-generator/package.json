@@ -1,16 +1,15 @@
 {
   "name": "@salesforce/salesforcedx-sobjects-faux-generator",
   "displayName": "Salesforce SObject Faux Generator",
-  "description":
-    "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
-  "version": "40.10.0",
+  "description": "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
+  "version": "40.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.15.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.10.0"
+    "@salesforce/salesforcedx-utils-vscode": "40.11.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -35,10 +34,12 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
+    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
