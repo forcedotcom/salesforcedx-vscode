@@ -172,14 +172,15 @@ type BatchResponse = { hasErrors: boolean; results: SubResponse[] };
 export class SObjectDescribe {
   private accessToken: string;
   private instanceUrl: string;
-  // TODO should get the proper version from the project config info
   private readonly servicesPath: string = 'services/data';
+  // the targetVersion MUST be consistent with the cli that is being used
+  // at least until describeGlobal is converted to REST calls and even then it is safer
   private readonly targetVersion = '40.0';
   private readonly versionPrefix = 'v' + this.targetVersion;
   private readonly sobjectsPart: string = this.versionPrefix + '/sobjects';
   private readonly batchPart: string = this.versionPrefix + '/composite/batch';
 
-  // get the token and url by calling the org - short term, should be able to get it from the sfdx project
+  // get the token and url by calling the org - short term, should really be able to get it from the sfdx project
   private async setupConnection(projectPath: string, username?: string) {
     if (!this.accessToken) {
       let orgInfo: any;
@@ -222,7 +223,8 @@ export class SObjectDescribe {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        Authorization: `OAuth ${this.accessToken}`
+        Authorization: `OAuth ${this.accessToken}`,
+        'User-Agent': 'salesforcedx-extension'
       }
     };
 
@@ -301,7 +303,8 @@ export class SObjectDescribe {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        Authorization: `OAuth ${this.accessToken}`
+        Authorization: `OAuth ${this.accessToken}`,
+        'User-Agent': 'salesforcedx-extension'
       },
       data: JSON.stringify(batchRequest)
     };
