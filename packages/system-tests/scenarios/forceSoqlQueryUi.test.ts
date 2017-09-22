@@ -28,10 +28,6 @@ describe(TITLE, () => {
   let username: string;
 
   before(async () => {
-    path.join(
-      createWorkspace(path.join(process.cwd(), 'assets', 'sfdx-simple')),
-      'sfdx-simple'
-    );
     await util.createSFDXProject(PROJECT_NAME);
     username = await util.createScratchOrg(PROJECT_NAME);
   });
@@ -56,7 +52,7 @@ describe(TITLE, () => {
   it('Should execute SOQL query from input box', async () => {
     // Invoke SFDX: Execute SOQL Query command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Execute SOQL Query');
+    await common.type('>SFDX: Execute SOQL Query...');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
@@ -69,7 +65,7 @@ describe(TITLE, () => {
 
     const successNotification = await common.getMessageNotification();
     expect(successNotification).to.equal(
-      'SFDX: Execute SOQL Query successfully ran'
+      'SFDX: Execute SOQL Query... successfully ran'
     );
   });
 
@@ -84,13 +80,13 @@ describe(TITLE, () => {
 
     // Invoke SFDX: Execute SOQL Query command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Execute SOQL Query with Current Selection');
+    await common.type('>SFDX: Execute SOQL Query with Currently Selected Text');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
     const successNotification = await common.getMessageNotification();
     expect(successNotification).to.equal(
-      'SFDX: Execute SOQL Query successfully ran'
+      'SFDX: Execute SOQL Query... successfully ran'
     );
   });
 });
