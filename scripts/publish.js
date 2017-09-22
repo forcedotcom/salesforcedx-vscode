@@ -68,7 +68,7 @@ if (!nextVersion) {
 
   if (currentBranch.trim() !== 'v' + nextVersion) {
     console.log(
-      'You must execute this script in the release branch matching SALESFORCEDX_VSCODE_VERSION.'
+      `You must execute this script in a release branch matching SALESFORCEDX_VSCODE_VERSION (e.g, release/v${nextVersion} or hotfix/v${nextVersion})`
     );
     exit(-1);
   }
