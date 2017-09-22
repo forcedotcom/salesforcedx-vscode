@@ -125,13 +125,18 @@ export class ApexVariable extends Variable {
 
   public static valueAsString(value: Value): string {
     if (typeof value.value === 'undefined' || value.value === null) {
-      return 'null'; // We want to explicitly display null for null values.
-    }
-    if (value.declaredTypeRef === 'java/lang/String') {
-      return `'${value.value}'`; // We want to explicitly quote string values like in Java. This allows us to differentiate null from 'null'.
+      // We want to explicitly display null for null values (no type info for strings).
+      return ApexVariable.isString(value)
+        ? 'null'
+        : `null [${value.nameForMessages}]`;
     }
 
-    return value.value;
+    if (ApexVariable.isString(value)) {
+      // We want to explicitly quote string values like in Java. This allows us to differentiate null from 'null'.
+      return `'${value.value}'`;
+    }
+
+    return `${value.value} [${value.nameForMessages}]`;
   }
 
   public static compareVariables(v1: ApexVariable, v2: ApexVariable): number {
@@ -181,6 +186,10 @@ export class ApexVariable extends Variable {
     return (
       v1.kind === ApexVariableKind.Local || v1.kind === ApexVariableKind.Field
     );
+  }
+
+  private static isString(value: Value) {
+    return value.declaredTypeRef === 'java/lang/String';
   }
 }
 
