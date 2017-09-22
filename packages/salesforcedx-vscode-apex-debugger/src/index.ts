@@ -7,8 +7,11 @@
 
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
+  GET_PROXY_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  PROXY_SETTINGS_REQUEST,
+  ProxySettings,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
@@ -72,6 +75,19 @@ function registerCommands(): vscode.Disposable {
               }
             }
           }
+        } else if (event.event === GET_PROXY_SETTINGS_EVENT) {
+          const config = vscode.workspace.getConfiguration();
+          const proxyUrl = config.get('http.proxy', '') as string;
+          const proxyStrictSSL = config.get(
+            'http.proxyStrictSSL',
+            false
+          ) as boolean;
+          const proxyAuth = config.get('http.proxyAuthorization', '') as string;
+          event.session.customRequest(PROXY_SETTINGS_REQUEST, {
+            url: proxyUrl,
+            strictSSL: proxyStrictSSL,
+            auth: proxyAuth
+          } as ProxySettings);
         }
       }
     }

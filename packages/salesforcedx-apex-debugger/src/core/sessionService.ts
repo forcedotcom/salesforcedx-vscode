@@ -10,6 +10,7 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { RequestService } from '../commands';
 
 export class SessionService {
   private static instance: SessionService;
@@ -72,7 +73,10 @@ export class SessionService {
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
-      { cwd: this.project }
+      {
+        cwd: this.project,
+        env: RequestService.getEnvVars()
+      }
     ).execute();
 
     const cmdOutput = new CommandOutput();
@@ -103,7 +107,7 @@ export class SessionService {
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
-      { cwd: this.project }
+      { cwd: this.project, env: RequestService.getEnvVars() }
     ).execute();
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);

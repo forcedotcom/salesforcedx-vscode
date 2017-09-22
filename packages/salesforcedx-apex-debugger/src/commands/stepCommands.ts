@@ -8,31 +8,19 @@
 import { BaseCommand } from './baseCommand';
 
 export class StepIntoCommand extends BaseCommand {
-  public constructor(
-    instanceUrl: string,
-    accessToken: string,
-    debuggedRequestId: string
-  ) {
-    super('step', instanceUrl, accessToken, debuggedRequestId, 'type=into');
+  public constructor(debuggedRequestId: string) {
+    super('step', debuggedRequestId, 'type=into');
   }
 }
 
 export class StepOutCommand extends BaseCommand {
-  public constructor(
-    instanceUrl: string,
-    accessToken: string,
-    debuggedRequestId: string
-  ) {
-    super('step', instanceUrl, accessToken, debuggedRequestId, 'type=out');
+  public constructor(debuggedRequestId: string) {
+    super('step', debuggedRequestId, 'type=out');
   }
 }
 
 export class StepOverCommand extends BaseCommand {
-  public constructor(
-    instanceUrl: string,
-    accessToken: string,
-    debuggedRequestId: string
-  ) {
-    super('step', instanceUrl, accessToken, debuggedRequestId, 'type=over');
+  public constructor(debuggedRequestId: string) {
+    super('step', debuggedRequestId, 'type=over');
   }
 }
