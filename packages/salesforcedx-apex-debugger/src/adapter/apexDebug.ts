@@ -1081,7 +1081,7 @@ export class ApexDebug extends LoggingDebugSession {
     requestId: string,
     apexId: number | undefined
   ): Promise<number | undefined> {
-    if (!apexId) {
+    if (typeof apexId === 'undefined') {
       return;
     }
     if (!this.variableContainerReferenceByApexId.has(apexId)) {
