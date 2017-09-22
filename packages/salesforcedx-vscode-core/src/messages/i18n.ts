@@ -86,5 +86,10 @@ export const messages = {
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text:
     'SFDX: Display Org Details for Default Scratch Org',
-  force_org_display_username_text: 'SFDX: Display Org Details...'
+  force_org_display_username_text: 'SFDX: Display Org Details...',
+
+  force_data_soql_query_input_text: 'SFDX: Execute SOQL Query...',
+  force_data_soql_query_selection_text:
+    'SFDX: Execute SOQL Query with Currently Selected Text',
+  parameter_gatherer_enter_soql_query: 'Enter the SOQL query'
 };

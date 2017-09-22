@@ -9,6 +9,7 @@
     "vscode": "^1.13.0"
   },
   "devDependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "^40.10.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
