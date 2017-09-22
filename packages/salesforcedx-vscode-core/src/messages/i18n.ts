@@ -91,5 +91,9 @@ export const messages = {
   force_org_display_username_text: 'SFDX: Display Org Details...',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
-  force_debugger_stop_none_found_text: 'No Apex Debugger session found.'
+  force_debugger_stop_none_found_text: 'No Apex Debugger session found.',
+  force_data_soql_query_input_text: 'SFDX: Execute SOQL Query...',
+  force_data_soql_query_selection_text:
+    'SFDX: Execute SOQL Query with Currently Selected Text',
+  parameter_gatherer_enter_soql_query: 'Enter the SOQL query'
 };

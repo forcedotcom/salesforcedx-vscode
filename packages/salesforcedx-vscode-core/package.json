@@ -206,6 +206,14 @@
         {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "config.sfdx.refreshSObjects.enabled"
+        },
+        {
+          "command": "sfdx.force.data.soql.query.input",
+          "when": "sfdx:project_opened && !editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.data.soql.query.selection",
+          "when": "sfdx:project_opened && editorHasSelection"
         }
       ]
     },
@@ -309,6 +317,14 @@
       {
         "command": "sfdx.force.internal.refreshsobjects",
         "title": "%force_refresh_sobjects%"
+      },
+      {
+        "command": "sfdx.force.data.soql.query.input",
+        "title": "%force_data_soql_query_input_text%"
+      },
+      {
+        "command": "sfdx.force.data.soql.query.selection",
+        "title": "%force_data_soql_query_selection_text%"
       }
     ]
   }
