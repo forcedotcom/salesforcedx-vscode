@@ -124,7 +124,7 @@ export class ApexVariable extends Variable {
   }
 
   public static valueAsString(value: Value): string {
-    if (!value.value || value.value == null) {
+    if (typeof value.value === 'undefined' || value.value === null) {
       return 'null'; // We want to explicitly display null for null values.
     }
     if (value.declaredTypeRef === 'java/lang/String') {
