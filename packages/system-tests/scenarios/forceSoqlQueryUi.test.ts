@@ -63,10 +63,12 @@ describe(TITLE, () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    const successNotification = await common.getMessageNotification();
-    expect(successNotification).to.equal(
-      'SFDX: Execute SOQL Query... successfully ran'
-    );
+    const consoleHtml = await common.getConsoleHtml();
+    for (let i = 0; i < consoleHtml.length; i++) {
+      if (consoleHtml[i].indexOf('xit&nbsp;code') > 0) {
+        expect(consoleHtml[i]).to.contain('exit&nbsp;code&nbsp;0');
+      }
+    }
   });
 
   it('Should execute SOQL query with current selection', async () => {
@@ -88,9 +90,11 @@ describe(TITLE, () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    const successNotification = await common.getMessageNotification();
-    expect(successNotification).to.equal(
-      'SFDX: Execute SOQL Query... successfully ran'
-    );
+    const consoleHtml = await common.getConsoleHtml();
+    for (let i = 0; i < consoleHtml.length; i++) {
+      if (consoleHtml[i].indexOf('xit&nbsp;code') > 0) {
+        expect(consoleHtml[i]).to.contain('exit&nbsp;code&nbsp;0');
+      }
+    }
   });
 });
