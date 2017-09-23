@@ -193,10 +193,8 @@ export class SpectronClient {
     }
     currentKeys.forEach(chord => {
       let key: string;
-      if (chord === 'Meta' && os.platform() === 'darwin') {
-        key = '\uE03D';
-      } else if (chord === 'Meta') {
-        key = '\uE009';
+      if (chord === 'Meta' && os.platform() === 'win32') {
+        key = 'Ctrl';
       } else {
         key = chord;
       }
