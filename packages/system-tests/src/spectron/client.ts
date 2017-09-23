@@ -7,6 +7,7 @@
  * Derived from https://github.com/Microsoft/vscode/blob/master/test/smoke/src/spectron/client.ts
  */
 
+import * as os from 'os';
 import { Application } from 'spectron';
 import { Screenshot } from '../helpers/screenshot';
 
@@ -27,6 +28,7 @@ export class SpectronClient {
     capture: boolean = true
   ): Promise<any> {
     await this.screenshot(capture);
+    keys = this.transliterateKeys(keys);
     return this.spectron.client.keys(keys);
   }
 
@@ -179,5 +181,27 @@ export class SpectronClient {
         throw new Error(`Screenshot could not be captured: ${e}`);
       }
     }
+  }
+
+  private transliterateKeys(keys: string[] | string): string[] {
+    const newKeys: string[] = [];
+    let currentKeys: string[] = [];
+    if (keys instanceof Array) {
+      currentKeys = keys;
+    } else {
+      currentKeys.push(keys);
+    }
+    currentKeys.forEach(chord => {
+      let key: string;
+      if (chord === 'Meta' && os.platform() === 'darwin') {
+        key = '\uE03D';
+      } else if (chord === 'Meta') {
+        key = '\uE009';
+      } else {
+        key = chord;
+      }
+      newKeys.push(key);
+    });
+    return newKeys;
   }
 }
