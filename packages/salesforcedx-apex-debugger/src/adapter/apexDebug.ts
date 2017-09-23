@@ -27,6 +27,7 @@ import {
   DebuggerResponse,
   ForceOrgDisplay,
   OrgInfo,
+  RequestService,
   RunCommand,
   StateCommand,
   StepIntoCommand,
@@ -35,8 +36,10 @@ import {
 } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
+  GET_PROXY_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  PROXY_SETTINGS_REQUEST,
   SHOW_MESSAGE_EVENT
 } from '../constants';
 import {
@@ -48,7 +51,11 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
-import { VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../index';
+import {
+  ProxySettings,
+  VscodeDebuggerMessage,
+  VscodeDebuggerMessageType
+} from '../index';
 import { nls } from '../messages';
 import os = require('os');
 
@@ -64,6 +71,7 @@ export class ApexDebug extends DebugSession {
   protected mySessionService = SessionService.getInstance();
   protected myBreakpointService = BreakpointService.getInstance();
   protected myStreamingService = StreamingService.getInstance();
+  protected myRequestService = RequestService.getInstance();
   protected sfdxProject: string;
   protected orgInfo: OrgInfo;
   protected requestThreads: Map<number, string>;
@@ -86,6 +94,7 @@ export class ApexDebug extends DebugSession {
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
     this.initializedResponse = response;
+    this.sendEvent(new Event(GET_PROXY_SETTINGS_EVENT));
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
@@ -111,6 +120,9 @@ export class ApexDebug extends DebugSession {
 
     try {
       this.orgInfo = await new ForceOrgDisplay().getOrgInfo(args.sfdxProject);
+      this.myRequestService.instanceUrl = this.orgInfo.instanceUrl;
+      this.myRequestService.accessToken = this.orgInfo.accessToken;
+
       const isStreamingConnected = await this.connectStreaming(
         args.sfdxProject,
         this.orgInfo.instanceUrl,
@@ -249,11 +261,7 @@ export class ApexDebug extends DebugSession {
     if (this.requestThreads.has(args.threadId)) {
       const requestId = this.requestThreads.get(args.threadId)!;
       try {
-        await new RunCommand(
-          this.orgInfo.instanceUrl,
-          this.orgInfo.accessToken,
-          requestId
-        ).execute();
+        await this.myRequestService.execute(new RunCommand(requestId));
         response.success = true;
       } catch (error) {
         response.message = error;
@@ -270,11 +278,7 @@ export class ApexDebug extends DebugSession {
     if (this.requestThreads.has(args.threadId)) {
       const requestId = this.requestThreads.get(args.threadId)!;
       try {
-        await new StepOverCommand(
-          this.orgInfo.instanceUrl,
-          this.orgInfo.accessToken,
-          requestId
-        ).execute();
+        await this.myRequestService.execute(new StepOverCommand(requestId));
         response.success = true;
       } catch (error) {
         response.message = error;
@@ -291,11 +295,7 @@ export class ApexDebug extends DebugSession {
     if (this.requestThreads.has(args.threadId)) {
       const requestId = this.requestThreads.get(args.threadId)!;
       try {
-        await new StepIntoCommand(
-          this.orgInfo.instanceUrl,
-          this.orgInfo.accessToken,
-          requestId
-        ).execute();
+        await this.myRequestService.execute(new StepIntoCommand(requestId));
         response.success = true;
       } catch (error) {
         response.message = error;
@@ -312,11 +312,7 @@ export class ApexDebug extends DebugSession {
     if (this.requestThreads.has(args.threadId)) {
       const requestId = this.requestThreads.get(args.threadId)!;
       try {
-        await new StepOutCommand(
-          this.orgInfo.instanceUrl,
-          this.orgInfo.accessToken,
-          requestId
-        ).execute();
+        await this.myRequestService.execute(new StepOutCommand(requestId));
         response.success = true;
       } catch (error) {
         response.message = error;
@@ -348,11 +344,9 @@ export class ApexDebug extends DebugSession {
 
     const requestId = this.requestThreads.get(args.threadId)!;
     try {
-      const stateResponse = await new StateCommand(
-        this.orgInfo.instanceUrl,
-        this.orgInfo.accessToken,
-        requestId
-      ).execute();
+      const stateResponse = await this.myRequestService.execute(
+        new StateCommand(requestId)
+      );
       const stateRespObj: DebuggerResponse = JSON.parse(stateResponse);
       const clientFrames: StackFrame[] = [];
       if (this.hasStackFrames(stateRespObj)) {
@@ -437,6 +431,12 @@ export class ApexDebug extends DebugSession {
         break;
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
+        break;
+      case PROXY_SETTINGS_REQUEST:
+        const proxySettings: ProxySettings = args;
+        this.myRequestService.proxyUrl = proxySettings.url;
+        this.myRequestService.proxyStrictSSL = proxySettings.strictSSL;
+        this.myRequestService.proxyAuthorization = proxySettings.auth;
         break;
       default:
         break;

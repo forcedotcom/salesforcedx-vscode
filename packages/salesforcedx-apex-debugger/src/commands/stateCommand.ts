@@ -8,11 +8,7 @@
 import { BaseCommand } from './baseCommand';
 
 export class StateCommand extends BaseCommand {
-  public constructor(
-    instanceUrl: string,
-    accessToken: string,
-    debuggedRequestId: string
-  ) {
-    super('state', instanceUrl, accessToken, debuggedRequestId);
+  public constructor(debuggedRequestId: string) {
+    super('state', debuggedRequestId);
   }
 }
