@@ -95,5 +95,9 @@ export const messages = {
   force_data_soql_query_input_text: 'SFDX: Execute SOQL Query...',
   force_data_soql_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
-  parameter_gatherer_enter_soql_query: 'Enter the SOQL query'
+  parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
+  force_apex_execute_document_text:
+    'SFDX: Execute Anonymous Apex with Editor Contents',
+  force_apex_execute_selection_text:
+    'SFDX: Execute Anonymous Apex with Currently Selected Text'
 };
