@@ -46,7 +46,7 @@
   },
   "contributes": {
     "configuration": {
-      "title": "Salesforce DX Gating",
+      "title": "Salesforce DX",
       "properties": {
         "sfdx.refreshSObjects.enabled": {
           "type": "boolean",
