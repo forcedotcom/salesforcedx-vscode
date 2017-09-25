@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import {
+  RequestService,
   StepIntoCommand,
   StepOutCommand,
   StepOverCommand
@@ -16,19 +17,21 @@ import {
 
 describe('Step commands', () => {
   let sendRequestSpy: sinon.SinonStub;
+  const requestService = new RequestService();
+
+  beforeEach(() => {
+    requestService.instanceUrl = 'https://www.salesforce.com';
+    requestService.accessToken = '123';
+  });
 
   afterEach(() => {
     sendRequestSpy.restore();
   });
 
   it('Step Into command should have proper request url', async () => {
-    const command = new StepIntoCommand(
-      'https://www.salesforce.com',
-      '123',
-      '07cFAKE'
-    );
+    const command = new StepIntoCommand('07cFAKE');
     sendRequestSpy = sinon
-      .stub(StepIntoCommand.prototype, 'sendRequest')
+      .stub(RequestService.prototype, 'sendRequest')
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
@@ -43,20 +46,16 @@ describe('Step commands', () => {
       }
     };
 
-    await command.execute();
+    await requestService.execute(command);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
   });
 
   it('Step Out command should have proper request url', async () => {
-    const command = new StepOutCommand(
-      'https://www.salesforce.com',
-      '123',
-      '07cFAKE'
-    );
+    const command = new StepOutCommand('07cFAKE');
     sendRequestSpy = sinon
-      .stub(StepOutCommand.prototype, 'sendRequest')
+      .stub(RequestService.prototype, 'sendRequest')
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
@@ -71,20 +70,16 @@ describe('Step commands', () => {
       }
     };
 
-    await command.execute();
+    await requestService.execute(command);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
   });
 
   it('Step Over command should have proper request url', async () => {
-    const command = new StepOverCommand(
-      'https://www.salesforce.com',
-      '123',
-      '07cFAKE'
-    );
+    const command = new StepOverCommand('07cFAKE');
     sendRequestSpy = sinon
-      .stub(StepOverCommand.prototype, 'sendRequest')
+      .stub(RequestService.prototype, 'sendRequest')
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
@@ -99,7 +94,7 @@ describe('Step commands', () => {
       }
     };
 
-    await command.execute();
+    await requestService.execute(command);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);

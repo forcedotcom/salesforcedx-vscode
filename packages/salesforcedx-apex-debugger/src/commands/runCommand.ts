@@ -8,11 +8,7 @@
 import { BaseCommand } from './baseCommand';
 
 export class RunCommand extends BaseCommand {
-  public constructor(
-    instanceUrl: string,
-    accessToken: string,
-    debuggedRequestId: string
-  ) {
-    super('run', instanceUrl, accessToken, debuggedRequestId);
+  public constructor(debuggedRequestId: string) {
+    super('run', debuggedRequestId);
   }
 }
