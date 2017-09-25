@@ -53,5 +53,26 @@ describe('Debugger adapter variable handling - unit', () => {
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal('null');
     });
+
+    it('Should correctly print empty string', async () => {
+      value.value = '';
+      value.declaredTypeRef = 'java/lang/String';
+      variable = new ApexVariable(value, ApexVariableKind.Local, 20);
+      expect(variable.value).to.equal('');
+    });
+
+    it('Should correctly print string', async () => {
+      value.value = '123';
+      value.declaredTypeRef = 'java/lang/String';
+      variable = new ApexVariable(value, ApexVariableKind.Local, 20);
+      expect(variable.value).to.equal('123');
+    });
+
+    it('Should correctly print value with type info', async () => {
+      value.value = '123';
+      value.nameForMessages = 'a-type';
+      variable = new ApexVariable(value, ApexVariableKind.Local, 20);
+      expect(variable.value).to.equal('123 (a-type)');
+    });
   });
 });
