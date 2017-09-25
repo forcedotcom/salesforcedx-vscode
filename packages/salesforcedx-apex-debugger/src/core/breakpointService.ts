@@ -14,6 +14,7 @@ import {
   ApexBreakpointLocation,
   LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
+import { RequestService } from '../commands';
 
 export class BreakpointService {
   private static instance: BreakpointService;
@@ -118,7 +119,7 @@ export class BreakpointService {
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
-      { cwd: projectPath }
+      { cwd: projectPath, env: RequestService.getEnvVars() }
     ).execute();
 
     const cmdOutput = new CommandOutput();
@@ -147,7 +148,7 @@ export class BreakpointService {
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
-      { cwd: projectPath }
+      { cwd: projectPath, env: RequestService.getEnvVars() }
     ).execute();
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);

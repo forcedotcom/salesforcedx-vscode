@@ -24,16 +24,9 @@ export class ReferencesCommand extends BaseCommand {
     };
   }
 
-  public constructor(
-    instanceUrl: string,
-    accessToken: string,
-    debuggedRequestId: string,
-    ...apexReferences: number[]
-  ) {
+  public constructor(debuggedRequestId: string, ...apexReferences: number[]) {
     super(
       'references',
-      instanceUrl,
-      accessToken,
       debuggedRequestId,
       undefined,
       ReferencesCommand.createGetReferenceRequest(apexReferences)

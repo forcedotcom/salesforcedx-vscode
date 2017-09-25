@@ -8,14 +8,17 @@
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
-import { RunCommand } from '../../../src/commands';
+import { RequestService, RunCommand } from '../../../src/commands';
 
 describe('Run command', () => {
   let sendRequestSpy: sinon.SinonStub;
   let runCommand: RunCommand;
+  const requestService = new RequestService();
 
   beforeEach(() => {
-    runCommand = new RunCommand('https://www.salesforce.com', '123', '07cFAKE');
+    requestService.instanceUrl = 'https://www.salesforce.com';
+    requestService.accessToken = '123';
+    runCommand = new RunCommand('07cFAKE');
   });
 
   afterEach(() => {
@@ -24,7 +27,7 @@ describe('Run command', () => {
 
   it('Should have proper request path', async () => {
     sendRequestSpy = sinon
-      .stub(RunCommand.prototype, 'sendRequest')
+      .stub(RequestService.prototype, 'sendRequest')
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
@@ -38,7 +41,7 @@ describe('Run command', () => {
       }
     };
 
-    await runCommand.execute();
+    await requestService.execute(runCommand);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);

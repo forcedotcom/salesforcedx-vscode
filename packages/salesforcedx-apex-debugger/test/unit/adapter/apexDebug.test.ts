@@ -23,6 +23,7 @@ import {
 import {
   ForceOrgDisplay,
   OrgInfo,
+  RequestService,
   RunCommand,
   StateCommand,
   StepIntoCommand,
@@ -31,8 +32,10 @@ import {
 } from '../../../src/commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
+  GET_PROXY_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  PROXY_SETTINGS_REQUEST,
   SHOW_MESSAGE_EVENT
 } from '../../../src/constants';
 import {
@@ -45,6 +48,7 @@ import {
   StreamingService
 } from '../../../src/core';
 import {
+  ProxySettings,
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '../../../src/index';
@@ -64,7 +68,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       breakpointClearSpy = sinon.spy(
         BreakpointService.prototype,
@@ -86,12 +91,13 @@ describe('Debugger adapter - unit', () => {
       breakpointClearSpy.restore();
     });
 
-    it('Should only send custom event to fetch breakpoint info', async () => {
+    it('Should send custom events', async () => {
       adapter.initializeReq(response, args);
 
       expect(breakpointClearSpy.calledOnce).to.equal(true);
-      expect(adapter.getEvents().length).to.equal(1);
-      expect(adapter.getEvents()[0].event).to.equal(
+      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents()[0].event).to.equal(GET_PROXY_SETTINGS_EVENT);
+      expect(adapter.getEvents()[1].event).to.equal(
         GET_LINE_BREAKPOINT_INFO_EVENT
       );
     });
@@ -105,7 +111,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       response = {
         command: '',
@@ -142,7 +149,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       sessionProjectSpy = sinon.spy(SessionService.prototype, 'forProject');
       sessionUserFilterSpy = sinon.spy(
@@ -422,7 +430,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       streamingDisconnectSpy = sinon.stub(
         StreamingService.prototype,
@@ -521,7 +530,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       breakpointGetSpy = sinon.spy(
         BreakpointService.prototype,
@@ -746,7 +756,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
       adapter.setOrgInfo({
@@ -762,7 +773,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should continue successfully', async () => {
       runSpy = sinon
-        .stub(RunCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve(''));
 
       await adapter.continueReq(
@@ -773,11 +784,12 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getResponse(0).success).to.equal(true);
       expect(adapter.getResponse(0).body.allThreadsContinued).to.equal(false);
       expect(runSpy.calledOnce).to.equal(true);
+      expect(runSpy.getCall(0).args[0]).to.be.instanceof(RunCommand);
     });
 
     it('Should not continue unknown thread', async () => {
       runSpy = sinon
-        .stub(RunCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve(''));
 
       await adapter.continueReq(
@@ -791,7 +803,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should handle run command error response', async () => {
       runSpy = sinon
-        .stub(RunCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(
           Promise.reject(
             '{"message":"There was an error", "action":"Try again"}'
@@ -818,7 +830,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
       adapter.setOrgInfo({
@@ -834,7 +847,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Step into should call proper command', async () => {
       stepSpy = sinon
-        .stub(StepIntoCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve(''));
 
       await adapter.stepInRequest(
@@ -844,11 +857,12 @@ describe('Debugger adapter - unit', () => {
 
       expect(adapter.getResponse(0).success).to.equal(true);
       expect(stepSpy.calledOnce).to.equal(true);
+      expect(stepSpy.getCall(0).args[0]).to.be.instanceof(StepIntoCommand);
     });
 
     it('Step out should send proper command', async () => {
       stepSpy = sinon
-        .stub(StepOutCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve(''));
 
       await adapter.stepOutRequest(
@@ -858,11 +872,12 @@ describe('Debugger adapter - unit', () => {
 
       expect(adapter.getResponse(0).success).to.equal(true);
       expect(stepSpy.calledOnce).to.equal(true);
+      expect(stepSpy.getCall(0).args[0]).to.be.instanceof(StepOutCommand);
     });
 
     it('Step over should send proper command', async () => {
       stepSpy = sinon
-        .stub(StepOverCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve(''));
 
       await adapter.nextRequest(
@@ -872,6 +887,7 @@ describe('Debugger adapter - unit', () => {
 
       expect(adapter.getResponse(0).success).to.equal(true);
       expect(stepSpy.calledOnce).to.equal(true);
+      expect(stepSpy.getCall(0).args[0]).to.be.instanceof(StepOverCommand);
     });
   });
 
@@ -880,7 +896,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
     });
 
@@ -917,7 +934,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
       adapter.setOrgInfo({
@@ -936,7 +954,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should not get state of unknown thread', async () => {
       stateSpy = sinon
-        .stub(StateCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve('{}'));
 
       await adapter.stackTraceReq(
@@ -950,7 +968,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should return response with empty stackframes', async () => {
       stateSpy = sinon
-        .stub(StateCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(
           Promise.resolve(
             '{"stateResponse":{"state":{"stack":{"stackFrame":[]}}}}'
@@ -972,7 +990,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should process stack frame with local source', async () => {
       stateSpy = sinon
-        .stub(StateCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(
           Promise.resolve(
             '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"FooDebug","fullName":"FooDebug.test()","lineNumber":1,"frameNumber":0},{"typeRef":"BarDebug","fullName":"BarDebug.test()","lineNumber":2,"frameNumber":1}]}}}}'
@@ -988,6 +1006,7 @@ describe('Debugger adapter - unit', () => {
       );
 
       expect(stateSpy.called).to.equal(true);
+      expect(stateSpy.getCall(0).args[0]).to.be.instanceof(StateCommand);
       const response = adapter.getResponse(
         0
       ) as DebugProtocol.StackTraceResponse;
@@ -1016,7 +1035,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should process stack frame with unknown source', async () => {
       stateSpy = sinon
-        .stub(StateCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(
           Promise.resolve(
             '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"anon","fullName":"anon.execute()","lineNumber":2,"frameNumber":0}]}}}}'
@@ -1042,7 +1061,7 @@ describe('Debugger adapter - unit', () => {
 
     it('Should handle state command error response', async () => {
       stateSpy = sinon
-        .stub(StateCommand.prototype, 'execute')
+        .stub(RequestService.prototype, 'execute')
         .returns(
           Promise.reject(
             '{"message":"There was an error", "action":"Try again"}'
@@ -1077,7 +1096,8 @@ describe('Debugger adapter - unit', () => {
         adapter = new ApexDebugForTest(
           new SessionService(),
           new StreamingService(),
-          new BreakpointService()
+          new BreakpointService(),
+          new RequestService()
         );
         adapter.initializeReq(
           initializedResponse,
@@ -1154,7 +1174,8 @@ describe('Debugger adapter - unit', () => {
         adapter = new ApexDebugForTest(
           new SessionService(),
           new StreamingService(),
-          new BreakpointService()
+          new BreakpointService(),
+          new RequestService()
         );
       });
 
@@ -1172,6 +1193,36 @@ describe('Debugger adapter - unit', () => {
           nls.localize('hotswap_warn_text')
         );
         expect(outputEvent.body.category).to.equal('console');
+      });
+    });
+
+    describe('Proxy settings', () => {
+      let requestService: RequestService;
+
+      beforeEach(() => {
+        requestService = new RequestService();
+        adapter = new ApexDebugForTest(
+          new SessionService(),
+          new StreamingService(),
+          new BreakpointService(),
+          requestService
+        );
+      });
+
+      it('Should save proxy settings', () => {
+        adapter.customRequest(
+          PROXY_SETTINGS_REQUEST,
+          {} as DebugProtocol.Response,
+          {
+            url: 'http://localhost:443',
+            strictSSL: false,
+            auth: 'Basic 123'
+          } as ProxySettings
+        );
+
+        expect(requestService.proxyUrl).to.equal('http://localhost:443');
+        expect(requestService.proxyStrictSSL).to.equal(false);
+        expect(requestService.proxyAuthorization).to.equal('Basic 123');
       });
     });
   });
@@ -1199,7 +1250,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        breakpointService
+        breakpointService,
+        new RequestService()
       );
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
     });
@@ -1275,7 +1327,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
@@ -1325,7 +1378,8 @@ describe('Debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
-        new BreakpointService()
+        new BreakpointService(),
+        new RequestService()
       );
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
       sessionConnectedSpy = sinon

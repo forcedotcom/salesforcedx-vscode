@@ -62,6 +62,16 @@ if (!nextVersion) {
   const [version, major, minor, patch] = nextVersion.match(
     /^(\d+)\.(\d+)\.(\d+)$/
   );
+  const currentBranch = shell.exec('git rev-parse --abbrev-ref HEAD', {
+    silent: true
+  }).stdout;
+
+  if (!currentBranch.includes('/v' + nextVersion)) {
+    console.log(
+      `You must execute this script in a release branch including SALESFORCEDX_VSCODE_VERSION (e.g, release/v${nextVersion} or hotfix/v${nextVersion})`
+    );
+    exit(-1);
+  }
 }
 
 // Checks that a tag of the next version doesn't already exist

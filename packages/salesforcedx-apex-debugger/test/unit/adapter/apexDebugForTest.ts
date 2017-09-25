@@ -11,7 +11,7 @@ import {
   ApexDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexDebug';
-import { OrgInfo } from '../../../src/commands';
+import { OrgInfo, RequestService } from '../../../src/commands';
 import {
   BreakpointService,
   SessionService,
@@ -25,12 +25,14 @@ export class ApexDebugForTest extends ApexDebug {
   constructor(
     sessionService: SessionService,
     streamingService: StreamingService,
-    breakpointService: BreakpointService
+    breakpointService: BreakpointService,
+    requestService: RequestService
   ) {
     super();
     this.mySessionService = sessionService;
     this.myStreamingService = streamingService;
     this.myBreakpointService = breakpointService;
+    this.myRequestService = requestService;
   }
 
   public getResponse(index: number): DebugProtocol.Response {
