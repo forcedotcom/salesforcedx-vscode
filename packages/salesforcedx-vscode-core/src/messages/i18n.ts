@@ -60,6 +60,8 @@ export const messages = {
 
   force_source_push_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org',
+  force_source_push_force_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org and Override Conflicts',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
@@ -87,5 +89,6 @@ export const messages = {
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text:
-    'SFDX: Display Org Details for Default Scratch Org'
+    'SFDX: Display Org Details for Default Scratch Org',
+  force_org_display_username_text: 'SFDX: Display Org Details...'
 };

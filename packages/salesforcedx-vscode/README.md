@@ -13,8 +13,8 @@ Currently, Visual Studio Code extensions are not signed or verified on the Micro
 ---
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)  
 
-### Extensions Included  
-To use Salesforce Development Tools for Visual Studio Code, install all the extensions in this bundle.
+### Documentation for Included Extensions  
+To use Salesforce Development Tools for Visual Studio Code, install all the extensions in this extension pack. Each extension has its own documentation.
 * [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)  
    This extension interacts with the Salesforce CLI to provide basic Salesforce DX functionality.
 * [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)  

@@ -7,6 +7,7 @@
 
 import { Client as FayeClient } from 'faye';
 import os = require('os');
+import { RequestService } from '../commands';
 import { DEFAULT_STREAMING_TIMEOUT } from '../constants';
 import { nls } from '../messages';
 
@@ -131,7 +132,11 @@ export class StreamingClient {
   ) {
     this.clientInfo = clientInfo;
     this.client = new FayeClient(url, {
-      timeout: this.clientInfo.timeout
+      timeout: this.clientInfo.timeout,
+      proxy: {
+        origin: RequestService.getInstance().proxyUrl,
+        auth: RequestService.getInstance().proxyAuthorization
+      }
     });
     this.client.setHeader('Authorization', `OAuth ${accessToken}`);
     this.client.setHeader('Content-Type', 'application/json');
