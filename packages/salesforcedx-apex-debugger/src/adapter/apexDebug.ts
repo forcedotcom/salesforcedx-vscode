@@ -450,9 +450,9 @@ export class ApexDebug extends LoggingDebugSession {
   protected requestThreads: Map<number, string>;
   protected threadId: number;
 
-  private stackFrameInfos = new Handles<ApexDebugStackFrameInfo>();
-  private variableHandles = new Handles<VariableContainer>();
-  private variableContainerReferenceByApexId = new Map<number, number>();
+  protected stackFrameInfos = new Handles<ApexDebugStackFrameInfo>();
+  protected variableHandles = new Handles<VariableContainer>();
+  protected variableContainerReferenceByApexId = new Map<number, number>();
 
   private static LINEBREAK = `${os.EOL}`;
   private initializedResponse: DebugProtocol.InitializeResponse;

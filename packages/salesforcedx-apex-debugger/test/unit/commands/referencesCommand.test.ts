@@ -8,18 +8,17 @@
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
-import { ReferencesCommand } from '../../../src/commands';
+import { ReferencesCommand, RequestService } from '../../../src/commands';
 
 describe('References command', () => {
   let sendRequestSpy: sinon.SinonStub;
-  let frameCommand: ReferencesCommand;
+  let referencesCommand: ReferencesCommand;
+  const requestService = new RequestService();
 
   beforeEach(() => {
-    frameCommand = new ReferencesCommand(
-      'https://www.salesforce.com',
-      '123',
-      '07cFAKE'
-    );
+    requestService.instanceUrl = 'https://www.salesforce.com';
+    requestService.accessToken = '123';
+    referencesCommand = new ReferencesCommand('07cFAKE');
   });
 
   afterEach(() => {
@@ -28,7 +27,7 @@ describe('References command', () => {
 
   it('Should build request', async () => {
     sendRequestSpy = sinon
-      .stub(ReferencesCommand.prototype, 'sendRequest')
+      .stub(RequestService.prototype, 'sendRequest')
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
@@ -39,10 +38,15 @@ describe('References command', () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth 123`
-      }
+      },
+      data: JSON.stringify({
+        getReferencesRequest: {
+          reference: []
+        }
+      })
     };
 
-    await frameCommand.execute();
+    await requestService.execute(referencesCommand);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);

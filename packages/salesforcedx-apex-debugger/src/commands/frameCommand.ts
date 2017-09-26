@@ -8,18 +8,7 @@
 import { BaseCommand } from './baseCommand';
 
 export class FrameCommand extends BaseCommand {
-  public constructor(
-    instanceUrl: string,
-    accessToken: string,
-    debuggedRequestId: string,
-    frameId: number
-  ) {
-    super(
-      'frame',
-      instanceUrl,
-      accessToken,
-      debuggedRequestId,
-      `stackFrame=${frameId}`
-    );
+  public constructor(debuggedRequestId: string, frameId: number) {
+    super('frame', debuggedRequestId, `stackFrame=${frameId}`);
   }
 }

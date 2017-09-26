@@ -9,9 +9,10 @@ import { Source } from 'vscode-debugadapter/lib/debugSession';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
   ApexDebug,
-  LaunchRequestArguments
+  LaunchRequestArguments,
+  VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { OrgInfo, RequestService } from '../../../src/commands';
+import { OrgInfo, Reference, RequestService } from '../../../src/commands';
 import {
   BreakpointService,
   SessionService,
@@ -159,5 +160,15 @@ export class ApexDebugForTest extends ApexDebug {
     sourceLine?: number
   ): void {
     super.printToDebugConsole(msg, sourceFile, sourceLine);
+  }
+
+  public populateReferences(references: Reference[], requestId: string): void {
+    super.populateReferences(references, requestId);
+  }
+
+  public getVariableContainer(
+    variableReference: number
+  ): VariableContainer | undefined {
+    return super.variableHandles.get(variableReference);
   }
 }

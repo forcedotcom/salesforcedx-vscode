@@ -115,11 +115,7 @@ describe('Base command', () => {
         Accept: 'application/json',
         Authorization: `OAuth 123`
       },
-      data: {
-        getReferencesRequest: {
-          reference: []
-        }
-      }
+      data: JSON.stringify(myRequest)
     };
 
     await requestService.execute(dummyCommand);

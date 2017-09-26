@@ -8,19 +8,17 @@
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
-import { FrameCommand } from '../../../src/commands';
+import { FrameCommand, RequestService } from '../../../src/commands';
 
 describe('Frame command', () => {
   let sendRequestSpy: sinon.SinonStub;
   let frameCommand: FrameCommand;
+  const requestService = new RequestService();
 
   beforeEach(() => {
-    frameCommand = new FrameCommand(
-      'https://www.salesforce.com',
-      '123',
-      '07cFAKE',
-      1
-    );
+    requestService.instanceUrl = 'https://www.salesforce.com';
+    requestService.accessToken = '123';
+    frameCommand = new FrameCommand('07cFAKE', 1);
   });
 
   afterEach(() => {
@@ -29,7 +27,7 @@ describe('Frame command', () => {
 
   it('Should build request', async () => {
     sendRequestSpy = sinon
-      .stub(FrameCommand.prototype, 'sendRequest')
+      .stub(RequestService.prototype, 'sendRequest')
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
@@ -44,7 +42,7 @@ describe('Frame command', () => {
       }
     };
 
-    await frameCommand.execute();
+    await requestService.execute(frameCommand);
 
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);

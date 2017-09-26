@@ -4,10 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+/* tslint:disable:no-unused-expression */
 import { expect } from 'chai';
-import { ApexVariable, ApexVariableKind } from '../../../src/adapter/apexDebug';
-import { LocalValue, Value } from '../../../src/commands';
+import {
+  ApexVariable,
+  ApexVariableKind,
+  ObjectReferenceContainer
+} from '../../../src/adapter/apexDebug';
+import {
+  LocalValue,
+  Reference,
+  RequestService,
+  Value
+} from '../../../src/commands';
+import { BreakpointService } from '../../../src/core/breakpointService';
+import { SessionService } from '../../../src/core/sessionService';
+import { StreamingService } from '../../../src/core/streamingService';
+import { ApexDebugForTest } from './apexDebugForTest';
 
 describe('Debugger adapter variable handling - unit', () => {
   describe('ApexVariable', () => {
@@ -73,6 +86,50 @@ describe('Debugger adapter variable handling - unit', () => {
       value.nameForMessages = 'a-type';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal('123 (a-type)');
+    });
+  });
+
+  describe('populateReferences', () => {
+    let adapter: ApexDebugForTest;
+
+    it('Should expand object correctly', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+
+      const references: Reference[] = [
+        {
+          type: 'object',
+          nameForMessages: 'Object',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        0
+      );
+
+      expect(variableRef).to.be.at.least(0);
+      const container = adapter.getVariableContainer(variableRef as number);
+
+      expect(container).to.be.ok;
+      expect(container).to.be.instanceOf(ObjectReferenceContainer);
     });
   });
 });
