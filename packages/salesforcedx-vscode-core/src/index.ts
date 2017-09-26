@@ -14,6 +14,7 @@ import {
   forceAuthWebLogin,
   forceConfigList,
   forceDebuggerStop,
+  forceGenerateFauxClassesCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
@@ -50,9 +51,19 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.source.pull',
     forceSourcePull
   );
+  const forceSourcePullForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.pull.force',
+    forceSourcePull,
+    { flag: '--forceoverwrite' }
+  );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
     forceSourcePush
+  );
+  const forceSourcePushForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.push.force',
+    forceSourcePush,
+    { flag: '--forceoverwrite' }
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -104,6 +115,7 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.interface.create',
     forceLightningInterfaceCreate
   );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -126,6 +138,11 @@ function registerCommands(): vscode.Disposable {
     { flag: '--targetusername' }
   );
 
+  const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
+    'sfdx.force.internal.refreshsobjects',
+    forceGenerateFauxClassesCreate
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -138,7 +155,9 @@ function registerCommands(): vscode.Disposable {
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,
+    forceSourcePullForceCmd,
     forceSourcePushCmd,
+    forceSourcePushForceCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
@@ -155,6 +174,7 @@ function registerCommands(): vscode.Disposable {
     forceAliasListCmd,
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
+    forceGenerateFauxClassesCmd,
     internalCancelCommandExecution
   );
 }

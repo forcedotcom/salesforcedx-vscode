@@ -30,7 +30,7 @@ const sobjectdescribe = new SObjectDescribe();
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', function() {
   // tslint:disable-next-line:no-invalid-this
-  this.timeout(60000);
+  this.timeout(180000);
   let username: string;
 
   before(async function() {
