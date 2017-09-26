@@ -24,6 +24,7 @@
   "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.11.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "40.11.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
@@ -195,6 +196,7 @@
           "when": "sfdx:project_opened"
         },
         {
+
           "command": "sfdx.force.alias.list",
           "when": "sfdx:project_opened"
         },
@@ -205,6 +207,10 @@
         {
           "command": "sfdx.force.org.display.username",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.internal.refreshsobjects",
+          "when": "config.sfdx.refreshSObjects.enabled"
         }
       ]
     },
@@ -304,6 +310,10 @@
       {
         "command": "sfdx.force.org.display.username",
         "title": "%force_org_display_username_text%"
+      },
+      {
+        "command": "sfdx.force.internal.refreshsobjects",
+        "title": "%force_refresh_sobjects%"
       }
     ]
   }

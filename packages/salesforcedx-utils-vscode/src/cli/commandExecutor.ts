@@ -77,7 +77,7 @@ export class CommandExecution {
       childProcess,
       'error'
     ) as Observable<Error | undefined>;
-    this.processExitSubject.subscribe(next => {
+    this.processErrorSubject.subscribe(next => {
       if (timerSubscriber) {
         timerSubscriber.unsubscribe();
       }
