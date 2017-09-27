@@ -450,7 +450,6 @@ describe('Debugger adapter - unit', () => {
     });
 
     it('Should create breakpoint', async () => {
-      const breakpointId = '07bFAKE';
       const bpLines = [1, 2];
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileBreakpoints')
