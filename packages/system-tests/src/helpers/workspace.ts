@@ -7,7 +7,7 @@
  */
 
 import * as path from 'path';
-import { cp, mkdir, tempdir } from 'shelljs';
+import { cp, mkdir, rm, tempdir } from 'shelljs';
 
 export function createWorkspace(assetToSeedPath: string): string {
   const tmpDir = tempdir();
@@ -16,4 +16,8 @@ export function createWorkspace(assetToSeedPath: string): string {
   mkdir('-p', workspacePath);
   cp('-R', assetToSeedPath, workspacePath);
   return path.join(workspacePath);
+}
+
+export function removeWorkspace(pathToRemove: string) {
+  rm('-rf', pathToRemove);
 }
