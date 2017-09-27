@@ -31,6 +31,10 @@ let mocha = new Mocha({
 });
 
 function configure(mochaOpts: any): void {
+  if (mochaOpts.reporter == null) {
+    // default to 'mocha-multi-reporters' (to get xunit.xml result)
+    mochaOpts.reporter = 'mocha-multi-reporters';
+  }
   mocha = new Mocha(mochaOpts);
 }
 exports.configure = configure;
