@@ -13,6 +13,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import {
@@ -58,11 +59,11 @@ export class DebuggerSessionDetachExecutor extends SfdxCommandletExecutor<
   public build(data: IdSelection): Command {
     return new SfdxCommandBuilder()
       .withArg('force:data:record:update')
+      .withDescription(nls.localize('force_debugger_stop_text'))
       .withFlag('--sobjecttype', 'ApexDebuggerSession')
       .withFlag('--sobjectid', data ? data.id : '')
       .withFlag('--values', 'Status="Detach"')
       .withArg('--usetoolingapi')
-      .withArg('--json')
       .build();
   }
 }
@@ -71,6 +72,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withArg('force:data:soql:query')
+      .withDescription(nls.localize('force_debugger_query_session_text'))
       .withFlag(
         '--query',
         "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"
@@ -90,10 +92,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
 
     const resultPromise = new CommandOutput().getCmdResult(execution);
     channelService.streamCommandOutput(execution);
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
+    channelService.showChannelOutput();
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
@@ -114,6 +113,10 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
           );
           await sessionDetachCommandlet.run();
         }
+      } else {
+        notificationService.showInformationMessage(
+          nls.localize('force_debugger_stop_none_found_text')
+        );
       }
       // tslint:disable-next-line:no-empty
     } catch (e) {}

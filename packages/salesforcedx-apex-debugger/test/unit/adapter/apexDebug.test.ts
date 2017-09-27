@@ -964,7 +964,19 @@ describe('Debugger adapter - unit', () => {
         success: true,
         type: 'response',
         body: {
-          supportsDelayedStackTraceLoading: false
+          supportsCompletionsRequest: false,
+          supportsConditionalBreakpoints: false,
+          supportsDelayedStackTraceLoading: false,
+          supportsEvaluateForHovers: false,
+          supportsExceptionInfoRequest: false,
+          supportsExceptionOptions: false,
+          supportsFunctionBreakpoints: false,
+          supportsHitConditionalBreakpoints: false,
+          supportsLoadedSourcesRequest: false,
+          supportsRestartFrame: false,
+          supportsSetVariable: false,
+          supportsStepBack: false,
+          supportsStepInTargetsRequest: false
         }
       } as DebugProtocol.InitializeResponse;
 
