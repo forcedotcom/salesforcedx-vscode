@@ -273,5 +273,7 @@ export class BreakpointService {
 
   public clearSavedBreakpoints(): void {
     this.breakpointCache.clear();
+    this.breakpointAddQueue.clear();
+    this.breakpointDeleteQueue.clear();
   }
 }
