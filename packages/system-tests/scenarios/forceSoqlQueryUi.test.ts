@@ -76,7 +76,7 @@ describe(TITLE, () => {
     await app.wait();
 
     // Select all text in the current window
-    await app.client.keys(['Meta', 'a', 'NULL'], false);
+    await app.command('editor.action.selectAll');
 
     // Invoke SFDX: Execute SOQL Query command by name
     await app.command('workbench.action.quickOpen');
