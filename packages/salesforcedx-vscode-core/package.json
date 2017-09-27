@@ -24,6 +24,7 @@
   "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.11.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "40.11.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
@@ -127,7 +128,15 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.source.pull.force",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.source.push",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.push.force",
           "when": "sfdx:project_opened"
         },
         {
@@ -187,6 +196,7 @@
           "when": "sfdx:project_opened"
         },
         {
+
           "command": "sfdx.force.alias.list",
           "when": "sfdx:project_opened"
         },
@@ -205,6 +215,10 @@
         {
           "command": "sfdx.force.data.soql.query.selection",
           "when": "sfdx:project_opened && editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.internal.refreshsobjects",
+          "when": "config.sfdx.refreshSObjects.enabled"
         }
       ]
     },
@@ -226,8 +240,16 @@
         "title": "%force_source_pull_default_scratch_org_text%"
       },
       {
+        "command": "sfdx.force.source.pull.force",
+        "title": "%force_source_pull_force_default_scratch_org_text%"
+      },
+      {
         "command": "sfdx.force.source.push",
         "title": "%force_source_push_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.push.force",
+        "title": "%force_source_push_force_default_scratch_org_text%"
       },
       {
         "command": "sfdx.force.source.status",
@@ -304,6 +326,10 @@
       {
         "command": "sfdx.force.data.soql.query.selection",
         "title": "%force_data_soql_query_selection_text%"
+      },
+      {
+        "command": "sfdx.force.internal.refreshsobjects",
+        "title": "%force_refresh_sobjects%"
       }
     ]
   }
