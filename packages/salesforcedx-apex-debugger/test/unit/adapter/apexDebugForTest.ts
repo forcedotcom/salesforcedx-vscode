@@ -169,6 +169,6 @@ export class ApexDebugForTest extends ApexDebug {
   public getVariableContainer(
     variableReference: number
   ): VariableContainer | undefined {
-    return super.variableHandles.get(variableReference);
+    return this.variableHandles.get(variableReference);
   }
 }

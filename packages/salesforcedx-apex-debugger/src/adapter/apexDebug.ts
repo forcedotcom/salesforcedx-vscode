@@ -494,7 +494,7 @@ export class ApexDebug extends LoggingDebugSession {
       this.trace = args.trace ? [TRACE_ALL] : undefined;
       this.traceAll = args.trace;
     } else if (typeof args.trace === 'string') {
-      this.trace = args.trace.split(',');
+      this.trace = args.trace.split(',').map(category => category.trim());
       this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
     }
     if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {

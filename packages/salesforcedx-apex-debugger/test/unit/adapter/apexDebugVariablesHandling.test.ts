@@ -29,10 +29,10 @@ describe('Debugger adapter variable handling - unit', () => {
 
     beforeEach(() => {
       value = {
-        name: 'name',
-        nameForMessages: 'nameForMessages',
-        declaredTypeRef: 'declaredTypeRef',
-        value: 'value'
+        name: 'variableName',
+        nameForMessages: 'String',
+        declaredTypeRef: 'java/lang/String',
+        value: 'a string'
       };
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
     });
@@ -40,7 +40,7 @@ describe('Debugger adapter variable handling - unit', () => {
     it('Should use proper values from Value', async () => {
       expect(variable.name).to.equal(value.name);
       expect(variable.declaredTypeRef).to.equal(value.declaredTypeRef);
-      expect(variable.value).to.equal(value.value);
+      expect(variable.value).to.equal(ApexVariable.valueAsString(value));
       expect(variable.variablesReference).to.equal(20);
       expect(variable['kind']).to.equal(ApexVariableKind.Local);
     });
@@ -61,8 +61,9 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable['slot']).to.equal(localvalue.slot);
     });
 
-    it('Should correctly print null as "null"', async () => {
+    it('Should correctly print null string as "null"', async () => {
       value.value = undefined;
+      value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal('null');
     });
@@ -71,21 +72,30 @@ describe('Debugger adapter variable handling - unit', () => {
       value.value = '';
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal('');
+      expect(variable.value).to.equal("''");
     });
 
     it('Should correctly print string', async () => {
       value.value = '123';
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal('123');
+      expect(variable.value).to.equal("'123'");
     });
 
     it('Should correctly print value with type info', async () => {
       value.value = '123';
       value.nameForMessages = 'a-type';
+      value.declaredTypeRef = 'a/specific/type';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
-      expect(variable.value).to.equal('123 (a-type)');
+      expect(variable.value).to.equal('123 [a-type]');
+    });
+
+    it('Should correctly print null with type info', async () => {
+      value.value = undefined;
+      value.nameForMessages = 'a-type';
+      value.declaredTypeRef = 'a/specific/type';
+      variable = new ApexVariable(value, ApexVariableKind.Local, 20);
+      expect(variable.value).to.equal('null [a-type]');
     });
   });
 
