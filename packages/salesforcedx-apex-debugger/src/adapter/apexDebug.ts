@@ -61,8 +61,8 @@ import os = require('os');
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
-  userIdFilter?: string;
-  requestTypeFilter?: string;
+  userIdFilter?: string[];
+  requestTypeFilter?: string[];
   entryPointFilter?: string;
   sfdxProject: string;
 }
@@ -134,9 +134,9 @@ export class ApexDebug extends DebugSession {
 
       const sessionId = await this.mySessionService
         .forProject(args.sfdxProject)
-        .withUserFilter(args.userIdFilter)
+        .withUserFilter(this.stringifyLaunchArg(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
-        .withRequestFilter(args.requestTypeFilter)
+        .withRequestFilter(this.stringifyLaunchArg(args.requestTypeFilter))
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
@@ -710,7 +710,7 @@ export class ApexDebug extends DebugSession {
     if (threadId !== undefined) {
       this.logEvent(message);
       const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
-        message.sobject.BreakpointId ? 'breakpoint' : 'step',
+        '',
         threadId
       );
       this.sendEvent(stoppedEvent);
@@ -743,6 +743,13 @@ export class ApexDebug extends DebugSession {
         } as VscodeDebuggerMessage)
       );
     }
+  }
+
+  private stringifyLaunchArg(arg?: string[]): string {
+    if (arg && arg.length > 0) {
+      return Array.from(new Set(arg)).join(',');
+    }
+    return '';
   }
 }
 
