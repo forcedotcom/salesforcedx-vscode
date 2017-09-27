@@ -63,7 +63,9 @@ test_script:
       Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Foreach-Object {
         # retrieve relevant values
         $testFailures = Select-Xml -XPath '//testsuite/@failures' -Path $_.FullName -ErrorAction SilentlyContinue
+        "testFailures: $testFailures"
         $testErrors = Select-Xml -XPath '//testsuite/@errors' -Path $_.FullName -ErrorAction SilentlyContinue
+        "testErrors: $testErrors"
         if ($testFailures -gt 0 -Or $testErrors -gt 0) {
           # Terminate the script to fail the build
           $Error | Format-List * -Force
