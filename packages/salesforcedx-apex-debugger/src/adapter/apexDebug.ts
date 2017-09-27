@@ -188,67 +188,34 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.SetBreakpointsResponse,
     args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
-    if (args.source && args.source.path) {
-      const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
+    if (args.source && args.source.path && args.lines) {
       const uri = this.convertClientPathToDebugger(args.source.path);
-
-      try {
-        const linesToSetBreakpoint = await this.myBreakpointService.reconcileBreakpoints(
-          this.sfdxProject,
-          this.mySessionService.getSessionId(),
-          uri,
-          args.lines
-        );
-        for (const existingBreakpoints of this.myBreakpointService.getBreakpointsFor(
-          uri
-        )) {
+      const validBreakpoints = await this.myBreakpointService.reconcileBreakpoints(
+        this.sfdxProject,
+        uri,
+        this.mySessionService.getSessionId(),
+        args.lines.map(line => this.convertClientLineToDebugger(line))
+      );
+      const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
+      validBreakpoints.forEach(validBreakpoint => {
+        processedBreakpoints.push({
+          verified: true,
+          source: args.source,
+          line: this.convertDebuggerLineToClient(validBreakpoint)
+        });
+      });
+      args.lines.forEach(lineArg => {
+        if (!validBreakpoints.has(lineArg)) {
           processedBreakpoints.push({
-            verified: true,
+            verified: false,
             source: args.source,
-            line: existingBreakpoints
+            line: this.convertDebuggerLineToClient(lineArg)
           });
         }
-
-        for (const clientLine of linesToSetBreakpoint) {
-          const serverLine = this.convertClientLineToDebugger(clientLine);
-          const typeref = this.myBreakpointService.getTyperefFor(
-            uri,
-            serverLine
-          );
-          if (typeref) {
-            const breakpointId = await this.myBreakpointService.createLineBreakpoint(
-              this.sfdxProject,
-              this.mySessionService.getSessionId(),
-              typeref,
-              serverLine
-            );
-            this.myBreakpointService.cacheBreakpoint(
-              uri,
-              clientLine,
-              breakpointId
-            );
-            processedBreakpoints.push({
-              verified: true,
-              source: args.source,
-              line: clientLine
-            });
-          } else {
-            processedBreakpoints.push({
-              verified: false,
-              source: args.source,
-              line: clientLine
-            });
-          }
-        }
-
-        response.success = true;
-        response.body = {
-          breakpoints: processedBreakpoints
-        };
-      } catch (error) {
-        this.tryToParseSfdxError(response, error);
-      }
+      });
+      response.body = { breakpoints: processedBreakpoints };
     }
+    response.success = true;
     this.sendResponse(response);
   }
 

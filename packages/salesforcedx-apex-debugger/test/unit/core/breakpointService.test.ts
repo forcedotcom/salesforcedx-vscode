@@ -129,7 +129,7 @@ describe('Debugger breakpoint service', () => {
       service.cacheBreakpoint('file:///bar.cls', 3, '07bFAKE3');
 
       const savedBreakpoints = service.getBreakpointsFor('file:///foo.cls');
-      expect(savedBreakpoints).to.have.same.members([1, 2]);
+      expect(savedBreakpoints).to.have.all.keys([1, 2]);
     });
 
     it('Should not find existing breakpoints', () => {
@@ -137,7 +137,7 @@ describe('Debugger breakpoint service', () => {
       service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
 
       const savedBreakpoints = service.getBreakpointsFor('file:///bar.cls');
-      expect(savedBreakpoints.length).to.equal(0);
+      expect(savedBreakpoints.size).to.equal(0);
     });
   });
 
@@ -169,6 +169,7 @@ describe('Debugger breakpoint service', () => {
 
       const cmdOutput = await service.createLineBreakpoint(
         'someProjectPath',
+        'file:///someProjectPath',
         '07aFAKE',
         'foo$inner',
         1
@@ -193,12 +194,30 @@ describe('Debugger breakpoint service', () => {
       expect(cmdBuildSpy.calledOnce).to.equal(true);
     });
 
+    it('Should not create duplicate breakpoint', async () => {
+      mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07bFAKE"}}'));
+      service
+        .getBreakpointAddQueue()
+        .set('file:///someProjectPath', new Set().add(1));
+
+      const cmdOutput = await service.createLineBreakpoint(
+        'someProjectPath',
+        'file:///someProjectPath',
+        '07aFAKE',
+        'foo$inner',
+        1
+      );
+
+      expect(cmdOutput).to.equal(undefined);
+    });
+
     it('Should not create breakpoint successfully with wrong ID', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"FAKE"}}'));
 
       try {
         await service.createLineBreakpoint(
           'someProjectPath',
+          'file:///someProjectPath',
           '07aFAKE',
           'foo$inner',
           1
@@ -215,6 +234,7 @@ describe('Debugger breakpoint service', () => {
       try {
         await service.createLineBreakpoint(
           'someProjectPath',
+          'file:///someProjectPath',
           '07aFAKE',
           'foo$inner',
           1
@@ -237,6 +257,7 @@ describe('Debugger breakpoint service', () => {
       try {
         await service.createLineBreakpoint(
           'someProjectPath',
+          'file:///someProjectPath',
           '07aFAKE',
           'foo$inner',
           1
@@ -278,7 +299,9 @@ describe('Debugger breakpoint service', () => {
 
       const cmdOutput = await service.deleteLineBreakpoint(
         'someProjectPath',
-        '07bFAKE'
+        'file:///someProjectPath',
+        '07bFAKE',
+        1
       );
 
       expect(cmdOutput).to.equal('07bFAKE');
@@ -300,11 +323,32 @@ describe('Debugger breakpoint service', () => {
       expect(cmdBuildSpy.calledOnce).to.equal(true);
     });
 
+    it('Should not delete duplicate breakpoint', async () => {
+      mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07bFAKE"}}'));
+      service
+        .getBreakpointDeleteQueue()
+        .set('file:///someProjectPath', new Set().add(1));
+
+      const cmdOutput = await service.deleteLineBreakpoint(
+        'someProjectPath',
+        'file:///someProjectPath',
+        '07bFAKE',
+        1
+      );
+
+      expect(cmdOutput).to.equal(undefined);
+    });
+
     it('Should not delete breakpoint successfully with wrong ID', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteLineBreakpoint(
+          'someProjectPath',
+          'file:///someProjectPath',
+          '07bFAKE',
+          1
+        );
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"id":"FAKE"}}');
@@ -315,7 +359,12 @@ describe('Debugger breakpoint service', () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"notid":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteLineBreakpoint(
+          'someProjectPath',
+          'file:///someProjectPath',
+          '07bFAKE',
+          1
+        );
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
@@ -332,7 +381,12 @@ describe('Debugger breakpoint service', () => {
       );
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteLineBreakpoint(
+          'someProjectPath',
+          'file:///someProjectPath',
+          '07bFAKE',
+          1
+        );
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal(
@@ -343,69 +397,179 @@ describe('Debugger breakpoint service', () => {
   });
 
   describe('Reconcile', () => {
-    let origSpawn: any, mySpawn: any;
+    let addLineBreakpointSpy: sinon.SinonStub;
     let deleteLineBreakpointSpy: sinon.SinonStub;
+    let getTyperefForSpy: sinon.SinonStub;
 
     beforeEach(() => {
       service = new BreakpointService();
-      origSpawn = childProcess.spawn;
-      mySpawn = mockSpawn();
-      childProcess.spawn = mySpawn;
-    });
-
-    afterEach(() => {
-      childProcess.spawn = origSpawn;
-      deleteLineBreakpointSpy.restore();
-    });
-
-    it('Should not delete if there is no cached breakpoint', async () => {
-      deleteLineBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
-        .returns(Promise.resolve(new CommandOutput()));
-
-      const bpsToCreate = await service.reconcileBreakpoints(
-        'someProjectPath',
-        '07aFAKE',
-        'file:///foo.cls',
-        [1, 2]
-      );
-
-      expect(bpsToCreate).to.have.same.members([1, 2]);
-      expect(deleteLineBreakpointSpy.called).to.equal(false);
-    });
-
-    it('Should find breakpoints for client to create and server to delete', async () => {
-      deleteLineBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
-        .returns(Promise.resolve(new CommandOutput()));
       service.cacheBreakpoint('file:///foo.cls', 3, '07bFAKE3');
       service.cacheBreakpoint('file:///foo.cls', 4, '07bFAKE4');
       service.cacheBreakpoint('file:///foo.cls', 5, '07bFAKE5');
-      service.cacheBreakpoint('file:///bar.cls', 1, '07bFAKE1');
+      service.cacheBreakpoint('file:///bar.cls', 1, '07bFAKE6');
+    });
+
+    afterEach(() => {
+      if (addLineBreakpointSpy) {
+        addLineBreakpointSpy.restore();
+      }
+      if (deleteLineBreakpointSpy) {
+        deleteLineBreakpointSpy.restore();
+      }
+      if (getTyperefForSpy) {
+        getTyperefForSpy.restore();
+      }
+    });
+
+    it('Should reconcile breakpoints for client to create and server to delete', async () => {
+      getTyperefForSpy = sinon
+        .stub(BreakpointService.prototype, 'getTyperefFor')
+        .returns('foo');
+      addLineBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'createLineBreakpoint')
+        .onFirstCall()
+        .returns(Promise.resolve('07bFAKE1'))
+        .onSecondCall()
+        .returns(Promise.resolve('07bFAKE2'));
+      deleteLineBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
+        .onFirstCall()
+        .returns(Promise.resolve('07bFAKE4'))
+        .onSecondCall()
+        .returns(Promise.resolve('07bFAKE5'));
+      const expectedCache: Map<string, ApexBreakpointLocation[]> = new Map();
+      expectedCache.set('file:///foo.cls', [
+        { line: 3, breakpointId: '07bFAKE3' },
+        { line: 1, breakpointId: '07bFAKE1' },
+        { line: 2, breakpointId: '07bFAKE2' }
+      ]);
+      expectedCache.set('file:///bar.cls', [
+        { line: 1, breakpointId: '07bFAKE6' }
+      ]);
+
+      const bpsToCreate = await service.reconcileBreakpoints(
+        'someProjectPath',
+        'file:///foo.cls',
+        '07aFAKE',
+        [1, 2, 3]
+      );
+
+      expect(bpsToCreate).to.have.all.keys([1, 2, 3]);
+      expect(addLineBreakpointSpy.calledTwice).to.equal(true);
+      expect(addLineBreakpointSpy.getCall(0).args).to.have.same.members([
+        'someProjectPath',
+        'file:///foo.cls',
+        '07aFAKE',
+        'foo',
+        1
+      ]);
+      expect(addLineBreakpointSpy.getCall(1).args).to.have.same.members([
+        'someProjectPath',
+        'file:///foo.cls',
+        '07aFAKE',
+        'foo',
+        2
+      ]);
+      expect(deleteLineBreakpointSpy.calledTwice).to.equal(true);
+      expect(deleteLineBreakpointSpy.getCall(0).args).to.have.same.members([
+        'someProjectPath',
+        'file:///foo.cls',
+        '07bFAKE5',
+        5
+      ]);
+      expect(deleteLineBreakpointSpy.getCall(1).args).to.have.same.members([
+        'someProjectPath',
+        'file:///foo.cls',
+        '07bFAKE4',
+        4
+      ]);
+      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+    });
+
+    it('Should not create breakpoints without known typeref', async () => {
+      getTyperefForSpy = sinon
+        .stub(BreakpointService.prototype, 'getTyperefFor')
+        .returns(undefined);
+      addLineBreakpointSpy = sinon.stub(
+        BreakpointService.prototype,
+        'createLineBreakpoint'
+      );
+      deleteLineBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
+        .onFirstCall()
+        .returns(Promise.resolve('07bFAKE4'))
+        .onSecondCall()
+        .returns(Promise.resolve('07bFAKE5'));
       const expectedCache: Map<string, ApexBreakpointLocation[]> = new Map();
       expectedCache.set('file:///foo.cls', [
         { line: 3, breakpointId: '07bFAKE3' }
       ]);
       expectedCache.set('file:///bar.cls', [
-        { line: 1, breakpointId: '07bFAKE1' }
+        { line: 1, breakpointId: '07bFAKE6' }
       ]);
 
       const bpsToCreate = await service.reconcileBreakpoints(
         'someProjectPath',
-        '07aFAKE',
         'file:///foo.cls',
+        '07aFAKE',
         [1, 2, 3]
       );
 
-      expect(bpsToCreate).to.have.same.members([1, 2]);
+      expect(bpsToCreate).to.have.all.keys([3]);
+      expect(addLineBreakpointSpy.called).to.equal(false);
       expect(deleteLineBreakpointSpy.calledTwice).to.equal(true);
       expect(deleteLineBreakpointSpy.getCall(0).args).to.have.same.members([
         'someProjectPath',
-        '07bFAKE4'
+        'file:///foo.cls',
+        '07bFAKE5',
+        5
       ]);
       expect(deleteLineBreakpointSpy.getCall(1).args).to.have.same.members([
         'someProjectPath',
-        '07bFAKE5'
+        'file:///foo.cls',
+        '07bFAKE4',
+        4
+      ]);
+      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+    });
+
+    it('Should try to add if the same line was queued to delete from previous request', async () => {
+      getTyperefForSpy = sinon
+        .stub(BreakpointService.prototype, 'getTyperefFor')
+        .returns('foo');
+      addLineBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'createLineBreakpoint')
+        .onFirstCall()
+        .returns(Promise.resolve('07bFAKE3'));
+      const expectedCache: Map<string, ApexBreakpointLocation[]> = new Map();
+      expectedCache.set('file:///foo.cls', [
+        { line: 3, breakpointId: '07bFAKE3' },
+        { line: 4, breakpointId: '07bFAKE4' },
+        { line: 5, breakpointId: '07bFAKE5' },
+        { line: 3, breakpointId: '07bFAKE3' }
+      ]);
+      expectedCache.set('file:///bar.cls', [
+        { line: 1, breakpointId: '07bFAKE6' }
+      ]);
+      service
+        .getBreakpointDeleteQueue()
+        .set('file:///foo.cls', new Set().add(3));
+
+      const bpsToCreate = await service.reconcileBreakpoints(
+        'someProjectPath',
+        'file:///foo.cls',
+        '07aFAKE',
+        [3, 4, 5]
+      );
+
+      expect(bpsToCreate).to.have.all.keys([3, 4, 5]);
+      expect(addLineBreakpointSpy.calledOnce).to.equal(true);
+      expect(addLineBreakpointSpy.getCall(0).args).to.have.same.members([
+        'someProjectPath',
+        'file:///foo.cls',
+        '07aFAKE',
+        'foo',
+        3
       ]);
       expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
     });

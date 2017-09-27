@@ -397,8 +397,8 @@ describe('Debugger adapter - unit', () => {
   describe('Line breakpoint request', () => {
     let breakpointReconcileSpy: sinon.SinonStub;
     let breakpointGetSpy: sinon.SinonSpy;
-    let breakpointGetTyperefSpy: sinon.SinonStub;
-    let breakpointCreateSpy: sinon.SinonStub;
+    let breakpointGetTyperefSpy: sinon.SinonSpy;
+    let breakpointCreateSpy: sinon.SinonSpy;
     let breakpointCacheSpy: sinon.SinonSpy;
     let sessionIdSpy: sinon.SinonStub;
 
@@ -412,6 +412,14 @@ describe('Debugger adapter - unit', () => {
       breakpointGetSpy = sinon.spy(
         BreakpointService.prototype,
         'getBreakpointsFor'
+      );
+      breakpointGetTyperefSpy = sinon.spy(
+        BreakpointService.prototype,
+        'getTyperefFor'
+      );
+      breakpointCreateSpy = sinon.spy(
+        BreakpointService.prototype,
+        'createLineBreakpoint'
       );
       breakpointCacheSpy = sinon.spy(
         BreakpointService.prototype,
@@ -446,13 +454,7 @@ describe('Debugger adapter - unit', () => {
       const bpLines = [1, 2];
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileBreakpoints')
-        .returns(Promise.resolve(bpLines));
-      breakpointGetTyperefSpy = sinon
-        .stub(BreakpointService.prototype, 'getTyperefFor')
-        .returns('namespace/foo$inner');
-      breakpointCreateSpy = sinon
-        .stub(BreakpointService.prototype, 'createLineBreakpoint')
-        .returns(breakpointId);
+        .returns(Promise.resolve(new Set().add(1)));
       adapter.setSfdxProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
@@ -468,108 +470,21 @@ describe('Debugger adapter - unit', () => {
       expect(breakpointReconcileSpy.calledOnce).to.equal(true);
       expect(breakpointReconcileSpy.getCall(0).args).to.deep.equal([
         'someProjectPath',
-        '07aFAKE',
         'file:///foo.cls',
+        '07aFAKE',
         bpLines
       ]);
-      expect(breakpointGetSpy.calledOnce).to.equal(true);
-      expect(breakpointGetSpy.getCall(0).args).to.have.same.members([
-        'file:///foo.cls'
-      ]);
-      expect(breakpointGetTyperefSpy.calledTwice).to.equal(true);
-      expect(breakpointCreateSpy.calledTwice).to.equal(true);
-      expect(breakpointCacheSpy.calledTwice).to.equal(true);
-
-      for (let i = 0; i < bpLines.length; i++) {
-        expect(breakpointGetTyperefSpy.getCall(i).args).to.have.same.members([
-          'file:///foo.cls',
-          bpLines[i]
-        ]);
-        expect(breakpointCreateSpy.getCall(i).args).to.have.same.members([
-          'someProjectPath',
-          '07aFAKE',
-          'namespace/foo$inner',
-          bpLines[i]
-        ]);
-        expect(breakpointCacheSpy.getCall(i).args).to.have.same.members([
-          'file:///foo.cls',
-          bpLines[i],
-          '07bFAKE'
-        ]);
-      }
-
-      const expectedResp = {
-        success: true,
-        body: {
-          breakpoints: [
-            {
-              verified: true,
-              source: {
-                path: 'foo.cls'
-              },
-              line: 1
-            },
-            {
-              verified: true,
-              source: {
-                path: 'foo.cls'
-              },
-              line: 2
-            }
-          ]
-        }
-      } as DebugProtocol.SetBreakpointsResponse;
-      expect(adapter.getResponse(0)).to.deep.equal(expectedResp);
-    });
-
-    it('Should not create breakpoint', async () => {
-      const bpLines = [1, 2];
-      breakpointReconcileSpy = sinon
-        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
-        .returns(Promise.resolve(bpLines));
-      breakpointGetTyperefSpy = sinon
-        .stub(BreakpointService.prototype, 'getTyperefFor')
-        .returns('');
-      breakpointCreateSpy = sinon.stub(
-        BreakpointService.prototype,
-        'createLineBreakpoint'
-      );
-      adapter.setSfdxProject('someProjectPath');
-
-      await adapter.setBreakPointsReq(
-        {} as DebugProtocol.SetBreakpointsResponse,
-        {
-          source: {
-            path: 'foo.cls'
-          },
-          lines: bpLines
-        }
-      );
-
-      expect(breakpointReconcileSpy.calledOnce).to.equal(true);
-      expect(breakpointReconcileSpy.getCall(0).args).to.deep.equal([
-        'someProjectPath',
-        '07aFAKE',
-        'file:///foo.cls',
-        bpLines
-      ]);
-      expect(breakpointGetTyperefSpy.calledTwice).to.equal(true);
+      expect(breakpointGetSpy.called).to.equal(false);
+      expect(breakpointGetTyperefSpy.called).to.equal(false);
       expect(breakpointCreateSpy.called).to.equal(false);
       expect(breakpointCacheSpy.called).to.equal(false);
 
-      for (let i = 0; i < bpLines.length; i++) {
-        expect(breakpointGetTyperefSpy.getCall(i).args).to.have.same.members([
-          'file:///foo.cls',
-          bpLines[i]
-        ]);
-      }
-
       const expectedResp = {
         success: true,
         body: {
           breakpoints: [
             {
-              verified: false,
+              verified: true,
               source: {
                 path: 'foo.cls'
               },
@@ -588,15 +503,39 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getResponse(0)).to.deep.equal(expectedResp);
     });
 
-    it('Should output error', async () => {
+    it('Should not create breakpoint without source argument', async () => {
       const bpLines = [1, 2];
       breakpointReconcileSpy = sinon
         .stub(BreakpointService.prototype, 'reconcileBreakpoints')
-        .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
-        );
+        .returns(Promise.resolve(bpLines));
+      adapter.setSfdxProject('someProjectPath');
+
+      await adapter.setBreakPointsReq(
+        {} as DebugProtocol.SetBreakpointsResponse,
+        {
+          source: {
+            path: undefined
+          },
+          lines: bpLines
+        }
+      );
+
+      expect(breakpointReconcileSpy.called).to.equal(false);
+      expect(breakpointGetTyperefSpy.called).to.equal(false);
+      expect(breakpointCreateSpy.called).to.equal(false);
+      expect(breakpointCacheSpy.called).to.equal(false);
+
+      const expectedResp = {
+        success: true
+      } as DebugProtocol.SetBreakpointsResponse;
+      expect(adapter.getResponse(0)).to.deep.equal(expectedResp);
+    });
+
+    it('Should not create breakpoint without lines argument', async () => {
+      const bpLines = [1, 2];
+      breakpointReconcileSpy = sinon
+        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
+        .returns(Promise.resolve(bpLines));
       adapter.setSfdxProject('someProjectPath');
 
       await adapter.setBreakPointsReq(
@@ -605,23 +544,19 @@ describe('Debugger adapter - unit', () => {
           source: {
             path: 'foo.cls'
           },
-          lines: bpLines
+          lines: undefined
         }
       );
 
-      expect(breakpointReconcileSpy.calledOnce).to.equal(true);
-      expect(breakpointReconcileSpy.getCall(0).args).to.deep.equal([
-        'someProjectPath',
-        '07aFAKE',
-        'file:///foo.cls',
-        bpLines
-      ]);
-      expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getResponse(0).message).to.equal('There was an error');
-      expect(adapter.getEvents()[0].event).to.equal('output');
-      expect(
-        (adapter.getEvents()[0] as OutputEvent).body.output
-      ).to.have.string('Try again');
+      expect(breakpointReconcileSpy.called).to.equal(false);
+      expect(breakpointGetTyperefSpy.called).to.equal(false);
+      expect(breakpointCreateSpy.called).to.equal(false);
+      expect(breakpointCacheSpy.called).to.equal(false);
+
+      const expectedResp = {
+        success: true
+      } as DebugProtocol.SetBreakpointsResponse;
+      expect(adapter.getResponse(0)).to.deep.equal(expectedResp);
     });
   });
 
