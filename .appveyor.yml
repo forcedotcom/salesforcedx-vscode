@@ -46,6 +46,7 @@ test_script:
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
       npm run test:without-system-tests
+      $NpmTestsExitCode = $LastExitCode
       # Show status
       "`n`n"
       "Finalizing results`n"
@@ -59,18 +60,10 @@ test_script:
         "$Address $Source"
         (New-Object 'System.Net.WebClient').UploadFile( $Address, $Source )
       }
-      # Quick analysis to fail script in case of test failures
-      Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Foreach-Object {
-        # retrieve relevant values
-        $testFailures = Select-Xml -XPath '//testsuite/@failures' -Path $_.FullName -ErrorAction SilentlyContinue
-        "testFailures: $testFailures"
-        $testErrors = Select-Xml -XPath '//testsuite/@errors' -Path $_.FullName -ErrorAction SilentlyContinue
-        "testErrors: $testErrors"
-        if ($testFailures -gt 0 -Or $testErrors -gt 0) {
-          # Terminate the script to fail the build
-          $Error | Format-List * -Force
-          exit 1
-        }
+      # Fail script in case of test failures
+      if($NpmTestsExitCode -ne 0) {
+        $Error | Format-List * -Force
+        exit $NpmTestsExitCode
       }
   - npm run coverage:system-tests
 
