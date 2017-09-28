@@ -90,5 +90,8 @@ export const messages = {
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text:
     'SFDX: Display Org Details for Default Scratch Org',
-  force_org_display_username_text: 'SFDX: Display Org Details...'
+  force_org_display_username_text: 'SFDX: Display Org Details...',
+  force_debugger_query_session_text: 'query for Apex Debugger session',
+  force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
+  force_debugger_stop_none_found_text: 'No Apex Debugger session found.'
 };
