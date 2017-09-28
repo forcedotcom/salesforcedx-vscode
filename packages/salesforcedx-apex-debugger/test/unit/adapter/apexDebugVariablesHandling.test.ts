@@ -274,6 +274,85 @@ describe('Debugger adapter variable handling - unit', () => {
     });
   });
 
+  describe('resolveApexIdToVariableReference', () => {
+    let adapter: ApexDebugForTest;
+    let referencesSpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+    });
+
+    afterEach(() => {
+      if (referencesSpy) {
+        referencesSpy.restore();
+      }
+    });
+
+    it('Should handle undefined input', async () => {
+      // given
+      const apexId = undefined;
+
+      // when
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        apexId
+      );
+
+      // then
+      expect(variableRef).to.be.undefined;
+    });
+
+    it('Should call fetchReferences for unknown input', async () => {
+      // given
+      const apexId = 12345;
+      const references: Reference[] = [
+        {
+          type: 'object',
+          nameForMessages: 'Object',
+          typeRef: 'Type',
+          id: apexId,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+      referencesSpy = sinon.stub(RequestService.prototype, 'execute').returns(
+        Promise.resolve(
+          JSON.stringify({
+            referencesResponse: {
+              references: {
+                references: references
+              }
+            }
+          })
+        )
+      );
+
+      // when
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        apexId
+      );
+
+      // then
+      expect(referencesSpy.callCount).to.equal(1);
+      expect(variableRef).to.be.ok;
+      const container = adapter.getVariableContainer(variableRef as number);
+      expect(container).to.be.ok;
+    });
+  });
+
   describe('ApexDebugStackFrameInfo', () => {
     let stateSpy: sinon.SinonStub;
     let sourcePathSpy: sinon.SinonStub;
