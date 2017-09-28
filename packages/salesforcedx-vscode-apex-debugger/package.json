@@ -76,14 +76,39 @@
             "properties": {
               "required": ["sfdxProject"],
               "userIdFilter": {
-                "type": "string",
+                "type": "array",
                 "description": "%user_id_filter_text%",
-                "default": ""
+                "default": [],
+                "items": {
+                  "type": "string"
+                }
               },
               "requestTypeFilter": {
-                "type": "string",
+                "type": "array",
                 "description": "%request_type_filter_text%",
-                "default": ""
+                "default": "",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "BATCH_APEX",
+                    "EXECUTE_ANONYMOUS",
+                    "FUTURE",
+                    "INBOUND_EMAIL_SERVICE",
+                    "INVOCABLE_ACTION",
+                    "LIGHTNING",
+                    "QUEUEABLE",
+                    "QUICK_ACTION",
+                    "REMOTE_ACTION",
+                    "REST",
+                    "RUN_TESTS_ASYNCHRONOUS",
+                    "RUN_TESTS_SYNCHRONOUS",
+                    "RUN_TESTS_DEPLOY",
+                    "SCHEDULED",
+                    "SOAP",
+                    "SYNCHRONOUS",
+                    "VISUALFORCE"
+                  ]
+                }
               },
               "entryPointFilter": {
                 "type": "string",
