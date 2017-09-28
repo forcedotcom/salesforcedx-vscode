@@ -22,7 +22,8 @@ install:
   - 7z x sfdx-windows-amd64.tar.xz
   - 7z x sfdx-windows-amd64.tar
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
-  - sfdx update
+  - sfdx update alpha
+  - sfdx plugins:install salesforcedx@41.2.0
   - npm install -g codecov 
   # the JWT key should be stored base 64 encoded in AppVeyor settings
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
