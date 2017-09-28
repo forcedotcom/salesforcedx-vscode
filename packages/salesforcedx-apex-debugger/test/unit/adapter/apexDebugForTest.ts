@@ -173,6 +173,10 @@ export class ApexDebugForTest extends ApexDebug {
     return this.variableHandles.get(variableReference);
   }
 
+  public createVariableContainer(variableContainer: VariableContainer): number {
+    return this.variableHandles.create(variableContainer);
+  }
+
   public getStackFrameInfo(frameId: number): ApexDebugStackFrameInfo {
     return this.stackFrameInfos.get(frameId);
   }
@@ -186,5 +190,12 @@ export class ApexDebugForTest extends ApexDebug {
     args: DebugProtocol.ScopesArguments
   ): Promise<void> {
     return super.scopesRequest(response, args);
+  }
+
+  public async variablesRequest(
+    response: DebugProtocol.VariablesResponse,
+    args: DebugProtocol.VariablesArguments
+  ): Promise<void> {
+    return super.variablesRequest(response, args);
   }
 }

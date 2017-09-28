@@ -9,10 +9,12 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
 import {
+  ApexDebug,
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
-  ObjectReferenceContainer
+  ObjectReferenceContainer,
+  VariableContainer
 } from '../../../src/adapter/apexDebug';
 import {
   LocalValue,
@@ -422,6 +424,48 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(frameInfo.statics).to.be.ok;
       expect(frameInfo.globals).to.be.ok;
     });
+
+    it('Should propulates as part of fetchFrameVariables', async () => {
+      // given
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 1000);
+      const frameRespObj: any = {
+        frameResponse: {
+          frame: {
+            locals: {
+              local: [newStringValue('localvar1', 'value', 0)]
+            },
+            statics: {
+              static: [newStringValue('staticvar1')]
+            },
+            globals: {
+              global: [newStringValue('globalvar')]
+            }
+          }
+        }
+      };
+      stateSpy = sinon
+        .stub(RequestService.prototype, 'execute')
+        .returns(Promise.resolve(JSON.stringify(frameRespObj)));
+
+      // when
+      await adapter.fetchFrameVariables(frameInfo);
+
+      // then
+      expect(stateSpy.called).to.equal(true);
+      expect(frameInfo).to.be.ok; // should have frame info for frame id
+      expect(frameInfo.locals).to.be.ok;
+      expect(frameInfo.locals).to.deep.equal(
+        frameRespObj.frameResponse.frame.locals.local
+      );
+      expect(frameInfo.statics).to.be.ok;
+      expect(frameInfo.statics).to.deep.equal(
+        frameRespObj.frameResponse.frame.statics.static
+      );
+      expect(frameInfo.globals).to.be.ok;
+      expect(frameInfo.globals).to.deep.equal(
+        frameRespObj.frameResponse.frame.globals.global
+      );
+    });
   });
 
   describe('scopesRequest', () => {
@@ -483,9 +527,79 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body.scopes.length).to.equal(3);
     });
   });
+
+  describe('variablesRequest', () => {
+    let adapter: ApexDebugForTest;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+      adapter.setSfdxProject('someProjectPath');
+      adapter.setOrgInfo({
+        instanceUrl: 'https://www.salesforce.com',
+        accessToken: '123'
+      } as OrgInfo);
+      adapter.addRequestThread('07cFAKE');
+    });
+
+    it('Should return no variables for unknown variablesReference', async () => {
+      // given
+      const args: DebugProtocol.VariablesArguments = {
+        variablesReference: 1234567
+      };
+
+      // when
+      await adapter.variablesRequest(
+        {} as DebugProtocol.VariablesResponse,
+        args
+      );
+
+      // then
+      const response = adapter.getResponse(
+        0
+      ) as DebugProtocol.VariablesResponse;
+      expect(response.success).to.equal(true);
+      expect(response.body).to.be.ok;
+      expect(response.body.variables).to.be.ok;
+      expect(response.body.variables.length).to.equal(0);
+    });
+
+    it('Should return variables for known variablesReference', async () => {
+      // given
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+
+      // when
+      await adapter.variablesRequest(
+        {} as DebugProtocol.VariablesResponse,
+        {
+          variablesReference: variableReference
+        } as DebugProtocol.VariablesArguments
+      );
+
+      // then
+      const response = adapter.getResponse(
+        0
+      ) as DebugProtocol.VariablesResponse;
+      expect(response.success).to.equal(true);
+      expect(response.body).to.be.ok;
+      expect(response.body.variables).to.be.ok;
+      expect(response.body.variables.length).to.equal(2);
+      expect(response.body.variables).to.deep.equal(variables);
+    });
+  });
 });
 
-function newStringValue(name: string, value = 'value', slot?: number): any {
+function newStringValue(name: string, value = 'value', slot?: number): Value {
   const result: any = {
     name: name,
     declaredTypeRef: 'java/lang/String',
@@ -496,4 +610,20 @@ function newStringValue(name: string, value = 'value', slot?: number): any {
     result.slot = slot;
   }
   return result;
+}
+
+class DummyContainer implements VariableContainer {
+  public variables: ApexVariable[];
+  public constructor(variables: ApexVariable[]) {
+    this.variables = variables;
+  }
+
+  public expand(
+    session: ApexDebug,
+    filter: 'named' | 'indexed' | 'all',
+    start: number | undefined,
+    count: number | undefined
+  ): Promise<ApexVariable[]> {
+    return Promise.resolve(this.variables);
+  }
 }

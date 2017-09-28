@@ -919,6 +919,7 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.VariablesResponse,
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
+    response.success = true;
     const variablesContainer = this.variableHandles.get(
       args.variablesReference
     );
