@@ -9,6 +9,7 @@ import { Source } from 'vscode-debugadapter/lib/debugSession';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
   ApexDebug,
+  ApexDebugStackFrameInfo,
   LaunchRequestArguments,
   VariableContainer
 } from '../../../src/adapter/apexDebug';
@@ -123,7 +124,7 @@ export class ApexDebugForTest extends ApexDebug {
     super.threadsRequest(response);
   }
 
-  public stackTraceReq(
+  public stackTraceRequest(
     response: DebugProtocol.StackTraceResponse,
     args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
@@ -170,5 +171,20 @@ export class ApexDebugForTest extends ApexDebug {
     variableReference: number
   ): VariableContainer | undefined {
     return this.variableHandles.get(variableReference);
+  }
+
+  public getStackFrameInfo(frameId: number): ApexDebugStackFrameInfo {
+    return this.stackFrameInfos.get(frameId);
+  }
+
+  public createStackFrameInfo(frameInfo: ApexDebugStackFrameInfo): number {
+    return this.stackFrameInfos.create(frameInfo);
+  }
+
+  public async scopesRequest(
+    response: DebugProtocol.ScopesResponse,
+    args: DebugProtocol.ScopesArguments
+  ): Promise<void> {
+    return super.scopesRequest(response, args);
   }
 }

@@ -876,6 +876,7 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.ScopesResponse,
     args: DebugProtocol.ScopesArguments
   ): Promise<void> {
+    response.success = true;
     const frameInfo = this.stackFrameInfos.get(args.frameId);
     if (!frameInfo) {
       this.log(

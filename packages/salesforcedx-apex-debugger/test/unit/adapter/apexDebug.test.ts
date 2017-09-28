@@ -894,7 +894,7 @@ describe('Debugger adapter - unit', () => {
         .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve('{}'));
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 2 } as DebugProtocol.StackTraceArguments
       );
@@ -912,7 +912,7 @@ describe('Debugger adapter - unit', () => {
           )
         );
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
@@ -937,7 +937,7 @@ describe('Debugger adapter - unit', () => {
         .stub(BreakpointService.prototype, 'getSourcePathFromTyperef')
         .returns('file:///foo.cls');
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
@@ -979,7 +979,7 @@ describe('Debugger adapter - unit', () => {
           )
         );
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
@@ -1005,7 +1005,7 @@ describe('Debugger adapter - unit', () => {
           )
         );
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
