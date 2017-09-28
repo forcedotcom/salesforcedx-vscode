@@ -134,9 +134,9 @@ export class ApexDebug extends DebugSession {
 
       const sessionId = await this.mySessionService
         .forProject(args.sfdxProject)
-        .withUserFilter(this.stringifyLaunchArg(args.userIdFilter))
+        .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
-        .withRequestFilter(this.stringifyLaunchArg(args.requestTypeFilter))
+        .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
@@ -745,7 +745,7 @@ export class ApexDebug extends DebugSession {
     }
   }
 
-  private stringifyLaunchArg(arg?: string[]): string {
+  public toCommaSeparatedString(arg?: string[]): string {
     if (arg && arg.length > 0) {
       return Array.from(new Set(arg)).join(',');
     }

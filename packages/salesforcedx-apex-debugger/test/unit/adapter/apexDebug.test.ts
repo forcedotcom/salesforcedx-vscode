@@ -308,6 +308,14 @@ describe('Debugger adapter - unit', () => {
       );
       expect(adapter.getEvents().length).to.equal(0);
     });
+
+    it('Should return empty string with null launch array', () => {
+      expect(adapter.toCommaSeparatedString()).to.equal('');
+    });
+
+    it('Should return empty string with empty launch array', () => {
+      expect(adapter.toCommaSeparatedString([])).to.equal('');
+    });
   });
 
   describe('Disconnect', () => {
