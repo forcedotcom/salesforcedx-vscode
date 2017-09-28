@@ -17,26 +17,45 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
+  private flag: string | undefined;
+
+  public constructor(flag?: string) {
+    super();
+    this.flag = flag;
+  }
+
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(
         nls.localize('force_source_push_default_scratch_org_text')
       )
-      .withArg('force:source:push')
-      .build();
+      .withArg('force:source:push');
+    if (this.flag === '--forceoverwrite') {
+      builder.withArg(this.flag);
+      builder.withDescription(
+        nls.localize('force_source_push_force_default_scratch_org_text')
+      );
+    }
+    return builder.build();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceSourcePushExecutor();
-const commandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
 
-export function forceSourcePush() {
+export interface FlagParameter {
+  flag: string;
+}
+
+export function forceSourcePush(this: FlagParameter) {
+  // tslint:disable-next-line:no-invalid-this
+  const flag = this ? this.flag : undefined;
+  const executor = new ForceSourcePushExecutor(flag);
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    executor
+  );
   commandlet.run();
 }

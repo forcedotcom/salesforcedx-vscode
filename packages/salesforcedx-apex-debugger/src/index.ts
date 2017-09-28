@@ -17,3 +17,9 @@ export interface VscodeDebuggerMessage {
   type: VscodeDebuggerMessageType;
   message: string;
 }
+
+export interface ProxySettings {
+  url: string;
+  strictSSL: boolean;
+  auth: string;
+}

@@ -16,6 +16,7 @@ export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './forceApexClassCreate';
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
 export { forceLightningAppCreate } from './forceLightningAppCreate';
+export { forceGenerateFauxClassesCreate } from './forceGenerateFauxClasses';
 export {
   forceVisualforceComponentCreate
 } from './forceVisualforceComponentCreate';
@@ -23,3 +24,6 @@ export { forceLightningComponentCreate } from './forceLightningComponentCreate';
 export { forceLightningEventCreate } from './forceLightningEventCreate';
 export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';
 export { forceDebuggerStop } from './forceDebuggerStop';
+export { forceConfigList } from './forceConfigList';
+export { forceAliasList } from './forceAliasList';
+export { forceOrgDisplay } from './forceOrgDisplay';

@@ -43,7 +43,8 @@ export const messages = {
 
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
-    "Enter desired directory (Press 'Enter' to confirm or 'Escape' to cancel)",
+    'Enter desired directory (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_enter_username_name: 'Enter target username',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -52,9 +53,13 @@ export const messages = {
 
   force_source_pull_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org',
+  force_source_pull_force_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
 
   force_source_push_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org',
+  force_source_push_force_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org and Override Conflicts',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
@@ -78,5 +83,10 @@ export const messages = {
   warning_prompt_lightning_bundle_overwrite:
     'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
   warning_prompt_yes: 'Yes',
-  warning_prompt_no: 'No'
+  warning_prompt_no: 'No',
+  force_config_list_text: 'SFDX: List All Config Variables',
+  force_alias_list_text: 'SFDX: List All Aliases',
+  force_org_display_default_text:
+    'SFDX: Display Org Details for Default Scratch Org',
+  force_org_display_username_text: 'SFDX: Display Org Details...'
 };

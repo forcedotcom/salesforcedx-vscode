@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.11.0",
+  "version": "40.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,7 +23,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.11.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "40.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "40.12.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
@@ -127,7 +128,15 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.source.pull.force",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.source.push",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.push.force",
           "when": "sfdx:project_opened"
         },
         {
@@ -181,6 +190,26 @@
         {
           "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.config.list",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.alias.list",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.display.default",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.display.username",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.internal.refreshsobjects",
+          "when": "config.sfdx.refreshSObjects.enabled"
         }
       ]
     },
@@ -202,8 +231,16 @@
         "title": "%force_source_pull_default_scratch_org_text%"
       },
       {
+        "command": "sfdx.force.source.pull.force",
+        "title": "%force_source_pull_force_default_scratch_org_text%"
+      },
+      {
         "command": "sfdx.force.source.push",
         "title": "%force_source_push_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.push.force",
+        "title": "%force_source_push_force_default_scratch_org_text%"
       },
       {
         "command": "sfdx.force.source.status",
@@ -256,6 +293,26 @@
       {
         "command": "sfdx.force.debugger.stop",
         "title": "%force_debugger_stop_text%"
+      },
+      {
+        "command": "sfdx.force.config.list",
+        "title": "%force_config_list_text%"
+      },
+      {
+        "command": "sfdx.force.alias.list",
+        "title": "%force_alias_list_text%"
+      },
+      {
+        "command": "sfdx.force.org.display.default",
+        "title": "%force_org_display_default_text%"
+      },
+      {
+        "command": "sfdx.force.org.display.username",
+        "title": "%force_org_display_username_text%"
+      },
+      {
+        "command": "sfdx.force.internal.refreshsobjects",
+        "title": "%force_refresh_sobjects%"
       }
     ]
   }

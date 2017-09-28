@@ -7,8 +7,12 @@
   "force_org_open_default_scratch_org_text": "SFDX: Open Default Scratch Org",
   "force_source_pull_default_scratch_org_text":
     "SFDX: Pull Source from Default Scratch Org",
+  "force_source_pull_force_default_scratch_org_text":
+    "SFDX: Pull Source from Default Scratch Org and Override Conflicts",
   "force_source_push_default_scratch_org_text":
     "SFDX: Push Source to Default Scratch Org",
+  "force_source_push_force_default_scratch_org_text":
+    "SFDX: Push Source to Default Scratch Org and Override Conflicts",
   "force_source_status_text":
     "SFDX: View All Changes (Local and in Default Scratch Org)",
   "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
@@ -22,6 +26,13 @@
   "force_lightning_event_create_text": "SFDX: Create Lightning Event",
   "force_lightning_interface_create_text": "SFDX: Create Lightning Interface",
   "force_source_status_local_text": "SFDX: View Local Changes",
-  "force_source_status_remote_text": "SFDX: View Changes in Default Scratch Org",
-  "force_debugger_stop_text": "SFDX: Stop Apex Debugger Session"
+  "force_source_status_remote_text":
+    "SFDX: View Changes in Default Scratch Org",
+  "force_debugger_stop_text": "SFDX: Stop Apex Debugger Session",
+  "force_config_list_text": "SFDX: List All Config Variables",
+  "force_alias_list_text": "SFDX: List All Aliases",
+  "force_org_display_default_text":
+    "SFDX: Display Org Details for Default Scratch Org",
+  "force_org_display_username_text": "SFDX: Display Org Details...",
+  "force_refresh_sobjects": "SFDX: Refresh SObject Definitions"
 }

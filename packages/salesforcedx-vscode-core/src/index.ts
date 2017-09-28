@@ -8,15 +8,19 @@
 import * as vscode from 'vscode';
 
 import {
+  forceAliasList,
   forceApexClassCreate,
   forceApexTestRun,
   forceAuthWebLogin,
+  forceConfigList,
   forceDebuggerStop,
+  forceGenerateFauxClassesCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
   forceOrgCreate,
+  forceOrgDisplay,
   forceOrgOpen,
   forceSourcePull,
   forceSourcePush,
@@ -47,9 +51,19 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.source.pull',
     forceSourcePull
   );
+  const forceSourcePullForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.pull.force',
+    forceSourcePull,
+    { flag: '--forceoverwrite' }
+  );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
     forceSourcePush
+  );
+  const forceSourcePushForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.push.force',
+    forceSourcePush,
+    { flag: '--forceoverwrite' }
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -101,9 +115,32 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.lightning.interface.create',
     forceLightningInterfaceCreate
   );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
+  );
+  const forceConfigListCmd = vscode.commands.registerCommand(
+    'sfdx.force.config.list',
+    forceConfigList
+  );
+  const forceAliasListCmd = vscode.commands.registerCommand(
+    'sfdx.force.alias.list',
+    forceAliasList
+  );
+  const forceOrgDisplayDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.display.default',
+    forceOrgDisplay
+  );
+  const forceOrgDisplayUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.display.username',
+    forceOrgDisplay,
+    { flag: '--targetusername' }
+  );
+
+  const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
+    'sfdx.force.internal.refreshsobjects',
+    forceGenerateFauxClassesCreate
   );
 
   // Internal commands
@@ -118,7 +155,9 @@ function registerCommands(): vscode.Disposable {
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,
+    forceSourcePullForceCmd,
     forceSourcePushCmd,
+    forceSourcePushForceCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
@@ -131,6 +170,11 @@ function registerCommands(): vscode.Disposable {
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
+    forceConfigListCmd,
+    forceAliasListCmd,
+    forceOrgDisplayDefaultCmd,
+    forceOrgDisplayUsernameCmd,
+    forceGenerateFauxClassesCmd,
     internalCancelCommandExecution
   );
 }

@@ -7,6 +7,7 @@
 
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export * from './protocol';
+export { RequestService } from './requestService';
 export { RunCommand } from './runCommand';
 export {
   StepIntoCommand,
