@@ -70,6 +70,10 @@ describe(TITLE, () => {
   });
 
   it('Should execute SOQL query with current selection', async () => {
+    // Open new untitled file
+    await app.command('workbench.action.files.newUntitledFile');
+    await app.wait();
+
     // Enter SOQL query in active editor
     const query = `SELECT Id, Name FROM Account`;
     await common.type(query);
