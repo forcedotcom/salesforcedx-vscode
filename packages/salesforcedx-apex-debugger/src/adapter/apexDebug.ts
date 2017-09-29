@@ -893,14 +893,14 @@ export class ApexDebug extends LoggingDebugSession {
       new Scope(
         'Local',
         this.variableHandles.create(new ScopeContainer('local', frameInfo)),
-        false
+        true
       )
     );
     scopes.push(
       new Scope(
         'Static',
         this.variableHandles.create(new ScopeContainer('static', frameInfo)),
-        false
+        true
       )
     );
     scopes.push(
