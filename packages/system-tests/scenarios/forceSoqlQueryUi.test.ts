@@ -30,14 +30,6 @@ describe(TITLE, () => {
   before(async () => {
     await util.createSFDXProject(PROJECT_NAME);
     username = await util.createScratchOrg(PROJECT_NAME);
-  });
-
-  after(async () => {
-    await util.deleteScratchOrg(PROJECT_NAME, username);
-    await removeWorkspace(PROJECT_DIR);
-  });
-
-  beforeEach(async () => {
     app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [PROJECT_DIR]);
     common = new CommonActions(app);
 
@@ -45,8 +37,10 @@ describe(TITLE, () => {
     await app.wait();
   });
 
-  afterEach(async () => {
-    return await app.stop();
+  after(async () => {
+    await app.stop();
+    await util.deleteScratchOrg(PROJECT_NAME, username);
+    await removeWorkspace(PROJECT_DIR);
   });
 
   it('Should execute SOQL query from input box', async () => {
