@@ -112,6 +112,7 @@ export enum ApexVariableKind {
 
 export class ApexVariable extends Variable {
   public readonly declaredTypeRef: string;
+  public readonly type: string;
   private readonly slot: number;
   private readonly kind: ApexVariableKind;
 
@@ -123,6 +124,7 @@ export class ApexVariable extends Variable {
     super(value.name, ApexVariable.valueAsString(value), variableReference);
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
+    this.type = value.declaredTypeRef;
     if ((value as LocalValue).slot !== undefined) {
       this.slot = (value as LocalValue).slot;
     } else {
@@ -133,9 +135,7 @@ export class ApexVariable extends Variable {
   public static valueAsString(value: Value): string {
     if (typeof value.value === 'undefined' || value.value === null) {
       // We want to explicitly display null for null values (no type info for strings).
-      return ApexVariable.isString(value)
-        ? 'null'
-        : `null [${value.nameForMessages}]`;
+      return 'null';
     }
 
     if (ApexVariable.isString(value)) {
@@ -143,7 +143,7 @@ export class ApexVariable extends Variable {
       return `'${value.value}'`;
     }
 
-    return `${value.value} [${value.nameForMessages}]`;
+    return `${value.value}`;
   }
 
   public static compareVariables(v1: ApexVariable, v2: ApexVariable): number {
