@@ -1,6 +1,6 @@
 {
   "preview": true,
-  "name": "salesforcedx-vscode-visualforce",
+  "name": "salesforcedx-vscode-visualforce-next",
   "displayName": "Visualforce Code Editor for Visual Studio Code",
   "description": "Provides syntax highlighting for the Visualforce framework",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -26,7 +26,6 @@
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
