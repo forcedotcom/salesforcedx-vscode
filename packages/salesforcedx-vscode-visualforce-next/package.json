@@ -1,7 +1,7 @@
 {
   "preview": true,
   "name": "salesforcedx-vscode-visualforce-next",
-  "displayName": "Visualforce Code Editor for Visual Studio Code",
+  "displayName": "Next Visualforce Code Editor for Visual Studio Code",
   "description": "Provides syntax highlighting for the Visualforce framework",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
@@ -55,7 +55,8 @@
     ]
   },
   "dependencies": {
-    "vscode-extension-telemetry": "0.0.8",
+    "@salesforce/salesforcedx-visualforce-language-server": "40.12.0",
+    "typescript": "2.4.0",
     "vscode-languageclient": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
     "vscode-languageserver-types": "3.4.0"
@@ -70,7 +71,6 @@
     "chai": "^4.0.2",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "typescript": "2.4.0",
     "vscode": "1.1.5"
   }
 }
