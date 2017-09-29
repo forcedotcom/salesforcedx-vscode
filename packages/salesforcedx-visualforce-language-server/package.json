@@ -8,13 +8,13 @@
     "vscode": "^1.15.0"
   },
   "dependencies": {
-    "vscode-css-languageservice": "^2.1.9",
-    "vscode-html-languageservice": "^2.0.10",
-    "vscode-languageserver": "^3.4.2",
-    "vscode-languageserver-protocol": "^3.4.2",
-    "vscode-languageserver-types": "^3.4.0",
-    "vscode-nls": "^2.0.2",
-    "vscode-uri": "^1.0.1"
+    "vscode-css-languageservice": "2.1.9",
+    "vscode-html-languageservice": "2.0.10",
+    "vscode-languageserver": "3.4.2",
+    "vscode-languageserver-protocol": "3.4.2",
+    "vscode-languageserver-types": "3.4.0",
+    "vscode-nls": "2.0.2",
+    "vscode-uri": "1.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.38",

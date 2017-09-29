@@ -19,21 +19,9 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.13.0"
+    "vscode": "^1.15.0"
   },
   "categories": ["Languages"],
-  "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "40.13.0",
-    "@types/chai": "^4.0.0",
-    "@types/mocha": "2.2.38",
-    "@types/node": "^6.0.40",
-    "@types/sinon": "^2.3.2",
-    "chai": "^4.0.2",
-    "mocha": "3.2.0",
-    "sinon": "^2.3.6",
-    "typescript": "2.4.0",
-    "vscode": "1.1.2"
-  },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -47,12 +35,43 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "enableProposedApi": true,
+  "main": "./out/src/extension",
   "contributes": {
     "languages": [
       {
-        "id": "html",
-        "extensions": [".page", ".component"]
+        "id": "visualforce",
+        "aliases": ["Visualforce", "visualforce"],
+        "extensions": [".page", ".component"],
+        "configuration": "./syntaxes/visualforce.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "visualforce",
+        "scopeName": "text.html.basic",
+        "path": "./syntaxes/visualforce.json"
       }
     ]
+  },
+  "dependencies": {
+    "vscode-extension-telemetry": "0.0.8",
+    "vscode-languageclient": "3.4.2",
+    "vscode-languageserver-protocol": "3.4.2",
+    "vscode-languageserver-types": "3.4.0"
+  },
+  "devDependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "40.13.0",
+    "@salesforce/salesforcedx-visualforce-language-server": "40.13.0",
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "mocha": "3.2.0",
+    "sinon": "^2.3.6",
+    "typescript": "2.4.0",
+    "vscode": "1.1.5"
   }
 }

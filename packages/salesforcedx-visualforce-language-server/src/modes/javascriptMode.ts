@@ -40,7 +40,6 @@ import {
 import { HTMLDocumentRegions } from './embeddedSupport';
 import { LanguageMode, Settings } from './languageModes';
 
-import { join } from 'path';
 import * as ts from 'typescript';
 
 const FILE_NAME = 'vscode://javascript/1'; // the same 'file' is used for all contents
