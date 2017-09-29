@@ -26,7 +26,7 @@ describe('Scaffolding commands', () => {
   let app: SpectronApplication;
   let common: CommonActions;
 
-  beforeEach(async () => {
+  before(async () => {
     app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [
       WORKSPACE_PATH
     ]);
@@ -36,7 +36,7 @@ describe('Scaffolding commands', () => {
     await app.wait();
   });
 
-  afterEach(async () => {
+  after(async () => {
     return await app.stop();
   });
 
