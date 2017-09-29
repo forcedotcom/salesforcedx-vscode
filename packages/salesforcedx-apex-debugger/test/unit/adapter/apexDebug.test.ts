@@ -177,9 +177,13 @@ describe('Debugger adapter - unit', () => {
       };
       args = {
         sfdxProject: 'project',
-        userIdFilter: 'user',
+        userIdFilter: ['005FAKE1', '005FAKE2', '005FAKE1'],
         entryPointFilter: 'entry',
-        requestTypeFilter: 'request'
+        requestTypeFilter: [
+          'RUN_TESTS_SYNCHRONOUS',
+          'EXECUTE_ANONYMOUS',
+          'RUN_TESTS_SYNCHRONOUS'
+        ]
       };
     });
 
@@ -222,6 +226,18 @@ describe('Debugger adapter - unit', () => {
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string(nls.localize('session_started_text', sessionId));
       expect(adapter.getEvents()[1].event).to.equal('initialized');
+      expect(sessionUserFilterSpy.calledOnce).to.equal(true);
+      expect(sessionEntryFilterSpy.calledOnce).to.equal(true);
+      expect(sessionRequestFilterSpy.calledOnce).to.equal(true);
+      expect(sessionUserFilterSpy.getCall(0).args).to.have.same.members([
+        '005FAKE1,005FAKE2'
+      ]);
+      expect(sessionEntryFilterSpy.getCall(0).args).to.have.same.members([
+        'entry'
+      ]);
+      expect(sessionRequestFilterSpy.getCall(0).args).to.have.same.members([
+        'RUN_TESTS_SYNCHRONOUS,EXECUTE_ANONYMOUS'
+      ]);
     });
 
     it('Should not launch if ApexDebuggerSession object is not accessible', async () => {
@@ -418,6 +434,14 @@ describe('Debugger adapter - unit', () => {
 
       // then
       expect(sessionPrintToDebugSpy.callCount).to.equal(3);
+    });
+
+    it('Should return empty string with null launch array', () => {
+      expect(adapter.toCommaSeparatedString()).to.equal('');
+    });
+
+    it('Should return empty string with empty launch array', () => {
+      expect(adapter.toCommaSeparatedString([])).to.equal('');
     });
   });
 
@@ -1533,7 +1557,7 @@ describe('Debugger adapter - unit', () => {
       const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
       expect(stoppedEvent.body).to.deep.equal({
         threadId: 1,
-        reason: 'breakpoint'
+        reason: ''
       });
       expect(markEventProcessedSpy.calledOnce).to.equal(true);
       expect(markEventProcessedSpy.getCall(0).args).to.have.same.members([
@@ -1560,7 +1584,7 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getEvents()[0].event).to.equal('output');
       expect(adapter.getEvents()[1].event).to.equal('stopped');
       const threadEvent = adapter.getEvents()[1] as StoppedEvent;
-      expect(threadEvent.body.reason).to.equal('step');
+      expect(threadEvent.body.reason).to.equal('');
       expect(threadEvent.body.threadId).to.equal(1);
     });
 

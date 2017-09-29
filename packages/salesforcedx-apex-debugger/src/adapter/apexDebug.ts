@@ -83,8 +83,8 @@ export interface LaunchRequestArguments
   /** comma separated list of trace selectors (see TraceCategory)
 	  */
   trace?: boolean | string;
-  userIdFilter?: string;
-  requestTypeFilter?: string;
+  userIdFilter?: string[];
+  requestTypeFilter?: string[];
   entryPointFilter?: string;
   sfdxProject: string;
 }
@@ -528,9 +528,9 @@ export class ApexDebug extends LoggingDebugSession {
 
       const sessionId = await this.mySessionService
         .forProject(args.sfdxProject)
-        .withUserFilter(args.userIdFilter)
+        .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
-        .withRequestFilter(args.requestTypeFilter)
+        .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
@@ -1464,7 +1464,7 @@ export class ApexDebug extends LoggingDebugSession {
       // log to console and notify client
       this.logEvent(message);
       const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
-        reason,
+        '',
         threadId
       );
       this.sendEvent(stoppedEvent);
@@ -1497,6 +1497,13 @@ export class ApexDebug extends LoggingDebugSession {
         } as VscodeDebuggerMessage)
       );
     }
+  }
+
+  public toCommaSeparatedString(arg?: string[]): string {
+    if (arg && arg.length > 0) {
+      return Array.from(new Set(arg)).join(',');
+    }
+    return '';
   }
 }
 

@@ -1,8 +1,8 @@
 {
   "user_id_filter_text":
-    "A comma-separated list of user IDs with requests whitelisted for debugging",
+    "A list of user IDs with requests whitelisted for debugging",
   "request_type_filter_text":
-    "A comma-separated list of ApexRequesType values whitelisted for debugging",
+    "A list of Apex request types whitelisted for debugging",
   "entry_point_filter_text":
     "A regular expression matching entry points whitelisted for debugging",
   "sfdx_project_text": "Location of SFDX project",

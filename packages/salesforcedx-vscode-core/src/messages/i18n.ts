@@ -41,12 +41,10 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
 
-  parameter_gatherer_enter_file_name:
-    'Enter desired filename (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
-  parameter_gatherer_enter_username_name:
-    'Enter target username (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_enter_username_name: 'Enter target username',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
