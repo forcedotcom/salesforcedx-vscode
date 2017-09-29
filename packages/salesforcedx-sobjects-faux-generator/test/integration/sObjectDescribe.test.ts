@@ -16,6 +16,8 @@ import * as util from './integrationTestUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
+const CUSTOM_OBJECT2 = 'MyCustomObject2__c';
+const CUSTOM_OBJECT3 = 'MyCustomObject3__c';
 const CUSTOM_FIELD_FULLNAME = CUSTOM_OBJECT_NAME + '.MyCustomField__c';
 const SIMPLE_OBJECT_DIR = path.join(
   'test',
@@ -91,6 +93,26 @@ describe('Fetch sObjects', function() {
     expect(customField.precision).to.be.equal(18);
     expect(customField.scale).to.be.equal(0);
     expect(customField.name).to.be.equal('MyCustomField__c');
+  });
+
+  it('Should be able to call describeSObjectBatch on custom objects', async function() {
+    const cmdOutput = await sobjectdescribe.describeSObjectBatch(
+      process.cwd(),
+      [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2, CUSTOM_OBJECT3],
+      0,
+      username
+    );
+    expect(cmdOutput[0].name).to.be.equal(CUSTOM_OBJECT_NAME);
+    expect(cmdOutput[0].custom).to.be.true;
+    expect(cmdOutput[0].fields.length).to.be.least(9);
+    const customField = cmdOutput[0].fields[cmdOutput[0].fields.length - 1];
+    expect(customField.name).to.be.equal('MyCustomField__c');
+
+    expect(cmdOutput[1].name).to.be.equal(CUSTOM_OBJECT2);
+    expect(cmdOutput[1].custom).to.be.true;
+    expect(cmdOutput[1].fields.length).to.be.least(9);
+
+    expect(cmdOutput[2].name).to.be.equal(CUSTOM_OBJECT3);
   });
 
   it('Should be able to call describeSObject on standard object', async function() {

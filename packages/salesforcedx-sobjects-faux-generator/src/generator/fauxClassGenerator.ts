@@ -25,6 +25,27 @@ export class FauxClassGenerator {
   private STANDARDOBJECTS_DIR = 'standardObjects';
   private CUSTOMOBJECTS_DIR = 'customObjects';
 
+  // the empty string is used to represent the need for a special case
+  // usually multiple fields with specialized names
+  private static typeMapping: Map<string, string> = new Map([
+    ['string', 'String'],
+    ['double', 'Decimal'],
+    ['reference', ''],
+    ['boolean', 'Boolean'],
+    ['currency', 'Currency'],
+    ['date', 'Date'],
+    ['datetime', 'Datetime'],
+    ['email', 'Email'],
+    ['location', 'Location'],
+    ['percent', 'Decimal'],
+    ['phone', 'String'],
+    ['picklist', 'String'],
+    ['multipicklist', 'String'],
+    ['textarea', 'String'],
+    ['encryptedstring', 'String'],
+    ['url', 'String']
+  ]);
+
   public async generate(
     projectPath: string,
     type: SObjectCategory
@@ -102,8 +123,9 @@ export class FauxClassGenerator {
   private generateField(field: Field): string[] {
     const decls: string[] = [];
     if (field.referenceTo.length === 0) {
-      const upperCaseFirstChar = field.type.charAt(0).toUpperCase();
-      decls.push(`${upperCaseFirstChar}${field.type.slice(1)} ${field.name}`);
+      // should also always be field.type === 'reference'
+      const genType = FauxClassGenerator.typeMapping.get(field.type);
+      decls.push(`${genType} ${field.name}`);
     } else {
       const nameToUse = this.getReferenceName(
         field.relationshipName,

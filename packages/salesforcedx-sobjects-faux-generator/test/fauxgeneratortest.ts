@@ -26,17 +26,32 @@ describe('generate fields set', function() {
     expect(classText).to.include('String Foo;');
   });
 
-  it('generated faux class should create file with correct fields', async function(): Promise<
+  it('generated faux class should create file with variousfields', async function(): Promise<
     void
   > {
-    const field1 = '{"name": "Foo", "type": "string", "referenceTo": []}';
-    const field2 = '{"name": "Foo2", "type" : "boolean", "referenceTo": []}';
-    const sobject1 =
-      '{ "name": "Custom__c", "fields": [ ' +
-      field1 +
-      ',' +
-      field2 +
-      ' ], "childRelationships": [] }';
+    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
+    const closeHeader = ' ], "childRelationships": [] }';
+
+    const fields: string[] = [
+      '{"name": "Foo1", "type": "string", "referenceTo": []}',
+      '{"name": "Foo2", "type" : "double", "referenceTo": []}',
+      '{"name": "Foo3", "type" : "boolean", "referenceTo": []}',
+      '{"name": "Foo4", "type" : "currency", "referenceTo": []}',
+      '{"name": "Foo5", "type" : "date", "referenceTo": []}',
+      '{"name": "Foo6", "type" : "datetime", "referenceTo": []}',
+      '{"name": "Foo7", "type" : "email", "referenceTo": []}',
+      '{"name": "Foo8", "type" : "location", "referenceTo": []}',
+      '{"name": "Foo9", "type" : "percent", "referenceTo": []}',
+      '{"name": "Foo10", "type" : "picklist", "referenceTo": []}',
+      '{"name": "Foo11", "type" : "multipicklist", "referenceTo": []}',
+      '{"name": "Foo12", "type" : "textarea", "referenceTo": []}',
+      '{"name": "Foo13", "type" : "encryptedstring", "referenceTo": []}',
+      '{"name": "Foo14", "type" : "url", "referenceTo": []}'
+    ];
+
+    const fieldsString = fields.join(',');
+    const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
+
     const sobjectFolder = './';
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
@@ -45,7 +60,20 @@ describe('generate fields set', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String Foo;');
+    expect(classText).to.include('String Foo1;');
+    expect(classText).to.include('Decimal Foo2;');
+    expect(classText).to.include('Boolean Foo3;');
+    expect(classText).to.include('Currency Foo4;');
+    expect(classText).to.include('Date Foo5;');
+    expect(classText).to.include('Datetime Foo6;');
+    expect(classText).to.include('Email Foo7;');
+    expect(classText).to.include('Location Foo8;');
+    expect(classText).to.include('Decimal Foo9;');
+    expect(classText).to.include('String Foo10;');
+    expect(classText).to.include('String Foo11;');
+    expect(classText).to.include('String Foo12;');
+    expect(classText).to.include('String Foo13;');
+    expect(classText).to.include('String Foo14;');
   });
 });
 
