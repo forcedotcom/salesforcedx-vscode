@@ -133,6 +133,7 @@ describe('Debugger adapter - unit', () => {
 
   describe('Launch', () => {
     let sessionStartSpy: sinon.SinonStub;
+    let sessionPrintToDebugSpy: sinon.SinonSpy;
     let sessionProjectSpy: sinon.SinonSpy;
     let sessionUserFilterSpy: sinon.SinonSpy;
     let sessionEntryFilterSpy: sinon.SinonSpy;
@@ -196,6 +197,9 @@ describe('Debugger adapter - unit', () => {
       streamingSubscribeSpy.restore();
       breakpointHasLineNumberMappingSpy.restore();
       orgInfoSpy.restore();
+      if (sessionPrintToDebugSpy) {
+        sessionPrintToDebugSpy.restore();
+      }
     });
 
     it('Should launch successfully', async () => {
@@ -307,6 +311,129 @@ describe('Debugger adapter - unit', () => {
         nls.localize('session_language_server_error_text')
       );
       expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('Should configure tracing with boolean', async () => {
+      const sessionId = '07aFAKE';
+      sessionPrintToDebugSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .returns(Promise.resolve());
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      args.trace = true;
+      await adapter.launchReq(response, args);
+      sessionPrintToDebugSpy.reset();
+
+      // when
+      adapter.log('variables', 'message');
+
+      // then
+      expect(sessionPrintToDebugSpy.callCount).to.equal(1);
+    });
+
+    it('Should not do any tracing by default', async () => {
+      const sessionId = '07aFAKE';
+      sessionPrintToDebugSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .returns(Promise.resolve());
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      await adapter.launchReq(response, args);
+      sessionPrintToDebugSpy.reset();
+
+      // when
+      adapter.log('variables', 'message');
+
+      // then
+      expect(sessionPrintToDebugSpy.callCount).to.equal(0);
+    });
+
+    it('Should configure tracing for specific category only', async () => {
+      const sessionId = '07aFAKE';
+      sessionPrintToDebugSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .returns(Promise.resolve());
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      args.trace = 'variables, launch';
+      await adapter.launchReq(response, args);
+      sessionPrintToDebugSpy.reset();
+
+      // when
+      adapter.log('variables', 'message');
+      adapter.log('launch', 'message');
+      adapter.log('protocol', 'message');
+
+      // then
+      expect(sessionPrintToDebugSpy.callCount).to.equal(2);
+    });
+
+    it('Should configure tracing for all categories', async () => {
+      const sessionId = '07aFAKE';
+      sessionPrintToDebugSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'printToDebugConsole')
+        .returns(Promise.resolve());
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      // given
+      args.trace = 'all';
+      await adapter.launchReq(response, args);
+      sessionPrintToDebugSpy.reset();
+
+      // when
+      adapter.log('variables', 'message');
+      adapter.log('launch', 'message');
+      adapter.log('protocol', 'message');
+
+      // then
+      expect(sessionPrintToDebugSpy.callCount).to.equal(3);
     });
 
     it('Should return empty string with null launch array', () => {
@@ -791,7 +918,7 @@ describe('Debugger adapter - unit', () => {
         .stub(RequestService.prototype, 'execute')
         .returns(Promise.resolve('{}'));
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 2 } as DebugProtocol.StackTraceArguments
       );
@@ -809,7 +936,7 @@ describe('Debugger adapter - unit', () => {
           )
         );
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
@@ -834,7 +961,7 @@ describe('Debugger adapter - unit', () => {
         .stub(BreakpointService.prototype, 'getSourcePathFromTyperef')
         .returns('file:///foo.cls');
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
@@ -849,7 +976,7 @@ describe('Debugger adapter - unit', () => {
       expect(stackFrames.length).to.equal(2);
       expect(stackFrames[0]).to.deep.equal(
         new StackFrame(
-          0,
+          1000,
           'FooDebug.test()',
           new Source('foo.cls', '/foo.cls'),
           1,
@@ -858,7 +985,7 @@ describe('Debugger adapter - unit', () => {
       );
       expect(stackFrames[1]).to.deep.equal(
         new StackFrame(
-          1,
+          1001,
           'BarDebug.test()',
           new Source('foo.cls', '/foo.cls'),
           2,
@@ -876,7 +1003,7 @@ describe('Debugger adapter - unit', () => {
           )
         );
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
@@ -889,7 +1016,7 @@ describe('Debugger adapter - unit', () => {
       const stackFrames = response.body.stackFrames;
       expect(stackFrames.length).to.equal(1);
       expect(stackFrames[0]).to.deep.equal(
-        new StackFrame(0, 'anon.execute()', undefined, 2, 0)
+        new StackFrame(1000, 'anon.execute()', undefined, 2, 0)
       );
     });
 
@@ -902,7 +1029,7 @@ describe('Debugger adapter - unit', () => {
           )
         );
 
-      await adapter.stackTraceReq(
+      await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );

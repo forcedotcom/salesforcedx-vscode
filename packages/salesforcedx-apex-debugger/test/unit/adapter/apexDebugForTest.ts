@@ -5,12 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Source } from 'vscode-debugadapter/lib/debugSession';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
   ApexDebug,
-  LaunchRequestArguments
+  ApexDebugStackFrameInfo,
+  LaunchRequestArguments,
+  VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { OrgInfo, RequestService } from '../../../src/commands';
+import { OrgInfo, Reference, RequestService } from '../../../src/commands';
 import {
   BreakpointService,
   SessionService,
@@ -121,7 +124,7 @@ export class ApexDebugForTest extends ApexDebug {
     super.threadsRequest(response);
   }
 
-  public stackTraceReq(
+  public stackTraceRequest(
     response: DebugProtocol.StackTraceResponse,
     args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
@@ -150,5 +153,49 @@ export class ApexDebugForTest extends ApexDebug {
 
   public getRequestThreads(): Map<number, string> {
     return this.requestThreads;
+  }
+
+  public printToDebugConsole(
+    msg?: string,
+    sourceFile?: Source,
+    sourceLine?: number
+  ): void {
+    super.printToDebugConsole(msg, sourceFile, sourceLine);
+  }
+
+  public populateReferences(references: Reference[], requestId: string): void {
+    super.populateReferences(references, requestId);
+  }
+
+  public getVariableContainer(
+    variableReference: number
+  ): VariableContainer | undefined {
+    return this.variableHandles.get(variableReference);
+  }
+
+  public createVariableContainer(variableContainer: VariableContainer): number {
+    return this.variableHandles.create(variableContainer);
+  }
+
+  public getStackFrameInfo(frameId: number): ApexDebugStackFrameInfo {
+    return this.stackFrameInfos.get(frameId);
+  }
+
+  public createStackFrameInfo(frameInfo: ApexDebugStackFrameInfo): number {
+    return this.stackFrameInfos.create(frameInfo);
+  }
+
+  public async scopesRequest(
+    response: DebugProtocol.ScopesResponse,
+    args: DebugProtocol.ScopesArguments
+  ): Promise<void> {
+    return super.scopesRequest(response, args);
+  }
+
+  public async variablesRequest(
+    response: DebugProtocol.VariablesResponse,
+    args: DebugProtocol.VariablesArguments
+  ): Promise<void> {
+    return super.variablesRequest(response, args);
   }
 }

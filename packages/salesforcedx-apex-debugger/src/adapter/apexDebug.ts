@@ -9,14 +9,20 @@ import { basename } from 'path';
 import {
   DebugSession,
   Event,
+  Handles,
   InitializedEvent,
+  logger,
+  Logger,
+  LoggingDebugSession,
   OutputEvent,
+  Scope,
   Source,
   StackFrame,
   StoppedEvent,
   TerminatedEvent,
   Thread,
-  ThreadEvent
+  ThreadEvent,
+  Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
@@ -26,13 +32,19 @@ import {
 import {
   DebuggerResponse,
   ForceOrgDisplay,
+  FrameCommand,
+  LocalValue,
   OrgInfo,
+  Reference,
+  ReferencesCommand,
   RequestService,
   RunCommand,
   StateCommand,
   StepIntoCommand,
   StepOutCommand,
-  StepOverCommand
+  StepOverCommand,
+  Tuple,
+  Value
 } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
@@ -59,15 +71,376 @@ import {
 import { nls } from '../messages';
 import os = require('os');
 
+const TRACE_ALL = 'all';
+const TRACE_CATEGORY_VARIABLES = 'variables';
+const TRACE_CATEGORY_LAUNCH = 'launch';
+const TRACE_CATEGORY_PROTOCOL = 'protocol';
+
+export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol';
+
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
+  /** comma separated list of trace selectors (see TraceCategory)
+	  */
+  trace?: boolean | string;
   userIdFilter?: string[];
   requestTypeFilter?: string[];
   entryPointFilter?: string;
   sfdxProject: string;
 }
 
-export class ApexDebug extends DebugSession {
+export class ApexDebugStackFrameInfo {
+  public readonly requestId: string;
+  public readonly frameNumber: number;
+  public globals: Value[];
+  public statics: Value[];
+  public locals: LocalValue[];
+  public references: Reference[];
+  constructor(requestId: string, frameNumber: number) {
+    this.requestId = requestId;
+    this.frameNumber = frameNumber;
+  }
+}
+
+export enum ApexVariableKind {
+  Global = 10,
+  Static = 20,
+  Local = 30,
+  Field = 40,
+  Collection = 50
+}
+
+export class ApexVariable extends Variable {
+  public readonly declaredTypeRef: string;
+  public readonly type: string;
+  private readonly slot: number;
+  private readonly kind: ApexVariableKind;
+
+  constructor(
+    value: Value,
+    kind: ApexVariableKind,
+    variableReference?: number
+  ) {
+    super(value.name, ApexVariable.valueAsString(value), variableReference);
+    this.declaredTypeRef = value.declaredTypeRef;
+    this.kind = kind;
+    this.type = value.declaredTypeRef;
+    if ((value as LocalValue).slot !== undefined) {
+      this.slot = (value as LocalValue).slot;
+    } else {
+      this.slot = Number.MAX_SAFE_INTEGER;
+    }
+  }
+
+  public static valueAsString(value: Value): string {
+    if (typeof value.value === 'undefined' || value.value === null) {
+      // We want to explicitly display null for null values (no type info for strings).
+      return 'null';
+    }
+
+    if (ApexVariable.isString(value)) {
+      // We want to explicitly quote string values like in Java. This allows us to differentiate null from 'null'.
+      return `'${value.value}'`;
+    }
+
+    return `${value.value}`;
+  }
+
+  public static compareVariables(v1: ApexVariable, v2: ApexVariable): number {
+    // group by kind
+    if (v1.kind !== v2.kind) {
+      return v1.kind - v2.kind;
+    }
+
+    // use slots when available
+    if (ApexVariable.isLocalOrField(v1)) {
+      return v1.slot - v2.slot;
+    }
+
+    // compare names
+    let n1 = v1.name;
+    let n2 = v2.name;
+
+    // convert [n], [n..m] -> n
+    n1 = ApexVariable.extractNumber(n1);
+    n2 = ApexVariable.extractNumber(n2);
+
+    const i1 = parseInt(n1);
+    const i2 = parseInt(n2);
+    const isNum1 = !isNaN(i1);
+    const isNum2 = !isNaN(i2);
+
+    if (isNum1 && !isNum2) {
+      return 1; // numbers after names
+    }
+    if (!isNum1 && isNum2) {
+      return -1; // names before numbers
+    }
+    if (isNum1 && isNum2) {
+      return i1 - i2;
+    }
+    return n1.localeCompare(n2);
+  }
+
+  private static extractNumber(s: string): string {
+    if (s[0] === '[' && s[s.length - 1] === ']') {
+      return s.substring(1, s.length - 1);
+    }
+    return s;
+  }
+
+  private static isLocalOrField(v1: ApexVariable) {
+    return (
+      v1.kind === ApexVariableKind.Local || v1.kind === ApexVariableKind.Field
+    );
+  }
+
+  private static isString(value: Value) {
+    return value.declaredTypeRef === 'java/lang/String';
+  }
+}
+
+export type FilterType = 'named' | 'indexed' | 'all';
+
+export interface VariableContainer {
+  expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number | undefined,
+    count: number | undefined
+  ): Promise<ApexVariable[]>;
+}
+
+export type ScopeType = 'local' | 'static' | 'global';
+
+export class ScopeContainer implements VariableContainer {
+  private type: ScopeType;
+  private frameInfo: ApexDebugStackFrameInfo;
+
+  public constructor(type: ScopeType, frameInfo: ApexDebugStackFrameInfo) {
+    this.type = type;
+    this.frameInfo = frameInfo;
+  }
+
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    if (
+      !this.frameInfo.locals &&
+      !this.frameInfo.statics &&
+      !this.frameInfo.globals
+    ) {
+      await session.fetchFrameVariables(this.frameInfo);
+    }
+
+    let values: Value[] = [];
+    let variableKind: ApexVariableKind;
+    switch (this.type) {
+      case 'local':
+        values = this.frameInfo.locals ? this.frameInfo.locals : [];
+        variableKind = ApexVariableKind.Local;
+        break;
+      case 'static':
+        values = this.frameInfo.statics ? this.frameInfo.statics : [];
+        variableKind = ApexVariableKind.Static;
+        break;
+      case 'global':
+        values = this.frameInfo.globals ? this.frameInfo.globals : [];
+        variableKind = ApexVariableKind.Global;
+        break;
+      default:
+        return [];
+    }
+
+    return Promise.all(
+      values.map(async value => {
+        const variableReference = await session.resolveApexIdToVariableReference(
+          this.frameInfo.requestId,
+          value.ref
+        );
+        return new ApexVariable(value, variableKind, variableReference);
+      })
+    );
+  }
+}
+
+export class ObjectReferenceContainer implements VariableContainer {
+  protected reference: Reference;
+  protected requestId: string;
+
+  public constructor(reference: Reference, requestId: string) {
+    this.reference = reference;
+    this.requestId = requestId;
+  }
+
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    if (!this.reference.fields) {
+      // this object is empty
+      return [];
+    }
+
+    return Promise.all(
+      this.reference.fields.map(async value => {
+        const variableReference = await session.resolveApexIdToVariableReference(
+          this.requestId,
+          value.ref
+        );
+        return new ApexVariable(
+          value,
+          ApexVariableKind.Field,
+          variableReference
+        );
+      })
+    );
+  }
+}
+
+export class CollectionReferenceContainer extends ObjectReferenceContainer {
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    if (!this.reference.value) {
+      // this object is empty
+      return [];
+    }
+
+    return Promise.all(
+      this.reference.value.map(async value => {
+        const variableReference = await session.resolveApexIdToVariableReference(
+          this.requestId,
+          value.ref
+        );
+        return new ApexVariable(
+          value,
+          ApexVariableKind.Collection,
+          variableReference
+        );
+      })
+    );
+  }
+}
+
+export class MapReferenceContainer extends ObjectReferenceContainer {
+  private readonly tupleContainers: Map<number, MapTupleContainer> = new Map();
+
+  public addTupleContainer(
+    reference: number,
+    tupleContainer: MapTupleContainer
+  ): void {
+    this.tupleContainers.set(reference, tupleContainer);
+  }
+
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    const result: ApexVariable[] = [];
+    this.tupleContainers.forEach((container, reference) => {
+      result.push(
+        new ApexVariable(
+          {
+            name: container.keyAsString(),
+            declaredTypeRef: '',
+            nameForMessages: container.keyAsString(),
+            value: container.valueAsString()
+          },
+          ApexVariableKind.Collection,
+          reference
+        )
+      );
+    });
+
+    return result;
+  }
+}
+
+export class MapTupleContainer implements VariableContainer {
+  private tuple: Tuple;
+  private requestId: string;
+
+  public constructor(tuple: Tuple, requestId: string) {
+    this.tuple = tuple;
+    this.requestId = requestId;
+  }
+
+  public keyAsString(): string {
+    return ApexVariable.valueAsString(this.tuple.key);
+  }
+
+  public valueAsString(): string {
+    return ApexVariable.valueAsString(this.tuple.value);
+  }
+
+  public async expand(
+    session: ApexDebug,
+    filter: FilterType,
+    start: number,
+    count: number
+  ): Promise<ApexVariable[]> {
+    if (!this.tuple.key && !this.tuple.value) {
+      // this object is empty
+      return [];
+    }
+
+    const idsToFetch = [];
+    if (this.tuple.key && this.tuple.key.ref) {
+      idsToFetch.push(this.tuple.key.ref);
+    }
+    if (this.tuple.value && this.tuple.value.ref) {
+      idsToFetch.push(this.tuple.value.ref);
+    }
+    await session.fetchReferencesIfNecessary(this.requestId, idsToFetch);
+
+    const variables = [];
+    if (this.tuple.key) {
+      const keyVariableReference = this.tuple.key.ref
+        ? await session.resolveApexIdToVariableReference(
+            this.requestId,
+            this.tuple.key.ref
+          )
+        : undefined;
+      variables.push(
+        new ApexVariable(
+          this.tuple.key,
+          ApexVariableKind.Collection,
+          keyVariableReference
+        )
+      );
+    }
+    if (this.tuple.value) {
+      const valueVariableReference = this.tuple.value.ref
+        ? await session.resolveApexIdToVariableReference(
+            this.requestId,
+            this.tuple.value.ref
+          )
+        : undefined;
+      variables.push(
+        new ApexVariable(
+          this.tuple.value,
+          ApexVariableKind.Collection,
+          valueVariableReference
+        )
+      );
+    }
+
+    return variables;
+  }
+}
+
+export class ApexDebug extends LoggingDebugSession {
   protected mySessionService = SessionService.getInstance();
   protected myBreakpointService = BreakpointService.getInstance();
   protected myStreamingService = StreamingService.getInstance();
@@ -77,11 +450,18 @@ export class ApexDebug extends DebugSession {
   protected requestThreads: Map<number, string>;
   protected threadId: number;
 
-  private static TWO_NL = `${os.EOL}${os.EOL}`;
+  protected stackFrameInfos = new Handles<ApexDebugStackFrameInfo>();
+  protected variableHandles = new Handles<VariableContainer>();
+  protected variableContainerReferenceByApexId = new Map<number, number>();
+
+  private static LINEBREAK = `${os.EOL}`;
   private initializedResponse: DebugProtocol.InitializeResponse;
 
+  private trace: string[] | undefined;
+  private traceAll = false;
+
   constructor() {
-    super();
+    super('apex-debug-adapter.log');
     this.setDebuggerLinesStartAt1(true);
     this.setDebuggerPathFormat('uri');
     this.requestThreads = new Map();
@@ -110,6 +490,20 @@ export class ApexDebug extends DebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
+    if (typeof args.trace === 'boolean') {
+      this.trace = args.trace ? [TRACE_ALL] : undefined;
+      this.traceAll = args.trace;
+    } else if (typeof args.trace === 'string') {
+      this.trace = args.trace.split(',').map(category => category.trim());
+      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+    }
+    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+      // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
+      logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/ false);
+    } else {
+      logger.setup(Logger.LogLevel.Stop, false);
+    }
+
     response.success = false;
     this.sfdxProject = args.sfdxProject;
 
@@ -140,7 +534,9 @@ export class ApexDebug extends DebugSession {
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
-        this.logToDebugConsole(nls.localize('session_started_text', sessionId));
+        this.printToDebugConsole(
+          nls.localize('session_started_text', sessionId)
+        );
         this.sendEvent(new InitializedEvent());
       } else {
         this.errorToDebugConsole(
@@ -165,7 +561,7 @@ export class ApexDebug extends DebugSession {
         const terminatedSessionId = await this.mySessionService.stop();
         if (!this.mySessionService.isConnected()) {
           response.success = true;
-          this.logToDebugConsole(
+          this.printToDebugConsole(
             nls.localize('session_terminated_text', terminatedSessionId)
           );
         } else {
@@ -322,9 +718,61 @@ export class ApexDebug extends DebugSession {
           const sourcePath = this.myBreakpointService.getSourcePathFromTyperef(
             serverFrames[i].typeRef
           );
+          const frameInfo = new ApexDebugStackFrameInfo(
+            requestId,
+            serverFrames[i].frameNumber
+          );
+          const frameId = this.stackFrameInfos.create(frameInfo);
+          if (i === 0 && stateRespObj.stateResponse.state) {
+            // populate first stack frame with info from state response (saves a server round trip)
+            this.log(
+              TRACE_CATEGORY_VARIABLES,
+              'stackTraceRequest: state=' +
+                JSON.stringify(stateRespObj.stateResponse.state)
+            );
+            if (
+              stateRespObj.stateResponse.state.locals &&
+              stateRespObj.stateResponse.state.locals.local
+            ) {
+              frameInfo.locals = stateRespObj.stateResponse.state.locals.local;
+            } else {
+              frameInfo.locals = [];
+            }
+
+            if (
+              stateRespObj.stateResponse.state.statics &&
+              stateRespObj.stateResponse.state.statics.static
+            ) {
+              frameInfo.statics =
+                stateRespObj.stateResponse.state.statics.static;
+            } else {
+              frameInfo.statics = [];
+            }
+
+            if (
+              stateRespObj.stateResponse.state.globals &&
+              stateRespObj.stateResponse.state.globals.global
+            ) {
+              frameInfo.globals =
+                stateRespObj.stateResponse.state.globals.global;
+            } else {
+              frameInfo.globals = [];
+            }
+
+            if (
+              stateRespObj.stateResponse.state.references &&
+              stateRespObj.stateResponse.state.references.references
+            ) {
+              this.populateReferences(
+                stateRespObj.stateResponse.state.references.references,
+                frameInfo.requestId
+              );
+            }
+          }
+
           clientFrames.push(
             new StackFrame(
-              i,
+              frameId,
               serverFrames[i].fullName,
               sourcePath
                 ? new Source(
@@ -424,14 +872,279 @@ export class ApexDebug extends DebugSession {
     this.sendResponse(response);
   }
 
-  private logToDebugConsole(
+  protected async scopesRequest(
+    response: DebugProtocol.ScopesResponse,
+    args: DebugProtocol.ScopesArguments
+  ): Promise<void> {
+    response.success = true;
+    const frameInfo = this.stackFrameInfos.get(args.frameId);
+    if (!frameInfo) {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `scopesRequest: no frame info found for stack frame ${args.frameId}`
+      );
+      response.body = { scopes: [] };
+      this.sendResponse(response);
+      return;
+    }
+
+    const scopes = new Array<Scope>();
+    scopes.push(
+      new Scope(
+        'Local',
+        this.variableHandles.create(new ScopeContainer('local', frameInfo)),
+        true
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Static',
+        this.variableHandles.create(new ScopeContainer('static', frameInfo)),
+        true
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Global',
+        this.variableHandles.create(new ScopeContainer('global', frameInfo)),
+        true
+      )
+    );
+
+    response.body = { scopes: scopes };
+    this.sendResponse(response);
+  }
+
+  protected async variablesRequest(
+    response: DebugProtocol.VariablesResponse,
+    args: DebugProtocol.VariablesArguments
+  ): Promise<void> {
+    response.success = true;
+    const variablesContainer = this.variableHandles.get(
+      args.variablesReference
+    );
+    if (!variablesContainer) {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `variablesRequest: no container for variablesReference=${args.variablesReference}`
+      );
+      // no container found: return empty variables array
+      response.body = { variables: [] };
+      this.sendResponse(response);
+      return;
+    }
+
+    const filter: FilterType =
+      args.filter === 'indexed' || args.filter === 'named'
+        ? args.filter
+        : 'all';
+    variablesContainer
+      .expand(this, filter, args.start, args.count)
+      .then(variables => {
+        variables.sort(ApexVariable.compareVariables);
+        response.body = { variables: variables };
+        this.sendResponse(response);
+      })
+      .catch(err => {
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          `variablesRequest: error reading variables ${err} ${err.stack}`
+        );
+        // in case of error return empty variables array
+        response.body = { variables: [] };
+        this.sendResponse(response);
+      });
+  }
+
+  public async fetchFrameVariables(
+    frameInfo: ApexDebugStackFrameInfo
+  ): Promise<void> {
+    const frameResponse = await this.myRequestService.execute(
+      new FrameCommand(frameInfo.requestId, frameInfo.frameNumber)
+    );
+    const frameRespObj: DebuggerResponse = JSON.parse(frameResponse);
+    if (
+      frameRespObj &&
+      frameRespObj.frameResponse &&
+      frameRespObj.frameResponse.frame
+    ) {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=` +
+          JSON.stringify(frameRespObj.frameResponse.frame)
+      );
+      if (
+        frameRespObj.frameResponse.frame.locals &&
+        frameRespObj.frameResponse.frame.locals.local
+      ) {
+        frameInfo.locals = frameRespObj.frameResponse.frame.locals.local;
+      } else {
+        frameInfo.locals = [];
+      }
+
+      if (
+        frameRespObj.frameResponse.frame.statics &&
+        frameRespObj.frameResponse.frame.statics.static
+      ) {
+        frameInfo.statics = frameRespObj.frameResponse.frame.statics.static;
+      } else {
+        frameInfo.statics = [];
+      }
+
+      if (
+        frameRespObj.frameResponse.frame.globals &&
+        frameRespObj.frameResponse.frame.globals.global
+      ) {
+        frameInfo.globals = frameRespObj.frameResponse.frame.globals.global;
+      } else {
+        frameInfo.globals = [];
+      }
+
+      if (
+        frameRespObj.frameResponse.frame.references &&
+        frameRespObj.frameResponse.frame.references.references
+      ) {
+        this.populateReferences(
+          frameRespObj.frameResponse.frame.references.references,
+          frameInfo.requestId
+        );
+      }
+    }
+  }
+
+  protected populateReferences(
+    references: Reference[],
+    requestId: string
+  ): void {
+    references.map(reference => {
+      let variableReference: number;
+      if (reference.type === 'object') {
+        variableReference = this.variableHandles.create(
+          new ObjectReferenceContainer(reference, requestId)
+        );
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+        );
+      } else if (reference.type === 'list' || reference.type === 'set') {
+        variableReference = this.variableHandles.create(
+          new CollectionReferenceContainer(reference, requestId)
+        );
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+        );
+      } else if (reference.type === 'map') {
+        const mapContainer = new MapReferenceContainer(reference, requestId);
+        // explode all map entried so that we can drill down a map logically
+        if (reference.tuple) {
+          reference.tuple.forEach(tuple => {
+            const tupleContainer = new MapTupleContainer(tuple, requestId);
+            const tupleReference = this.variableHandles.create(tupleContainer);
+            mapContainer.addTupleContainer(tupleReference, tupleContainer);
+          });
+        }
+        variableReference = this.variableHandles.create(mapContainer);
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+        );
+      } else {
+        const referenceInfo = JSON.stringify(reference);
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          `populateReferences: unhandled reference: ${referenceInfo}`
+        );
+        return;
+      }
+
+      // map apex id to container reference
+      this.variableContainerReferenceByApexId.set(
+        reference.id,
+        variableReference
+      );
+    });
+  }
+
+  public async resolveApexIdToVariableReference(
+    requestId: string,
+    apexId: number | undefined
+  ): Promise<number | undefined> {
+    if (typeof apexId === 'undefined') {
+      return;
+    }
+    if (!this.variableContainerReferenceByApexId.has(apexId)) {
+      await this.fetchReferences(requestId, apexId);
+      if (!this.variableContainerReferenceByApexId.has(apexId)) {
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          `resolveApexIdToVariableReference: no reference found for apexId ${apexId} (request ${requestId})`
+        );
+        return;
+      }
+    }
+    const variableReference = this.variableContainerReferenceByApexId.get(
+      apexId
+    );
+    this.log(
+      TRACE_CATEGORY_VARIABLES,
+      `resolveApexIdToVariableReference: resolved apexId=${apexId} to variableReference=${variableReference}`
+    );
+    return variableReference;
+  }
+
+  public async fetchReferences(
+    requestId: string,
+    ...apexIds: number[]
+  ): Promise<void> {
+    this.log(
+      TRACE_CATEGORY_VARIABLES,
+      `fetchReferences: fetching references with apexIds=${apexIds} (request ${requestId})`
+    );
+    const referencesResponse = await this.myRequestService.execute(
+      new ReferencesCommand(requestId, ...apexIds)
+    );
+    const referencesResponseObj: DebuggerResponse = JSON.parse(
+      referencesResponse
+    );
+    if (
+      referencesResponseObj &&
+      referencesResponseObj.referencesResponse &&
+      referencesResponseObj.referencesResponse.references &&
+      referencesResponseObj.referencesResponse.references.references
+    ) {
+      this.populateReferences(
+        referencesResponseObj.referencesResponse.references.references,
+        requestId
+      );
+    }
+  }
+
+  public async fetchReferencesIfNecessary(
+    requestId: string,
+    apexIds: number[]
+  ): Promise<void> {
+    const apexIdsToFetch = apexIds.filter(
+      apexId => !this.variableContainerReferenceByApexId.has(apexId)
+    );
+    if (apexIdsToFetch.length === 0) {
+      return;
+    }
+    this.log(
+      TRACE_CATEGORY_VARIABLES,
+      `fetchReferences: fetching references with apexIds=${apexIdsToFetch} (request ${requestId})`
+    );
+    await this.fetchReferences(requestId, ...apexIdsToFetch);
+  }
+
+  protected printToDebugConsole(
     msg?: string,
     sourceFile?: Source,
     sourceLine?: number
   ): void {
     if (msg && msg.length !== 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(
-        `${msg}${ApexDebug.TWO_NL}`,
+        `${msg}${ApexDebug.LINEBREAK}`,
         'stdout'
       );
       event.body.source = sourceFile;
@@ -441,15 +1154,26 @@ export class ApexDebug extends DebugSession {
     }
   }
 
-  private warnToDebugConsole(msg?: string): void {
+  protected warnToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'console'));
+      this.sendEvent(
+        new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'console')
+      );
     }
   }
 
-  private errorToDebugConsole(msg?: string): void {
+  protected errorToDebugConsole(msg?: string): void {
     if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.TWO_NL}`, 'stderr'));
+      this.sendEvent(new OutputEvent(`${msg}${ApexDebug.LINEBREAK}`, 'stderr'));
+    }
+  }
+
+  public log(traceCategory: TraceCategory, message: string) {
+    if (
+      this.trace &&
+      (this.traceAll || this.trace.indexOf(traceCategory) >= 0)
+    ) {
+      this.printToDebugConsole(`${process.pid}: ${message}`);
     }
   }
 
@@ -506,12 +1230,12 @@ export class ApexDebug extends DebugSession {
       const clientInfo = new StreamingClientInfoBuilder()
         .forChannel(channel)
         .withConnectedHandler(() => {
-          this.logToDebugConsole(
+          this.printToDebugConsole(
             nls.localize('streaming_connected_text', channel)
           );
         })
         .withDisconnectedHandler(() => {
-          this.logToDebugConsole(
+          this.printToDebugConsole(
             nls.localize('streaming_disconnected_text', channel)
           );
         })
@@ -540,7 +1264,7 @@ export class ApexDebug extends DebugSession {
   }
 
   public handleEvent(message: DebuggerMessage): void {
-    const type: ApexDebuggerEventType = (<any>ApexDebuggerEventType)[
+    const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[
       message.sobject.Type
     ];
     if (
@@ -643,7 +1367,7 @@ export class ApexDebug extends DebugSession {
       logMessage += ` |${os.EOL}${message.sobject.Stacktrace}`;
     }
 
-    this.logToDebugConsole(
+    this.printToDebugConsole(
       logMessage,
       eventDescriptionSourceFile,
       eventDescriptionSourceLine
@@ -674,6 +1398,17 @@ export class ApexDebug extends DebugSession {
       this.logEvent(message);
       this.requestThreads.delete(threadId);
       this.sendEvent(new ThreadEvent('exited', threadId));
+
+      // cleanup everything that's no longer necessary after all request finished
+      if (this.requestThreads.size === 0) {
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          'handleRequestFinished: clearing variable cache'
+        );
+        this.stackFrameInfos.reset();
+        this.variableHandles.reset();
+        this.variableContainerReferenceByApexId.clear();
+      }
     }
   }
 
@@ -706,8 +1441,27 @@ export class ApexDebug extends DebugSession {
   }
 
   private handleStopped(message: DebuggerMessage): void {
+    const reason = message.sobject.BreakpointId ? 'breakpoint' : 'step';
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
+
+    this.log(
+      TRACE_CATEGORY_LAUNCH,
+      `handleStopped: got ${reason} event from server for thread ${threadId}`
+    );
     if (threadId !== undefined) {
+      // cleanup everything that's no longer valid after a stop event
+      // but only if only one request is currently debugged (we wan't to preserve the info for a second request)
+      if (this.requestThreads.size === 1) {
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          'handleStopped: clearing variable cache'
+        );
+        this.stackFrameInfos.reset();
+        this.variableHandles.reset();
+        this.variableContainerReferenceByApexId.clear();
+      }
+
+      // log to console and notify client
       this.logEvent(message);
       const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
         '',
