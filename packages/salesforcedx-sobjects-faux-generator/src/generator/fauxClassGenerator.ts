@@ -78,18 +78,25 @@ export class FauxClassGenerator {
     return Promise.resolve('');
   }
 
-  private generateChildRelationship(rel: ChildRelationship): string {
-    if (rel.relationshipName) {
-      return `List<${rel.childSObject}> ${rel.relationshipName}`;
+  private stripId(name: string): string {
+    if (name.endsWith('Id')) {
+      return name.slice(0, name.length - 2);
     } else {
-      // expect the name to end with Id, then strip off Id
-      if (rel.field.endsWith('Id')) {
-        const nameWithoutId = rel.field.slice(0, rel.field.length - 2);
-        return `${rel.childSObject} ${nameWithoutId}`;
-      } else {
-        return '';
-      }
+      return name;
     }
+  }
+
+  private getReferenceName(relationshipName: string, name: string): string {
+    if (relationshipName) {
+      return relationshipName;
+    } else {
+      return this.stripId(name);
+    }
+  }
+
+  private generateChildRelationship(rel: ChildRelationship): string {
+    const nameToUse = this.getReferenceName(rel.relationshipName, rel.field);
+    return `List<${rel.childSObject}> ${nameToUse}`;
   }
 
   private generateField(field: Field): string[] {
@@ -98,10 +105,14 @@ export class FauxClassGenerator {
       const upperCaseFirstChar = field.type.charAt(0).toUpperCase();
       decls.push(`${upperCaseFirstChar}${field.type.slice(1)} ${field.name}`);
     } else {
+      const nameToUse = this.getReferenceName(
+        field.relationshipName,
+        field.name
+      );
       if (field.referenceTo.length > 1) {
-        decls.push(`SObject ${field.relationshipName}`);
+        decls.push(`SObject ${nameToUse}`);
       } else {
-        decls.push(`${field.referenceTo} ${field.relationshipName}`);
+        decls.push(`${field.referenceTo} ${nameToUse}`);
       }
       // field.type will be "reference", but the actual type is an Id for Apex
       decls.push(`Id ${field.name}`);
