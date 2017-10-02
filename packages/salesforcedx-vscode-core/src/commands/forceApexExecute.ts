@@ -52,6 +52,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
+    channelService.showChannelOutput();
     channelService.streamCommandOutput(execution);
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
