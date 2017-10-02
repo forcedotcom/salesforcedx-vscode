@@ -70,13 +70,19 @@ describe('Fetch sObjects', function() {
   });
 
   it('Should be able to call describeGlobal', async function() {
+    const objs = [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2, CUSTOM_OBJECT3];
     const cmdOutput = await sobjectdescribe.describeGlobal(
       process.cwd(),
       SObjectCategory.CUSTOM,
       username
     );
-    expect(cmdOutput.length).to.be.equal(1);
-    expect(cmdOutput[0]).to.be.equal(CUSTOM_OBJECT_NAME);
+    expect(cmdOutput.length).to.be.equal(3);
+    expect(cmdOutput[0]).to.be.oneOf(objs);
+    expect(cmdOutput[1]).to.be.oneOf(objs);
+    expect(cmdOutput[2]).to.be.oneOf(objs);
+    expect(cmdOutput[0]).to.not.equal(cmdOutput[1]);
+    expect(cmdOutput[0]).to.not.equal(cmdOutput[2]);
+    expect(cmdOutput[1]).to.not.equal(cmdOutput[2]);
   });
 
   it('Should be able to call describeSObject on custom object', async function() {

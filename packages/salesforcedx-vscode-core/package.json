@@ -205,7 +205,7 @@
         },
         {
           "command": "sfdx.force.internal.refreshsobjects",
-          "when": "config.sfdx.refreshSObjects.enabled"
+          "when": "sfdx:project_opened && config.sfdx.refreshSObjects.enabled"
         },
         {
           "command": "sfdx.force.data.soql.query.input",
@@ -342,6 +342,17 @@
         "command": "sfdx.force.apex.execute.selection",
         "title": "%force_apex_execute_selection_text%"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%gating_title%",
+      "properties": {
+        "sfdx.refreshSObjects.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%enable_refresh_description%"
+        }
+      }
+    }
   }
 }

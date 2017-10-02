@@ -26,7 +26,7 @@ describe('generate fields set', function() {
     expect(classText).to.include('String Foo;');
   });
 
-  it('generated faux class should create file with variousfields', async function(): Promise<
+  it('generated faux class should create file with fields that can be in custom SObjects', async function(): Promise<
     void
   > {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
@@ -46,7 +46,8 @@ describe('generate fields set', function() {
       '{"name": "Foo11", "type" : "multipicklist", "referenceTo": []}',
       '{"name": "Foo12", "type" : "textarea", "referenceTo": []}',
       '{"name": "Foo13", "type" : "encryptedstring", "referenceTo": []}',
-      '{"name": "Foo14", "type" : "url", "referenceTo": []}'
+      '{"name": "Foo14", "type" : "url", "referenceTo": []}',
+      '{"name": "Foo15", "type" : "id", "referenceTo": []}'
     ];
 
     const fieldsString = fields.join(',');
@@ -74,6 +75,39 @@ describe('generate fields set', function() {
     expect(classText).to.include('String Foo12;');
     expect(classText).to.include('String Foo13;');
     expect(classText).to.include('String Foo14;');
+    expect(classText).to.include('Id Foo15;');
+  });
+
+  it('generated faux class should create file with fields that show only in standard SObjects', async function(): Promise<
+    void
+  > {
+    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
+    const closeHeader = ' ], "childRelationships": [] }';
+
+    const fields: string[] = [
+      '{"name": "Foo1", "type": "base64", "referenceTo": []}',
+      '{"name": "Foo2", "type" : "address", "referenceTo": []}',
+      '{"name": "Foo3", "type" : "int", "referenceTo": []}',
+      '{"name": "Foo4", "type" : "anyType", "referenceTo": []}',
+      '{"name": "Foo5", "type" : "combobox", "referenceTo": []}'
+    ];
+
+    const fieldsString = fields.join(',');
+    const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
+
+    const sobjectFolder = './';
+    const gen: FauxClassGenerator = new FauxClassGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.include('Blob Foo1;');
+    expect(classText).to.include('Address Foo2;');
+    expect(classText).to.include('Integer Foo3;');
+    expect(classText).to.include('Object Foo4;');
+    expect(classText).to.include('String Foo5;');
   });
 });
 
@@ -203,5 +237,106 @@ describe('generate relationship tests', function() {
     expect(classText).to.not.include('null');
     expect(classText).to.include('Account Foo');
     expect(classText).to.include('List<Account> Reference');
+  });
+
+  it('faux class generator should handle external lookup relationship', async function(): Promise<
+    void
+  > {
+    const field1 =
+      '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
+    const header = '{ "name": "Custom__c",  "childRelationships": []';
+    const fieldHeader = '"fields": [';
+    const sobject1 = `${header},${fieldHeader}${field1}]}`;
+    const sobjectFolder = './';
+    const gen: FauxClassGenerator = new FauxClassGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.include('String ExtRef__c');
+  });
+
+  // Note - hierarchical relationship, many-to-many, and master-detail all look like lookup relationships in terms of
+  //  the relevant parts of describe
+  // For some of these, can create another test with extra info that is present, but it isn't paid attention to
+  // Might be good for completeness in case this other info eventually is relevant, but will  not be addressed currently
+});
+
+// Note, currently __x (ExternalObject) is not handled by describe (REST or Cli), but is handled by SDD
+describe('generate tests for different sobject kinds', function() {
+  let classPath = '';
+  afterEach(() => {
+    if (classPath) {
+      fs.unlinkSync(classPath);
+      classPath = '';
+    }
+  });
+
+  it('faux class generator should handle metadata object with EntityDefinition target', async function(): Promise<
+    void
+  > {
+    const header =
+      '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
+    const field1 =
+      '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
+    const field2 = '{"name": "Foo1", "type": "string", "referenceTo": []}';
+    const sobject1 = `${header}${field1},${field2}]}`;
+    const sobjectFolder = './';
+    const gen: FauxClassGenerator = new FauxClassGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.include('String MDRef__c');
+  });
+
+  it('faux class generator should handle metadata object with a __mdt target', async function(): Promise<
+    void
+  > {
+    const header =
+      '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
+    const field1 =
+      '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
+    const field2 = '{"name": "Foo1", "type": "string", "referenceTo": []}';
+    const sobject1 = `${header}${field1},${field2}]}`;
+    const sobjectFolder = './';
+    const gen: FauxClassGenerator = new FauxClassGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.include('XX_mdt MDRef__r');
+  });
+
+  it('faux class generator should handle platform event object', async function(): Promise<
+    void
+  > {
+    const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
+    const closeHeader = ' ], "childRelationships": [] }';
+
+    const fields: string[] = [
+      '{"name": "Foo1", "type": "string", "referenceTo": []}',
+      '{"name": "Foo2", "type" : "double", "referenceTo": []}'
+    ];
+
+    const fieldsString = fields.join(',');
+    const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
+
+    const sobjectFolder = './';
+    const gen: FauxClassGenerator = new FauxClassGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.include('String Foo1;');
+    expect(classText).to.include('Decimal Foo2;');
   });
 });
