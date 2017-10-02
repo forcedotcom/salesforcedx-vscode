@@ -71,7 +71,7 @@ describe(TITLE, () => {
     await common.type(ANONYMOUS_APEX_CODE);
     await app.wait();
 
-    await app.client.keys(['Meta', 'a', 'NULL'], false);
+    await app.command('editor.action.selectAll');
 
     await app.command('workbench.action.quickOpen');
     await common.type(
