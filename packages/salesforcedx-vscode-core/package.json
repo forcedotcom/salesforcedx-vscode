@@ -104,10 +104,6 @@
         {
           "command": "sfdx.force.lightning.interface.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.debugger.stop",
-          "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
       "commandPalette": [
