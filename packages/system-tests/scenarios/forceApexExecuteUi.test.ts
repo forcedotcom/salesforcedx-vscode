@@ -31,14 +31,6 @@ describe(TITLE, () => {
   before(async () => {
     await util.createSFDXProject(PROJECT_NAME);
     username = await util.createScratchOrg(PROJECT_NAME);
-  });
-
-  after(async () => {
-    await util.deleteScratchOrg(PROJECT_NAME, username);
-    await removeWorkspace(PROJECT_DIR);
-  });
-
-  beforeEach(async () => {
     app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [PROJECT_DIR]);
     common = new CommonActions(app);
 
@@ -46,11 +38,16 @@ describe(TITLE, () => {
     await app.wait();
   });
 
-  afterEach(async () => {
-    return await app.stop();
+  after(async () => {
+    await app.stop();
+    await util.deleteScratchOrg(PROJECT_NAME, username);
+    await removeWorkspace(PROJECT_DIR);
   });
 
   it('Should execute anonymous apex from current editor document', async () => {
+    await app.command('workbench.action.files.newUntitledFile');
+    await app.wait();
+
     await common.type(ANONYMOUS_APEX_CODE);
     await app.wait();
 
@@ -68,6 +65,9 @@ describe(TITLE, () => {
   });
 
   it('Should execute anonymous apex from current text selection', async () => {
+    await app.command('workbench.action.files.newUntitledFile');
+    await app.wait();
+
     await common.type(ANONYMOUS_APEX_CODE);
     await app.wait();
 
