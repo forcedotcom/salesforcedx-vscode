@@ -55,6 +55,8 @@
         "salesforcedx-vscode-apex-debugger.connectionTimeoutMs": {
           "type": "number",
           "default": 20000,
+          "minimum": 500,
+          "maximum": 120000,
           "description": "%connection_timeout_ms_description%"
         }
       }
