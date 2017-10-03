@@ -22,9 +22,12 @@ To see the output of the commands that you run, select **View** > **Output**, an
 These Salesforce CLI commands are available:
 * `force:alias:list`: **SFDX: List All Aliases**
 * `force:apex:class:create ...`: **SFDX: Create Apex Class**
+* `force:apex:execute`: **SFDX: Execute Anonymous Apex with Currently Selected Text**
+* `force:apex:execute --apexcodefile`: **SFDX: Execute Anonymous Apex with Editor Contents**
 * `force:apex:test:run --resultformat human ...`: **SFDX: Invoke Apex Tests...**
 * `force:auth:web:login --setdefaultdevhubusername`: **SFDX: Authorize a Dev Hub**
 * `force:config:list`: **SFDX: List All Config Variables**
+* `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
 * `force:data:soql:query ...`: **SFDX: Execute SOQL Query...**
 * `force:lightning:app:create ...`: **SFDX: Create Lightning App**
 * `force:lightning:component:create ...`: **SFDX: Create Lightning Component**
