@@ -38,6 +38,9 @@ These Salesforce CLI commands are available:
 * `force:source:pull --forceoverwrite`: **SFDX: Pull Source from Default Scratch Org and Override Conflicts**
 * `force:source:push`: **SFDX: Push Source to Default Scratch Org**
 * `force:source:push --forceoverwrite`: **SFDX: Push Source to Default Scratch Org and Override Conflicts**
+* `force:source:status`: **SFDX: View All Changes (Local and in Default Scratch Org)**
+* `force:source:status --local`: **SFDX: View Local Changes**
+* `force:source:status --remote`: **SFDX: View Changes in Default Scratch Org**
 * `force:visualforce:component:create ...`: **SFDX: Create Visualforce Component**
 * `force:visualforce:page:create ...`: **SFDX: Create Visualforce Page**
 
