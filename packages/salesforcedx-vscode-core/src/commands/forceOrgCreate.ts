@@ -13,15 +13,22 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
+  CancelResponse,
+  CompositeParametersGatherer,
+  ContinueResponse,
   FileSelection,
   FileSelector,
+  ParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceOrgCreateExecutor extends SfdxCommandletExecutor<FileSelection> {
-  public build(data: FileSelection): Command {
+export const DEFAULT_ALIAS = 'scratchOrg';
+export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
+  FileSelection & Alias
+> {
+  public build(data: FileSelection & Alias): Command {
     const selectionPath = path.relative(
       vscode.workspace.rootPath!, // this is safe because of workspaceChecker
       data.file
@@ -32,13 +39,35 @@ class ForceOrgCreateExecutor extends SfdxCommandletExecutor<FileSelection> {
       )
       .withArg('force:org:create')
       .withFlag('-f', `${selectionPath}`)
+      .withFlag('--setalias', data.alias)
       .withArg('--setdefaultusername')
       .build();
   }
 }
 
+export class AliasGatherer implements ParametersGatherer<Alias> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
+    const aliasInputOptions = <vscode.InputBoxOptions>{
+      prompt: nls.localize('parameter_gatherer_enter_alias_name')
+    };
+    const alias = await vscode.window.showInputBox(aliasInputOptions);
+    // Hitting enter with no alias will default the alias to 'scratchOrg'
+    if (alias === undefined) {
+      return { type: 'CANCEL' };
+    }
+    return alias === ''
+      ? { type: 'CONTINUE', data: { alias: DEFAULT_ALIAS } }
+      : { type: 'CONTINUE', data: { alias } };
+  }
+}
+export interface Alias {
+  alias: string;
+}
+
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new FileSelector('config/**/*-scratch-def.json');
+const parameterGatherer = new CompositeParametersGatherer<
+  FileSelection & Alias
+>(new FileSelector('config/**/*-scratch-def.json'), new AliasGatherer());
 
 export function forceOrgCreate() {
   const commandlet = new SfdxCommandlet(

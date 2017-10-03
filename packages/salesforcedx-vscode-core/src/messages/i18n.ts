@@ -45,6 +45,7 @@ export const messages = {
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
+  parameter_gatherer_enter_alias_name: 'Enter an alias',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
