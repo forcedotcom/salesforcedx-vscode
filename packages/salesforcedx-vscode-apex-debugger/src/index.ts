@@ -25,8 +25,8 @@ const initialDebugConfigurations = {
       name: 'Launch Apex Debugger',
       type: 'apex',
       request: 'launch',
-      userIdFilter: '',
-      requestTypeFilter: '',
+      userIdFilter: [],
+      requestTypeFilter: [],
       entryPointFilter: '',
       sfdxProject: '${workspaceRoot}'
     }

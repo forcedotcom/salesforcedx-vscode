@@ -6,15 +6,15 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.15.0"
+    "vscode": "^1.16.0"
   },
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.12.0",
     "faye": "1.1.2",
     "request-light": "0.2.1",
-    "vscode-debugadapter": "1.23.0",
-    "vscode-debugprotocol": "1.23.0"
+    "vscode-debugadapter": "1.24.0",
+    "vscode-debugprotocol": "1.24.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -30,8 +30,8 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
-    "vscode": "1.1.4",
-    "vscode-debugadapter-testsupport": "1.23.0"
+    "vscode": "1.1.5",
+    "vscode-debugadapter-testsupport": "1.24.0"
   },
   "scripts": {
     "vscode:package": "npm prune --production",

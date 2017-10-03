@@ -391,7 +391,7 @@ describe('Debugger adapter - unit', () => {
         .returns(true);
 
       // given
-      args.trace = 'variables, launch';
+      args.trace = 'variables, launch, protocol';
       await adapter.launchReq(response, args);
       sessionPrintToDebugSpy.reset();
 
@@ -401,7 +401,7 @@ describe('Debugger adapter - unit', () => {
       adapter.log('protocol', 'message');
 
       // then
-      expect(sessionPrintToDebugSpy.callCount).to.equal(2);
+      expect(sessionPrintToDebugSpy.callCount).to.equal(3);
     });
 
     it('Should configure tracing for all categories', async () => {
@@ -1497,6 +1497,29 @@ describe('Debugger adapter - unit', () => {
 
       expect(adapter.getRequestThreads().size).to.equal(1);
       expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('[RequestFinished] - Should clear variable handles', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'RequestFinished',
+          RequestId: '07cFAKE1'
+        }
+      };
+      adapter.addRequestThread('07cFAKE1');
+      adapter.addRequestThread('07cFAKE2');
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getRequestThreads().size).to.equal(1);
+      expect(adapter.getEvents().length).to.equal(2);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(adapter.getEvents()[1].event).to.equal('thread');
+      const threadEvent = adapter.getEvents()[1] as ThreadEvent;
+      expect(threadEvent.body.reason).to.equal('exited');
+      expect(threadEvent.body.threadId).to.equal(1);
     });
 
     it('[Resumed] - Should send continued event', () => {

@@ -45,6 +45,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should use proper values from Value', async () => {
       expect(variable.name).to.equal(value.name);
+      expect(variable.type).to.equal(value.nameForMessages);
       expect(variable.declaredTypeRef).to.equal(value.declaredTypeRef);
       expect(variable.value).to.equal(ApexVariable.valueAsString(value));
       expect(variable.variablesReference).to.equal(20);
@@ -604,6 +605,21 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body).to.be.ok;
       expect(response.body.scopes).to.be.ok;
       expect(response.body.scopes.length).to.equal(3);
+      expect(response.body.scopes[0]).to.deep.equal({
+        name: 'Local',
+        variablesReference: 1000,
+        expensive: false
+      });
+      expect(response.body.scopes[1]).to.deep.equal({
+        name: 'Static',
+        variablesReference: 1001,
+        expensive: false
+      });
+      expect(response.body.scopes[2]).to.deep.equal({
+        name: 'Global',
+        variablesReference: 1002,
+        expensive: false
+      });
     });
   });
 

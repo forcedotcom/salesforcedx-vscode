@@ -85,6 +85,7 @@ export class RequestService {
         ? {
             type: 'POST',
             url: requestUrl,
+            timeout: 20000,
             headers: {
               'Content-Type': 'application/json',
               Accept: 'application/json',
@@ -94,6 +95,7 @@ export class RequestService {
         : {
             type: 'POST',
             url: requestUrl,
+            timeout: 20000,
             headers: {
               'Content-Type': 'application/json',
               Accept: 'application/json',

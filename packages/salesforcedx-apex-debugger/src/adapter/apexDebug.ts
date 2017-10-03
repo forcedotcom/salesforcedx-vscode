@@ -124,7 +124,7 @@ export class ApexVariable extends Variable {
     super(value.name, ApexVariable.valueAsString(value), variableReference);
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
-    this.type = value.declaredTypeRef;
+    this.type = value.nameForMessages;
     if ((value as LocalValue).slot !== undefined) {
       this.slot = (value as LocalValue).slot;
     } else {
@@ -893,23 +893,29 @@ export class ApexDebug extends LoggingDebugSession {
       new Scope(
         'Local',
         this.variableHandles.create(new ScopeContainer('local', frameInfo)),
-        true
+        false
       )
     );
     scopes.push(
       new Scope(
         'Static',
         this.variableHandles.create(new ScopeContainer('static', frameInfo)),
-        true
+        false
       )
     );
     scopes.push(
       new Scope(
         'Global',
         this.variableHandles.create(new ScopeContainer('global', frameInfo)),
-        true
+        false
       )
     );
+    scopes.forEach(scope => {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `scopesRequest: scope name=${scope.name} variablesReference=${scope.variablesReference}`
+      );
+    });
 
     response.body = { scopes: scopes };
     this.sendResponse(response);
@@ -932,6 +938,11 @@ export class ApexDebug extends LoggingDebugSession {
       response.body = { variables: [] };
       this.sendResponse(response);
       return;
+    } else {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `variablesRequest: getting variable for variablesReference=${args.variablesReference}`
+      );
     }
 
     const filter: FilterType =
