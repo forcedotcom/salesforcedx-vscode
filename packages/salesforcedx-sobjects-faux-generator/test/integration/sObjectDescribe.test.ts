@@ -14,6 +14,8 @@ import {
 } from '../../src/describe/sObjectDescribe';
 import * as util from './integrationTestUtil';
 
+// The CustomObjects are all identical in terms of fields, just different ones to test batch
+// and multiple objects for testing describeGlobal
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
 const CUSTOM_OBJECT2 = 'MyCustomObject2__c';

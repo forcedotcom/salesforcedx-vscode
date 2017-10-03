@@ -4,7 +4,7 @@ import { FauxClassGenerator } from '../src/generator/fauxClassGenerator';
 
 const expect = chai.expect;
 
-describe('generate fields set', function() {
+describe('SObject faux class generator', function() {
   let classPath = '';
 
   afterEach(() => {
@@ -18,17 +18,7 @@ describe('generate fields set', function() {
     }
   });
 
-  it('generated faux class should contain the proper fields', function() {
-    const sobject1 =
-      '{ "name": "Sobject1", "fields": [ {"name": "Foo", "type": "string", "referenceTo": []} ], "childRelationships": [] }';
-    const gen: FauxClassGenerator = new FauxClassGenerator();
-    const classText = gen.generateFauxClassText(JSON.parse(sobject1));
-    expect(classText).to.include('String Foo;');
-  });
-
-  it('generated faux class should create file with fields that can be in custom SObjects', async function(): Promise<
-    void
-  > {
+  it('Should generate a faux class with all types of fields that can be in custom SObjects', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -53,7 +43,7 @@ describe('generate fields set', function() {
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
 
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -62,14 +52,14 @@ describe('generate fields set', function() {
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String Foo1;');
-    expect(classText).to.include('Decimal Foo2;');
+    expect(classText).to.include('Double Foo2;');
     expect(classText).to.include('Boolean Foo3;');
-    expect(classText).to.include('Currency Foo4;');
+    expect(classText).to.include('Decimal Foo4;');
     expect(classText).to.include('Date Foo5;');
     expect(classText).to.include('Datetime Foo6;');
-    expect(classText).to.include('Email Foo7;');
+    expect(classText).to.include('String Foo7;');
     expect(classText).to.include('Location Foo8;');
-    expect(classText).to.include('Decimal Foo9;');
+    expect(classText).to.include('Double Foo9;');
     expect(classText).to.include('String Foo10;');
     expect(classText).to.include('String Foo11;');
     expect(classText).to.include('String Foo12;');
@@ -78,9 +68,7 @@ describe('generate fields set', function() {
     expect(classText).to.include('Id Foo15;');
   });
 
-  it('generated faux class should create file with fields that show only in standard SObjects', async function(): Promise<
-    void
-  > {
+  it('Should generate a faux class with all types of fields that show only in standard SObjects', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -95,7 +83,7 @@ describe('generate fields set', function() {
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
 
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -109,20 +97,8 @@ describe('generate fields set', function() {
     expect(classText).to.include('Object Foo4;');
     expect(classText).to.include('String Foo5;');
   });
-});
 
-describe('generate relationship tests', function() {
-  let classPath = '';
-  afterEach(() => {
-    if (classPath) {
-      fs.unlinkSync(classPath);
-      classPath = '';
-    }
-  });
-
-  it('generated faux class should create file with relationship', async function(): Promise<
-    void
-  > {
+  it('Should create a a valid class with a field and relationship', async () => {
     const field1 = '{"name": "Foo", "type": "string", "referenceTo": []}';
     const relation1 =
       '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
@@ -132,7 +108,7 @@ describe('generate relationship tests', function() {
       ',' +
       relation1 +
       ' ], "childRelationships": [] }';
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -145,9 +121,7 @@ describe('generate relationship tests', function() {
     expect(classText).to.include('Id Account__c');
   });
 
-  it('generated faux class should create file with child relationship', async function(): Promise<
-    void
-  > {
+  it('Should create a valid class with child relationship', async () => {
     const field1 = '{"name": "Foo", "type": "string", "referenceTo": []}';
     const childRelation1 =
       '{"childSObject": "Case", "relationshipName": "Case__r"}';
@@ -157,7 +131,7 @@ describe('generate relationship tests', function() {
       ' ], "childRelationships": [' +
       childRelation1 +
       '] }';
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -168,16 +142,14 @@ describe('generate relationship tests', function() {
     expect(classText).to.include('List<Case> Case__r');
   });
 
-  it('generated faux class with odd no name relationship should work', async function(): Promise<
-    void
-  > {
+  it('Should create a valid field name for a child relationship that is missing the relationshipName', async () => {
     const childRelation1 =
       '{"childSObject": "Case", "field": "RelatedCaseId", "relationshipName": null}';
     const sobject1: string =
       '{ "name": "Custom__c",  "childRelationships": [' +
       childRelation1 +
       '] }';
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -190,9 +162,7 @@ describe('generate relationship tests', function() {
 
   // seems odd, but this can happen due to the childRelationships that don't have a relationshipName
 
-  it('generated faux class should not generate duplicate names', async function(): Promise<
-    void
-  > {
+  it('Should create a class that has no duplicate field names', async () => {
     const childRelation1 =
       '{"childSObject": "Case", "relationshipName": "Reference"}';
     const childRelation2 =
@@ -204,7 +174,7 @@ describe('generate relationship tests', function() {
       ',' +
       childRelation1 +
       '] }';
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -216,9 +186,7 @@ describe('generate relationship tests', function() {
     expect(classText).to.not.include('Account Reference');
   });
 
-  it('faux class generator should handle relationships missing the relationshipName', async function(): Promise<
-    void
-  > {
+  it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
     const childRelation1 =
       '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
     const field1 =
@@ -226,7 +194,7 @@ describe('generate relationship tests', function() {
     const header = '{ "name": "Custom__c",  "childRelationships": [';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header}${childRelation1}],${fieldHeader}${field1}]}`;
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -239,15 +207,13 @@ describe('generate relationship tests', function() {
     expect(classText).to.include('List<Account> Reference');
   });
 
-  it('faux class generator should handle external lookup relationship', async function(): Promise<
-    void
-  > {
+  it('Should create a String field type for an external lookup relationship', async () => {
     const field1 =
       '{"name": "ExtRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const header = '{ "name": "Custom__c",  "childRelationships": []';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header},${fieldHeader}${field1}]}`;
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -262,28 +228,17 @@ describe('generate relationship tests', function() {
   //  the relevant parts of describe
   // For some of these, can create another test with extra info that is present, but it isn't paid attention to
   // Might be good for completeness in case this other info eventually is relevant, but will  not be addressed currently
-});
 
-// Note, currently __x (ExternalObject) is not handled by describe (REST or Cli), but is handled by SDD
-describe('generate tests for different sobject kinds', function() {
-  let classPath = '';
-  afterEach(() => {
-    if (classPath) {
-      fs.unlinkSync(classPath);
-      classPath = '';
-    }
-  });
+  // Note, currently __x (ExternalObject) is not handled by describe (REST or Cli), but is handled by SDD
 
-  it('faux class generator should handle metadata object with EntityDefinition target', async function(): Promise<
-    void
-  > {
+  it('Should create a valid class for a metadata object with EntityDefinition relationship target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
       '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
     const field2 = '{"name": "Foo1", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -294,16 +249,14 @@ describe('generate tests for different sobject kinds', function() {
     expect(classText).to.include('String MDRef__c');
   });
 
-  it('faux class generator should handle metadata object with a __mdt target', async function(): Promise<
-    void
-  > {
+  it('Should create a valid class for a metadata object with a __mdt target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
       '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
     const field2 = '{"name": "Foo1", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -314,9 +267,7 @@ describe('generate tests for different sobject kinds', function() {
     expect(classText).to.include('XX_mdt MDRef__r');
   });
 
-  it('faux class generator should handle platform event object', async function(): Promise<
-    void
-  > {
+  it('Should create a valid class for a platform event object', async () => {
     const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';
 
@@ -328,7 +279,7 @@ describe('generate tests for different sobject kinds', function() {
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
 
-    const sobjectFolder = './';
+    const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
@@ -337,6 +288,6 @@ describe('generate tests for different sobject kinds', function() {
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String Foo1;');
-    expect(classText).to.include('Decimal Foo2;');
+    expect(classText).to.include('Double Foo2;');
   });
 });

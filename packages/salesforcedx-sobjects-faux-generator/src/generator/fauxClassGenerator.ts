@@ -29,15 +29,15 @@ export class FauxClassGenerator {
   // usually multiple fields with specialized names
   private static typeMapping: Map<string, string> = new Map([
     ['string', 'String'],
-    ['double', 'Decimal'],
+    ['double', 'Double'],
     ['reference', ''],
     ['boolean', 'Boolean'],
-    ['currency', 'Currency'],
+    ['currency', 'Decimal'],
     ['date', 'Date'],
     ['datetime', 'Datetime'],
-    ['email', 'Email'],
+    ['email', 'String'],
     ['location', 'Location'],
-    ['percent', 'Decimal'],
+    ['percent', 'Double'],
     ['phone', 'String'],
     ['picklist', 'String'],
     ['multipicklist', 'String'],
@@ -123,7 +123,7 @@ export class FauxClassGenerator {
     return input.charAt(0).toUpperCase() + input.slice(1);
   }
 
-  private getGenType(describeType: string): string {
+  private getTargetType(describeType: string): string {
     const gentype = FauxClassGenerator.typeMapping.get(describeType) as string;
     return gentype ? gentype : this.capitalize(describeType);
   }
@@ -146,7 +146,7 @@ export class FauxClassGenerator {
       if (field.extraTypeInfo === 'externallookup') {
         genType = 'String';
       } else {
-        genType = this.getGenType(field.type);
+        genType = this.getTargetType(field.type);
       }
       decls.push(`${genType} ${field.name}`);
     } else {

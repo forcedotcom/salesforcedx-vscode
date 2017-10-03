@@ -345,7 +345,7 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%gating_title%",
+      "title": "%feature_previews_title%",
       "properties": {
         "sfdx.refreshSObjects.enabled": {
           "type": "boolean",
