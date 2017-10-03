@@ -499,13 +499,17 @@ export class ApexDebug extends LoggingDebugSession {
     }
     if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
       // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
-      logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/ false);
+      logger.setup(Logger.LogLevel.Verbose, false);
     } else {
       logger.setup(Logger.LogLevel.Stop, false);
     }
 
     response.success = false;
     this.sfdxProject = args.sfdxProject;
+    this.log(
+      TRACE_CATEGORY_LAUNCH,
+      `launchRequest: sfdxProject=${args.sfdxProject}`
+    );
 
     if (!this.myBreakpointService.hasLineNumberMapping()) {
       response.message = nls.localize('session_language_server_error_text');
@@ -949,22 +953,25 @@ export class ApexDebug extends LoggingDebugSession {
       args.filter === 'indexed' || args.filter === 'named'
         ? args.filter
         : 'all';
-    variablesContainer
-      .expand(this, filter, args.start, args.count)
-      .then(variables => {
-        variables.sort(ApexVariable.compareVariables);
-        response.body = { variables: variables };
-        this.sendResponse(response);
-      })
-      .catch(err => {
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `variablesRequest: error reading variables ${err} ${err.stack}`
-        );
-        // in case of error return empty variables array
-        response.body = { variables: [] };
-        this.sendResponse(response);
-      });
+    try {
+      const variables = await variablesContainer.expand(
+        this,
+        filter,
+        args.start,
+        args.count
+      );
+      variables.sort(ApexVariable.compareVariables);
+      response.body = { variables: variables };
+      this.sendResponse(response);
+    } catch (error) {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `variablesRequest: error reading variables ${error} ${error.stack}`
+      );
+      // in case of error return empty variables array
+      response.body = { variables: [] };
+      this.sendResponse(response);
+    }
   }
 
   public async fetchFrameVariables(
@@ -1455,10 +1462,6 @@ export class ApexDebug extends LoggingDebugSession {
     const reason = message.sobject.BreakpointId ? 'breakpoint' : 'step';
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
 
-    this.log(
-      TRACE_CATEGORY_LAUNCH,
-      `handleStopped: got ${reason} event from server for thread ${threadId}`
-    );
     if (threadId !== undefined) {
       // cleanup everything that's no longer valid after a stop event
       // but only if only one request is currently debugged (we wan't to preserve the info for a second request)

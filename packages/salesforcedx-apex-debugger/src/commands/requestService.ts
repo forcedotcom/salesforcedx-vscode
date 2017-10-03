@@ -6,6 +6,7 @@
  */
 
 import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
+import { DEFAULT_REQUEST_TIMEOUT } from '../constants';
 import { BaseCommand } from './baseCommand';
 
 export class RequestService {
@@ -80,29 +81,19 @@ export class RequestService {
       command.getQueryString() == null
         ? urlElements.join('/')
         : urlElements.join('/').concat('?', command.getQueryString()!);
-    const options: XHROptions =
-      command.getRequest() == null
-        ? {
-            type: 'POST',
-            url: requestUrl,
-            timeout: 20000,
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-              Authorization: `OAuth ${this.accessToken}`
-            }
-          }
-        : {
-            type: 'POST',
-            url: requestUrl,
-            timeout: 20000,
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-              Authorization: `OAuth ${this.accessToken}`
-            },
-            data: JSON.stringify(command.getRequest())
-          };
+    const options: XHROptions = {
+      type: 'POST',
+      url: requestUrl,
+      timeout: DEFAULT_REQUEST_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `OAuth ${this.accessToken}`
+      },
+      data: command.getRequest()
+        ? JSON.stringify(command.getRequest())
+        : undefined
+    };
 
     if (this.proxyAuthorization) {
       options.headers['Proxy-Authorization'] = this.proxyAuthorization;

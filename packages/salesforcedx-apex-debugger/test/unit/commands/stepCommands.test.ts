@@ -14,6 +14,7 @@ import {
   StepOutCommand,
   StepOverCommand
 } from '../../../src/commands';
+import { DEFAULT_REQUEST_TIMEOUT } from '../../../src/constants';
 
 describe('Step commands', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -39,11 +40,13 @@ describe('Step commands', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=into',
+      timeout: DEFAULT_REQUEST_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth 123`
-      }
+      },
+      data: undefined
     };
 
     await requestService.execute(command);
@@ -63,11 +66,13 @@ describe('Step commands', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=out',
+      timeout: DEFAULT_REQUEST_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth 123`
-      }
+      },
+      data: undefined
     };
 
     await requestService.execute(command);
@@ -87,11 +92,13 @@ describe('Step commands', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=over',
+      timeout: DEFAULT_REQUEST_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth 123`
-      }
+      },
+      data: undefined
     };
 
     await requestService.execute(command);

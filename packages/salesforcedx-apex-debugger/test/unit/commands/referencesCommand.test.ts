@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { ReferencesCommand, RequestService } from '../../../src/commands';
+import { DEFAULT_REQUEST_TIMEOUT } from '../../../src/constants';
 
 describe('References command', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -34,6 +35,7 @@ describe('References command', () => {
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/references/07cFAKE',
+      timeout: DEFAULT_REQUEST_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

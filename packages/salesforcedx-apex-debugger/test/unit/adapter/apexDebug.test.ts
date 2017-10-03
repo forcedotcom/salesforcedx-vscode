@@ -15,7 +15,12 @@ import {
   ThreadEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { LaunchRequestArguments } from '../../../src/adapter/apexDebug';
+import {
+  ApexDebugStackFrameInfo,
+  ApexVariable,
+  ApexVariableKind,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexDebug';
 import {
   LineBreakpointInfo,
   LineBreakpointsInTyperef
@@ -54,6 +59,10 @@ import {
 } from '../../../src/index';
 import { nls } from '../../../src/messages';
 import { ApexDebugForTest } from './apexDebugForTest';
+import {
+  DummyContainer,
+  newStringValue
+} from './apexDebugVariablesHandling.test';
 import os = require('os');
 
 describe('Debugger adapter - unit', () => {
@@ -1470,6 +1479,16 @@ describe('Debugger adapter - unit', () => {
       };
       adapter.addRequestThread('07cFAKE1');
       adapter.addRequestThread('07cFAKE2');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE1', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
 
       adapter.handleEvent(message);
 
@@ -1480,6 +1499,14 @@ describe('Debugger adapter - unit', () => {
       const threadEvent = adapter.getEvents()[1] as ThreadEvent;
       expect(threadEvent.body.reason).to.equal('exited');
       expect(threadEvent.body.threadId).to.equal(1);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.not.be
+        .undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.not.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        true
+      );
     });
 
     it('[RequestFinished] - Should not handle unknown request', () => {
@@ -1509,17 +1536,28 @@ describe('Debugger adapter - unit', () => {
         }
       };
       adapter.addRequestThread('07cFAKE1');
-      adapter.addRequestThread('07cFAKE2');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE1', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
 
       adapter.handleEvent(message);
 
-      expect(adapter.getRequestThreads().size).to.equal(1);
+      expect(adapter.getRequestThreads().size).to.equal(0);
       expect(adapter.getEvents().length).to.equal(2);
-      expect(adapter.getEvents()[0].event).to.equal('output');
-      expect(adapter.getEvents()[1].event).to.equal('thread');
-      const threadEvent = adapter.getEvents()[1] as ThreadEvent;
-      expect(threadEvent.body.reason).to.equal('exited');
-      expect(threadEvent.body.threadId).to.equal(1);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.be.undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        false
+      );
     });
 
     it('[Resumed] - Should send continued event', () => {
@@ -1570,6 +1608,16 @@ describe('Debugger adapter - unit', () => {
         }
       };
       adapter.addRequestThread('07cFAKE');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
 
       adapter.handleEvent(message);
 
@@ -1587,6 +1635,13 @@ describe('Debugger adapter - unit', () => {
         ApexDebuggerEventType.Stopped,
         0
       ]);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.be.undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        false
+      );
     });
 
     it('[Stopped] - Should send stepping stopped event', () => {
@@ -1630,6 +1685,45 @@ describe('Debugger adapter - unit', () => {
         adapter.getEvents().length,
         'must not handle an event without a request id'
       ).to.equal(0);
+    });
+
+    it('[Stopped] - Should not clear variable handles', () => {
+      const message: DebuggerMessage = {
+        event: {
+          replayId: 0
+        } as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'Stopped',
+          RequestId: '07cFAKE1',
+          BreakpointId: '07bFAKE'
+        }
+      };
+      adapter.addRequestThread('07cFAKE1');
+      adapter.addRequestThread('07cFAKE2');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE2', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getRequestThreads().size).to.equal(2);
+      expect(adapter.getEvents().length).to.equal(2);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.not.be
+        .undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.not.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        true
+      );
     });
 
     it('[SystemWarning] - Should send events with description', () => {

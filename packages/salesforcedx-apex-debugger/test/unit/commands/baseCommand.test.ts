@@ -11,6 +11,7 @@ import * as sinon from 'sinon';
 import { BaseCommand } from '../../../src/commands/baseCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
 import { RequestService } from '../../../src/commands/requestService';
+import { DEFAULT_REQUEST_TIMEOUT } from '../../../src/constants';
 
 class DummyCommand extends BaseCommand {
   public constructor(
@@ -48,11 +49,13 @@ describe('Base command', () => {
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/dummy/07cFAKE',
+      timeout: DEFAULT_REQUEST_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth 123`
-      }
+      },
+      data: undefined
     };
 
     await requestService.execute(dummyCommand);
@@ -75,11 +78,13 @@ describe('Base command', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
+      timeout: DEFAULT_REQUEST_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth 123`
-      }
+      },
+      data: undefined
     };
 
     await requestService.execute(dummyCommand);
@@ -110,6 +115,7 @@ describe('Base command', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
+      timeout: DEFAULT_REQUEST_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
