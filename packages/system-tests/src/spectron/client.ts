@@ -25,9 +25,9 @@ export class SpectronClient {
   public async keys(
     keys: string[] | string,
     capture: boolean = true
-  ): Promise<any> {
+  ): Promise<void> {
     await this.screenshot(capture);
-    return this.spectron.client.keys(keys);
+    this.spectron.client.keys(keys);
   }
 
   public async getText(
