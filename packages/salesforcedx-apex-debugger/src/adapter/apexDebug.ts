@@ -1459,7 +1459,6 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private handleStopped(message: DebuggerMessage): void {
-    const reason = message.sobject.BreakpointId ? 'breakpoint' : 'step';
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
 
     if (threadId !== undefined) {
