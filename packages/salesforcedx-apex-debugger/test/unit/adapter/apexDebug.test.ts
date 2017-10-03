@@ -36,12 +36,13 @@ import {
   StepOverCommand
 } from '../../../src/commands';
 import {
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  GET_PROXY_SETTINGS_EVENT,
+  GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
-  PROXY_SETTINGS_REQUEST,
-  SHOW_MESSAGE_EVENT
+  SHOW_MESSAGE_EVENT,
+  WORKSPACE_SETTINGS_REQUEST
 } from '../../../src/constants';
 import {
   ApexDebuggerEventType,
@@ -53,9 +54,9 @@ import {
   StreamingService
 } from '../../../src/core';
 import {
-  ProxySettings,
   VscodeDebuggerMessage,
-  VscodeDebuggerMessageType
+  VscodeDebuggerMessageType,
+  WorkspaceSettings
 } from '../../../src/index';
 import { nls } from '../../../src/messages';
 import { ApexDebugForTest } from './apexDebugForTest';
@@ -105,7 +106,9 @@ describe('Debugger adapter - unit', () => {
 
       expect(breakpointClearSpy.calledOnce).to.equal(true);
       expect(adapter.getEvents().length).to.equal(2);
-      expect(adapter.getEvents()[0].event).to.equal(GET_PROXY_SETTINGS_EVENT);
+      expect(adapter.getEvents()[0].event).to.equal(
+        GET_WORKSPACE_SETTINGS_EVENT
+      );
       expect(adapter.getEvents()[1].event).to.equal(
         GET_LINE_BREAKPOINT_INFO_EVENT
       );
@@ -1178,7 +1181,7 @@ describe('Debugger adapter - unit', () => {
       });
     });
 
-    describe('Proxy settings', () => {
+    describe('Workspace settings', () => {
       let requestService: RequestService;
 
       beforeEach(() => {
@@ -1193,18 +1196,38 @@ describe('Debugger adapter - unit', () => {
 
       it('Should save proxy settings', () => {
         adapter.customRequest(
-          PROXY_SETTINGS_REQUEST,
+          WORKSPACE_SETTINGS_REQUEST,
           {} as DebugProtocol.Response,
           {
-            url: 'http://localhost:443',
-            strictSSL: false,
-            auth: 'Basic 123'
-          } as ProxySettings
+            proxyUrl: 'http://localhost:443',
+            proxyStrictSSL: false,
+            proxyAuth: 'Basic 123'
+          } as WorkspaceSettings
         );
 
         expect(requestService.proxyUrl).to.equal('http://localhost:443');
         expect(requestService.proxyStrictSSL).to.equal(false);
         expect(requestService.proxyAuthorization).to.equal('Basic 123');
+        expect(requestService.connectionTimeoutMs).to.equal(
+          DEFAULT_CONNECTION_TIMEOUT_MS
+        );
+      });
+
+      it('Should save connection settings', () => {
+        adapter.customRequest(
+          WORKSPACE_SETTINGS_REQUEST,
+          {} as DebugProtocol.Response,
+          {
+            connectionTimeoutMs: 60000
+          } as WorkspaceSettings
+        );
+
+        // tslint:disable:no-unused-expression
+        expect(requestService.proxyUrl).to.be.undefined;
+        expect(requestService.proxyStrictSSL).to.be.undefined;
+        expect(requestService.proxyAuthorization).to.be.undefined;
+        expect(requestService.connectionTimeoutMs).to.equal(60000);
+        // tslint:enable:no-unused-expression
       });
     });
   });

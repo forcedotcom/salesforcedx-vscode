@@ -14,7 +14,7 @@ import {
   StepOutCommand,
   StepOverCommand
 } from '../../../src/commands';
-import { DEFAULT_REQUEST_TIMEOUT } from '../../../src/constants';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 
 describe('Step commands', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -40,7 +40,7 @@ describe('Step commands', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=into',
-      timeout: DEFAULT_REQUEST_TIMEOUT,
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -66,7 +66,7 @@ describe('Step commands', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=out',
-      timeout: DEFAULT_REQUEST_TIMEOUT,
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -92,7 +92,7 @@ describe('Step commands', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=over',
-      timeout: DEFAULT_REQUEST_TIMEOUT,
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

@@ -6,7 +6,7 @@
  */
 
 import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
-import { DEFAULT_REQUEST_TIMEOUT } from '../constants';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../constants';
 import { BaseCommand } from './baseCommand';
 
 export class RequestService {
@@ -16,6 +16,7 @@ export class RequestService {
   private _proxyUrl: string;
   private _proxyStrictSSL: boolean;
   private _proxyAuthorization: string;
+  private _connectionTimeoutMs: number;
 
   public static getInstance() {
     if (!RequestService.instance) {
@@ -74,6 +75,14 @@ export class RequestService {
     this._proxyAuthorization = proxyAuthorization;
   }
 
+  public get connectionTimeoutMs(): number {
+    return this._connectionTimeoutMs || DEFAULT_CONNECTION_TIMEOUT_MS;
+  }
+
+  public set connectionTimeoutMs(connectionTimeoutMs: number) {
+    this._connectionTimeoutMs = connectionTimeoutMs;
+  }
+
   public async execute(command: BaseCommand): Promise<string> {
     configure(this._proxyUrl, this._proxyStrictSSL);
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
@@ -84,7 +93,7 @@ export class RequestService {
     const options: XHROptions = {
       type: 'POST',
       url: requestUrl,
-      timeout: DEFAULT_REQUEST_TIMEOUT,
+      timeout: this.connectionTimeoutMs,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

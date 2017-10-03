@@ -6,10 +6,10 @@
  */
 
 export const DEFAULT_STREAMING_TIMEOUT = 14400;
-export const DEFAULT_REQUEST_TIMEOUT = 20000;
+export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
 export const GET_LINE_BREAKPOINT_INFO_EVENT = 'getLineBreakpointInfo';
 export const SHOW_MESSAGE_EVENT = 'showMessage';
-export const GET_PROXY_SETTINGS_EVENT = 'getProxySettings';
+export const GET_WORKSPACE_SETTINGS_EVENT = 'getWorkspaceSettings';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
 export const HOTSWAP_REQUEST = 'hotswap';
-export const PROXY_SETTINGS_REQUEST = 'proxySettings';
+export const WORKSPACE_SETTINGS_REQUEST = 'workspaceSettings';

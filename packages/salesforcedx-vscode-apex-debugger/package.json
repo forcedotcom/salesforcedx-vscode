@@ -48,6 +48,17 @@
         "language": "apex"
       }
     ],
+    "configuration": {
+      "type": "object",
+      "title": "%configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-apex-debugger.connectionTimeoutMs": {
+          "type": "number",
+          "default": 20000,
+          "description": "%connection_timeout_ms_description%"
+        }
+      }
+    },
     "debuggers": [
       {
         "type": "apex",

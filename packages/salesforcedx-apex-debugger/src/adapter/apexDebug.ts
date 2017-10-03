@@ -48,11 +48,11 @@ import {
 } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  GET_PROXY_SETTINGS_EVENT,
+  GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
-  PROXY_SETTINGS_REQUEST,
-  SHOW_MESSAGE_EVENT
+  SHOW_MESSAGE_EVENT,
+  WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
 import {
   ApexDebuggerEventType,
@@ -64,9 +64,9 @@ import {
   StreamingService
 } from '../core';
 import {
-  ProxySettings,
   VscodeDebuggerMessage,
-  VscodeDebuggerMessageType
+  VscodeDebuggerMessageType,
+  WorkspaceSettings
 } from '../index';
 import { nls } from '../messages';
 import os = require('os');
@@ -474,7 +474,7 @@ export class ApexDebug extends LoggingDebugSession {
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
     this.initializedResponse = response;
-    this.sendEvent(new Event(GET_PROXY_SETTINGS_EVENT));
+    this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
@@ -863,11 +863,13 @@ export class ApexDebug extends LoggingDebugSession {
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
-      case PROXY_SETTINGS_REQUEST:
-        const proxySettings: ProxySettings = args;
-        this.myRequestService.proxyUrl = proxySettings.url;
-        this.myRequestService.proxyStrictSSL = proxySettings.strictSSL;
-        this.myRequestService.proxyAuthorization = proxySettings.auth;
+      case WORKSPACE_SETTINGS_REQUEST:
+        const proxySettings: WorkspaceSettings = args;
+        this.myRequestService.proxyUrl = proxySettings.proxyUrl;
+        this.myRequestService.proxyStrictSSL = proxySettings.proxyStrictSSL;
+        this.myRequestService.proxyAuthorization = proxySettings.proxyAuth;
+        this.myRequestService.connectionTimeoutMs =
+          proxySettings.connectionTimeoutMs;
         break;
       default:
         break;
