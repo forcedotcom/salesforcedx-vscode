@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { RequestService, RunCommand } from '../../../src/commands';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 
 describe('Run command', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -34,11 +35,14 @@ describe('Run command', () => {
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/run/07cFAKE',
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
-      }
+        Authorization: `OAuth 123`,
+        'Content-Length': 0
+      },
+      data: undefined
     };
 
     await requestService.execute(runCommand);

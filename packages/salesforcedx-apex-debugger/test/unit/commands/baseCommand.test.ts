@@ -11,6 +11,7 @@ import * as sinon from 'sinon';
 import { BaseCommand } from '../../../src/commands/baseCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
 import { RequestService } from '../../../src/commands/requestService';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 
 class DummyCommand extends BaseCommand {
   public constructor(
@@ -48,11 +49,14 @@ describe('Base command', () => {
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/dummy/07cFAKE',
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
-      }
+        Authorization: `OAuth 123`,
+        'Content-Length': 0
+      },
+      data: undefined
     };
 
     await requestService.execute(dummyCommand);
@@ -75,11 +79,14 @@ describe('Base command', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
-      }
+        Authorization: `OAuth 123`,
+        'Content-Length': 0
+      },
+      data: undefined
     };
 
     await requestService.execute(dummyCommand);
@@ -106,16 +113,19 @@ describe('Base command', () => {
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
+    const requestBody = JSON.stringify(myRequest);
     const expectedOptions: XHROptions = {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
+        Authorization: `OAuth 123`,
+        'Content-Length': Buffer.byteLength(requestBody, 'utf-8')
       },
-      data: JSON.stringify(myRequest)
+      data: requestBody
     };
 
     await requestService.execute(dummyCommand);

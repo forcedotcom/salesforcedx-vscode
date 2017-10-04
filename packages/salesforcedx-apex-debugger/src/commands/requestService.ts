@@ -6,6 +6,7 @@
  */
 
 import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../constants';
 import { BaseCommand } from './baseCommand';
 
 export class RequestService {
@@ -15,6 +16,7 @@ export class RequestService {
   private _proxyUrl: string;
   private _proxyStrictSSL: boolean;
   private _proxyAuthorization: string;
+  private _connectionTimeoutMs: number;
 
   public static getInstance() {
     if (!RequestService.instance) {
@@ -73,34 +75,40 @@ export class RequestService {
     this._proxyAuthorization = proxyAuthorization;
   }
 
+  public get connectionTimeoutMs(): number {
+    return this._connectionTimeoutMs || DEFAULT_CONNECTION_TIMEOUT_MS;
+  }
+
+  public set connectionTimeoutMs(connectionTimeoutMs: number) {
+    this._connectionTimeoutMs = connectionTimeoutMs;
+  }
+
   public async execute(command: BaseCommand): Promise<string> {
-    configure(this._proxyUrl, this._proxyStrictSSL);
+    if (this.proxyUrl) {
+      configure(this._proxyUrl, this._proxyStrictSSL);
+    }
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
     const requestUrl =
       command.getQueryString() == null
         ? urlElements.join('/')
         : urlElements.join('/').concat('?', command.getQueryString()!);
-    const options: XHROptions =
-      command.getRequest() == null
-        ? {
-            type: 'POST',
-            url: requestUrl,
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-              Authorization: `OAuth ${this.accessToken}`
-            }
-          }
-        : {
-            type: 'POST',
-            url: requestUrl,
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-              Authorization: `OAuth ${this.accessToken}`
-            },
-            data: JSON.stringify(command.getRequest())
-          };
+    const requestBody = command.getRequest()
+      ? JSON.stringify(command.getRequest())
+      : undefined;
+    const options: XHROptions = {
+      type: 'POST',
+      url: requestUrl,
+      timeout: this.connectionTimeoutMs,
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        Accept: 'application/json',
+        Authorization: `OAuth ${this.accessToken}`,
+        'Content-Length': requestBody
+          ? Buffer.byteLength(requestBody, 'utf-8')
+          : 0
+      },
+      data: requestBody
+    };
 
     if (this.proxyAuthorization) {
       options.headers['Proxy-Authorization'] = this.proxyAuthorization;

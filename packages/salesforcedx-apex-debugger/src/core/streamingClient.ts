@@ -8,7 +8,7 @@
 import { Client as FayeClient } from 'faye';
 import os = require('os');
 import { RequestService } from '../commands';
-import { DEFAULT_STREAMING_TIMEOUT } from '../constants';
+import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 
 export enum ApexDebuggerEventType {
@@ -82,7 +82,7 @@ export class StreamingClientInfoBuilder {
   }
 
   public withTimeout(durationInSeconds: number): StreamingClientInfoBuilder {
-    this.timeout = durationInSeconds || DEFAULT_STREAMING_TIMEOUT;
+    this.timeout = durationInSeconds || DEFAULT_STREAMING_TIMEOUT_MS;
     return this;
   }
 

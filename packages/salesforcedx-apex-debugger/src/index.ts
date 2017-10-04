@@ -18,8 +18,9 @@ export interface VscodeDebuggerMessage {
   message: string;
 }
 
-export interface ProxySettings {
-  url: string;
-  strictSSL: boolean;
-  auth: string;
+export interface WorkspaceSettings {
+  proxyUrl: string;
+  proxyStrictSSL: boolean;
+  proxyAuth: string;
+  connectionTimeoutMs: number;
 }

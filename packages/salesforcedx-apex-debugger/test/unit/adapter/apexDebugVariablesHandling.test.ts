@@ -45,6 +45,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should use proper values from Value', async () => {
       expect(variable.name).to.equal(value.name);
+      expect(variable.type).to.equal(value.nameForMessages);
       expect(variable.declaredTypeRef).to.equal(value.declaredTypeRef);
       expect(variable.value).to.equal(ApexVariable.valueAsString(value));
       expect(variable.variablesReference).to.equal(20);
@@ -604,6 +605,21 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body).to.be.ok;
       expect(response.body.scopes).to.be.ok;
       expect(response.body.scopes.length).to.equal(3);
+      expect(response.body.scopes[0]).to.deep.equal({
+        name: 'Local',
+        variablesReference: 1000,
+        expensive: false
+      });
+      expect(response.body.scopes[1]).to.deep.equal({
+        name: 'Static',
+        variablesReference: 1001,
+        expensive: false
+      });
+      expect(response.body.scopes[2]).to.deep.equal({
+        name: 'Global',
+        variablesReference: 1002,
+        expensive: false
+      });
     });
   });
 
@@ -675,10 +691,37 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body.variables.length).to.equal(2);
       expect(response.body.variables).to.deep.equal(variables);
     });
+
+    it('Should return no variables when expand errors out', async () => {
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new ErrorDummyContainer(variables)
+      );
+
+      await adapter.variablesRequest(
+        {} as DebugProtocol.VariablesResponse,
+        {
+          variablesReference: variableReference
+        } as DebugProtocol.VariablesArguments
+      );
+
+      const response = adapter.getResponse(
+        0
+      ) as DebugProtocol.VariablesResponse;
+      expect(response.success).to.equal(true);
+      expect(response.body.variables.length).to.equal(0);
+    });
   });
 });
 
-function newStringValue(name: string, value = 'value', slot?: number): Value {
+export function newStringValue(
+  name: string,
+  value = 'value',
+  slot?: number
+): Value {
   const result: any = {
     name: name,
     declaredTypeRef: 'java/lang/String',
@@ -691,7 +734,7 @@ function newStringValue(name: string, value = 'value', slot?: number): Value {
   return result;
 }
 
-class DummyContainer implements VariableContainer {
+export class DummyContainer implements VariableContainer {
   public variables: ApexVariable[];
   public constructor(variables: ApexVariable[]) {
     this.variables = variables;
@@ -704,5 +747,21 @@ class DummyContainer implements VariableContainer {
     count: number | undefined
   ): Promise<ApexVariable[]> {
     return Promise.resolve(this.variables);
+  }
+}
+
+class ErrorDummyContainer implements VariableContainer {
+  public variables: ApexVariable[];
+  public constructor(variables: ApexVariable[]) {
+    this.variables = variables;
+  }
+
+  public expand(
+    session: ApexDebug,
+    filter: 'named' | 'indexed' | 'all',
+    start: number | undefined,
+    count: number | undefined
+  ): Promise<ApexVariable[]> {
+    return Promise.reject('error');
   }
 }

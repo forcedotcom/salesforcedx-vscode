@@ -13,14 +13,14 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.15.0"
+    "vscode": "^1.16.0"
   },
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-apex-debugger": "40.12.0"
   },
   "devDependencies": {
-    "vscode": "1.1.4"
+    "vscode": "1.1.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -48,6 +48,19 @@
         "language": "apex"
       }
     ],
+    "configuration": {
+      "type": "object",
+      "title": "%configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-apex-debugger.connectionTimeoutMs": {
+          "type": "number",
+          "default": 20000,
+          "minimum": 500,
+          "maximum": 120000,
+          "description": "%connection_timeout_ms_description%"
+        }
+      }
+    },
     "debuggers": [
       {
         "type": "apex",
@@ -64,8 +77,8 @@
               "name": "%launch_snippet_name%",
               "type": "apex",
               "request": "launch",
-              "userIdFilter": "",
-              "requestTypeFilter": "",
+              "userIdFilter": [],
+              "requestTypeFilter": [],
               "entryPointFilter": "",
               "sfdxProject": "^\"\\${workspaceRoot}\""
             }

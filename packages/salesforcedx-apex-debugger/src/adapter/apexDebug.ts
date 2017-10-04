@@ -48,11 +48,11 @@ import {
 } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  GET_PROXY_SETTINGS_EVENT,
+  GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
-  PROXY_SETTINGS_REQUEST,
-  SHOW_MESSAGE_EVENT
+  SHOW_MESSAGE_EVENT,
+  WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
 import {
   ApexDebuggerEventType,
@@ -64,9 +64,9 @@ import {
   StreamingService
 } from '../core';
 import {
-  ProxySettings,
   VscodeDebuggerMessage,
-  VscodeDebuggerMessageType
+  VscodeDebuggerMessageType,
+  WorkspaceSettings
 } from '../index';
 import { nls } from '../messages';
 import os = require('os');
@@ -124,7 +124,7 @@ export class ApexVariable extends Variable {
     super(value.name, ApexVariable.valueAsString(value), variableReference);
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
-    this.type = value.declaredTypeRef;
+    this.type = value.nameForMessages;
     if ((value as LocalValue).slot !== undefined) {
       this.slot = (value as LocalValue).slot;
     } else {
@@ -474,7 +474,7 @@ export class ApexDebug extends LoggingDebugSession {
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
     this.initializedResponse = response;
-    this.sendEvent(new Event(GET_PROXY_SETTINGS_EVENT));
+    this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
@@ -499,13 +499,17 @@ export class ApexDebug extends LoggingDebugSession {
     }
     if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
       // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
-      logger.setup(Logger.LogLevel.Verbose, /*logToFile=*/ false);
+      logger.setup(Logger.LogLevel.Verbose, false);
     } else {
       logger.setup(Logger.LogLevel.Stop, false);
     }
 
     response.success = false;
     this.sfdxProject = args.sfdxProject;
+    this.log(
+      TRACE_CATEGORY_LAUNCH,
+      `launchRequest: sfdxProject=${args.sfdxProject}`
+    );
 
     if (!this.myBreakpointService.hasLineNumberMapping()) {
       response.message = nls.localize('session_language_server_error_text');
@@ -859,11 +863,13 @@ export class ApexDebug extends LoggingDebugSession {
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
-      case PROXY_SETTINGS_REQUEST:
-        const proxySettings: ProxySettings = args;
-        this.myRequestService.proxyUrl = proxySettings.url;
-        this.myRequestService.proxyStrictSSL = proxySettings.strictSSL;
-        this.myRequestService.proxyAuthorization = proxySettings.auth;
+      case WORKSPACE_SETTINGS_REQUEST:
+        const proxySettings: WorkspaceSettings = args;
+        this.myRequestService.proxyUrl = proxySettings.proxyUrl;
+        this.myRequestService.proxyStrictSSL = proxySettings.proxyStrictSSL;
+        this.myRequestService.proxyAuthorization = proxySettings.proxyAuth;
+        this.myRequestService.connectionTimeoutMs =
+          proxySettings.connectionTimeoutMs;
         break;
       default:
         break;
@@ -893,23 +899,29 @@ export class ApexDebug extends LoggingDebugSession {
       new Scope(
         'Local',
         this.variableHandles.create(new ScopeContainer('local', frameInfo)),
-        true
+        false
       )
     );
     scopes.push(
       new Scope(
         'Static',
         this.variableHandles.create(new ScopeContainer('static', frameInfo)),
-        true
+        false
       )
     );
     scopes.push(
       new Scope(
         'Global',
         this.variableHandles.create(new ScopeContainer('global', frameInfo)),
-        true
+        false
       )
     );
+    scopes.forEach(scope => {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `scopesRequest: scope name=${scope.name} variablesReference=${scope.variablesReference}`
+      );
+    });
 
     response.body = { scopes: scopes };
     this.sendResponse(response);
@@ -932,28 +944,36 @@ export class ApexDebug extends LoggingDebugSession {
       response.body = { variables: [] };
       this.sendResponse(response);
       return;
+    } else {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `variablesRequest: getting variable for variablesReference=${args.variablesReference}`
+      );
     }
 
     const filter: FilterType =
       args.filter === 'indexed' || args.filter === 'named'
         ? args.filter
         : 'all';
-    variablesContainer
-      .expand(this, filter, args.start, args.count)
-      .then(variables => {
-        variables.sort(ApexVariable.compareVariables);
-        response.body = { variables: variables };
-        this.sendResponse(response);
-      })
-      .catch(err => {
-        this.log(
-          TRACE_CATEGORY_VARIABLES,
-          `variablesRequest: error reading variables ${err} ${err.stack}`
-        );
-        // in case of error return empty variables array
-        response.body = { variables: [] };
-        this.sendResponse(response);
-      });
+    try {
+      const variables = await variablesContainer.expand(
+        this,
+        filter,
+        args.start,
+        args.count
+      );
+      variables.sort(ApexVariable.compareVariables);
+      response.body = { variables: variables };
+      this.sendResponse(response);
+    } catch (error) {
+      this.log(
+        TRACE_CATEGORY_VARIABLES,
+        `variablesRequest: error reading variables ${error} ${error.stack}`
+      );
+      // in case of error return empty variables array
+      response.body = { variables: [] };
+      this.sendResponse(response);
+    }
   }
 
   public async fetchFrameVariables(
@@ -1441,13 +1461,8 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private handleStopped(message: DebuggerMessage): void {
-    const reason = message.sobject.BreakpointId ? 'breakpoint' : 'step';
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
 
-    this.log(
-      TRACE_CATEGORY_LAUNCH,
-      `handleStopped: got ${reason} event from server for thread ${threadId}`
-    );
     if (threadId !== undefined) {
       // cleanup everything that's no longer valid after a stop event
       // but only if only one request is currently debugged (we wan't to preserve the info for a second request)
