@@ -24,7 +24,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-export const DEFAULT_ALIAS = 'scratchOrg';
+export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
 > {
@@ -51,7 +51,7 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize('parameter_gatherer_enter_alias_name')
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
-    // Hitting enter with no alias will default the alias to 'scratchOrg'
+    // Hitting enter with no alias will default the alias to 'vscodeScratchOrg'
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }

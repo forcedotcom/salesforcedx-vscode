@@ -5,7 +5,6 @@ import * as vscode from 'vscode';
 import {
   AliasGatherer,
   DEFAULT_ALIAS,
-  forceOrgCreate,
   ForceOrgCreateExecutor
 } from '../../src/commands/forceOrgCreate';
 import { nls } from '../../src/messages';
