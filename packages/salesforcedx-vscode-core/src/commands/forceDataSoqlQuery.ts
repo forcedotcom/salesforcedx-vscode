@@ -43,16 +43,16 @@ export class GetQueryInput implements ParametersGatherer<{ input: string }> {
     let input;
 
     if (!editor) {
-      const userInputOptions = <vscode.InputBoxOptions>{
+      const userInputOptions = {
         prompt: nls.localize('parameter_gatherer_enter_soql_query')
-      };
+      } as vscode.InputBoxOptions;
       input = await vscode.window.showInputBox(userInputOptions);
     } else {
       const document = editor.document;
       if (editor.selection.isEmpty) {
-        const userInputOptions = <vscode.InputBoxOptions>{
+        const userInputOptions = {
           prompt: nls.localize('parameter_gatherer_enter_soql_query')
-        };
+        } as vscode.InputBoxOptions;
         input = await vscode.window.showInputBox(userInputOptions);
       } else {
         input = document.getText(editor.selection);
