@@ -26,9 +26,9 @@ import {
 
 export const DEFAULT_ALIAS = 'scratchOrg';
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
-  FileSelection & Alias
+  AliasAndFileSelection
 > {
-  public build(data: FileSelection & Alias): Command {
+  public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       vscode.workspace.rootPath!, // this is safe because of workspaceChecker
       data.file
@@ -47,9 +47,9 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 
 export class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
-    const aliasInputOptions = <vscode.InputBoxOptions>{
+    const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name')
-    };
+    } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will default the alias to 'scratchOrg'
     if (alias === undefined) {
@@ -64,9 +64,11 @@ export interface Alias {
   alias: string;
 }
 
+export type AliasAndFileSelection = Alias & FileSelection;
+
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new CompositeParametersGatherer<
-  FileSelection & Alias
+  AliasAndFileSelection
 >(new FileSelector('config/**/*-scratch-def.json'), new AliasGatherer());
 
 export function forceOrgCreate() {
