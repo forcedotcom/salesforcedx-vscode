@@ -15,7 +15,7 @@
     "@types/node": "^6.0.40",
     "@types/rimraf": "0.0.28",
     "@types/shelljs": "^0.7.4",
-    "@types/webdriverio": "^4.6.1",
+    "@types/webdriverio": "4.6.1",
     "chai": "^4.0.2",
     "cross-env": "5.0.4",
     "decache": "^4.1.0",
