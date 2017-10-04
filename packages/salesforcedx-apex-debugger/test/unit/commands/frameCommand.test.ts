@@ -38,9 +38,10 @@ describe('Frame command', () => {
         'https://www.salesforce.com/services/debug/v41.0/frame/07cFAKE?stackFrame=1',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
+        Authorization: `OAuth 123`,
+        'Content-Length': 0
       },
       data: undefined
     };

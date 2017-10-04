@@ -37,9 +37,10 @@ describe('Run command', () => {
       url: 'https://www.salesforce.com/services/debug/v41.0/run/07cFAKE',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
+        Authorization: `OAuth 123`,
+        'Content-Length': 0
       },
       data: undefined
     };

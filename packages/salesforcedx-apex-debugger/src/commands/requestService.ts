@@ -84,24 +84,30 @@ export class RequestService {
   }
 
   public async execute(command: BaseCommand): Promise<string> {
-    configure(this._proxyUrl, this._proxyStrictSSL);
+    if (this.proxyUrl) {
+      configure(this._proxyUrl, this._proxyStrictSSL);
+    }
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
     const requestUrl =
       command.getQueryString() == null
         ? urlElements.join('/')
         : urlElements.join('/').concat('?', command.getQueryString()!);
+    const requestBody = command.getRequest()
+      ? JSON.stringify(command.getRequest())
+      : undefined;
     const options: XHROptions = {
       type: 'POST',
       url: requestUrl,
       timeout: this.connectionTimeoutMs,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth ${this.accessToken}`
+        Authorization: `OAuth ${this.accessToken}`,
+        'Content-Length': requestBody
+          ? Buffer.byteLength(requestBody, 'utf-8')
+          : 0
       },
-      data: command.getRequest()
-        ? JSON.stringify(command.getRequest())
-        : undefined
+      data: requestBody
     };
 
     if (this.proxyAuthorization) {
