@@ -10,9 +10,11 @@ import * as vscode from 'vscode';
 import {
   forceAliasList,
   forceApexClassCreate,
+  forceApexExecute,
   forceApexTestRun,
   forceAuthWebLogin,
   forceConfigList,
+  forceDataSoqlQuery,
   forceDebuggerStop,
   forceGenerateFauxClassesCreate,
   forceLightningAppCreate,
@@ -137,10 +139,29 @@ function registerCommands(): vscode.Disposable {
     forceOrgDisplay,
     { flag: '--targetusername' }
   );
+  const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
+    'sfdx.force.data.soql.query.input',
+    forceDataSoqlQuery
+  );
+  const forceDataSoqlQuerySelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.data.soql.query.selection',
+    forceDataSoqlQuery
+  );
 
   const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
     'sfdx.force.internal.refreshsobjects',
     forceGenerateFauxClassesCreate
+  );
+
+  const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.document',
+    forceApexExecute,
+    false
+  );
+  const forceApexExecuteSelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.selection',
+    forceApexExecute,
+    true
   );
 
   // Internal commands
@@ -150,8 +171,12 @@ function registerCommands(): vscode.Disposable {
   );
 
   return vscode.Disposable.from(
+    forceApexExecuteDocumentCmd,
+    forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
+    forceDataSoqlQueryInputCmd,
+    forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,

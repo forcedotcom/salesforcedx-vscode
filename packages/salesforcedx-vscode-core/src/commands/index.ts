@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export { forceApexExecute } from './forceApexExecute';
 export { forceAuthWebLogin } from './forceAuthWebLogin';
 export { forceApexTestRun } from './forceApexTestRun';
+export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
 export { forceSourcePull } from './forceSourcePull';

@@ -165,7 +165,8 @@
         "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/**/*.js"
       ],
       "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
       "name": "Launch SObject Generator Tests",

@@ -10,6 +10,7 @@
  * 1. Gather sample JSON responses from Apex Debugger APIs.
  * 2. Input those responses into {@link http://json2ts.com/} to generate Typescript interfaces.
  * 3. Remove duplicate interfaces that are used in more than one response object.
+ * 4. Fixed bogus generated interface ReferenceEnum
  */
 export interface DebuggerResponse {
   referencesResponse: ReferencesResponse;
@@ -33,15 +34,8 @@ export interface References {
   references: Reference[];
 }
 
-export interface ReferenceEnum {
-  OBJECT: string;
-  LIST: string;
-  SET: string;
-  MAP: string;
-}
-
 export interface Reference {
-  type: ReferenceEnum;
+  type: string;
   id: number;
   typeRef: string;
   nameForMessages: string;

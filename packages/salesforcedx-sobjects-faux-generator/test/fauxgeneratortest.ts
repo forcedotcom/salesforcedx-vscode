@@ -123,7 +123,7 @@ describe('generate relationship tests', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('Case RelatedCase;');
+    expect(classText).to.include('List<Case> RelatedCase;');
   });
 
   // seems odd, but this can happen due to the childRelationships that don't have a relationshipName
@@ -152,5 +152,28 @@ describe('generate relationship tests', function() {
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('List<Case> Reference;');
     expect(classText).to.not.include('Account Reference');
+  });
+
+  it('faux class generator should handle relationships missing the relationshipName', async function(): Promise<
+    void
+  > {
+    const childRelation1 =
+      '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
+    const field1 =
+      '{"name": "FooId", "type": "string", "referenceTo": ["Account"], "relationshipName": null}';
+    const header = '{ "name": "Custom__c",  "childRelationships": [';
+    const fieldHeader = '"fields": [';
+    const sobject1 = `${header}${childRelation1}],${fieldHeader}${field1}]}`;
+    const sobjectFolder = './';
+    const gen: FauxClassGenerator = new FauxClassGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.not.include('null');
+    expect(classText).to.include('Account Foo');
+    expect(classText).to.include('List<Account> Reference');
   });
 });

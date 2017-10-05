@@ -18,6 +18,8 @@ import {
   IdSelection,
   StopActiveDebuggerSessionExecutor
 } from '../../src/commands/forceDebuggerStop';
+import { nls } from '../../src/messages';
+import { notificationService } from '../../src/notifications';
 import childProcess = require('child_process');
 
 describe('Debugger stop command', () => {
@@ -30,6 +32,7 @@ describe('Debugger stop command', () => {
     let detachExecutorSpy: sinon.SinonSpy;
     let sessionDetachRunSpy: sinon.SinonSpy;
     let executor: StopActiveDebuggerSessionExecutor;
+    let infoSpy: sinon.SinonSpy;
 
     beforeEach(() => {
       origSpawn = childProcess.spawn;
@@ -47,6 +50,7 @@ describe('Debugger stop command', () => {
       );
       sessionDetachRunSpy = sinon.spy(SfdxCommandlet.prototype, 'run');
       executor = new StopActiveDebuggerSessionExecutor();
+      infoSpy = sinon.stub(notificationService, 'showInformationMessage');
     });
 
     afterEach(() => {
@@ -55,6 +59,7 @@ describe('Debugger stop command', () => {
       idGathererStub.restore();
       detachExecutorSpy.restore();
       sessionDetachRunSpy.restore();
+      infoSpy.restore();
     });
 
     it('Should build query command', () => {
@@ -62,6 +67,9 @@ describe('Debugger stop command', () => {
 
       expect(command.toCommand()).to.equal(
         "sfdx force:data:soql:query --query SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1 --usetoolingapi --json"
+      );
+      expect(command.description).to.equal(
+        nls.localize('force_debugger_query_session_text')
       );
     });
 
@@ -93,6 +101,10 @@ describe('Debugger stop command', () => {
       expect(idGathererStub.called).to.equal(false);
       expect(detachExecutorSpy.called).to.equal(false);
       expect(sessionDetachRunSpy.calledOnce).to.equal(false);
+      expect(infoSpy.calledOnce).to.equal(true);
+      expect(infoSpy.getCall(0).args).to.have.same.members([
+        nls.localize('force_debugger_stop_none_found_text')
+      ]);
     });
 
     it('Should handle unexpected Apex Debugger session ID', async () => {
@@ -141,7 +153,10 @@ describe('Debugger stop command', () => {
       const command = executor.build({ id: '07aFAKE' } as IdSelection);
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:data:record:update --sobjecttype ApexDebuggerSession --sobjectid 07aFAKE --values Status="Detach" --usetoolingapi --json'
+        'sfdx force:data:record:update --sobjecttype ApexDebuggerSession --sobjectid 07aFAKE --values Status="Detach" --usetoolingapi'
+      );
+      expect(command.description).to.equal(
+        nls.localize('force_debugger_stop_text')
       );
     });
   });
