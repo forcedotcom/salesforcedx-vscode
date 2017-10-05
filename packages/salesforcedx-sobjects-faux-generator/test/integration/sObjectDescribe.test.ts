@@ -30,6 +30,8 @@ const SIMPLE_OBJECT_DIR = path.join(
 );
 
 const sobjectdescribe = new SObjectDescribe();
+const MIN_CUSTOMOBJECT_NUM_FIELDS = 9;
+const CUSTOMOBJECT_NUMBERFIELD_PRECISION = 18;
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', function() {
@@ -95,10 +97,12 @@ describe('Fetch sObjects', function() {
     );
     expect(cmdOutput.name).to.be.equal(CUSTOM_OBJECT_NAME);
     expect(cmdOutput.custom).to.be.true;
-    expect(cmdOutput.fields.length).to.be.least(9);
+    expect(cmdOutput.fields.length).to.be.least(MIN_CUSTOMOBJECT_NUM_FIELDS);
     const customField = cmdOutput.fields[cmdOutput.fields.length - 1];
     expect(customField.custom).to.be.true;
-    expect(customField.precision).to.be.equal(18);
+    expect(customField.precision).to.be.equal(
+      CUSTOMOBJECT_NUMBERFIELD_PRECISION
+    );
     expect(customField.scale).to.be.equal(0);
     expect(customField.name).to.be.equal('MyCustomField__c');
   });
@@ -112,13 +116,13 @@ describe('Fetch sObjects', function() {
     );
     expect(cmdOutput[0].name).to.be.equal(CUSTOM_OBJECT_NAME);
     expect(cmdOutput[0].custom).to.be.true;
-    expect(cmdOutput[0].fields.length).to.be.least(9);
+    expect(cmdOutput[0].fields.length).to.be.least(MIN_CUSTOMOBJECT_NUM_FIELDS);
     const customField = cmdOutput[0].fields[cmdOutput[0].fields.length - 1];
     expect(customField.name).to.be.equal('MyCustomField__c');
 
     expect(cmdOutput[1].name).to.be.equal(CUSTOM_OBJECT2);
     expect(cmdOutput[1].custom).to.be.true;
-    expect(cmdOutput[1].fields.length).to.be.least(9);
+    expect(cmdOutput[1].fields.length).to.be.least(MIN_CUSTOMOBJECT_NUM_FIELDS);
 
     expect(cmdOutput[2].name).to.be.equal(CUSTOM_OBJECT3);
   });

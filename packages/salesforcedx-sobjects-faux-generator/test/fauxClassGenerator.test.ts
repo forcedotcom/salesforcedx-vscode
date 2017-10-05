@@ -23,21 +23,21 @@ describe('SObject faux class generator', function() {
     const closeHeader = ' ], "childRelationships": [] }';
 
     const fields: string[] = [
-      '{"name": "Foo1", "type": "string", "referenceTo": []}',
-      '{"name": "Foo2", "type" : "double", "referenceTo": []}',
-      '{"name": "Foo3", "type" : "boolean", "referenceTo": []}',
-      '{"name": "Foo4", "type" : "currency", "referenceTo": []}',
-      '{"name": "Foo5", "type" : "date", "referenceTo": []}',
-      '{"name": "Foo6", "type" : "datetime", "referenceTo": []}',
-      '{"name": "Foo7", "type" : "email", "referenceTo": []}',
-      '{"name": "Foo8", "type" : "location", "referenceTo": []}',
-      '{"name": "Foo9", "type" : "percent", "referenceTo": []}',
-      '{"name": "Foo10", "type" : "picklist", "referenceTo": []}',
-      '{"name": "Foo11", "type" : "multipicklist", "referenceTo": []}',
-      '{"name": "Foo12", "type" : "textarea", "referenceTo": []}',
-      '{"name": "Foo13", "type" : "encryptedstring", "referenceTo": []}',
-      '{"name": "Foo14", "type" : "url", "referenceTo": []}',
-      '{"name": "Foo15", "type" : "id", "referenceTo": []}'
+      '{"name": "StringField", "type": "string", "referenceTo": []}',
+      '{"name": "DoubleField", "type" : "double", "referenceTo": []}',
+      '{"name": "BooleanField", "type" : "boolean", "referenceTo": []}',
+      '{"name": "CurrencyField", "type" : "currency", "referenceTo": []}',
+      '{"name": "DateField", "type" : "date", "referenceTo": []}',
+      '{"name": "DatetimeField", "type" : "datetime", "referenceTo": []}',
+      '{"name": "EmailField", "type" : "email", "referenceTo": []}',
+      '{"name": "LocationField", "type" : "location", "referenceTo": []}',
+      '{"name": "PercentField", "type" : "percent", "referenceTo": []}',
+      '{"name": "PicklistField", "type" : "picklist", "referenceTo": []}',
+      '{"name": "MultipicklistField", "type" : "multipicklist", "referenceTo": []}',
+      '{"name": "TextareaField", "type" : "textarea", "referenceTo": []}',
+      '{"name": "EncryptedField", "type" : "encryptedstring", "referenceTo": []}',
+      '{"name": "UrlField", "type" : "url", "referenceTo": []}',
+      '{"name": "IdField", "type" : "id", "referenceTo": []}'
     ];
 
     const fieldsString = fields.join(',');
@@ -51,21 +51,21 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String Foo1;');
-    expect(classText).to.include('Double Foo2;');
-    expect(classText).to.include('Boolean Foo3;');
-    expect(classText).to.include('Decimal Foo4;');
-    expect(classText).to.include('Date Foo5;');
-    expect(classText).to.include('Datetime Foo6;');
-    expect(classText).to.include('String Foo7;');
-    expect(classText).to.include('Location Foo8;');
-    expect(classText).to.include('Double Foo9;');
-    expect(classText).to.include('String Foo10;');
-    expect(classText).to.include('String Foo11;');
-    expect(classText).to.include('String Foo12;');
-    expect(classText).to.include('String Foo13;');
-    expect(classText).to.include('String Foo14;');
-    expect(classText).to.include('Id Foo15;');
+    expect(classText).to.include('String StringField;');
+    expect(classText).to.include('Double DoubleField;');
+    expect(classText).to.include('Boolean BooleanField;');
+    expect(classText).to.include('Decimal CurrencyField;');
+    expect(classText).to.include('Date DateField;');
+    expect(classText).to.include('Datetime DatetimeField;');
+    expect(classText).to.include('String EmailField;');
+    expect(classText).to.include('Location LocationField;');
+    expect(classText).to.include('Double PercentField;');
+    expect(classText).to.include('String PicklistField;');
+    expect(classText).to.include('String MultipicklistField;');
+    expect(classText).to.include('String TextareaField;');
+    expect(classText).to.include('String EncryptedField;');
+    expect(classText).to.include('String UrlField;');
+    expect(classText).to.include('Id IdField;');
   });
 
   it('Should generate a faux class with all types of fields that show only in standard SObjects', async () => {
@@ -73,11 +73,11 @@ describe('SObject faux class generator', function() {
     const closeHeader = ' ], "childRelationships": [] }';
 
     const fields: string[] = [
-      '{"name": "Foo1", "type": "base64", "referenceTo": []}',
-      '{"name": "Foo2", "type" : "address", "referenceTo": []}',
-      '{"name": "Foo3", "type" : "int", "referenceTo": []}',
-      '{"name": "Foo4", "type" : "anyType", "referenceTo": []}',
-      '{"name": "Foo5", "type" : "combobox", "referenceTo": []}'
+      '{"name": "BaseField", "type": "base64", "referenceTo": []}',
+      '{"name": "AddressField", "type" : "address", "referenceTo": []}',
+      '{"name": "IntField", "type" : "int", "referenceTo": []}',
+      '{"name": "AnytypeField", "type" : "anyType", "referenceTo": []}',
+      '{"name": "ComboboxField", "type" : "combobox", "referenceTo": []}'
     ];
 
     const fieldsString = fields.join(',');
@@ -91,15 +91,16 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('Blob Foo1;');
-    expect(classText).to.include('Address Foo2;');
-    expect(classText).to.include('Integer Foo3;');
-    expect(classText).to.include('Object Foo4;');
-    expect(classText).to.include('String Foo5;');
+    expect(classText).to.include('Blob BaseField;');
+    expect(classText).to.include('Address AddressField;');
+    expect(classText).to.include('Integer IntField;');
+    expect(classText).to.include('Object AnytypeField;');
+    expect(classText).to.include('String ComboboxField;');
   });
 
   it('Should create a a valid class with a field and relationship', async () => {
-    const field1 = '{"name": "Foo", "type": "string", "referenceTo": []}';
+    const field1 =
+      '{"name": "StringField", "type": "string", "referenceTo": []}';
     const relation1 =
       '{"name": "Account__c", "referenceTo": ["Account"], "relationshipName": "Account__r"}';
     const sobject1: string =
@@ -116,13 +117,14 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String Foo;');
+    expect(classText).to.include('String StringField;');
     expect(classText).to.include('Account Account__r');
     expect(classText).to.include('Id Account__c');
   });
 
   it('Should create a valid class with child relationship', async () => {
-    const field1 = '{"name": "Foo", "type": "string", "referenceTo": []}';
+    const field1 =
+      '{"name": "StringField", "type": "string", "referenceTo": []}';
     const childRelation1 =
       '{"childSObject": "Case", "relationshipName": "Case__r"}';
     const sobject1: string =
@@ -190,7 +192,7 @@ describe('SObject faux class generator', function() {
     const childRelation1 =
       '{"childSObject": "Account", "field": "ReferenceId", "relationshipName": null}';
     const field1 =
-      '{"name": "FooId", "type": "string", "referenceTo": ["Account"], "relationshipName": null}';
+      '{"name": "AccountFieldId", "type": "string", "referenceTo": ["Account"], "relationshipName": null}';
     const header = '{ "name": "Custom__c",  "childRelationships": [';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header}${childRelation1}],${fieldHeader}${field1}]}`;
@@ -203,7 +205,7 @@ describe('SObject faux class generator', function() {
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.not.include('null');
-    expect(classText).to.include('Account Foo');
+    expect(classText).to.include('Account AccountField');
     expect(classText).to.include('List<Account> Reference');
   });
 
@@ -236,7 +238,8 @@ describe('SObject faux class generator', function() {
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
       '{"name": "MDRef__c", "type": "reference", "referenceTo": [], "relationshipName": null, "extraTypeInfo": "externallookup"}';
-    const field2 = '{"name": "Foo1", "type": "string", "referenceTo": []}';
+    const field2 =
+      '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
     const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
@@ -254,7 +257,8 @@ describe('SObject faux class generator', function() {
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
       '{"name": "MDRef__r", "type": "reference", "referenceTo": ["XX_mdt"], "relationshipName": null}';
-    const field2 = '{"name": "Foo1", "type": "string", "referenceTo": []}';
+    const field2 =
+      '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
     const sobjectFolder = process.cwd();
     const gen: FauxClassGenerator = new FauxClassGenerator();
@@ -272,8 +276,8 @@ describe('SObject faux class generator', function() {
     const closeHeader = ' ], "childRelationships": [] }';
 
     const fields: string[] = [
-      '{"name": "Foo1", "type": "string", "referenceTo": []}',
-      '{"name": "Foo2", "type" : "double", "referenceTo": []}'
+      '{"name": "StringField", "type": "string", "referenceTo": []}',
+      '{"name": "DoubleField", "type" : "double", "referenceTo": []}'
     ];
 
     const fieldsString = fields.join(',');
@@ -287,7 +291,7 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String Foo1;');
-    expect(classText).to.include('Double Foo2;');
+    expect(classText).to.include('String StringField;');
+    expect(classText).to.include('Double DoubleField;');
   });
 });
