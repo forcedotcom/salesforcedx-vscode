@@ -17,6 +17,7 @@ import {
   MapReferenceContainer,
   MapTupleContainer,
   ObjectReferenceContainer,
+  ScopeContainer,
   VariableContainer
 } from '../../../src/adapter/apexDebug';
 import {
@@ -727,6 +728,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
   describe('scopesRequest', () => {
     let adapter: ApexDebugForTest;
+    let resolveApexIdToVariableReferenceSpy: sinon.SinonStub;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -741,6 +743,12 @@ describe('Debugger adapter variable handling - unit', () => {
         accessToken: '123'
       } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
+    });
+
+    afterEach(() => {
+      if (resolveApexIdToVariableReferenceSpy) {
+        resolveApexIdToVariableReferenceSpy.restore();
+      }
     });
 
     it('Should return no scopes for unknown frameId', async () => {
@@ -797,6 +805,91 @@ describe('Debugger adapter variable handling - unit', () => {
         variablesReference: 1002,
         expensive: false
       });
+    });
+
+    it('Should expand local scope', async () => {
+      const variableValue: LocalValue = {
+        slot: 0,
+        name: 'foo',
+        declaredTypeRef: 'String',
+        nameForMessages: 'String'
+      };
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      frameInfo.locals = [];
+      frameInfo.statics = [];
+      frameInfo.globals = [];
+      frameInfo.locals[0] = variableValue;
+      resolveApexIdToVariableReferenceSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
+        .returns(1001);
+      const expectedVariableObj = new ApexVariable(
+        variableValue,
+        ApexVariableKind.Local,
+        1001
+      );
+
+      const localScope = new ScopeContainer('local', frameInfo);
+      const vars = await localScope.expand(adapter, 'all', 0, 0);
+      expect(vars.length).to.equal(1);
+      expect(
+        ApexVariable.compareVariables(expectedVariableObj, vars[0])
+      ).to.equal(0);
+    });
+
+    it('Should expand static scope', async () => {
+      const variableValue: Value = {
+        name: 'foo',
+        declaredTypeRef: 'String',
+        nameForMessages: 'String'
+      };
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      frameInfo.locals = [];
+      frameInfo.statics = [];
+      frameInfo.globals = [];
+      frameInfo.statics[0] = variableValue;
+      resolveApexIdToVariableReferenceSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
+        .returns(1001);
+      const expectedVariableObj = new ApexVariable(
+        variableValue,
+        ApexVariableKind.Static,
+        1001
+      );
+
+      const localScope = new ScopeContainer('static', frameInfo);
+      const vars = await localScope.expand(adapter, 'all', 0, 0);
+      expect(vars.length).to.equal(1);
+      expect(
+        ApexVariable.compareVariables(expectedVariableObj, vars[0])
+      ).to.equal(0);
+    });
+
+    it('Should expand global scope', async () => {
+      const variableValue: Value = {
+        name: 'foo',
+        declaredTypeRef: 'String',
+        nameForMessages: 'String'
+      };
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      frameInfo.locals = [];
+      frameInfo.statics = [];
+      frameInfo.globals = [];
+      frameInfo.globals[0] = variableValue;
+      resolveApexIdToVariableReferenceSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
+        .returns(1001);
+      const expectedVariableObj = new ApexVariable(
+        variableValue,
+        ApexVariableKind.Global,
+        1001
+      );
+
+      const localScope = new ScopeContainer('global', frameInfo);
+      const vars = await localScope.expand(adapter, 'all', 0, 0);
+      expect(vars.length).to.equal(1);
+      expect(
+        ApexVariable.compareVariables(expectedVariableObj, vars[0])
+      ).to.equal(0);
     });
   });
 
