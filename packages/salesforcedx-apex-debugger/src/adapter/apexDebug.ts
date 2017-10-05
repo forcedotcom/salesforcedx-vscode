@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
 import {
   DebugSession,
@@ -75,13 +76,18 @@ const TRACE_ALL = 'all';
 const TRACE_CATEGORY_VARIABLES = 'variables';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_PROTOCOL = 'protocol';
+const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
 
-export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol';
+export type TraceCategory =
+  | 'all'
+  | 'variables'
+  | 'launch'
+  | 'protocol'
+  | 'breakpoints';
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
-  /** comma separated list of trace selectors (see TraceCategory)
-	  */
+  // comma separated list of trace selectors (see TraceCategory)
   trace?: boolean | string;
   userIdFilter?: string[];
   requestTypeFilter?: string[];
@@ -460,6 +466,8 @@ export class ApexDebug extends LoggingDebugSession {
   private trace: string[] | undefined;
   private traceAll = false;
 
+  private lock = new AsyncLock({ timeout: 10000 });
+
   constructor() {
     super('apex-debug-adapter.log');
     this.setDebuggerLinesStartAt1(true);
@@ -588,33 +596,50 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.SetBreakpointsResponse,
     args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
-    if (args.source && args.source.path && args.lines) {
-      const uri = this.convertClientPathToDebugger(args.source.path);
-      const validBreakpoints = await this.myBreakpointService.reconcileBreakpoints(
-        this.sfdxProject,
-        uri,
-        this.mySessionService.getSessionId(),
-        args.lines.map(line => this.convertClientLineToDebugger(line))
-      );
-      const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
-      validBreakpoints.forEach(validBreakpoint => {
-        processedBreakpoints.push({
-          verified: true,
-          source: args.source,
-          line: this.convertDebuggerLineToClient(validBreakpoint)
-        });
-      });
-      args.lines.forEach(lineArg => {
-        if (!validBreakpoints.has(lineArg)) {
+    response = await this.lock.acquire('breakpoint', async () => {
+      if (args.source && args.source.path && args.lines) {
+        const uri = this.convertClientPathToDebugger(args.source.path);
+        const validBreakpoints = await this.myBreakpointService.reconcileBreakpoints(
+          this.sfdxProject,
+          uri,
+          this.mySessionService.getSessionId(),
+          args.lines.map(line => this.convertClientLineToDebugger(line))
+        );
+        const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
+        const verifiedBps: number[] = [];
+        const unverifiedBps: number[] = [];
+        validBreakpoints.forEach(validBreakpoint => {
+          const lineNumber = this.convertDebuggerLineToClient(validBreakpoint);
           processedBreakpoints.push({
-            verified: false,
+            verified: true,
             source: args.source,
-            line: this.convertDebuggerLineToClient(lineArg)
+            line: lineNumber
           });
-        }
-      });
-      response.body = { breakpoints: processedBreakpoints };
-    }
+          verifiedBps.push(lineNumber);
+        });
+        args.lines.forEach(lineArg => {
+          if (!validBreakpoints.has(lineArg)) {
+            const lineNumber = this.convertDebuggerLineToClient(lineArg);
+            processedBreakpoints.push({
+              verified: false,
+              source: args.source,
+              line: this.convertDebuggerLineToClient(lineArg)
+            });
+            unverifiedBps.push(lineNumber);
+          }
+        });
+        response.body = { breakpoints: processedBreakpoints };
+        this.log(
+          TRACE_CATEGORY_BREAKPOINTS,
+          `setBreakPointsRequest: uri=${uri} args.lines=${args.lines.join(
+            ','
+          )} verified=${verifiedBps.join(',')} unverified=${unverifiedBps.join(
+            ','
+          )}`
+        );
+      }
+      return Promise.resolve(response);
+    });
     response.success = true;
     this.sendResponse(response);
   }
@@ -1037,6 +1062,9 @@ export class ApexDebug extends LoggingDebugSession {
     requestId: string
   ): void {
     references.map(reference => {
+      if (this.variableContainerReferenceByApexId.has(reference.id)) {
+        return;
+      }
       let variableReference: number;
       if (reference.type === 'object') {
         variableReference = this.variableHandles.create(

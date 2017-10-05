@@ -11,10 +11,12 @@
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.13.0",
+    "@types/async-lock": "0.0.20",
     "faye": "1.1.2",
     "request-light": "0.2.1",
     "vscode-debugadapter": "1.24.0",
-    "vscode-debugprotocol": "1.24.0"
+    "vscode-debugprotocol": "1.24.0",
+    "async-lock": "1.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
