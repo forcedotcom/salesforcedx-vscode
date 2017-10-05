@@ -139,8 +139,7 @@ export class BreakpointService {
 
   public async deleteLineBreakpoint(
     projectPath: string,
-    breakpointId: string,
-    line: number
+    breakpointId: string
   ): Promise<string | undefined> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
@@ -184,8 +183,7 @@ export class BreakpointService {
           try {
             const breakpointId = await this.deleteLineBreakpoint(
               projectPath,
-              knownBp.breakpointId,
-              knownBp.line
+              knownBp.breakpointId
             );
             if (breakpointId) {
               knownBreakpoints.splice(knownBpIdx, 1);

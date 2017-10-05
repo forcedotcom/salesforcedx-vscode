@@ -275,8 +275,7 @@ describe('Debugger breakpoint service', () => {
 
       const cmdOutput = await service.deleteLineBreakpoint(
         'someProjectPath',
-        '07bFAKE',
-        1
+        '07bFAKE'
       );
 
       expect(cmdOutput).to.equal('07bFAKE');
@@ -302,7 +301,7 @@ describe('Debugger breakpoint service', () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE', 1);
+        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"id":"FAKE"}}');
@@ -313,7 +312,7 @@ describe('Debugger breakpoint service', () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"notid":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE', 1);
+        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
@@ -330,7 +329,7 @@ describe('Debugger breakpoint service', () => {
       );
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE', 1);
+        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal(
@@ -415,13 +414,11 @@ describe('Debugger breakpoint service', () => {
       expect(deleteLineBreakpointSpy.calledTwice).to.equal(true);
       expect(deleteLineBreakpointSpy.getCall(0).args).to.have.same.members([
         'someProjectPath',
-        '07bFAKE5',
-        5
+        '07bFAKE5'
       ]);
       expect(deleteLineBreakpointSpy.getCall(1).args).to.have.same.members([
         'someProjectPath',
-        '07bFAKE4',
-        4
+        '07bFAKE4'
       ]);
       expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
     });
@@ -460,13 +457,11 @@ describe('Debugger breakpoint service', () => {
       expect(deleteLineBreakpointSpy.calledTwice).to.equal(true);
       expect(deleteLineBreakpointSpy.getCall(0).args).to.have.same.members([
         'someProjectPath',
-        '07bFAKE5',
-        5
+        '07bFAKE5'
       ]);
       expect(deleteLineBreakpointSpy.getCall(1).args).to.have.same.members([
         'someProjectPath',
-        '07bFAKE4',
-        4
+        '07bFAKE4'
       ]);
       expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
     });
