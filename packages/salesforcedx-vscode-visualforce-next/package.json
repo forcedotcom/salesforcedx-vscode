@@ -56,6 +56,7 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-visualforce-language-server": "40.13.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "40.13.0",
     "typescript": "2.4.0",
     "vscode-languageclient": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
@@ -63,7 +64,6 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "40.13.0",
-    "@salesforce/salesforcedx-visualforce-language-server": "40.13.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
