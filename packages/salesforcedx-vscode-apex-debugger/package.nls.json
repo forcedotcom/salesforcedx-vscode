@@ -14,5 +14,7 @@
     "Produce diagnostic output. Instead of setting this to true you can list one or more selectors separated with commas. The 'all' selector enables very detailed output. Other selectors are 'protocol', 'variables', 'launch'",
   "configuration_title": "Salesforce DX Apex Debugger Configuration",
   "connection_timeout_ms_description":
-    "Connection timeout for Apex Debugger API requests (in milliseconds)."
+    "Connection timeout for Apex Debugger API requests (in milliseconds).",
+  "set_breakpoint_timeout_ms_description":
+    "Maximum duration to spend setting breakpoints per file (in milliseconds)."
 }

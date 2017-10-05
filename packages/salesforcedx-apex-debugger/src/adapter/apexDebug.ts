@@ -48,6 +48,7 @@ import {
   Value
 } from '../commands';
 import {
+  DEFAULT_LOCK_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
@@ -466,7 +467,8 @@ export class ApexDebug extends LoggingDebugSession {
   private trace: string[] | undefined;
   private traceAll = false;
 
-  private lock = new AsyncLock({ timeout: 10000 });
+  private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
+  protected breakpointLockTimeout = DEFAULT_LOCK_TIMEOUT_MS;
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -596,50 +598,53 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.SetBreakpointsResponse,
     args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
-    response = await this.lock.acquire('breakpoint', async () => {
-      if (args.source && args.source.path && args.lines) {
-        const uri = this.convertClientPathToDebugger(args.source.path);
-        const validBreakpoints = await this.myBreakpointService.reconcileBreakpoints(
-          this.sfdxProject,
-          uri,
-          this.mySessionService.getSessionId(),
-          args.lines.map(line => this.convertClientLineToDebugger(line))
-        );
-        const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
-        const verifiedBps: number[] = [];
-        const unverifiedBps: number[] = [];
-        validBreakpoints.forEach(validBreakpoint => {
-          const lineNumber = this.convertDebuggerLineToClient(validBreakpoint);
-          processedBreakpoints.push({
-            verified: true,
-            source: args.source,
-            line: lineNumber
-          });
-          verifiedBps.push(lineNumber);
-        });
-        args.lines.forEach(lineArg => {
-          if (!validBreakpoints.has(lineArg)) {
-            const lineNumber = this.convertDebuggerLineToClient(lineArg);
-            processedBreakpoints.push({
-              verified: false,
+    response = await this.lock.acquire(
+      'breakpoint',
+      async () => {
+        if (args.source && args.source.path && args.lines) {
+          response.body = { breakpoints: [] };
+          const uri = this.convertClientPathToDebugger(args.source.path);
+          const unverifiedBreakpoints: number[] = [];
+          const verifiedBreakpoints = await this.myBreakpointService.reconcileBreakpoints(
+            this.sfdxProject,
+            uri,
+            this.mySessionService.getSessionId(),
+            args.lines.map(line => this.convertClientLineToDebugger(line))
+          );
+          verifiedBreakpoints.forEach(verifiedBreakpoint => {
+            const lineNumber = this.convertDebuggerLineToClient(
+              verifiedBreakpoint
+            );
+            response.body.breakpoints.push({
+              verified: true,
               source: args.source,
-              line: this.convertDebuggerLineToClient(lineArg)
+              line: lineNumber
             });
-            unverifiedBps.push(lineNumber);
-          }
-        });
-        response.body = { breakpoints: processedBreakpoints };
-        this.log(
-          TRACE_CATEGORY_BREAKPOINTS,
-          `setBreakPointsRequest: uri=${uri} args.lines=${args.lines.join(
-            ','
-          )} verified=${verifiedBps.join(',')} unverified=${unverifiedBps.join(
-            ','
-          )}`
-        );
-      }
-      return Promise.resolve(response);
-    });
+          });
+          args.lines.forEach(lineArg => {
+            if (!verifiedBreakpoints.has(lineArg)) {
+              const lineNumber = this.convertDebuggerLineToClient(lineArg);
+              response.body.breakpoints.push({
+                verified: false,
+                source: args.source,
+                line: lineNumber
+              });
+              unverifiedBreakpoints.push(lineNumber);
+            }
+          });
+          this.log(
+            TRACE_CATEGORY_BREAKPOINTS,
+            `setBreakPointsRequest: uri=${uri} args.lines=${args.lines.join(
+              ','
+            )} verified=${Array.from(verifiedBreakpoints).join(
+              ','
+            )} unverified=${unverifiedBreakpoints.join(',')}`
+          );
+        }
+        return Promise.resolve(response);
+      },
+      { timeout: this.breakpointLockTimeout }
+    );
     response.success = true;
     this.sendResponse(response);
   }
@@ -889,12 +894,13 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
       case WORKSPACE_SETTINGS_REQUEST:
-        const proxySettings: WorkspaceSettings = args;
-        this.myRequestService.proxyUrl = proxySettings.proxyUrl;
-        this.myRequestService.proxyStrictSSL = proxySettings.proxyStrictSSL;
-        this.myRequestService.proxyAuthorization = proxySettings.proxyAuth;
+        const workspaceSettings: WorkspaceSettings = args;
+        this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
+        this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
+        this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
         this.myRequestService.connectionTimeoutMs =
-          proxySettings.connectionTimeoutMs;
+          workspaceSettings.connectionTimeoutMs;
+        this.breakpointLockTimeout = workspaceSettings.setBreakpointTimeoutMs;
         break;
       default:
         break;

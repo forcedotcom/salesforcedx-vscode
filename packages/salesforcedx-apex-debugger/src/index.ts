@@ -23,4 +23,5 @@ export interface WorkspaceSettings {
   proxyStrictSSL: boolean;
   proxyAuth: string;
   connectionTimeoutMs: number;
+  setBreakpointTimeoutMs: number;
 }
