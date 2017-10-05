@@ -13,6 +13,9 @@ import {
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
+  CollectionReferenceContainer,
+  MapReferenceContainer,
+  MapTupleContainer,
   ObjectReferenceContainer,
   VariableContainer
 } from '../../../src/adapter/apexDebug';
@@ -261,6 +264,7 @@ describe('Debugger adapter variable handling - unit', () => {
       ];
 
       adapter.populateReferences(references, 'FakeRequestId');
+      adapter.populateReferences(references, 'FakeRequestId');
 
       const variableRef = await adapter.resolveApexIdToVariableReference(
         'FakeRequestId',
@@ -272,6 +276,179 @@ describe('Debugger adapter variable handling - unit', () => {
 
       expect(container).to.be.ok;
       expect(container).to.be.instanceOf(ObjectReferenceContainer);
+      expect(adapter.getVariableContainerReferenceByApexId().size).to.equal(1);
+    });
+
+    it('Should expand list correctly', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+
+      const references: Reference[] = [
+        {
+          type: 'list',
+          nameForMessages: 'List',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        0
+      );
+
+      expect(variableRef).to.be.at.least(0);
+      const container = adapter.getVariableContainer(variableRef as number);
+
+      expect(container).to.be.ok;
+      expect(container).to.be.instanceOf(CollectionReferenceContainer);
+    });
+
+    it('Should expand set correctly', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+
+      const references: Reference[] = [
+        {
+          type: 'set',
+          nameForMessages: 'Set',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        0
+      );
+
+      expect(variableRef).to.be.at.least(0);
+      const container = adapter.getVariableContainer(variableRef as number);
+
+      expect(container).to.be.ok;
+      expect(container).to.be.instanceOf(CollectionReferenceContainer);
+    });
+
+    it('Should expand map correctly', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+      const tupleA = {
+        key: {
+          name: 'key',
+          declaredTypeRef: 'Integer',
+          nameForMessages: '0'
+        },
+        value: {
+          name: 'value',
+          declaredTypeRef: 'String',
+          nameForMessages: 'foo'
+        }
+      };
+      const expectedTupleContainer = new MapTupleContainer(
+        tupleA,
+        'FakeRequestId'
+      );
+      const references: Reference[] = [
+        {
+          type: 'map',
+          nameForMessages: 'Map',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ],
+          tuple: [tupleA]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        0
+      );
+
+      expect(variableRef).to.be.at.least(0);
+      const container = adapter.getVariableContainer(variableRef as number);
+
+      expect(container).to.be.ok;
+      expect(container).to.be.instanceOf(MapReferenceContainer);
+      const mapContainer = container as MapReferenceContainer;
+      expect(mapContainer.tupleContainers.size).to.equal(1);
+      expect(mapContainer.tupleContainers.get(1000)).to.deep.equal(
+        expectedTupleContainer
+      );
+    });
+
+    it('Should not expand unknown reference type', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+
+      const references: Reference[] = [
+        {
+          type: 'foo',
+          nameForMessages: 'foo',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      expect(adapter.getVariableContainerReferenceByApexId().size).to.equal(0);
     });
   });
 

@@ -338,7 +338,7 @@ export class CollectionReferenceContainer extends ObjectReferenceContainer {
 }
 
 export class MapReferenceContainer extends ObjectReferenceContainer {
-  private readonly tupleContainers: Map<number, MapTupleContainer> = new Map();
+  public readonly tupleContainers: Map<number, MapTupleContainer> = new Map();
 
   public addTupleContainer(
     reference: number,
