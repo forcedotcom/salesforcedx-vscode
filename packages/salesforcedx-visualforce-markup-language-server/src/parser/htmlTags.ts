@@ -103,7 +103,10 @@ function localize(key: string, description: string): string {
 export const HTML_TAGS: ITagSet = {
   // The root element
   html: new HTMLTagSpecification(
-    'The html element represents the root of an HTML document.',
+    localize(
+      'tags.html',
+      'The html element represents the root of an HTML document.'
+    ),
     ['manifest']
   ),
   // Document metadata

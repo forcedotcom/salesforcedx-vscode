@@ -2,7 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
 import { findFirst } from '../utils/arrays';
 import { createScanner, TokenType } from './htmlScanner';
@@ -83,6 +82,8 @@ export function parse(text: string): HTMLDocument {
   let endTagStart = -1;
   let pendingAttribute: string = null;
   let token = scanner.scan();
+  let attributes: { [name: string]: string };
+
   while (token !== TokenType.EOS) {
     switch (token) {
       case TokenType.StartTagOpen:
@@ -130,7 +131,7 @@ export function parse(text: string): HTMLDocument {
         break;
       case TokenType.AttributeName:
         const attributeName = (pendingAttribute = scanner.getTokenText());
-        let attributes = curr.attributes;
+        attributes = curr.attributes;
         if (!attributes) {
           curr.attributes = attributes = {};
         }
