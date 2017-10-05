@@ -17,10 +17,6 @@ import * as htmlLanguageService from '../src/htmlLanguageService';
 describe('HTML Symbols', () => {
   const TEST_URI = 'test://test/test.html';
 
-  function asPromise<T>(result: T): Promise<T> {
-    return Promise.resolve(result);
-  }
-
   const assertSymbols = function(
     symbols: SymbolInformation[],
     expected: SymbolInformation[]
