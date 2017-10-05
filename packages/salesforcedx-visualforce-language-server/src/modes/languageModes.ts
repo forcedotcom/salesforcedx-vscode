@@ -7,7 +7,7 @@
 import {
   DocumentContext,
   getLanguageService as getHTMLLanguageService
-} from 'vscode-html-languageservice';
+} from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import {
   CompletionItem,
   CompletionList,

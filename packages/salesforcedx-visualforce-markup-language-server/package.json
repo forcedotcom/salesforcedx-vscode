@@ -7,8 +7,8 @@
   "engines": {
     "vscode": "^1.15.0"
   },
-  "main": "./out/htmlLanguageService.js",
-  "typings": "./out/htmlLanguageService",
+  "main": "./out/src/htmlLanguageService.js",
+  "typings": "./out/src/htmlLanguageService",
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "^2.2.38",

@@ -10,7 +10,7 @@ import {
   Range,
   TextDocument,
   TokenType
-} from 'vscode-html-languageservice';
+} from '@salesforce/salesforcedx-visualforce-markup-language-server';
 
 export interface LanguageRange extends Range {
   languageId: string;

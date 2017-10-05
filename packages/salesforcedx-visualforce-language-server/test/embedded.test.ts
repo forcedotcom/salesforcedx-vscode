@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
+import { getLanguageService } from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import * as assert from 'assert';
-import { getLanguageService } from 'vscode-html-languageservice';
 import { TextDocument } from 'vscode-languageserver-types';
 import * as embeddedSupport from '../src/modes/embeddedSupport';
 
