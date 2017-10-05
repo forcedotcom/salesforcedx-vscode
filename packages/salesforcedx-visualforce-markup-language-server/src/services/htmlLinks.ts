@@ -8,8 +8,6 @@ import { Range, TextDocument } from 'vscode-languageserver-types';
 import Uri from 'vscode-uri';
 import { DocumentContext, DocumentLink } from '../htmlLanguageService';
 import { createScanner, TokenType } from '../parser/htmlScanner';
-import * as paths from '../utils/paths';
-import * as strings from '../utils/strings';
 
 function stripQuotes(url: string): string {
   return url
@@ -100,8 +98,6 @@ export function findDocumentLinks(
   documentContext: DocumentContext
 ): DocumentLink[] {
   const newLinks: DocumentLink[] = [];
-
-  const rootAbsoluteUrl: Uri = null;
 
   const scanner = createScanner(document.getText(), 0);
   let token = scanner.scan();

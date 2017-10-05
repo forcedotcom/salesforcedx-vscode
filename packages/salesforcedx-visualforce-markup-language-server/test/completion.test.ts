@@ -8,8 +8,7 @@ import * as assert from 'assert';
 import {
   CompletionItemKind,
   CompletionList,
-  TextDocument,
-  TextEdit
+  TextDocument
 } from 'vscode-languageserver-types';
 import * as htmlLanguageService from '../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
@@ -23,10 +22,6 @@ export interface ItemDescription {
 }
 
 describe('HTML Completion', () => {
-  function asPromise<T>(result: T): Promise<T> {
-    return Promise.resolve(result);
-  }
-
   const assertCompletion = function(
     completions: CompletionList,
     expected: ItemDescription,

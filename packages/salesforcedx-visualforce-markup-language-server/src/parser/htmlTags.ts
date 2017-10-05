@@ -34,7 +34,6 @@ BEGIN THIRD PARTY
  *  and limitations under the License.
  *--------------------------------------------------------------------------------------------*/
 
-import * as nls from 'vscode-nls';
 import arrays = require('../utils/arrays');
 import strings = require('../utils/strings');
 

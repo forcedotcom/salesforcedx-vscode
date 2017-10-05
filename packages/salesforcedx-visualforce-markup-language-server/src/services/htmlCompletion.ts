@@ -447,10 +447,6 @@ function isWhiteSpace(s: string): boolean {
   return /^\s*$/.test(s);
 }
 
-function isWhiteSpaceOrQuote(s: string): boolean {
-  return /^[\s"]*$/.test(s);
-}
-
 function isFollowedBy(
   s: string,
   offset: number,

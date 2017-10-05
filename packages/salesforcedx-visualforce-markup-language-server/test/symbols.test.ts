@@ -4,11 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as assert from 'assert';
 import { expect } from 'chai';
 import {
   Location,
-  Position,
   Range,
   SymbolInformation,
   SymbolKind,
@@ -28,7 +26,6 @@ describe('HTML Symbols', () => {
     expected: SymbolInformation[]
   ) {
     expect(symbols).to.deep.equal(expected);
-    // assert.deepEqual(symbols, expected);
   };
 
   const testSymbolsFor = function(

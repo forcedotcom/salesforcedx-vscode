@@ -6,14 +6,12 @@
 
 import {
   Location,
-  Position,
   Range,
   SymbolInformation,
   SymbolKind,
   TextDocument
 } from 'vscode-languageserver-types';
 import { HTMLDocument, Node } from '../parser/htmlParser';
-import { createScanner, ScannerState, TokenType } from '../parser/htmlScanner';
 
 export function findDocumentSymbols(
   document: TextDocument,
