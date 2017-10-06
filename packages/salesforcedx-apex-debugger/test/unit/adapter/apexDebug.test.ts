@@ -1229,26 +1229,6 @@ describe('Debugger adapter - unit', () => {
         expect(requestService.connectionTimeoutMs).to.equal(60000);
         // tslint:enable:no-unused-expression
       });
-
-      it('Should save breakpoint timeout settings', () => {
-        adapter.customRequest(
-          WORKSPACE_SETTINGS_REQUEST,
-          {} as DebugProtocol.Response,
-          {
-            setBreakpointTimeoutMs: 60000
-          } as WorkspaceSettings
-        );
-
-        // tslint:disable:no-unused-expression
-        expect(requestService.proxyUrl).to.be.undefined;
-        expect(requestService.proxyStrictSSL).to.be.undefined;
-        expect(requestService.proxyAuthorization).to.be.undefined;
-        expect(requestService.connectionTimeoutMs).to.equal(
-          DEFAULT_CONNECTION_TIMEOUT_MS
-        );
-        expect(adapter.getBreakpointLockTimeoutMs()).to.equal(60000);
-        // tslint:enable:no-unused-expression
-      });
     });
   });
 

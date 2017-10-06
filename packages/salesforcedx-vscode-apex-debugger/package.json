@@ -63,13 +63,6 @@
           "minimum": 500,
           "maximum": 120000,
           "description": "%connection_timeout_ms_description%"
-        },
-        "salesforcedx-vscode-apex-debugger.setBreakpointTimeoutMs": {
-          "type": "number",
-          "default": 10000,
-          "minimum": 500,
-          "maximum": 120000,
-          "description": "%set_breakpoint_timeout_ms_description%"
         }
       }
     },

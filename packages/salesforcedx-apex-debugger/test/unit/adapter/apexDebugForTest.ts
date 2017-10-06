@@ -202,8 +202,4 @@ export class ApexDebugForTest extends ApexDebug {
   ): Promise<void> {
     return super.variablesRequest(response, args);
   }
-
-  public getBreakpointLockTimeoutMs(): number {
-    return this.breakpointLockTimeout;
-  }
 }
