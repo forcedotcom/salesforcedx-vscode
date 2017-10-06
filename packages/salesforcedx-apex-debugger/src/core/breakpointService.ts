@@ -24,7 +24,6 @@ export class BreakpointService {
   > = new Map();
   private typerefMapping: Map<string, string> = new Map();
   private breakpointCache: Map<string, ApexBreakpointLocation[]> = new Map();
-  private lastSeenLineBreakpointRequests: Map<string, number[]> = new Map();
 
   public static getInstance() {
     if (!BreakpointService.instance) {
@@ -222,6 +221,5 @@ export class BreakpointService {
 
   public clearSavedBreakpoints(): void {
     this.breakpointCache.clear();
-    this.lastSeenLineBreakpointRequests.clear();
   }
 }

@@ -80,9 +80,6 @@ function registerCommands(): vscode.Disposable {
             proxyAuth: config.get('http.proxyAuthorization', '') as string,
             connectionTimeoutMs: config.get(
               'salesforcedx-vscode-apex-debugger.connectionTimeoutMs'
-            ),
-            setBreakpointTimeoutMs: config.get(
-              'salesforcedx-vscode-apex-debugger.setBreakpointTimeoutMs'
             )
           } as WorkspaceSettings);
         }
