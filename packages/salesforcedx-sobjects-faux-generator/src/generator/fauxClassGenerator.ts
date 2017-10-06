@@ -180,13 +180,14 @@ export class FauxClassGenerator {
   }
 
   // VisibleForTesting
-  public generateFauxClass(folderPath: string, sobject: any): string {
+  public generateFauxClass(folderPath: string, sobject: SObject): string {
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath);
     }
     const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
-
-    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject));
+    if (sobject.name) {
+      fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject));
+    }
 
     return fauxClassPath;
   }
