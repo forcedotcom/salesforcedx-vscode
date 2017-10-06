@@ -25,6 +25,39 @@ export class FauxClassGenerator {
   private STANDARDOBJECTS_DIR = 'standardObjects';
   private CUSTOMOBJECTS_DIR = 'customObjects';
 
+  // the empty string is used to represent the need for a special case
+  // usually multiple fields with specialized names
+  private static typeMapping: Map<string, string> = new Map([
+    ['string', 'String'],
+    ['double', 'Double'],
+    ['reference', ''],
+    ['boolean', 'Boolean'],
+    ['currency', 'Decimal'],
+    ['date', 'Date'],
+    ['datetime', 'Datetime'],
+    ['email', 'String'],
+    ['location', 'Location'],
+    ['percent', 'Double'],
+    ['phone', 'String'],
+    ['picklist', 'String'],
+    ['multipicklist', 'String'],
+    ['textarea', 'String'],
+    ['encryptedstring', 'String'],
+    ['url', 'String'],
+    ['id', 'Id'],
+    // note that the mappings below "id" only occur in standard SObjects
+    ['base64', 'Blob'],
+    ['address', 'Address'],
+    ['int', 'Integer'],
+    ['anyType', 'Object'],
+    ['combobox', 'String'],
+    ['time', 'Time'],
+    // TBD what are these mapped to and how to create them
+    //['calculated', 'xxx'],
+    //['masterrecord', 'xxx'],
+    ['complexvalue', 'Object']
+  ]);
+
   public async generate(
     projectPath: string,
     type: SObjectCategory
@@ -86,12 +119,17 @@ export class FauxClassGenerator {
     }
   }
 
+  private capitalize(input: string): string {
+    return input.charAt(0).toUpperCase() + input.slice(1);
+  }
+
+  private getTargetType(describeType: string): string {
+    const gentype = FauxClassGenerator.typeMapping.get(describeType) as string;
+    return gentype ? gentype : this.capitalize(describeType);
+  }
+
   private getReferenceName(relationshipName: string, name: string): string {
-    if (relationshipName) {
-      return relationshipName;
-    } else {
-      return this.stripId(name);
-    }
+    return relationshipName ? relationshipName : this.stripId(name);
   }
 
   private generateChildRelationship(rel: ChildRelationship): string {
@@ -101,9 +139,16 @@ export class FauxClassGenerator {
 
   private generateField(field: Field): string[] {
     const decls: string[] = [];
+    let genType = '';
     if (field.referenceTo.length === 0) {
-      const upperCaseFirstChar = field.type.charAt(0).toUpperCase();
-      decls.push(`${upperCaseFirstChar}${field.type.slice(1)} ${field.name}`);
+      // should be a normal field EXCEPT for external lookup & metadata relationship
+      // which is a reference, but no referenceTo targets
+      if (field.extraTypeInfo === 'externallookup') {
+        genType = 'String';
+      } else {
+        genType = this.getTargetType(field.type);
+      }
+      decls.push(`${genType} ${field.name}`);
     } else {
       const nameToUse = this.getReferenceName(
         field.relationshipName,
