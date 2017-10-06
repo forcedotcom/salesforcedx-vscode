@@ -181,7 +181,7 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch Apex Debugger Tests",
+      "name": "Launch Apex Debugger Adapter Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
@@ -203,6 +203,20 @@
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+    },
+    {
+      "name": "Launch Apex Debugger Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/test"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
     },
     {
       "name": "Launch SObject Generator Tests",
