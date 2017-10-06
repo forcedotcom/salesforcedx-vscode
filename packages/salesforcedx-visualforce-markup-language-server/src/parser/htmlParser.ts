@@ -130,6 +130,7 @@ export function parse(text: string): HTMLDocument {
         }
         break;
       case TokenType.AttributeName:
+        pendingAttribute = scanner.getTokenText();
         attributes = curr.attributes;
         if (!attributes) {
           curr.attributes = attributes = {};
