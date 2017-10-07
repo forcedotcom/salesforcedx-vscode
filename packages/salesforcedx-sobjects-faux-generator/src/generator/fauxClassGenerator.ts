@@ -175,7 +175,9 @@ export class FauxClassGenerator {
       return;
     }
     for (const sobject of sobjects) {
-      this.generateFauxClass(targetFolder, sobject);
+      if (sobject.name) {
+        this.generateFauxClass(targetFolder, sobject);
+      }
     }
   }
 
@@ -185,9 +187,7 @@ export class FauxClassGenerator {
       fs.mkdirSync(folderPath);
     }
     const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
-    if (sobject.name) {
-      fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject));
-    }
+    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject));
 
     return fauxClassPath;
   }
