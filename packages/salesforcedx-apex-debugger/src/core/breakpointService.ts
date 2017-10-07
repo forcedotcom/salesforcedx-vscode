@@ -24,9 +24,6 @@ export class BreakpointService {
   > = new Map();
   private typerefMapping: Map<string, string> = new Map();
   private breakpointCache: Map<string, ApexBreakpointLocation[]> = new Map();
-  private breakpointAddQueue: Map<string, Set<number>> = new Map();
-  private breakpointDeleteQueue: Map<string, Set<number>> = new Map();
-  private lastSeenLineBreakpointRequests: Map<string, number[]> = new Map();
 
   public static getInstance() {
     if (!BreakpointService.instance) {
@@ -105,26 +102,12 @@ export class BreakpointService {
     return lines;
   }
 
-  public getBreakpointAddQueue(): Map<string, Set<number>> {
-    return this.breakpointAddQueue;
-  }
-
   public async createLineBreakpoint(
     projectPath: string,
-    uri: string,
     sessionId: string,
     typeref: string,
     line: number
   ): Promise<string | undefined> {
-    if (!this.breakpointAddQueue.has(uri)) {
-      this.breakpointAddQueue.set(uri, new Set());
-    }
-    const queuedLineBp = this.breakpointAddQueue.get(uri)!;
-    if (queuedLineBp.has(line)) {
-      return Promise.resolve(undefined);
-    }
-
-    queuedLineBp.add(line);
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:create')
@@ -141,7 +124,6 @@ export class BreakpointService {
 
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
-    queuedLineBp.delete(line);
     try {
       const breakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(breakpointId)) {
@@ -154,25 +136,10 @@ export class BreakpointService {
     }
   }
 
-  public getBreakpointDeleteQueue(): Map<string, Set<number>> {
-    return this.breakpointDeleteQueue;
-  }
-
   public async deleteLineBreakpoint(
     projectPath: string,
-    uri: string,
-    breakpointId: string,
-    line: number
+    breakpointId: string
   ): Promise<string | undefined> {
-    if (!this.breakpointDeleteQueue.has(uri)) {
-      this.breakpointDeleteQueue.set(uri, new Set());
-    }
-    const queuedLineBp = this.breakpointDeleteQueue.get(uri)!;
-    if (queuedLineBp.has(line)) {
-      return Promise.resolve(undefined);
-    }
-
-    queuedLineBp.add(line);
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:data:record:delete')
@@ -185,7 +152,6 @@ export class BreakpointService {
     ).execute();
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
-    queuedLineBp.delete(line);
     try {
       const deletedBreakpointId = JSON.parse(result).result.id as string;
       if (this.isApexDebuggerBreakpointId(deletedBreakpointId)) {
@@ -204,24 +170,40 @@ export class BreakpointService {
     sessionId: string,
     clientLines: number[]
   ): Promise<Set<number>> {
-    this.lastSeenLineBreakpointRequests.set(uri, clientLines);
-    const lineBpsActuallyEnabled = this.breakpointCache.get(uri);
-    const deleteQueue = this.breakpointDeleteQueue.get(uri);
+    const knownBreakpoints = this.breakpointCache.get(uri);
+    if (knownBreakpoints) {
+      for (
+        let knownBpIdx = knownBreakpoints.length - 1;
+        knownBpIdx >= 0;
+        knownBpIdx--
+      ) {
+        const knownBp = knownBreakpoints[knownBpIdx];
+        if (clientLines.indexOf(knownBp.line) === -1) {
+          try {
+            const breakpointId = await this.deleteLineBreakpoint(
+              projectPath,
+              knownBp.breakpointId
+            );
+            if (breakpointId) {
+              knownBreakpoints.splice(knownBpIdx, 1);
+            }
+            // tslint:disable-next-line:no-empty
+          } catch (error) {}
+        }
+      }
+    }
     for (const clientLine of clientLines) {
-      const existsInCache =
-        lineBpsActuallyEnabled &&
-        lineBpsActuallyEnabled.findIndex(
-          lineBp => lineBp.line === clientLine
-        ) >= 0;
-      const queuedForDelete = deleteQueue && deleteQueue.has(clientLine);
-      // Queue for add if it's not in cache or it was queued for delete
-      if (!existsInCache || (existsInCache && queuedForDelete)) {
+      if (
+        !knownBreakpoints ||
+        !knownBreakpoints.find(
+          knownBreakpoint => knownBreakpoint.line === clientLine
+        )
+      ) {
         const typeref = this.getTyperefFor(uri, clientLine);
         if (typeref) {
           try {
             const breakpointId = await this.createLineBreakpoint(
               projectPath,
-              uri,
               sessionId,
               typeref,
               clientLine
@@ -234,46 +216,10 @@ export class BreakpointService {
         }
       }
     }
-    const lastSeenLineBreakpointRequest = this.lastSeenLineBreakpointRequests.get(
-      uri
-    );
-    if (lineBpsActuallyEnabled && lineBpsActuallyEnabled.length > 0) {
-      for (
-        let serverBpIdx = lineBpsActuallyEnabled.length - 1;
-        serverBpIdx >= 0;
-        serverBpIdx--
-      ) {
-        // Delete breakpoint from cache if it's not in the breakpoint request
-        const serverLine = lineBpsActuallyEnabled[serverBpIdx].line;
-        const serverBreakpointId =
-          lineBpsActuallyEnabled[serverBpIdx].breakpointId;
-        const isNotInLatestRequest =
-          lastSeenLineBreakpointRequest &&
-          lastSeenLineBreakpointRequest.indexOf(serverLine) === -1;
-        const isNotInCurrentRequest = clientLines.indexOf(serverLine) === -1;
-        if (isNotInCurrentRequest || isNotInLatestRequest) {
-          try {
-            const breakpointId = await this.deleteLineBreakpoint(
-              projectPath,
-              uri,
-              serverBreakpointId,
-              serverLine
-            );
-            if (breakpointId) {
-              lineBpsActuallyEnabled.splice(serverBpIdx, 1);
-            }
-            // tslint:disable-next-line:no-empty
-          } catch (error) {}
-        }
-      }
-    }
-
     return Promise.resolve(this.getBreakpointsFor(uri));
   }
 
   public clearSavedBreakpoints(): void {
     this.breakpointCache.clear();
-    this.breakpointAddQueue.clear();
-    this.breakpointDeleteQueue.clear();
   }
 }

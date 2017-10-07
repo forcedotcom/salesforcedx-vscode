@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
 import {
   DebugSession,
@@ -47,6 +48,7 @@ import {
   Value
 } from '../commands';
 import {
+  DEFAULT_LOCK_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
@@ -75,13 +77,18 @@ const TRACE_ALL = 'all';
 const TRACE_CATEGORY_VARIABLES = 'variables';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_PROTOCOL = 'protocol';
+const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
 
-export type TraceCategory = 'all' | 'variables' | 'launch' | 'protocol';
+export type TraceCategory =
+  | 'all'
+  | 'variables'
+  | 'launch'
+  | 'protocol'
+  | 'breakpoints';
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
-  /** comma separated list of trace selectors (see TraceCategory)
-	  */
+  // comma separated list of trace selectors (see TraceCategory)
   trace?: boolean | string;
   userIdFilter?: string[];
   requestTypeFilter?: string[];
@@ -332,7 +339,7 @@ export class CollectionReferenceContainer extends ObjectReferenceContainer {
 }
 
 export class MapReferenceContainer extends ObjectReferenceContainer {
-  private readonly tupleContainers: Map<number, MapTupleContainer> = new Map();
+  public readonly tupleContainers: Map<number, MapTupleContainer> = new Map();
 
   public addTupleContainer(
     reference: number,
@@ -459,6 +466,8 @@ export class ApexDebug extends LoggingDebugSession {
 
   private trace: string[] | undefined;
   private traceAll = false;
+
+  private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -589,31 +598,56 @@ export class ApexDebug extends LoggingDebugSession {
     args: DebugProtocol.SetBreakpointsArguments
   ): Promise<void> {
     if (args.source && args.source.path && args.lines) {
+      response.body = { breakpoints: [] };
       const uri = this.convertClientPathToDebugger(args.source.path);
-      const validBreakpoints = await this.myBreakpointService.reconcileBreakpoints(
-        this.sfdxProject,
-        uri,
-        this.mySessionService.getSessionId(),
-        args.lines.map(line => this.convertClientLineToDebugger(line))
-      );
-      const processedBreakpoints: DebugProtocol.Breakpoint[] = [];
-      validBreakpoints.forEach(validBreakpoint => {
-        processedBreakpoints.push({
+      const unverifiedBreakpoints: number[] = [];
+      let verifiedBreakpoints: Set<number> = new Set();
+      try {
+        verifiedBreakpoints = await this.lock.acquire(
+          `breakpoint-${uri}`,
+          async () => {
+            this.log(
+              TRACE_CATEGORY_BREAKPOINTS,
+              `setBreakPointsRequest: uri=${uri}`
+            );
+            const knownBps = await this.myBreakpointService.reconcileBreakpoints(
+              this.sfdxProject,
+              uri,
+              this.mySessionService.getSessionId(),
+              args.lines!.map(line => this.convertClientLineToDebugger(line))
+            );
+            return Promise.resolve(knownBps);
+          }
+        );
+        // tslint:disable-next-line:no-empty
+      } catch (error) {}
+      verifiedBreakpoints.forEach(verifiedBreakpoint => {
+        const lineNumber = this.convertDebuggerLineToClient(verifiedBreakpoint);
+        response.body.breakpoints.push({
           verified: true,
           source: args.source,
-          line: this.convertDebuggerLineToClient(validBreakpoint)
+          line: lineNumber
         });
       });
       args.lines.forEach(lineArg => {
-        if (!validBreakpoints.has(lineArg)) {
-          processedBreakpoints.push({
+        if (!verifiedBreakpoints.has(lineArg)) {
+          const lineNumber = this.convertDebuggerLineToClient(lineArg);
+          response.body.breakpoints.push({
             verified: false,
             source: args.source,
-            line: this.convertDebuggerLineToClient(lineArg)
+            line: lineNumber
           });
+          unverifiedBreakpoints.push(lineNumber);
         }
       });
-      response.body = { breakpoints: processedBreakpoints };
+      this.log(
+        TRACE_CATEGORY_BREAKPOINTS,
+        `setBreakPointsRequest: uri=${uri} args.lines=${args.lines.join(
+          ','
+        )} verified=${Array.from(verifiedBreakpoints).join(
+          ','
+        )} unverified=${unverifiedBreakpoints.join(',')}`
+      );
     }
     response.success = true;
     this.sendResponse(response);
@@ -864,12 +898,12 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
       case WORKSPACE_SETTINGS_REQUEST:
-        const proxySettings: WorkspaceSettings = args;
-        this.myRequestService.proxyUrl = proxySettings.proxyUrl;
-        this.myRequestService.proxyStrictSSL = proxySettings.proxyStrictSSL;
-        this.myRequestService.proxyAuthorization = proxySettings.proxyAuth;
+        const workspaceSettings: WorkspaceSettings = args;
+        this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
+        this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
+        this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
         this.myRequestService.connectionTimeoutMs =
-          proxySettings.connectionTimeoutMs;
+          workspaceSettings.connectionTimeoutMs;
         break;
       default:
         break;
@@ -1037,6 +1071,9 @@ export class ApexDebug extends LoggingDebugSession {
     requestId: string
   ): void {
     references.map(reference => {
+      if (this.variableContainerReferenceByApexId.has(reference.id)) {
+        return;
+      }
       let variableReference: number;
       if (reference.type === 'object') {
         variableReference = this.variableHandles.create(

@@ -18,30 +18,27 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
 
-const initialDebugConfigurations = {
-  version: '0.2.0',
-  configurations: [
-    {
-      name: 'Launch Apex Debugger',
-      type: 'apex',
-      request: 'launch',
-      userIdFilter: [],
-      requestTypeFilter: [],
-      entryPointFilter: '',
-      sfdxProject: '${workspaceRoot}'
-    }
-  ]
-};
+export class ApexDebuggerConfigurationProvider
+  implements vscode.DebugConfigurationProvider {
+  public provideDebugConfigurations(
+    folder: vscode.WorkspaceFolder | undefined,
+    token?: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
+    return [
+      {
+        name: 'Launch Apex Debugger',
+        type: 'apex',
+        request: 'launch',
+        userIdFilter: [],
+        requestTypeFilter: [],
+        entryPointFilter: '',
+        sfdxProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
+      } as vscode.DebugConfiguration
+    ];
+  }
+}
 
 function registerCommands(): vscode.Disposable {
-  const initialDebugConfig = vscode.commands.registerCommand(
-    'sfdx.debug.provideInitialConfigurations',
-    () => {
-      return [JSON.stringify(initialDebugConfigurations, null, '\t')].join(
-        '\n'
-      );
-    }
-  );
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session) {
@@ -89,7 +86,7 @@ function registerCommands(): vscode.Disposable {
       }
     }
   );
-  return vscode.Disposable.from(initialDebugConfig, customEventHandler);
+  return vscode.Disposable.from(customEventHandler);
 }
 
 function registerFileWatchers(): vscode.Disposable {
@@ -115,6 +112,12 @@ export function activate(context: vscode.ExtensionContext) {
   const commands = registerCommands();
   const fileWatchers = registerFileWatchers();
   context.subscriptions.push(commands, fileWatchers);
+  context.subscriptions.push(
+    vscode.debug.registerDebugConfigurationProvider(
+      'apex',
+      new ApexDebuggerConfigurationProvider()
+    )
+  );
 }
 
 export function deactivate() {

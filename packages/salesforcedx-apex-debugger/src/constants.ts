@@ -7,6 +7,7 @@
 
 export const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
+export const DEFAULT_LOCK_TIMEOUT_MS = 10000;
 export const GET_LINE_BREAKPOINT_INFO_EVENT = 'getLineBreakpointInfo';
 export const SHOW_MESSAGE_EVENT = 'showMessage';
 export const GET_WORKSPACE_SETTINGS_EVENT = 'getWorkspaceSettings';
