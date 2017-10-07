@@ -339,7 +339,14 @@ export class SObjectDescribe {
       const response: XHRResponse = await xhr(options);
       const batchResponse = JSON.parse(response.responseText) as BatchResponse;
       const fetchedObjects: SObject[] = [];
+      let i = nextToProcess;
       for (const sr of batchResponse.results) {
+        if (sr.result instanceof Array) {
+          if (sr.result[0].errorCode && sr.result[0].message) {
+            console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
+          }
+        }
+        i++;
         fetchedObjects.push(sr.result);
       }
       return Promise.resolve(fetchedObjects);
