@@ -4,10 +4,12 @@
 * Licensed under the BSD 3-Clause license.
 * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 */
-import * as fs from 'fs';
-import * as path from 'path';
+import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
+import { EventEmitter } from 'events';
+import * as fs from 'fs';
 import { EOL } from 'os';
+import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
 
 import {
@@ -18,7 +20,13 @@ import {
   SObjectDescribe
 } from '../describe';
 
+export interface CancellationToken {
+  isCancellationRequested: boolean;
+}
 export class FauxClassGenerator {
+  private emitter: EventEmitter;
+  private cancellationToken: CancellationToken;
+
   private SFDX_DIR = '.sfdx';
   private TOOLS_DIR = 'tools';
   private SOBJECTS_DIR = 'sobjects';
@@ -58,6 +66,11 @@ export class FauxClassGenerator {
     ['complexvalue', 'Object']
   ]);
 
+  constructor(emitter: EventEmitter, cancellationToken: CancellationToken) {
+    this.emitter = emitter;
+    this.cancellationToken = cancellationToken;
+  }
+
   public async generate(
     projectPath: string,
     type: SObjectCategory
@@ -68,23 +81,37 @@ export class FauxClassGenerator {
       this.TOOLS_DIR,
       this.SOBJECTS_DIR
     );
+    if (!projectPath) {
+      return Promise.reject('foobar');
+    }
 
     this.cleanupSObjectFolders(sobjectsFolderPath);
 
     const describe = new SObjectDescribe();
-    const sobjects = await describe.describeGlobal(projectPath, type);
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
     let fetchedSObjects: SObject[] = [];
+    let sobjects: string[] = [];
+    try {
+      sobjects = await describe.describeGlobal(projectPath, type);
+    } catch (e) {
+      return Promise.reject('Failure fetching list of SObjects from org ' + e);
+    }
     let j = 0;
     while (j < sobjects.length) {
       try {
+        if (
+          this.cancellationToken &&
+          this.cancellationToken.isCancellationRequested
+        ) {
+          return Promise.reject('faux class generation cancelled');
+        }
         fetchedSObjects = fetchedSObjects.concat(
           await describe.describeSObjectBatch(projectPath, sobjects, j)
         );
         j = fetchedSObjects.length;
       } catch (e) {
-        return Promise.reject('describe error ' + e);
+        return Promise.reject('Failure performing SObject describe ' + e);
       }
     }
 
@@ -99,14 +126,20 @@ export class FauxClassGenerator {
 
     this.logFetchedObjects(standardSObjects, customSObjects);
 
-    this.generateFauxClasses(
+    const standardResult = this.generateFauxClasses(
       standardSObjects,
       path.join(sobjectsFolderPath, this.STANDARDOBJECTS_DIR)
     );
-    this.generateFauxClasses(
+    if (standardResult) {
+      return Promise.reject(standardResult);
+    }
+    const customResult = this.generateFauxClasses(
       customSObjects,
       path.join(sobjectsFolderPath, this.CUSTOMOBJECTS_DIR)
     );
+    if (customResult) {
+      return Promise.reject(customResult);
+    }
 
     return Promise.resolve('');
   }
@@ -169,16 +202,19 @@ export class FauxClassGenerator {
     return decl.substr(decl.indexOf(' ') + 1);
   }
 
-  private generateFauxClasses(sobjects: SObject[], targetFolder: string) {
+  private generateFauxClasses(
+    sobjects: SObject[],
+    targetFolder: string
+  ): string {
     if (!this.createIfNeededOutputFolder(targetFolder)) {
-      console.log('no sobjects output folder ' + targetFolder);
-      return;
+      return 'no sobjects output folder ' + targetFolder;
     }
     for (const sobject of sobjects) {
       if (sobject.name) {
         this.generateFauxClass(targetFolder, sobject);
       }
     }
+    return '';
   }
 
   // VisibleForTesting
@@ -285,17 +321,19 @@ export class FauxClassGenerator {
     customSObjects: SObject[]
   ) {
     if (standardSObjects.length > 0) {
-      console.log(
+      this.emitter.emit(
+        LocalCommandExecution.STDOUT_EVENT,
         'Fetched ' +
           standardSObjects.length +
-          ' Standard SObjects from default scratch org'
+          ' Standard SObjects from default scratch org\n'
       );
     }
     if (customSObjects.length > 0) {
-      console.log(
+      this.emitter.emit(
+        LocalCommandExecution.STDOUT_EVENT,
         'Fetched ' +
           customSObjects.length +
-          ' Custom SObjects from default scratch org'
+          ' Custom SObjects from default scratch org\n'
       );
     }
   }
