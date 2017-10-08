@@ -46,11 +46,10 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     try {
-      await gen.generate(projectPath, SObjectCategory.ALL);
-      execution.cmdEmitter.emit(LocalCommandExecution.EXIT_EVENT, '0');
+      const result = await gen.generate(projectPath, SObjectCategory.ALL);
+      console.log('Generate success ' + result);
     } catch (e) {
-      execution.cmdEmitter.emit(LocalCommandExecution.STDERR_EVENT, e);
-      execution.cmdEmitter.emit(LocalCommandExecution.ERROR_EVENT, '1');
+      console.log('Generate error ' + e);
     }
     return;
   }

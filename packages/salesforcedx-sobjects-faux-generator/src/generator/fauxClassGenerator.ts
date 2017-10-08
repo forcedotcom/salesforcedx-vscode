@@ -19,6 +19,7 @@ import {
   SObjectCategory,
   SObjectDescribe
 } from '../describe';
+import { nls } from '../messages';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
@@ -71,6 +72,17 @@ export class FauxClassGenerator {
     this.cancellationToken = cancellationToken;
   }
 
+  private errorExit(errorMessage: string): Promise<string> {
+    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, errorMessage);
+    this.emitter.emit(LocalCommandExecution.ERROR_EVENT, '1');
+    return Promise.reject(errorMessage);
+  }
+
+  private successExit(successMessage: string): Promise<string> {
+    this.emitter.emit(LocalCommandExecution.EXIT_EVENT, '0');
+    return Promise.resolve(successMessage);
+  }
+
   public async generate(
     projectPath: string,
     type: SObjectCategory
@@ -81,9 +93,6 @@ export class FauxClassGenerator {
       this.TOOLS_DIR,
       this.SOBJECTS_DIR
     );
-    if (!projectPath) {
-      return Promise.reject('foobar');
-    }
 
     this.cleanupSObjectFolders(sobjectsFolderPath);
 
@@ -95,7 +104,9 @@ export class FauxClassGenerator {
     try {
       sobjects = await describe.describeGlobal(projectPath, type);
     } catch (e) {
-      return Promise.reject('Failure fetching list of SObjects from org ' + e);
+      return this.errorExit(
+        nls.localize('failure_fetching_sobjects_list_text', e)
+      );
     }
     let j = 0;
     while (j < sobjects.length) {
@@ -104,14 +115,16 @@ export class FauxClassGenerator {
           this.cancellationToken &&
           this.cancellationToken.isCancellationRequested
         ) {
-          return Promise.reject('faux class generation cancelled');
+          return this.errorExit(nls.localize('faux_generation_cancelled_text'));
         }
         fetchedSObjects = fetchedSObjects.concat(
           await describe.describeSObjectBatch(projectPath, sobjects, j)
         );
         j = fetchedSObjects.length;
       } catch (e) {
-        return Promise.reject('Failure performing SObject describe ' + e);
+        return this.errorExit(
+          nls.localize('failure_in_sobject_describe_text', e)
+        );
       }
     }
 
@@ -131,17 +144,17 @@ export class FauxClassGenerator {
       path.join(sobjectsFolderPath, this.STANDARDOBJECTS_DIR)
     );
     if (standardResult) {
-      return Promise.reject(standardResult);
+      return this.errorExit(standardResult);
     }
     const customResult = this.generateFauxClasses(
       customSObjects,
       path.join(sobjectsFolderPath, this.CUSTOMOBJECTS_DIR)
     );
     if (customResult) {
-      return Promise.reject(customResult);
+      return this.errorExit(customResult);
     }
 
-    return Promise.resolve('');
+    return this.successExit('');
   }
 
   private stripId(name: string): string {
@@ -207,7 +220,7 @@ export class FauxClassGenerator {
     targetFolder: string
   ): string {
     if (!this.createIfNeededOutputFolder(targetFolder)) {
-      return 'no sobjects output folder ' + targetFolder;
+      return nls.localize('no_sobject_output_folder_text', targetFolder);
     }
     for (const sobject of sobjects) {
       if (sobject.name) {
@@ -323,17 +336,21 @@ export class FauxClassGenerator {
     if (standardSObjects.length > 0) {
       this.emitter.emit(
         LocalCommandExecution.STDOUT_EVENT,
-        'Fetched ' +
-          standardSObjects.length +
-          ' Standard SObjects from default scratch org\n'
+        nls.localize(
+          'fetched_sobjects_length_text',
+          standardSObjects.length,
+          'Standard'
+        )
       );
     }
     if (customSObjects.length > 0) {
       this.emitter.emit(
         LocalCommandExecution.STDOUT_EVENT,
-        'Fetched ' +
-          customSObjects.length +
-          ' Custom SObjects from default scratch org\n'
+        nls.localize(
+          'fetched_sobjects_length_text',
+          customSObjects.length,
+          'Custom'
+        )
       );
     }
   }

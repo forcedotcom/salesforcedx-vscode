@@ -12,13 +12,18 @@ class CancellationTokenSource {
   public token: CancellationToken;
 }
 
-function getGenerator(): FauxClassGenerator {
-  const emitter: EventEmitter = new EventEmitter();
-  return new FauxClassGenerator(emitter, new CancellationTokenSource().token);
-}
-
 describe('SObject faux class generator', function() {
   let classPath = '';
+  let cancellationTokenSource: CancellationTokenSource;
+
+  function getGenerator(): FauxClassGenerator {
+    const emitter: EventEmitter = new EventEmitter();
+    return new FauxClassGenerator(emitter, cancellationTokenSource.token);
+  }
+
+  beforeEach(() => {
+    cancellationTokenSource = new CancellationTokenSource();
+  });
 
   afterEach(() => {
     if (classPath) {
