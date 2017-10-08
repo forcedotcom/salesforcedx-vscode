@@ -102,30 +102,33 @@ export async function createPermissionSet(
 
 export async function createFieldPermissions(
   permissionSetId: string,
-  sobjectType: string,
-  fieldName: string,
+  objectsWithCustomFields: CustomFieldInfo[],
   username: string
 ): Promise<void> {
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:data:record:create')
-      .withFlag('--sobjecttype', 'FieldPermissions')
-      .withFlag('--targetusername', username)
-      .withFlag(
-        '--values',
-        util.format(
-          'ParentId=%s SobjectType=%s Field=%s PermissionsRead=true',
-          permissionSetId,
-          sobjectType,
-          fieldName
-        )
-      )
-      .withJson()
-      .build(),
-    { cwd: process.cwd() }
-  ).execute();
-  const cmdOutput = new CommandOutput();
-  await cmdOutput.getCmdResult(execution);
+  for (const objectInfo of objectsWithCustomFields) {
+    for (const fieldName of objectInfo.customFieldNames) {
+      const execution = new CliCommandExecutor(
+        new SfdxCommandBuilder()
+          .withArg('force:data:record:create')
+          .withFlag('--sobjecttype', 'FieldPermissions')
+          .withFlag('--targetusername', username)
+          .withFlag(
+            '--values',
+            util.format(
+              'ParentId=%s SobjectType=%s Field=%s PermissionsRead=true',
+              permissionSetId,
+              objectInfo.sobjectName,
+              fieldName
+            )
+          )
+          .withJson()
+          .build(),
+        { cwd: process.cwd() }
+      ).execute();
+      const cmdOutput = new CommandOutput();
+      await cmdOutput.getCmdResult(execution);
+    }
+  }
   return Promise.resolve();
 }
 
@@ -145,4 +148,50 @@ export async function assignPermissionSet(
   const cmdOutput = new CommandOutput();
   await cmdOutput.getCmdResult(execution);
   return Promise.resolve();
+}
+
+export class CustomFieldInfo {
+  public sobjectName: string;
+  public customFieldNames: string[];
+  public constructor(sobjectName: string, customFieldNames: string[]) {
+    this.sobjectName = sobjectName;
+    this.customFieldNames = customFieldNames;
+  }
+}
+
+export async function initializeProject(
+  projectName: string,
+  sourceFolder: string,
+  customFields: CustomFieldInfo[]
+): Promise<string> {
+  const SIMPLE_OBJECT_DIR = path.join(
+    'test',
+    'integration',
+    'config',
+    sourceFolder,
+    'objects'
+  );
+
+  let username: string;
+
+  await createSFDXProject(projectName);
+  username = await createScratchOrg(projectName);
+
+  const sourceFolderPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    SIMPLE_OBJECT_DIR
+  );
+  await push(sourceFolderPath, projectName, username);
+
+  const permSetName = 'AllowRead';
+  const permissionSetId = await createPermissionSet(permSetName, username);
+
+  await createFieldPermissions(permissionSetId, customFields, username);
+
+  await assignPermissionSet(permSetName, username);
+
+  return username;
 }

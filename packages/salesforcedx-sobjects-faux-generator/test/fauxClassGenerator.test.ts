@@ -1,29 +1,17 @@
 import * as chai from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import {
-  CancellationToken,
-  FauxClassGenerator
-} from '../src/generator/fauxClassGenerator';
+import { FauxClassGenerator } from '../src/generator/fauxClassGenerator';
 
 const expect = chai.expect;
 
-class CancellationTokenSource {
-  public token: CancellationToken;
-}
-
 describe('SObject faux class generator', function() {
   let classPath = '';
-  let cancellationTokenSource: CancellationTokenSource;
 
   function getGenerator(): FauxClassGenerator {
     const emitter: EventEmitter = new EventEmitter();
-    return new FauxClassGenerator(emitter, cancellationTokenSource.token);
+    return new FauxClassGenerator(emitter);
   }
-
-  beforeEach(() => {
-    cancellationTokenSource = new CancellationTokenSource();
-  });
 
   afterEach(() => {
     if (classPath) {

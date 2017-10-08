@@ -24,9 +24,12 @@ import { nls } from '../messages';
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
+
+export const SUCCESS_CODE = '0';
+export const FAILURE_CODE = '1';
 export class FauxClassGenerator {
   private emitter: EventEmitter;
-  private cancellationToken: CancellationToken;
+  private cancellationToken: CancellationToken | undefined;
 
   private SFDX_DIR = '.sfdx';
   private TOOLS_DIR = 'tools';
@@ -67,7 +70,7 @@ export class FauxClassGenerator {
     ['complexvalue', 'Object']
   ]);
 
-  constructor(emitter: EventEmitter, cancellationToken: CancellationToken) {
+  constructor(emitter: EventEmitter, cancellationToken?: CancellationToken) {
     this.emitter = emitter;
     this.cancellationToken = cancellationToken;
   }
@@ -75,12 +78,12 @@ export class FauxClassGenerator {
   private errorExit(errorMessage: string): Promise<string> {
     this.emitter.emit(LocalCommandExecution.STDERR_EVENT, errorMessage);
     this.emitter.emit(LocalCommandExecution.ERROR_EVENT, '1');
-    return Promise.reject(errorMessage);
+    return Promise.reject(`${FAILURE_CODE} - ${errorMessage}`);
   }
 
-  private successExit(successMessage: string): Promise<string> {
+  private successExit(): Promise<string> {
     this.emitter.emit(LocalCommandExecution.EXIT_EVENT, '0');
-    return Promise.resolve(successMessage);
+    return Promise.resolve(SUCCESS_CODE);
   }
 
   public async generate(
@@ -154,7 +157,7 @@ export class FauxClassGenerator {
       return this.errorExit(customResult);
     }
 
-    return this.successExit('');
+    return this.successExit();
   }
 
   private stripId(name: string): string {

@@ -9,7 +9,6 @@ import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generato
 import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
   Command,
-  CommandExecution,
   LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';

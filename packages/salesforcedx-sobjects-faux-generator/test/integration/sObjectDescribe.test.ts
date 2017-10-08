@@ -20,14 +20,8 @@ const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
 const CUSTOM_OBJECT2 = 'MyCustomObject2__c';
 const CUSTOM_OBJECT3 = 'MyCustomObject3__c';
-const CUSTOM_FIELD_FULLNAME = CUSTOM_OBJECT_NAME + '.MyCustomField__c';
-const SIMPLE_OBJECT_DIR = path.join(
-  'test',
-  'integration',
-  'config',
-  'simpleObjectAndField',
-  'objects'
-);
+const CUSTOM_FIELDNAME = 'MyCustomField__c';
+const SIMPLE_OBJECT_SOURCE_FOLDER = 'simpleObjectAndField';
 
 const sobjectdescribe = new SObjectDescribe();
 const MIN_CUSTOMOBJECT_NUM_FIELDS = 9;
@@ -40,32 +34,23 @@ describe('Fetch sObjects', function() {
   let username: string;
 
   before(async function() {
-    await util.createSFDXProject(PROJECT_NAME);
-    username = await util.createScratchOrg(PROJECT_NAME);
+    const customFields: util.CustomFieldInfo[] = [
+      new util.CustomFieldInfo(CUSTOM_OBJECT_NAME, [
+        `${CUSTOM_OBJECT_NAME}.${CUSTOM_FIELDNAME}`
+      ]),
+      new util.CustomFieldInfo(CUSTOM_OBJECT2, [
+        `${CUSTOM_OBJECT2}.${CUSTOM_FIELDNAME}`
+      ]),
+      new util.CustomFieldInfo(CUSTOM_OBJECT3, [
+        `${CUSTOM_OBJECT3}.${CUSTOM_FIELDNAME}`
+      ])
+    ];
 
-    const sourceFolder = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      SIMPLE_OBJECT_DIR
+    username = await util.initializeProject(
+      PROJECT_NAME,
+      SIMPLE_OBJECT_SOURCE_FOLDER,
+      customFields
     );
-    await util.push(sourceFolder, PROJECT_NAME, username);
-
-    const permSetName = 'AllowRead';
-    const permissionSetId = await util.createPermissionSet(
-      permSetName,
-      username
-    );
-
-    await util.createFieldPermissions(
-      permissionSetId,
-      CUSTOM_OBJECT_NAME,
-      CUSTOM_FIELD_FULLNAME,
-      username
-    );
-
-    await util.assignPermissionSet(permSetName, username);
   });
 
   after(function() {
