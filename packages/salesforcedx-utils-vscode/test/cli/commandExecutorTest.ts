@@ -40,9 +40,7 @@ describe('CommandExecutor tests', () => {
       });
 
       expect(exitCode).to.equal('0');
-      expect(stdout).to.contain(
-        'Usage: sfdx force: [-v] [--json] [--loglevel <string>]'
-      );
+      expect(stdout).to.contain('Usage: sfdx force');
       expect(stderr).to.contain('');
     });
 
