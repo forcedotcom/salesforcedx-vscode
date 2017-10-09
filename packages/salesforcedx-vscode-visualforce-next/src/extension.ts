@@ -79,7 +79,7 @@ export function activate(context: ExtensionContext) {
   const clientOptions: LanguageClientOptions = {
     documentSelector,
     synchronize: {
-      configurationSection: ['html', 'css', 'javascript'] // the settings to synchronize
+      configurationSection: ['visualforce', 'css', 'javascript'] // the settings to synchronize
     },
     initializationOptions: {
       embeddedLanguages
@@ -164,13 +164,13 @@ export function activate(context: ExtensionContext) {
     };
     disposable = activateTagClosing(
       tagRequestor,
-      { html: true, handlebars: true, razor: true },
-      'html.autoClosingTags'
+      { visualforce: true },
+      'visualforce.autoClosingTags'
     );
     toDispose.push(disposable);
   });
 
-  languages.setLanguageConfiguration('html', {
+  languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
       increaseIndentPattern: /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_\.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
       decreaseIndentPattern: /^\s*(<\/(?!html)[-_\.A-Za-z0-9]+\b[^>]*>|-->|\})/

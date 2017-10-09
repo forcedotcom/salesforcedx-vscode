@@ -1,0 +1,36 @@
+{
+  "visualforce.format.enable.desc":
+    "Enable/disable default Visualforce formatter",
+  "visualforce.format.wrapLineLength.desc":
+    "Maximum amount of characters per line (0 = disable).",
+  "visualforce.format.unformatted.desc":
+    "List of tags, comma separated, that shouldn't be reformatted. 'null' defaults to all tags listed at https://www.w3.org/TR/html5/dom.html#phrasing-content.",
+  "visualforce.format.contentUnformatted.desc":
+    "List of tags, comma separated, where the content shouldn't be reformatted. 'null' defaults to the 'pre' tag.",
+  "visualforce.format.indentInnervisualforce.desc":
+    "Indent <head> and <body> sections.",
+  "visualforce.format.preserveNewLines.desc":
+    "Whether existing line breaks before elements should be preserved. Only works before elements, not inside tags or for text.",
+  "visualforce.format.maxPreserveNewLines.desc":
+    "Maximum number of line breaks to be preserved in one chunk. Use 'null' for unlimited.",
+  "visualforce.format.endWithNewline.desc": "End with a newline.",
+  "visualforce.format.extraLiners.desc":
+    "List of tags, comma separated, that should have an extra newline before them. 'null' defaults to \"head, body, /html\".",
+  "visualforce.format.wrapAttributes.desc": "Wrap attributes.",
+  "visualforce.format.wrapAttributes.auto":
+    "Wrap attributes only when line length is exceeded.",
+  "visualforce.format.wrapAttributes.force":
+    "Wrap each attribute except first.",
+  "visualforce.format.wrapAttributes.forcealign":
+    "Wrap each attribute except first and keep aligned.",
+  "visualforce.format.wrapAttributes.forcemultiline": "Wrap each attribute.",
+  "visualforce.suggest.html5.desc":
+    "Configures if the built-in HTML language support suggests HTML5 tags, properties and values.",
+  "visualforce.trace.server.desc":
+    "Traces the communication between VS Code and the Visualforce language server.",
+  "visualforce.validate.scripts":
+    "Configures if the built-in HTML language support validates embedded scripts.",
+  "visualforce.validate.styles":
+    "Configures if the built-in HTML language support validates embedded styles.",
+  "visualforce.autoClosingTags": "Enable/disable autoclosing of HTML tags."
+}
