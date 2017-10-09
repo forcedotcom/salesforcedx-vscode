@@ -17,7 +17,10 @@ describe('CommandExecutor tests', () => {
   describe('Handle listeners on stdout and stderr', () => {
     it('Should pipe stdout', async () => {
       const execution = new CliCommandExecutor(
-        new SfdxCommandBuilder().withArg('force').withArg('--help').build(),
+        new SfdxCommandBuilder()
+          .withArg('force')
+          .withArg('--help')
+          .build(),
         {}
       ).execute();
 
@@ -37,15 +40,16 @@ describe('CommandExecutor tests', () => {
       });
 
       expect(exitCode).to.equal('0');
-      expect(stdout).to.contain(
-        'Usage: sfdx COMMAND [command-specific-options]'
-      );
+      expect(stdout).to.contain('Usage: sfdx force');
       expect(stderr).to.contain('');
     });
 
     it('Should pipe stderr', async () => {
       const execution = new CliCommandExecutor(
-        new SfdxCommandBuilder().withArg('force').withArg('--unknown').build(),
+        new SfdxCommandBuilder()
+          .withArg('force')
+          .withArg('--unknown')
+          .build(),
         {}
       ).execute();
 
@@ -66,7 +70,7 @@ describe('CommandExecutor tests', () => {
 
       expect(exitCode).to.not.equal('0');
       expect(stdout).to.contain('');
-      expect(stderr).to.contain('Error: Unexpected flag --unknown');
+      expect(stderr).to.contain('Unexpected argument --unknown');
     });
   });
 
