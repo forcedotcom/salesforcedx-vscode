@@ -527,75 +527,9 @@ describe('HTML Completion', () => {
     );
   });
 
-  it('Complete Angular', function(testDone): any {
-    run(
-      [
-        testCompletionFor('<body  |> </body >', {
-          items: [
-            {
-              label: 'ng-controller',
-              resultText: '<body  ng-controller="$1"> </body >'
-            },
-            {
-              label: 'data-ng-controller',
-              resultText: '<body  data-ng-controller="$1"> </body >'
-            }
-          ]
-        }),
-        testCompletionFor('<li  |> </li >', {
-          items: [
-            { label: 'ng-repeat', resultText: '<li  ng-repeat="$1"> </li >' },
-            {
-              label: 'data-ng-repeat',
-              resultText: '<li  data-ng-repeat="$1"> </li >'
-            }
-          ]
-        }),
-        testCompletionFor('<input  |> </input >', {
-          items: [
-            {
-              label: 'ng-model',
-              resultText: '<input  ng-model="$1"> </input >'
-            },
-            {
-              label: 'data-ng-model',
-              resultText: '<input  data-ng-model="$1"> </input >'
-            }
-          ]
-        })
-      ],
-      testDone
-    );
-  });
-
-  it('Complete Ionic', function(testDone): any {
-    run(
-      [
-        // Try some Ionic tags
-        testCompletionFor('<|', {
-          items: [
-            { label: 'ion-checkbox', resultText: '<ion-checkbox' },
-            { label: 'ion-content', resultText: '<ion-content' }
-          ]
-        })
-      ],
-      testDone
-    );
-  });
-
   it('Settings', function(testDone): any {
     run(
       [
-        testCompletionFor(
-          '<|',
-          {
-            items: [
-              { label: 'ion-checkbox' },
-              { label: 'div', notAvailable: true }
-            ]
-          },
-          { html5: false, ionic: true, angular1: false }
-        ),
         testCompletionFor(
           '<|',
           {

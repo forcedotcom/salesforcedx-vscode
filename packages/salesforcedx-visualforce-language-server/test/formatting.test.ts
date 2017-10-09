@@ -168,7 +168,7 @@ describe('HTML Embedded Formatting', () => {
 
   it('Should handle EndWithNewline', () => {
     const options = {
-      html: {
+      visualforce: {
         format: {
           endWithNewline: true
         }
