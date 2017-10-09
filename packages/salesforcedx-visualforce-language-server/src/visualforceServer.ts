@@ -99,13 +99,13 @@ function getDocumentSettings(
       const configRequestParam: ConfigurationParams = {
         items: [
           { scopeUri, section: 'css' },
-          { scopeUri, section: 'html' },
+          { scopeUri, section: 'visualforce' },
           { scopeUri, section: 'javascript' }
         ]
       };
       promise = connection
         .sendRequest(ConfigurationRequest.type, configRequestParam)
-        .then(s => ({ css: s[0], html: s[1], javascript: s[2] }));
+        .then(s => ({ css: s[0], visualforce: s[1], javascript: s[2] }));
       documentSettings[textDocument.uri] = promise;
     }
     return promise;

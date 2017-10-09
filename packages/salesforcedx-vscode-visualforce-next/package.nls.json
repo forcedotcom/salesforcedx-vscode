@@ -25,12 +25,12 @@
     "Wrap each attribute except first and keep aligned.",
   "visualforce.format.wrapAttributes.forcemultiline": "Wrap each attribute.",
   "visualforce.suggest.html5.desc":
-    "Configures if the built-in HTML language support suggests HTML5 tags, properties and values.",
+    "Configures if the Visualforce language support suggests HTML5 tags, properties and values.",
   "visualforce.trace.server.desc":
     "Traces the communication between VS Code and the Visualforce language server.",
   "visualforce.validate.scripts":
-    "Configures if the built-in HTML language support validates embedded scripts.",
+    "Configures if the Visualforce language support validates embedded scripts.",
   "visualforce.validate.styles":
-    "Configures if the built-in HTML language support validates embedded styles.",
+    "Configures if the Visualforce language support validates embedded styles.",
   "visualforce.autoClosingTags": "Enable/disable autoclosing of HTML tags."
 }
