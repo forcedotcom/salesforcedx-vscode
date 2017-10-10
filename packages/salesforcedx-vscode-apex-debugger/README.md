@@ -8,7 +8,7 @@ Before you set up the Apex Debugger, make sure that you have these essentials.
     * One Apex Debugger session is included with Performance Edition orgs, Unlimited Edition orgs, and Partner Business Orgs.
     * To purchase Apex Debugger sessions for Enterprise Edition orgs, or to purchase more sessions for orgs that already have allocated sessions, contact Salesforce.
 * [Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) v41.1.0 or later
-* The latest versions of all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack
+* The latest versions the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger) extensions (we suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack)
 
 ## Set Up the Apex Debugger
 The first time that you use the Apex Debugger in VS Code, complete these setup steps.
@@ -68,8 +68,8 @@ Add filters to the `"Launch Apex Debugger"` configuration:
             "type": "apex",
             "request": "launch",
             "sfdxProject": "${workspaceRoot}"
-            "userIdFilter": "",
-            "requestTypeFilter": "",
+            "userIdFilter": [],
+            "requestTypeFilter": [],
             "entryPointFilter": ""
         }
     ]
@@ -84,7 +84,7 @@ Keep these limitations and known issues in mind when working with the Apex Debug
 
 * If you edit Apex classes while a debugging session is in progress, your breakpoints might not match your debugging output after you save your changes.  
 
-* Your debugging session is orphaned when you close VS Code before stopping your session. If you have an orphaned session, you can’t start a new session. To manage your Dev Hub’s Apex Debugger sessions, go to Apex Debugger in Setup.  
+* Your debugging session is orphaned when you close VS Code before stopping your session. If you have an orphaned session, you can’t start a new session. To stop your currently active session, in VS Code, run **SFDX: Stop Apex Debugger Session**. To manage your Dev Hub’s Apex Debugger sessions, go to Apex Debugger in Setup.  
 
 * Eval functionality isn’t available.  
 
