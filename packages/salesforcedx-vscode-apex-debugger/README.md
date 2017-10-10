@@ -5,7 +5,7 @@ This extension enables VS Code to use the real-time Apex Debugger with your scra
 Before you set up the Apex Debugger, make sure that you have these essentials.
 
 * At least one available Apex Debugger session in your Dev Hub org
-    * One Apex Debugger session is included with Performance Edition orgs, Unlimited Edition orgs, and Partner Business Orgs.
+    * One Apex Debugger session is included with Performance Edition orgs, Unlimited Edition orgs, and License Management Orgs.
     * To purchase Apex Debugger sessions for Enterprise Edition orgs, or to purchase more sessions for orgs that already have allocated sessions, contact Salesforce.
 * [Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) v41.1.0 or later
 * The latest versions the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger) extensions (we suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack)
