@@ -10,6 +10,7 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CancellationToken } from '../../src/generator/fauxClassGenerator';
 import childProcess = require('child_process');
 import * as path from 'path';
 import * as util from 'util';
@@ -40,6 +41,7 @@ export async function createScratchOrg(projectName: string): Promise<string> {
     new SfdxCommandBuilder()
       .withArg('force:org:create')
       .withFlag('--definitionfile', scratchDefFilePath)
+      .withArg('--setdefaultusername')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
@@ -194,4 +196,22 @@ export async function initializeProject(
   await assignPermissionSet(permSetName, username);
 
   return username;
+}
+
+// Added to be able to test cancellation of FauxClassGenerator.generate
+// mimic of vscode but shouldn't depend on vscode in this package
+
+class StandardCancellationToken implements CancellationToken {
+  public isCancellationRequested = false;
+}
+export class CancellationTokenSource {
+  public token: CancellationToken = new StandardCancellationToken();
+
+  public cancel(): void {
+    this.token.isCancellationRequested = true;
+  }
+
+  public dispose(): void {
+    this.cancel();
+  }
 }
