@@ -115,7 +115,7 @@ These entry points aren’t supported:
 
 ### Considerations for Breakpoints
 * You can’t set conditional breakpoints.
-* Breakpoints set on a get or set method must be within the method’s body.
+* Breakpoints set on a `get` or `set` method must be within the method’s body.
 * You can’t set breakpoints in or step through Execute Anonymous blocks. However, when you hit a breakpoint using Execute Anonymous, we show your Execute Anonymous frame in the stack. To view your Execute Anonymous code’s variables, click this line in the stack.  
 
 ### Considerations for Variables
