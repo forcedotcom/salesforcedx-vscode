@@ -99,13 +99,13 @@ function getDocumentSettings(
       const configRequestParam: ConfigurationParams = {
         items: [
           { scopeUri, section: 'css' },
-          { scopeUri, section: 'html' },
+          { scopeUri, section: 'visualforce' },
           { scopeUri, section: 'javascript' }
         ]
       };
       promise = connection
         .sendRequest(ConfigurationRequest.type, configRequestParam)
-        .then(s => ({ css: s[0], html: s[1], javascript: s[2] }));
+        .then(s => ({ css: s[0], visualforce: s[1], javascript: s[2] }));
       documentSettings[textDocument.uri] = promise;
     }
     return promise;
@@ -193,15 +193,14 @@ connection.onDidChangeConfiguration(change => {
   if (clientDynamicRegisterSupport) {
     const enableFormatter =
       globalSettings &&
-      globalSettings.html &&
-      globalSettings.html.format &&
-      globalSettings.html.format.enable;
+      globalSettings.visualforce &&
+      globalSettings.visualforce.format &&
+      globalSettings.visualforce.format.enable;
     if (enableFormatter) {
       if (!formatterRegistration) {
         const documentSelector: DocumentSelector = [
-          { language: 'html' },
-          { language: 'handlebars' }
-        ]; // don't register razor, the formatter does more harm than good
+          { language: 'visualforce' }
+        ];
         formatterRegistration = connection.client.register(
           DocumentRangeFormattingRequest.type,
           { documentSelector }
@@ -250,7 +249,7 @@ function isValidationEnabled(
   settings: Settings = globalSettings
 ) {
   const validationSettings =
-    settings && settings.html && settings.html.validate;
+    settings && settings.visualforce && settings.visualforce.validate;
   if (validationSettings) {
     return (
       (languageId === 'css' && validationSettings.styles !== false) ||
@@ -381,9 +380,9 @@ connection.onDocumentRangeFormatting(async formatParams => {
   }
   const unformattedTags: string =
     (settings &&
-      settings.html &&
-      settings.html.format &&
-      settings.html.format.unformatted) ||
+      settings.visualforce &&
+      settings.visualforce.format &&
+      settings.visualforce.format.unformatted) ||
     '';
   const enabledModes = {
     css: !unformattedTags.match(/\bstyle\b/),

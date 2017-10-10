@@ -46,7 +46,7 @@ export { ColorInformation, ColorPresentation };
 
 export interface Settings {
   css?: any;
-  html?: any;
+  visualforce?: any;
   javascript?: any;
 }
 
