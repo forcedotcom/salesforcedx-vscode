@@ -63,7 +63,7 @@ export async function deleteScratchOrg(userName: string): Promise<void> {
     { cwd: process.cwd() }
   ).execute();
   const cmdOutput = new CommandOutput();
-  const result = await cmdOutput.getCmdResult(execution);
+  await cmdOutput.getCmdResult(execution);
   return Promise.resolve();
 }
 

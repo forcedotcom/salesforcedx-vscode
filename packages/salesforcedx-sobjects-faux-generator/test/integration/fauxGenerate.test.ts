@@ -14,7 +14,6 @@ import { renameSync } from 'fs';
 import * as path from 'path';
 import { SObjectCategory } from '../../src/describe';
 import {
-  CancellationToken,
   FAILURE_CODE,
   FauxClassGenerator,
   SUCCESS_CODE

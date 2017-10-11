@@ -53,7 +53,10 @@ describe('Fetch sObjects', function() {
     );
   });
 
-  after(function() {
+  after(async function() {
+    if (username) {
+      await util.deleteScratchOrg(username);
+    }
     const projectPath = path.join(process.cwd(), PROJECT_NAME);
     rimraf.sync(projectPath);
   });
