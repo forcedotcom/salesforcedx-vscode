@@ -27,6 +27,7 @@ export interface CancellationToken {
 
 export const SUCCESS_CODE = '0';
 export const FAILURE_CODE = '1';
+const SFDX_PROJECT_FILE = 'sfdx-project.json';
 export class FauxClassGenerator {
   private emitter: EventEmitter;
   private cancellationToken: CancellationToken | undefined;
@@ -97,6 +98,14 @@ export class FauxClassGenerator {
       this.SOBJECTS_DIR
     );
 
+    if (
+      !fs.existsSync(projectPath) ||
+      !fs.existsSync(path.join(projectPath, SFDX_PROJECT_FILE))
+    ) {
+      return this.errorExit(
+        nls.localize('no_generate_if_not_in_project', sobjectsFolderPath)
+      );
+    }
     this.cleanupSObjectFolders(sobjectsFolderPath);
 
     const describe = new SObjectDescribe();

@@ -52,6 +52,21 @@ export async function createScratchOrg(projectName: string): Promise<string> {
   return Promise.resolve(username);
 }
 
+export async function deleteScratchOrg(userName: string): Promise<void> {
+  const execution = new CliCommandExecutor(
+    new SfdxCommandBuilder()
+      .withArg('force:org:delete')
+      .withFlag('--targetusername', userName)
+      .withArg('--noprompt')
+      .withJson()
+      .build(),
+    { cwd: process.cwd() }
+  ).execute();
+  const cmdOutput = new CommandOutput();
+  const result = await cmdOutput.getCmdResult(execution);
+  return Promise.resolve();
+}
+
 export async function push(
   sourceFolder: string,
   projectName: string,

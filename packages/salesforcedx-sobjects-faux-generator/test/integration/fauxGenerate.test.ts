@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import rimraf = require('rimraf');
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
+import { renameSync } from 'fs';
 import * as path from 'path';
 import { SObjectCategory } from '../../src/describe';
 import {
@@ -68,7 +70,10 @@ describe('Generate faux classes for SObjects', function() {
     emitter = new EventEmitter();
   });
 
-  after(function() {
+  after(async function() {
+    if (username) {
+      await util.deleteScratchOrg(username);
+    }
     rimraf.sync(projectPath);
     projectPath = '';
   });
@@ -78,9 +83,14 @@ describe('Generate faux classes for SObjects', function() {
     const generator = getGenerator();
     cancellationTokenSource.cancel();
     try {
-      result = await generator.generate(projectPath, SObjectCategory.ALL);
+      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
-      expect(e).to.equal(nls.localize('faux_generation_cancelled_text'));
+      expect(e).to.contain(FAILURE_CODE);
+      expect(e).to.contain(nls.localize('faux_generation_cancelled_text'));
+      return;
+    } finally {
+      // restore the token source
+      cancellationTokenSource = new util.CancellationTokenSource();
     }
     expect.fail(result, 'undefined', 'generator should have thrown an error');
   });
@@ -88,30 +98,72 @@ describe('Generate faux classes for SObjects', function() {
   it('Should fail if outside a project', async () => {
     let result = '';
     const generator = getGenerator();
-    const INVALID_PROJECT_NAME = 'outsideproject';
-    projectPath = path.join(process.cwd(), INVALID_PROJECT_NAME);
+    invalidateProject(projectPath);
     try {
-      result = await generator.generate(projectPath, SObjectCategory.ALL);
+      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
       expect(e).to.contain(FAILURE_CODE);
-      expect(e).to.contain(nls.localize('failure_fetching_sobjects_list_text'));
+      expect(e).to.contain(nls.localize('no_generate_if_not_in_project', ''));
+      return;
+    } finally {
+      restoreProject(projectPath);
     }
     expect.fail(result, 'undefined', 'generator should have thrown an error');
   });
 
-  /*
   it('Should emit an error event on failure', async () => {
-
+    let result = '';
+    let errorCode = SUCCESS_CODE;
+    const generator = getGenerator();
+    emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: string) => {
+      errorCode = data;
+    });
+    invalidateProject(projectPath);
+    try {
+      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+    } catch (e) {
+      expect(e).to.contain(FAILURE_CODE);
+    } finally {
+      restoreProject(projectPath);
+    }
+    expect(errorCode).to.equal(FAILURE_CODE);
   });
 
   it('Should emit message to stderr on failure', async () => {
-
+    let result = '';
+    let stderrInfo = '';
+    const generator = getGenerator();
+    emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
+      stderrInfo = data;
+    });
+    invalidateProject(projectPath);
+    try {
+      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+    } catch (e) {
+      expect(e).to.contain(FAILURE_CODE);
+    } finally {
+      restoreProject(projectPath);
+    }
+    expect(stderrInfo).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
   });
 
-  it('Should emit an exit event with code 0 on success', async () => {
-
+  it('Should emit an exit event with code success code 0 on success', async () => {
+    let result = '';
+    let exitCode = FAILURE_CODE;
+    const generator = getGenerator();
+    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: string) => {
+      exitCode = data;
+    });
+    try {
+      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+    } catch (e) {
+      expect.fail(e, 'undefined', 'generator should not have thrown an error');
+    }
+    expect(result).to.equal(SUCCESS_CODE);
+    expect(exitCode).to.equal(SUCCESS_CODE);
   });
-  */
 
   it('Should log the number of created faux classes on success', async () => {
     const generator = getGenerator();
@@ -121,7 +173,6 @@ describe('Generate faux classes for SObjects', function() {
       stdoutInfo = data;
     });
     try {
-      // only fetch the custom objects to keep the execution time short
       result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
       expect.fail(e, 'undefined', 'generator should not have thrown an error');
@@ -132,3 +183,19 @@ describe('Generate faux classes for SObjects', function() {
     );
   });
 });
+
+// easy way to force the generator to throw an error
+const DUMMY_PROJECT_FILE = `zzz${SFDX_PROJECT_FILE}`;
+function invalidateProject(projectPath: string) {
+  renameSync(
+    path.join(projectPath, SFDX_PROJECT_FILE),
+    path.join(projectPath, DUMMY_PROJECT_FILE)
+  );
+}
+
+function restoreProject(projectPath: string) {
+  renameSync(
+    path.join(projectPath, DUMMY_PROJECT_FILE),
+    path.join(projectPath, SFDX_PROJECT_FILE)
+  );
+}

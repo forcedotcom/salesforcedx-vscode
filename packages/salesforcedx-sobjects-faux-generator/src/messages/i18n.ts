@@ -22,5 +22,7 @@ export const messages = {
   failure_in_sobject_describe_text: 'Failure performing SObject describe %s.',
   no_sobject_output_folder_text: 'No output folder available %s.',
   fetched_sobjects_length_text:
-    'Fetched %s %s SObjects from default scratch org\n'
+    'Fetched %s %s SObjects from default scratch org\n',
+  no_generate_if_not_in_project:
+    'Unable to generate faux classes for SObjects when not in an SFDX project %s'
 };
