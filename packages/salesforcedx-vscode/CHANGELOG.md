@@ -3,7 +3,7 @@
 ### Added
 #### salesforcedx-vscode-apex-debugger
 
-* Apex Debugger extension for VS Code. ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger))
+* Apex Debugger extension for VS Code ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger))
 
 #### salesforcedx-vscode-core
 
