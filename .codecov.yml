@@ -1,3 +1,4 @@
-ignore:
-  - "packages/salesforcedx-visualforce-markup-language-server/src/beautify"  # This folder contains generated files that we have embedded
-  - "packages/salesforcedx-visualforce-markup-language-server/src/parser/htmlTags.ts"  # This file is a collection of all HTML tags
+coverage:
+  ignore:
+    - "packages/salesforcedx-visualforce-markup-language-server/src/beautify"  # This folder contains generated files that we have embedded
+    - "packages/salesforcedx-visualforce-markup-language-server/src/parser/htmlTags.ts"  # This file is a collection of all HTML tags
