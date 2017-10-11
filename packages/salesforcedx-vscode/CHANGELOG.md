@@ -1,4 +1,4 @@
-## 41.3.0 - October 15, 2017
+## 41.3.0 - October 14, 2017
 
 ### Added
 #### salesforcedx-vscode-apex-debugger
