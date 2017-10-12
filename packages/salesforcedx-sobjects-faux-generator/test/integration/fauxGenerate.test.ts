@@ -13,11 +13,7 @@ import { EventEmitter } from 'events';
 import { renameSync } from 'fs';
 import * as path from 'path';
 import { SObjectCategory } from '../../src/describe';
-import {
-  FAILURE_CODE,
-  FauxClassGenerator,
-  SUCCESS_CODE
-} from '../../src/generator/fauxClassGenerator';
+import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import * as util from './integrationTestUtil';
 
@@ -44,7 +40,7 @@ describe('Generate faux classes for SObjects', function() {
     return new FauxClassGenerator(emitter, cancellationTokenSource.token);
   }
 
-  before(async function() {
+  before(async () => {
     const customFields: util.CustomFieldInfo[] = [
       new util.CustomFieldInfo(CUSTOM_OBJECT_NAME, [
         `${CUSTOM_OBJECT_NAME}${CUSTOM_FIELD_FULLNAME}`
@@ -69,7 +65,7 @@ describe('Generate faux classes for SObjects', function() {
     emitter = new EventEmitter();
   });
 
-  after(async function() {
+  after(async () => {
     if (username) {
       await util.deleteScratchOrg(username);
     }
@@ -84,7 +80,6 @@ describe('Generate faux classes for SObjects', function() {
     try {
       result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
-      expect(e).to.contain(FAILURE_CODE);
       expect(e).to.contain(nls.localize('faux_generation_cancelled_text'));
       return;
     } finally {
@@ -101,7 +96,6 @@ describe('Generate faux classes for SObjects', function() {
     try {
       result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
-      expect(e).to.contain(FAILURE_CODE);
       expect(e).to.contain(nls.localize('no_generate_if_not_in_project', ''));
       return;
     } finally {
@@ -112,25 +106,37 @@ describe('Generate faux classes for SObjects', function() {
 
   it('Should emit an error event on failure', async () => {
     let result = '';
-    let errorCode = SUCCESS_CODE;
+    let errorMessage = '';
+    let exitCode: number = LocalCommandExecution.SUCCESS_CODE;
+    let rejectOutput = '';
     const generator = getGenerator();
-    emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: string) => {
-      errorCode = data;
+    emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: Error) => {
+      errorMessage = data.message;
+    });
+    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+      exitCode = data;
     });
     invalidateProject(projectPath);
     try {
       result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
-      expect(e).to.contain(FAILURE_CODE);
+      rejectOutput = e;
     } finally {
       restoreProject(projectPath);
     }
-    expect(errorCode).to.equal(FAILURE_CODE);
+    expect(rejectOutput).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+    expect(errorMessage).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+    expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
   });
 
   it('Should emit message to stderr on failure', async () => {
     let result = '';
     let stderrInfo = '';
+    let rejectOutput = '';
     const generator = getGenerator();
     emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
       stderrInfo = data;
@@ -139,10 +145,13 @@ describe('Generate faux classes for SObjects', function() {
     try {
       result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
-      expect(e).to.contain(FAILURE_CODE);
+      rejectOutput = e;
     } finally {
       restoreProject(projectPath);
     }
+    expect(rejectOutput).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
     expect(stderrInfo).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
     );
@@ -150,9 +159,9 @@ describe('Generate faux classes for SObjects', function() {
 
   it('Should emit an exit event with code success code 0 on success', async () => {
     let result = '';
-    let exitCode = FAILURE_CODE;
+    let exitCode = LocalCommandExecution.FAILURE_CODE;
     const generator = getGenerator();
-    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: string) => {
+    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
       exitCode = data;
     });
     try {
@@ -160,8 +169,8 @@ describe('Generate faux classes for SObjects', function() {
     } catch (e) {
       expect.fail(e, 'undefined', 'generator should not have thrown an error');
     }
-    expect(result).to.equal(SUCCESS_CODE);
-    expect(exitCode).to.equal(SUCCESS_CODE);
+    expect(result).to.equal(LocalCommandExecution.SUCCESS_CODE.toString());
+    expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
   });
 
   it('Should log the number of created faux classes on success', async () => {
@@ -176,7 +185,7 @@ describe('Generate faux classes for SObjects', function() {
     } catch (e) {
       expect.fail(e, 'undefined', 'generator should not have thrown an error');
     }
-    expect(result).to.equal(SUCCESS_CODE);
+    expect(result).to.equal(LocalCommandExecution.SUCCESS_CODE.toString());
     expect(stdoutInfo).to.contain(
       nls.localize('fetched_sobjects_length_text', 3, 'Custom')
     );
@@ -184,17 +193,17 @@ describe('Generate faux classes for SObjects', function() {
 });
 
 // easy way to force the generator to throw an error
-const DUMMY_PROJECT_FILE = `zzz${SFDX_PROJECT_FILE}`;
+const BOGUS_PROJECT_FILE = `bogus${SFDX_PROJECT_FILE}`;
 function invalidateProject(projectPath: string) {
   renameSync(
     path.join(projectPath, SFDX_PROJECT_FILE),
-    path.join(projectPath, DUMMY_PROJECT_FILE)
+    path.join(projectPath, BOGUS_PROJECT_FILE)
   );
 }
 
 function restoreProject(projectPath: string) {
   renameSync(
-    path.join(projectPath, DUMMY_PROJECT_FILE),
+    path.join(projectPath, BOGUS_PROJECT_FILE),
     path.join(projectPath, SFDX_PROJECT_FILE)
   );
 }

@@ -101,5 +101,5 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_refresh_sobjects: 'SFDX: Refresh SObject Definitions'
+  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions'
 };

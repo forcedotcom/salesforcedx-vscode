@@ -25,8 +25,8 @@ import {
 class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_refresh_sobjects'))
-      .withArg('refresh sObject definitions')
+      .withDescription(nls.localize('force_sobjects_refresh'))
+      .withArg('sobject definitions refresh')
       .build();
   }
 
@@ -38,7 +38,7 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
 
-    const projectPath: string = <string>vscode.workspace.rootPath;
+    const projectPath: string = vscode.workspace.rootPath as string;
     const gen: FauxClassGenerator = new FauxClassGenerator(
       execution.cmdEmitter,
       cancellationToken

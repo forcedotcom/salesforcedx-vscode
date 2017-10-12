@@ -4,14 +4,13 @@
 * Licensed under the BSD 3-Clause license.
 * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 */
+import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
-
 import {
   ChildRelationship,
   Field,
@@ -25,18 +24,15 @@ export interface CancellationToken {
   isCancellationRequested: boolean;
 }
 
-export const SUCCESS_CODE = '0';
-export const FAILURE_CODE = '1';
-const SFDX_PROJECT_FILE = 'sfdx-project.json';
+const SFDX_DIR = '.sfdx';
+const TOOLS_DIR = 'tools';
+const SOBJECTS_DIR = 'sobjects';
+const STANDARDOBJECTS_DIR = 'standardObjects';
+const CUSTOMOBJECTS_DIR = 'customObjects';
+
 export class FauxClassGenerator {
   private emitter: EventEmitter;
   private cancellationToken: CancellationToken | undefined;
-
-  private SFDX_DIR = '.sfdx';
-  private TOOLS_DIR = 'tools';
-  private SOBJECTS_DIR = 'sobjects';
-  private STANDARDOBJECTS_DIR = 'standardObjects';
-  private CUSTOMOBJECTS_DIR = 'customObjects';
 
   // the empty string is used to represent the need for a special case
   // usually multiple fields with specialized names
@@ -77,14 +73,26 @@ export class FauxClassGenerator {
   }
 
   private errorExit(errorMessage: string): Promise<string> {
-    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, errorMessage);
-    this.emitter.emit(LocalCommandExecution.ERROR_EVENT, '1');
-    return Promise.reject(`${FAILURE_CODE} - ${errorMessage}`);
+    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, `${errorMessage}\n`);
+    this.emitter.emit(
+      LocalCommandExecution.ERROR_EVENT,
+      new Error(errorMessage)
+    );
+    this.emitter.emit(
+      LocalCommandExecution.EXIT_EVENT,
+      LocalCommandExecution.FAILURE_CODE
+    );
+    return Promise.reject(
+      `${LocalCommandExecution.FAILURE_CODE.toString()} - ${errorMessage}`
+    );
   }
 
   private successExit(): Promise<string> {
-    this.emitter.emit(LocalCommandExecution.EXIT_EVENT, '0');
-    return Promise.resolve(SUCCESS_CODE);
+    this.emitter.emit(
+      LocalCommandExecution.EXIT_EVENT,
+      LocalCommandExecution.SUCCESS_CODE
+    );
+    return Promise.resolve(LocalCommandExecution.SUCCESS_CODE.toString());
   }
 
   public async generate(
@@ -93,9 +101,17 @@ export class FauxClassGenerator {
   ): Promise<string> {
     const sobjectsFolderPath = path.join(
       projectPath,
-      this.SFDX_DIR,
-      this.TOOLS_DIR,
-      this.SOBJECTS_DIR
+      SFDX_DIR,
+      TOOLS_DIR,
+      SOBJECTS_DIR
+    );
+    const standardSObjectsFolderPath = path.join(
+      sobjectsFolderPath,
+      STANDARDOBJECTS_DIR
+    );
+    const customSObjectsFolderPath = path.join(
+      sobjectsFolderPath,
+      CUSTOMOBJECTS_DIR
     );
 
     if (
@@ -151,19 +167,16 @@ export class FauxClassGenerator {
 
     this.logFetchedObjects(standardSObjects, customSObjects);
 
-    const standardResult = this.generateFauxClasses(
-      standardSObjects,
-      path.join(sobjectsFolderPath, this.STANDARDOBJECTS_DIR)
-    );
-    if (standardResult) {
-      return this.errorExit(standardResult);
+    try {
+      this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
+    } catch (exc) {
+      return this.errorExit(exc);
     }
-    const customResult = this.generateFauxClasses(
-      customSObjects,
-      path.join(sobjectsFolderPath, this.CUSTOMOBJECTS_DIR)
-    );
-    if (customResult) {
-      return this.errorExit(customResult);
+
+    try {
+      this.generateFauxClasses(customSObjects, customSObjectsFolderPath);
+    } catch (exc) {
+      return this.errorExit(exc);
     }
 
     return this.successExit();
@@ -223,23 +236,19 @@ export class FauxClassGenerator {
     return decls;
   }
 
-  private static fieldName(decl: string) {
+  private static fieldName(decl: string): string {
     return decl.substr(decl.indexOf(' ') + 1);
   }
 
-  private generateFauxClasses(
-    sobjects: SObject[],
-    targetFolder: string
-  ): string {
+  private generateFauxClasses(sobjects: SObject[], targetFolder: string): void {
     if (!this.createIfNeededOutputFolder(targetFolder)) {
-      return nls.localize('no_sobject_output_folder_text', targetFolder);
+      throw nls.localize('no_sobject_output_folder_text', targetFolder);
     }
     for (const sobject of sobjects) {
       if (sobject.name) {
         this.generateFauxClass(targetFolder, sobject);
       }
     }
-    return '';
   }
 
   // VisibleForTesting
@@ -341,29 +350,20 @@ export class FauxClassGenerator {
     }
   }
 
+  private logSObjects(sobjectKind: string, fetchedLength: number) {
+    if (fetchedLength > 0) {
+      this.emitter.emit(
+        LocalCommandExecution.STDOUT_EVENT,
+        nls.localize('fetched_sobjects_length_text', fetchedLength, sobjectKind)
+      );
+    }
+  }
+
   private logFetchedObjects(
     standardSObjects: SObject[],
     customSObjects: SObject[]
   ) {
-    if (standardSObjects.length > 0) {
-      this.emitter.emit(
-        LocalCommandExecution.STDOUT_EVENT,
-        nls.localize(
-          'fetched_sobjects_length_text',
-          standardSObjects.length,
-          'Standard'
-        )
-      );
-    }
-    if (customSObjects.length > 0) {
-      this.emitter.emit(
-        LocalCommandExecution.STDOUT_EVENT,
-        nls.localize(
-          'fetched_sobjects_length_text',
-          customSObjects.length,
-          'Custom'
-        )
-      );
-    }
+    this.logSObjects('Standard', standardSObjects.length);
+    this.logSObjects('Custom', customSObjects.length);
   }
 }
