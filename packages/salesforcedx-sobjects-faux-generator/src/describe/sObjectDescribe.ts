@@ -173,14 +173,14 @@ export class SObjectDescribe {
   private accessToken: string;
   private instanceUrl: string;
   private readonly servicesPath: string = 'services/data';
-  // the targetVersion MUST be consistent with the cli that is being used
-  // at least until describeGlobal is converted to REST calls and even then it is safer
-  private readonly targetVersion = '40.0';
-  private readonly versionPrefix = 'v' + this.targetVersion;
-  private readonly sobjectsPart: string = this.versionPrefix + '/sobjects';
-  private readonly batchPart: string = this.versionPrefix + '/composite/batch';
+  // the targetVersion should be consistent with the Cli even if only using REST calls
+  private targetVersion = '';
+  private readonly versionPrefix = 'v';
+  private readonly sobjectsPart: string = 'sobjects';
+  private readonly batchPart: string = 'composite/batch';
 
   // get the token and url by calling the org - short term, should really be able to get it from the sfdx project
+  // also set the proper target apiVersion
   private async setupConnection(projectPath: string, username?: string) {
     if (!this.accessToken) {
       let orgInfo: any;
@@ -198,6 +198,25 @@ export class SObjectDescribe {
       this.accessToken = orgInfo.accessToken;
       this.instanceUrl = orgInfo.instanceUrl;
     }
+    if (!this.targetVersion) {
+      this.targetVersion = await this.getTargetApiVersion(projectPath);
+    }
+  }
+
+  private async getTargetApiVersion(projectPath: string): Promise<string> {
+    const builder = new SfdxCommandBuilder().withArg('force');
+    const command = builder.withJson().build();
+    const execution = new CliCommandExecutor(command, {
+      cwd: projectPath
+    }).execute();
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    const apiVersion = JSON.parse(result).result.apiVersion;
+    return apiVersion;
+  }
+
+  private getVersion(): string {
+    return `${this.versionPrefix}${this.targetVersion}`;
   }
 
   public async describeSObject(
@@ -210,6 +229,7 @@ export class SObjectDescribe {
     const urlElements = [
       this.instanceUrl,
       this.servicesPath,
+      this.getVersion(),
       this.sobjectsPart,
       type,
       'describe'
@@ -286,7 +306,12 @@ export class SObjectDescribe {
       i < nextToProcess + batchSize && i < types.length;
       i++
     ) {
-      const urlElements = [this.sobjectsPart, types[i], 'describe'];
+      const urlElements = [
+        this.getVersion(),
+        this.sobjectsPart,
+        types[i],
+        'describe'
+      ];
       const requestUrl = urlElements.join('/');
 
       batchRequest.batchRequests.push({ method: 'GET', url: requestUrl });
@@ -294,6 +319,7 @@ export class SObjectDescribe {
     const batchUrlElements = [
       this.instanceUrl,
       this.servicesPath,
+      this.getVersion(),
       this.batchPart
     ];
     const batchRequestUrl = batchUrlElements.join('/');
@@ -313,7 +339,14 @@ export class SObjectDescribe {
       const response: XHRResponse = await xhr(options);
       const batchResponse = JSON.parse(response.responseText) as BatchResponse;
       const fetchedObjects: SObject[] = [];
+      let i = nextToProcess;
       for (const sr of batchResponse.results) {
+        if (sr.result instanceof Array) {
+          if (sr.result[0].errorCode && sr.result[0].message) {
+            console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
+          }
+        }
+        i++;
         fetchedObjects.push(sr.result);
       }
       return Promise.resolve(fetchedObjects);
