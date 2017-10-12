@@ -745,9 +745,16 @@ export class ApexDebug extends LoggingDebugSession {
 
     const requestId = this.requestThreads.get(args.threadId)!;
     try {
-      const stateResponse = await this.myRequestService.execute(
-        new StateCommand(requestId)
-      );
+      const stateResponse = await this.lock.acquire('stacktrace', async () => {
+        this.log(
+          TRACE_CATEGORY_VARIABLES,
+          `stackTraceRequest: args threadId=${args.threadId} startFrame=${args.startFrame} levels=${args.levels}`
+        );
+        const responseString = await this.myRequestService.execute(
+          new StateCommand(requestId)
+        );
+        return Promise.resolve(responseString);
+      });
       const stateRespObj: DebuggerResponse = JSON.parse(stateResponse);
       const clientFrames: StackFrame[] = [];
       if (this.hasStackFrames(stateRespObj)) {
