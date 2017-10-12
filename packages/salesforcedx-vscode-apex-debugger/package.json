@@ -1,5 +1,4 @@
 {
-  "preview": true,
   "name": "salesforcedx-vscode-apex-debugger",
   "displayName": "Apex Debugger for Visual Studio Code",
   "description": "Provides debugging support for the Apex programming language",
