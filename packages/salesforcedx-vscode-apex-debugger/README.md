@@ -1,6 +1,8 @@
 # salesforcedx-vscode-apex-debugger
 This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs.
 
+For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
+
 ![GIF showing starting a debugging session, hitting a breakpoint, stepping through code, and examining values](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex-debugger/images/apex_debugger.gif)  
 
 ## Prerequisites
