@@ -22,6 +22,7 @@ install:
   - 7z x sfdx-windows-amd64.tar.xz
   - 7z x sfdx-windows-amd64.tar
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
+  - sfdx update
   - sfdx update alpha
   - npm install -g codecov 
   # the JWT key should be stored base 64 encoded in AppVeyor settings
