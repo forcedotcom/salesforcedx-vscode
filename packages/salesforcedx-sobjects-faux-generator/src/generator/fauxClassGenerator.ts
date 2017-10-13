@@ -169,14 +169,14 @@ export class FauxClassGenerator {
 
     try {
       this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
-    } catch (exc) {
-      return this.errorExit(exc);
+    } catch (e) {
+      return this.errorExit(e);
     }
 
     try {
       this.generateFauxClasses(customSObjects, customSObjectsFolderPath);
-    } catch (exc) {
-      return this.errorExit(exc);
+    } catch (e) {
+      return this.errorExit(e);
     }
 
     return this.successExit();
