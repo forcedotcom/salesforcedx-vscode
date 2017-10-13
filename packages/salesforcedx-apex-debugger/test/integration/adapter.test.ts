@@ -130,7 +130,14 @@ describe('Debugger adapter - integration', function() {
     expect(launchResponse.success).to.equal(true);
     try {
       // Add breakpoint
-      const apexClassPath = `${projectPath}/force-app/main/default/classes/BasicVariables.cls`;
+      const apexClassPath = path.join(
+        projectPath,
+        'force-app',
+        'main',
+        'default',
+        'classes',
+        'BasicVariables.cls'
+      );
       const addBreakpointsResponse = await dc.setBreakpointsRequest({
         source: {
           path: apexClassPath
