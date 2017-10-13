@@ -7,6 +7,7 @@
 
 import { CliCommandExecutor, CommandOutput, SfdxCommandBuilder } from '../cli';
 import childProcess = require('child_process');
+import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
@@ -25,7 +26,10 @@ export async function createSFDXProject(projectName: string): Promise<void> {
   return Promise.resolve();
 }
 
-export async function createScratchOrg(projectName: string): Promise<string> {
+export async function createScratchOrg(
+  projectName: string,
+  durationDays?: number
+): Promise<string> {
   const scratchDefFilePath = path.join(
     process.cwd(),
     projectName,
@@ -178,4 +182,27 @@ export async function assignPermissionSet(
   const cmdOutput = new CommandOutput();
   await cmdOutput.getCmdResult(execution);
   return Promise.resolve();
+}
+
+export function addFeatureToScratchOrgConfig(
+  projectName: string,
+  feature: string
+): void {
+  const scratchDefFilePath = path.join(
+    process.cwd(),
+    projectName,
+    'config',
+    'project-scratch-def.json'
+  );
+  const config = JSON.parse(fs.readFileSync(scratchDefFilePath).toString());
+  if (config) {
+    let featuresList = config.features || '';
+    featuresList += feature;
+    config.features = featuresList;
+  }
+  fs.writeFileSync(
+    scratchDefFilePath,
+    JSON.stringify(config, null, '\t'),
+    'utf8'
+  );
 }

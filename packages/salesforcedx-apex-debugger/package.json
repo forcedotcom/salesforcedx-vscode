@@ -23,6 +23,7 @@
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
+    "@types/rimraf": "^2.0.2",
     "chai": "^4.0.2",
     "cross-env": "5.0.4",
     "mocha": "3.2.0",

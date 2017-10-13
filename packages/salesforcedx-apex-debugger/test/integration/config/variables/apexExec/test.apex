@@ -1,0 +1,1 @@
+BasicVariables.testAll();

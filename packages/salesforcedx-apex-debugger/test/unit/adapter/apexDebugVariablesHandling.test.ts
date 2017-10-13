@@ -927,7 +927,7 @@ describe('Debugger adapter variable handling - unit', () => {
       const response = adapter.getResponse(
         0
       ) as DebugProtocol.VariablesResponse;
-      expect(response.success).to.equal(true);
+      expect(response.success).to.equal(false);
       expect(response.body).to.be.ok;
       expect(response.body.variables).to.be.ok;
       expect(response.body.variables.length).to.equal(0);
@@ -981,7 +981,7 @@ describe('Debugger adapter variable handling - unit', () => {
       const response = adapter.getResponse(
         0
       ) as DebugProtocol.VariablesResponse;
-      expect(response.success).to.equal(true);
+      expect(response.success).to.equal(false);
       expect(response.body.variables.length).to.equal(0);
     });
   });
