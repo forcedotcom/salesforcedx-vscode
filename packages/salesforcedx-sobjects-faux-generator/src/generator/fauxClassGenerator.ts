@@ -157,7 +157,6 @@ export class FauxClassGenerator {
     }
 
     for (let i = 0; i < fetchedSObjects.length; i++) {
-      console.log(fetchedSObjects[i].name);
       if (fetchedSObjects[i].custom) {
         customSObjects.push(fetchedSObjects[i]);
       } else {
