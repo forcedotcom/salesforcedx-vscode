@@ -185,6 +185,10 @@ export class ApexDebugForTest extends ApexDebug {
     return this.stackFrameInfos.create(frameInfo);
   }
 
+  public getVariableContainerReferenceByApexId(): Map<number, number> {
+    return this.variableContainerReferenceByApexId;
+  }
+
   public async scopesRequest(
     response: DebugProtocol.ScopesResponse,
     args: DebugProtocol.ScopesArguments

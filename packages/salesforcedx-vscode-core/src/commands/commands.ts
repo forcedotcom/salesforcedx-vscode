@@ -207,9 +207,9 @@ export class SelectFileName
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
-    const fileNameInputOptions = <vscode.InputBoxOptions>{
+    const fileNameInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_file_name')
-    };
+    } as vscode.InputBoxOptions;
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
     return fileName
       ? { type: 'CONTINUE', data: { fileName } }
@@ -296,9 +296,9 @@ export class SelectUsername
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ username: string }>
   > {
-    const usernameInputOptions = <vscode.InputBoxOptions>{
+    const usernameInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_username_name')
-    };
+    } as vscode.InputBoxOptions;
     const username = await vscode.window.showInputBox(usernameInputOptions);
     return username
       ? { type: 'CONTINUE', data: { username } }

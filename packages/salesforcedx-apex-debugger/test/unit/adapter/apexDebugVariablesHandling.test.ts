@@ -13,7 +13,11 @@ import {
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
+  CollectionReferenceContainer,
+  MapReferenceContainer,
+  MapTupleContainer,
   ObjectReferenceContainer,
+  ScopeContainer,
   VariableContainer
 } from '../../../src/adapter/apexDebug';
 import {
@@ -45,6 +49,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should use proper values from Value', async () => {
       expect(variable.name).to.equal(value.name);
+      expect(variable.type).to.equal(value.nameForMessages);
       expect(variable.declaredTypeRef).to.equal(value.declaredTypeRef);
       expect(variable.value).to.equal(ApexVariable.valueAsString(value));
       expect(variable.variablesReference).to.equal(20);
@@ -260,6 +265,7 @@ describe('Debugger adapter variable handling - unit', () => {
       ];
 
       adapter.populateReferences(references, 'FakeRequestId');
+      adapter.populateReferences(references, 'FakeRequestId');
 
       const variableRef = await adapter.resolveApexIdToVariableReference(
         'FakeRequestId',
@@ -271,6 +277,179 @@ describe('Debugger adapter variable handling - unit', () => {
 
       expect(container).to.be.ok;
       expect(container).to.be.instanceOf(ObjectReferenceContainer);
+      expect(adapter.getVariableContainerReferenceByApexId().size).to.equal(1);
+    });
+
+    it('Should expand list correctly', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+
+      const references: Reference[] = [
+        {
+          type: 'list',
+          nameForMessages: 'List',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        0
+      );
+
+      expect(variableRef).to.be.at.least(0);
+      const container = adapter.getVariableContainer(variableRef as number);
+
+      expect(container).to.be.ok;
+      expect(container).to.be.instanceOf(CollectionReferenceContainer);
+    });
+
+    it('Should expand set correctly', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+
+      const references: Reference[] = [
+        {
+          type: 'set',
+          nameForMessages: 'Set',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        0
+      );
+
+      expect(variableRef).to.be.at.least(0);
+      const container = adapter.getVariableContainer(variableRef as number);
+
+      expect(container).to.be.ok;
+      expect(container).to.be.instanceOf(CollectionReferenceContainer);
+    });
+
+    it('Should expand map correctly', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+      const tupleA = {
+        key: {
+          name: 'key',
+          declaredTypeRef: 'Integer',
+          nameForMessages: '0'
+        },
+        value: {
+          name: 'value',
+          declaredTypeRef: 'String',
+          nameForMessages: 'foo'
+        }
+      };
+      const expectedTupleContainer = new MapTupleContainer(
+        tupleA,
+        'FakeRequestId'
+      );
+      const references: Reference[] = [
+        {
+          type: 'map',
+          nameForMessages: 'Map',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ],
+          tuple: [tupleA]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      const variableRef = await adapter.resolveApexIdToVariableReference(
+        'FakeRequestId',
+        0
+      );
+
+      expect(variableRef).to.be.at.least(0);
+      const container = adapter.getVariableContainer(variableRef as number);
+
+      expect(container).to.be.ok;
+      expect(container).to.be.instanceOf(MapReferenceContainer);
+      const mapContainer = container as MapReferenceContainer;
+      expect(mapContainer.tupleContainers.size).to.equal(1);
+      expect(mapContainer.tupleContainers.get(1000)).to.deep.equal(
+        expectedTupleContainer
+      );
+    });
+
+    it('Should not expand unknown reference type', async () => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+
+      const references: Reference[] = [
+        {
+          type: 'foo',
+          nameForMessages: 'foo',
+          typeRef: 'Type',
+          id: 0,
+          fields: [
+            {
+              name: 'var',
+              nameForMessages: 'varNameForMessages',
+              value: 'varValue',
+              declaredTypeRef: 'varDeclaredTypeRef',
+              index: 0
+            }
+          ]
+        }
+      ];
+
+      adapter.populateReferences(references, 'FakeRequestId');
+
+      expect(adapter.getVariableContainerReferenceByApexId().size).to.equal(0);
     });
   });
 
@@ -549,6 +728,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
   describe('scopesRequest', () => {
     let adapter: ApexDebugForTest;
+    let resolveApexIdToVariableReferenceSpy: sinon.SinonStub;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -563,6 +743,12 @@ describe('Debugger adapter variable handling - unit', () => {
         accessToken: '123'
       } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
+    });
+
+    afterEach(() => {
+      if (resolveApexIdToVariableReferenceSpy) {
+        resolveApexIdToVariableReferenceSpy.restore();
+      }
     });
 
     it('Should return no scopes for unknown frameId', async () => {
@@ -604,6 +790,106 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body).to.be.ok;
       expect(response.body.scopes).to.be.ok;
       expect(response.body.scopes.length).to.equal(3);
+      expect(response.body.scopes[0]).to.deep.equal({
+        name: 'Local',
+        variablesReference: 1000,
+        expensive: false
+      });
+      expect(response.body.scopes[1]).to.deep.equal({
+        name: 'Static',
+        variablesReference: 1001,
+        expensive: false
+      });
+      expect(response.body.scopes[2]).to.deep.equal({
+        name: 'Global',
+        variablesReference: 1002,
+        expensive: false
+      });
+    });
+
+    it('Should expand local scope', async () => {
+      const variableValue: LocalValue = {
+        slot: 0,
+        name: 'foo',
+        declaredTypeRef: 'String',
+        nameForMessages: 'String'
+      };
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      frameInfo.locals = [];
+      frameInfo.statics = [];
+      frameInfo.globals = [];
+      frameInfo.locals[0] = variableValue;
+      resolveApexIdToVariableReferenceSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
+        .returns(1001);
+      const expectedVariableObj = new ApexVariable(
+        variableValue,
+        ApexVariableKind.Local,
+        1001
+      );
+
+      const localScope = new ScopeContainer('local', frameInfo);
+      const vars = await localScope.expand(adapter, 'all', 0, 0);
+      expect(vars.length).to.equal(1);
+      expect(
+        ApexVariable.compareVariables(expectedVariableObj, vars[0])
+      ).to.equal(0);
+    });
+
+    it('Should expand static scope', async () => {
+      const variableValue: Value = {
+        name: 'foo',
+        declaredTypeRef: 'String',
+        nameForMessages: 'String'
+      };
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      frameInfo.locals = [];
+      frameInfo.statics = [];
+      frameInfo.globals = [];
+      frameInfo.statics[0] = variableValue;
+      resolveApexIdToVariableReferenceSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
+        .returns(1001);
+      const expectedVariableObj = new ApexVariable(
+        variableValue,
+        ApexVariableKind.Static,
+        1001
+      );
+
+      const localScope = new ScopeContainer('static', frameInfo);
+      const vars = await localScope.expand(adapter, 'all', 0, 0);
+      expect(vars.length).to.equal(1);
+      expect(
+        ApexVariable.compareVariables(expectedVariableObj, vars[0])
+      ).to.equal(0);
+    });
+
+    it('Should expand global scope', async () => {
+      const variableValue: Value = {
+        name: 'foo',
+        declaredTypeRef: 'String',
+        nameForMessages: 'String'
+      };
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      frameInfo.locals = [];
+      frameInfo.statics = [];
+      frameInfo.globals = [];
+      frameInfo.globals[0] = variableValue;
+      resolveApexIdToVariableReferenceSpy = sinon
+        .stub(ApexDebugForTest.prototype, 'resolveApexIdToVariableReference')
+        .returns(1001);
+      const expectedVariableObj = new ApexVariable(
+        variableValue,
+        ApexVariableKind.Global,
+        1001
+      );
+
+      const localScope = new ScopeContainer('global', frameInfo);
+      const vars = await localScope.expand(adapter, 'all', 0, 0);
+      expect(vars.length).to.equal(1);
+      expect(
+        ApexVariable.compareVariables(expectedVariableObj, vars[0])
+      ).to.equal(0);
     });
   });
 
@@ -675,10 +961,37 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body.variables.length).to.equal(2);
       expect(response.body.variables).to.deep.equal(variables);
     });
+
+    it('Should return no variables when expand errors out', async () => {
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new ErrorDummyContainer(variables)
+      );
+
+      await adapter.variablesRequest(
+        {} as DebugProtocol.VariablesResponse,
+        {
+          variablesReference: variableReference
+        } as DebugProtocol.VariablesArguments
+      );
+
+      const response = adapter.getResponse(
+        0
+      ) as DebugProtocol.VariablesResponse;
+      expect(response.success).to.equal(true);
+      expect(response.body.variables.length).to.equal(0);
+    });
   });
 });
 
-function newStringValue(name: string, value = 'value', slot?: number): Value {
+export function newStringValue(
+  name: string,
+  value = 'value',
+  slot?: number
+): Value {
   const result: any = {
     name: name,
     declaredTypeRef: 'java/lang/String',
@@ -691,7 +1004,7 @@ function newStringValue(name: string, value = 'value', slot?: number): Value {
   return result;
 }
 
-class DummyContainer implements VariableContainer {
+export class DummyContainer implements VariableContainer {
   public variables: ApexVariable[];
   public constructor(variables: ApexVariable[]) {
     this.variables = variables;
@@ -704,5 +1017,21 @@ class DummyContainer implements VariableContainer {
     count: number | undefined
   ): Promise<ApexVariable[]> {
     return Promise.resolve(this.variables);
+  }
+}
+
+class ErrorDummyContainer implements VariableContainer {
+  public variables: ApexVariable[];
+  public constructor(variables: ApexVariable[]) {
+    this.variables = variables;
+  }
+
+  public expand(
+    session: ApexDebug,
+    filter: 'named' | 'indexed' | 'all',
+    start: number | undefined,
+    count: number | undefined
+  ): Promise<ApexVariable[]> {
+    return Promise.reject('error');
   }
 }

@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { FrameCommand, RequestService } from '../../../src/commands';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 
 describe('Frame command', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -35,11 +36,14 @@ describe('Frame command', () => {
       type: 'POST',
       url:
         'https://www.salesforce.com/services/debug/v41.0/frame/07cFAKE?stackFrame=1',
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
-      }
+        Authorization: `OAuth 123`,
+        'Content-Length': 0
+      },
+      data: undefined
     };
 
     await requestService.execute(frameCommand);

@@ -1,26 +1,38 @@
 {
-  "preview": true,
   "name": "salesforcedx-vscode-apex-debugger",
   "displayName": "Apex Debugger for Visual Studio Code",
   "description": "Provides debugging support for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.13.0",
+  "version": "41.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.15.0"
+    "vscode": "^1.17.0"
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "40.13.0"
+    "@salesforce/salesforcedx-apex-debugger": "41.3.0"
   },
   "devDependencies": {
-    "vscode": "1.1.4"
+    "@salesforce/salesforcedx-utils-vscode": "41.3.0",
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "mocha": "3.2.0",
+    "sinon": "^2.3.6",
+    "vscode": "1.1.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -30,17 +42,16 @@
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "sfdx.debug.provideInitialConfigurations"
-  ],
+  "activationEvents": ["onDebug", "workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "breakpoints": [
@@ -48,6 +59,19 @@
         "language": "apex"
       }
     ],
+    "configuration": {
+      "type": "object",
+      "title": "%configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-apex-debugger.connectionTimeoutMs": {
+          "type": "number",
+          "default": 20000,
+          "minimum": 500,
+          "maximum": 120000,
+          "description": "%connection_timeout_ms_description%"
+        }
+      }
+    },
     "debuggers": [
       {
         "type": "apex",
@@ -64,8 +88,8 @@
               "name": "%launch_snippet_name%",
               "type": "apex",
               "request": "launch",
-              "userIdFilter": "",
-              "requestTypeFilter": "",
+              "userIdFilter": [],
+              "requestTypeFilter": [],
               "entryPointFilter": "",
               "sfdxProject": "^\"\\${workspaceRoot}\""
             }
@@ -127,8 +151,7 @@
               }
             }
           }
-        },
-        "initialConfigurations": "sfdx.debug.provideInitialConfigurations"
+        }
       }
     ]
   }

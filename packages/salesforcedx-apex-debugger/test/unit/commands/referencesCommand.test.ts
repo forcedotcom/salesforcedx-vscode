@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { ReferencesCommand, RequestService } from '../../../src/commands';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 
 describe('References command', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -31,19 +32,22 @@ describe('References command', () => {
       .returns(
         Promise.resolve({ status: 200, responseText: '' } as XHRResponse)
       );
+    const requestBody = JSON.stringify({
+      getReferencesRequest: {
+        reference: []
+      }
+    });
     const expectedOptions: XHROptions = {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/references/07cFAKE',
+      timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json',
-        Authorization: `OAuth 123`
+        Authorization: `OAuth 123`,
+        'Content-Length': Buffer.byteLength(requestBody, 'utf-8')
       },
-      data: JSON.stringify({
-        getReferencesRequest: {
-          reference: []
-        }
-      })
+      data: requestBody
     };
 
     await requestService.execute(referencesCommand);

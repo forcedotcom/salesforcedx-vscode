@@ -1,3 +1,14 @@
+## 41.3.0 - October 14, 2017
+
+### Added
+#### salesforcedx-vscode-apex-debugger
+
+* Apex Debugger extension for VS Code ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger))
+
+#### salesforcedx-vscode-core
+
+* Alias prompt for command `SFDX: Create a Default Scratch Org...` ([PR #157](https://github.com/forcedotcom/salesforcedx-vscode/pull/157))
+
 ## 40.13.0 - October 5, 2017
 
 ### Added

@@ -7,41 +7,38 @@
 
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  GET_PROXY_SETTINGS_EVENT,
+  GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
-  PROXY_SETTINGS_REQUEST,
-  ProxySettings,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
-  VscodeDebuggerMessageType
+  VscodeDebuggerMessageType,
+  WORKSPACE_SETTINGS_REQUEST,
+  WorkspaceSettings
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
 
-const initialDebugConfigurations = {
-  version: '0.2.0',
-  configurations: [
-    {
-      name: 'Launch Apex Debugger',
-      type: 'apex',
-      request: 'launch',
-      userIdFilter: '',
-      requestTypeFilter: '',
-      entryPointFilter: '',
-      sfdxProject: '${workspaceRoot}'
-    }
-  ]
-};
+export class ApexDebuggerConfigurationProvider
+  implements vscode.DebugConfigurationProvider {
+  public provideDebugConfigurations(
+    folder: vscode.WorkspaceFolder | undefined,
+    token?: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
+    return [
+      {
+        name: 'Launch Apex Debugger',
+        type: 'apex',
+        request: 'launch',
+        userIdFilter: [],
+        requestTypeFilter: [],
+        entryPointFilter: '',
+        sfdxProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
+      } as vscode.DebugConfiguration
+    ];
+  }
+}
 
 function registerCommands(): vscode.Disposable {
-  const initialDebugConfig = vscode.commands.registerCommand(
-    'sfdx.debug.provideInitialConfigurations',
-    () => {
-      return [JSON.stringify(initialDebugConfigurations, null, '\t')].join(
-        '\n'
-      );
-    }
-  );
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session) {
@@ -75,24 +72,21 @@ function registerCommands(): vscode.Disposable {
               }
             }
           }
-        } else if (event.event === GET_PROXY_SETTINGS_EVENT) {
+        } else if (event.event === GET_WORKSPACE_SETTINGS_EVENT) {
           const config = vscode.workspace.getConfiguration();
-          const proxyUrl = config.get('http.proxy', '') as string;
-          const proxyStrictSSL = config.get(
-            'http.proxyStrictSSL',
-            false
-          ) as boolean;
-          const proxyAuth = config.get('http.proxyAuthorization', '') as string;
-          event.session.customRequest(PROXY_SETTINGS_REQUEST, {
-            url: proxyUrl,
-            strictSSL: proxyStrictSSL,
-            auth: proxyAuth
-          } as ProxySettings);
+          event.session.customRequest(WORKSPACE_SETTINGS_REQUEST, {
+            proxyUrl: config.get('http.proxy', '') as string,
+            proxyStrictSSL: config.get('http.proxyStrictSSL', false) as boolean,
+            proxyAuth: config.get('http.proxyAuthorization', '') as string,
+            connectionTimeoutMs: config.get(
+              'salesforcedx-vscode-apex-debugger.connectionTimeoutMs'
+            )
+          } as WorkspaceSettings);
         }
       }
     }
   );
-  return vscode.Disposable.from(initialDebugConfig, customEventHandler);
+  return vscode.Disposable.from(customEventHandler);
 }
 
 function registerFileWatchers(): vscode.Disposable {
@@ -118,6 +112,12 @@ export function activate(context: vscode.ExtensionContext) {
   const commands = registerCommands();
   const fileWatchers = registerFileWatchers();
   context.subscriptions.push(commands, fileWatchers);
+  context.subscriptions.push(
+    vscode.debug.registerDebugConfigurationProvider(
+      'apex',
+      new ApexDebuggerConfigurationProvider()
+    )
+  );
 }
 
 export function deactivate() {

@@ -62,7 +62,10 @@ describe('Channel', () => {
 
     it('Should pipe stdout on successful command execution', async () => {
       const execution = new CliCommandExecutor(
-        new SfdxCommandBuilder().withArg('force').withArg('--help').build(),
+        new SfdxCommandBuilder()
+          .withArg('force')
+          .withArg('--help')
+          .build(),
         {}
       ).execute();
 
@@ -73,15 +76,16 @@ describe('Channel', () => {
           resolve();
         });
       });
-      expect(mChannel.value).to.contain(
-        'Usage: sfdx COMMAND [command-specific-options]'
-      );
+      expect(mChannel.value).to.contain('Usage: sfdx force');
       expect(mChannel.value).to.contain('ended with exit code 0');
     });
 
     it('Should pipe stderr on unsuccessful command execution', async () => {
       const execution = new CliCommandExecutor(
-        new SfdxCommandBuilder().withArg('force').withArg('--unknown').build(),
+        new SfdxCommandBuilder()
+          .withArg('force')
+          .withArg('--unknown')
+          .build(),
         {}
       ).execute();
 
@@ -92,8 +96,7 @@ describe('Channel', () => {
           resolve();
         });
       });
-      expect(mChannel.value).to.contain('Error: Unexpected flag --unknown');
-      expect(mChannel.value).to.contain('ended with exit code 2');
+      expect(mChannel.value).to.contain('Unexpected argument --unknown');
     });
 
     it('Should suggest to install SFDX binary', async () => {

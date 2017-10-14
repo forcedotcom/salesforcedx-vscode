@@ -15,7 +15,12 @@ import {
   ThreadEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { LaunchRequestArguments } from '../../../src/adapter/apexDebug';
+import {
+  ApexDebugStackFrameInfo,
+  ApexVariable,
+  ApexVariableKind,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexDebug';
 import {
   LineBreakpointInfo,
   LineBreakpointsInTyperef
@@ -31,12 +36,13 @@ import {
   StepOverCommand
 } from '../../../src/commands';
 import {
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  GET_PROXY_SETTINGS_EVENT,
+  GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
-  PROXY_SETTINGS_REQUEST,
-  SHOW_MESSAGE_EVENT
+  SHOW_MESSAGE_EVENT,
+  WORKSPACE_SETTINGS_REQUEST
 } from '../../../src/constants';
 import {
   ApexDebuggerEventType,
@@ -48,12 +54,16 @@ import {
   StreamingService
 } from '../../../src/core';
 import {
-  ProxySettings,
   VscodeDebuggerMessage,
-  VscodeDebuggerMessageType
+  VscodeDebuggerMessageType,
+  WorkspaceSettings
 } from '../../../src/index';
 import { nls } from '../../../src/messages';
 import { ApexDebugForTest } from './apexDebugForTest';
+import {
+  DummyContainer,
+  newStringValue
+} from './apexDebugVariablesHandling.test';
 import os = require('os');
 
 describe('Debugger adapter - unit', () => {
@@ -96,7 +106,9 @@ describe('Debugger adapter - unit', () => {
 
       expect(breakpointClearSpy.calledOnce).to.equal(true);
       expect(adapter.getEvents().length).to.equal(2);
-      expect(adapter.getEvents()[0].event).to.equal(GET_PROXY_SETTINGS_EVENT);
+      expect(adapter.getEvents()[0].event).to.equal(
+        GET_WORKSPACE_SETTINGS_EVENT
+      );
       expect(adapter.getEvents()[1].event).to.equal(
         GET_LINE_BREAKPOINT_INFO_EVENT
       );
@@ -391,7 +403,7 @@ describe('Debugger adapter - unit', () => {
         .returns(true);
 
       // given
-      args.trace = 'variables, launch';
+      args.trace = 'variables, launch, protocol';
       await adapter.launchReq(response, args);
       sessionPrintToDebugSpy.reset();
 
@@ -401,7 +413,7 @@ describe('Debugger adapter - unit', () => {
       adapter.log('protocol', 'message');
 
       // then
-      expect(sessionPrintToDebugSpy.callCount).to.equal(2);
+      expect(sessionPrintToDebugSpy.callCount).to.equal(3);
     });
 
     it('Should configure tracing for all categories', async () => {
@@ -1169,7 +1181,7 @@ describe('Debugger adapter - unit', () => {
       });
     });
 
-    describe('Proxy settings', () => {
+    describe('Workspace settings', () => {
       let requestService: RequestService;
 
       beforeEach(() => {
@@ -1184,18 +1196,38 @@ describe('Debugger adapter - unit', () => {
 
       it('Should save proxy settings', () => {
         adapter.customRequest(
-          PROXY_SETTINGS_REQUEST,
+          WORKSPACE_SETTINGS_REQUEST,
           {} as DebugProtocol.Response,
           {
-            url: 'http://localhost:443',
-            strictSSL: false,
-            auth: 'Basic 123'
-          } as ProxySettings
+            proxyUrl: 'http://localhost:443',
+            proxyStrictSSL: false,
+            proxyAuth: 'Basic 123'
+          } as WorkspaceSettings
         );
 
         expect(requestService.proxyUrl).to.equal('http://localhost:443');
         expect(requestService.proxyStrictSSL).to.equal(false);
         expect(requestService.proxyAuthorization).to.equal('Basic 123');
+        expect(requestService.connectionTimeoutMs).to.equal(
+          DEFAULT_CONNECTION_TIMEOUT_MS
+        );
+      });
+
+      it('Should save connection settings', () => {
+        adapter.customRequest(
+          WORKSPACE_SETTINGS_REQUEST,
+          {} as DebugProtocol.Response,
+          {
+            connectionTimeoutMs: 60000
+          } as WorkspaceSettings
+        );
+
+        // tslint:disable:no-unused-expression
+        expect(requestService.proxyUrl).to.be.undefined;
+        expect(requestService.proxyStrictSSL).to.be.undefined;
+        expect(requestService.proxyAuthorization).to.be.undefined;
+        expect(requestService.connectionTimeoutMs).to.equal(60000);
+        // tslint:enable:no-unused-expression
       });
     });
   });
@@ -1470,6 +1502,16 @@ describe('Debugger adapter - unit', () => {
       };
       adapter.addRequestThread('07cFAKE1');
       adapter.addRequestThread('07cFAKE2');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE1', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
 
       adapter.handleEvent(message);
 
@@ -1480,6 +1522,14 @@ describe('Debugger adapter - unit', () => {
       const threadEvent = adapter.getEvents()[1] as ThreadEvent;
       expect(threadEvent.body.reason).to.equal('exited');
       expect(threadEvent.body.threadId).to.equal(1);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.not.be
+        .undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.not.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        true
+      );
     });
 
     it('[RequestFinished] - Should not handle unknown request', () => {
@@ -1497,6 +1547,40 @@ describe('Debugger adapter - unit', () => {
 
       expect(adapter.getRequestThreads().size).to.equal(1);
       expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('[RequestFinished] - Should clear variable handles', () => {
+      const message: DebuggerMessage = {
+        event: {} as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'RequestFinished',
+          RequestId: '07cFAKE1'
+        }
+      };
+      adapter.addRequestThread('07cFAKE1');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE1', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getRequestThreads().size).to.equal(0);
+      expect(adapter.getEvents().length).to.equal(2);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.be.undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        false
+      );
     });
 
     it('[Resumed] - Should send continued event', () => {
@@ -1547,6 +1631,16 @@ describe('Debugger adapter - unit', () => {
         }
       };
       adapter.addRequestThread('07cFAKE');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
 
       adapter.handleEvent(message);
 
@@ -1564,6 +1658,13 @@ describe('Debugger adapter - unit', () => {
         ApexDebuggerEventType.Stopped,
         0
       ]);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.be.undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        false
+      );
     });
 
     it('[Stopped] - Should send stepping stopped event', () => {
@@ -1607,6 +1708,45 @@ describe('Debugger adapter - unit', () => {
         adapter.getEvents().length,
         'must not handle an event without a request id'
       ).to.equal(0);
+    });
+
+    it('[Stopped] - Should not clear variable handles', () => {
+      const message: DebuggerMessage = {
+        event: {
+          replayId: 0
+        } as StreamingEvent,
+        sobject: {
+          SessionId: '123',
+          Type: 'Stopped',
+          RequestId: '07cFAKE1',
+          BreakpointId: '07bFAKE'
+        }
+      };
+      adapter.addRequestThread('07cFAKE1');
+      adapter.addRequestThread('07cFAKE2');
+      const variables = [
+        new ApexVariable(newStringValue('var1'), ApexVariableKind.Static),
+        new ApexVariable(newStringValue('var2'), ApexVariableKind.Global)
+      ];
+      const variableReference = adapter.createVariableContainer(
+        new DummyContainer(variables)
+      );
+      adapter.getVariableContainerReferenceByApexId().set(0, variableReference);
+      const frameInfo = new ApexDebugStackFrameInfo('07cFAKE2', 0);
+      const frameId = adapter.createStackFrameInfo(frameInfo);
+
+      adapter.handleEvent(message);
+
+      expect(adapter.getRequestThreads().size).to.equal(2);
+      expect(adapter.getEvents().length).to.equal(2);
+      // tslint:disable:no-unused-expression
+      expect(adapter.getVariableContainer(variableReference)).to.not.be
+        .undefined;
+      expect(adapter.getStackFrameInfo(frameId)).to.not.be.undefined;
+      // tslint:enable:no-unused-expression
+      expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
+        true
+      );
     });
 
     it('[SystemWarning] - Should send events with description', () => {

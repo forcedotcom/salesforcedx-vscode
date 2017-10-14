@@ -1,5 +1,4 @@
 {
-  "preview": true,
   "name": "salesforcedx-vscode-core",
   "displayName": "Salesforce CLI integration for Visual Studio Code",
   "description": "Provides integration with the Salesforce CLI",
@@ -15,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.13.0",
+  "version": "41.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "40.13.0",
-    "@salesforce/salesforcedx-utils-vscode": "40.13.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "41.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.3.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
@@ -205,7 +204,7 @@
         },
         {
           "command": "sfdx.force.internal.refreshsobjects",
-          "when": "config.sfdx.refreshSObjects.enabled"
+          "when": "sfdx:project_opened && config.sfdx.refreshSObjects.enabled"
         },
         {
           "command": "sfdx.force.data.soql.query.input",
@@ -342,6 +341,17 @@
         "command": "sfdx.force.apex.execute.selection",
         "title": "%force_apex_execute_selection_text%"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%feature_previews_title%",
+      "properties": {
+        "sfdx.refreshSObjects.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%enable_refresh_description%"
+        }
+      }
+    }
   }
 }
