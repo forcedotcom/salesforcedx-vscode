@@ -119,6 +119,10 @@ export class FauxClassGenerator {
     }
   }
 
+  private camelCase(input: string) {
+    return input.charAt(0).toLowerCase() + input.slice(1);
+  }
+
   private capitalize(input: string): string {
     return input.charAt(0).toUpperCase() + input.slice(1);
   }
@@ -134,7 +138,7 @@ export class FauxClassGenerator {
 
   private generateChildRelationship(rel: ChildRelationship): string {
     const nameToUse = this.getReferenceName(rel.relationshipName, rel.field);
-    return `List<${rel.childSObject}> ${nameToUse}`;
+    return `List<${rel.childSObject}> ${this.camelCase(nameToUse)}`;
   }
 
   private generateField(field: Field): string[] {
@@ -148,11 +152,10 @@ export class FauxClassGenerator {
       } else {
         genType = this.getTargetType(field.type);
       }
-      decls.push(`${genType} ${field.name}`);
+      decls.push(`${genType} ${this.camelCase(field.name)}`);
     } else {
-      const nameToUse = this.getReferenceName(
-        field.relationshipName,
-        field.name
+      const nameToUse = this.camelCase(
+        this.getReferenceName(field.relationshipName, field.name)
       );
       if (field.referenceTo.length > 1) {
         decls.push(`SObject ${nameToUse}`);
@@ -160,7 +163,7 @@ export class FauxClassGenerator {
         decls.push(`${field.referenceTo} ${nameToUse}`);
       }
       // field.type will be "reference", but the actual type is an Id for Apex
-      decls.push(`Id ${field.name}`);
+      decls.push(`Id ${this.camelCase(field.name)}`);
     }
     return decls;
   }
