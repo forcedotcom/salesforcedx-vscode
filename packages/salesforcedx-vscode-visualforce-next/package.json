@@ -20,9 +20,7 @@
   "engines": {
     "vscode": "^1.15.0"
   },
-  "categories": [
-    "Languages"
-  ],
+  "categories": ["Languages"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -30,27 +28,20 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "enableProposedApi": true,
   "main": "./out/src/extension",
   "contributes": {
     "languages": [
       {
         "id": "visualforce",
-        "aliases": [
-          "Visualforce",
-          "visualforce"
-        ],
-        "extensions": [
-          ".page",
-          ".component"
-        ],
+        "aliases": ["Visualforce", "visualforce"],
+        "extensions": [".page", ".component"],
         "configuration": "./syntaxes/visualforce.configuration.json"
       }
     ],
