@@ -51,21 +51,21 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String StringField;');
-    expect(classText).to.include('Double DoubleField;');
-    expect(classText).to.include('Boolean BooleanField;');
-    expect(classText).to.include('Decimal CurrencyField;');
-    expect(classText).to.include('Date DateField;');
-    expect(classText).to.include('Datetime DatetimeField;');
-    expect(classText).to.include('String EmailField;');
-    expect(classText).to.include('Location LocationField;');
-    expect(classText).to.include('Double PercentField;');
-    expect(classText).to.include('String PicklistField;');
-    expect(classText).to.include('String MultipicklistField;');
-    expect(classText).to.include('String TextareaField;');
-    expect(classText).to.include('String EncryptedField;');
-    expect(classText).to.include('String UrlField;');
-    expect(classText).to.include('Id IdField;');
+    expect(classText).to.include('String stringField;');
+    expect(classText).to.include('Double doubleField;');
+    expect(classText).to.include('Boolean booleanField;');
+    expect(classText).to.include('Decimal currencyField;');
+    expect(classText).to.include('Date dateField;');
+    expect(classText).to.include('Datetime datetimeField;');
+    expect(classText).to.include('String emailField;');
+    expect(classText).to.include('Location locationField;');
+    expect(classText).to.include('Double percentField;');
+    expect(classText).to.include('String picklistField;');
+    expect(classText).to.include('String multipicklistField;');
+    expect(classText).to.include('String textareaField;');
+    expect(classText).to.include('String encryptedField;');
+    expect(classText).to.include('String urlField;');
+    expect(classText).to.include('Id idField;');
   });
 
   it('Should generate a faux class with all types of fields that show only in standard SObjects', async () => {
@@ -91,11 +91,11 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('Blob BaseField;');
-    expect(classText).to.include('Address AddressField;');
-    expect(classText).to.include('Integer IntField;');
-    expect(classText).to.include('Object AnytypeField;');
-    expect(classText).to.include('String ComboboxField;');
+    expect(classText).to.include('Blob baseField;');
+    expect(classText).to.include('Address addressField;');
+    expect(classText).to.include('Integer intField;');
+    expect(classText).to.include('Object anytypeField;');
+    expect(classText).to.include('String comboboxField;');
   });
 
   it('Should create a a valid class with a field and relationship', async () => {
@@ -117,9 +117,9 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String StringField;');
-    expect(classText).to.include('Account Account__r');
-    expect(classText).to.include('Id Account__c');
+    expect(classText).to.include('String stringField;');
+    expect(classText).to.include('Account account__r');
+    expect(classText).to.include('Id account__c');
   });
 
   it('Should create a valid class with child relationship', async () => {
@@ -141,7 +141,7 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('List<Case> Case__r');
+    expect(classText).to.include('List<Case> case__r');
   });
 
   it('Should create a valid field name for a child relationship that is missing the relationshipName', async () => {
@@ -159,7 +159,7 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('List<Case> RelatedCase;');
+    expect(classText).to.include('List<Case> relatedCase;');
   });
 
   // seems odd, but this can happen due to the childRelationships that don't have a relationshipName
@@ -184,8 +184,8 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('List<Case> Reference;');
-    expect(classText).to.not.include('Account Reference');
+    expect(classText).to.include('List<Case> reference;');
+    expect(classText).to.not.include('Account reference');
   });
 
   it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
@@ -205,8 +205,8 @@ describe('SObject faux class generator', function() {
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.not.include('null');
-    expect(classText).to.include('Account AccountField');
-    expect(classText).to.include('List<Account> Reference');
+    expect(classText).to.include('Account accountField');
+    expect(classText).to.include('List<Account> reference');
   });
 
   it('Should create a String field type for an external lookup relationship', async () => {
@@ -223,7 +223,7 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String ExtRef__c');
+    expect(classText).to.include('String extRef__c');
   });
 
   // Note - hierarchical relationship, many-to-many, and master-detail all look like lookup relationships in terms of
@@ -249,7 +249,7 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String MDRef__c');
+    expect(classText).to.include('String mDRef__c');
   });
 
   it('Should create a valid class for a metadata object with a __mdt target', async () => {
@@ -268,7 +268,7 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('XX_mdt MDRef__r');
+    expect(classText).to.include('XX_mdt mDRef__r');
   });
 
   it('Should create a valid class for a platform event object', async () => {
@@ -291,7 +291,7 @@ describe('SObject faux class generator', function() {
     );
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
-    expect(classText).to.include('String StringField;');
-    expect(classText).to.include('Double DoubleField;');
+    expect(classText).to.include('String stringField;');
+    expect(classText).to.include('Double doubleField;');
   });
 });
