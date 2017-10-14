@@ -14,6 +14,7 @@ import * as util from '@salesforce/salesforcedx-utils-vscode/out/src/test/orgUti
 import { expect } from 'chai';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
+import * as Url from 'url';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
@@ -45,17 +46,21 @@ describe('Debugger adapter - integration', function() {
   let dc: DebugClient;
   let userName: string;
   let projectPath: string;
+  let apexClassUri: string;
 
   before(async () => {
     // Create SFDX project
-    console.log(`process.cwd: ${process.cwd()}`);
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
     await util.createSFDXProject(PROJECT_NAME);
     // Create scratch org with Debug Apex enabled
     util.addFeatureToScratchOrgConfig(PROJECT_NAME, 'DebugApex');
+    apexClassUri = util.pathToUri(
+      `${projectPath}/force-app/main/default/classes/BasicVariables.cls`
+    );
+    console.log(`apexClassUri: ${apexClassUri}`);
     LINE_BREAKPOINT_INFO.push({
-      uri: `file://${projectPath}/force-app/main/default/classes/BasicVariables.cls`,
+      uri: apexClassUri,
       typeref: 'BasicVariables',
       lines: [
         14,
@@ -85,7 +90,7 @@ describe('Debugger adapter - integration', function() {
       ]
     });
     LINE_BREAKPOINT_INFO.push({
-      uri: `file://${projectPath}/force-app/main/default/classes/BasicVariables.cls`,
+      uri: apexClassUri,
       typeref: 'BasicVariables$MyInnerClass',
       lines: [6, 7]
     });
@@ -130,14 +135,8 @@ describe('Debugger adapter - integration', function() {
     expect(launchResponse.success).to.equal(true);
     try {
       // Add breakpoint
-      const apexClassPath = path.join(
-        projectPath,
-        'force-app',
-        'main',
-        'default',
-        'classes',
-        'BasicVariables.cls'
-      );
+      const apexClassPath = Url.parse(apexClassUri).pathname;
+      console.log(`apexClassPath: ${apexClassPath}`);
       const addBreakpointsResponse = await dc.setBreakpointsRequest({
         source: {
           path: apexClassPath

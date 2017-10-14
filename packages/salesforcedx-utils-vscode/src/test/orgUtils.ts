@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, CommandOutput, SfdxCommandBuilder } from '../cli';
-import childProcess = require('child_process');
 import * as fs from 'fs';
 import * as path from 'path';
+import { cp } from 'shelljs';
 import * as util from 'util';
+import { CliCommandExecutor, CommandOutput, SfdxCommandBuilder } from '../cli';
 
 // Used only for CI purposes. Must call delete if you call create
 export async function createSFDXProject(projectName: string): Promise<void> {
@@ -81,7 +81,7 @@ export async function pushSource(
     'main',
     'default'
   );
-  childProcess.execSync('cp -R ' + sourceFolder + ' ' + targetFolder);
+  cp('-R', sourceFolder, targetFolder);
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
       .withArg('force:source:push')
@@ -205,4 +205,12 @@ export function addFeatureToScratchOrgConfig(
     JSON.stringify(config, null, '\t'),
     'utf8'
   );
+}
+
+export function pathToUri(str: string): string {
+  let pathName = str.replace(/\\/g, '/');
+  if (pathName[0] !== '/') {
+    pathName = '/' + pathName;
+  }
+  return encodeURI('file://' + pathName);
 }
