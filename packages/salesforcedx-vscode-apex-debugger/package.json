@@ -1,5 +1,4 @@
 {
-  "preview": true,
   "name": "salesforcedx-vscode-apex-debugger",
   "displayName": "Apex Debugger for Visual Studio Code",
   "description": "Provides debugging support for the Apex programming language",
@@ -15,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "40.13.0",
+  "version": "41.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,17 +22,17 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "40.13.0"
+    "@salesforce/salesforcedx-apex-debugger": "41.3.0"
   },
   "devDependencies": {
-    "vscode": "1.1.5",
-    "@salesforce/salesforcedx-utils-vscode": "40.13.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.3.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "mocha": "3.2.0",
-    "sinon": "^2.3.6"
+    "sinon": "^2.3.6",
+    "vscode": "1.1.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",

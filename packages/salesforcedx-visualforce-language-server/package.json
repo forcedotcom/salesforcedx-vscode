@@ -1,14 +1,14 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-language-server",
   "description": "Visualforce language server",
-  "version": "40.13.0",
+  "version": "41.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.15.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "40.13.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "41.3.0",
     "vscode-css-languageservice": "2.1.9",
     "vscode-languageserver": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
@@ -25,8 +25,8 @@
     "mocha-multi-reporters": "^1.1.4",
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
-    "source-map-support": "^0.4.15",
     "shx": "0.2.2",
+    "source-map-support": "^0.4.15",
     "typescript": "2.4.0"
   },
   "scripts": {
