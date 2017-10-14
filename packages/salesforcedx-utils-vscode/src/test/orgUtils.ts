@@ -26,10 +26,7 @@ export async function createSFDXProject(projectName: string): Promise<void> {
   return Promise.resolve();
 }
 
-export async function createScratchOrg(
-  projectName: string,
-  durationDays?: number
-): Promise<string> {
+export async function createScratchOrg(projectName: string): Promise<string> {
   const scratchDefFilePath = path.join(
     process.cwd(),
     projectName,
