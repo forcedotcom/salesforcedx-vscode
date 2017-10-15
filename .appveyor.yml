@@ -11,7 +11,7 @@ skip_branch_with_pr: true
 platform: x64
 
 environment:
-  SFDX_URL_WINDOWS: https://cli-assets.heroku.com/branches/alpha/5.99.1-128ffd6/sfdx-v5.99.1-128ffd6-windows-amd64.tar.xz
+  SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-v5.99.1-d7efd75-windows-amd64.tar.xz
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
 
@@ -22,7 +22,7 @@ install:
   - 7z x sfdx-windows-amd64.tar.xz
   - 7z x sfdx-windows-amd64.tar
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
-  - sfdx update alpha
+  - sfdx update
   - npm install -g codecov 
   # the JWT key should be stored base 64 encoded in AppVeyor settings
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
