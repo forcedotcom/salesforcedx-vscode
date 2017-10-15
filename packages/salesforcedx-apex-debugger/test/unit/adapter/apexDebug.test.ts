@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
@@ -564,6 +565,7 @@ describe('Debugger adapter - unit', () => {
     let breakpointCreateSpy: sinon.SinonSpy;
     let breakpointCacheSpy: sinon.SinonSpy;
     let sessionIdSpy: sinon.SinonStub;
+    let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -591,6 +593,7 @@ describe('Debugger adapter - unit', () => {
       sessionIdSpy = sinon
         .stub(SessionService.prototype, 'getSessionId')
         .returns('07aFAKE');
+      lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
     });
 
     afterEach(() => {
@@ -610,6 +613,7 @@ describe('Debugger adapter - unit', () => {
         breakpointCacheSpy.restore();
       }
       sessionIdSpy.restore();
+      lockSpy.restore();
     });
 
     it('Should create breakpoint', async () => {
@@ -629,6 +633,8 @@ describe('Debugger adapter - unit', () => {
         }
       );
 
+      expect(lockSpy.calledOnce).to.equal(true);
+      expect(lockSpy.getCall(0).args[0]).to.equal('breakpoint-file:///foo.cls');
       expect(breakpointReconcileSpy.calledOnce).to.equal(true);
       expect(breakpointReconcileSpy.getCall(0).args).to.deep.equal([
         'someProjectPath',
@@ -902,6 +908,7 @@ describe('Debugger adapter - unit', () => {
   describe('Stacktrace request', () => {
     let stateSpy: sinon.SinonStub;
     let sourcePathSpy: sinon.SinonStub;
+    let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -916,6 +923,7 @@ describe('Debugger adapter - unit', () => {
         accessToken: '123'
       } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
+      lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
     });
 
     afterEach(() => {
@@ -923,6 +931,7 @@ describe('Debugger adapter - unit', () => {
       if (sourcePathSpy) {
         sourcePathSpy.restore();
       }
+      lockSpy.restore();
     });
 
     it('Should not get state of unknown thread', async () => {
@@ -978,6 +987,8 @@ describe('Debugger adapter - unit', () => {
         { threadId: 1 } as DebugProtocol.StackTraceArguments
       );
 
+      expect(lockSpy.calledOnce).to.equal(true);
+      expect(lockSpy.getCall(0).args[0]).to.equal('stacktrace');
       expect(stateSpy.called).to.equal(true);
       expect(stateSpy.getCall(0).args[0]).to.be.instanceof(StateCommand);
       const response = adapter.getResponse(

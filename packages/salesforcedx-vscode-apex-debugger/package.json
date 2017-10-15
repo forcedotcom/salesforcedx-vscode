@@ -110,7 +110,7 @@
               "requestTypeFilter": {
                 "type": "array",
                 "description": "%request_type_filter_text%",
-                "default": "",
+                "default": [],
                 "items": {
                   "type": "string",
                   "enum": [
