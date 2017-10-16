@@ -10,6 +10,7 @@ import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { FrameCommand, RequestService } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
+import { getDefaultHeaders } from './baseCommand.test';
 
 describe('Frame command', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -37,12 +38,7 @@ describe('Frame command', () => {
       url:
         'https://www.salesforce.com/services/debug/v41.0/frame/07cFAKE?stackFrame=1',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        Accept: 'application/json',
-        Authorization: `OAuth 123`,
-        'Content-Length': 0
-      },
+      headers: getDefaultHeaders(0),
       data: undefined
     };
 
