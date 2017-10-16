@@ -185,6 +185,7 @@ describe('Debugger adapter - integration', function() {
         variablesReference: scopesResponse.body.scopes[0].variablesReference
       });
       expect(variablesResponse.success).to.equal(true);
+      expect(variablesResponse.body.variables.length).is.greaterThan(0);
       // Expand variables
       for (const variable of variablesResponse.body.variables) {
         if (variable.variablesReference === 0) {
@@ -194,6 +195,7 @@ describe('Debugger adapter - integration', function() {
           variablesReference: variable.variablesReference
         });
         expect(expandResponse.success).to.equal(true);
+        expect(expandResponse.body.variables.length).is.greaterThan(0);
       }
       // Finish the debugged request
       const nextResponse = await dc.nextRequest({

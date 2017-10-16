@@ -974,7 +974,7 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.VariablesResponse,
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
-    response.success = false;
+    response.success = true;
     const variablesContainer = this.variableHandles.get(
       args.variablesReference
     );
@@ -1007,7 +1007,6 @@ export class ApexDebug extends LoggingDebugSession {
       );
       variables.sort(ApexVariable.compareVariables);
       response.body = { variables: variables };
-      response.success = true;
       this.sendResponse(response);
     } catch (error) {
       this.log(
