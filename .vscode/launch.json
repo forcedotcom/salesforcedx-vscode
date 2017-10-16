@@ -181,7 +181,7 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch Apex Debugger Adapter Tests",
+      "name": "Launch Apex Debugger Adapter Unit Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
@@ -194,7 +194,31 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/test/"
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/test/unit/"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+    },
+    {
+      "name": "Launch Apex Debugger Adapter Integration Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "--recursive",
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/test/integration/"
       ],
       "sourceMaps": true,
       "outFiles": [
