@@ -6,7 +6,7 @@
  */
 
 import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
-import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../constants';
+import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS } from '../constants';
 import { BaseCommand } from './baseCommand';
 
 export class RequestService {
@@ -105,7 +105,8 @@ export class RequestService {
         Authorization: `OAuth ${this.accessToken}`,
         'Content-Length': requestBody
           ? Buffer.byteLength(requestBody, 'utf-8')
-          : 0
+          : 0,
+        clientid: CLIENT_ID
       },
       data: requestBody
     };

@@ -15,6 +15,7 @@ import {
   StepOverCommand
 } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
+import { getDefaultHeaders } from './baseCommand.test';
 
 describe('Step commands', () => {
   let sendRequestSpy: sinon.SinonStub;
@@ -41,12 +42,7 @@ describe('Step commands', () => {
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=into',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        Accept: 'application/json',
-        Authorization: `OAuth 123`,
-        'Content-Length': 0
-      },
+      headers: getDefaultHeaders(0),
       data: undefined
     };
 
@@ -68,12 +64,7 @@ describe('Step commands', () => {
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=out',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        Accept: 'application/json',
-        Authorization: `OAuth 123`,
-        'Content-Length': 0
-      },
+      headers: getDefaultHeaders(0),
       data: undefined
     };
 
@@ -95,12 +86,7 @@ describe('Step commands', () => {
       url:
         'https://www.salesforce.com/services/debug/v41.0/step/07cFAKE?type=over',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        Accept: 'application/json',
-        Authorization: `OAuth 123`,
-        'Content-Length': 0
-      },
+      headers: getDefaultHeaders(0),
       data: undefined
     };
 

@@ -11,7 +11,10 @@ import * as sinon from 'sinon';
 import { BaseCommand } from '../../../src/commands/baseCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
 import { RequestService } from '../../../src/commands/requestService';
-import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
+import {
+  CLIENT_ID,
+  DEFAULT_CONNECTION_TIMEOUT_MS
+} from '../../../src/constants';
 
 class DummyCommand extends BaseCommand {
   public constructor(
@@ -22,6 +25,16 @@ class DummyCommand extends BaseCommand {
   ) {
     super(commandName, debuggedRequestId, queryString, request);
   }
+}
+
+export function getDefaultHeaders(contentLength: number): any {
+  return {
+    'Content-Type': 'application/json;charset=utf-8',
+    Accept: 'application/json',
+    Authorization: `OAuth 123`,
+    'Content-Length': contentLength,
+    clientid: CLIENT_ID
+  };
 }
 
 describe('Base command', () => {
@@ -50,12 +63,7 @@ describe('Base command', () => {
       type: 'POST',
       url: 'https://www.salesforce.com/services/debug/v41.0/dummy/07cFAKE',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        Accept: 'application/json',
-        Authorization: `OAuth 123`,
-        'Content-Length': 0
-      },
+      headers: getDefaultHeaders(0),
       data: undefined
     };
 
@@ -80,12 +88,7 @@ describe('Base command', () => {
       url:
         'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        Accept: 'application/json',
-        Authorization: `OAuth 123`,
-        'Content-Length': 0
-      },
+      headers: getDefaultHeaders(0),
       data: undefined
     };
 
@@ -119,12 +122,7 @@ describe('Base command', () => {
       url:
         'https://www.salesforce.com/services/debug/v41.0/dummy2/07cFAKE?param=whoops',
       timeout: DEFAULT_CONNECTION_TIMEOUT_MS,
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        Accept: 'application/json',
-        Authorization: `OAuth 123`,
-        'Content-Length': Buffer.byteLength(requestBody, 'utf-8')
-      },
+      headers: getDefaultHeaders(Buffer.byteLength(requestBody, 'utf-8')),
       data: requestBody
     };
 
