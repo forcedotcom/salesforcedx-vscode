@@ -106,7 +106,7 @@ export class RequestService {
         'Content-Length': requestBody
           ? Buffer.byteLength(requestBody, 'utf-8')
           : 0,
-        clientid: CLIENT_ID
+        'Sforce-Call-Options': `client=${CLIENT_ID}`
       },
       data: requestBody
     };
