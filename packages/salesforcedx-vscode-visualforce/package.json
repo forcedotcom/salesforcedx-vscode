@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-visualforce",
-  "displayName": "Visualforce Code Editor for Visual Studio Code",
+  "displayName": "Next Visualforce Code Editor for Visual Studio Code",
   "description": "Provides syntax highlighting for the Visualforce framework",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
@@ -18,9 +18,17 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.13.0"
+    "vscode": "^1.15.0"
   },
   "categories": ["Languages"],
+  "dependencies": {
+    "@salesforce/salesforcedx-visualforce-language-server": "41.3.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "41.3.0",
+    "typescript": "2.4.0",
+    "vscode-languageclient": "3.4.2",
+    "vscode-languageserver-protocol": "3.4.2",
+    "vscode-languageserver-types": "3.4.0"
+  },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "41.3.0",
     "@types/chai": "^4.0.0",
@@ -30,14 +38,12 @@
     "chai": "^4.0.2",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "typescript": "2.4.0",
-    "vscode": "1.1.2"
+    "vscode": "1.1.5"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
@@ -46,12 +52,128 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "enableProposedApi": true,
+  "main": "./out/src/extension",
   "contributes": {
     "languages": [
       {
-        "id": "html",
-        "extensions": [".page", ".component"]
+        "id": "visualforce",
+        "aliases": ["Visualforce", "visualforce"],
+        "extensions": [".page", ".component"],
+        "configuration": "./syntaxes/visualforce.configuration.json"
       }
-    ]
+    ],
+    "grammars": [
+      {
+        "language": "visualforce",
+        "scopeName": "text.visualforce.markup",
+        "path": "./syntaxes/visualforce.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Salesforce DX Visualforce Configuration",
+      "properties": {
+        "visualforce.format.enable": {
+          "type": "boolean",
+          "scope": "window",
+          "default": true,
+          "description": "%visualforce.format.enable.desc%"
+        },
+        "visualforce.format.wrapLineLength": {
+          "type": "integer",
+          "scope": "resource",
+          "default": 120,
+          "description": "%visualforce.format.wrapLineLength.desc%"
+        },
+        "visualforce.format.unformatted": {
+          "type": ["string", "null"],
+          "scope": "resource",
+          "default": "",
+          "description": "%visualforce.format.unformatted.desc%"
+        },
+        "visualforce.format.contentUnformatted": {
+          "type": ["string", "null"],
+          "scope": "resource",
+          "default": "pre,code,textarea",
+          "description": "%visualforce.format.contentUnformatted.desc%"
+        },
+        "visualforce.format.indentInnerHtml": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": false,
+          "description": "%visualforce.format.indentInnervisualforce.desc%"
+        },
+        "visualforce.format.preserveNewLines": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.format.preserveNewLines.desc%"
+        },
+        "visualforce.format.maxPreserveNewLines": {
+          "type": ["number", "null"],
+          "scope": "resource",
+          "default": null,
+          "description": "%visualforce.format.maxPreserveNewLines.desc%"
+        },
+        "visualforce.format.endWithNewline": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": false,
+          "description": "%visualforce.format.endWithNewline.desc%"
+        },
+        "visualforce.format.extraLiners": {
+          "type": ["string", "null"],
+          "scope": "resource",
+          "default": "head, body, /html",
+          "description": "%visualforce.format.extraLiners.desc%"
+        },
+        "visualforce.format.wrapAttributes": {
+          "type": "string",
+          "scope": "resource",
+          "default": "auto",
+          "enum": ["auto", "force", "force-aligned", "force-expand-multiline"],
+          "enumDescriptions": [
+            "%visualforce.format.wrapAttributes.auto%",
+            "%visualforce.format.wrapAttributes.force%",
+            "%visualforce.format.wrapAttributes.forcealign%",
+            "%visualforce.format.wrapAttributes.forcemultiline%"
+          ],
+          "description": "%visualforce.format.wrapAttributes.desc%"
+        },
+        "visualforce.suggest.html5": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.suggest.html5.desc%"
+        },
+        "visualforce.validate.scripts": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.validate.scripts%"
+        },
+        "visualforce.validate.styles": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.validate.styles%"
+        },
+        "visualforce.autoClosingTags": {
+          "type": "boolean",
+          "scope": "resource",
+          "default": true,
+          "description": "%visualforce.autoClosingTags%"
+        },
+        "visualforce.trace.server": {
+          "type": "string",
+          "scope": "window",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "%visualforce.trace.server.desc%"
+        }
+      }
+    }
   }
 }
