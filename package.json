@@ -17,10 +17,12 @@
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
     "test": "lerna run test --concurrency 1 --stream",
-    "test:without-system-tests": "lerna run test --concurrency 1 --stream",
-    "test:system-tests": "lerna run test:system-tests --concurrency 1 --stream",
+    "test:without-system-tests":
+      "lerna run test --ignore system-tests --concurrency 1 --stream",
+    "test:system-tests":
+      "lerna run test --scope system-tests --concurrency 1 --stream",
     "coverage:system-tests":
-      "lerna run coverage:system-tests --concurrency 1 --stream",
+      "lerna run coverage --scope system-tests --concurrency 1 --stream",
     "vscode:package":
       "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
