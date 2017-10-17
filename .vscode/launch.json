@@ -15,7 +15,7 @@
       "request": "attach",
       "protocol": "inspector",
       "name": "Attach to Process (Inspector Protocol)",
-      "port": 9229,
+      "port": 6004,
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
     },
@@ -163,7 +163,6 @@
       ],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
-      "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
