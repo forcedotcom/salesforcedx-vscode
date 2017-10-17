@@ -14,6 +14,8 @@ notifications:
   email: false
 
 matrix:
+  allow_failures:
+    - os: osx
   fast_finish: true
 
 env:
