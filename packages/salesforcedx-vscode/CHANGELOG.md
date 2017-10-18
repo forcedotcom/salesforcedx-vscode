@@ -3,7 +3,7 @@
 ### Added
 ### salesforcedx-vscode-visualforce
 
-* Code completion for Visualforce standard components ([PR #180](https://github.com/forcedotcom/salesforcedx-vscode/pull/180))
+* Code completion for standard Visualforce components ([PR #180](https://github.com/forcedotcom/salesforcedx-vscode/pull/180))
 
 ### Fixed
 #### salesforcedx-vscode-apex-debugger
