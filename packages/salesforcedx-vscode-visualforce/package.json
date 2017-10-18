@@ -53,7 +53,6 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
-  "enableProposedApi": true,
   "main": "./out/src/extension",
   "contributes": {
     "languages": [
