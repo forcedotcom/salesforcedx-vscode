@@ -73,7 +73,7 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "Salesforce DX Visualforce Configuration",
+      "title": "%configuration.title%",
       "properties": {
         "visualforce.format.enable": {
           "type": "boolean",

@@ -1,4 +1,5 @@
 {
+  "configuration.title": "Salesforce Visualforce Configuration",
   "visualforce.format.enable.desc":
     "Enable/disable default Visualforce formatter",
   "visualforce.format.wrapLineLength.desc":
