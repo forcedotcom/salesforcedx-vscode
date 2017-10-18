@@ -1,5 +1,10 @@
 ## 41.4.0 - October 19, 2017
 
+### Added
+### salesforcedx-vscode-visualforce
+
+* Code completion for standard Visualforce components ([PR #180](https://github.com/forcedotcom/salesforcedx-vscode/pull/180))
+
 ### Fixed
 #### salesforcedx-vscode-apex-debugger
 
