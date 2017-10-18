@@ -883,23 +883,25 @@ export class ApexDebug extends LoggingDebugSession {
             typerefMapping
           );
         }
-        this.initializedResponse.body = {
-          supportsCompletionsRequest: false,
-          supportsConditionalBreakpoints: false,
-          supportsDelayedStackTraceLoading: false,
-          supportsEvaluateForHovers: false,
-          supportsExceptionInfoRequest: false,
-          supportsExceptionOptions: false,
-          supportsFunctionBreakpoints: false,
-          supportsHitConditionalBreakpoints: false,
-          supportsLoadedSourcesRequest: false,
-          supportsRestartFrame: false,
-          supportsSetVariable: false,
-          supportsStepBack: false,
-          supportsStepInTargetsRequest: false
-        };
-        this.initializedResponse.success = true;
-        this.sendResponse(this.initializedResponse);
+        if (this.initializedResponse) {
+          this.initializedResponse.body = {
+            supportsCompletionsRequest: false,
+            supportsConditionalBreakpoints: false,
+            supportsDelayedStackTraceLoading: false,
+            supportsEvaluateForHovers: false,
+            supportsExceptionInfoRequest: false,
+            supportsExceptionOptions: false,
+            supportsFunctionBreakpoints: false,
+            supportsHitConditionalBreakpoints: false,
+            supportsLoadedSourcesRequest: false,
+            supportsRestartFrame: false,
+            supportsSetVariable: false,
+            supportsStepBack: false,
+            supportsStepInTargetsRequest: false
+          };
+          this.initializedResponse.success = true;
+          this.sendResponse(this.initializedResponse);
+        }
         break;
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));

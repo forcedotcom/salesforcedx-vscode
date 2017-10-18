@@ -16,6 +16,7 @@
     "@types/glob": "^5.0.30",
     "@types/mocha": "^2.2.38",
     "@types/node": "^6.0.40",
+    "@types/shelljs": "^0.7.4",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
     "glob": "^7.1.2",
@@ -26,7 +27,8 @@
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
     "source-map-support": "^0.4.15",
-    "typescript": "2.4.0"
+    "typescript": "2.4.0",
+    "shelljs": "^0.7.8"
   },
   "engines": {
     "vscode": "^1.13.0"

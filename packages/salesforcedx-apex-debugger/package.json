@@ -23,6 +23,7 @@
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
+    "@types/rimraf": "^2.0.2",
     "chai": "^4.0.2",
     "cross-env": "5.0.4",
     "mocha": "3.2.0",
@@ -43,7 +44,11 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters"
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
+    "test:unit":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters",
+    "test:system-tests":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]
