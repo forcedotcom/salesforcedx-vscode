@@ -34,9 +34,12 @@ export function getHTMLMode(
       position: Position,
       settings: Settings = globalSettings
     ) {
-      const options = settings && settings.html && settings.html.suggest;
+      const options =
+        settings && settings.visualforce && settings.visualforce.suggest;
       const doAutoComplete =
-        settings && settings.html && settings.html.autoClosingTags;
+        settings &&
+        settings.visualforce &&
+        settings.visualforce.autoClosingTags;
       if (doAutoComplete) {
         options.hideAutoCompleteProposals = true;
       }
@@ -80,7 +83,7 @@ export function getHTMLMode(
       settings: Settings = globalSettings
     ) {
       let formatSettings: HTMLFormatConfiguration =
-        settings && settings.html && settings.html.format;
+        settings && settings.visualforce && settings.visualforce.format;
       if (formatSettings) {
         formatSettings = merge(formatSettings, {});
       } else {

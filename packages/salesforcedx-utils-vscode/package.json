@@ -3,7 +3,7 @@
   "displayName": "SFDX Utilities for VS Code",
   "description":
     "Provides utilies to interface the SFDX libraries with VS Code",
-  "version": "41.3.0",
+  "version": "41.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": ["Other"],
@@ -39,7 +39,7 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 5000",
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "nyc": {

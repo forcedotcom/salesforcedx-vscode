@@ -39,6 +39,7 @@ If you’re not seeing the Apex completion suggestions that you expect, your Ape
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
 * _[Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)_
+* GitHub: [Language Server Protocol](https://github.com/Microsoft/language-server-protocol)
 * GitHub: [salesforcedx-vscode-apex](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex)
 
 ---

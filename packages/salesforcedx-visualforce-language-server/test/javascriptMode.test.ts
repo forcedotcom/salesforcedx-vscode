@@ -46,7 +46,7 @@ describe('HTML Javascript Support', () => {
     }
   }
 
-  it('Should display compleitions', () => {
+  it('Should display completions', () => {
     assertCompletions('<html><script>window.|</script></html>', ['location']);
   });
 });

@@ -14,3 +14,4 @@ export const GET_WORKSPACE_SETTINGS_EVENT = 'getWorkspaceSettings';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
 export const HOTSWAP_REQUEST = 'hotswap';
 export const WORKSPACE_SETTINGS_REQUEST = 'workspaceSettings';
+export const CLIENT_ID = 'sfdx-vscode';

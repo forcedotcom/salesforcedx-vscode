@@ -1,10 +1,15 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-'use strict';
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ * Derived from https://github.com/Microsoft/vscode-html-languageservice/blob/a607328b6c1532b87cfb2ba532f27b297465d7e4/src/test/completion.test.ts
+ */
+// tslint:disable:no-unused-expression
 
 import * as assert from 'assert';
+import { expect } from 'chai';
 import {
   CompletionItemKind,
   CompletionList,
@@ -70,14 +75,14 @@ describe('HTML Completion', () => {
     const ls = htmlLanguageService.getLanguageService();
 
     const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
+      'test://test/test.page',
+      'visualforce',
       0,
       value
     );
     const position = document.positionAt(offset);
-    const htmlDoc = ls.parseHTMLDocument(document);
-    const list = ls.doComplete(document, position, htmlDoc, settings);
+    const vfDoc = ls.parseHTMLDocument(document);
+    const list = ls.doComplete(document, position, vfDoc, settings);
     if (expected.count) {
       assert.equal(list.items, expected.count);
     }
@@ -96,14 +101,14 @@ describe('HTML Completion', () => {
     const ls = htmlLanguageService.getLanguageService();
 
     const document = TextDocument.create(
-      'test://test/test.html',
-      'html',
+      'test://test/test.page',
+      'visualforce',
       0,
       value
     );
     const position = document.positionAt(offset);
-    const htmlDoc = ls.parseHTMLDocument(document);
-    const actual = ls.doTagComplete(document, position, htmlDoc);
+    const vfDoc = ls.parseHTMLDocument(document);
+    const actual = ls.doTagComplete(document, position, vfDoc);
     assert.equal(actual, expected);
   };
 
@@ -527,75 +532,9 @@ describe('HTML Completion', () => {
     );
   });
 
-  it('Complete Angular', function(testDone): any {
-    run(
-      [
-        testCompletionFor('<body  |> </body >', {
-          items: [
-            {
-              label: 'ng-controller',
-              resultText: '<body  ng-controller="$1"> </body >'
-            },
-            {
-              label: 'data-ng-controller',
-              resultText: '<body  data-ng-controller="$1"> </body >'
-            }
-          ]
-        }),
-        testCompletionFor('<li  |> </li >', {
-          items: [
-            { label: 'ng-repeat', resultText: '<li  ng-repeat="$1"> </li >' },
-            {
-              label: 'data-ng-repeat',
-              resultText: '<li  data-ng-repeat="$1"> </li >'
-            }
-          ]
-        }),
-        testCompletionFor('<input  |> </input >', {
-          items: [
-            {
-              label: 'ng-model',
-              resultText: '<input  ng-model="$1"> </input >'
-            },
-            {
-              label: 'data-ng-model',
-              resultText: '<input  data-ng-model="$1"> </input >'
-            }
-          ]
-        })
-      ],
-      testDone
-    );
-  });
-
-  it('Complete Ionic', function(testDone): any {
-    run(
-      [
-        // Try some Ionic tags
-        testCompletionFor('<|', {
-          items: [
-            { label: 'ion-checkbox', resultText: '<ion-checkbox' },
-            { label: 'ion-content', resultText: '<ion-content' }
-          ]
-        })
-      ],
-      testDone
-    );
-  });
-
   it('Settings', function(testDone): any {
     run(
       [
-        testCompletionFor(
-          '<|',
-          {
-            items: [
-              { label: 'ion-checkbox' },
-              { label: 'div', notAvailable: true }
-            ]
-          },
-          { html5: false, ionic: true, angular1: false }
-        ),
         testCompletionFor(
           '<|',
           {
@@ -629,5 +568,119 @@ describe('HTML Completion', () => {
     testTagCompletion('<div><br></|', 'div>');
     testTagCompletion('<div><br><span></span></|', 'div>');
     testTagCompletion('<div><h1><br><span></span><img></| </h1></div>', 'h1>');
+  });
+
+  // Visualforce
+  //////////////
+
+  function getCompletionSuggestions(value: string): CompletionList {
+    const offset = value.indexOf('|');
+    value = value.substr(0, offset) + value.substr(offset + 1);
+
+    const ls = htmlLanguageService.getLanguageService();
+
+    const document = TextDocument.create(
+      'test://test/test.page',
+      'visualforce',
+      0,
+      value
+    );
+    const position = document.positionAt(offset);
+    const vfDoc = ls.parseHTMLDocument(document);
+    const list = ls.doComplete(document, position, vfDoc);
+    return list;
+  }
+
+  describe('Visualforce Completions', () => {
+    // This list is from https://developer.salesforce.com/docs/atlas.en-us.pages.meta/pages/pages_compref_map.htm
+    it('Should display basic tags', () => {
+      const expectedNamespaces = [
+        'analytics',
+        'apex',
+        'chatter',
+        'flow',
+        'ideas',
+        'knowledge',
+        'liveAgent',
+        'messaging',
+        'site',
+        'social',
+        'support',
+        'topic',
+        'wave'
+      ];
+
+      const seenNamespaces: Map<string, boolean> = new Map<string, boolean>();
+      expectedNamespaces.forEach(name => seenNamespaces.set(name, false));
+
+      const completionList = getCompletionSuggestions('<|');
+      completionList.items.forEach(completion => {
+        seenNamespaces.forEach((value, name) => {
+          if (completion.label.match(name)) {
+            seenNamespaces.set(name, true);
+          }
+        });
+      });
+
+      seenNamespaces.forEach((value, name) => {
+        expect(value, `namespace ${name} was not seen`).to.be.true;
+      });
+    });
+
+    it('Should have only Visualforce attributes - no HTML attributes', () => {
+      // Used apex:page since it's one of the main tags
+      testCompletionFor('<apex:page |> </apex:page>', {
+        items: [
+          { label: 'access' },
+          { label: 'action' },
+          { label: 'activeTabName' },
+          { label: 'apiVersion' },
+          { label: 'applyBodyTag' },
+          { label: 'applyHtmlTag' },
+          { label: 'cache' },
+          { label: 'contentType' },
+          { label: 'controller' },
+          { label: 'deferLastCommandUntilReady' },
+          { label: 'docType' },
+          { label: 'expires' },
+          { label: 'id' },
+          { label: 'label' },
+          { label: 'language' },
+          { label: 'lightningStylesheets' },
+          { label: 'manifest' },
+          { label: 'motifKey' },
+          { label: 'name' },
+          { label: 'namespace' },
+          { label: 'pageName' },
+          { label: 'pageStyle' },
+          { label: 'readOnly' },
+          { label: 'recordSetName' },
+          { label: 'recordSetVar' },
+          { label: 'renderAs' },
+          { label: 'rendered' },
+          { label: 'rendered' },
+          { label: 'setup' },
+          { label: 'setupNode' },
+          { label: 'showChat' },
+          { label: 'showHeader' },
+          { label: 'showQuickActionVfHeader' },
+          { label: 'sidebar' },
+          { label: 'standardController' },
+          { label: 'standardStylesheets' },
+          { label: 'tabStyle' },
+          { label: 'title' },
+          { label: 'wizard' },
+          { label: 'ion-checkbox', notAvailable: true },
+          { label: 'ng-model', notAvailable: true },
+          { label: 'aria-activedescendant', notAvailable: true }
+        ]
+      });
+    });
+
+    it('Should show true, false as attribute options automatically', () => {
+      testCompletionFor('<apex:page applyBodyTag="|"> </apex:page>', {
+        items: [{ label: 'true' }, { label: 'false' }]
+      });
+    });
   });
 });

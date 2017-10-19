@@ -4,17 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import {
-  getAngularTagProvider,
-  getHTML5TagProvider,
-  getIonicTagProvider,
-  IHTMLTagProvider
-} from '../parser/htmlTags';
-import { getRazorTagProvider } from '../parser/razorTags';
+import { getHTML5TagProvider, IHTMLTagProvider } from '../parser/htmlTags';
+import { getVisualforceTagProvider } from '../parser/visualforceTags';
 
-export let allTagProviders: IHTMLTagProvider[] = [
+export const allTagProviders: IHTMLTagProvider[] = [
   getHTML5TagProvider(),
-  getAngularTagProvider(),
-  getIonicTagProvider(),
-  getRazorTagProvider()
+  getVisualforceTagProvider()
 ];
