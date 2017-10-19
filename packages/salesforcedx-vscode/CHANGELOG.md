@@ -1,3 +1,16 @@
+## 41.4.0 - October 19, 2017
+
+### Added
+### salesforcedx-vscode-visualforce
+
+* Code completion for standard Visualforce components ([PR #180](https://github.com/forcedotcom/salesforcedx-vscode/pull/180))
+
+### Fixed
+#### salesforcedx-vscode-apex-debugger
+
+* Default type of `requestTypeFilter` in `launch.json` is an array ([PR #168](https://github.com/forcedotcom/salesforcedx-vscode/pull/168))
+* Fix timing issue when showing the callstack ([PR #168](https://github.com/forcedotcom/salesforcedx-vscode/pull/168))
+
 ## 41.3.0 - October 14, 2017
 
 ### Added

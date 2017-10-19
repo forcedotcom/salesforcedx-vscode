@@ -5,5 +5,9 @@
 'use strict';
 
 import { getHTML5TagProvider, IHTMLTagProvider } from '../parser/htmlTags';
+import { getVisualforceTagProvider } from '../parser/visualforceTags';
 
-export let allTagProviders: IHTMLTagProvider[] = [getHTML5TagProvider()];
+export const allTagProviders: IHTMLTagProvider[] = [
+  getHTML5TagProvider(),
+  getVisualforceTagProvider()
+];
