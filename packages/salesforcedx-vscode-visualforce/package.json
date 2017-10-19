@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-visualforce",
-  "displayName": "Next Visualforce Code Editor for Visual Studio Code",
+  "displayName": "Visualforce Code Editor for Visual Studio Code",
   "description": "Provides syntax highlighting for the Visualforce framework",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
@@ -53,7 +53,6 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
-  "enableProposedApi": true,
   "main": "./out/src/extension",
   "contributes": {
     "languages": [
