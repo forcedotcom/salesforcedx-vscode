@@ -73,16 +73,17 @@ script:
   - npm run lint
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-      npm run test:without-system-tests
-      npm run coverage:system-tests
+      #npm run test:without-system-tests
+      #npm run coverage:system-tests
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
       # Due to slowness of OS X on Travis
       # https://github.com/travis-ci/travis-ci/issues/6095
-      npm run test:without-system-tests
+      #npm run test:without-system-tests
     fi
-  - codecov
+  #- codecov
 
 after_script:
+  - npm run vscode:package
   - rm $SFDX_CI_KEY_LOCATION
