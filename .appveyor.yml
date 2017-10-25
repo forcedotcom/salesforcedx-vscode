@@ -33,7 +33,7 @@ build_script:
   - npm run compile
   - npm run lint
 
-#test_script:
+test_script:
   - node --version
   - npm --version
   - ps: |
@@ -66,7 +66,7 @@ build_script:
         exit $NpmTestsExitCode
       }
   - npm run coverage:system-tests
-#
+
 on_finish:
   - npm run vscode:package
   - del C:\projects\devhub.key

@@ -82,7 +82,7 @@ script:
       # https://github.com/travis-ci/travis-ci/issues/6095
       npm run test:without-system-tests
     fi
-  #- codecov
+  - codecov
 
 after_script:
   - npm run vscode:package
