@@ -66,9 +66,9 @@ test_script:
         exit $NpmTestsExitCode
       }
   - npm run coverage:system-tests
+  - npm run vscode:package
 
 on_finish:
-  - npm run vscode:package
   - del C:\projects\devhub.key
   - codecov
  
