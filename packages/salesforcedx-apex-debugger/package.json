@@ -11,7 +11,6 @@
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "41.4.0",
-    "@types/async-lock": "0.0.20",
     "async-lock": "1.0.0",
     "faye": "1.1.2",
     "request-light": "0.2.1",
@@ -19,6 +18,7 @@
     "vscode-debugprotocol": "1.24.0"
   },
   "devDependencies": {
+    "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",

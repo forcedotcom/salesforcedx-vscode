@@ -24,7 +24,7 @@
     "coverage:system-tests":
       "lerna run coverage --scope system-tests --concurrency 1 --stream",
     "vscode:package":
-      "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1",
+      "lerna exec -- find . -name @types -type d -exec shx rm -rf {} + && lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch"
