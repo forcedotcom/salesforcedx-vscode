@@ -1,3 +1,15 @@
+## 41.5.0 - October 25, 2017
+
+### Added
+### salesforcedx-vscode
+
+* Update the minimum VS Code version to 1.17 ([PR #187](https://github.com/forcedotcom/salesforcedx-vscode/pull/187))
+
+### Fixed
+#### salesforcedx-vscode-visualforce
+
+* Remove non-public attributes from Visualforce tags ([PR #188](https://github.com/forcedotcom/salesforcedx-vscode/pull/188))
+
 ## 41.4.0 - October 19, 2017
 
 ### Added
