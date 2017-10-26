@@ -13,7 +13,7 @@ shell.set('+v');
  * 
  * Instructions: 
  * Run this script with SALESFORCEDX_VSCODE_VERSION as an environment variable
- * i.e. SALESFORCE_VSCODE_VERSION=x.y.z ./scripts/publish.js
+ * i.e. SALESFORCEDX_VSCODE_VERSION=x.y.z ./scripts/publish.js
  * 
  */
 

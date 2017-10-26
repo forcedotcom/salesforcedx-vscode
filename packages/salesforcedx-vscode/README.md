@@ -6,6 +6,17 @@ This extension bundle includes tools for developing on the Salesforce platform u
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)  
 
+###  Prerequisites
+Before you set up Salesforce Extensions for VS Code, make sure that you have these essentials.
+
+* **Salesforce CLI and a Salesforce DX project**  
+  Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup) and [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm).  
+  Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.  
+* **Java 8 Platform, Standard Edition Development Kit**  
+  Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
+  If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later**  
+
 ### Documentation for Included Extensions  
 To use Salesforce Extensions for VS Code, install all the extensions in this extension pack. Each extension has its own documentation.
 * [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)  
@@ -18,14 +29,9 @@ To use Salesforce Extensions for VS Code, install all the extensions in this ext
    This extension supports Lightning component bundles. It uses the HTML language server from VS Code.
 * [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
    This extension supports Visualforce pages and components. It uses the HTML language server from VS Code.  
-   
-### Get Started with Salesforce Extensions for VS Code
-Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup) and [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm). 
-
-Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work. 
 
 For tips and tricks for working with Salesforce Extensions for VS Code, visit our [GitHub wiki](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Tips-and-Tricks).  
-
+   
 ### Report Issues on GitHub
 To report issues with Salesforce Extensions for VS Code, visit us on [GitHub](https://github.com/forcedotcom/salesforcedx-vscode).  
 

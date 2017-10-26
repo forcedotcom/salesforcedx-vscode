@@ -3,6 +3,14 @@ This extension enables VS Code to use the Salesforce CLI to interact with your s
 
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
 
+##  Prerequisites
+Before you set up this extension, make sure that you have these essentials.
+
+* **Salesforce CLI and a Salesforce DX project**  
+  Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup) and [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm).  
+  Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later**  
+
 ## Run Salesforce CLI Commands
 To run a command from Salesforce Extensions for VS Code, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) and type **SFDX** in the command palette.  
 ![Command palette, filtered to show SFDX commands](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/sfdx_commands.png)

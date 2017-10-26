@@ -3,6 +3,14 @@ View outlines of Apex classes and triggers, see code-completion suggestions, and
 
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
 
+###  Prerequisites
+Before you set up this extension, make sure that you have these essentials.
+
+* **Java 8 Platform, Standard Edition Development Kit**  
+  Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
+  If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later**  
+
 ## View Code-Completion Suggestions
 To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.  
 ![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
