@@ -53,7 +53,6 @@ if (!publishers.includes('salesforce')) {
 
 // Checks that you have specified the next version as an environment variable, and that it's properly formatted.
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-console.log(nextVersion);
 if (!nextVersion) {
   console.log(
     'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
