@@ -14,23 +14,25 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.4.0",
+  "version": "41.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.17.0"
   },
-  "categories": ["Languages"],
+  "categories": [
+    "Languages"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "41.4.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "41.4.0",
+    "@salesforce/salesforcedx-visualforce-language-server": "41.5.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "41.5.0",
     "typescript": "2.4.0",
     "vscode-languageclient": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
     "vscode-languageserver-types": "3.4.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.5.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
@@ -48,19 +50,26 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "main": "./out/src/extension",
   "contributes": {
     "languages": [
       {
         "id": "visualforce",
-        "aliases": ["Visualforce", "visualforce"],
-        "extensions": [".page", ".component"],
+        "aliases": [
+          "Visualforce",
+          "visualforce"
+        ],
+        "extensions": [
+          ".page",
+          ".component"
+        ],
         "configuration": "./syntaxes/visualforce.configuration.json"
       }
     ],
@@ -88,13 +97,19 @@
           "description": "%visualforce.format.wrapLineLength.desc%"
         },
         "visualforce.format.unformatted": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "scope": "resource",
           "default": "",
           "description": "%visualforce.format.unformatted.desc%"
         },
         "visualforce.format.contentUnformatted": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "scope": "resource",
           "default": "pre,code,textarea",
           "description": "%visualforce.format.contentUnformatted.desc%"
@@ -112,7 +127,10 @@
           "description": "%visualforce.format.preserveNewLines.desc%"
         },
         "visualforce.format.maxPreserveNewLines": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "scope": "resource",
           "default": null,
           "description": "%visualforce.format.maxPreserveNewLines.desc%"
@@ -124,7 +142,10 @@
           "description": "%visualforce.format.endWithNewline.desc%"
         },
         "visualforce.format.extraLiners": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "scope": "resource",
           "default": "head, body, /html",
           "description": "%visualforce.format.extraLiners.desc%"
@@ -133,7 +154,12 @@
           "type": "string",
           "scope": "resource",
           "default": "auto",
-          "enum": ["auto", "force", "force-aligned", "force-expand-multiline"],
+          "enum": [
+            "auto",
+            "force",
+            "force-aligned",
+            "force-expand-multiline"
+          ],
           "enumDescriptions": [
             "%visualforce.format.wrapAttributes.auto%",
             "%visualforce.format.wrapAttributes.force%",
@@ -169,7 +195,11 @@
         "visualforce.trace.server": {
           "type": "string",
           "scope": "window",
-          "enum": ["off", "messages", "verbose"],
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
           "default": "off",
           "description": "%visualforce.trace.server.desc%"
         }
