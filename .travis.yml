@@ -83,7 +83,6 @@ script:
       npm run test:without-system-tests
     fi
   - codecov
-  - npm run vscode:package
 
 after_script:
   - rm $SFDX_CI_KEY_LOCATION
