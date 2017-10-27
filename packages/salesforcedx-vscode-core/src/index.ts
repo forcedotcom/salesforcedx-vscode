@@ -24,6 +24,7 @@ import {
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
+  forceProjectCreate,
   forceSourcePull,
   forceSourcePush,
   forceSourceStatus,
@@ -164,6 +165,11 @@ function registerCommands(): vscode.Disposable {
     true
   );
 
+  const forceProjectCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.project.create',
+    forceProjectCreate
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -200,15 +206,26 @@ function registerCommands(): vscode.Disposable {
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
     forceGenerateFauxClassesCmd,
+    forceProjectCreateCmd,
     internalCancelCommandExecution
   );
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
 
   // Context
-  vscode.commands.executeCommand('setContext', 'sfdx:project_opened', true);
+  const sfdxProjectOpened = await vscode.workspace.findFiles(
+    '**/sfdx-project.json'
+  );
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:project_opened',
+    sfdxProjectOpened
+  );
+
+  // Context
+  // vscode.commands.executeCommand('setContext', 'sfdx:project_opened', true);
 
   // Commands
   const commands = registerCommands();
@@ -222,8 +239,10 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(treeDataProvider);
 
   // Scratch Org Decorator
-  scratchOrgDecorator.showOrg();
-  scratchOrgDecorator.monitorConfigChanges();
+  if (vscode.workspace.rootPath) {
+    scratchOrgDecorator.showOrg();
+    scratchOrgDecorator.monitorConfigChanges();
+  }
 }
 
 export function deactivate() {

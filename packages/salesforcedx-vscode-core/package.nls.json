@@ -42,5 +42,6 @@
     "SFDX: Execute Anonymous Apex with Editor Contents",
   "force_apex_execute_selection_text":
     "SFDX: Execute Anonymous Apex with Currently Selected Text",
-  "feature_previews_title": "Salesforce Feature Previews"
+  "feature_previews_title": "Salesforce Feature Previews",
+  "force_project_create_text": "SFDX: Create Project"
 }

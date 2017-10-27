@@ -9,7 +9,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 
-const CONFIG_FILE = path.join(workspace.rootPath!, '.sfdx/sfdx-config.json');
+const rootPath = workspace.rootPath;
+const CONFIG_FILE = rootPath
+  ? path.join(rootPath, '.sfdx/sfdx-config.json')
+  : '';
 
 let statusBarItem: StatusBarItem;
 
