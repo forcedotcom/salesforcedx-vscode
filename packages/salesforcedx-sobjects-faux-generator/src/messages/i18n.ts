@@ -16,13 +16,14 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
-  faux_generation_cancelled_text: 'Faux class generation cancelled',
+  faux_generation_cancelled_text: 'Faux class generation canceled',
   failure_fetching_sobjects_list_text:
-    'Failure fetching list of SObjects from org %s',
-  failure_in_sobject_describe_text: 'Failure performing SObject describe %s',
-  no_sobject_output_folder_text: 'No output folder available %s',
+    'Failure fetching list of sObjects from org %s',
+  failure_in_sobject_describe_text: 'Failure performing sObject describe %s',
+  no_sobject_output_folder_text:
+    'No output folder available %s.  Please create this folder and refresh again',
   fetched_sobjects_length_text:
-    'Fetched %s %s SObjects from default scratch org\n',
+    'Fetched %s %s sObjects from default scratch org\n',
   no_generate_if_not_in_project:
-    'Unable to generate faux classes for SObjects when not in an SFDX project %s'
+    'Unable to generate faux classes for sObjects when not in an SFDX project %s'
 };
