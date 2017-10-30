@@ -68,6 +68,12 @@ class ForceProjectCreateExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
+export type ProjectNameAndPath = ProjectName & ProjectURI;
+
+export interface ProjectURI {
+  projectUri: string;
+}
+
 export interface ProjectName {
   projectName: string;
 }
@@ -75,7 +81,7 @@ export interface ProjectName {
 export class SelectProjectName implements ParametersGatherer<ProjectName> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectName>
-  > {
+    > {
     const projectNameInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_project_name')
     } as vscode.InputBoxOptions;
@@ -88,16 +94,10 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
   }
 }
 
-export type ProjectNameAndPath = ProjectName & ProjectURI;
-
-export interface ProjectURI {
-  projectUri: string;
-}
-
 export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectURI>
-  > {
+    > {
     const projectUri = await vscode.window.showOpenDialog({
       canSelectFiles: false,
       canSelectFolders: true,
@@ -118,7 +118,7 @@ export class PathExistsChecker
     if (inputs.type === 'CONTINUE') {
       try {
         const listOfDirs = new glob.GlobSync(
-          path.join(inputs.data.projectUri, inputs.data.projectName)
+          path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)
         ).found;
         if (listOfDirs.length === 0) {
           return inputs;
