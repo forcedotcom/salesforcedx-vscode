@@ -81,7 +81,7 @@ export interface ProjectName {
 export class SelectProjectName implements ParametersGatherer<ProjectName> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectName>
-    > {
+  > {
     const projectNameInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_project_name')
     } as vscode.InputBoxOptions;
@@ -97,7 +97,7 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
 export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectURI>
-    > {
+  > {
     const projectUri = await vscode.window.showOpenDialog({
       canSelectFiles: false,
       canSelectFolders: true,
@@ -116,24 +116,20 @@ export class PathExistsChecker
     inputs: ContinueResponse<ProjectNameAndPath> | CancelResponse
   ): Promise<ContinueResponse<ProjectNameAndPath> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
-      try {
-        const listOfDirs = new glob.GlobSync(
-          path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)
-        ).found;
-        if (listOfDirs.length === 0) {
+      const listOfDirs = new glob.GlobSync(
+        path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)
+      ).found;
+      if (listOfDirs.length === 0) {
+        return inputs;
+      } else {
+        const overwrite = await notificationService.showWarningMessage(
+          nls.localize('warning_prompt_dir_overwrite'),
+          nls.localize('warning_prompt_yes'),
+          nls.localize('warning_prompt_no')
+        );
+        if (overwrite === nls.localize('warning_prompt_yes')) {
           return inputs;
-        } else {
-          const overwrite = await notificationService.showWarningMessage(
-            nls.localize('warning_prompt_dir_overwrite'),
-            nls.localize('warning_prompt_yes'),
-            nls.localize('warning_prompt_no')
-          );
-          if (overwrite === nls.localize('warning_prompt_yes')) {
-            return inputs;
-          }
         }
-      } catch (err) {
-        console.log(err.message);
       }
     }
     return { type: 'CANCEL' };
