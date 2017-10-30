@@ -224,9 +224,6 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  // Context
-  // vscode.commands.executeCommand('setContext', 'sfdx:project_opened', true);
-
   // Commands
   const commands = registerCommands();
   context.subscriptions.push(commands);

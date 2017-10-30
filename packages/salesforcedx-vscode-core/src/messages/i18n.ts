@@ -82,6 +82,8 @@ export const messages = {
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
     'One or more files with the specified path already exist in your workspace. Do you want to overwrite them?',
+  warning_prompt_dir_overwrite:
+    'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_lightning_bundle_overwrite:
     'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
   warning_prompt_yes: 'Yes',

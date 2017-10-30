@@ -10,6 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as glob from 'glob';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -23,10 +24,10 @@ import {
   ContinueResponse,
   EmptyPreChecker,
   ParametersGatherer,
+  PostconditionChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from './commands';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
 
 class ForceProjectCreateExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: ProjectNameAndPath): Command {
@@ -87,7 +88,7 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
   }
 }
 
-type ProjectNameAndPath = ProjectName & ProjectURI;
+export type ProjectNameAndPath = ProjectName & ProjectURI;
 
 export interface ProjectURI {
   projectUri: string;
@@ -109,16 +110,49 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
   }
 }
 
+export class PathExistsChecker
+  implements PostconditionChecker<ProjectNameAndPath> {
+  public async check(
+    inputs: ContinueResponse<ProjectNameAndPath> | CancelResponse
+  ): Promise<ContinueResponse<ProjectNameAndPath> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      try {
+        const listOfDirs = new glob.GlobSync(
+          path.join(inputs.data.projectUri, inputs.data.projectName)
+        ).found;
+        if (listOfDirs.length === 0) {
+          return inputs;
+        } else {
+          const overwrite = await notificationService.showWarningMessage(
+            nls.localize('warning_prompt_dir_overwrite'),
+            nls.localize('warning_prompt_yes'),
+            nls.localize('warning_prompt_no')
+          );
+          if (overwrite === nls.localize('warning_prompt_yes')) {
+            return inputs;
+          }
+        }
+      } catch (err) {
+        console.log(err.message);
+      }
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
 const workspaceChecker = new EmptyPreChecker();
 const parameterGatherer = new CompositeParametersGatherer(
   new SelectProjectName(),
   new SelectProjectFolder()
 );
+const pathExistsChecker = new PathExistsChecker();
+
 const executor = new ForceProjectCreateExecutor();
 const commandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
-  executor
+  executor,
+  pathExistsChecker
 );
 
 export function forceProjectCreate() {
