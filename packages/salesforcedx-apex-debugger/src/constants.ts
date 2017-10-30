@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export const DEFAULT_INITIALIZE_TIMEOUT_MS = 10000;
 export const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
 export const DEFAULT_LOCK_TIMEOUT_MS = 10000;
