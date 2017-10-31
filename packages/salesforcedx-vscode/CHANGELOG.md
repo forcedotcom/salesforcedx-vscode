@@ -1,7 +1,7 @@
 ## 41.6.0 - October 25, 2017
 
 ### Added
-### salesforcedx-vscode
+#### salesforcedx-vscode
 
 * Change name to `Salesforce Extensions for VS Code` ([PR #192](https://github.com/forcedotcom/salesforcedx-vscode/pull/192))
 
