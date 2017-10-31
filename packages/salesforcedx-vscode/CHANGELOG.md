@@ -10,6 +10,10 @@
 
 * Fix timeout issue when starting a debugger session ([PR #194](https://github.com/forcedotcom/salesforcedx-vscode/pull/194))
 
+#### salesforcedx-vscode-visualforce
+
+* Support proper formatting with Cmd + / on Mac or Ctrl + / on Linux and Windows in embedded CSS and JavaScript in Visualforce files ([PR #200](https://github.com/forcedotcom/salesforcedx-vscode/pull/194))
+
 ## 41.5.0 - October 25, 2017
 
 ### Added
