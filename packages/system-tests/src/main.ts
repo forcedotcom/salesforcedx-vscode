@@ -10,7 +10,6 @@
 
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-import * as https from 'https';
 import * as path from 'path';
 
 const tempFolder = 'test_data';
@@ -62,52 +61,6 @@ process.env.VSCODE_BINARY_PATH =
     ? darwinExecutable
     : process.platform === 'win32' ? windowsExecutable : linuxExecutable;
 
-// KEYBINDINGS
-//////////////
-
-function getKeybindings(location: string): Promise<any> {
-  let os = process.platform.toString();
-  if (os === 'darwin') {
-    os = 'osx';
-  } else if (os === 'win32') {
-    os = 'win';
-  }
-
-  const hostname = 'raw.githubusercontent.com';
-  const keybindingsPath = `/Microsoft/vscode-docs/master/scripts/keybindings/doc.keybindings.${os}.json`;
-
-  console.log(`Fetching keybindings from ${path}...`);
-
-  return new Promise((resolve, reject) => {
-    https
-      .get({ hostname: hostname, path: keybindingsPath }, res => {
-        if (res.statusCode !== 200) {
-          reject(
-            `Failed to obtain key bindings with response code: ${res.statusCode}`
-          );
-        }
-
-        const buffer: Buffer[] = [];
-        res.on('data', chunk => {
-          if (chunk instanceof Buffer) {
-            buffer.push(chunk);
-          } else {
-            buffer.push(new Buffer(chunk));
-          }
-        });
-        res.on('end', () => {
-          fs.writeFile(location, Buffer.concat(buffer), 'utf8', () => {
-            console.log('Keybindings were successfully fetched.');
-            resolve();
-          });
-        });
-      })
-      .on('error', e => {
-        reject(`Failed to obtain key bindings with an error: ${e}`);
-      });
-  });
-}
-
 // SPECTRON MOCHA RUNNER
 ////////////////////////
 
@@ -151,9 +104,7 @@ function runTests(): void {
 ///////
 
 function main() {
-  const promises: Promise<any>[] = [];
-  promises.push(getKeybindings(`${tempFolder}/keybindings.json`));
-  Promise.all(promises).then(() => runTests());
+  runTests();
 }
 
 main();
