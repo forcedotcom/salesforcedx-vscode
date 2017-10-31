@@ -68,7 +68,11 @@
       {
         "language": "visualforce",
         "scopeName": "text.visualforce.markup",
-        "path": "./syntaxes/visualforce.json"
+        "path": "./syntaxes/visualforce.json",
+        "embeddedLanguages": {
+          "source.css": "css",
+          "source.js": "javascript"
+        }
       }
     ],
     "configuration": {
