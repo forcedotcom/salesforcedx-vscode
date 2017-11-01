@@ -104,7 +104,6 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
       canSelectMany: false,
       openLabel: 'Create Project'
     } as vscode.OpenDialogOptions);
-    console.log(projectUri);
     return projectUri && projectUri.length === 1
       ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
       : { type: 'CANCEL' };

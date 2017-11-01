@@ -2,9 +2,11 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { ContinueResponse } from '../../src/commands/commands';
 import {
   ForceProjectCreateExecutor,
   PathExistsChecker,
+  ProjectNameAndPath,
   SelectProjectFolder,
   SelectProjectName
 } from '../../src/commands/forceProjectCreate';
@@ -12,8 +14,9 @@ import { nls } from '../../src/messages';
 
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
-  const PROJECT_NAME = 'testProject';
-  const PROJECT_DIR = [vscode.Uri.parse('path/to/dir/holding/project')];
+  const PROJECT_NAME = 'sfdx-simple';
+  const WORKSPACE_PATH = path.join(vscode.workspace.rootPath!, '..');
+  const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
   describe('SelectProjectName Gatherer', () => {
     let inputBoxSpy: sinon.SinonStub;
@@ -56,34 +59,89 @@ describe('Force Project Create', () => {
   });
 
   describe('SelectProjectFolder Gatherer', () => {
-    let inputBoxSpy: sinon.SinonStub;
+    let showOpenDialogSpy: sinon.SinonStub;
 
     before(() => {
       // showOpenDialog only returns the path or undefined
-      inputBoxSpy = sinon.stub(vscode.window, 'showOpenDialog');
-      inputBoxSpy.onCall(0).returns(undefined);
-      inputBoxSpy.onCall(2).returns(PROJECT_DIR);
+      showOpenDialogSpy = sinon.stub(vscode.window, 'showOpenDialog');
+      showOpenDialogSpy.onCall(0).returns(undefined);
+      showOpenDialogSpy.onCall(1).returns(PROJECT_DIR);
     });
 
     after(() => {
-      inputBoxSpy.restore();
+      showOpenDialogSpy.restore();
     });
 
     it('Should return cancel if project uri is undefined', async () => {
       const gatherer = new SelectProjectFolder();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledOnce).to.be.true;
+      expect(showOpenDialogSpy.calledOnce).to.be.true;
       expect(response.type).to.equal('CANCEL');
     });
 
     it('Should return Continue with inputted project name if project name is not undefined or empty', async () => {
       const gatherer = new SelectProjectFolder();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledTwice).to.be.true;
+      expect(showOpenDialogSpy.calledTwice).to.be.true;
       if (response.type === 'CONTINUE') {
         expect(response.data.projectUri).to.equal(PROJECT_DIR[0].fsPath);
       } else {
         expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+  });
+
+  describe('PathExistsChecker PostCondition', () => {
+    let showWarningBoxSpy: sinon.SinonStub;
+
+    before(() => {
+      showWarningBoxSpy = sinon.stub(vscode.window, 'showWarningMessage');
+      showWarningBoxSpy.onCall(0).returns(nls.localize('warning_prompt_no'));
+      showWarningBoxSpy.onCall(1).returns(nls.localize('warning_prompt_yes'));
+    });
+
+    after(() => {
+      showWarningBoxSpy.restore();
+    });
+
+    it('Should return cancel if project path is in use and user selects No', async () => {
+      const checker = new PathExistsChecker();
+      const response = await checker.check({
+        type: 'CONTINUE',
+        data: { projectName: PROJECT_NAME, projectUri: PROJECT_DIR[0].fsPath }
+      });
+      expect(showWarningBoxSpy.calledOnce).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return inputs if project path is in use and user selects No', async () => {
+      const checker = new PathExistsChecker();
+      const inputs: ContinueResponse<ProjectNameAndPath> = {
+        type: 'CONTINUE',
+        data: { projectName: PROJECT_NAME, projectUri: PROJECT_DIR[0].fsPath }
+      };
+      const response = await checker.check(inputs);
+      expect(showWarningBoxSpy.calledTwice).to.be.true;
+      expect(response.type).to.equal('CONTINUE');
+      if (response.type === 'CONTINUE') {
+        expect(response.data).to.equal(inputs.data);
+      }
+    });
+
+    it('Should return inputs if project path is not in use', async () => {
+      const checker = new PathExistsChecker();
+      const inputs: ContinueResponse<ProjectNameAndPath> = {
+        type: 'CONTINUE',
+        data: {
+          projectName: 'someOtherProject',
+          projectUri: PROJECT_DIR[0].fsPath
+        }
+      };
+      const response = await checker.check(inputs);
+      expect(showWarningBoxSpy.calledThrice).to.be.false;
+      expect(response.type).to.equal('CONTINUE');
+      if (response.type === 'CONTINUE') {
+        expect(response.data).to.equal(inputs.data);
       }
     });
   });
