@@ -111,9 +111,23 @@ export class SpectronApplication {
     );
   }
 
+  private getKeybindingPlatform(): string {
+    switch (process.platform) {
+      case 'darwin':
+        return 'osx';
+      case 'win32':
+        return 'win';
+      default:
+        return process.platform;
+    }
+  }
+
   private retrieveKeybindings() {
     fs.readFile(
-      path.join(process.cwd(), `test_data/keybindings.json`),
+      path.join(
+        process.cwd(),
+        `test_data/keybindings.${this.getKeybindingPlatform()}.json`
+      ),
       'utf8',
       (err, data) => {
         if (err) {
