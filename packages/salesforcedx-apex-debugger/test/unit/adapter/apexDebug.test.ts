@@ -77,21 +77,6 @@ describe('Debugger adapter - unit', () => {
     let response: DebugProtocol.InitializeResponse;
     let args: DebugProtocol.InitializeRequestArguments;
     let clock: sinon.SinonFakeTimers;
-    const initializedResponseBody = {
-      supportsCompletionsRequest: false,
-      supportsConditionalBreakpoints: false,
-      supportsDelayedStackTraceLoading: false,
-      supportsEvaluateForHovers: false,
-      supportsExceptionInfoRequest: false,
-      supportsExceptionOptions: false,
-      supportsFunctionBreakpoints: false,
-      supportsHitConditionalBreakpoints: false,
-      supportsLoadedSourcesRequest: false,
-      supportsRestartFrame: false,
-      supportsSetVariable: false,
-      supportsStepBack: false,
-      supportsStepInTargetsRequest: false
-    };
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
