@@ -131,13 +131,7 @@ describe('Debugger adapter - unit', () => {
       adapter.initializeReq(response, args);
 
       setTimeout(() => {
-        const actualInitializedResponse: DebugProtocol.InitializeResponse = adapter.getResponse(
-          0
-        );
-        expect(actualInitializedResponse.success).to.equal(true);
-        expect(actualInitializedResponse.body).to.deep.equal(
-          initializedResponseBody
-        );
+        expect(adapter.getResponses().length).to.equal(0);
         expect(breakpointClearSpy.calledOnce).to.equal(true);
         expect(adapter.getEvents().length).to.equal(2);
         expect(adapter.getEvents()[0].event).to.equal(
@@ -164,9 +158,6 @@ describe('Debugger adapter - unit', () => {
         expect(actualInitializedResponse.success).to.equal(false);
         expect(actualInitializedResponse.message).to.equal(
           nls.localize('session_language_server_error_text')
-        );
-        expect(actualInitializedResponse.body).to.deep.equal(
-          initializedResponseBody
         );
         expect(breakpointClearSpy.calledOnce).to.equal(true);
         expect(adapter.getEvents().length).to.equal(2);
@@ -368,6 +359,26 @@ describe('Debugger adapter - unit', () => {
 
       expect(sessionStartSpy.called).to.equal(false);
       expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('Should not launch without line number mapping', async () => {
+      sessionStartSpy = sinon.stub(SessionService.prototype, 'start');
+      sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected');
+      streamingSubscribeSpy = sinon.stub(
+        StreamingService.prototype,
+        'subscribe'
+      );
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(false);
+
+      await adapter.launchReq(response, args);
+      expect(sessionStartSpy.called).to.equal(false);
+      expect(adapter.getResponse(0).success).to.equal(false);
+      expect(adapter.getResponse(0).message).to.equal(
+        nls.localize('session_language_server_error_text')
+      );
       expect(adapter.getEvents().length).to.equal(0);
     });
 
@@ -1113,6 +1124,25 @@ describe('Debugger adapter - unit', () => {
   describe('Custom request', () => {
     describe('Line breakpoint info', () => {
       let setValidLinesSpy: sinon.SinonSpy;
+      const initializedResponse = {
+        success: true,
+        type: 'response',
+        body: {
+          supportsCompletionsRequest: false,
+          supportsConditionalBreakpoints: false,
+          supportsDelayedStackTraceLoading: false,
+          supportsEvaluateForHovers: false,
+          supportsExceptionInfoRequest: false,
+          supportsExceptionOptions: false,
+          supportsFunctionBreakpoints: false,
+          supportsHitConditionalBreakpoints: false,
+          supportsLoadedSourcesRequest: false,
+          supportsRestartFrame: false,
+          supportsSetVariable: false,
+          supportsStepBack: false,
+          supportsStepInTargetsRequest: false
+        }
+      } as DebugProtocol.InitializeResponse;
 
       beforeEach(() => {
         adapter = new ApexDebugForTest(
@@ -1122,7 +1152,7 @@ describe('Debugger adapter - unit', () => {
           new RequestService()
         );
         adapter.initializeReq(
-          {} as DebugProtocol.InitializeResponse,
+          initializedResponse,
           {} as DebugProtocol.InitializeRequestArguments
         );
         setValidLinesSpy = sinon.spy(
@@ -1143,7 +1173,8 @@ describe('Debugger adapter - unit', () => {
         );
 
         expect(setValidLinesSpy.called).to.equal(false);
-        expect(adapter.getResponse(0).success).to.equal(true);
+        expect(adapter.getResponse(0)).to.deep.equal(initializedResponse);
+        expect(adapter.getResponse(1).success).to.equal(true);
       });
 
       it('Should save line number mapping', () => {
@@ -1185,7 +1216,8 @@ describe('Debugger adapter - unit', () => {
         expect(setValidLinesSpy.getCall(0).args[1]).to.deep.equal(
           expectedTyperefMapping
         );
-        expect(adapter.getResponse(0).success).to.equal(true);
+        expect(adapter.getResponse(0)).to.deep.equal(initializedResponse);
+        expect(adapter.getResponse(1).success).to.equal(true);
       });
     });
 
