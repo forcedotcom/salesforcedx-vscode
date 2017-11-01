@@ -126,7 +126,8 @@ export class SpectronApplication {
     fs.readFile(
       path.join(
         process.cwd(),
-        `test_data/keybindings.${this.getKeybindingPlatform()}.json`
+        'test_data',
+        `keybindings.${this.getKeybindingPlatform()}.json`
       ),
       'utf8',
       (err, data) => {
