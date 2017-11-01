@@ -29,7 +29,7 @@ import {
   SfdxCommandletExecutor
 } from './commands';
 
-class ForceProjectCreateExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: ProjectNameAndPath): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_project_create_text'))
@@ -104,6 +104,7 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
       canSelectMany: false,
       openLabel: 'Create Project'
     } as vscode.OpenDialogOptions);
+    console.log(projectUri);
     return projectUri && projectUri.length === 1
       ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
       : { type: 'CANCEL' };
