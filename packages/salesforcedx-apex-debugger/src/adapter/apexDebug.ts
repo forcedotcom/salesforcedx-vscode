@@ -463,6 +463,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected variableContainerReferenceByApexId = new Map<number, number>();
 
   private static LINEBREAK = `${os.EOL}`;
+  private initializedResponse: DebugProtocol.InitializeResponse;
 
   private trace: string[] | undefined;
   private traceAll = false;
@@ -482,31 +483,17 @@ export class ApexDebug extends LoggingDebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
+    this.initializedResponse = response;
     this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
     setTimeout(() => {
-      response.body = {
-        supportsCompletionsRequest: false,
-        supportsConditionalBreakpoints: false,
-        supportsDelayedStackTraceLoading: false,
-        supportsEvaluateForHovers: false,
-        supportsExceptionInfoRequest: false,
-        supportsExceptionOptions: false,
-        supportsFunctionBreakpoints: false,
-        supportsHitConditionalBreakpoints: false,
-        supportsLoadedSourcesRequest: false,
-        supportsRestartFrame: false,
-        supportsSetVariable: false,
-        supportsStepBack: false,
-        supportsStepInTargetsRequest: false
-      };
-      if (this.myBreakpointService.hasLineNumberMapping()) {
-        response.success = true;
-      } else {
-        response.success = false;
-        response.message = nls.localize('session_language_server_error_text');
+      if (!this.myBreakpointService.hasLineNumberMapping()) {
+        this.initializedResponse.success = false;
+        this.initializedResponse.message = nls.localize(
+          'session_language_server_error_text'
+        );
+        this.sendResponse(this.initializedResponse);
       }
-      this.sendResponse(response);
     }, DEFAULT_INITIALIZE_TIMEOUT_MS);
   }
 
@@ -542,6 +529,11 @@ export class ApexDebug extends LoggingDebugSession {
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: sfdxProject=${args.sfdxProject}`
     );
+
+    if (!this.myBreakpointService.hasLineNumberMapping()) {
+      response.message = nls.localize('session_language_server_error_text');
+      return this.sendResponse(response);
+    }
 
     try {
       this.orgInfo = await new ForceOrgDisplay().getOrgInfo(args.sfdxProject);
@@ -900,6 +892,25 @@ export class ApexDebug extends LoggingDebugSession {
             lineNumberMapping,
             typerefMapping
           );
+        }
+        if (this.initializedResponse) {
+          this.initializedResponse.body = {
+            supportsCompletionsRequest: false,
+            supportsConditionalBreakpoints: false,
+            supportsDelayedStackTraceLoading: false,
+            supportsEvaluateForHovers: false,
+            supportsExceptionInfoRequest: false,
+            supportsExceptionOptions: false,
+            supportsFunctionBreakpoints: false,
+            supportsHitConditionalBreakpoints: false,
+            supportsLoadedSourcesRequest: false,
+            supportsRestartFrame: false,
+            supportsSetVariable: false,
+            supportsStepBack: false,
+            supportsStepInTargetsRequest: false
+          };
+          this.initializedResponse.success = true;
+          this.sendResponse(this.initializedResponse);
         }
         break;
       case HOTSWAP_REQUEST:
