@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.4.0",
+  "version": "41.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,10 +22,10 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "41.4.0"
+    "@salesforce/salesforcedx-apex-debugger": "41.6.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.6.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/sinon": "^2.3.2",

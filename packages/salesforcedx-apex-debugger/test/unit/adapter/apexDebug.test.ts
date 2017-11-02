@@ -38,6 +38,7 @@ import {
 } from '../../../src/commands';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
+  DEFAULT_INITIALIZE_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
@@ -72,8 +73,10 @@ describe('Debugger adapter - unit', () => {
 
   describe('Initialize', () => {
     let breakpointClearSpy: sinon.SinonSpy;
+    let breakpointHasLineNumberMappingSpy: sinon.SinonStub;
     let response: DebugProtocol.InitializeResponse;
     let args: DebugProtocol.InitializeRequestArguments;
+    let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -96,23 +99,61 @@ describe('Debugger adapter - unit', () => {
       args = {
         adapterID: ''
       };
+      clock = sinon.useFakeTimers();
     });
 
     afterEach(() => {
       breakpointClearSpy.restore();
+      breakpointHasLineNumberMappingSpy.restore();
+      clock.restore();
     });
 
-    it('Should send custom events', async () => {
+    it('Should send successful initialized response', async () => {
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
       adapter.initializeReq(response, args);
 
-      expect(breakpointClearSpy.calledOnce).to.equal(true);
-      expect(adapter.getEvents().length).to.equal(2);
-      expect(adapter.getEvents()[0].event).to.equal(
-        GET_WORKSPACE_SETTINGS_EVENT
-      );
-      expect(adapter.getEvents()[1].event).to.equal(
-        GET_LINE_BREAKPOINT_INFO_EVENT
-      );
+      setTimeout(() => {
+        expect(adapter.getResponses().length).to.equal(0);
+        expect(breakpointClearSpy.calledOnce).to.equal(true);
+        expect(adapter.getEvents().length).to.equal(2);
+        expect(adapter.getEvents()[0].event).to.equal(
+          GET_WORKSPACE_SETTINGS_EVENT
+        );
+        expect(adapter.getEvents()[1].event).to.equal(
+          GET_LINE_BREAKPOINT_INFO_EVENT
+        );
+      }, DEFAULT_INITIALIZE_TIMEOUT_MS);
+      clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
+    });
+
+    it('Should send language server error message', async () => {
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(false);
+
+      adapter.initializeReq(response, args);
+
+      setTimeout(() => {
+        const actualInitializedResponse: DebugProtocol.InitializeResponse = adapter.getResponse(
+          0
+        );
+        expect(actualInitializedResponse.success).to.equal(false);
+        expect(actualInitializedResponse.message).to.equal(
+          nls.localize('session_language_server_error_text')
+        );
+        expect(breakpointClearSpy.calledOnce).to.equal(true);
+        expect(adapter.getEvents().length).to.equal(2);
+        expect(adapter.getEvents()[0].event).to.equal(
+          GET_WORKSPACE_SETTINGS_EVENT
+        );
+        expect(adapter.getEvents()[1].event).to.equal(
+          GET_LINE_BREAKPOINT_INFO_EVENT
+        );
+      }, DEFAULT_INITIALIZE_TIMEOUT_MS);
+      clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
     });
   });
 

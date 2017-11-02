@@ -3,7 +3,7 @@
   "displayName": "SFDX Utilities for VS Code",
   "description":
     "Provides utilies to interface the SFDX libraries with VS Code",
-  "version": "41.4.0",
+  "version": "41.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": ["Other"],
@@ -16,6 +16,7 @@
     "@types/glob": "^5.0.30",
     "@types/mocha": "^2.2.38",
     "@types/node": "^6.0.40",
+    "@types/shelljs": "^0.7.4",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
     "glob": "^7.1.2",
@@ -25,11 +26,12 @@
     "mocha-multi-reporters": "^1.1.4",
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
+    "shelljs": "^0.7.8",
     "source-map-support": "^0.4.15",
     "typescript": "2.4.0"
   },
   "engines": {
-    "vscode": "^1.13.0"
+    "vscode": "^1.17.0"
   },
   "scripts": {
     "vscode:package": "npm prune --production",

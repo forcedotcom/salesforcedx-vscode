@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "41.4.0",
+  "version": "41.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -10,8 +10,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.4.0",
-    "@types/async-lock": "0.0.20",
+    "@salesforce/salesforcedx-utils-vscode": "41.6.0",
     "async-lock": "1.0.0",
     "faye": "1.1.2",
     "request-light": "0.2.1",
@@ -19,9 +18,11 @@
     "vscode-debugprotocol": "1.24.0"
   },
   "devDependencies": {
+    "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
+    "@types/rimraf": "^2.0.2",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "5.0.4",
@@ -43,7 +44,11 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters"
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
+    "test:unit":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters",
+    "test:system-tests":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]

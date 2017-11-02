@@ -48,6 +48,7 @@ import {
   Value
 } from '../commands';
 import {
+  DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
@@ -485,6 +486,15 @@ export class ApexDebug extends LoggingDebugSession {
     this.initializedResponse = response;
     this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
+    setTimeout(() => {
+      if (!this.myBreakpointService.hasLineNumberMapping()) {
+        this.initializedResponse.success = false;
+        this.initializedResponse.message = nls.localize(
+          'session_language_server_error_text'
+        );
+        this.sendResponse(this.initializedResponse);
+      }
+    }, DEFAULT_INITIALIZE_TIMEOUT_MS);
   }
 
   protected attachRequest(
@@ -883,23 +893,25 @@ export class ApexDebug extends LoggingDebugSession {
             typerefMapping
           );
         }
-        this.initializedResponse.body = {
-          supportsCompletionsRequest: false,
-          supportsConditionalBreakpoints: false,
-          supportsDelayedStackTraceLoading: false,
-          supportsEvaluateForHovers: false,
-          supportsExceptionInfoRequest: false,
-          supportsExceptionOptions: false,
-          supportsFunctionBreakpoints: false,
-          supportsHitConditionalBreakpoints: false,
-          supportsLoadedSourcesRequest: false,
-          supportsRestartFrame: false,
-          supportsSetVariable: false,
-          supportsStepBack: false,
-          supportsStepInTargetsRequest: false
-        };
-        this.initializedResponse.success = true;
-        this.sendResponse(this.initializedResponse);
+        if (this.initializedResponse) {
+          this.initializedResponse.body = {
+            supportsCompletionsRequest: false,
+            supportsConditionalBreakpoints: false,
+            supportsDelayedStackTraceLoading: false,
+            supportsEvaluateForHovers: false,
+            supportsExceptionInfoRequest: false,
+            supportsExceptionOptions: false,
+            supportsFunctionBreakpoints: false,
+            supportsHitConditionalBreakpoints: false,
+            supportsLoadedSourcesRequest: false,
+            supportsRestartFrame: false,
+            supportsSetVariable: false,
+            supportsStepBack: false,
+            supportsStepInTargetsRequest: false
+          };
+          this.initializedResponse.success = true;
+          this.sendResponse(this.initializedResponse);
+        }
         break;
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));

@@ -14,16 +14,16 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.4.0",
+  "version": "41.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.13.0"
+    "vscode": "^1.17.0"
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "41.4.0",
-    "@salesforce/salesforcedx-utils-vscode": "41.4.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "41.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.6.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },

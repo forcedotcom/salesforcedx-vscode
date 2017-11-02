@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode",
-  "displayName": "Visual Studio Code Extension Pack for Salesforce DX",
+  "displayName": "Salesforce Extensions for VS Code",
   "description":
     "Collection of extensions for the Salesforce DX development flow",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -15,11 +15,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.4.0",
+  "version": "41.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.13.0"
+    "vscode": "^1.17.0"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
