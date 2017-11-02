@@ -154,7 +154,8 @@ describe('Force Project Create', () => {
         projectUri: PROJECT_DIR[0].fsPath
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR}`
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0]
+          .fsPath}`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
