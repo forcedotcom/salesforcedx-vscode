@@ -1,3 +1,19 @@
+## 41.6.0 - October 25, 2017
+
+### Added
+#### salesforcedx-vscode
+
+* Change name to `Salesforce Extensions for VS Code` ([PR #192](https://github.com/forcedotcom/salesforcedx-vscode/pull/192))
+
+### Fixed
+#### salesforcedx-vscode-apex-debugger
+
+* Fix timeout issue when starting a debugger session ([PR #194](https://github.com/forcedotcom/salesforcedx-vscode/pull/194))
+
+#### salesforcedx-vscode-visualforce
+
+* Support proper formatting with Cmd+/ (macOS) or Ctrl+/ (Linux and Windows) in embedded CSS and JavaScript within Visualforce files ([PR #200](https://github.com/forcedotcom/salesforcedx-vscode/pull/200))
+
 ## 41.5.0 - October 25, 2017
 
 ### Added
