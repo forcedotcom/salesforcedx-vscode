@@ -61,7 +61,7 @@ export class ChannelService {
       this.channel.append(' ');
       if (data != undefined) {
         this.channel.appendLine(
-          nls.localize('channel_end_with_error', data.toString())
+          nls.localize('channel_end_with_error', data.message)
         );
 
         if (/sfdx.*ENOENT/.test(data.message)) {

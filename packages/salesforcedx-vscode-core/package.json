@@ -323,7 +323,7 @@
       },
       {
         "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_refresh_sobjects%"
+        "title": "%force_sobjects_refresh%"
       },
       {
         "command": "sfdx.force.data.soql.query.input",

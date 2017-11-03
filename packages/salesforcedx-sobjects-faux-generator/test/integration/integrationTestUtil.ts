@@ -10,6 +10,7 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CancellationToken } from '../../src/generator/fauxClassGenerator';
 import childProcess = require('child_process');
 import * as path from 'path';
 import * as util from 'util';
@@ -40,6 +41,7 @@ export async function createScratchOrg(projectName: string): Promise<string> {
     new SfdxCommandBuilder()
       .withArg('force:org:create')
       .withFlag('--definitionfile', scratchDefFilePath)
+      .withArg('--setdefaultusername')
       .withJson()
       .build(),
     { cwd: path.join(process.cwd(), projectName) }
@@ -48,6 +50,21 @@ export async function createScratchOrg(projectName: string): Promise<string> {
   const result = await cmdOutput.getCmdResult(execution);
   const username = JSON.parse(result).result.username;
   return Promise.resolve(username);
+}
+
+export async function deleteScratchOrg(userName: string): Promise<void> {
+  const execution = new CliCommandExecutor(
+    new SfdxCommandBuilder()
+      .withArg('force:org:delete')
+      .withFlag('--targetusername', userName)
+      .withArg('--noprompt')
+      .withJson()
+      .build(),
+    { cwd: process.cwd() }
+  ).execute();
+  const cmdOutput = new CommandOutput();
+  await cmdOutput.getCmdResult(execution);
+  return Promise.resolve();
 }
 
 export async function push(
@@ -102,30 +119,33 @@ export async function createPermissionSet(
 
 export async function createFieldPermissions(
   permissionSetId: string,
-  sobjectType: string,
-  fieldName: string,
+  objectsWithCustomFields: CustomFieldInfo[],
   username: string
 ): Promise<void> {
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:data:record:create')
-      .withFlag('--sobjecttype', 'FieldPermissions')
-      .withFlag('--targetusername', username)
-      .withFlag(
-        '--values',
-        util.format(
-          'ParentId=%s SobjectType=%s Field=%s PermissionsRead=true',
-          permissionSetId,
-          sobjectType,
-          fieldName
-        )
-      )
-      .withJson()
-      .build(),
-    { cwd: process.cwd() }
-  ).execute();
-  const cmdOutput = new CommandOutput();
-  await cmdOutput.getCmdResult(execution);
+  for (const objectInfo of objectsWithCustomFields) {
+    for (const fieldName of objectInfo.customFieldNames) {
+      const execution = new CliCommandExecutor(
+        new SfdxCommandBuilder()
+          .withArg('force:data:record:create')
+          .withFlag('--sobjecttype', 'FieldPermissions')
+          .withFlag('--targetusername', username)
+          .withFlag(
+            '--values',
+            util.format(
+              'ParentId=%s SobjectType=%s Field=%s PermissionsRead=true',
+              permissionSetId,
+              objectInfo.sobjectName,
+              fieldName
+            )
+          )
+          .withJson()
+          .build(),
+        { cwd: process.cwd() }
+      ).execute();
+      const cmdOutput = new CommandOutput();
+      await cmdOutput.getCmdResult(execution);
+    }
+  }
   return Promise.resolve();
 }
 
@@ -145,4 +165,68 @@ export async function assignPermissionSet(
   const cmdOutput = new CommandOutput();
   await cmdOutput.getCmdResult(execution);
   return Promise.resolve();
+}
+
+export class CustomFieldInfo {
+  public sobjectName: string;
+  public customFieldNames: string[];
+  public constructor(sobjectName: string, customFieldNames: string[]) {
+    this.sobjectName = sobjectName;
+    this.customFieldNames = customFieldNames;
+  }
+}
+
+export async function initializeProject(
+  projectName: string,
+  sourceFolder: string,
+  customFields: CustomFieldInfo[]
+): Promise<string> {
+  const SIMPLE_OBJECT_DIR = path.join(
+    'test',
+    'integration',
+    'config',
+    sourceFolder,
+    'objects'
+  );
+
+  let username: string;
+
+  await createSFDXProject(projectName);
+  username = await createScratchOrg(projectName);
+
+  const sourceFolderPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    SIMPLE_OBJECT_DIR
+  );
+  await push(sourceFolderPath, projectName, username);
+
+  const permSetName = 'AllowRead';
+  const permissionSetId = await createPermissionSet(permSetName, username);
+
+  await createFieldPermissions(permissionSetId, customFields, username);
+
+  await assignPermissionSet(permSetName, username);
+
+  return username;
+}
+
+// Added to be able to test cancellation of FauxClassGenerator.generate
+// mimic of vscode but shouldn't depend on vscode in this package
+
+class StandardCancellationToken implements CancellationToken {
+  public isCancellationRequested = false;
+}
+export class CancellationTokenSource {
+  public token: CancellationToken = new StandardCancellationToken();
+
+  public cancel(): void {
+    this.token.isCancellationRequested = true;
+  }
+
+  public dispose(): void {
+    this.cancel();
+  }
 }

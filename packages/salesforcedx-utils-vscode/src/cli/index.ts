@@ -15,5 +15,10 @@ export interface Command {
 }
 
 export { CommandBuilder, SfdxCommandBuilder } from './commandBuilder';
-export { CliCommandExecutor, CommandExecution } from './commandExecutor';
+export {
+  CliCommandExecutor,
+  CliCommandExecution,
+  CommandExecution
+} from './commandExecutor';
 export { CommandOutput } from './commandOutput';
+export { LocalCommandExecution } from './localCommandExecutor';
