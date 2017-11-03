@@ -35,7 +35,11 @@ export class CliCommandExecutor {
       this.command.args,
       this.options
     );
-    return new CommandExecution(this.command, childProcess, cancellationToken);
+    return new CliCommandExecution(
+      this.command,
+      childProcess,
+      cancellationToken
+    );
   }
 }
 
@@ -45,7 +49,16 @@ export class CliCommandExecutor {
  * If we ever use a different executor, this class should be refactored and abstracted
  * to take an event emitter/observable instead of child_proces.
  */
-export class CommandExecution {
+export interface CommandExecution {
+  readonly command: Command;
+  readonly cancellationToken?: CancellationToken;
+  readonly processExitSubject: Observable<number | undefined>;
+  readonly processErrorSubject: Observable<Error | undefined>;
+  readonly stdoutSubject: Observable<Buffer | string>;
+  readonly stderrSubject: Observable<Buffer | string>;
+}
+
+export class CliCommandExecution implements CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
   public readonly processExitSubject: Observable<number | undefined>;

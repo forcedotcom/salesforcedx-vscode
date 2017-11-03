@@ -9,6 +9,7 @@ import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generato
 import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
   Command,
+  LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
@@ -24,17 +25,30 @@ import {
 class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_refresh_sobjects'))
+      .withDescription(nls.localize('force_sobjects_refresh'))
+      .withArg('sobject definitions refresh')
       .build();
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
-    const projectPath: string = <string>vscode.workspace.rootPath;
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new LocalCommandExecution(this.build(response.data));
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+
+    const projectPath: string = vscode.workspace.rootPath as string;
+    const gen: FauxClassGenerator = new FauxClassGenerator(
+      execution.cmdEmitter,
+      cancellationToken
+    );
+
     try {
-      await gen.generate(projectPath, SObjectCategory.ALL);
+      const result = await gen.generate(projectPath, SObjectCategory.ALL);
+      console.log('Generate success ' + result);
     } catch (e) {
-      console.log(e);
+      console.log('Generate error ' + e);
     }
     return;
   }
