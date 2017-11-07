@@ -265,7 +265,6 @@ describe('Debugger adapter variable handling - unit', () => {
       ];
 
       adapter.populateReferences(references, 'FakeRequestId');
-      adapter.populateReferences(references, 'FakeRequestId');
 
       const variableRef = await adapter.resolveApexIdToVariableReference(
         'FakeRequestId',
@@ -291,16 +290,38 @@ describe('Debugger adapter variable handling - unit', () => {
       const references: Reference[] = [
         {
           type: 'list',
-          nameForMessages: 'List',
-          typeRef: 'Type',
+          nameForMessages: 'List<List<String>>',
+          typeRef: 'List<List<String>>',
           id: 0,
-          fields: [
+          size: 1,
+          value: [
             {
-              name: 'var',
-              nameForMessages: 'varNameForMessages',
-              value: 'varValue',
-              declaredTypeRef: 'varDeclaredTypeRef',
-              index: 0
+              name: '0',
+              nameForMessages: 'List<String>',
+              value: '(a, b)',
+              declaredTypeRef: 'List<String>',
+              ref: 1
+            }
+          ]
+        },
+        {
+          type: 'list',
+          nameForMessages: '<List<String>',
+          typeRef: 'List<List<String>>',
+          id: 1,
+          size: 2,
+          value: [
+            {
+              name: '0',
+              nameForMessages: 'String',
+              value: 'a',
+              declaredTypeRef: 'String'
+            },
+            {
+              name: '1',
+              nameForMessages: 'String',
+              value: 'b',
+              declaredTypeRef: 'String'
             }
           ]
         }
@@ -318,6 +339,11 @@ describe('Debugger adapter variable handling - unit', () => {
 
       expect(container).to.be.ok;
       expect(container).to.be.instanceOf(CollectionReferenceContainer);
+      expect(container!.getNumberOfChildren()).to.equal(1);
+      expect(adapter.getNumOfChildren(variableRef)).to.equal(1);
+      const expandedVariables = await container!.expand(adapter, 'all');
+      expect(expandedVariables.length).to.equal(1);
+      expect(expandedVariables[0].indexedVariables).to.equal(2);
     });
 
     it('Should expand set correctly', async () => {
@@ -334,6 +360,7 @@ describe('Debugger adapter variable handling - unit', () => {
           nameForMessages: 'Set',
           typeRef: 'Type',
           id: 0,
+          size: 1,
           fields: [
             {
               name: 'var',
@@ -358,6 +385,8 @@ describe('Debugger adapter variable handling - unit', () => {
 
       expect(container).to.be.ok;
       expect(container).to.be.instanceOf(CollectionReferenceContainer);
+      expect(container!.getNumberOfChildren()).to.equal(1);
+      expect(adapter.getNumOfChildren(variableRef)).to.equal(1);
     });
 
     it('Should expand map correctly', async () => {
@@ -389,6 +418,7 @@ describe('Debugger adapter variable handling - unit', () => {
           nameForMessages: 'Map',
           typeRef: 'Type',
           id: 0,
+          size: 1,
           fields: [
             {
               name: 'var',
@@ -415,10 +445,13 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(container).to.be.ok;
       expect(container).to.be.instanceOf(MapReferenceContainer);
       const mapContainer = container as MapReferenceContainer;
+      expect(mapContainer.getNumberOfChildren()).to.equal(1);
       expect(mapContainer.tupleContainers.size).to.equal(1);
       expect(mapContainer.tupleContainers.get(1000)).to.deep.equal(
         expectedTupleContainer
       );
+      expect(mapContainer.tupleContainers.get(1000)!.getNumberOfChildren()).to
+        .be.undefined;
     });
 
     it('Should not expand unknown reference type', async () => {
@@ -1018,6 +1051,10 @@ export class DummyContainer implements VariableContainer {
   ): Promise<ApexVariable[]> {
     return Promise.resolve(this.variables);
   }
+
+  public getNumberOfChildren(): number | undefined {
+    return undefined;
+  }
 }
 
 class ErrorDummyContainer implements VariableContainer {
@@ -1033,5 +1070,9 @@ class ErrorDummyContainer implements VariableContainer {
     count: number | undefined
   ): Promise<ApexVariable[]> {
     return Promise.reject('error');
+  }
+
+  public getNumberOfChildren(): number | undefined {
+    return undefined;
   }
 }

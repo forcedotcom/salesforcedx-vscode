@@ -121,15 +121,22 @@ export enum ApexVariableKind {
 export class ApexVariable extends Variable {
   public readonly declaredTypeRef: string;
   public readonly type: string;
+  public readonly indexedVariables?: number;
   private readonly slot: number;
   private readonly kind: ApexVariableKind;
 
   constructor(
     value: Value,
     kind: ApexVariableKind,
-    variableReference?: number
+    variableReference?: number,
+    numOfChildren?: number
   ) {
-    super(value.name, ApexVariable.valueAsString(value), variableReference);
+    super(
+      value.name,
+      ApexVariable.valueAsString(value),
+      variableReference,
+      numOfChildren
+    );
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
     this.type = value.nameForMessages;
@@ -214,9 +221,11 @@ export interface VariableContainer {
   expand(
     session: ApexDebug,
     filter: FilterType,
-    start: number | undefined,
-    count: number | undefined
+    start?: number,
+    count?: number
   ): Promise<ApexVariable[]>;
+
+  getNumberOfChildren(): number | undefined;
 }
 
 export type ScopeType = 'local' | 'static' | 'global';
@@ -233,8 +242,8 @@ export class ScopeContainer implements VariableContainer {
   public async expand(
     session: ApexDebug,
     filter: FilterType,
-    start: number,
-    count: number
+    start?: number,
+    count?: number
   ): Promise<ApexVariable[]> {
     if (
       !this.frameInfo.locals &&
@@ -269,26 +278,37 @@ export class ScopeContainer implements VariableContainer {
           this.frameInfo.requestId,
           value.ref
         );
-        return new ApexVariable(value, variableKind, variableReference);
+        return new ApexVariable(
+          value,
+          variableKind,
+          variableReference,
+          session.getNumOfChildren(variableReference)
+        );
       })
     );
+  }
+
+  public getNumberOfChildren(): number | undefined {
+    return undefined;
   }
 }
 
 export class ObjectReferenceContainer implements VariableContainer {
   protected reference: Reference;
   protected requestId: string;
+  public readonly size: number | undefined;
 
   public constructor(reference: Reference, requestId: string) {
     this.reference = reference;
     this.requestId = requestId;
+    this.size = reference.size;
   }
 
   public async expand(
     session: ApexDebug,
     filter: FilterType,
-    start: number,
-    count: number
+    start?: number,
+    count?: number
   ): Promise<ApexVariable[]> {
     if (!this.reference.fields) {
       // this object is empty
@@ -304,10 +324,15 @@ export class ObjectReferenceContainer implements VariableContainer {
         return new ApexVariable(
           value,
           ApexVariableKind.Field,
-          variableReference
+          variableReference,
+          session.getNumOfChildren(variableReference)
         );
       })
     );
+  }
+
+  public getNumberOfChildren(): number | undefined {
+    return this.size;
   }
 }
 
@@ -315,27 +340,39 @@ export class CollectionReferenceContainer extends ObjectReferenceContainer {
   public async expand(
     session: ApexDebug,
     filter: FilterType,
-    start: number,
-    count: number
+    start?: number,
+    count?: number
   ): Promise<ApexVariable[]> {
     if (!this.reference.value) {
       // this object is empty
       return [];
     }
-
-    return Promise.all(
-      this.reference.value.map(async value => {
-        const variableReference = await session.resolveApexIdToVariableReference(
-          this.requestId,
-          value.ref
-        );
-        return new ApexVariable(
-          value,
+    if (start === undefined) {
+      start = 0;
+    }
+    if (count === undefined) {
+      count = this.reference.value.length;
+    }
+    const apexVariables: ApexVariable[] = [];
+    for (
+      let i = start;
+      i < start + count && i < this.reference.value.length;
+      i++
+    ) {
+      const variableReference = await session.resolveApexIdToVariableReference(
+        this.requestId,
+        this.reference.value[i].ref
+      );
+      apexVariables.push(
+        new ApexVariable(
+          this.reference.value[i],
           ApexVariableKind.Collection,
-          variableReference
-        );
-      })
-    );
+          variableReference,
+          session.getNumOfChildren(variableReference)
+        )
+      );
+    }
+    return Promise.resolve(apexVariables);
   }
 }
 
@@ -352,26 +389,36 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
   public async expand(
     session: ApexDebug,
     filter: FilterType,
-    start: number,
-    count: number
+    start?: number,
+    count?: number
   ): Promise<ApexVariable[]> {
-    const result: ApexVariable[] = [];
+    if (start === undefined) {
+      start = 0;
+    }
+    if (count === undefined) {
+      count = this.tupleContainers.size;
+    }
+    const apexVariables: ApexVariable[] = [];
+    let offset = 0;
     this.tupleContainers.forEach((container, reference) => {
-      result.push(
-        new ApexVariable(
-          {
-            name: container.keyAsString(),
-            declaredTypeRef: '',
-            nameForMessages: container.keyAsString(),
-            value: container.valueAsString()
-          },
-          ApexVariableKind.Collection,
-          reference
-        )
-      );
+      if (offset >= start! && offset < start! + count!) {
+        apexVariables.push(
+          new ApexVariable(
+            {
+              name: container.keyAsString(),
+              declaredTypeRef: '',
+              nameForMessages: container.keyAsString(),
+              value: container.valueAsString()
+            },
+            ApexVariableKind.Collection,
+            reference,
+            session.getNumOfChildren(reference)
+          )
+        );
+      }
+      offset++;
     });
-
-    return result;
+    return Promise.resolve(apexVariables);
   }
 }
 
@@ -395,8 +442,8 @@ export class MapTupleContainer implements VariableContainer {
   public async expand(
     session: ApexDebug,
     filter: FilterType,
-    start: number,
-    count: number
+    start?: number,
+    count?: number
   ): Promise<ApexVariable[]> {
     if (!this.tuple.key && !this.tuple.value) {
       // this object is empty
@@ -424,7 +471,8 @@ export class MapTupleContainer implements VariableContainer {
         new ApexVariable(
           this.tuple.key,
           ApexVariableKind.Collection,
-          keyVariableReference
+          keyVariableReference,
+          session.getNumOfChildren(keyVariableReference)
         )
       );
     }
@@ -439,12 +487,17 @@ export class MapTupleContainer implements VariableContainer {
         new ApexVariable(
           this.tuple.value,
           ApexVariableKind.Collection,
-          valueVariableReference
+          valueVariableReference,
+          session.getNumOfChildren(valueVariableReference)
         )
       );
     }
 
     return variables;
+  }
+
+  public getNumberOfChildren(): number | undefined {
+    return undefined;
   }
 }
 
@@ -1000,7 +1053,7 @@ export class ApexDebug extends LoggingDebugSession {
     } else {
       this.log(
         TRACE_CATEGORY_VARIABLES,
-        `variablesRequest: getting variable for variablesReference=${args.variablesReference}`
+        `variablesRequest: getting variable for variablesReference=${args.variablesReference} start=${args.start} count=${args.count}`
       );
     }
 
@@ -1108,7 +1161,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
         this.log(
           TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+          `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages} with size ${reference.size}`
         );
       } else if (reference.type === 'map') {
         const mapContainer = new MapReferenceContainer(reference, requestId);
@@ -1140,6 +1193,17 @@ export class ApexDebug extends LoggingDebugSession {
         variableReference
       );
     });
+  }
+
+  public getNumOfChildren(
+    variableReference: number | undefined
+  ): number | undefined {
+    if (variableReference !== undefined) {
+      const variableContainer = this.variableHandles.get(variableReference);
+      if (variableContainer) {
+        return variableContainer.getNumberOfChildren();
+      }
+    }
   }
 
   public async resolveApexIdToVariableReference(
