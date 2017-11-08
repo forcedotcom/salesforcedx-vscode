@@ -340,7 +340,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(container).to.be.ok;
       expect(container).to.be.instanceOf(CollectionReferenceContainer);
       expect(container!.getNumberOfChildren()).to.equal(1);
-      expect(adapter.getNumOfChildren(variableRef)).to.equal(1);
+      expect(adapter.getNumberOfChildren(variableRef)).to.equal(1);
       const expandedVariables = await container!.expand(adapter, 'all');
       expect(expandedVariables.length).to.equal(1);
       expect(expandedVariables[0].indexedVariables).to.equal(2);
@@ -386,7 +386,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(container).to.be.ok;
       expect(container).to.be.instanceOf(CollectionReferenceContainer);
       expect(container!.getNumberOfChildren()).to.equal(1);
-      expect(adapter.getNumOfChildren(variableRef)).to.equal(1);
+      expect(adapter.getNumberOfChildren(variableRef)).to.equal(1);
     });
 
     it('Should expand map correctly', async () => {

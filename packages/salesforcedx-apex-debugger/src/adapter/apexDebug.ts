@@ -282,7 +282,7 @@ export class ScopeContainer implements VariableContainer {
           value,
           variableKind,
           variableReference,
-          session.getNumOfChildren(variableReference)
+          session.getNumberOfChildren(variableReference)
         );
       })
     );
@@ -325,7 +325,7 @@ export class ObjectReferenceContainer implements VariableContainer {
           value,
           ApexVariableKind.Field,
           variableReference,
-          session.getNumOfChildren(variableReference)
+          session.getNumberOfChildren(variableReference)
         );
       })
     );
@@ -368,7 +368,7 @@ export class CollectionReferenceContainer extends ObjectReferenceContainer {
           this.reference.value[i],
           ApexVariableKind.Collection,
           variableReference,
-          session.getNumOfChildren(variableReference)
+          session.getNumberOfChildren(variableReference)
         )
       );
     }
@@ -412,7 +412,7 @@ export class MapReferenceContainer extends ObjectReferenceContainer {
             },
             ApexVariableKind.Collection,
             reference,
-            session.getNumOfChildren(reference)
+            session.getNumberOfChildren(reference)
           )
         );
       }
@@ -472,7 +472,7 @@ export class MapTupleContainer implements VariableContainer {
           this.tuple.key,
           ApexVariableKind.Collection,
           keyVariableReference,
-          session.getNumOfChildren(keyVariableReference)
+          session.getNumberOfChildren(keyVariableReference)
         )
       );
     }
@@ -488,7 +488,7 @@ export class MapTupleContainer implements VariableContainer {
           this.tuple.value,
           ApexVariableKind.Collection,
           valueVariableReference,
-          session.getNumOfChildren(valueVariableReference)
+          session.getNumberOfChildren(valueVariableReference)
         )
       );
     }
@@ -1195,7 +1195,7 @@ export class ApexDebug extends LoggingDebugSession {
     });
   }
 
-  public getNumOfChildren(
+  public getNumberOfChildren(
     variableReference: number | undefined
   ): number | undefined {
     if (variableReference !== undefined) {
