@@ -9,6 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -21,47 +22,86 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class TestsSelector implements ParametersGatherer<vscode.QuickPickItem> {
+export enum TestType {
+  All,
+  Suite,
+  Class
+}
+
+export interface ApexTestQuickPickItem extends vscode.QuickPickItem {
+  type: TestType;
+}
+
+export class TestsSelector
+  implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<vscode.QuickPickItem>
+    CancelResponse | ContinueResponse<ApexTestQuickPickItem>
   > {
-    const files = await vscode.workspace.findFiles('**/*.testSuite-meta.xml');
-    const fileItems = files.map(file => {
+    const testSuites = await vscode.workspace.findFiles(
+      '**/*.testSuite-meta.xml'
+    );
+    const fileItems = testSuites.map(testSuite => {
       return {
         label: path
-          .basename(file.toString())
+          .basename(testSuite.toString())
           .replace('.testSuite-meta.xml', ''),
-        description: file.fsPath
+        description: testSuite.fsPath,
+        type: TestType.Suite
       };
+    });
+
+    const apexClasses = await vscode.workspace.findFiles('**/*.cls');
+    apexClasses.forEach(apexClass => {
+      const fileContent = fs.readFileSync(apexClass.fsPath).toString();
+      if (fileContent && fileContent.toLowerCase().includes('@istest')) {
+        fileItems.push({
+          label: path.basename(apexClass.toString()).replace('.cls', ''),
+          description: apexClass.fsPath,
+          type: TestType.Class
+        });
+      }
     });
 
     fileItems.push({
       label: nls.localize('force_apex_test_run_all_test_label'),
-      description: nls.localize('force_apex_test_run_all_tests_desription_text')
+      description: nls.localize(
+        'force_apex_test_run_all_tests_desription_text'
+      ),
+      type: TestType.All
     });
 
-    const selection = await vscode.window.showQuickPick(fileItems);
+    const selection = (await vscode.window.showQuickPick(
+      fileItems
+    )) as ApexTestQuickPickItem;
     return selection
       ? { type: 'CONTINUE', data: selection }
       : { type: 'CANCEL' };
   }
 }
 
-class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
-  vscode.QuickPickItem
+export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
+  ApexTestQuickPickItem
 > {
-  public build(data: vscode.QuickPickItem): Command {
-    if (data.label === nls.localize('force_apex_test_run_all_test_label')) {
+  public build(data: ApexTestQuickPickItem): Command {
+    if (data.type === TestType.Suite) {
       return new SfdxCommandBuilder()
         .withDescription(nls.localize('force_apex_test_run_text'))
         .withArg('force:apex:test:run')
+        .withFlag('--suitenames', `${data.label}`)
         .withFlag('--resultformat', 'human')
+        .build();
+    } else if (data.type === TestType.Class) {
+      return new SfdxCommandBuilder()
+        .withDescription(nls.localize('force_apex_test_run_text'))
+        .withArg('force:apex:test:run')
+        .withFlag('--classnames', `${data.label}`)
+        .withFlag('--resultformat', 'human')
+        .withArg('--synchronous')
         .build();
     } else {
       return new SfdxCommandBuilder()
         .withDescription(nls.localize('force_apex_test_run_text'))
         .withArg('force:apex:test:run')
-        .withFlag('--suitenames', `${data.label}`)
         .withFlag('--resultformat', 'human')
         .build();
     }
