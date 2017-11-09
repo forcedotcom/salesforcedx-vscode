@@ -20,14 +20,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const handle = languageClient.start();
   context.subscriptions.push(handle);
 
-  const getExceptionBreakpointInfoCmd = vscode.commands.registerCommand(
-    'sfdx.debug.exception.breakpoint',
-    getExceptionBreakpointInfo
-  );
-  context.subscriptions.push(getExceptionBreakpointInfoCmd);
-
   const exportedApi = {
-    getLineBreakpointInfo
+    getLineBreakpointInfo,
+    getExceptionBreakpointInfo
   };
   return exportedApi;
 }

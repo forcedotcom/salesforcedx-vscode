@@ -26,6 +26,7 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   LineBreakpointInfo,
   LineBreakpointsInTyperef
@@ -50,6 +51,7 @@ import {
 import {
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
+  EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
@@ -95,6 +97,10 @@ export interface LaunchRequestArguments
   requestTypeFilter?: string[];
   entryPointFilter?: string;
   sfdxProject: string;
+}
+
+export interface SetExceptionBreakpointsArguments {
+  exceptionInfo: ExceptionBreakpointInfo;
 }
 
 export class ApexDebugStackFrameInfo {
@@ -716,6 +722,13 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
+  protected setExceptionBreakpointRequest(
+    response: DebugProtocol.Response,
+    args: SetExceptionBreakpointsArguments
+  ): void {
+    response.success = true;
+  }
+
   protected async continueRequest(
     response: DebugProtocol.ContinueResponse,
     args: DebugProtocol.ContinueArguments
@@ -976,6 +989,12 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
         this.myRequestService.connectionTimeoutMs =
           workspaceSettings.connectionTimeoutMs;
+        break;
+      case EXCEPTION_BREAKPOINT_REQUEST:
+        const requestArgs: SetExceptionBreakpointsArguments = args;
+        if (requestArgs) {
+          this.setExceptionBreakpointRequest(response, requestArgs);
+        }
         break;
       default:
         break;

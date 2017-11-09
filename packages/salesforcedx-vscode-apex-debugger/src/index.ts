@@ -6,10 +6,12 @@
  */
 
 import {
+  EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType,
@@ -17,6 +19,7 @@ import {
   WorkspaceSettings
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
+import { DebugProtocol } from 'vscode-debugprotocol';
 
 export class ApexDebuggerConfigurationProvider
   implements vscode.DebugConfigurationProvider {
@@ -86,7 +89,77 @@ function registerCommands(): vscode.Disposable {
       }
     }
   );
-  return vscode.Disposable.from(customEventHandler);
+  const exceptionBreakpointCmd = vscode.commands.registerCommand(
+    'sfdx.debug.exception.breakpoint',
+    configureExceptionBreakpoint
+  );
+  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd);
+}
+
+interface ExceptionBreakpointItem extends vscode.QuickPickItem {
+  typeref: string;
+  breakMode: DebugProtocol.ExceptionBreakMode;
+  uri?: string;
+}
+
+interface BreakModeItem extends vscode.QuickPickItem {
+  breakMode: DebugProtocol.ExceptionBreakMode;
+}
+
+const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
+  {
+    label: 'Always break',
+    description: '',
+    breakMode: 'always'
+  },
+  {
+    label: 'Never break',
+    description: '',
+    breakMode: 'never'
+  }
+];
+
+async function configureExceptionBreakpoint(): Promise<void> {
+  const sfdxApex = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-apex'
+  );
+  if (sfdxApex && sfdxApex.exports) {
+    const exceptionBpInfo: ExceptionBreakpointItem[] = await sfdxApex.exports.getExceptionBreakpointInfo();
+    console.log('Retrieved exception breakpoint info from language server');
+    const selectExceptionOptions: vscode.QuickPickOptions = {
+      placeHolder: 'Select an exception',
+      matchOnDescription: true,
+      matchOnDetail: true
+    };
+    const selectedException = await vscode.window.showQuickPick(
+      exceptionBpInfo,
+      selectExceptionOptions
+    );
+    if (selectedException) {
+      const selectBreakModeOptions: vscode.QuickPickOptions = {
+        placeHolder: 'Select break option',
+        matchOnDescription: true,
+        matchOnDetail: true
+      };
+      const selectedBreakMode = await vscode.window.showQuickPick(
+        EXCEPTION_BREAK_MODES,
+        selectBreakModeOptions
+      );
+      if (selectedBreakMode) {
+        selectedException.breakMode = selectedBreakMode.breakMode;
+        const args: SetExceptionBreakpointsArguments = {
+          exceptionInfo: selectedException
+        };
+        // TODO: What if there's no active session?
+        if (vscode.debug.activeDebugSession) {
+          vscode.debug.activeDebugSession.customRequest(
+            EXCEPTION_BREAKPOINT_REQUEST,
+            args
+          );
+        }
+      }
+    }
+  }
 }
 
 function registerFileWatchers(): vscode.Disposable {
