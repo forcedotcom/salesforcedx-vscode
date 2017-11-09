@@ -76,19 +76,6 @@
         "scopeName": "source.apex",
         "path": "./syntaxes/apex.tmLanguage"
       }
-    ],
-    "menus": {
-      "commandPalette": [
-        {
-          "command": "sfdx.debug.exception.breakpoint"
-        }
-      ]
-    },
-    "commands": [
-      {
-        "command": "sfdx.debug.exception.breakpoint",
-        "title": "Apex Debug: Get Exception Breakpoint Info"
-      }
     ]
   },
   "dependencies": {

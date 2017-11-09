@@ -51,8 +51,6 @@ import {
 import {
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
-  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
@@ -725,6 +723,13 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
+  protected setExceptionBreakpointRequest(
+    response: DebugProtocol.Response,
+    args: SetExceptionBreakpointsArguments
+  ): void {
+    response.success = true;
+  }
+
   protected async continueRequest(
     response: DebugProtocol.ContinueResponse,
     args: DebugProtocol.ContinueArguments
@@ -989,50 +994,9 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
         const requestArgs: SetExceptionBreakpointsArguments = args;
-        if (requestArgs && requestArgs.exceptionInfo) {
-          try {
-            await this.lock.acquire('exception-breakpoint', async () => {
-              return this.myBreakpointService.reconcileExceptionBreakpoints(
-                this.sfdxProject,
-                this.mySessionService.getSessionId(),
-                requestArgs.exceptionInfo
-              );
-            });
-            if (
-              requestArgs.exceptionInfo.breakMode ===
-              EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
-            ) {
-              this.printToDebugConsole(
-                nls.localize(
-                  'created_exception_breakpoint_text',
-                  requestArgs.exceptionInfo.label
-                )
-              );
-            } else if (
-              requestArgs.exceptionInfo.breakMode ===
-              EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
-            ) {
-              this.printToDebugConsole(
-                nls.localize(
-                  'removed_exception_breakpoint_text',
-                  requestArgs.exceptionInfo.label
-                )
-              );
-            }
-          } catch (error) {
-            response.success = false;
-            this.log(
-              TRACE_CATEGORY_BREAKPOINTS,
-              `exceptionBreakpointRequest: error=${error}`
-            );
-          }
+        if (requestArgs) {
+          this.setExceptionBreakpointRequest(response, requestArgs);
         }
-        break;
-      case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
-        const exceptionBreakpoints = this.myBreakpointService.getExceptionBreakpointCache();
-        response.body = {
-          typerefs: Array.from(exceptionBreakpoints.keys())
-        };
         break;
       default:
         break;
