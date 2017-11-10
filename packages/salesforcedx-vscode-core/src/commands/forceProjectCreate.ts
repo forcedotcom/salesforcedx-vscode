@@ -10,7 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as glob from 'glob';
+import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -102,7 +102,7 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
       canSelectFiles: false,
       canSelectFolders: true,
       canSelectMany: false,
-      openLabel: 'Create Project'
+      openLabel: nls.localize('force_project_create_open_dialog_create_label')
     } as vscode.OpenDialogOptions);
     return projectUri && projectUri.length === 1
       ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
@@ -116,10 +116,10 @@ export class PathExistsChecker
     inputs: ContinueResponse<ProjectNameAndPath> | CancelResponse
   ): Promise<ContinueResponse<ProjectNameAndPath> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
-      const listOfDirs = new glob.GlobSync(
+      const pathExists = fs.existsSync(
         path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)
-      ).found;
-      if (listOfDirs.length === 0) {
+      );
+      if (!pathExists) {
         return inputs;
       } else {
         const overwrite = await notificationService.showWarningMessage(

@@ -105,5 +105,6 @@ export const messages = {
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
-  force_project_create_text: 'SFDX: Create Project'
+  force_project_create_text: 'SFDX: Create Project',
+  force_project_create_open_dialog_create_label: 'Create Project'
 };
