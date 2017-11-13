@@ -284,6 +284,5 @@ export class BreakpointService {
 
   public clearSavedBreakpoints(): void {
     this.lineBreakpointCache.clear();
-    this.exceptionBreakpointCache.clear();
   }
 }

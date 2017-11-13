@@ -11,6 +11,7 @@ import {
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
@@ -20,6 +21,7 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { nls } from './messages';
 
 export class ApexDebuggerConfigurationProvider
   implements vscode.DebugConfigurationProvider {
@@ -93,7 +95,20 @@ function registerCommands(): vscode.Disposable {
     'sfdx.debug.exception.breakpoint',
     configureExceptionBreakpoint
   );
-  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd);
+  const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
+    vscode.commands.executeCommand('setContext', 'apex_debug_start', true);
+  });
+  const stopSessionHandler = vscode.debug.onDidTerminateDebugSession(
+    session => {
+      vscode.commands.executeCommand('setContext', 'apex_debug_start', false);
+    }
+  );
+  return vscode.Disposable.from(
+    customEventHandler,
+    exceptionBreakpointCmd,
+    startSessionHandler,
+    stopSessionHandler
+  );
 }
 
 interface ExceptionBreakpointItem extends vscode.QuickPickItem {
@@ -108,12 +123,12 @@ interface BreakModeItem extends vscode.QuickPickItem {
 
 const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
   {
-    label: 'Always break',
+    label: nls.localize('always_break_text'),
     description: '',
     breakMode: 'always'
   },
   {
-    label: 'Never break',
+    label: nls.localize('never_break_text'),
     description: '',
     breakMode: 'never'
   }
@@ -123,11 +138,30 @@ async function configureExceptionBreakpoint(): Promise<void> {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
-  if (sfdxApex && sfdxApex.exports) {
+  if (sfdxApex && sfdxApex.exports && vscode.debug.activeDebugSession) {
     const exceptionBpInfo: ExceptionBreakpointItem[] = await sfdxApex.exports.getExceptionBreakpointInfo();
     console.log('Retrieved exception breakpoint info from language server');
+    // Get known exception breakpoints and update the quickpick list descriptions
+    const knownExceptionBreakpointsResponse = await vscode.debug.activeDebugSession.customRequest(
+      LIST_EXCEPTION_BREAKPOINTS_REQUEST
+    );
+    if (
+      knownExceptionBreakpointsResponse &&
+      knownExceptionBreakpointsResponse.typerefs
+    ) {
+      const knownExceptionBreakpointTyperefs: string[] =
+        knownExceptionBreakpointsResponse.typerefs;
+      if (knownExceptionBreakpointTyperefs.length > 0) {
+        exceptionBpInfo.forEach(bpInfo => {
+          if (knownExceptionBreakpointTyperefs.indexOf(bpInfo.typeref) >= 0) {
+            bpInfo.breakMode = 'always';
+            bpInfo.description = nls.localize('always_break_text');
+          }
+        });
+      }
+    }
     const selectExceptionOptions: vscode.QuickPickOptions = {
-      placeHolder: 'Select an exception',
+      placeHolder: nls.localize('select_exception_text'),
       matchOnDescription: true,
       matchOnDetail: true
     };
@@ -137,7 +171,7 @@ async function configureExceptionBreakpoint(): Promise<void> {
     );
     if (selectedException) {
       const selectBreakModeOptions: vscode.QuickPickOptions = {
-        placeHolder: 'Select break option',
+        placeHolder: nls.localize('select_break_option_text'),
         matchOnDescription: true,
         matchOnDetail: true
       };
@@ -150,13 +184,10 @@ async function configureExceptionBreakpoint(): Promise<void> {
         const args: SetExceptionBreakpointsArguments = {
           exceptionInfo: selectedException
         };
-        // TODO: What if there's no active session?
-        if (vscode.debug.activeDebugSession) {
-          vscode.debug.activeDebugSession.customRequest(
-            EXCEPTION_BREAKPOINT_REQUEST,
-            args
-          );
-        }
+        vscode.debug.activeDebugSession.customRequest(
+          EXCEPTION_BREAKPOINT_REQUEST,
+          args
+        );
       }
     }
   }

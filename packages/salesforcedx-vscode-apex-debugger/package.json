@@ -22,6 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "41.8.1",
     "@salesforce/salesforcedx-apex-debugger": "41.8.1",
     "vscode-debugprotocol": "1.24.0"
   },
@@ -158,7 +159,8 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.debug.exception.breakpoint"
+          "command": "sfdx.debug.exception.breakpoint",
+          "when": "apex_debug_start"
         }
       ]
     },

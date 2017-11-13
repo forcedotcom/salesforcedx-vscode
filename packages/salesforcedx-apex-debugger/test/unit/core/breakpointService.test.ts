@@ -114,12 +114,10 @@ describe('Debugger breakpoint service', () => {
 
     it('Should clear cached breakpoints', () => {
       service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.getExceptionBreakpointCache().set('fooexception', '07bFAKE2');
 
       service.clearSavedBreakpoints();
 
       expect(service.getLineBreakpointCache().size).to.equal(0);
-      expect(service.getExceptionBreakpointCache().size).to.equal(0);
     });
 
     it('Should find existing breakpoints', () => {
@@ -405,7 +403,6 @@ describe('Debugger breakpoint service', () => {
       service.cacheLineBreakpoint('file:///foo.cls', 4, '07bFAKE4');
       service.cacheLineBreakpoint('file:///foo.cls', 5, '07bFAKE5');
       service.cacheLineBreakpoint('file:///bar.cls', 1, '07bFAKE6');
-      service.getExceptionBreakpointCache().set('fooexception', '07bFAKE7');
     });
 
     afterEach(() => {
@@ -433,7 +430,7 @@ describe('Debugger breakpoint service', () => {
         .returns(Promise.resolve('07bFAKE1'))
         .onSecondCall()
         .returns(Promise.resolve('07bFAKE2'));
-      deleteBreakpointSpy = sinon
+      deleteLineBreakpointSpy = sinon
         .stub(BreakpointService.prototype, 'deleteBreakpoint')
         .onFirstCall()
         .returns(Promise.resolve('07bFAKE4'))
@@ -490,7 +487,7 @@ describe('Debugger breakpoint service', () => {
         BreakpointService.prototype,
         'createLineBreakpoint'
       );
-      deleteBreakpointSpy = sinon
+      deleteLineBreakpointSpy = sinon
         .stub(BreakpointService.prototype, 'deleteBreakpoint')
         .onFirstCall()
         .returns(Promise.resolve('07bFAKE4'))
@@ -523,99 +520,6 @@ describe('Debugger breakpoint service', () => {
         '07bFAKE4'
       ]);
       expect(service.getLineBreakpointCache()).to.deep.equal(expectedCache);
-    });
-
-    it('Should create new exception breakpoint', async () => {
-      addExceptionBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'createExceptionBreakpoint')
-        .returns('07bFAKE8');
-
-      await service.reconcileExceptionBreakpoints(
-        'someProjectPath',
-        '07aFAKE',
-        {
-          breakMode: 'always',
-          typeref: 'barexception',
-          label: 'barexception'
-        }
-      );
-
-      expect(addExceptionBreakpointSpy.calledOnce).to.equal(true);
-      expect(addExceptionBreakpointSpy.getCall(0).args).to.have.same.members([
-        'someProjectPath',
-        '07aFAKE',
-        'barexception'
-      ]);
-      expect(
-        service.getExceptionBreakpointCache().has('barexception')
-      ).to.equal(true);
-    });
-
-    it('Should not create existing exception breakpoint', async () => {
-      addExceptionBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'createExceptionBreakpoint')
-        .returns('07bFAKE7');
-
-      await service.reconcileExceptionBreakpoints(
-        'someProjectPath',
-        '07aFAKE',
-        {
-          breakMode: 'always',
-          typeref: 'fooexception',
-          label: 'fooexception'
-        }
-      );
-
-      expect(addExceptionBreakpointSpy.called).to.equal(false);
-      expect(
-        service.getExceptionBreakpointCache().has('fooexception')
-      ).to.equal(true);
-    });
-
-    it('Should delete existing exception breakpoint', async () => {
-      deleteBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteBreakpoint')
-        .returns(Promise.resolve('07bFAKE7'));
-
-      await service.reconcileExceptionBreakpoints(
-        'someProjectPath',
-        '07aFAKE',
-        {
-          breakMode: 'never',
-          typeref: 'fooexception',
-          label: 'fooexception'
-        }
-      );
-
-      expect(deleteBreakpointSpy.calledOnce).to.equal(true);
-      expect(deleteBreakpointSpy.getCall(0).args).to.have.same.members([
-        'someProjectPath',
-        '07bFAKE7'
-      ]);
-      expect(
-        service.getExceptionBreakpointCache().has('fooexception')
-      ).to.equal(false);
-    });
-
-    it('Should not delete unknown exception breakpoint', async () => {
-      deleteBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteBreakpoint')
-        .returns(Promise.resolve('07bFAKE8'));
-
-      await service.reconcileExceptionBreakpoints(
-        'someProjectPath',
-        '07aFAKE',
-        {
-          breakMode: 'never',
-          typeref: 'barexception',
-          label: 'barexception'
-        }
-      );
-
-      expect(deleteBreakpointSpy.called).to.equal(false);
-      expect(
-        service.getExceptionBreakpointCache().has('barexception')
-      ).to.equal(false);
     });
   });
 });

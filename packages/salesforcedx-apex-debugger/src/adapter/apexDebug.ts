@@ -723,13 +723,6 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected setExceptionBreakpointRequest(
-    response: DebugProtocol.Response,
-    args: SetExceptionBreakpointsArguments
-  ): void {
-    response.success = true;
-  }
-
   protected async continueRequest(
     response: DebugProtocol.ContinueResponse,
     args: DebugProtocol.ContinueArguments
@@ -994,9 +987,29 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
         const requestArgs: SetExceptionBreakpointsArguments = args;
-        if (requestArgs) {
-          this.setExceptionBreakpointRequest(response, requestArgs);
+        if (requestArgs && requestArgs.exceptionInfo) {
+          try {
+            await this.lock.acquire('exception-breakpoint', async () => {
+              return this.myBreakpointService.reconcileExceptionBreakpoints(
+                this.sfdxProject,
+                this.mySessionService.getSessionId(),
+                requestArgs.exceptionInfo
+              );
+            });
+          } catch (error) {
+            response.success = false;
+            this.log(
+              TRACE_CATEGORY_BREAKPOINTS,
+              `exceptionBreakpointRequest: error=${error}`
+            );
+          }
         }
+        break;
+      case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
+        const exceptionBreakpoints = this.myBreakpointService.getExceptionBreakpointCache();
+        response.body = {
+          typerefs: Array.from(exceptionBreakpoints.keys())
+        };
         break;
       default:
         break;
