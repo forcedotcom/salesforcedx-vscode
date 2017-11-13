@@ -204,7 +204,7 @@
         },
         {
           "command": "sfdx.force.internal.refreshsobjects",
-          "when": "sfdx:project_opened && config.sfdx.refreshSObjects.enabled"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.data.soql.query.input",
@@ -344,14 +344,7 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%feature_previews_title%",
-      "properties": {
-        "sfdx.refreshSObjects.enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "%enable_refresh_description%"
-        }
-      }
+      "title": "%feature_previews_title%"
     }
   }
 }
