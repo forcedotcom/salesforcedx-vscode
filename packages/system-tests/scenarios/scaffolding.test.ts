@@ -253,8 +253,6 @@ describe('Empty VSCode workspace', () => {
     await common.type('>SFDX:');
     await app.wait();
     const quickOpenText = await common.getQuickOpenElementsText();
-    expect(quickOpenText).to.be.an('array');
-    expect(quickOpenText).to.be.lengthOf(1);
-    expect(quickOpenText[0]).to.equal('SFDX: Create Project');
+    expect(quickOpenText).to.equal('SFDX: Create Project');
   });
 });
