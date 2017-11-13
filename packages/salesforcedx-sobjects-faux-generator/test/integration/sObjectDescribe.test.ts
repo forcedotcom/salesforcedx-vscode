@@ -18,16 +18,10 @@ import * as util from './integrationTestUtil';
 // and multiple objects for testing describeGlobal
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
-const CUSTOM_OBJECT2 = 'MyCustomObject2__c';
-const CUSTOM_OBJECT3 = 'MyCustomObject3__c';
-const CUSTOM_FIELD_FULLNAME = CUSTOM_OBJECT_NAME + '.MyCustomField__c';
-const SIMPLE_OBJECT_DIR = path.join(
-  'test',
-  'integration',
-  'config',
-  'simpleObjectAndField',
-  'objects'
-);
+const CUSTOM_OBJECT2_NAME = 'MyCustomObject2__c';
+const CUSTOM_OBJECT3_NAME = 'MyCustomObject3__c';
+const CUSTOM_FIELDNAME = 'MyCustomField__c';
+const SIMPLE_OBJECT_SOURCE_FOLDER = 'simpleObjectAndField';
 
 const sobjectdescribe = new SObjectDescribe();
 const MIN_CUSTOMOBJECT_NUM_FIELDS = 9;
@@ -40,41 +34,35 @@ describe('Fetch sObjects', function() {
   let username: string;
 
   before(async function() {
-    await util.createSFDXProject(PROJECT_NAME);
-    username = await util.createScratchOrg(PROJECT_NAME);
+    const customFields: util.CustomFieldInfo[] = [
+      new util.CustomFieldInfo(CUSTOM_OBJECT_NAME, [
+        `${CUSTOM_OBJECT_NAME}.${CUSTOM_FIELDNAME}`
+      ]),
+      new util.CustomFieldInfo(CUSTOM_OBJECT2_NAME, [
+        `${CUSTOM_OBJECT2_NAME}.${CUSTOM_FIELDNAME}`
+      ]),
+      new util.CustomFieldInfo(CUSTOM_OBJECT3_NAME, [
+        `${CUSTOM_OBJECT3_NAME}.${CUSTOM_FIELDNAME}`
+      ])
+    ];
 
-    const sourceFolder = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      SIMPLE_OBJECT_DIR
+    username = await util.initializeProject(
+      PROJECT_NAME,
+      SIMPLE_OBJECT_SOURCE_FOLDER,
+      customFields
     );
-    await util.push(sourceFolder, PROJECT_NAME, username);
-
-    const permSetName = 'AllowRead';
-    const permissionSetId = await util.createPermissionSet(
-      permSetName,
-      username
-    );
-
-    await util.createFieldPermissions(
-      permissionSetId,
-      CUSTOM_OBJECT_NAME,
-      CUSTOM_FIELD_FULLNAME,
-      username
-    );
-
-    await util.assignPermissionSet(permSetName, username);
   });
 
-  after(function() {
+  after(async function() {
+    if (username) {
+      await util.deleteScratchOrg(username);
+    }
     const projectPath = path.join(process.cwd(), PROJECT_NAME);
     rimraf.sync(projectPath);
   });
 
   it('Should be able to call describeGlobal', async function() {
-    const objs = [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2, CUSTOM_OBJECT3];
+    const objs = [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2_NAME, CUSTOM_OBJECT3_NAME];
     const cmdOutput = await sobjectdescribe.describeGlobal(
       process.cwd(),
       SObjectCategory.CUSTOM,
@@ -110,7 +98,7 @@ describe('Fetch sObjects', function() {
   it('Should be able to call describeSObjectBatch on custom objects', async function() {
     const cmdOutput = await sobjectdescribe.describeSObjectBatch(
       process.cwd(),
-      [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2, CUSTOM_OBJECT3],
+      [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2_NAME, CUSTOM_OBJECT3_NAME],
       0,
       username
     );
@@ -120,11 +108,11 @@ describe('Fetch sObjects', function() {
     const customField = cmdOutput[0].fields[cmdOutput[0].fields.length - 1];
     expect(customField.name).to.be.equal('MyCustomField__c');
 
-    expect(cmdOutput[1].name).to.be.equal(CUSTOM_OBJECT2);
+    expect(cmdOutput[1].name).to.be.equal(CUSTOM_OBJECT2_NAME);
     expect(cmdOutput[1].custom).to.be.true;
     expect(cmdOutput[1].fields.length).to.be.least(MIN_CUSTOMOBJECT_NUM_FIELDS);
 
-    expect(cmdOutput[2].name).to.be.equal(CUSTOM_OBJECT3);
+    expect(cmdOutput[2].name).to.be.equal(CUSTOM_OBJECT3_NAME);
   });
 
   it('Should be able to call describeSObject on standard object', async function() {
