@@ -56,6 +56,7 @@ import {
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SHOW_MESSAGE_EVENT,
   WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
@@ -679,7 +680,7 @@ export class ApexDebug extends LoggingDebugSession {
               TRACE_CATEGORY_BREAKPOINTS,
               `setBreakPointsRequest: uri=${uri}`
             );
-            const knownBps = await this.myBreakpointService.reconcileBreakpoints(
+            const knownBps = await this.myBreakpointService.reconcileLineBreakpoints(
               this.sfdxProject,
               uri,
               this.mySessionService.getSessionId(),
@@ -720,13 +721,6 @@ export class ApexDebug extends LoggingDebugSession {
     }
     response.success = true;
     this.sendResponse(response);
-  }
-
-  protected setExceptionBreakpointRequest(
-    response: DebugProtocol.Response,
-    args: SetExceptionBreakpointsArguments
-  ): void {
-    response.success = true;
   }
 
   protected async continueRequest(
@@ -929,11 +923,12 @@ export class ApexDebug extends LoggingDebugSession {
     return false;
   }
 
-  protected customRequest(
+  protected async customRequest(
     command: string,
     response: DebugProtocol.Response,
     args: any
-  ): void {
+  ): Promise<void> {
+    response.success = true;
     switch (command) {
       case LINE_BREAKPOINT_INFO_REQUEST:
         const lineBpInfo: LineBreakpointInfo[] = args;
@@ -992,14 +987,33 @@ export class ApexDebug extends LoggingDebugSession {
         break;
       case EXCEPTION_BREAKPOINT_REQUEST:
         const requestArgs: SetExceptionBreakpointsArguments = args;
-        if (requestArgs) {
-          this.setExceptionBreakpointRequest(response, requestArgs);
+        if (requestArgs && requestArgs.exceptionInfo) {
+          try {
+            await this.lock.acquire('exception-breakpoint', async () => {
+              return this.myBreakpointService.reconcileExceptionBreakpoints(
+                this.sfdxProject,
+                this.mySessionService.getSessionId(),
+                requestArgs.exceptionInfo
+              );
+            });
+          } catch (error) {
+            response.success = false;
+            this.log(
+              TRACE_CATEGORY_BREAKPOINTS,
+              `exceptionBreakpointRequest: error=${error}`
+            );
+          }
         }
+        break;
+      case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
+        const exceptionBreakpoints = this.myBreakpointService.getExceptionBreakpointCache();
+        response.body = {
+          typerefs: Array.from(exceptionBreakpoints.keys())
+        };
         break;
       default:
         break;
     }
-    response.success = true;
     this.sendResponse(response);
   }
 

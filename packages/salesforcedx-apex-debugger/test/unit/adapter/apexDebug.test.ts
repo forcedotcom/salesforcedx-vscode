@@ -629,7 +629,7 @@ describe('Debugger adapter - unit', () => {
       );
       breakpointCacheSpy = sinon.spy(
         BreakpointService.prototype,
-        'cacheBreakpoint'
+        'cacheLineBreakpoint'
       );
       sessionIdSpy = sinon
         .stub(SessionService.prototype, 'getSessionId')
@@ -660,7 +660,7 @@ describe('Debugger adapter - unit', () => {
     it('Should create breakpoint', async () => {
       const bpLines = [1, 2];
       breakpointReconcileSpy = sinon
-        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
+        .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(new Set().add(1)));
       adapter.setSfdxProject('someProjectPath');
 
@@ -715,7 +715,7 @@ describe('Debugger adapter - unit', () => {
     it('Should not create breakpoint without source argument', async () => {
       const bpLines = [1, 2];
       breakpointReconcileSpy = sinon
-        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
+        .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(bpLines));
       adapter.setSfdxProject('someProjectPath');
 
@@ -743,7 +743,7 @@ describe('Debugger adapter - unit', () => {
     it('Should not create breakpoint without lines argument', async () => {
       const bpLines = [1, 2];
       breakpointReconcileSpy = sinon
-        .stub(BreakpointService.prototype, 'reconcileBreakpoints')
+        .stub(BreakpointService.prototype, 'reconcileLineBreakpoints')
         .returns(Promise.resolve(bpLines));
       adapter.setSfdxProject('someProjectPath');
 

@@ -105,33 +105,33 @@ describe('Debugger breakpoint service', () => {
         { line: 3, breakpointId: '07bFAKE3' }
       ]);
 
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
-      service.cacheBreakpoint('file:///bar.cls', 3, '07bFAKE3');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheLineBreakpoint('file:///bar.cls', 3, '07bFAKE3');
 
-      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+      expect(service.getLineBreakpointCache()).to.deep.equal(expectedCache);
     });
 
     it('Should clear cached breakpoints', () => {
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
 
       service.clearSavedBreakpoints();
 
-      expect(service.getBreakpointCache().size).to.equal(0);
+      expect(service.getLineBreakpointCache().size).to.equal(0);
     });
 
     it('Should find existing breakpoints', () => {
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
-      service.cacheBreakpoint('file:///bar.cls', 3, '07bFAKE3');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheLineBreakpoint('file:///bar.cls', 3, '07bFAKE3');
 
       const savedBreakpoints = service.getBreakpointsFor('file:///foo.cls');
       expect(savedBreakpoints).to.have.all.keys([1, 2]);
     });
 
     it('Should not find existing breakpoints', () => {
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 2, '07bFAKE2');
 
       const savedBreakpoints = service.getBreakpointsFor('file:///bar.cls');
       expect(savedBreakpoints.size).to.equal(0);
@@ -273,7 +273,7 @@ describe('Debugger breakpoint service', () => {
     it('Should delete successfully', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07bFAKE"}}'));
 
-      const cmdOutput = await service.deleteLineBreakpoint(
+      const cmdOutput = await service.deleteBreakpoint(
         'someProjectPath',
         '07bFAKE'
       );
@@ -301,7 +301,7 @@ describe('Debugger breakpoint service', () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"id":"FAKE"}}');
@@ -312,7 +312,7 @@ describe('Debugger breakpoint service', () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"notid":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
@@ -329,7 +329,7 @@ describe('Debugger breakpoint service', () => {
       );
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal(
@@ -346,10 +346,10 @@ describe('Debugger breakpoint service', () => {
 
     beforeEach(() => {
       service = new BreakpointService();
-      service.cacheBreakpoint('file:///foo.cls', 3, '07bFAKE3');
-      service.cacheBreakpoint('file:///foo.cls', 4, '07bFAKE4');
-      service.cacheBreakpoint('file:///foo.cls', 5, '07bFAKE5');
-      service.cacheBreakpoint('file:///bar.cls', 1, '07bFAKE6');
+      service.cacheLineBreakpoint('file:///foo.cls', 3, '07bFAKE3');
+      service.cacheLineBreakpoint('file:///foo.cls', 4, '07bFAKE4');
+      service.cacheLineBreakpoint('file:///foo.cls', 5, '07bFAKE5');
+      service.cacheLineBreakpoint('file:///bar.cls', 1, '07bFAKE6');
     });
 
     afterEach(() => {
@@ -375,7 +375,7 @@ describe('Debugger breakpoint service', () => {
         .onSecondCall()
         .returns(Promise.resolve('07bFAKE2'));
       deleteLineBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
+        .stub(BreakpointService.prototype, 'deleteBreakpoint')
         .onFirstCall()
         .returns(Promise.resolve('07bFAKE4'))
         .onSecondCall()
@@ -390,7 +390,7 @@ describe('Debugger breakpoint service', () => {
         { line: 1, breakpointId: '07bFAKE6' }
       ]);
 
-      const bpsToCreate = await service.reconcileBreakpoints(
+      const bpsToCreate = await service.reconcileLineBreakpoints(
         'someProjectPath',
         'file:///foo.cls',
         '07aFAKE',
@@ -420,7 +420,7 @@ describe('Debugger breakpoint service', () => {
         'someProjectPath',
         '07bFAKE4'
       ]);
-      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+      expect(service.getLineBreakpointCache()).to.deep.equal(expectedCache);
     });
 
     it('Should not create breakpoints without known typeref', async () => {
@@ -432,7 +432,7 @@ describe('Debugger breakpoint service', () => {
         'createLineBreakpoint'
       );
       deleteLineBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
+        .stub(BreakpointService.prototype, 'deleteBreakpoint')
         .onFirstCall()
         .returns(Promise.resolve('07bFAKE4'))
         .onSecondCall()
@@ -445,7 +445,7 @@ describe('Debugger breakpoint service', () => {
         { line: 1, breakpointId: '07bFAKE6' }
       ]);
 
-      const bpsToCreate = await service.reconcileBreakpoints(
+      const bpsToCreate = await service.reconcileLineBreakpoints(
         'someProjectPath',
         'file:///foo.cls',
         '07aFAKE',
@@ -463,7 +463,7 @@ describe('Debugger breakpoint service', () => {
         'someProjectPath',
         '07bFAKE4'
       ]);
-      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+      expect(service.getLineBreakpointCache()).to.deep.equal(expectedCache);
     });
   });
 });

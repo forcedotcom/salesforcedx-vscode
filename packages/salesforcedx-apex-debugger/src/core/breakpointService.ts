@@ -10,6 +10,7 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   ApexBreakpointLocation,
   LineBreakpointsInTyperef
@@ -23,7 +24,11 @@ export class BreakpointService {
     LineBreakpointsInTyperef[]
   > = new Map();
   private typerefMapping: Map<string, string> = new Map();
-  private breakpointCache: Map<string, ApexBreakpointLocation[]> = new Map();
+  private lineBreakpointCache: Map<
+    string,
+    ApexBreakpointLocation[]
+  > = new Map();
+  private exceptionBreakpointCache: Map<string, string> = new Map();
 
   public static getInstance() {
     if (!BreakpointService.instance) {
@@ -73,27 +78,31 @@ export class BreakpointService {
     }
   }
 
-  public cacheBreakpoint(
+  public cacheLineBreakpoint(
     uriArg: string,
     lineArg: number,
     breakpointIdArg: string
   ) {
-    if (!this.breakpointCache.has(uriArg)) {
-      this.breakpointCache.set(uriArg, []);
+    if (!this.lineBreakpointCache.has(uriArg)) {
+      this.lineBreakpointCache.set(uriArg, []);
     }
-    this.breakpointCache.get(uriArg)!.push({
+    this.lineBreakpointCache.get(uriArg)!.push({
       line: lineArg,
       breakpointId: breakpointIdArg
     });
   }
 
-  public getBreakpointCache(): Map<string, ApexBreakpointLocation[]> {
-    return this.breakpointCache;
+  public getLineBreakpointCache(): Map<string, ApexBreakpointLocation[]> {
+    return this.lineBreakpointCache;
+  }
+
+  public getExceptionBreakpointCache(): Map<string, string> {
+    return this.exceptionBreakpointCache;
   }
 
   public getBreakpointsFor(uri: string): Set<number> {
     const lines: Set<number> = new Set();
-    const existingBreakpoints = this.breakpointCache.get(uri);
+    const existingBreakpoints = this.lineBreakpointCache.get(uri);
     if (existingBreakpoints) {
       for (const breakpointInfo of existingBreakpoints) {
         lines.add(breakpointInfo.line);
@@ -136,7 +145,7 @@ export class BreakpointService {
     }
   }
 
-  public async deleteLineBreakpoint(
+  public async deleteBreakpoint(
     projectPath: string,
     breakpointId: string
   ): Promise<string | undefined> {
@@ -164,13 +173,13 @@ export class BreakpointService {
     }
   }
 
-  public async reconcileBreakpoints(
+  public async reconcileLineBreakpoints(
     projectPath: string,
     uri: string,
     sessionId: string,
     clientLines: number[]
   ): Promise<Set<number>> {
-    const knownBreakpoints = this.breakpointCache.get(uri);
+    const knownBreakpoints = this.lineBreakpointCache.get(uri);
     if (knownBreakpoints) {
       for (
         let knownBpIdx = knownBreakpoints.length - 1;
@@ -180,7 +189,7 @@ export class BreakpointService {
         const knownBp = knownBreakpoints[knownBpIdx];
         if (clientLines.indexOf(knownBp.line) === -1) {
           try {
-            const breakpointId = await this.deleteLineBreakpoint(
+            const breakpointId = await this.deleteBreakpoint(
               projectPath,
               knownBp.breakpointId
             );
@@ -209,7 +218,7 @@ export class BreakpointService {
               clientLine
             );
             if (breakpointId) {
-              this.cacheBreakpoint(uri, clientLine, breakpointId);
+              this.cacheLineBreakpoint(uri, clientLine, breakpointId);
             }
             // tslint:disable-next-line:no-empty
           } catch (error) {}
@@ -219,7 +228,61 @@ export class BreakpointService {
     return Promise.resolve(this.getBreakpointsFor(uri));
   }
 
+  public async createExceptionBreakpoint(
+    projectPath: string,
+    sessionId: string,
+    typeref: string
+  ): Promise<string | undefined> {
+    const execution = new CliCommandExecutor(
+      new SfdxCommandBuilder()
+        .withArg('force:data:record:create')
+        .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
+        .withFlag(
+          '--values',
+          `SessionId='${sessionId}' FileName='${typeref}' IsEnabled='true' Type='Exception'`
+        )
+        .withArg('--usetoolingapi')
+        .withArg('--json')
+        .build(),
+      { cwd: projectPath, env: RequestService.getEnvVars() }
+    ).execute();
+
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const breakpointId = JSON.parse(result).result.id as string;
+      if (this.isApexDebuggerBreakpointId(breakpointId)) {
+        return Promise.resolve(breakpointId);
+      } else {
+        return Promise.reject(result);
+      }
+    } catch (e) {
+      return Promise.reject(result);
+    }
+  }
+
+  public async reconcileExceptionBreakpoints(
+    projectPath: string,
+    sessionId: string,
+    info: ExceptionBreakpointInfo
+  ): Promise<void> {
+    const knownBreakpointId = this.exceptionBreakpointCache.get(info.typeref);
+    if (knownBreakpointId && info.breakMode === 'never') {
+      await this.deleteBreakpoint(projectPath, knownBreakpointId);
+      this.exceptionBreakpointCache.delete(info.typeref);
+    } else if (!knownBreakpointId && info.breakMode === 'always') {
+      const createdBreakpointId = await this.createExceptionBreakpoint(
+        projectPath,
+        sessionId,
+        info.typeref
+      );
+      if (createdBreakpointId) {
+        this.exceptionBreakpointCache.set(info.typeref, createdBreakpointId);
+      }
+    }
+  }
+
   public clearSavedBreakpoints(): void {
-    this.breakpointCache.clear();
+    this.lineBreakpointCache.clear();
   }
 }
