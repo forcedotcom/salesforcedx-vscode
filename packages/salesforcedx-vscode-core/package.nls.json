@@ -42,7 +42,5 @@
     "SFDX: Execute Anonymous Apex with Editor Contents",
   "force_apex_execute_selection_text":
     "SFDX: Execute Anonymous Apex with Currently Selected Text",
-  "feature_previews_title": "Salesforce Feature Previews",
-  "enable_refresh_description":
-    "Enables refresh of SObject definitions from a scratch org"
+  "feature_previews_title": "Salesforce Feature Previews"
 }

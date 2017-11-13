@@ -53,8 +53,6 @@ describe('Generate faux classes for SObjects', function() {
       ])
     ];
 
-    cancellationTokenSource = new util.CancellationTokenSource();
-
     username = await util.initializeProject(
       PROJECT_NAME,
       SIMPLE_OBJECT_SOURCE_FOLDER,
@@ -63,6 +61,10 @@ describe('Generate faux classes for SObjects', function() {
 
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     emitter = new EventEmitter();
+  });
+
+  beforeEach(() => {
+    cancellationTokenSource = new util.CancellationTokenSource();
   });
 
   after(async () => {
@@ -77,16 +79,8 @@ describe('Generate faux classes for SObjects', function() {
     let result = '';
     const generator = getGenerator();
     cancellationTokenSource.cancel();
-    try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
-    } catch (e) {
-      expect(e).to.contain(nls.localize('faux_generation_cancelled_text'));
-      return;
-    } finally {
-      // restore the token source
-      cancellationTokenSource = new util.CancellationTokenSource();
-    }
-    expect.fail(result, 'undefined', 'generator should have thrown an error');
+    result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+    expect(result).to.contain(nls.localize('faux_generation_cancelled_text'));
   });
 
   it('Should fail if outside a project', async () => {

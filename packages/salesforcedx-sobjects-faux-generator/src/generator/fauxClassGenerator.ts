@@ -95,6 +95,14 @@ export class FauxClassGenerator {
     return Promise.resolve(LocalCommandExecution.SUCCESS_CODE.toString());
   }
 
+  private cancelExit(): Promise<string> {
+    this.emitter.emit(
+      LocalCommandExecution.EXIT_EVENT,
+      LocalCommandExecution.FAILURE_CODE
+    );
+    return Promise.resolve(nls.localize('faux_generation_cancelled_text'));
+  }
+
   public async generate(
     projectPath: string,
     type: SObjectCategory
@@ -143,7 +151,7 @@ export class FauxClassGenerator {
           this.cancellationToken &&
           this.cancellationToken.isCancellationRequested
         ) {
-          return this.errorExit(nls.localize('faux_generation_cancelled_text'));
+          return this.cancelExit();
         }
         fetchedSObjects = fetchedSObjects.concat(
           await describe.describeSObjectBatch(projectPath, sobjects, j)
