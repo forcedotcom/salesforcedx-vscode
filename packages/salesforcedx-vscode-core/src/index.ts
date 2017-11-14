@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
-
 import * as path from 'path';
+import * as vscode from 'vscode';
 import {
   forceAliasList,
   forceApexClassCreate,
