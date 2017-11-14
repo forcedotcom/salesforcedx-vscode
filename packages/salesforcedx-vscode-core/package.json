@@ -57,7 +57,10 @@
     "test":
       "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json,",
+    "onCommand:sfdx.force.project.create"
+  ],
   "main": "./out/src",
   "contributes": {
     "views": {
@@ -221,6 +224,9 @@
         {
           "command": "sfdx.force.apex.execute.document",
           "when": "sfdx:project_opened && !editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.project.create"
         }
       ]
     },
@@ -340,6 +346,10 @@
       {
         "command": "sfdx.force.apex.execute.selection",
         "title": "%force_apex_execute_selection_text%"
+      },
+      {
+        "command": "sfdx.force.project.create",
+        "title": "%force_project_create_text%"
       }
     ],
     "configuration": {

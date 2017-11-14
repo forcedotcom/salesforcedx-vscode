@@ -46,6 +46,7 @@ export const messages = {
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name: 'Enter a scratch org alias',
+  parameter_gatherer_enter_project_name: 'Enter project name',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -81,6 +82,8 @@ export const messages = {
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
     'One or more files with the specified path already exist in your workspace. Do you want to overwrite them?',
+  warning_prompt_dir_overwrite:
+    'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_lightning_bundle_overwrite:
     'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
   warning_prompt_yes: 'Yes',
@@ -101,5 +104,7 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions'
+  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  force_project_create_text: 'SFDX: Create Project',
+  force_project_create_open_dialog_create_label: 'Create Project'
 };
