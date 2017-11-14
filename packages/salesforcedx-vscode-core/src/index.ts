@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import * as vscode from 'vscode';
-
 import {
   forceAliasList,
   forceApexClassCreate,
@@ -215,9 +215,14 @@ export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
 
   // Context
-  const sfdxProjectOpened = await vscode.workspace.findFiles(
-    '**/sfdx-project.json'
-  );
+  let sfdxProjectOpened = false;
+  if (vscode.workspace.rootPath) {
+    const files = await vscode.workspace.findFiles(
+      path.join('**', 'sfdx-project.json')
+    );
+    sfdxProjectOpened = files && files.length > 0;
+  }
+
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:project_opened',
