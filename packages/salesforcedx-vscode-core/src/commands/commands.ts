@@ -118,6 +118,12 @@ export class SfdxWorkspaceChecker implements PreconditionChecker {
   }
 }
 
+export class EmptyPreChecker implements PreconditionChecker {
+  public check(): boolean {
+    return true;
+  }
+}
+
 // Input gathering
 //////////////////
 export interface ContinueResponse<T> {

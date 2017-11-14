@@ -250,10 +250,9 @@ describe('Empty VSCode workspace', () => {
 
   it('Should not show any commands for non-SFDX workspace', async () => {
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX');
+    await common.type('>SFDX:');
     await app.wait();
     const quickOpenText = await common.getQuickOpenElementsText();
-    expect(quickOpenText).to.not.be.an('array');
-    expect(quickOpenText).to.equal('No commands matching');
+    expect(quickOpenText).to.equal('SFDX: Create Project');
   });
 });
