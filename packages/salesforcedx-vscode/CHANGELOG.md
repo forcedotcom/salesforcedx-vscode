@@ -1,4 +1,18 @@
-## 41.6.0 - October 25, 2017
+## 41.8.0 - Novemeber 16, 2017
+### Added
+
+#### salesforcedx-vscode-core
+
+* Option to run a single test class synchronously. *Requires v41.8.0 of the CLI* ([PR #206](https://github.com/forcedotcom/salesforcedx-vscode/pull/206))
+* SFDX: Create Project ([PR #197](https://github.com/forcedotcom/salesforcedx-vscode/pull/197))
+* SFDX: Refresh SObject Definitions ([Read more]())
+
+### Fixed
+#### salesforcedx-vscode-apex-debugger
+
+* Fix collections not being paginated in variables view ([PR #209](https://github.com/forcedotcom/salesforcedx-vscode/pull/209))
+
+## 41.6.0 - November 2, 2017
 
 ### Added
 #### salesforcedx-vscode
