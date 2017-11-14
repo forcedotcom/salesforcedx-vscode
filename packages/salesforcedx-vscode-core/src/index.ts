@@ -221,11 +221,8 @@ export async function activate(context: vscode.ExtensionContext) {
     const files = await vscode.workspace.findFiles(
       path.join('**', 'sfdx-project.json')
     );
-    console.log(`files.length: ${files.length}`);
     sfdxProjectOpened = files && files.length > 0;
   }
-
-  console.log(`sfdxProjectOpened: ${sfdxProjectOpened}`);
 
   vscode.commands.executeCommand(
     'setContext',
