@@ -45,10 +45,10 @@ before_install:
       sleep 3;
       # install CLI
       echo Installing SFDX CLI Linux
-      wget -qO- $SFDX_URL_LINUX | tar xJf -
+      travis_retry wget -qO- $SFDX_URL_LINUX | tar xJf -
       "./sfdx/install"
       export PATH=./sfdx/$(pwd):$PATH
-      sfdx update
+      travis_retry sfdx update
       export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
     fi
   - |
@@ -57,9 +57,9 @@ before_install:
       rvm get stable
       # install CLI
       echo Installing SFDX CLI macOS
-      wget -q $SFDX_URL_OSX
+      travis_retry wget -q $SFDX_URL_OSX
       sudo installer -pkg sfdx-osx.pkg -target /
-      sfdx update
+      travis_retry sfdx update
       export SFDX_CI_KEY_LOCATION=/Users/travis/devhub.key
     fi
   - |
