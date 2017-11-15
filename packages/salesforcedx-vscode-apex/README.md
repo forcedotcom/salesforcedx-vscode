@@ -10,13 +10,15 @@ Before you set up this extension, make sure that you have these essentials.
   Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
 * **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later**  
+* **[Salesforce Extensions for VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)**  
+  Code smartness for sObjects in Apex code is powered by the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) extension. We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
 
 ## View Code-Completion Suggestions
 To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.  
 ![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
 
 ## View or Jump to Definitions
-You can preview, view, or go to definitions of Apex methods, properties, constructors, and local and class variables.  
+You can preview, view, or go to definitions of Apex methods, properties, constructors, local and class variables, and the standard and custom objects in your default scratch org. (See the "Enable Code Smartness for SObjects" section of this README for information on working with standard and custom objects.)  
 
 To preview a definition, hold down Cmd (macOS) or Ctrl (Windows or Linux) and hover over the item whose definition you want to see.  
 
@@ -34,6 +36,13 @@ The Problems view in the bottom pane also lists the syntax errors. Double-click 
 ## View an Outline of Your Apex Class or Trigger
 The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Cmd+Shift+O (macOS) or Ctrl+Shift+O (Windows or Linux). To jump to one of the symbols, select it in the list.  
 ![Outline view, showing the symbols in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_outline.png)
+
+## Enable Code Smartness for SObjects
+To activate this extension’s code smartness features for standard and custom objects, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) and then select **SFDX: Refresh SObject Definitions** from the command palette. 
+
+When you refresh your sObject definitions, VS Code uses your default scratch org to generate faux Apex classes. These faux classes represent the standard and custom objects that the admin user of your default scratch org has access to. The classes are stored in a hidden directory on your local workstation. Don’t edit the faux classes! They are deleted and regenerated each time that you refresh your sObject definitions. To modify your sObjects, either modify the objects’ `.object-meta.xml` and `.field-meta.xml` files (and then run **SFDX: Push Source to Default Scratch Org**) or make changes declaratively in your scratch org (and then run **SFDX: Pull Source from Default Scratch Org**).  
+
+After you add or edit standard or custom objects, be sure to rerun **SFDX: Refresh SObject Definitions**.  
 
 ## Monitor Apex Language Server Output
 The Apex Language Server is an implementation of the [Language Server Protocol](https://github.com/Microsoft/language-server-protocol) 3.0 specification. The Language Server Protocol allows a tool (in this case, VS Code) to communicate with a language smartness provider (the server). VS Code uses the Apex Language Server to show outlines of Apex classes and triggers, code-completion suggestions, and syntactic errors. To see all diagnostic information from the Apex Language Server, select **View** > **Output**, then choose **Apex Language Server** from the dropdown menu. The diagnostic information gives you insights into the progress of the language server and shows the problems  encountered.  
