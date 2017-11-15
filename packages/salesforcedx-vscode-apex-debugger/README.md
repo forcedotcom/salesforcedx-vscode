@@ -110,8 +110,6 @@ Keep these limitations and known issues in mind when working with the Apex Debug
 These entry points aren’t supported:
 * Asynchronously executed code, including asynchronous tests  
     ___
-    Because synchronous execution of Apex tests isn’t supported for the `sfdx force:apex:test:run` command, VS Code can’t help you run Apex tests synchronously. Open the Developer Console to start your test runs.  
-    ___ 
     **Tip**: Test code between a pair of `startTest` and `stopTest` methods can run synchronously. To debug your asynchronous functionality, use these methods within your tests.  
     ___
 * Batch, Queueable, and Scheduled Apex

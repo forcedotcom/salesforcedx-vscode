@@ -39,6 +39,7 @@ These Salesforce CLI commands are available:
 * `force:org:display`: **SFDX: Display Org Details for Default Scratch Org**
 * `force:org:display --targetusername ...`: **SFDX: Display Org Details...**
 * `force:org:open`: **SFDX: Open Default Scratch Org**
+* `force:project:create ...`: **SFDX: Create Project**
 * `force:source:pull`: **SFDX: Pull Source from Default Scratch Org**
 * `force:source:pull --forceoverwrite`: **SFDX: Pull Source from Default Scratch Org and Override Conflicts**
 * `force:source:push`: **SFDX: Push Source to Default Scratch Org**
