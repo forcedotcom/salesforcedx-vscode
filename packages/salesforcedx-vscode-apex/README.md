@@ -18,7 +18,22 @@ To see code-completion suggestions, press Ctrl+space when you’re working in a 
 ![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
 
 ## View or Jump to Definitions
-You can preview, view, or go to definitions of Apex methods, properties, constructors, local and class variables, and the standard and custom objects in your default scratch org. (See the "Enable Code Smartness for SObjects" section of this README for information on working with standard and custom objects.)  
+You can preview, view, or go to definitions of:  
+* Apex  
+  * methods  
+  * properties  
+  * constructors  
+  * local variables  
+  * class variables  
+* standard objects  
+  * object definitions
+  * standard fields  
+  * custom fields  
+* custom objects
+  * object definitions  
+  * custom fields  
+
+(See the "Enable Code Smartness for SObjects" section of this README for information on working with standard and custom objects.)
 
 To preview a definition, hold down Cmd (macOS) or Ctrl (Windows or Linux) and hover over the item whose definition you want to see.  
 
@@ -38,9 +53,9 @@ The Apex outline view shows the structure of the Apex class or trigger that’s 
 ![Outline view, showing the symbols in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_outline.png)
 
 ## Enable Code Smartness for SObjects
-To activate this extension’s code smartness features for standard and custom objects, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) and then select **SFDX: Refresh SObject Definitions** from the command palette. 
+To activate this extension’s code smartness features for standard and custom objects, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux), and then select **SFDX: Refresh SObject Definitions** from the command palette. 
 
-When you refresh your sObject definitions, VS Code uses your default scratch org to generate faux Apex classes. These faux classes represent the standard and custom objects that the admin user of your default scratch org has access to. The classes are stored in a hidden directory on your local workstation. Don’t edit the faux classes! They are deleted and regenerated each time that you refresh your sObject definitions. To modify your sObjects, either modify the objects’ `.object-meta.xml` and `.field-meta.xml` files (and then run **SFDX: Push Source to Default Scratch Org**) or make changes declaratively in your scratch org (and then run **SFDX: Pull Source from Default Scratch Org**).  
+When you refresh your sObject definitions, VS Code uses your default scratch org to generate faux Apex classes. These faux classes represent the standard and custom objects that the admin user of your default scratch org has access to. The classes are stored in a hidden directory on your local workstation. Don’t edit the faux classes! They are deleted and regenerated each time that you refresh your sObject definitions. To modify your sObjects, either modify the objects’ `.object-meta.xml` and `.field-meta.xml` files (and then run **SFDX: Push Source to Default Scratch Org**), or make changes declaratively in your scratch org (and then run **SFDX: Pull Source from Default Scratch Org**).  
 
 After you add or edit standard or custom objects, be sure to rerun **SFDX: Refresh SObject Definitions**.  
 
