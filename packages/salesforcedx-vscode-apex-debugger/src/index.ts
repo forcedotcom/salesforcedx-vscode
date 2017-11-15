@@ -6,6 +6,8 @@
  */
 
 import {
+  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
@@ -111,7 +113,7 @@ function registerCommands(): vscode.Disposable {
   );
 }
 
-interface ExceptionBreakpointItem extends vscode.QuickPickItem {
+export interface ExceptionBreakpointItem extends vscode.QuickPickItem {
   typeref: string;
   breakMode: DebugProtocol.ExceptionBreakMode;
   uri?: string;
@@ -125,55 +127,41 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
   {
     label: nls.localize('always_break_text'),
     description: '',
-    breakMode: 'always'
+    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
   },
   {
     label: nls.localize('never_break_text'),
     description: '',
-    breakMode: 'never'
+    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
   }
 ];
 
-async function configureExceptionBreakpoint(): Promise<void> {
+export async function configureExceptionBreakpoint(): Promise<void> {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
   if (sfdxApex && sfdxApex.exports && vscode.debug.activeDebugSession) {
-    const exceptionBpInfo: ExceptionBreakpointItem[] = await sfdxApex.exports.getExceptionBreakpointInfo();
+    const exceptionBreakpointInfos: ExceptionBreakpointItem[] = await sfdxApex.exports.getExceptionBreakpointInfo();
     console.log('Retrieved exception breakpoint info from language server');
-    // Get known exception breakpoints and update the quickpick list descriptions
-    const knownExceptionBreakpointsResponse = await vscode.debug.activeDebugSession.customRequest(
+    const enabledExceptionBreakpoints = await vscode.debug.activeDebugSession.customRequest(
       LIST_EXCEPTION_BREAKPOINTS_REQUEST
     );
-    if (
-      knownExceptionBreakpointsResponse &&
-      knownExceptionBreakpointsResponse.typerefs
-    ) {
-      const knownExceptionBreakpointTyperefs: string[] =
-        knownExceptionBreakpointsResponse.typerefs;
-      if (knownExceptionBreakpointTyperefs.length > 0) {
-        exceptionBpInfo.forEach(bpInfo => {
-          if (knownExceptionBreakpointTyperefs.indexOf(bpInfo.typeref) >= 0) {
-            bpInfo.breakMode = 'always';
-            bpInfo.description = nls.localize('always_break_text');
-          }
-        });
-      }
-    }
+    const processedBreakpointInfos = reconcileExceptionBreakpoints(
+      exceptionBreakpointInfos,
+      enabledExceptionBreakpoints
+    );
     const selectExceptionOptions: vscode.QuickPickOptions = {
       placeHolder: nls.localize('select_exception_text'),
-      matchOnDescription: true,
-      matchOnDetail: true
+      matchOnDescription: true
     };
     const selectedException = await vscode.window.showQuickPick(
-      exceptionBpInfo,
+      processedBreakpointInfos,
       selectExceptionOptions
     );
     if (selectedException) {
       const selectBreakModeOptions: vscode.QuickPickOptions = {
         placeHolder: nls.localize('select_break_option_text'),
-        matchOnDescription: true,
-        matchOnDetail: true
+        matchOnDescription: true
       };
       const selectedBreakMode = await vscode.window.showQuickPick(
         EXCEPTION_BREAK_MODES,
@@ -191,6 +179,34 @@ async function configureExceptionBreakpoint(): Promise<void> {
       }
     }
   }
+}
+
+export function reconcileExceptionBreakpoints(
+  breakpointInfos: ExceptionBreakpointItem[],
+  enabledBreakpoints: any
+): ExceptionBreakpointItem[] {
+  const processedBreakpointInfos: ExceptionBreakpointItem[] = [];
+  if (enabledBreakpoints && enabledBreakpoints.typerefs) {
+    const enabledExceptionBreakpointTyperefs: string[] =
+      enabledBreakpoints.typerefs;
+    if (enabledExceptionBreakpointTyperefs.length > 0) {
+      for (let i = breakpointInfos.length - 1; i >= 0; i--) {
+        if (
+          enabledExceptionBreakpointTyperefs.indexOf(
+            breakpointInfos[i].typeref
+          ) >= 0
+        ) {
+          breakpointInfos[i].breakMode = EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS;
+          breakpointInfos[i].description = `$(stop) ${nls.localize(
+            'always_break_text'
+          )}`;
+          processedBreakpointInfos.unshift(breakpointInfos[i]);
+          breakpointInfos.splice(i, 1);
+        }
+      }
+    }
+  }
+  return processedBreakpointInfos.concat(breakpointInfos);
 }
 
 function registerFileWatchers(): vscode.Disposable {

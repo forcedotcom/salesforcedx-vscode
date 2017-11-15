@@ -17,4 +17,6 @@ export const HOTSWAP_REQUEST = 'hotswap';
 export const WORKSPACE_SETTINGS_REQUEST = 'workspaceSettings';
 export const EXCEPTION_BREAKPOINT_REQUEST = 'exceptionBreakpoint';
 export const LIST_EXCEPTION_BREAKPOINTS_REQUEST = 'listExceptionBreakpoints';
+export const EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS = 'always';
+export const EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER = 'never';
 export const CLIENT_ID = 'sfdx-vscode';
