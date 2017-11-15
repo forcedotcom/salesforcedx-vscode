@@ -51,6 +51,8 @@ import {
 import {
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
@@ -996,6 +998,27 @@ export class ApexDebug extends LoggingDebugSession {
                 requestArgs.exceptionInfo
               );
             });
+            if (
+              requestArgs.exceptionInfo.breakMode ===
+              EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
+            ) {
+              this.printToDebugConsole(
+                nls.localize(
+                  'created_exception_breakpoint_text',
+                  requestArgs.exceptionInfo.label
+                )
+              );
+            } else if (
+              requestArgs.exceptionInfo.breakMode ===
+              EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
+            ) {
+              this.printToDebugConsole(
+                nls.localize(
+                  'removed_exception_breakpoint_text',
+                  requestArgs.exceptionInfo.label
+                )
+              );
+            }
           } catch (error) {
             response.success = false;
             this.log(
