@@ -217,9 +217,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Context
   let sfdxProjectOpened = false;
   if (vscode.workspace.rootPath) {
-    const files = await vscode.workspace.findFiles(
-      path.join('**', 'sfdx-project.json')
-    );
+    const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
   }
 
