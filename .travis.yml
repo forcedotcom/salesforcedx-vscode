@@ -4,16 +4,18 @@ sudo: required
 
 node_js:
   - "7"
+  - "8"
 
 cache:
   directories:
-    - node_modules
     - $HOME/.npm
 
 notifications:
   email: false
 
 matrix:
+  allow_failures:
+    - os: osx
   fast_finish: true
 
 env:
@@ -28,6 +30,8 @@ os:
   - linux
   - osx
 
+osx_image: xcode9
+
 addons:
   apt:
     packages:
@@ -41,10 +45,10 @@ before_install:
       sleep 3;
       # install CLI
       echo Installing SFDX CLI Linux
-      wget -qO- $SFDX_URL_LINUX | tar xJf -
+      travis_retry wget -qO- $SFDX_URL_LINUX | tar xJf -
       "./sfdx/install"
       export PATH=./sfdx/$(pwd):$PATH
-      sfdx update
+      travis_retry sfdx update
       export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
     fi
   - |
@@ -53,9 +57,9 @@ before_install:
       rvm get stable
       # install CLI
       echo Installing SFDX CLI macOS
-      wget -q $SFDX_URL_OSX
+      travis_retry wget -q $SFDX_URL_OSX
       sudo installer -pkg sfdx-osx.pkg -target /
-      sfdx update
+      travis_retry sfdx update
       export SFDX_CI_KEY_LOCATION=/Users/travis/devhub.key
     fi
   - |
@@ -65,22 +69,22 @@ before_install:
     curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
 
 install:
-  - npm install
-  - npm install -g codecov 
+  - travis_retry npm install
+  - travis_retry npm install -g codecov 
 
 script:
   - npm run compile
   - npm run lint
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-      npm run test:without-system-tests
-      npm run coverage:system-tests
+      travis_wait 30 npm run test:without-system-tests
+      travis_wait 30 npm run coverage:system-tests
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
       # Due to slowness of OS X on Travis
       # https://github.com/travis-ci/travis-ci/issues/6095
-      npm run test:without-system-tests
+      travis_wait 30 npm run test:without-system-tests
     fi
   - codecov
 
