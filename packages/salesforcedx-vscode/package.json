@@ -1,8 +1,7 @@
 {
   "name": "salesforcedx-vscode",
   "displayName": "Salesforce Extensions for VS Code",
-  "description":
-    "Collection of extensions for the Salesforce DX development flow",
+  "description": "Collection of extensions for the Salesforce DX development flow",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
@@ -15,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.8.0",
+  "version": "41.8.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +26,9 @@
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
-  "categories": ["Extension Packs"],
+  "categories": [
+    "Extension Packs"
+  ],
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-debugger",
