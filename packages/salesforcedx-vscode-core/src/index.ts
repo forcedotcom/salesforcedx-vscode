@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   forceAliasList,
@@ -217,9 +216,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Context
   let sfdxProjectOpened = false;
   if (vscode.workspace.rootPath) {
-    const files = await vscode.workspace.findFiles(
-      path.join('**', 'sfdx-project.json')
-    );
+    const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
   }
 
