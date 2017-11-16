@@ -1,3 +1,9 @@
+## 41.8.1 - November 16, 2017
+### Fixed
+#### salesforcedx-vscode-core
+
+* Fix SFDX commands not showing up on Windows
+
 ## 41.8.0 - November 16, 2017
 ### Added
 
