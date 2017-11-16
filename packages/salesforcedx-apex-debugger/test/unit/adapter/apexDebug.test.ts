@@ -20,7 +20,8 @@ import {
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
-  LaunchRequestArguments
+  LaunchRequestArguments,
+  SetExceptionBreakpointsArguments
 } from '../../../src/adapter/apexDebug';
 import {
   LineBreakpointInfo,
@@ -39,10 +40,14 @@ import {
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+  EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SHOW_MESSAGE_EVENT,
   WORKSPACE_SETTINGS_REQUEST
 } from '../../../src/constants';
@@ -1282,6 +1287,207 @@ describe('Debugger adapter - unit', () => {
         // tslint:enable:no-unused-expression
       });
     });
+
+    describe('Exception breakpoint request', () => {
+      let lockSpy: sinon.SinonSpy;
+      let reconcileExceptionBreakpointSpy: sinon.SinonStub;
+      let sessionIdSpy: sinon.SinonStub;
+
+      beforeEach(() => {
+        adapter = new ApexDebugForTest(
+          new SessionService(),
+          new StreamingService(),
+          new BreakpointService(),
+          new RequestService()
+        );
+        adapter.setSfdxProject('someProjectPath');
+        lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
+        reconcileExceptionBreakpointSpy = sinon
+          .stub(BreakpointService.prototype, 'reconcileExceptionBreakpoints')
+          .returns(Promise.resolve());
+        sessionIdSpy = sinon
+          .stub(SessionService.prototype, 'getSessionId')
+          .returns('07aFAKE');
+      });
+
+      afterEach(() => {
+        lockSpy.restore();
+        reconcileExceptionBreakpointSpy.restore();
+        sessionIdSpy.restore();
+      });
+
+      it('Should create exception breakpoint', async () => {
+        const requestArg = {
+          exceptionInfo: {
+            typeref: 'fooexception',
+            label: 'fooexception',
+            breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
+            uri: 'file:///fooexception.cls'
+          }
+        } as SetExceptionBreakpointsArguments;
+        await adapter.customRequest(
+          EXCEPTION_BREAKPOINT_REQUEST,
+          {} as DebugProtocol.Response,
+          requestArg
+        );
+
+        expect(lockSpy.calledOnce).to.equal(true);
+        expect(lockSpy.getCall(0).args[0]).to.equal('exception-breakpoint');
+        expect(reconcileExceptionBreakpointSpy.calledOnce).to.equal(true);
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args.length).to.equal(
+          3
+        );
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args[0]).to.equal(
+          'someProjectPath'
+        );
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args[1]).to.equal(
+          '07aFAKE'
+        );
+        expect(
+          reconcileExceptionBreakpointSpy.getCall(0).args[2]
+        ).to.deep.equal(requestArg.exceptionInfo);
+        expect(adapter.getEvents()[0].event).to.equal('output');
+        expect(
+          (adapter.getEvents()[0] as OutputEvent).body.output
+        ).to.have.string(
+          nls.localize('created_exception_breakpoint_text', 'fooexception')
+        );
+      });
+
+      it('Should remove exception breakpoint', async () => {
+        const requestArg = {
+          exceptionInfo: {
+            typeref: 'fooexception',
+            label: 'fooexception',
+            breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+            uri: 'file:///fooexception.cls'
+          }
+        } as SetExceptionBreakpointsArguments;
+
+        await adapter.customRequest(
+          EXCEPTION_BREAKPOINT_REQUEST,
+          {} as DebugProtocol.Response,
+          requestArg
+        );
+
+        expect(lockSpy.calledOnce).to.equal(true);
+        expect(lockSpy.getCall(0).args[0]).to.equal('exception-breakpoint');
+        expect(reconcileExceptionBreakpointSpy.calledOnce).to.equal(true);
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args.length).to.equal(
+          3
+        );
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args[0]).to.equal(
+          'someProjectPath'
+        );
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args[1]).to.equal(
+          '07aFAKE'
+        );
+        expect(
+          reconcileExceptionBreakpointSpy.getCall(0).args[2]
+        ).to.deep.equal(requestArg.exceptionInfo);
+        expect(adapter.getEvents()[0].event).to.equal('output');
+        expect(
+          (adapter.getEvents()[0] as OutputEvent).body.output
+        ).to.have.string(
+          nls.localize('removed_exception_breakpoint_text', 'fooexception')
+        );
+      });
+
+      it('Should ignore unknown break mode', async () => {
+        const requestArg = {
+          exceptionInfo: {
+            typeref: 'fooexception',
+            label: 'fooexception',
+            breakMode: 'unhandled',
+            uri: 'file:///fooexception.cls'
+          }
+        } as SetExceptionBreakpointsArguments;
+
+        await adapter.customRequest(
+          EXCEPTION_BREAKPOINT_REQUEST,
+          {} as DebugProtocol.Response,
+          requestArg
+        );
+
+        expect(lockSpy.calledOnce).to.equal(true);
+        expect(lockSpy.getCall(0).args[0]).to.equal('exception-breakpoint');
+        expect(reconcileExceptionBreakpointSpy.calledOnce).to.equal(true);
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args.length).to.equal(
+          3
+        );
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args[0]).to.equal(
+          'someProjectPath'
+        );
+        expect(reconcileExceptionBreakpointSpy.getCall(0).args[1]).to.equal(
+          '07aFAKE'
+        );
+        expect(
+          reconcileExceptionBreakpointSpy.getCall(0).args[2]
+        ).to.deep.equal(requestArg.exceptionInfo);
+        expect(adapter.getEvents().length).to.equal(0);
+      });
+
+      it('Should not call breakpoint service with undefined request args', async () => {
+        await adapter.customRequest(
+          EXCEPTION_BREAKPOINT_REQUEST,
+          {} as DebugProtocol.Response,
+          undefined
+        );
+
+        expect(lockSpy.called).to.equal(false);
+        expect(reconcileExceptionBreakpointSpy.called).to.equal(false);
+      });
+
+      it('Should not call breakpoint service with undefined exception info', async () => {
+        await adapter.customRequest(
+          EXCEPTION_BREAKPOINT_REQUEST,
+          {} as DebugProtocol.Response,
+          {} as SetExceptionBreakpointsArguments
+        );
+
+        expect(lockSpy.called).to.equal(false);
+        expect(reconcileExceptionBreakpointSpy.called).to.equal(false);
+      });
+    });
+
+    describe('List exception breakpoints', () => {
+      let getExceptionBreakpointCacheSpy: sinon.SinonStub;
+      const knownExceptionBreakpoints: Map<string, string> = new Map([
+        ['fooexception', '07bFAKE1'],
+        ['barexception', '07bFAKE2']
+      ]);
+
+      beforeEach(() => {
+        adapter = new ApexDebugForTest(
+          new SessionService(),
+          new StreamingService(),
+          new BreakpointService(),
+          new RequestService()
+        );
+        getExceptionBreakpointCacheSpy = sinon
+          .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
+          .returns(knownExceptionBreakpoints);
+      });
+
+      afterEach(() => {
+        getExceptionBreakpointCacheSpy.restore();
+      });
+
+      it('Should return list of breakpoint typerefs', async () => {
+        await adapter.customRequest(
+          LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+          {} as DebugProtocol.Response,
+          undefined
+        );
+
+        expect(getExceptionBreakpointCacheSpy.calledOnce).to.equal(true);
+        expect(adapter.getResponse(0).success).to.equal(true);
+        expect(adapter.getResponse(0).body.typerefs).to.have.same.members([
+          'fooexception',
+          'barexception'
+        ]);
+      });
+    });
   });
 
   describe('Logging', () => {
@@ -1444,7 +1650,7 @@ describe('Debugger adapter - unit', () => {
         .returns(true);
       sessionIdSpy = sinon
         .stub(SessionService.prototype, 'getSessionId')
-        .returns('123');
+        .returns('07aFAKE');
       eventProcessedSpy = sinon
         .stub(StreamingService.prototype, 'hasProcessedEvent')
         .returns(false);
@@ -1466,7 +1672,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'SessionTerminated',
           Description: 'foo'
         }
@@ -1513,7 +1719,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'SessionTerminated',
           Description: 'foo'
         }
@@ -1529,7 +1735,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'RequestStarted',
           RequestId: '07cFAKE'
         }
@@ -1547,7 +1753,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'RequestFinished',
           RequestId: '07cFAKE1'
         }
@@ -1588,7 +1794,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'RequestFinished',
           RequestId: '07cFAKE123'
         }
@@ -1605,7 +1811,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'RequestFinished',
           RequestId: '07cFAKE1'
         }
@@ -1639,7 +1845,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'Resumed',
           RequestId: '07cFAKE'
         }
@@ -1657,7 +1863,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'Resumed',
           RequestId: '07cFAKE123'
         }
@@ -1676,7 +1882,7 @@ describe('Debugger adapter - unit', () => {
           replayId: 0
         } as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'Stopped',
           RequestId: '07cFAKE',
           BreakpointId: '07bFAKE'
@@ -1723,7 +1929,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'Stopped',
           RequestId: '07cFAKE-without-breakpoint'
         }
@@ -1745,7 +1951,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'Stopped'
         }
       };
@@ -1768,7 +1974,7 @@ describe('Debugger adapter - unit', () => {
           replayId: 0
         } as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'Stopped',
           RequestId: '07cFAKE1',
           BreakpointId: '07bFAKE'
@@ -1805,7 +2011,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'SystemWarning',
           Description: 'foo'
         }
@@ -1827,7 +2033,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'SystemWarning'
         }
       };
@@ -1842,7 +2048,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'SystemGack',
           Description: 'foo'
         }
@@ -1864,7 +2070,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'SystemGack'
         }
       };
@@ -1879,7 +2085,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'ApexException',
           Description: 'foo'
         }
@@ -1895,7 +2101,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'Debug',
           Description: 'foo[8]|real message'
         }
@@ -1911,7 +2117,7 @@ describe('Debugger adapter - unit', () => {
       const message: DebuggerMessage = {
         event: {} as StreamingEvent,
         sobject: {
-          SessionId: '123',
+          SessionId: '07aFAKE',
           Type: 'SystemInfo',
           Description: 'Request will not be debugged'
         }

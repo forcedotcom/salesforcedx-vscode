@@ -146,7 +146,7 @@ export async function configureExceptionBreakpoint(): Promise<void> {
     const enabledExceptionBreakpoints = await vscode.debug.activeDebugSession.customRequest(
       LIST_EXCEPTION_BREAKPOINTS_REQUEST
     );
-    const processedBreakpointInfos = reconcileExceptionBreakpoints(
+    const processedBreakpointInfos = mergeExceptionBreakpointInfos(
       exceptionBreakpointInfos,
       enabledExceptionBreakpoints
     );
@@ -181,7 +181,7 @@ export async function configureExceptionBreakpoint(): Promise<void> {
   }
 }
 
-export function reconcileExceptionBreakpoints(
+export function mergeExceptionBreakpointInfos(
   breakpointInfos: ExceptionBreakpointItem[],
   enabledBreakpoints: any
 ): ExceptionBreakpointItem[] {
