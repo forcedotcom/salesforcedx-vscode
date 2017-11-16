@@ -1,4 +1,5 @@
 import * as chai from 'chai';
+import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { FauxClassGenerator } from '../src/generator/fauxClassGenerator';
 
@@ -6,6 +7,11 @@ const expect = chai.expect;
 
 describe('SObject faux class generator', function() {
   let classPath = '';
+
+  function getGenerator(): FauxClassGenerator {
+    const emitter: EventEmitter = new EventEmitter();
+    return new FauxClassGenerator(emitter);
+  }
 
   afterEach(() => {
     if (classPath) {
@@ -44,7 +50,7 @@ describe('SObject faux class generator', function() {
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
 
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -84,7 +90,7 @@ describe('SObject faux class generator', function() {
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
 
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -110,7 +116,7 @@ describe('SObject faux class generator', function() {
       relation1 +
       ' ], "childRelationships": [] }';
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -134,7 +140,7 @@ describe('SObject faux class generator', function() {
       childRelation1 +
       '] }';
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -152,7 +158,7 @@ describe('SObject faux class generator', function() {
       childRelation1 +
       '] }';
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -177,7 +183,7 @@ describe('SObject faux class generator', function() {
       childRelation1 +
       '] }';
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -197,7 +203,7 @@ describe('SObject faux class generator', function() {
     const fieldHeader = '"fields": [';
     const sobject1 = `${header}${childRelation1}],${fieldHeader}${field1}]}`;
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -216,7 +222,7 @@ describe('SObject faux class generator', function() {
     const fieldHeader = '"fields": [';
     const sobject1 = `${header},${fieldHeader}${field1}]}`;
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -242,7 +248,7 @@ describe('SObject faux class generator', function() {
       '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -261,7 +267,7 @@ describe('SObject faux class generator', function() {
       '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)
@@ -284,7 +290,7 @@ describe('SObject faux class generator', function() {
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
 
     const sobjectFolder = process.cwd();
-    const gen: FauxClassGenerator = new FauxClassGenerator();
+    const gen = getGenerator();
     classPath = await gen.generateFauxClass(
       sobjectFolder,
       JSON.parse(sobject1)

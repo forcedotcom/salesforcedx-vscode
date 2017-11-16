@@ -7,7 +7,8 @@
 
 import {
   CliCommandExecutor,
-  Command
+  Command,
+  CommandExecution
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -113,6 +114,12 @@ export class SfdxWorkspaceChecker implements PreconditionChecker {
       notificationService.showErrorMessage(result.message);
       return false;
     }
+    return true;
+  }
+}
+
+export class EmptyPreChecker implements PreconditionChecker {
+  public check(): boolean {
     return true;
   }
 }
@@ -316,14 +323,11 @@ export interface CommandletExecutor<T> {
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
-  public execute(response: ContinueResponse<T>): void {
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
-    }).execute(cancellationToken);
-
+  protected attachExecution(
+    execution: CommandExecution,
+    cancellationTokenSource: vscode.CancellationTokenSource,
+    cancellationToken: vscode.CancellationToken
+  ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     notificationService.reportCommandExecutionStatus(
@@ -332,6 +336,17 @@ export abstract class SfdxCommandletExecutor<T>
     );
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+
+  public execute(response: ContinueResponse<T>): void {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: vscode.workspace.rootPath
+    }).execute(cancellationToken);
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
   public abstract build(data: T): Command;

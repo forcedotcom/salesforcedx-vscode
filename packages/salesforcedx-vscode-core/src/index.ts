@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import * as vscode from 'vscode';
-
 import {
   forceAliasList,
   forceApexClassCreate,
@@ -24,6 +24,7 @@ import {
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
+  forceProjectCreate,
   forceSourcePull,
   forceSourcePush,
   forceSourceStatus,
@@ -164,6 +165,11 @@ function registerCommands(): vscode.Disposable {
     true
   );
 
+  const forceProjectCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.project.create',
+    forceProjectCreate
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -200,15 +206,28 @@ function registerCommands(): vscode.Disposable {
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
     forceGenerateFauxClassesCmd,
+    forceProjectCreateCmd,
     internalCancelCommandExecution
   );
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
 
   // Context
-  vscode.commands.executeCommand('setContext', 'sfdx:project_opened', true);
+  let sfdxProjectOpened = false;
+  if (vscode.workspace.rootPath) {
+    const files = await vscode.workspace.findFiles(
+      path.join('**', 'sfdx-project.json')
+    );
+    sfdxProjectOpened = files && files.length > 0;
+  }
+
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:project_opened',
+    sfdxProjectOpened
+  );
 
   // Commands
   const commands = registerCommands();
@@ -222,8 +241,10 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(treeDataProvider);
 
   // Scratch Org Decorator
-  scratchOrgDecorator.showOrg();
-  scratchOrgDecorator.monitorConfigChanges();
+  if (vscode.workspace.rootPath) {
+    scratchOrgDecorator.showOrg();
+    scratchOrgDecorator.monitorConfigChanges();
+  }
 }
 
 export function deactivate() {
