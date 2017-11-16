@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.6.0",
+  "version": "41.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "41.6.0",
-    "@salesforce/salesforcedx-utils-vscode": "41.6.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "41.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.8.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
@@ -58,7 +58,7 @@
       "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json,",
+    "workspaceContains:sfdx-project.json",
     "onCommand:sfdx.force.project.create"
   ],
   "main": "./out/src",
