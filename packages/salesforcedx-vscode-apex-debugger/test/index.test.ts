@@ -7,9 +7,7 @@ import * as vscode from 'vscode';
 import {
   ApexDebuggerConfigurationProvider,
   ExceptionBreakpointItem,
-  getExceptionBreakpointCache,
-  mergeExceptionBreakpointInfos,
-  updateExceptionBreakpointCache
+  mergeExceptionBreakpointInfos
 } from '../src/index';
 import { nls } from '../src/messages';
 
@@ -90,9 +88,13 @@ describe('Extension Setup', () => {
         ];
       });
       it('Should order breakpoints by enabled first', () => {
+        const enabledBreakpoints = {
+          typerefs: ['com/salesforce/api/exception/NullPointerException']
+        };
+
         const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(
           breakpointInfos,
-          ['com/salesforce/api/exception/NullPointerException']
+          enabledBreakpoints
         );
 
         expect(exceptionBreakpointQuickPicks.length).to.equal(3);
@@ -119,97 +121,33 @@ describe('Extension Setup', () => {
         );
       });
 
-      it('Should not modify breakpoint infos if enabled breakpoints has empty typerefs', () => {
+      it('Should not modify breakpoint infos if there is no enabled breakpoints', () => {
         const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(
           breakpointInfos,
-          []
+          undefined
         );
 
         expect(exceptionBreakpointQuickPicks).to.deep.equal(breakpointInfos);
       });
-    });
 
-    describe('Update cache', () => {
-      beforeEach(() => {
-        getExceptionBreakpointCache().clear();
+      it('Should not modify breakpoint infos if enabled breakpoints has undefined typerefs', () => {
+        const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(
+          breakpointInfos,
+          {}
+        );
+
+        expect(exceptionBreakpointQuickPicks).to.deep.equal(breakpointInfos);
       });
 
-      it('Should add new breakpoint', () => {
-        updateExceptionBreakpointCache({
-          typeref: 'barexception',
-          label: 'barexception',
-          uri: 'file:///barexception.cls',
-          breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-          description: ''
-        });
+      it('Should not modify breakpoint infos if enabled breakpoints has empty typerefs', () => {
+        const exceptionBreakpointQuickPicks = mergeExceptionBreakpointInfos(
+          breakpointInfos,
+          {
+            typerefs: []
+          }
+        );
 
-        expect(getExceptionBreakpointCache().size).to.equal(1);
-      });
-
-      it('Should not add existing breakpoint', () => {
-        updateExceptionBreakpointCache({
-          typeref: 'barexception',
-          label: 'barexception',
-          uri: 'file:///barexception.cls',
-          breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-          description: ''
-        });
-
-        expect(getExceptionBreakpointCache().size).to.equal(1);
-
-        updateExceptionBreakpointCache({
-          typeref: 'barexception',
-          label: 'barexception',
-          uri: 'file:///barexception.cls',
-          breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-          description: ''
-        });
-
-        expect(getExceptionBreakpointCache().size).to.equal(1);
-      });
-
-      it('Should remove existing breakpoint', () => {
-        updateExceptionBreakpointCache({
-          typeref: 'barexception',
-          label: 'barexception',
-          uri: 'file:///barexception.cls',
-          breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-          description: ''
-        });
-
-        expect(getExceptionBreakpointCache().size).to.equal(1);
-
-        updateExceptionBreakpointCache({
-          typeref: 'barexception',
-          label: 'barexception',
-          uri: 'file:///barexception.cls',
-          breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
-          description: ''
-        });
-
-        expect(getExceptionBreakpointCache().size).to.equal(0);
-      });
-
-      it('Should not remove nonexisting breakpoint', () => {
-        updateExceptionBreakpointCache({
-          typeref: 'barexception',
-          label: 'barexception',
-          uri: 'file:///barexception.cls',
-          breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-          description: ''
-        });
-
-        expect(getExceptionBreakpointCache().size).to.equal(1);
-
-        updateExceptionBreakpointCache({
-          typeref: 'fooexception',
-          label: 'fooexception',
-          uri: 'file:///fooexception.cls',
-          breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
-          description: ''
-        });
-
-        expect(getExceptionBreakpointCache().size).to.equal(1);
+        expect(exceptionBreakpointQuickPicks).to.deep.equal(breakpointInfos);
       });
     });
   });

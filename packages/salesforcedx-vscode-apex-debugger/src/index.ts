@@ -136,7 +136,7 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
   }
 ];
 
-export async function configureExceptionBreakpoint(): Promise<void> {
+async function configureExceptionBreakpoint(): Promise<void> {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
