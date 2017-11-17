@@ -22,13 +22,15 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "41.8.1"
+    "@salesforce/salesforcedx-utils-vscode": "41.8.1",
+    "@salesforce/salesforcedx-apex-debugger": "41.8.1",
+    "vscode-debugprotocol": "1.24.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.8.1",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/sinon": "^2.3.2",
+    "@types/node": "^6.0.40",
     "chai": "^4.0.2",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
@@ -152,6 +154,19 @@
             }
           }
         }
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sfdx.debug.exception.breakpoint"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdx.debug.exception.breakpoint",
+        "title": "%exception_breakpoint_command_text%"
       }
     ]
   }
