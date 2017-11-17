@@ -39,6 +39,7 @@ import {
 } from '../../../src/commands';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
+  DEFAULT_IDLE_TIMEOUT_MS,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
@@ -1536,7 +1537,10 @@ describe('Debugger adapter - unit', () => {
         expect(adapter.getEvents()[0].event).to.equal('output');
         const outputEvent = adapter.getEvents()[0] as DebugProtocol.OutputEvent;
         expect(outputEvent.body.output).to.have.string(
-          nls.localize('terminate_idle_session_text')
+          nls.localize(
+            'terminate_idle_session_text',
+            DEFAULT_IDLE_TIMEOUT_MS / 60000
+          )
         );
         expect(adapter.getEvents()[1].event).to.equal('terminated');
       });

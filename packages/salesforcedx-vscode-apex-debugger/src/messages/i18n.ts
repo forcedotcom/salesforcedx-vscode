@@ -21,7 +21,7 @@ export const messages = {
   always_break_text: 'Always break',
   never_break_text: 'Never break',
   are_you_still_debugging_text:
-    'We noticed that you have been idle for awhile. Are you still debugging?',
+    'We noticed that you have been idle for a while. Are you still debugging?',
   answer_yes: 'Yes',
   answer_no: 'No'
 };

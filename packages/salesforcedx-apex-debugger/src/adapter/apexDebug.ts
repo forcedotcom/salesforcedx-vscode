@@ -50,6 +50,7 @@ import {
   Value
 } from '../commands';
 import {
+  DEFAULT_IDLE_TIMEOUT_MS,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -1043,7 +1044,12 @@ export class ApexDebug extends LoggingDebugSession {
         this.sendEvent(new TerminatedEvent());
         break;
       case IDLE_SESSION_REQUEST:
-        this.warnToDebugConsole(nls.localize('terminate_idle_session_text'));
+        this.warnToDebugConsole(
+          nls.localize(
+            'terminate_idle_session_text',
+            DEFAULT_IDLE_TIMEOUT_MS / 60000
+          )
+        );
         this.sendEvent(new TerminatedEvent());
         break;
       case SEND_HEARTBEAT_REQUEST:
