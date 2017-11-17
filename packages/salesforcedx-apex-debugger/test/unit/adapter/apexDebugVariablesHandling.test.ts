@@ -27,6 +27,7 @@ import {
   RequestService,
   Value
 } from '../../../src/commands';
+import { RESET_HEARTBEAT_EVENT } from '../../../src/constants';
 import { BreakpointService } from '../../../src/core/breakpointService';
 import { SessionService } from '../../../src/core/sessionService';
 import { StreamingService } from '../../../src/core/streamingService';
@@ -964,6 +965,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body).to.be.ok;
       expect(response.body.variables).to.be.ok;
       expect(response.body.variables.length).to.equal(0);
+      expect(adapter.getEvents().length).to.equal(0);
     });
 
     it('Should return variables for known variablesReference', async () => {
@@ -993,6 +995,8 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body.variables).to.be.ok;
       expect(response.body.variables.length).to.equal(2);
       expect(response.body.variables).to.deep.equal(variables);
+      expect(adapter.getEvents().length).to.equal(1);
+      expect(adapter.getEvents()[0].event).to.equal(RESET_HEARTBEAT_EVENT);
     });
 
     it('Should return no variables when expand errors out', async () => {

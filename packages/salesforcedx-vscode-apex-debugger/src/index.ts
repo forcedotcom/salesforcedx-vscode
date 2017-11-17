@@ -6,16 +6,22 @@
  */
 
 import {
+  DEFAULT_IDLE_QUESTION_TIMEOUT_MS,
+  DEFAULT_IDLE_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
+  IDLE_SESSION_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  RESET_HEARTBEAT_EVENT,
+  SEND_HEARTBEAT_REQUEST,
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
+  TERMINATE_SESSION_REQUEST,
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType,
   WORKSPACE_SETTINGS_REQUEST,
@@ -29,6 +35,8 @@ const cachedExceptionBreakpoints: Map<
   string,
   ExceptionBreakpointItem
 > = new Map();
+
+let areYouThereTimer: NodeJS.Timer | undefined;
 
 export class ApexDebuggerConfigurationProvider
   implements vscode.DebugConfigurationProvider {
@@ -94,6 +102,15 @@ function registerCommands(): vscode.Disposable {
               'salesforcedx-vscode-apex-debugger.connectionTimeoutMs'
             )
           } as WorkspaceSettings);
+        } else if (event.event === RESET_HEARTBEAT_EVENT) {
+          if (areYouThereTimer) {
+            clearInterval(areYouThereTimer);
+          }
+          if (vscode.debug.activeDebugSession) {
+            areYouThereTimer = areYouStillDebugging(
+              vscode.debug.activeDebugSession
+            );
+          }
         }
       }
     }
@@ -102,7 +119,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.debug.exception.breakpoint',
     configureExceptionBreakpoint
   );
+
   const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
+    areYouThereTimer = areYouStillDebugging(session);
+
     cachedExceptionBreakpoints.forEach(breakpoint => {
       const args: SetExceptionBreakpointsArguments = {
         exceptionInfo: breakpoint
@@ -110,11 +130,41 @@ function registerCommands(): vscode.Disposable {
       session.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
     });
   });
+  const terminateSessionHandler = vscode.debug.onDidTerminateDebugSession(
+    session => {
+      if (areYouThereTimer) {
+        clearInterval(areYouThereTimer);
+      }
+    }
+  );
   return vscode.Disposable.from(
     customEventHandler,
     exceptionBreakpointCmd,
-    startSessionHandler
+    startSessionHandler,
+    terminateSessionHandler
   );
+}
+
+export function areYouStillDebugging(
+  session: vscode.DebugSession
+): NodeJS.Timer | undefined {
+  return setInterval(async () => {
+    const innerTimer = setTimeout(() => {
+      session.customRequest(IDLE_SESSION_REQUEST);
+    }, DEFAULT_IDLE_QUESTION_TIMEOUT_MS);
+    const response = await vscode.window.showWarningMessage(
+      nls.localize('are_you_still_debugging_text'),
+      { modal: false },
+      nls.localize('answer_yes'),
+      nls.localize('answer_no')
+    );
+    clearTimeout(innerTimer);
+    if (response === nls.localize('answer_yes')) {
+      session.customRequest(SEND_HEARTBEAT_REQUEST);
+    } else {
+      session.customRequest(TERMINATE_SESSION_REQUEST);
+    }
+  }, DEFAULT_IDLE_TIMEOUT_MS);
 }
 
 export interface ExceptionBreakpointItem extends vscode.QuickPickItem {

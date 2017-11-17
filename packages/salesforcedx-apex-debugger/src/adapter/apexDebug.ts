@@ -35,6 +35,7 @@ import {
   DebuggerResponse,
   ForceOrgDisplay,
   FrameCommand,
+  HeartbeatCommand,
   LocalValue,
   OrgInfo,
   Reference,
@@ -49,6 +50,7 @@ import {
   Value
 } from '../commands';
 import {
+  DEFAULT_IDLE_TIMEOUT_MS,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -57,9 +59,13 @@ import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
+  IDLE_SESSION_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  RESET_HEARTBEAT_EVENT,
+  SEND_HEARTBEAT_REQUEST,
   SHOW_MESSAGE_EVENT,
+  TERMINATE_SESSION_REQUEST,
   WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
 import {
@@ -1034,6 +1040,28 @@ export class ApexDebug extends LoggingDebugSession {
           typerefs: Array.from(exceptionBreakpoints.keys())
         };
         break;
+      case TERMINATE_SESSION_REQUEST:
+        this.sendEvent(new TerminatedEvent());
+        break;
+      case IDLE_SESSION_REQUEST:
+        this.warnToDebugConsole(
+          nls.localize(
+            'terminate_idle_session_text',
+            DEFAULT_IDLE_TIMEOUT_MS / 60000
+          )
+        );
+        this.sendEvent(new TerminatedEvent());
+        break;
+      case SEND_HEARTBEAT_REQUEST:
+        if (this.mySessionService.isConnected()) {
+          try {
+            await this.myRequestService.execute(
+              new HeartbeatCommand(this.mySessionService.getSessionId())
+            );
+            // tslint:disable-next-line:no-empty
+          } catch (error) {}
+        }
+        break;
       default:
         break;
     }
@@ -1113,6 +1141,7 @@ export class ApexDebug extends LoggingDebugSession {
       );
     }
 
+    this.sendEvent(new Event(RESET_HEARTBEAT_EVENT));
     const filter: FilterType =
       args.filter === 'indexed' || args.filter === 'named'
         ? args.filter

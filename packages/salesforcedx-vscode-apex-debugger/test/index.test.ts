@@ -1,11 +1,19 @@
 import {
+  DEFAULT_IDLE_QUESTION_TIMEOUT_MS,
+  DEFAULT_IDLE_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+  IDLE_SESSION_REQUEST,
+  SEND_HEARTBEAT_REQUEST,
+  TERMINATE_SESSION_REQUEST
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { DebugSession } from 'vscode';
 import {
   ApexDebuggerConfigurationProvider,
+  areYouStillDebugging,
   ExceptionBreakpointItem,
   getExceptionBreakpointCache,
   mergeExceptionBreakpointInfos,
@@ -13,6 +21,7 @@ import {
 } from '../src/index';
 import { nls } from '../src/messages';
 
+// tslint:disable:no-unused-expression
 describe('Extension Setup', () => {
   describe('Configuration provider', () => {
     let provider: ApexDebuggerConfigurationProvider;
@@ -211,6 +220,81 @@ describe('Extension Setup', () => {
 
         expect(getExceptionBreakpointCache().size).to.equal(1);
       });
+    });
+  });
+
+  describe('Idle session timer', () => {
+    class MockDebugSession implements DebugSession {
+      public id = '123';
+      public type = 'mock';
+      public name = 'mocksession';
+      private customRequestCommand: string;
+
+      public customRequest(command: string, args?: any): Thenable<string> {
+        this.customRequestCommand = command;
+        return Promise.resolve(command);
+      }
+
+      public getCommand(): string {
+        return this.customRequestCommand;
+      }
+    }
+
+    let clock: sinon.SinonFakeTimers;
+    let showWarningBoxSpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+      showWarningBoxSpy = sinon.stub(vscode.window, 'showWarningMessage');
+    });
+
+    afterEach(() => {
+      clock.restore();
+      showWarningBoxSpy.restore();
+    });
+
+    it('Should send heartbeat request', () => {
+      showWarningBoxSpy.onCall(0).returns(nls.localize('answer_yes'));
+      const mockSession = new MockDebugSession();
+
+      const timer = areYouStillDebugging(mockSession);
+
+      setTimeout(async () => {
+        await Promise.resolve();
+        expect(mockSession.getCommand()).to.equal(SEND_HEARTBEAT_REQUEST);
+      }, DEFAULT_IDLE_TIMEOUT_MS);
+      clock.tick(DEFAULT_IDLE_TIMEOUT_MS + 1);
+      expect(timer).to.not.be.undefined;
+    });
+
+    it('Should send terminate request', () => {
+      showWarningBoxSpy.onCall(0).returns(nls.localize('answer_no'));
+      const mockSession = new MockDebugSession();
+
+      const timer = areYouStillDebugging(mockSession);
+
+      setTimeout(async () => {
+        await Promise.resolve();
+        expect(mockSession.getCommand()).to.equal(TERMINATE_SESSION_REQUEST);
+      }, DEFAULT_IDLE_TIMEOUT_MS);
+      clock.tick(DEFAULT_IDLE_TIMEOUT_MS + 1);
+      expect(timer).to.not.be.undefined;
+    });
+
+    it('Should send idle session request', () => {
+      const mockSession = new MockDebugSession();
+
+      const timer = areYouStillDebugging(mockSession);
+
+      setTimeout(() => {
+        setTimeout(async () => {
+          expect(mockSession.getCommand()).to.equal(IDLE_SESSION_REQUEST);
+          await Promise.resolve();
+        }, DEFAULT_IDLE_QUESTION_TIMEOUT_MS);
+        clock.tick(DEFAULT_IDLE_QUESTION_TIMEOUT_MS + 1);
+      }, DEFAULT_IDLE_TIMEOUT_MS);
+      clock.tick(DEFAULT_IDLE_TIMEOUT_MS + 1);
+      expect(timer).to.not.be.undefined;
     });
   });
 });
