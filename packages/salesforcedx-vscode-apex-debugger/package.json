@@ -159,8 +159,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.debug.exception.breakpoint",
-          "when": "apex_debug_start"
+          "command": "sfdx.debug.exception.breakpoint"
         }
       ]
     },
