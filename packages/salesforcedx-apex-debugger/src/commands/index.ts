@@ -7,6 +7,7 @@
 
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export { FrameCommand } from './frameCommand';
+export { HeartbeatCommand } from './heartbeatCommand';
 export * from './protocol';
 export { ReferencesCommand } from './referencesCommand';
 export { RequestService } from './requestService';

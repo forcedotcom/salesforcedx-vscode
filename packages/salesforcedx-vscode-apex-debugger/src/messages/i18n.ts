@@ -19,5 +19,9 @@ export const messages = {
   select_exception_text: 'Select an exception',
   select_break_option_text: 'Select break option',
   always_break_text: 'Always break',
-  never_break_text: 'Never break'
+  never_break_text: 'Never break',
+  are_you_still_debugging_text:
+    'We noticed that you have been idle for awhile. Are you still debugging?',
+  answer_yes: 'Yes',
+  answer_no: 'No'
 };

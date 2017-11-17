@@ -32,5 +32,7 @@ export const messages = {
   hotswap_warn_text:
     "You can't modify Apex classes or triggers during an Apex Debugger session. Save your changes after you're done debugging.",
   created_exception_breakpoint_text: 'Created exception breakpoint for %s.',
-  removed_exception_breakpoint_text: 'Removed exception breakpoint for %s.'
+  removed_exception_breakpoint_text: 'Removed exception breakpoint for %s.',
+  terminate_idle_session_text:
+    'Your debugger session is being terminated because it has been idle for a while.'
 };

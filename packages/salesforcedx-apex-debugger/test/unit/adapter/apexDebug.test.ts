@@ -46,9 +46,12 @@ import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
+  IDLE_SESSION_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  SEND_HEARTBEAT_REQUEST,
   SHOW_MESSAGE_EVENT,
+  TERMINATE_SESSION_REQUEST,
   WORKSPACE_SETTINGS_REQUEST
 } from '../../../src/constants';
 import {
@@ -72,6 +75,7 @@ import {
   newStringValue
 } from './apexDebugVariablesHandling.test';
 import os = require('os');
+import { HeartbeatCommand } from '../../../src/commands/heartbeatCommand';
 
 describe('Debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
@@ -1486,6 +1490,117 @@ describe('Debugger adapter - unit', () => {
           'fooexception',
           'barexception'
         ]);
+      });
+    });
+
+    describe('Terminate session', () => {
+      beforeEach(() => {
+        adapter = new ApexDebugForTest(
+          new SessionService(),
+          new StreamingService(),
+          new BreakpointService(),
+          new RequestService()
+        );
+      });
+
+      it('Should send terminated event', () => {
+        adapter.customRequest(
+          TERMINATE_SESSION_REQUEST,
+          {} as DebugProtocol.Response,
+          undefined
+        );
+
+        expect(adapter.getEvents().length).to.equal(1);
+        expect(adapter.getEvents()[0].event).to.equal('terminated');
+      });
+    });
+
+    describe('Idle session', () => {
+      beforeEach(() => {
+        adapter = new ApexDebugForTest(
+          new SessionService(),
+          new StreamingService(),
+          new BreakpointService(),
+          new RequestService()
+        );
+      });
+
+      it('Should send terminated event', () => {
+        adapter.customRequest(
+          IDLE_SESSION_REQUEST,
+          {} as DebugProtocol.Response,
+          undefined
+        );
+
+        expect(adapter.getEvents().length).to.equal(2);
+        expect(adapter.getEvents()[0].event).to.equal('output');
+        const outputEvent = adapter.getEvents()[0] as DebugProtocol.OutputEvent;
+        expect(outputEvent.body.output).to.have.string(
+          nls.localize('terminate_idle_session_text')
+        );
+        expect(adapter.getEvents()[1].event).to.equal('terminated');
+      });
+    });
+
+    describe('Heartbeat', () => {
+      let isSessionConnectedSpy: sinon.SinonStub;
+      let sessionIdSpy: sinon.SinonStub;
+      let heartbeatSpy: sinon.SinonStub;
+
+      beforeEach(() => {
+        adapter = new ApexDebugForTest(
+          new SessionService(),
+          new StreamingService(),
+          new BreakpointService(),
+          new RequestService()
+        );
+        sessionIdSpy = sinon
+          .stub(SessionService.prototype, 'getSessionId')
+          .returns('07aFAKE');
+        heartbeatSpy = sinon
+          .stub(RequestService.prototype, 'execute')
+          .returns(Promise.resolve(''));
+      });
+
+      afterEach(() => {
+        isSessionConnectedSpy.restore();
+        sessionIdSpy.restore();
+        heartbeatSpy.restore();
+      });
+
+      it('Should execute heartbeat command', async () => {
+        isSessionConnectedSpy = sinon
+          .stub(SessionService.prototype, 'isConnected')
+          .returns(true);
+
+        await adapter.customRequest(
+          SEND_HEARTBEAT_REQUEST,
+          {} as DebugProtocol.Response,
+          undefined
+        );
+
+        expect(isSessionConnectedSpy.calledOnce).to.equal(true);
+        expect(sessionIdSpy.calledOnce).to.equal(true);
+        expect(heartbeatSpy.calledOnce).to.equal(true);
+        expect(heartbeatSpy.getCall(0).args[0]).to.be.instanceof(
+          HeartbeatCommand
+        );
+      });
+
+      it('Should not do anything without a session', () => {
+        isSessionConnectedSpy = sinon
+          .stub(SessionService.prototype, 'isConnected')
+          .returns(false);
+
+        adapter.customRequest(
+          SEND_HEARTBEAT_REQUEST,
+          {} as DebugProtocol.Response,
+          undefined
+        );
+
+        expect(isSessionConnectedSpy.calledOnce).to.equal(true);
+        expect(sessionIdSpy.called).to.equal(false);
+        expect(heartbeatSpy.called).to.equal(false);
       });
     });
   });
