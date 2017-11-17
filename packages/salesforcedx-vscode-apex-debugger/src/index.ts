@@ -6,10 +6,15 @@
  */
 
 import {
+  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+  EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType,
@@ -17,6 +22,13 @@ import {
   WorkspaceSettings
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
+import { DebugProtocol } from 'vscode-debugprotocol';
+import { nls } from './messages';
+
+const cachedExceptionBreakpoints: Map<
+  string,
+  ExceptionBreakpointItem
+> = new Map();
 
 export class ApexDebuggerConfigurationProvider
   implements vscode.DebugConfigurationProvider {
@@ -86,7 +98,150 @@ function registerCommands(): vscode.Disposable {
       }
     }
   );
-  return vscode.Disposable.from(customEventHandler);
+  const exceptionBreakpointCmd = vscode.commands.registerCommand(
+    'sfdx.debug.exception.breakpoint',
+    configureExceptionBreakpoint
+  );
+  const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
+    cachedExceptionBreakpoints.forEach(breakpoint => {
+      const args: SetExceptionBreakpointsArguments = {
+        exceptionInfo: breakpoint
+      };
+      session.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
+    });
+  });
+  return vscode.Disposable.from(
+    customEventHandler,
+    exceptionBreakpointCmd,
+    startSessionHandler
+  );
+}
+
+export interface ExceptionBreakpointItem extends vscode.QuickPickItem {
+  typeref: string;
+  breakMode: DebugProtocol.ExceptionBreakMode;
+  uri?: string;
+}
+
+interface BreakModeItem extends vscode.QuickPickItem {
+  breakMode: DebugProtocol.ExceptionBreakMode;
+}
+
+const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
+  {
+    label: nls.localize('always_break_text'),
+    description: '',
+    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
+  },
+  {
+    label: nls.localize('never_break_text'),
+    description: '',
+    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
+  }
+];
+
+async function configureExceptionBreakpoint(): Promise<void> {
+  const sfdxApex = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-apex'
+  );
+  if (sfdxApex && sfdxApex.exports) {
+    const exceptionBreakpointInfos: ExceptionBreakpointItem[] = await sfdxApex.exports.getExceptionBreakpointInfo();
+    console.log('Retrieved exception breakpoint info from language server');
+    let enabledExceptionBreakpointTyperefs: string[] = [];
+    if (vscode.debug.activeDebugSession) {
+      const responseBody = await vscode.debug.activeDebugSession.customRequest(
+        LIST_EXCEPTION_BREAKPOINTS_REQUEST
+      );
+      if (responseBody && responseBody.typerefs) {
+        enabledExceptionBreakpointTyperefs = responseBody.typerefs;
+      }
+    } else {
+      enabledExceptionBreakpointTyperefs = Array.from(
+        cachedExceptionBreakpoints.keys()
+      );
+    }
+    const processedBreakpointInfos = mergeExceptionBreakpointInfos(
+      exceptionBreakpointInfos,
+      enabledExceptionBreakpointTyperefs
+    );
+    const selectExceptionOptions: vscode.QuickPickOptions = {
+      placeHolder: nls.localize('select_exception_text'),
+      matchOnDescription: true
+    };
+    const selectedException = await vscode.window.showQuickPick(
+      processedBreakpointInfos,
+      selectExceptionOptions
+    );
+    if (selectedException) {
+      const selectBreakModeOptions: vscode.QuickPickOptions = {
+        placeHolder: nls.localize('select_break_option_text'),
+        matchOnDescription: true
+      };
+      const selectedBreakMode = await vscode.window.showQuickPick(
+        EXCEPTION_BREAK_MODES,
+        selectBreakModeOptions
+      );
+      if (selectedBreakMode) {
+        selectedException.breakMode = selectedBreakMode.breakMode;
+        const args: SetExceptionBreakpointsArguments = {
+          exceptionInfo: selectedException
+        };
+        if (vscode.debug.activeDebugSession) {
+          await vscode.debug.activeDebugSession.customRequest(
+            EXCEPTION_BREAKPOINT_REQUEST,
+            args
+          );
+        }
+        updateExceptionBreakpointCache(selectedException);
+      }
+    }
+  }
+}
+
+export function mergeExceptionBreakpointInfos(
+  breakpointInfos: ExceptionBreakpointItem[],
+  enabledBreakpointTyperefs: string[]
+): ExceptionBreakpointItem[] {
+  const processedBreakpointInfos: ExceptionBreakpointItem[] = [];
+  if (enabledBreakpointTyperefs.length > 0) {
+    for (let i = breakpointInfos.length - 1; i >= 0; i--) {
+      if (enabledBreakpointTyperefs.indexOf(breakpointInfos[i].typeref) >= 0) {
+        breakpointInfos[i].breakMode = EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS;
+        breakpointInfos[i].description = `$(stop) ${nls.localize(
+          'always_break_text'
+        )}`;
+        processedBreakpointInfos.unshift(breakpointInfos[i]);
+        breakpointInfos.splice(i, 1);
+      }
+    }
+  }
+  return processedBreakpointInfos.concat(breakpointInfos);
+}
+
+export function updateExceptionBreakpointCache(
+  selectedException: ExceptionBreakpointItem
+) {
+  if (
+    selectedException.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS &&
+    !cachedExceptionBreakpoints.has(selectedException.typeref)
+  ) {
+    cachedExceptionBreakpoints.set(
+      selectedException.typeref,
+      selectedException
+    );
+  } else if (
+    selectedException.breakMode === EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER &&
+    cachedExceptionBreakpoints.has(selectedException.typeref)
+  ) {
+    cachedExceptionBreakpoints.delete(selectedException.typeref);
+  }
+}
+
+export function getExceptionBreakpointCache(): Map<
+  string,
+  ExceptionBreakpointItem
+> {
+  return cachedExceptionBreakpoints;
 }
 
 function registerFileWatchers(): vscode.Disposable {

@@ -105,33 +105,35 @@ describe('Debugger breakpoint service', () => {
         { line: 3, breakpointId: '07bFAKE3' }
       ]);
 
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
-      service.cacheBreakpoint('file:///bar.cls', 3, '07bFAKE3');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheLineBreakpoint('file:///bar.cls', 3, '07bFAKE3');
 
-      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+      expect(service.getLineBreakpointCache()).to.deep.equal(expectedCache);
     });
 
     it('Should clear cached breakpoints', () => {
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.getExceptionBreakpointCache().set('fooexception', '07bFAKE2');
 
       service.clearSavedBreakpoints();
 
-      expect(service.getBreakpointCache().size).to.equal(0);
+      expect(service.getLineBreakpointCache().size).to.equal(0);
+      expect(service.getExceptionBreakpointCache().size).to.equal(0);
     });
 
     it('Should find existing breakpoints', () => {
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
-      service.cacheBreakpoint('file:///bar.cls', 3, '07bFAKE3');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheLineBreakpoint('file:///bar.cls', 3, '07bFAKE3');
 
       const savedBreakpoints = service.getBreakpointsFor('file:///foo.cls');
       expect(savedBreakpoints).to.have.all.keys([1, 2]);
     });
 
     it('Should not find existing breakpoints', () => {
-      service.cacheBreakpoint('file:///foo.cls', 1, '07bFAKE1');
-      service.cacheBreakpoint('file:///foo.cls', 2, '07bFAKE2');
+      service.cacheLineBreakpoint('file:///foo.cls', 1, '07bFAKE1');
+      service.cacheLineBreakpoint('file:///foo.cls', 2, '07bFAKE2');
 
       const savedBreakpoints = service.getBreakpointsFor('file:///bar.cls');
       expect(savedBreakpoints.size).to.equal(0);
@@ -247,7 +249,59 @@ describe('Debugger breakpoint service', () => {
     });
   });
 
-  describe('Delete line breakpoint', () => {
+  describe('Create exception breakpoint', () => {
+    let origSpawn: any, mySpawn: any;
+    let cmdWithArgSpy: sinon.SinonSpy;
+    let cmdWithFlagSpy: sinon.SinonSpy;
+    let cmdBuildSpy: sinon.SinonSpy;
+
+    beforeEach(() => {
+      service = new BreakpointService();
+      origSpawn = childProcess.spawn;
+      mySpawn = mockSpawn();
+      childProcess.spawn = mySpawn;
+      cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
+      cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
+      cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
+    });
+
+    afterEach(() => {
+      childProcess.spawn = origSpawn;
+      cmdWithArgSpy.restore();
+      cmdWithFlagSpy.restore();
+      cmdBuildSpy.restore();
+    });
+
+    it('Should create successfully', async () => {
+      mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07bFAKE"}}'));
+
+      const cmdOutput = await service.createExceptionBreakpoint(
+        'someProjectPath',
+        '07aFAKE',
+        'fooexception'
+      );
+
+      expect(cmdOutput).to.equal('07bFAKE');
+      expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
+        'force:data:record:create'
+      ]);
+      expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+        '--sobjecttype',
+        'ApexDebuggerBreakpoint'
+      ]);
+      expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+        '--values',
+        "SessionId='07aFAKE' FileName='fooexception' IsEnabled='true' Type='Exception'"
+      ]);
+      expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
+        '--usetoolingapi'
+      ]);
+      expect(cmdWithArgSpy.getCall(2).args).to.have.same.members(['--json']);
+      expect(cmdBuildSpy.calledOnce).to.equal(true);
+    });
+  });
+
+  describe('Delete breakpoint', () => {
     let origSpawn: any, mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
@@ -273,7 +327,7 @@ describe('Debugger breakpoint service', () => {
     it('Should delete successfully', async () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"07bFAKE"}}'));
 
-      const cmdOutput = await service.deleteLineBreakpoint(
+      const cmdOutput = await service.deleteBreakpoint(
         'someProjectPath',
         '07bFAKE'
       );
@@ -301,7 +355,7 @@ describe('Debugger breakpoint service', () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"id":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"id":"FAKE"}}');
@@ -312,7 +366,7 @@ describe('Debugger breakpoint service', () => {
       mySpawn.setDefault(mySpawn.simple(0, '{"result":{"notid":"FAKE"}}'));
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
@@ -329,7 +383,7 @@ describe('Debugger breakpoint service', () => {
       );
 
       try {
-        await service.deleteLineBreakpoint('someProjectPath', '07bFAKE');
+        await service.deleteBreakpoint('someProjectPath', '07bFAKE');
         expect.fail('Should have failed');
       } catch (error) {
         expect(error).to.equal(
@@ -341,30 +395,35 @@ describe('Debugger breakpoint service', () => {
 
   describe('Reconcile', () => {
     let addLineBreakpointSpy: sinon.SinonStub;
-    let deleteLineBreakpointSpy: sinon.SinonStub;
+    let addExceptionBreakpointSpy: sinon.SinonStub;
+    let deleteBreakpointSpy: sinon.SinonStub;
     let getTyperefForSpy: sinon.SinonStub;
 
     beforeEach(() => {
       service = new BreakpointService();
-      service.cacheBreakpoint('file:///foo.cls', 3, '07bFAKE3');
-      service.cacheBreakpoint('file:///foo.cls', 4, '07bFAKE4');
-      service.cacheBreakpoint('file:///foo.cls', 5, '07bFAKE5');
-      service.cacheBreakpoint('file:///bar.cls', 1, '07bFAKE6');
+      service.cacheLineBreakpoint('file:///foo.cls', 3, '07bFAKE3');
+      service.cacheLineBreakpoint('file:///foo.cls', 4, '07bFAKE4');
+      service.cacheLineBreakpoint('file:///foo.cls', 5, '07bFAKE5');
+      service.cacheLineBreakpoint('file:///bar.cls', 1, '07bFAKE6');
+      service.getExceptionBreakpointCache().set('fooexception', '07bFAKE7');
     });
 
     afterEach(() => {
       if (addLineBreakpointSpy) {
         addLineBreakpointSpy.restore();
       }
-      if (deleteLineBreakpointSpy) {
-        deleteLineBreakpointSpy.restore();
+      if (addExceptionBreakpointSpy) {
+        addExceptionBreakpointSpy.restore();
+      }
+      if (deleteBreakpointSpy) {
+        deleteBreakpointSpy.restore();
       }
       if (getTyperefForSpy) {
         getTyperefForSpy.restore();
       }
     });
 
-    it('Should reconcile breakpoints for client to create and server to delete', async () => {
+    it('Should reconcile line breakpoints for client to create and server to delete', async () => {
       getTyperefForSpy = sinon
         .stub(BreakpointService.prototype, 'getTyperefFor')
         .returns('foo');
@@ -374,8 +433,8 @@ describe('Debugger breakpoint service', () => {
         .returns(Promise.resolve('07bFAKE1'))
         .onSecondCall()
         .returns(Promise.resolve('07bFAKE2'));
-      deleteLineBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
+      deleteBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'deleteBreakpoint')
         .onFirstCall()
         .returns(Promise.resolve('07bFAKE4'))
         .onSecondCall()
@@ -390,7 +449,7 @@ describe('Debugger breakpoint service', () => {
         { line: 1, breakpointId: '07bFAKE6' }
       ]);
 
-      const bpsToCreate = await service.reconcileBreakpoints(
+      const bpsToCreate = await service.reconcileLineBreakpoints(
         'someProjectPath',
         'file:///foo.cls',
         '07aFAKE',
@@ -411,19 +470,19 @@ describe('Debugger breakpoint service', () => {
         'foo',
         2
       ]);
-      expect(deleteLineBreakpointSpy.calledTwice).to.equal(true);
-      expect(deleteLineBreakpointSpy.getCall(0).args).to.have.same.members([
+      expect(deleteBreakpointSpy.calledTwice).to.equal(true);
+      expect(deleteBreakpointSpy.getCall(0).args).to.have.same.members([
         'someProjectPath',
         '07bFAKE5'
       ]);
-      expect(deleteLineBreakpointSpy.getCall(1).args).to.have.same.members([
+      expect(deleteBreakpointSpy.getCall(1).args).to.have.same.members([
         'someProjectPath',
         '07bFAKE4'
       ]);
-      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+      expect(service.getLineBreakpointCache()).to.deep.equal(expectedCache);
     });
 
-    it('Should not create breakpoints without known typeref', async () => {
+    it('Should not create line breakpoints without known typeref', async () => {
       getTyperefForSpy = sinon
         .stub(BreakpointService.prototype, 'getTyperefFor')
         .returns(undefined);
@@ -431,8 +490,8 @@ describe('Debugger breakpoint service', () => {
         BreakpointService.prototype,
         'createLineBreakpoint'
       );
-      deleteLineBreakpointSpy = sinon
-        .stub(BreakpointService.prototype, 'deleteLineBreakpoint')
+      deleteBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'deleteBreakpoint')
         .onFirstCall()
         .returns(Promise.resolve('07bFAKE4'))
         .onSecondCall()
@@ -445,7 +504,7 @@ describe('Debugger breakpoint service', () => {
         { line: 1, breakpointId: '07bFAKE6' }
       ]);
 
-      const bpsToCreate = await service.reconcileBreakpoints(
+      const bpsToCreate = await service.reconcileLineBreakpoints(
         'someProjectPath',
         'file:///foo.cls',
         '07aFAKE',
@@ -454,16 +513,109 @@ describe('Debugger breakpoint service', () => {
 
       expect(bpsToCreate).to.have.all.keys([3]);
       expect(addLineBreakpointSpy.called).to.equal(false);
-      expect(deleteLineBreakpointSpy.calledTwice).to.equal(true);
-      expect(deleteLineBreakpointSpy.getCall(0).args).to.have.same.members([
+      expect(deleteBreakpointSpy.calledTwice).to.equal(true);
+      expect(deleteBreakpointSpy.getCall(0).args).to.have.same.members([
         'someProjectPath',
         '07bFAKE5'
       ]);
-      expect(deleteLineBreakpointSpy.getCall(1).args).to.have.same.members([
+      expect(deleteBreakpointSpy.getCall(1).args).to.have.same.members([
         'someProjectPath',
         '07bFAKE4'
       ]);
-      expect(service.getBreakpointCache()).to.deep.equal(expectedCache);
+      expect(service.getLineBreakpointCache()).to.deep.equal(expectedCache);
+    });
+
+    it('Should create new exception breakpoint', async () => {
+      addExceptionBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'createExceptionBreakpoint')
+        .returns('07bFAKE8');
+
+      await service.reconcileExceptionBreakpoints(
+        'someProjectPath',
+        '07aFAKE',
+        {
+          breakMode: 'always',
+          typeref: 'barexception',
+          label: 'barexception'
+        }
+      );
+
+      expect(addExceptionBreakpointSpy.calledOnce).to.equal(true);
+      expect(addExceptionBreakpointSpy.getCall(0).args).to.have.same.members([
+        'someProjectPath',
+        '07aFAKE',
+        'barexception'
+      ]);
+      expect(
+        service.getExceptionBreakpointCache().has('barexception')
+      ).to.equal(true);
+    });
+
+    it('Should not create existing exception breakpoint', async () => {
+      addExceptionBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'createExceptionBreakpoint')
+        .returns('07bFAKE7');
+
+      await service.reconcileExceptionBreakpoints(
+        'someProjectPath',
+        '07aFAKE',
+        {
+          breakMode: 'always',
+          typeref: 'fooexception',
+          label: 'fooexception'
+        }
+      );
+
+      expect(addExceptionBreakpointSpy.called).to.equal(false);
+      expect(
+        service.getExceptionBreakpointCache().has('fooexception')
+      ).to.equal(true);
+    });
+
+    it('Should delete existing exception breakpoint', async () => {
+      deleteBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'deleteBreakpoint')
+        .returns(Promise.resolve('07bFAKE7'));
+
+      await service.reconcileExceptionBreakpoints(
+        'someProjectPath',
+        '07aFAKE',
+        {
+          breakMode: 'never',
+          typeref: 'fooexception',
+          label: 'fooexception'
+        }
+      );
+
+      expect(deleteBreakpointSpy.calledOnce).to.equal(true);
+      expect(deleteBreakpointSpy.getCall(0).args).to.have.same.members([
+        'someProjectPath',
+        '07bFAKE7'
+      ]);
+      expect(
+        service.getExceptionBreakpointCache().has('fooexception')
+      ).to.equal(false);
+    });
+
+    it('Should not delete unknown exception breakpoint', async () => {
+      deleteBreakpointSpy = sinon
+        .stub(BreakpointService.prototype, 'deleteBreakpoint')
+        .returns(Promise.resolve('07bFAKE8'));
+
+      await service.reconcileExceptionBreakpoints(
+        'someProjectPath',
+        '07aFAKE',
+        {
+          breakMode: 'never',
+          typeref: 'barexception',
+          label: 'barexception'
+        }
+      );
+
+      expect(deleteBreakpointSpy.called).to.equal(false);
+      expect(
+        service.getExceptionBreakpointCache().has('barexception')
+      ).to.equal(false);
     });
   });
 });

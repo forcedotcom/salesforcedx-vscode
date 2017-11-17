@@ -131,11 +131,11 @@ export class ApexDebugForTest extends ApexDebug {
     return super.stackTraceRequest(response, args);
   }
 
-  public customRequest(
+  public async customRequest(
     command: string,
     response: DebugProtocol.Response,
     args: any
-  ): void {
+  ): Promise<void> {
     return super.customRequest(command, response, args);
   }
 

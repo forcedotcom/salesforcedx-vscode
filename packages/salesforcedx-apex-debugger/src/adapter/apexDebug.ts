@@ -26,6 +26,7 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   LineBreakpointInfo,
   LineBreakpointsInTyperef
@@ -50,10 +51,14 @@ import {
 import {
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+  EXCEPTION_BREAKPOINT_REQUEST,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
+  LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SHOW_MESSAGE_EVENT,
   WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
@@ -95,6 +100,10 @@ export interface LaunchRequestArguments
   requestTypeFilter?: string[];
   entryPointFilter?: string;
   sfdxProject: string;
+}
+
+export interface SetExceptionBreakpointsArguments {
+  exceptionInfo: ExceptionBreakpointInfo;
 }
 
 export class ApexDebugStackFrameInfo {
@@ -673,7 +682,7 @@ export class ApexDebug extends LoggingDebugSession {
               TRACE_CATEGORY_BREAKPOINTS,
               `setBreakPointsRequest: uri=${uri}`
             );
-            const knownBps = await this.myBreakpointService.reconcileBreakpoints(
+            const knownBps = await this.myBreakpointService.reconcileLineBreakpoints(
               this.sfdxProject,
               uri,
               this.mySessionService.getSessionId(),
@@ -916,11 +925,12 @@ export class ApexDebug extends LoggingDebugSession {
     return false;
   }
 
-  protected customRequest(
+  protected async customRequest(
     command: string,
     response: DebugProtocol.Response,
     args: any
-  ): void {
+  ): Promise<void> {
+    response.success = true;
     switch (command) {
       case LINE_BREAKPOINT_INFO_REQUEST:
         const lineBpInfo: LineBreakpointInfo[] = args;
@@ -977,10 +987,56 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.connectionTimeoutMs =
           workspaceSettings.connectionTimeoutMs;
         break;
+      case EXCEPTION_BREAKPOINT_REQUEST:
+        const requestArgs: SetExceptionBreakpointsArguments = args;
+        if (requestArgs && requestArgs.exceptionInfo) {
+          try {
+            await this.lock.acquire('exception-breakpoint', async () => {
+              return this.myBreakpointService.reconcileExceptionBreakpoints(
+                this.sfdxProject,
+                this.mySessionService.getSessionId(),
+                requestArgs.exceptionInfo
+              );
+            });
+            if (
+              requestArgs.exceptionInfo.breakMode ===
+              EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
+            ) {
+              this.printToDebugConsole(
+                nls.localize(
+                  'created_exception_breakpoint_text',
+                  requestArgs.exceptionInfo.label
+                )
+              );
+            } else if (
+              requestArgs.exceptionInfo.breakMode ===
+              EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
+            ) {
+              this.printToDebugConsole(
+                nls.localize(
+                  'removed_exception_breakpoint_text',
+                  requestArgs.exceptionInfo.label
+                )
+              );
+            }
+          } catch (error) {
+            response.success = false;
+            this.log(
+              TRACE_CATEGORY_BREAKPOINTS,
+              `exceptionBreakpointRequest: error=${error}`
+            );
+          }
+        }
+        break;
+      case LIST_EXCEPTION_BREAKPOINTS_REQUEST:
+        const exceptionBreakpoints = this.myBreakpointService.getExceptionBreakpointCache();
+        response.body = {
+          typerefs: Array.from(exceptionBreakpoints.keys())
+        };
+        break;
       default:
         break;
     }
-    response.success = true;
     this.sendResponse(response);
   }
 

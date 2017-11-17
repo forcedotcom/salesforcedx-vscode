@@ -6,6 +6,7 @@
  */
 
 export * from './constants';
+export { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
 
 export enum VscodeDebuggerMessageType {
   Info,
