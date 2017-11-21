@@ -710,7 +710,7 @@ describe('Debugger adapter - unit', () => {
       ).to.have.string('Try again');
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
       expect(breakpointClearSpy.called).to.equal(false);
-      expect(clearIdleTimersSpy.called).to.equal(false);
+      expect(clearIdleTimersSpy.calledOnce).to.equal(true);
     });
   });
 

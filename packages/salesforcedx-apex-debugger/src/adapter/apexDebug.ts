@@ -699,33 +699,34 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.DisconnectResponse,
     args: DebugProtocol.DisconnectArguments
   ): Promise<void> {
-    response.success = false;
-    this.myStreamingService.disconnect();
-    if (this.mySessionService.isConnected()) {
-      try {
-        const terminatedSessionId = await this.mySessionService.stop();
-        if (!this.mySessionService.isConnected()) {
-          response.success = true;
-          this.printToDebugConsole(
-            nls.localize('session_terminated_text', terminatedSessionId)
-          );
-        } else {
-          this.errorToDebugConsole(
-            `${nls.localize(
-              'command_error_help_text'
-            )}:${os.EOL}${terminatedSessionId}`
-          );
+    try {
+      response.success = false;
+      this.myStreamingService.disconnect();
+      if (this.mySessionService.isConnected()) {
+        try {
+          const terminatedSessionId = await this.mySessionService.stop();
+          if (!this.mySessionService.isConnected()) {
+            response.success = true;
+            this.printToDebugConsole(
+              nls.localize('session_terminated_text', terminatedSessionId)
+            );
+          } else {
+            this.errorToDebugConsole(
+              `${nls.localize(
+                'command_error_help_text'
+              )}:${os.EOL}${terminatedSessionId}`
+            );
+          }
+        } catch (error) {
+          this.tryToParseSfdxError(response, error);
         }
-      } catch (error) {
-        this.tryToParseSfdxError(response, error);
+      } else {
+        response.success = true;
       }
-    } else {
-      response.success = true;
-    }
-    if (response.success) {
+      this.sendResponse(response);
+    } finally {
       this.clearIdleTimers();
     }
-    this.sendResponse(response);
   }
 
   protected async setBreakPointsRequest(
