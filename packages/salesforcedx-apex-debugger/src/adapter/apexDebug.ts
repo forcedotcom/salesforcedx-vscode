@@ -49,6 +49,10 @@ import {
   Value
 } from '../commands';
 import {
+  DEFAULT_IDLE_TIMEOUT_MS,
+  DEFAULT_IDLE_WARN1_MS,
+  DEFAULT_IDLE_WARN2_MS,
+  DEFAULT_IDLE_WARN3_MS,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
@@ -532,6 +536,8 @@ export class ApexDebug extends LoggingDebugSession {
 
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
+  protected idleTimers: NodeJS.Timer[] = [];
+
   constructor() {
     super('apex-debug-adapter.log');
     this.setDebuggerLinesStartAt1(true);
@@ -565,6 +571,59 @@ export class ApexDebug extends LoggingDebugSession {
   ): void {
     response.success = false;
     this.sendResponse(response);
+  }
+
+  private getSessionIdleTimer(): NodeJS.Timer[] {
+    const timers: NodeJS.Timer[] = [];
+    timers.push(
+      setTimeout(() => {
+        this.warnToDebugConsole(
+          nls.localize(
+            'idle_warn_text',
+            DEFAULT_IDLE_WARN1_MS / 60000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60000
+          )
+        );
+      }, DEFAULT_IDLE_WARN1_MS),
+      setTimeout(() => {
+        this.warnToDebugConsole(
+          nls.localize(
+            'idle_warn_text',
+            DEFAULT_IDLE_WARN2_MS / 60000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60000
+          )
+        );
+      }, DEFAULT_IDLE_WARN2_MS),
+      setTimeout(() => {
+        this.warnToDebugConsole(
+          nls.localize(
+            'idle_warn_text',
+            DEFAULT_IDLE_WARN3_MS / 60000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60000
+          )
+        );
+      }, DEFAULT_IDLE_WARN3_MS),
+      setTimeout(() => {
+        this.warnToDebugConsole(
+          nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000)
+        );
+        this.sendEvent(new TerminatedEvent());
+      }, DEFAULT_IDLE_TIMEOUT_MS)
+    );
+    return timers;
+  }
+
+  public clearIdleTimers(): void {
+    if (this.idleTimers) {
+      this.idleTimers.forEach(timer => clearTimeout(timer));
+      this.idleTimers = [];
+    }
+  }
+
+  public resetIdleTimer(): NodeJS.Timer[] {
+    this.clearIdleTimers();
+    this.idleTimers = this.getSessionIdleTimer();
+    return this.idleTimers;
   }
 
   protected async launchRequest(
@@ -623,6 +682,7 @@ export class ApexDebug extends LoggingDebugSession {
           nls.localize('session_started_text', sessionId)
         );
         this.sendEvent(new InitializedEvent());
+        this.resetIdleTimer();
       } else {
         this.errorToDebugConsole(
           `${nls.localize('command_error_help_text')}:${os.EOL}${sessionId}`
@@ -661,6 +721,9 @@ export class ApexDebug extends LoggingDebugSession {
       }
     } else {
       response.success = true;
+    }
+    if (response.success) {
+      this.clearIdleTimers();
     }
     this.sendResponse(response);
   }
@@ -740,6 +803,7 @@ export class ApexDebug extends LoggingDebugSession {
         response.message = error;
       }
     }
+    this.resetIdleTimer();
     this.sendResponse(response);
   }
 
@@ -1126,6 +1190,7 @@ export class ApexDebug extends LoggingDebugSession {
       );
       variables.sort(ApexVariable.compareVariables);
       response.body = { variables: variables };
+      this.resetIdleTimer();
       this.sendResponse(response);
     } catch (error) {
       this.log(
