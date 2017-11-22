@@ -39,6 +39,10 @@ import {
 } from '../../../src/commands';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
+  DEFAULT_IDLE_TIMEOUT_MS,
+  DEFAULT_IDLE_WARN1_MS,
+  DEFAULT_IDLE_WARN2_MS,
+  DEFAULT_IDLE_WARN3_MS,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
@@ -198,6 +202,7 @@ describe('Debugger adapter - unit', () => {
     let sessionEntryFilterSpy: sinon.SinonSpy;
     let sessionRequestFilterSpy: sinon.SinonSpy;
     let sessionConnectedSpy: sinon.SinonStub;
+    let resetIdleTimersSpy: sinon.SinonSpy;
     let breakpointHasLineNumberMappingSpy: sinon.SinonStub;
     let streamingSubscribeSpy: sinon.SinonStub;
     let orgInfoSpy: sinon.SinonStub;
@@ -223,6 +228,10 @@ describe('Debugger adapter - unit', () => {
       sessionRequestFilterSpy = sinon.spy(
         SessionService.prototype,
         'withRequestFilter'
+      );
+      resetIdleTimersSpy = sinon.spy(
+        ApexDebugForTest.prototype,
+        'resetIdleTimer'
       );
       orgInfoSpy = sinon
         .stub(ForceOrgDisplay.prototype, 'getOrgInfo')
@@ -253,6 +262,7 @@ describe('Debugger adapter - unit', () => {
       sessionEntryFilterSpy.restore();
       sessionRequestFilterSpy.restore();
       sessionConnectedSpy.restore();
+      resetIdleTimersSpy.restore();
       streamingSubscribeSpy.restore();
       breakpointHasLineNumberMappingSpy.restore();
       orgInfoSpy.restore();
@@ -297,6 +307,7 @@ describe('Debugger adapter - unit', () => {
       expect(sessionRequestFilterSpy.getCall(0).args).to.have.same.members([
         'RUN_TESTS_SYNCHRONOUS,EXECUTE_ANONYMOUS'
       ]);
+      expect(resetIdleTimersSpy.calledOnce).to.equal(true);
     });
 
     it('Should not launch if ApexDebuggerSession object is not accessible', async () => {
@@ -328,6 +339,7 @@ describe('Debugger adapter - unit', () => {
       expect(
         (adapter.getEvents()[0] as OutputEvent).body.output
       ).to.have.string('Try again');
+      expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
     it('Should not launch if streaming service errors out', async () => {
@@ -350,6 +362,7 @@ describe('Debugger adapter - unit', () => {
       expect(sessionStartSpy.called).to.equal(false);
       expect(adapter.getResponse(0).success).to.equal(false);
       expect(adapter.getEvents().length).to.equal(0);
+      expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
     it('Should not launch without line number mapping', async () => {
@@ -370,6 +383,7 @@ describe('Debugger adapter - unit', () => {
         nls.localize('session_language_server_error_text')
       );
       expect(adapter.getEvents().length).to.equal(0);
+      expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
     it('Should configure tracing with boolean', async () => {
@@ -504,11 +518,99 @@ describe('Debugger adapter - unit', () => {
     });
   });
 
+  describe('Idle session', () => {
+    let clock: sinon.SinonFakeTimers;
+
+    beforeEach(() => {
+      adapter = new ApexDebugForTest(
+        new SessionService(),
+        new StreamingService(),
+        new BreakpointService(),
+        new RequestService()
+      );
+      clock = sinon.useFakeTimers();
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('Should clear idle timers', () => {
+      adapter.getIdleTimers().push(
+        setTimeout(() => {
+          // Do nothing
+        }, 10000)
+      );
+
+      adapter.clearIdleTimers();
+
+      expect(adapter.getIdleTimers().length).to.equal(0);
+    });
+
+    it('Should create idle timers', () => {
+      adapter.resetIdleTimer();
+
+      setTimeout(() => {
+        expect(adapter.getEvents()[0].event).to.equal('output');
+        expect(
+          (adapter.getEvents()[0] as OutputEvent).body.output
+        ).to.have.string(
+          nls.localize(
+            'idle_warn_text',
+            DEFAULT_IDLE_WARN1_MS / 60000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60000
+          )
+        );
+      }, DEFAULT_IDLE_WARN1_MS);
+      clock.tick(DEFAULT_IDLE_WARN1_MS + 1);
+
+      setTimeout(() => {
+        expect(adapter.getEvents()[1].event).to.equal('output');
+        expect(
+          (adapter.getEvents()[1] as OutputEvent).body.output
+        ).to.have.string(
+          nls.localize(
+            'idle_warn_text',
+            DEFAULT_IDLE_WARN2_MS / 60000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60000
+          )
+        );
+      }, DEFAULT_IDLE_WARN2_MS);
+      clock.tick(DEFAULT_IDLE_WARN2_MS + 1);
+
+      setTimeout(() => {
+        expect(adapter.getEvents()[2].event).to.equal('output');
+        expect(
+          (adapter.getEvents()[2] as OutputEvent).body.output
+        ).to.have.string(
+          nls.localize(
+            'idle_warn_text',
+            DEFAULT_IDLE_WARN3_MS / 60000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60000
+          )
+        );
+      }, DEFAULT_IDLE_WARN3_MS);
+      clock.tick(DEFAULT_IDLE_WARN3_MS + 1);
+
+      setTimeout(() => {
+        expect(adapter.getEvents()[3].event).to.equal('output');
+        expect(
+          (adapter.getEvents()[3] as OutputEvent).body.output
+        ).to.have.string(
+          nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000)
+        );
+        expect(adapter.getEvents()[4].event).to.equal('terminated');
+      }, DEFAULT_IDLE_TIMEOUT_MS);
+      clock.tick(DEFAULT_IDLE_TIMEOUT_MS + 1);
+    });
+  });
+
   describe('Disconnect', () => {
     let sessionStopSpy: sinon.SinonStub;
     let sessionConnectedSpy: sinon.SinonStub;
     let streamingDisconnectSpy: sinon.SinonStub;
     let breakpointClearSpy: sinon.SinonSpy;
+    let clearIdleTimersSpy: sinon.SinonSpy;
     let response: DebugProtocol.DisconnectResponse;
     let args: DebugProtocol.DisconnectArguments;
 
@@ -527,6 +629,10 @@ describe('Debugger adapter - unit', () => {
         BreakpointService.prototype,
         'clearSavedBreakpoints'
       );
+      clearIdleTimersSpy = sinon.spy(
+        ApexDebugForTest.prototype,
+        'clearIdleTimers'
+      );
       response = {
         command: '',
         success: true,
@@ -544,6 +650,7 @@ describe('Debugger adapter - unit', () => {
       sessionConnectedSpy.restore();
       streamingDisconnectSpy.restore();
       breakpointClearSpy.restore();
+      clearIdleTimersSpy.restore();
     });
 
     it('Should not use session service if not connected', async () => {
@@ -556,6 +663,7 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getResponse(0)).to.deep.equal(response);
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
       expect(breakpointClearSpy.called).to.equal(false);
+      expect(clearIdleTimersSpy.calledOnce).to.equal(true);
     });
 
     it('Should try to disconnect and stop', async () => {
@@ -576,6 +684,7 @@ describe('Debugger adapter - unit', () => {
       ).to.have.string(nls.localize('session_terminated_text', sessionId));
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
       expect(breakpointClearSpy.called).to.equal(false);
+      expect(clearIdleTimersSpy.calledOnce).to.equal(true);
     });
 
     it('Should try to disconnect and not stop', async () => {
@@ -601,6 +710,7 @@ describe('Debugger adapter - unit', () => {
       ).to.have.string('Try again');
       expect(streamingDisconnectSpy.calledOnce).to.equal(true);
       expect(breakpointClearSpy.called).to.equal(false);
+      expect(clearIdleTimersSpy.calledOnce).to.equal(true);
     });
   });
 
