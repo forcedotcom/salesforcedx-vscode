@@ -29,14 +29,14 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-const APEX_TRIGGER_EXTENSION = '.cls';
+const APEX_TRIGGER_EXTENSION = '.trigger';
 
-class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
+class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_class_create_text'))
+      .withDescription(nls.localize('force_apex_trigger_create_text'))
       .withArg('force:apex:trigger:create')
       .withFlag('--triggername', data.fileName)
       .withFlag('--outputdir', data.outputdir)
@@ -94,7 +94,7 @@ export async function forceApexTriggerCreate(explorerDir?: any) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceApexClassCreateExecutor(),
+    new ForceApexTriggerCreateExecutor(),
     filePathExistsChecker
   );
   commandlet.run();
