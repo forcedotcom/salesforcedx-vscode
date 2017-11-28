@@ -106,6 +106,10 @@
         {
           "command": "sfdx.force.lightning.interface.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.trigger.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
       "commandPalette": [
@@ -227,6 +231,10 @@
         },
         {
           "command": "sfdx.force.project.create"
+        },
+        {
+          "command": "sfdx.force.apex.class.create",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -350,6 +358,10 @@
       {
         "command": "sfdx.force.project.create",
         "title": "%force_project_create_text%"
+      },
+      {
+        "command": "sfdx.force.apex.trigger.create",
+        "title": "%force_apex_trigger_create_text%"
       }
     ],
     "configuration": {
