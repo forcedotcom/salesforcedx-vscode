@@ -1,3 +1,10 @@
+## 41.9.0 - November 30, 2017
+### Added
+#### salesforcedx-vscode-apex-debugger
+
+* Configure exception breakpoints ([PR #218](https://github.com/forcedotcom/salesforcedx-vscode/pull/218))
+* Timeout for idle debugger session ([PR #221](https://github.com/forcedotcom/salesforcedx-vscode/pull/221))
+
 ## 41.8.1 - November 16, 2017
 ### Fixed
 #### salesforcedx-vscode-core
