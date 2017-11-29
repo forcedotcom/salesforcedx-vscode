@@ -233,7 +233,7 @@
           "command": "sfdx.force.project.create"
         },
         {
-          "command": "sfdx.force.apex.class.create",
+          "command": "sfdx.force.apex.trigger.create",
           "when": "sfdx:project_opened"
         }
       ]
