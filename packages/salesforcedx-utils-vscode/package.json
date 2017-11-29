@@ -31,7 +31,7 @@
     "typescript": "2.4.0"
   },
   "engines": {
-    "vscode": "^1.19.0"
+    "vscode": "^1.17.0"
   },
   "scripts": {
     "vscode:package": "npm prune --production",
