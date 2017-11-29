@@ -67,7 +67,9 @@ To make the Apex Debugger halt execution when an exception is thrown during a de
 
 To set an exception breakpoint, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) to open the command palette, then select **Apex Debug: Configure Exceptions**. The list of available exceptions includes the [exceptions in the `System` namespace](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) and the Apex classes in your project that extend `Exception`. Select an exception from the list, and then select **Always break**. 
 
-To see your exception breakpoints, run **Apex Debug: Configure Exceptions**. The top of the list shows the exception classes that have active breakpoints, labeled `Always break`. To remove an exception breakpoint, select an exception from the list and then select **Never break**.  
+To see your exception breakpoints, run **Apex Debug: Configure Exceptions**. The top of the list shows the exception classes that have active breakpoints, labeled `Always break`. To remove an exception breakpoint, select an exception from the list and then select **Never break**.
+
+When you close VS Code, all your exception breakpoints are removed. (Your line breakpoints, however, remain.)
 
 ## Whitelist Users and Request Types
 To filter which requests are debugged, edit your `launch.json` file to set up whitelisting. If you don’t use whitelisting, all events in your org trigger debugging during a debugging session. Whitelist users or request types to focus only on the events that are relevant to the problem you’re debugging.
