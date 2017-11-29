@@ -25,6 +25,7 @@ env:
     - SFDX_AUTOUPDATE_DISABLE=true
     - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
     - SFDX_DOMAIN_RETRY=300
+    - CODE_VERSION=1.19.0-insider
 
 os:
   - linux
