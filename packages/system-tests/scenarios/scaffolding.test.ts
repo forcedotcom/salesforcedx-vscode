@@ -67,7 +67,7 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  it('Should create Apex trigger', async () => {
+  xit('Should create Apex trigger', async () => {
     // Invoke SFDX: Create Apex Trigger command by name
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Apex Trigger');

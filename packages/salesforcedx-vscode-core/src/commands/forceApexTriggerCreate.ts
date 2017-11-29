@@ -31,7 +31,7 @@ import {
 
 const APEX_TRIGGER_EXTENSION = '.trigger';
 
-class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
+export class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
   public build(data: DirFileNameSelection): Command {
