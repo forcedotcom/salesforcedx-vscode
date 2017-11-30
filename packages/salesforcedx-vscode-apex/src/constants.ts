@@ -6,3 +6,4 @@
  */
 
 export const DEBUGGER_LINE_BREAKPOINTS = 'debugger/lineBreakpoints';
+export const DEBUGGER_EXCEPTION_BREAKPOINTS = 'debugger/exceptionBreakpoints';

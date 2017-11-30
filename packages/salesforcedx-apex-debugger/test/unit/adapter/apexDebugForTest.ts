@@ -131,11 +131,11 @@ export class ApexDebugForTest extends ApexDebug {
     return super.stackTraceRequest(response, args);
   }
 
-  public customRequest(
+  public async customRequest(
     command: string,
     response: DebugProtocol.Response,
     args: any
-  ): void {
+  ): Promise<void> {
     return super.customRequest(command, response, args);
   }
 
@@ -201,5 +201,9 @@ export class ApexDebugForTest extends ApexDebug {
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
     return super.variablesRequest(response, args);
+  }
+
+  public getIdleTimers(): NodeJS.Timer[] {
+    return this.idleTimers;
   }
 }

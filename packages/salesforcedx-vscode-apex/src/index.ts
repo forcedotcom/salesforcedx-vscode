@@ -7,7 +7,10 @@
 
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
-import { DEBUGGER_LINE_BREAKPOINTS } from './constants';
+import {
+  DEBUGGER_EXCEPTION_BREAKPOINTS,
+  DEBUGGER_LINE_BREAKPOINTS
+} from './constants';
 import * as languageServer from './languageServer';
 
 let languageClient: LanguageClient | undefined;
@@ -18,7 +21,8 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(handle);
 
   const exportedApi = {
-    getLineBreakpointInfo
+    getLineBreakpointInfo,
+    getExceptionBreakpointInfo
   };
   return exportedApi;
 }
@@ -27,6 +31,14 @@ async function getLineBreakpointInfo(): Promise<{}> {
   let response = {};
   if (languageClient) {
     response = await languageClient.sendRequest(DEBUGGER_LINE_BREAKPOINTS);
+  }
+  return Promise.resolve(response);
+}
+
+async function getExceptionBreakpointInfo(): Promise<{}> {
+  let response = {};
+  if (languageClient) {
+    response = await languageClient.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS);
   }
   return Promise.resolve(response);
 }

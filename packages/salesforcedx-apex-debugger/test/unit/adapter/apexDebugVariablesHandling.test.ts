@@ -928,6 +928,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
   describe('variablesRequest', () => {
     let adapter: ApexDebugForTest;
+    let resetIdleTimersSpy: sinon.SinonSpy;
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(
@@ -942,6 +943,14 @@ describe('Debugger adapter variable handling - unit', () => {
         accessToken: '123'
       } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
+      resetIdleTimersSpy = sinon.spy(
+        ApexDebugForTest.prototype,
+        'resetIdleTimer'
+      );
+    });
+
+    afterEach(() => {
+      resetIdleTimersSpy.restore();
     });
 
     it('Should return no variables for unknown variablesReference', async () => {
@@ -964,6 +973,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body).to.be.ok;
       expect(response.body.variables).to.be.ok;
       expect(response.body.variables.length).to.equal(0);
+      expect(resetIdleTimersSpy.called).to.equal(false);
     });
 
     it('Should return variables for known variablesReference', async () => {
@@ -993,6 +1003,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(response.body.variables).to.be.ok;
       expect(response.body.variables.length).to.equal(2);
       expect(response.body.variables).to.deep.equal(variables);
+      expect(resetIdleTimersSpy.calledOnce).to.equal(true);
     });
 
     it('Should return no variables when expand errors out', async () => {
@@ -1016,6 +1027,7 @@ describe('Debugger adapter variable handling - unit', () => {
       ) as DebugProtocol.VariablesResponse;
       expect(response.success).to.equal(true);
       expect(response.body.variables.length).to.equal(0);
+      expect(resetIdleTimersSpy.called).to.equal(false);
     });
   });
 });
