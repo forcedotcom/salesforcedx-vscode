@@ -30,3 +30,4 @@ export { forceConfigList } from './forceConfigList';
 export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
 export { forceProjectCreate } from './forceProjectCreate';
+export { forceApexTriggerCreate } from './forceApexTriggerCreate';
