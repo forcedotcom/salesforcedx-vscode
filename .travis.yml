@@ -51,8 +51,6 @@ before_install:
       export PATH=./sfdx/$(pwd):$PATH
       travis_retry sfdx update
       export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
-      # https://github.com/Microsoft/vscode-extension-vscode/issues/88
-      export CODE_DOWNLOAD_URL=https://vscode-update.azurewebsites.net/1.19.0-insider/linux-x64/insider
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
