@@ -16,6 +16,7 @@ notifications:
 matrix:
   allow_failures:
     - os: linux
+    - os: osx
   fast_finish: true
 
 env:
