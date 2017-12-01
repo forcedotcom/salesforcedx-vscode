@@ -29,7 +29,7 @@
     "source-map-support": "^0.4.15",
     "spectron": "^3.7.2",
     "typescript": "2.4.0",
-    "vscode": "1.1.2"
+    "vscode": "1.1.8"
   },
   "scripts": {
     "compile": "tsc -p ./",
