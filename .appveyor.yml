@@ -70,5 +70,5 @@ test_script:
 
 on_finish:
   - del C:\projects\devhub.key
-  - codecov
+  - codecov --disable=gcov
  
