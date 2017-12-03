@@ -24,6 +24,43 @@ describe('SObject faux class generator', function() {
     }
   });
 
+  it('Should generate a faux class with a proper header comment', async () => {
+    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
+    const closeHeader = ' ], "childRelationships": [] }';
+
+    const sobject1 = `${fieldsHeader}${closeHeader}`;
+
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const classText = fs.readFileSync(classPath, 'utf8');
+    expect(classText).to.include(
+      '// This file is generated as an Apex representation'
+    );
+  });
+
+  it('Should generate a faux class as read-only', async () => {
+    const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
+    const closeHeader = ' ], "childRelationships": [] }';
+
+    const sobject1 = `${fieldsHeader}${closeHeader}`;
+
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = await gen.generateFauxClass(
+      sobjectFolder,
+      JSON.parse(sobject1)
+    );
+    expect(fs.existsSync(classPath));
+    const stat = fs.lstatSync(classPath);
+    const expectedMode = parseInt('100444', 8);
+    expect(stat.mode).to.equal(expectedMode);
+  });
+
   it('Should generate a faux class with all types of fields that can be in custom SObjects', async () => {
     const fieldsHeader = '{ "name": "Custom__c", "fields": [ ';
     const closeHeader = ' ], "childRelationships": [] }';

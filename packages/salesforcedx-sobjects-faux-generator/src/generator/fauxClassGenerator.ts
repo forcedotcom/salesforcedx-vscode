@@ -264,8 +264,9 @@ export class FauxClassGenerator {
       fs.mkdirSync(folderPath);
     }
     const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
-    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject));
-
+    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
+      mode: 0o444
+    });
     return fauxClassPath;
   }
 
@@ -327,12 +328,22 @@ export class FauxClassGenerator {
       }
     );
 
+    const headerComment = `\/\/ This file is generated as an Apex representation of the
+\/\/     corresponding sObject and its fields.
+\/\/ This read-only file is used by the Apex Language Server to
+\/\/     provide code smartness, and is deleted each time you
+\/\/     refresh your sObject definitions.
+\/\/ To edit your sObjects and their fields, edit the corresponding
+\/\/     .object-meta.xml and .field-meta.xml files.
+
+`;
+
     const indentAndModifier = '    global ';
     const classDeclaration = `global class ${className} {${EOL}`;
     const declarationLines = declarations.join(`;${EOL}${indentAndModifier}`);
     const classConstructor = `${indentAndModifier}${className} () ${EOL}    {${EOL}    }${EOL}`;
 
-    const generatedClass = `${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
+    const generatedClass = `${headerComment}${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
 
     return generatedClass;
   }
