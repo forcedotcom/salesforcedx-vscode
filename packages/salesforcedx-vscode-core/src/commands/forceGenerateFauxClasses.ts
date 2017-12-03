@@ -23,6 +23,7 @@ import {
 } from './commands';
 
 class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
+  private static isActive = false;
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))
@@ -31,6 +32,13 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
+    if (ForceGenerateFauxClassesExecutor.isActive) {
+      vscode.window.showErrorMessage(
+        nls.localize('no_refresh_if_currently_active')
+      );
+      return;
+    }
+    ForceGenerateFauxClassesExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -50,6 +58,7 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     } catch (e) {
       console.log('Generate error ' + e);
     }
+    ForceGenerateFauxClassesExecutor.isActive = false;
     return;
   }
 }
