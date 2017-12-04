@@ -108,6 +108,6 @@ export const messages = {
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
-  no_refresh_if_currently_active:
-    'Refresh is already active.  Cancel the existing task if there is a need to restart'
+  force_sobjects_no_refresh_if_already_active_error_text:
+    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.'
 };

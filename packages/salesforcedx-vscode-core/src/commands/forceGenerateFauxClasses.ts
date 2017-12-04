@@ -34,7 +34,7 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   public async execute(response: ContinueResponse<{}>): Promise<void> {
     if (ForceGenerateFauxClassesExecutor.isActive) {
       vscode.window.showErrorMessage(
-        nls.localize('no_refresh_if_currently_active')
+        nls.localize('force_sobjects_no_refresh_if_already_active_error_text')
       );
       return;
     }
