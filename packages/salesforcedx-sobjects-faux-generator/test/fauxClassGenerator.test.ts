@@ -2,6 +2,7 @@ import * as chai from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { FauxClassGenerator } from '../src/generator/fauxClassGenerator';
+import { nls } from '../src/messages';
 
 const expect = chai.expect;
 
@@ -39,7 +40,7 @@ describe('SObject faux class generator', function() {
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include(
-      '// This file is generated as an Apex representation'
+      nls.localize('class_header_generated_comment')
     );
   });
 
