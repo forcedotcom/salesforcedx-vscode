@@ -29,19 +29,20 @@
     "source-map-support": "^0.4.15",
     "spectron": "^3.7.2",
     "typescript": "2.4.0",
-    "vscode": "1.1.8"
+    "vscode": "1.1.10"
   },
   "scripts": {
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
+    "clean":
+      "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
+    "pretest":
+      "npm run compile && node ../../scripts/download-vscode-for-system-tests",
     "test": "node out/src/main.js",
-    "coverage": "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
+    "coverage":
+      "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
   },
-  "activationEvents": [
-    "*"
-  ]
+  "activationEvents": ["*"]
 }
