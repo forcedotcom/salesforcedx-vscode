@@ -108,11 +108,11 @@ for the actual vscode/bin/test source.
 
 ## Integration Tests that require the Salesforce server
 
-There are tests that require integration with the Salesforce server and expect default DevHub and prior authentication.
+There are tests that require integration with the Salesforce server.  These tests require prior authentication to have occurred and a default devhub to be set.
 These show up in several packages.   These tests are put under test/integration and named in the standard .test.ts pattern.  The
 package.json should have an entry like `"test:integration": "node ./node_modules/vscode/bin/test/integration"`.
 
-These can be run in the same way from the CLI using `npm run test:integration`.   Running npm run test will also run these.
+These can be run in the same way from the CLI using `npm run test:integration`.   Running `npm run test` will also run these.
 
 ## Unit Tests
 A module can also have an entry like `"test:unit": "node ./node_modules/vscode/bin/test/unit"`.   This is used for pure unit
