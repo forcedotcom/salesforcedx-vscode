@@ -27,6 +27,7 @@ These Salesforce CLI commands are available:
 * `force:apex:execute`: **SFDX: Execute Anonymous Apex with Currently Selected Text**
 * `force:apex:execute --apexcodefile`: **SFDX: Execute Anonymous Apex with Editor Contents**
 * `force:apex:test:run --resultformat human ...`: **SFDX: Invoke Apex Tests...**
+* `force:apex:trigger:create ...`: **SFDX: Create Apex Trigger**
 * `force:auth:web:login --setdefaultdevhubusername`: **SFDX: Authorize a Dev Hub**
 * `force:config:list`: **SFDX: List All Config Variables**
 * `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
