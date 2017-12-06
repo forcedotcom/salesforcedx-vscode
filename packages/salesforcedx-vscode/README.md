@@ -28,7 +28,7 @@ To use Salesforce Extensions for VS Code, install all the extensions in this ext
 * [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
    This extension supports Lightning component bundles. It uses the HTML language server from VS Code.
 * [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
-   This extension supports Visualforce pages and components. It uses the HTML language server from VS Code.  
+   This extension supports Visualforce pages and components. It uses the Visualforce Language Server and the HTML language server from VS Code.  
 
 For tips and tricks for working with Salesforce Extensions for VS Code, visit our [GitHub wiki](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Tips-and-Tricks).  
    
