@@ -108,20 +108,29 @@ for the actual vscode/bin/test source.
 
 ## Integration Tests that require the Salesforce server
 
-There are tests that require integration with the Salesforce server.  These tests require prior authentication to have occurred and a default devhub to be set.
-These show up in several packages.   These tests are put under test/integration and named in the standard .test.ts pattern.  The
-package.json should have an entry like `"test:integration": "node ./node_modules/vscode/bin/test/integration"`.
+There are tests that require integration with the Salesforce server. These tests
+require prior authentication to have occurred and a default devhub to be set.
+These show up in several packages. These tests are put under test/integration
+and named in the standard .test.ts pattern.  The package.json should have an
+entry like `"test:integration": "node
+./node_modules/vscode/bin/test/integration"`.
 
-These can be run in the same way from the CLI using `npm run test:integration`.   Running `npm run test` will also run these.
+These can be run in the same way from the CLI using `npm run test:integration`.
+Running `npm run test` will also run these.
 
 ## Unit Tests
-A module can also have an entry like `"test:unit": "node ./node_modules/vscode/bin/test/unit"`.   This is used for pure unit
-tests and for VS Code based tests discussed above.    It is a good pattern to have an entry of `"test:unit": "node ./node_modules/vscode/bin/test"` in the package.json for modules that don't have separate integration tests.   
+A module can also have an entry like `"test:unit": "node
+./node_modules/vscode/bin/test/unit"`. This is used for pure unit tests and for
+VS Code based tests discussed above. It is a good pattern to have an entry of
+`"test:unit": "node ./node_modules/vscode/bin/test"` in the package.json for
+modules that don't have separate integration tests.   
 
-These can be run using `npm run test:unit` for quick testing that doesn't require the scratch org and server.
+These can be run using `npm run test:unit` for quick testing that doesn't
+require the scratch org and server.
 
-Modules that have separate unit & integration tests can provide top level launch configurations for running those tests as well.  
-See the examples in launch.json for Apex Debugger configurations.
+Modules that have separate unit & integration tests can provide top level launch
+configurations for running those tests as well. See the examples in launch.json
+for Apex Debugger configurations.
 
 # System Tests with Spectron
 
