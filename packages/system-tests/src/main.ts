@@ -21,45 +21,66 @@ const testRunFolder = '.vscode-test';
 const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
 
 const version = process.env.CODE_VERSION || '*';
+const isInsiders = version === 'insiders';
 
-const darwinExecutable = path.join(
-  testRunFolderAbsolute,
-  'Visual Studio Code.app',
-  'Contents',
-  'MacOS',
-  'Electron'
-);
-let linuxExecutable = path.join(
-  testRunFolderAbsolute,
-  'VSCode-linux-x64',
-  'code'
-);
-const windowsExecutable = path.join(testRunFolderAbsolute, 'Code.exe');
+let windowsExecutable;
+let darwinExecutable;
+let linuxExecutable;
 
-if (
-  [
-    '0.10.1',
-    '0.10.2',
-    '0.10.3',
-    '0.10.4',
-    '0.10.5',
-    '0.10.6',
-    '0.10.7',
-    '0.10.8',
-    '0.10.9'
-  ].indexOf(version) >= 0
-) {
+if (isInsiders) {
+  windowsExecutable = path.join(testRunFolderAbsolute, 'Code - Insiders');
+  darwinExecutable = path.join(
+    testRunFolderAbsolute,
+    'Visual Studio Code - Insiders.app',
+    'Contents',
+    'MacOS',
+    'Electron'
+  );
   linuxExecutable = path.join(
     testRunFolderAbsolute,
     'VSCode-linux-x64',
-    'Code'
+    'code-insiders'
   );
+} else {
+  windowsExecutable = path.join(testRunFolderAbsolute, 'Code');
+  darwinExecutable = path.join(
+    testRunFolderAbsolute,
+    'Visual Studio Code.app',
+    'Contents',
+    'MacOS',
+    'Electron'
+  );
+  linuxExecutable = path.join(
+    testRunFolderAbsolute,
+    'VSCode-linux-x64',
+    'code'
+  );
+  if (
+    [
+      '0.10.1',
+      '0.10.2',
+      '0.10.3',
+      '0.10.4',
+      '0.10.5',
+      '0.10.6',
+      '0.10.7',
+      '0.10.8',
+      '0.10.9'
+    ].indexOf(version) >= 0
+  ) {
+    linuxExecutable = path.join(
+      testRunFolderAbsolute,
+      'VSCode-linux-x64',
+      'Code'
+    );
+  }
 }
 
-process.env.VSCODE_BINARY_PATH =
+const executable =
   process.platform === 'darwin'
     ? darwinExecutable
     : process.platform === 'win32' ? windowsExecutable : linuxExecutable;
+process.env.VSCODE_BINARY_PATH = executable;
 
 // SPECTRON MOCHA RUNNER
 ////////////////////////
