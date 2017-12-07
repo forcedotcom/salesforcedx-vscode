@@ -2,7 +2,10 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "lib": ["dom", "es6"],
+    "lib": [
+      "dom",
+      "es2016"
+    ],
     "sourceMap": true,
     "declaration": true,
     "moduleResolution": "node",
@@ -13,8 +16,15 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*", "*"]
+      "*": [
+        "node_modules/*",
+        "*"
+      ]
     }
   },
-  "exclude": ["node_modules", ".vscode-test", "out"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out"
+  ]
 }

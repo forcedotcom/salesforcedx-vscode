@@ -1,0 +1,55 @@
+{
+  "name": "salesforcedx-vscode-lwc",
+  "displayName": "Lightning Code Editor for Visual Studio Code",
+  "description": "Provides code-editing features for Lightning components",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "41.12.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.17.0"
+  },
+  "categories": ["Languages"],
+  "dependencies": {
+    "lwc-language-server": "0.11.0",
+    "vscode-languageclient": "3.5.0"
+  },
+  "devDependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "41.12.0",
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
+    "mocha": "3.2.0",
+    "sinon": "^2.3.6",
+    "typescript": "2.4.0",
+    "vscode": "1.1.8"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test":
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
+  },
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "main": "./out/src"
+}
