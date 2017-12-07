@@ -1,3 +1,15 @@
+## 41.11.0 - December 7, 2017
+### Added
+#### salesforcedx-vscode-core
+
+* SFDX: Create Apex Trigger (*Requires v41.11.0 of the Salesforce CLI*) ([PR #224](https://github.com/forcedotcom/salesforcedx-vscode/pull/224))
+
+### Fixed
+#### salesforcedx-vscode-core
+
+* Prevent running `SFDX: Refresh SObject Definitions` while it's already running ([PR #227](https://github.com/forcedotcom/salesforcedx-vscode/pull/227))
+* Add explanatory comment to the generated sObject faux classes ([PR #228](https://github.com/forcedotcom/salesforcedx-vscode/pull/228))
+
 ## 41.9.0 - November 30, 2017
 ### Added
 #### salesforcedx-vscode-apex-debugger
