@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.9.0",
+  "version": "41.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "41.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "41.9.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "41.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.11.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
@@ -41,7 +41,7 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
-    "vscode": "1.1.2"
+    "vscode": "1.1.8"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -105,6 +105,10 @@
         },
         {
           "command": "sfdx.force.lightning.interface.create",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.trigger.create",
           "when": "explorerResourceIsFolder && sfdx:project_opened"
         }
       ],
@@ -227,6 +231,10 @@
         },
         {
           "command": "sfdx.force.project.create"
+        },
+        {
+          "command": "sfdx.force.apex.trigger.create",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -350,6 +358,10 @@
       {
         "command": "sfdx.force.project.create",
         "title": "%force_project_create_text%"
+      },
+      {
+        "command": "sfdx.force.apex.trigger.create",
+        "title": "%force_apex_trigger_create_text%"
       }
     ],
     "configuration": {

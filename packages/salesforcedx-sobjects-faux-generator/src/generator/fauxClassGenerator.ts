@@ -264,8 +264,9 @@ export class FauxClassGenerator {
       fs.mkdirSync(folderPath);
     }
     const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
-    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject));
-
+    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
+      mode: 0o444
+    });
     return fauxClassPath;
   }
 
@@ -332,7 +333,9 @@ export class FauxClassGenerator {
     const declarationLines = declarations.join(`;${EOL}${indentAndModifier}`);
     const classConstructor = `${indentAndModifier}${className} () ${EOL}    {${EOL}    }${EOL}`;
 
-    const generatedClass = `${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
+    const generatedClass = `${nls.localize(
+      'class_header_generated_comment'
+    )}${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
 
     return generatedClass;
   }

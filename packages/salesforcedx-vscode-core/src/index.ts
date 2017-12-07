@@ -11,6 +11,7 @@ import {
   forceApexClassCreate,
   forceApexExecute,
   forceApexTestRun,
+  forceApexTriggerCreate,
   forceAuthWebLogin,
   forceConfigList,
   forceDataSoqlQuery,
@@ -169,6 +170,11 @@ function registerCommands(): vscode.Disposable {
     forceProjectCreate
   );
 
+  const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.trigger.create',
+    forceApexTriggerCreate
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -206,6 +212,7 @@ function registerCommands(): vscode.Disposable {
     forceOrgDisplayUsernameCmd,
     forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
+    forceApexTriggerCreateCmd,
     internalCancelCommandExecution
   );
 }

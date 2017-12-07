@@ -15,6 +15,7 @@ notifications:
 
 matrix:
   allow_failures:
+    - os: linux
     - os: osx
   fast_finish: true
 
@@ -30,7 +31,8 @@ os:
   - linux
   - osx
 
-osx_image: xcode9
+osx_image: xcode9.1
+dist: trusty
 
 addons:
   apt:
@@ -40,9 +42,9 @@ addons:
 before_install:
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
-      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
-      sh -e /etc/init.d/xvfb start;
-      sleep 3;
+      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0
+      sh -e /etc/init.d/xvfb start
+      sleep 3
       # install CLI
       echo Installing SFDX CLI Linux
       travis_retry wget -qO- $SFDX_URL_LINUX | tar xJf -
