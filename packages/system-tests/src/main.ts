@@ -28,7 +28,7 @@ let darwinExecutable;
 let linuxExecutable;
 
 if (isInsiders) {
-  windowsExecutable = path.join(testRunFolderAbsolute, 'Code - Insiders');
+  windowsExecutable = path.join(testRunFolderAbsolute, 'Code - Insiders.exe');
   darwinExecutable = path.join(
     testRunFolderAbsolute,
     'Visual Studio Code - Insiders.app',
@@ -42,7 +42,7 @@ if (isInsiders) {
     'code-insiders'
   );
 } else {
-  windowsExecutable = path.join(testRunFolderAbsolute, 'Code');
+  windowsExecutable = path.join(testRunFolderAbsolute, 'Code.exe');
   darwinExecutable = path.join(
     testRunFolderAbsolute,
     'Visual Studio Code.app',
