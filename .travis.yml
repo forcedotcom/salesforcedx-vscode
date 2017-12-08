@@ -92,3 +92,7 @@ script:
 
 after_script:
   - rm $SFDX_CI_KEY_LOCATION
+
+after_failure:
+  - find ./ -iname '*.log' -type f -print -exec cat '{}' \;
+  - find /home/travis/.npm/_logs/ -iname '*.log' -type f -print -exec cat '{}' \;
