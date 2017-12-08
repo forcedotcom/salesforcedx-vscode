@@ -7,3 +7,7 @@
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
 export const CLIENT_ID = 'sfdx-vscode';
+export const TERMINAL_INTEGRATED_ENV_WINDOWS =
+  'terminal.integrated.env.windows';
+export const TERMINAL_INTEGRATED_ENV_LINUX = 'terminal.integrated.env.linux';
+export const TERMINAL_INTEGRATED_ENV_MAC = 'terminal.integrated.env.osx';
