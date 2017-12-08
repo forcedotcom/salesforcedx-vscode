@@ -6,3 +6,4 @@
  */
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
+export const CLIENT_ID = 'sfdx-vscode';
