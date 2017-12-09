@@ -33,12 +33,7 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate
 } from './commands';
-import {
-  CLIENT_ID,
-  TERMINAL_INTEGRATED_ENV_LINUX,
-  TERMINAL_INTEGRATED_ENV_MAC,
-  TERMINAL_INTEGRATED_ENV_WINDOWS
-} from './constants';
+import { CLIENT_ID, TERMINAL_INTEGRATED_ENVS } from './constants';
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { taskViewService } from './statuses';
@@ -237,23 +232,12 @@ export async function activate(context: vscode.ExtensionContext) {
   // Set environment variable to add logging for VSCode API calls
   process.env.SFDX_SET_CLIENT_IDS = CLIENT_ID;
   const config = vscode.workspace.getConfiguration();
-  config.update(
-    TERMINAL_INTEGRATED_ENV_MAC,
-    { SFDX_SET_CLIENT_IDS: CLIENT_ID },
-    ConfigurationTarget.Global
-  );
 
-  config.update(
-    TERMINAL_INTEGRATED_ENV_LINUX,
-    { SFDX_SET_CLIENT_IDS: CLIENT_ID },
-    ConfigurationTarget.Global
-  );
-
-  config.update(
-    TERMINAL_INTEGRATED_ENV_WINDOWS,
-    { SFDX_SET_CLIENT_IDS: CLIENT_ID },
-    ConfigurationTarget.Global
-  );
+  TERMINAL_INTEGRATED_ENVS.forEach(env => {
+    const section: { [k: string]: any } = config.get(env)!;
+    section.SFDX_SET_CLIENT_IDS = CLIENT_ID;
+    config.update(env, section, ConfigurationTarget.Workspace);
+  });
 
   vscode.commands.executeCommand(
     'setContext',
