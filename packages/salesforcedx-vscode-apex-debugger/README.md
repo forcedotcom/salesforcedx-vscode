@@ -13,7 +13,7 @@ Before you set up the Apex Debugger, make sure that you have these essentials.
     * To purchase Apex Debugger sessions for Enterprise Edition orgs, or to purchase more sessions for orgs that already have allocated sessions, contact Salesforce.
 * [Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) v41.1.0 or later
 * [Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later
-* The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger) extensions (we suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack)
+* The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions (we suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack)
 
 ## Set Up the Apex Debugger
 The first time that you use the Apex Debugger in VS Code, complete these setup steps.
@@ -152,7 +152,7 @@ These entry points aren’t supported:
 * _[Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)_
 * _[Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)_
 * _Force.com IDE Developer Guide_: [Explore a Simple Debugging Puzzle](https://developer.salesforce.com/docs/atlas.en-us.eclipse.meta/eclipse/debugger_puzzle_parent.htm)
-* GitHub: [salesforcedx-vscode-apex-debugger](https://github.com/forcedotcom/salesforcedx-vscode-apex-debugger)
+* GitHub: [salesforcedx-vscode-apex-debugger](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger)
 
 ---
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.  
