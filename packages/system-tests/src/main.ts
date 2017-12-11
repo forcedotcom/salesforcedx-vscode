@@ -95,34 +95,19 @@ function runTests(): void {
   let proc: child_process.ChildProcess;
 
   if (process.env.DEBUG_SPECTRON) {
-    proc = child_process.spawn(process.execPath, [
-      '--inspect-brk',
-      path.join('out', 'src', 'mocha-runner.js')
-    ]);
+    proc = child_process.spawn(
+      process.execPath,
+      ['--inspect-brk', path.join('out', 'src', 'mocha-runner.js')],
+      { stdio: 'inherit' }
+    );
   } else {
-    proc = child_process.spawn(process.execPath, [
-      path.join('out', 'src', 'mocha-runner.js')
-    ]);
+    proc = child_process.spawn(
+      process.execPath,
+      [path.join('out', 'src', 'mocha-runner.js')],
+      { stdio: 'inherit' }
+    );
   }
 
-  proc.stdout.on('data', data => {
-    console.log(`[mocha-runner] ${data}`);
-  });
-  proc.stderr.on('data', data => {
-    console.log(`[mocha-runner] error: ${data}`);
-    const date = new Date().toLocaleString();
-    fs.appendFile(
-      `${tempFolder}/errors.log`,
-      `${date}: ${data.toString()}`,
-      err => {
-        if (err) {
-          throw new Error(
-            `Could not write stderr to errors.log with the following error: ${err}`
-          );
-        }
-      }
-    );
-  });
   proc.on('exit', code => {
     console.log(`[mocha-runner] Mocha Runner exited with code ${code}`);
     process.exit(code);
