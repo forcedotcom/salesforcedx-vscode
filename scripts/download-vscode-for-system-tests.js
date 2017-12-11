@@ -6,6 +6,14 @@ const shell = require('shelljs');
 
 if (shell.test('-e', '.vscode-test')) {
   // Already downloaded the instance of vscode-test
+  shell.echo(
+    'Using already downloaded instance in ' + shell.pwd() + '.vscode-test'
+  );
 } else {
+  shell.echo(
+    'Invoking ' +
+      shell.pwd() +
+      'node_modules/vscode/bin/test for downloading VS Code'
+  );
   shell.exec('node ./node_modules/vscode/bin/test');
 }
