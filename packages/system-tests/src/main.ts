@@ -12,8 +12,6 @@ import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const tempFolder = 'test_data';
-
 // VS CODE BINARY LOCATER
 /////////////////////////
 
