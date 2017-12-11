@@ -49,7 +49,11 @@ describe(TITLE, () => {
     await app.wait();
 
     // Enter terminal command
-    await common.type(`echo $${SFDX_SET_CLIENT_IDS}`);
+    if (process.platform == 'win32') {
+      await common.type(`echo %${SFDX_SET_CLIENT_IDS}%`);
+    } else {
+      await common.type(`echo $${SFDX_SET_CLIENT_IDS}`);
+    }
     await common.enter();
     await app.wait();
 
