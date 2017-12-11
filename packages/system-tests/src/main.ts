@@ -106,9 +106,10 @@ function runTests(): void {
   }
 
   proc.stdout.on('data', data => {
-    console.log(data.toString());
+    console.log(`[mocha-runner] ${data}`);
   });
   proc.stderr.on('data', data => {
+    console.log(`[mocha-runner] error: ${data}`);
     const date = new Date().toLocaleString();
     fs.appendFile(
       `${tempFolder}/errors.log`,
@@ -123,7 +124,12 @@ function runTests(): void {
     );
   });
   proc.on('exit', code => {
+    console.log(`[mocha-runner] Mocha Runner exited with code ${code}`);
     process.exit(code);
+  });
+  proc.on('error', err => {
+    console.log(`[mocha-runner] Error running Mocha Runner: ${err}`);
+    throw new Error(`Error running Mocha Runner: ${err}`);
   });
 }
 
