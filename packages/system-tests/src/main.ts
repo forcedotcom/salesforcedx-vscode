@@ -81,6 +81,11 @@ const executable =
     ? darwinExecutable
     : process.platform === 'win32' ? windowsExecutable : linuxExecutable;
 process.env.VSCODE_BINARY_PATH = executable;
+
+if (!fs.existsSync(executable) || !fs.statSync(executable).isFile) {
+  throw new Error(`VS Code executable not found: ${executable}`);
+}
+
 console.log(`Using VS Code executable: ${executable}`);
 
 // SPECTRON MOCHA RUNNER
