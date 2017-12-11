@@ -151,10 +151,11 @@ export class SpectronApplication {
     return new Promise(async (res, rej) => {
       while (true) {
         if (trial > this.pollTrials) {
+          await this.screenshot.capture();
           rej(
             `Could not retrieve the element in ${this.testRetry *
               this.pollTrials *
-              this.pollTimeout} seconds.`
+              this.pollTimeout} seconds. (${JSON.stringify(args)})`
           );
           break;
         }
@@ -163,7 +164,12 @@ export class SpectronApplication {
         try {
           result = await func.call(this.client, args, false);
           // tslint:disable-next-line:no-empty
-        } catch (e) {}
+        } catch (e) {
+          console.log(
+            `Error calling ${JSON.stringify(args)} :::: ${JSON.stringify(e)}`
+          );
+          await this.screenshot.capture();
+        }
 
         if (result && result !== '') {
           await this.screenshot.capture();
