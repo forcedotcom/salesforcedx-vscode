@@ -38,6 +38,8 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test":
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
+    "test:unit":
       "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
   },
   "nyc": {
