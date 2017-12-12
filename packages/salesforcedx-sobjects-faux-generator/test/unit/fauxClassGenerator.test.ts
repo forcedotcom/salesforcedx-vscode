@@ -1,8 +1,8 @@
 import * as chai from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import { FauxClassGenerator } from '../src/generator/fauxClassGenerator';
-import { nls } from '../src/messages';
+import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
+import { nls } from '../../src/messages';
 
 const expect = chai.expect;
 

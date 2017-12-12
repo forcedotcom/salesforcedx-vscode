@@ -263,6 +263,50 @@
         "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/**/*.js"
       ],
       "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch SObject Generator Unit Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "100000",
+        "--colors",
+        "--recursive",
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/unit"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/**/*.js"
+      ],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch SObject Generator Integration Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "100000",
+        "--colors",
+        "--recursive",
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/integration"
+      ],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/out/test/**/*.js"
+      ],
+      "preLaunchTask": "Compile"
     }
   ],
   "compounds": [
