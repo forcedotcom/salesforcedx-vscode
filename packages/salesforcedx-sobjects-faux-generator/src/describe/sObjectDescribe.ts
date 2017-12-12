@@ -11,6 +11,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { xhr, XHROptions, XHRResponse } from 'request-light';
+import { CLIENT_ID } from '../constants';
 
 export interface SObject {
   actionOverrides: any[];
@@ -244,7 +245,8 @@ export class SObjectDescribe {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth ${this.accessToken}`,
-        'User-Agent': 'salesforcedx-extension'
+        'User-Agent': 'salesforcedx-extension',
+        'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
     };
 
@@ -330,7 +332,8 @@ export class SObjectDescribe {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `OAuth ${this.accessToken}`,
-        'User-Agent': 'salesforcedx-extension'
+        'User-Agent': 'salesforcedx-extension',
+        'Sforce-Call-Options': `client=${CLIENT_ID}`
       },
       data: JSON.stringify(batchRequest)
     };

@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { ConfigurationTarget } from 'vscode';
 import {
   forceAliasList,
   forceApexClassCreate,
@@ -32,6 +33,11 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate
 } from './commands';
+import {
+  CLIENT_ID,
+  SFDX_CLIENT_ENV_VAR,
+  TERMINAL_INTEGRATED_ENVS
+} from './constants';
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { taskViewService } from './statuses';
@@ -226,6 +232,16 @@ export async function activate(context: vscode.ExtensionContext) {
     const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
   }
+
+  // Set environment variable to add logging for VSCode API calls
+  process.env[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
+  const config = vscode.workspace.getConfiguration();
+
+  TERMINAL_INTEGRATED_ENVS.forEach(env => {
+    const section: { [k: string]: any } = config.get(env)!;
+    section[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
+    config.update(env, section, ConfigurationTarget.Workspace);
+  });
 
   vscode.commands.executeCommand(
     'setContext',
