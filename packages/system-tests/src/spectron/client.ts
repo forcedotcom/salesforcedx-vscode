@@ -180,4 +180,18 @@ export class SpectronClient {
       }
     }
   }
+
+  public async getTerminalText(): Promise<string[]> {
+    const PANEL_SELECTOR = 'div[id="workbench.panel.terminal"]';
+    const XTERM_SELECTOR = `${PANEL_SELECTOR} .terminal-wrapper`;
+    return await this.spectron.client.selectorExecute(XTERM_SELECTOR, div => {
+      const xterm = (<any>(Array.isArray(div) ? div[0] : div)).xterm;
+      const buffer = xterm.buffer;
+      const lines: string[] = [];
+      for (let i = 0; i < buffer.lines.length; i++) {
+        lines.push(buffer.translateBufferLineToString(i, true));
+      }
+      return lines;
+    });
+  }
 }
