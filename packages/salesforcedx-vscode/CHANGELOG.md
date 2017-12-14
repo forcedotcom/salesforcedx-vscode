@@ -1,3 +1,9 @@
+## 41.12.0 - December 14, 2017
+### Added
+#### salesforcedx-vscode-core
+
+* Export SFDX_SET_CLIENT_IDS environment variable to the embedded terminal in VS Code, to help with logging ([PR #235](https://github.com/forcedotcom/salesforcedx-vscode/pull/235))
+
 ## 41.11.0 - December 7, 2017
 ### Added
 #### salesforcedx-vscode-core
