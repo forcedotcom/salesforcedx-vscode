@@ -51,7 +51,6 @@ before_install:
       export PATH=./sfdx/$(pwd):$PATH
       travis_retry sfdx update
       export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
-      export CODE_VERSION=insiders
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
