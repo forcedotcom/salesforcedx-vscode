@@ -45,7 +45,8 @@ export const messages = {
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
-  parameter_gatherer_enter_alias_name: 'Enter a scratch org alias',
+  parameter_gatherer_enter_alias_name:
+    'Enter a scratch org alias or use default alias',
   parameter_gatherer_enter_project_name: 'Enter project name',
 
   force_org_create_default_scratch_org_text:

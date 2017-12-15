@@ -48,7 +48,8 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 export class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
     const aliasInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_alias_name')
+      prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+      placeHolder: DEFAULT_ALIAS
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will default the alias to 'vscodeScratchOrg'
