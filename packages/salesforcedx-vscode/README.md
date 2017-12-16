@@ -39,6 +39,8 @@ To report issues with Salesforce Extensions for VS Code, visit us on [GitHub](ht
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 * _[Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)_
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
+* Dreamforce ’17 Session Video: [Getting Started In VS Code With Salesforce DX](https://www.salesforce.com/video/1768045/)
+* Dreamforce ’17 Session Video: [Visual Studio Code for Eclipse Users](https://www.salesforce.com/video/1774284/)
 * GitHub: [salesforcedx-vscode](https://github.com/forcedotcom/salesforcedx-vscode)
 
 ---
