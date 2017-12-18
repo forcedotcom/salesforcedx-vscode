@@ -35,7 +35,7 @@
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
-    "vscode": "1.1.8"
+    "vscode": "1.1.10"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",

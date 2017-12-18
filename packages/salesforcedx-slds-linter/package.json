@@ -27,7 +27,7 @@
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
     "typescript": "2.4.0",
-    "vscode": "1.1.8"
+    "vscode": "1.1.10"
   },
   "scripts": {
     "vscode:package": "npm prune --production",

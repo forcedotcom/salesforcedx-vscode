@@ -33,7 +33,7 @@
     "nyc": "^11.0.2",
     "shelljs": "^0.7.8",
     "typescript": "2.4.0",
-    "vscode": "1.1.8"
+    "vscode": "1.1.10"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
