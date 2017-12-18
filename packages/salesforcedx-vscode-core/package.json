@@ -370,10 +370,5 @@
       "type": "object",
       "title": "%feature_previews_title%"
     }
-  },
-  "__metadata": {
-    "id": "1d9d0701-6f65-4174-a1a6-5720ffa59b61",
-    "publisherDisplayName": "Salesforce",
-    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea"
   }
 }

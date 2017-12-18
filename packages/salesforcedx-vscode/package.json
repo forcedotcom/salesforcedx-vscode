@@ -34,10 +34,5 @@
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-lightning",
     "salesforce.salesforcedx-vscode-visualforce"
-  ],
-  "__metadata": {
-    "id": "d35d7d8d-7504-48d6-bdfd-8cfd4b6d50ae",
-    "publisherDisplayName": "Salesforce",
-    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea"
-  }
+  ]
 }

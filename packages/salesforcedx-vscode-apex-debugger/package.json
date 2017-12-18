@@ -169,10 +169,5 @@
         "title": "%exception_breakpoint_command_text%"
       }
     ]
-  },
-  "__metadata": {
-    "id": "20fb552a-4c08-44e4-b441-95ccffcc7a2b",
-    "publisherDisplayName": "Salesforce",
-    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea"
   }
 }
