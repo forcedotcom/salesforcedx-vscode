@@ -1,44 +1,43 @@
 {
-	"name": "salesforcedx-vscode",
-	"displayName": "Salesforce Extensions for VS Code",
-	"description": "Collection of extensions for the Salesforce DX development flow",
-	"qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
-	"bugs": {
-		"url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
-	},
-	"repository": {
-		"url": "https://github.com/forcedotcom/salesforcedx-vscode"
-	},
-	"icon": "images/icon.png",
-	"galleryBanner": {
-		"color": "#ECECEC",
-		"theme": "light"
-	},
-	"version": "41.12.0",
-	"publisher": "salesforce",
-	"license": "BSD-3-Clause",
-	"engines": {
-		"vscode": "^1.17.0"
-	},
-	"scripts": {
-		"vscode:prepublish": "npm prune --production",
-		"vscode:package": "vsce package",
-		"vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-		"vscode:publish": "node ../../scripts/publish-vsix.js"
-	},
-	"categories": [
-		"Extension Packs"
-	],
-	"extensionDependencies": [
-		"salesforce.salesforcedx-vscode-apex",
-		"salesforce.salesforcedx-vscode-apex-debugger",
-		"salesforce.salesforcedx-vscode-core",
-		"salesforce.salesforcedx-vscode-lightning",
-		"salesforce.salesforcedx-vscode-visualforce"
-	],
-	"__metadata": {
-		"id": "d35d7d8d-7504-48d6-bdfd-8cfd4b6d50ae",
-		"publisherDisplayName": "Salesforce",
-		"publisherId": "656b996d-3c70-47b4-937e-e77c013faeea"
-	}
+  "name": "salesforcedx-vscode",
+  "displayName": "Salesforce Extensions for VS Code",
+  "description":
+    "Collection of extensions for the Salesforce DX development flow",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "41.12.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.17.0"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js"
+  },
+  "categories": ["Extension Packs"],
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-apex-debugger",
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-vscode-lightning",
+    "salesforce.salesforcedx-vscode-visualforce"
+  ],
+  "__metadata": {
+    "id": "d35d7d8d-7504-48d6-bdfd-8cfd4b6d50ae",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea"
+  }
 }
