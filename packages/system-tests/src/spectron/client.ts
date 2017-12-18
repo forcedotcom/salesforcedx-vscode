@@ -8,14 +8,24 @@
  */
 
 import { Application } from 'spectron';
+import { Element, RawResult } from 'webdriverio';
 import { Screenshot } from '../helpers/screenshot';
 
 /**
  * Abstracts the Spectron's WebdriverIO managed client property on the created Application instances.
  */
 export class SpectronClient {
-  constructor(private spectron: Application, private shot: Screenshot) {
-    // noop
+  // waitFor calls should not take more than 200 * 100 = 20 seconds to complete, excluding
+  // the time it takes for the actual retry call to complete
+  private retryCount: number;
+  private readonly retryDuration = 100; // in milliseconds
+
+  constructor(
+    private spectron: Application,
+    private shot: Screenshot,
+    waitTime: number = 20
+  ) {
+    this.retryCount = waitTime * 1000 / this.retryDuration;
   }
 
   public windowByIndex(index: number): Promise<any> {
@@ -169,6 +179,81 @@ export class SpectronClient {
 
   public getTitle(): string {
     return this.spectron.client.getTitle();
+  }
+
+  public async waitForElements(
+    selector: string,
+    accept: (result: Element[]) => boolean = result => result.length > 0
+  ): Promise<Element[]> {
+    return this.waitFor<RawResult<Element[]>>(
+      () => this.spectron.client.elements(selector),
+      result => accept(result.value),
+      `elements with selector ${selector}`
+    ).then(result => result.value);
+  }
+
+  public waitForElement(
+    selector: string,
+    accept: (result: Element | undefined) => boolean = result => !!result
+  ): Promise<Element> {
+    return this.waitFor<RawResult<Element>>(
+      () => this.spectron.client.element(selector),
+      result => accept(result ? result.value : void 0),
+      `element with selector ${selector}`
+    ).then(result => result.value);
+  }
+
+  private running = false;
+  public async waitFor<T>(
+    func: () => T | Promise<T | undefined>,
+    accept?: (result: T) => boolean | Promise<boolean>,
+    timeoutMessage?: string,
+    retryCount?: number
+  ): Promise<T>;
+  public async waitFor<T>(
+    func: () => T | Promise<T>,
+    accept: (result: T) => boolean | Promise<boolean> = result => !!result,
+    timeoutMessage?: string,
+    retryCount?: number
+  ): Promise<T> {
+    if (this.running) {
+      throw new Error('Not allowed to run nested waitFor calls!');
+    }
+
+    this.running = true;
+
+    try {
+      let trial = 1;
+      retryCount =
+        typeof retryCount === 'number' ? retryCount : this.retryCount;
+
+      while (true) {
+        if (trial > retryCount) {
+          await this.shot.capture('timeout');
+          throw new Error(
+            `${timeoutMessage}: Timed out after ${retryCount *
+              this.retryDuration /
+              1000} seconds.`
+          );
+        }
+
+        let result;
+        try {
+          result = await func();
+
+          if (accept(result)) {
+            return result;
+          }
+        } catch (e) {
+          console.log(e);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, this.retryDuration));
+        trial++;
+      }
+    } finally {
+      this.running = false;
+    }
   }
 
   private async screenshot(capture: boolean): Promise<any> {

@@ -9,7 +9,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application } from 'spectron';
+import { Application, SpectronClient as WebClient } from 'spectron';
 import { Screenshot } from '../helpers/screenshot';
 import { SpectronClient } from './client';
 
@@ -24,7 +24,7 @@ export class SpectronApplication {
   public client: SpectronClient;
 
   private spectron: Application;
-  private keybindings: any[];
+  private keybindings: any[] = [];
   private screenshot: Screenshot;
 
   private readonly pollTrials = 5;
@@ -44,17 +44,25 @@ export class SpectronApplication {
     // Prevent 'Getting Started' web page from opening on clean user-data-dir
     args.push('--skip-getting-started');
 
-    // Ensure that running over custom extensions directory, rather than picking up the one that was used by a tester previously
-    let extensionDirIsSet = false;
-    for (const arg of args) {
-      if (arg.startsWith('--extensions-dir')) {
-        extensionDirIsSet = true;
-        break;
-      }
-    }
-    if (!extensionDirIsSet) {
-      args.push(`--extensions-dir=${SALESFORCEDX_EXTENSIONS}`);
-    }
+    // Prevent 'Getting Started' web page from opening on clean user-data-dir
+    args.push('--skip-release-notes');
+
+    // Prevent Quick Open from closing when focus is stolen, this allows concurrent smoketest suite running
+    args.push('--sticky-quickopen');
+
+    // Disable telemetry
+    args.push('--disable-telemetry');
+
+    // Disable updates
+    args.push('--disable-updates');
+
+    // Disable crash reporter
+    // This seems to be the fix for the strange hangups in which Code stays unresponsive
+    // and tests finish badly with timeouts, leaving Code running in the background forever
+    args.push('--disable-crash-reporter');
+
+    // Ensure that running over extensions directory using this DX extension set
+    args.push(`--extensions-dir=${SALESFORCEDX_EXTENSIONS}`);
 
     this.spectron = new Application({
       port: WEBDRIVER_PORT,
@@ -100,15 +108,33 @@ export class SpectronApplication {
     );
   }
 
+  public get webclient(): WebClient {
+    if (!this.spectron) {
+      throw new Error('Application not started');
+    }
+
+    return this.spectron.client;
+  }
+
   public focusOnWindow(index: number): Promise<any> {
     return this.client.windowByIndex(index);
   }
 
-  private checkWindowReady(): Promise<any> {
-    return this.waitFor(
-      this.spectron.client.getHTML,
-      '[id="workbench.main.container"]'
-    );
+  private async checkWindowReady(): Promise<any> {
+    await this.webclient.waitUntilWindowLoaded();
+
+    // Pick the first workbench window here
+    const count = await this.webclient.getWindowCount();
+
+    for (let i = 0; i < count; i++) {
+      await this.webclient.windowByIndex(i);
+
+      if (/bootstrap\/index\.html/.test(await this.webclient.getUrl())) {
+        break;
+      }
+    }
+
+    await this.client.waitForElement('.monaco-workbench');
   }
 
   private getKeybindingPlatform(): string {
