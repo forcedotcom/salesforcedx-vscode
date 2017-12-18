@@ -33,7 +33,7 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.4.0",
-    "vscode": "1.1.5",
+    "vscode": "1.1.10",
     "vscode-debugadapter-testsupport": "1.24.0"
   },
   "scripts": {

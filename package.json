@@ -1,5 +1,7 @@
 {
   "devDependencies": {
+    "eslint": "4.13.1",
+    "eslint-config-prettier": "2.9.0",
     "istanbul": "1.1.0-alpha.1",
     "lerna": "2.4.0",
     "prettier": "1.6.0",
@@ -29,7 +31,9 @@
       "lerna exec -- shx rm -rf node_modules/@types && lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
-    "watch": "lerna run --parallel watch"
+    "watch": "lerna run --parallel watch",
+    "eslint-check":
+      "eslint --print-config .eslintrc.json | eslint-config-prettier-check"
   },
   "repository": {
     "type": "git",

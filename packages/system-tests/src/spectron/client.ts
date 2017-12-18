@@ -15,7 +15,7 @@ import { Screenshot } from '../helpers/screenshot';
  */
 export class SpectronClient {
   constructor(private spectron: Application, private shot: Screenshot) {
-    // noop
+    // empty
   }
 
   public windowByIndex(index: number): Promise<any> {

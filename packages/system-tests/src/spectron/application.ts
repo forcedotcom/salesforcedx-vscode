@@ -9,7 +9,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Application } from 'spectron';
+import { Application, SpectronClient as WebClient } from 'spectron';
 import { Screenshot } from '../helpers/screenshot';
 import { SpectronClient } from './client';
 
@@ -24,7 +24,7 @@ export class SpectronApplication {
   public client: SpectronClient;
 
   private spectron: Application;
-  private keybindings: any[];
+  private keybindings: any[] = [];
   private screenshot: Screenshot;
 
   private readonly pollTrials = 5;
@@ -44,17 +44,25 @@ export class SpectronApplication {
     // Prevent 'Getting Started' web page from opening on clean user-data-dir
     args.push('--skip-getting-started');
 
-    // Ensure that running over custom extensions directory, rather than picking up the one that was used by a tester previously
-    let extensionDirIsSet = false;
-    for (const arg of args) {
-      if (arg.startsWith('--extensions-dir')) {
-        extensionDirIsSet = true;
-        break;
-      }
-    }
-    if (!extensionDirIsSet) {
-      args.push(`--extensions-dir=${SALESFORCEDX_EXTENSIONS}`);
-    }
+    // Prevent 'Getting Started' web page from opening on clean user-data-dir
+    args.push('--skip-release-notes');
+
+    // Prevent Quick Open from closing when focus is stolen, this allows concurrent smoketest suite running
+    args.push('--sticky-quickopen');
+
+    // Disable telemetry
+    args.push('--disable-telemetry');
+
+    // Disable updates
+    args.push('--disable-updates');
+
+    // Disable crash reporter
+    // This seems to be the fix for the strange hangups in which Code stays unresponsive
+    // and tests finish badly with timeouts, leaving Code running in the background forever
+    args.push('--disable-crash-reporter');
+
+    // Ensure that running over extensions directory using this DX extension set
+    args.push(`--extensions-dir=${SALESFORCEDX_EXTENSIONS}`);
 
     this.spectron = new Application({
       port: WEBDRIVER_PORT,
@@ -63,6 +71,8 @@ export class SpectronApplication {
       chromeDriverArgs: chromeDriverArgs,
       startTimeout: 10000,
       requireName: 'nodeRequire'
+      // https://github.com/electron/spectron/pull/247
+      // deprecationWarnings: false
     });
     this.testRetry += 1; // avoid multiplication by 0 for wait times
     this.screenshot = new Screenshot(this, testName, testRetry);
@@ -77,7 +87,6 @@ export class SpectronApplication {
   public async start(): Promise<any> {
     try {
       await this.spectron.start();
-      await this.focusOnWindow(1); // focuses on main renderer window
       return this.checkWindowReady();
     } catch (err) {
       throw err;
@@ -100,15 +109,29 @@ export class SpectronApplication {
     );
   }
 
-  public focusOnWindow(index: number): Promise<any> {
-    return this.client.windowByIndex(index);
+  public get webclient(): WebClient {
+    if (!this.spectron) {
+      throw new Error('Application not started');
+    }
+
+    return this.spectron.client;
   }
 
-  private checkWindowReady(): Promise<any> {
-    return this.waitFor(
-      this.spectron.client.getHTML,
-      '[id="workbench.main.container"]'
-    );
+  private async checkWindowReady(): Promise<any> {
+    await this.webclient.waitUntilWindowLoaded(60000);
+
+    // Pick the first workbench window here
+    const count = await this.webclient.getWindowCount();
+
+    for (let i = 0; i < count; i++) {
+      await this.webclient.windowByIndex(i);
+
+      if (/bootstrap\/index\.html/.test(await this.webclient.getUrl())) {
+        break;
+      }
+    }
+
+    await this.waitFor(this.spectron.client.getHTML, '.monaco-workbench');
   }
 
   private getKeybindingPlatform(): string {
@@ -151,10 +174,11 @@ export class SpectronApplication {
     return new Promise(async (res, rej) => {
       while (true) {
         if (trial > this.pollTrials) {
+          await this.screenshot.capture();
           rej(
             `Could not retrieve the element in ${this.testRetry *
               this.pollTrials *
-              this.pollTimeout} seconds.`
+              this.pollTimeout} seconds. (${JSON.stringify(args)})`
           );
           break;
         }
@@ -163,7 +187,10 @@ export class SpectronApplication {
         try {
           result = await func.call(this.client, args, false);
           // tslint:disable-next-line:no-empty
-        } catch (e) {}
+        } catch (e) {
+          console.log(` Attempt #${trial}: ${args} :::: ${e}`);
+          await this.screenshot.capture();
+        }
 
         if (result && result !== '') {
           await this.screenshot.capture();
@@ -208,4 +235,29 @@ export class SpectronApplication {
           : key.charAt(0).toUpperCase() + key.slice(1);
     }
   }
+
+  public static removeWebdriverDeprecationWarning() {
+    /**
+     * WebDriverIO 4.8.0 outputs all kinds of "deprecation" warnings
+     * for common commands like `keys` and `moveToObject`.
+     * According to https://github.com/Codeception/CodeceptJS/issues/531,
+     * these deprecation warnings are for Firefox, and have no alternative replacements.
+     * Since we can't downgrade WDIO as suggested (it's Spectron's dep, not ours),
+     * we must suppress the warning with a classic monkey-patch.
+     *
+     * @see webdriverio/lib/helpers/depcrecationWarning.js
+     * @see https://github.com/webdriverio/webdriverio/issues/2076
+     */
+    // Filter out the following messages:
+    const wdioDeprecationWarning = /^WARNING: the "\w+" command will be (deprecated|depcrecated) soon..*/; // [sic]
+    // Monkey patch:
+    const warn = console.warn;
+    console.warn = function suppressWebdriverWarnings(message: string) {
+      if (wdioDeprecationWarning.test(message)) {
+        return;
+      }
+      warn.apply(console, arguments);
+    };
+  }
 }
+SpectronApplication.removeWebdriverDeprecationWarning();
