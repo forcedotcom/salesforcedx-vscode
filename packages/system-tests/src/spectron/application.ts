@@ -71,6 +71,8 @@ export class SpectronApplication {
       chromeDriverArgs: chromeDriverArgs,
       startTimeout: 10000,
       requireName: 'nodeRequire'
+      // https://github.com/electron/spectron/pull/247
+      // deprecationWarnings: false
     });
     this.testRetry += 1; // avoid multiplication by 0 for wait times
     this.screenshot = new Screenshot(this, testName, testRetry);
@@ -85,7 +87,6 @@ export class SpectronApplication {
   public async start(): Promise<any> {
     try {
       await this.spectron.start();
-      await this.focusOnWindow(1); // focuses on main renderer window
       return this.checkWindowReady();
     } catch (err) {
       throw err;
@@ -116,12 +117,8 @@ export class SpectronApplication {
     return this.spectron.client;
   }
 
-  public focusOnWindow(index: number): Promise<any> {
-    return this.client.windowByIndex(index);
-  }
-
   private async checkWindowReady(): Promise<any> {
-    await this.webclient.waitUntilWindowLoaded();
+    await this.webclient.waitUntilWindowLoaded(60000);
 
     // Pick the first workbench window here
     const count = await this.webclient.getWindowCount();
@@ -134,7 +131,7 @@ export class SpectronApplication {
       }
     }
 
-    await this.client.waitForElement('.monaco-workbench');
+    await this.waitFor(this.spectron.client.getHTML, '.monaco-workbench');
   }
 
   private getKeybindingPlatform(): string {
@@ -191,9 +188,7 @@ export class SpectronApplication {
           result = await func.call(this.client, args, false);
           // tslint:disable-next-line:no-empty
         } catch (e) {
-          console.log(
-            `Error calling ${JSON.stringify(args)} :::: ${JSON.stringify(e)}`
-          );
+          console.log(` Attempt #${trial}: ${args} :::: ${e}`);
           await this.screenshot.capture();
         }
 
@@ -240,4 +235,29 @@ export class SpectronApplication {
           : key.charAt(0).toUpperCase() + key.slice(1);
     }
   }
+
+  public static removeWebdriverDeprecationWarning() {
+    /**
+     * WebDriverIO 4.8.0 outputs all kinds of "deprecation" warnings
+     * for common commands like `keys` and `moveToObject`.
+     * According to https://github.com/Codeception/CodeceptJS/issues/531,
+     * these deprecation warnings are for Firefox, and have no alternative replacements.
+     * Since we can't downgrade WDIO as suggested (it's Spectron's dep, not ours),
+     * we must suppress the warning with a classic monkey-patch.
+     *
+     * @see webdriverio/lib/helpers/depcrecationWarning.js
+     * @see https://github.com/webdriverio/webdriverio/issues/2076
+     */
+    // Filter out the following messages:
+    const wdioDeprecationWarning = /^WARNING: the "\w+" command will be (deprecated|depcrecated) soon..*/; // [sic]
+    // Monkey patch:
+    const warn = console.warn;
+    console.warn = function suppressWebdriverWarnings(message: string) {
+      if (wdioDeprecationWarning.test(message)) {
+        return;
+      }
+      warn.apply(console, arguments);
+    };
+  }
 }
+SpectronApplication.removeWebdriverDeprecationWarning();

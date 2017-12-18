@@ -1,173 +1,188 @@
 {
-  "name": "salesforcedx-vscode-apex-debugger",
-  "displayName": "Apex Debugger for Visual Studio Code",
-  "description": "Provides debugging support for the Apex programming language",
-  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
-  "bugs": {
-    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
-  },
-  "repository": {
-    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
-  },
-  "icon": "images/icon.png",
-  "galleryBanner": {
-    "color": "#ECECEC",
-    "theme": "light"
-  },
-  "version": "41.12.0",
-  "publisher": "salesforce",
-  "license": "BSD-3-Clause",
-  "engines": {
-    "vscode": "^1.17.0"
-  },
-  "categories": ["Debuggers"],
-  "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "41.12.0",
-    "vscode-debugprotocol": "1.24.0"
-  },
-  "devDependencies": {
-    "@types/chai": "^4.0.0",
-    "@types/mocha": "2.2.38",
-    "@types/node": "^6.0.40",
-    "@types/sinon": "^2.3.2",
-    "chai": "^4.0.2",
-    "mocha": "3.2.0",
-    "sinon": "^2.3.6",
-    "vscode": "1.1.10"
-  },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-core"
-  ],
-  "scripts": {
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "compile": "tsc -p ./",
-    "lint": "tslint --project .",
-    "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "test:unit": "node ./node_modules/vscode/bin/test"
-  },
-  "activationEvents": ["onDebug", "workspaceContains:sfdx-project.json"],
-  "main": "./out/src",
-  "contributes": {
-    "breakpoints": [
-      {
-        "language": "apex"
-      }
-    ],
-    "configuration": {
-      "type": "object",
-      "title": "%configuration_title%",
-      "properties": {
-        "salesforcedx-vscode-apex-debugger.connectionTimeoutMs": {
-          "type": "number",
-          "default": 20000,
-          "minimum": 500,
-          "maximum": 120000,
-          "description": "%connection_timeout_ms_description%"
-        }
-      }
-    },
-    "debuggers": [
-      {
-        "type": "apex",
-        "label": "Apex Debugger",
-        "program":
-          "./node_modules/@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
-        "runtime": "node",
-        "languages": ["apex"],
-        "configurationSnippets": [
-          {
-            "label": "%launch_snippet_label_text%",
-            "description": "%launch_snippet_description_text%",
-            "body": {
-              "name": "%launch_snippet_name%",
-              "type": "apex",
-              "request": "launch",
-              "userIdFilter": [],
-              "requestTypeFilter": [],
-              "entryPointFilter": "",
-              "sfdxProject": "^\"\\${workspaceRoot}\""
-            }
-          }
-        ],
-        "configurationAttributes": {
-          "launch": {
-            "properties": {
-              "required": ["sfdxProject"],
-              "userIdFilter": {
-                "type": "array",
-                "description": "%user_id_filter_text%",
-                "default": [],
-                "items": {
-                  "type": "string"
-                }
-              },
-              "requestTypeFilter": {
-                "type": "array",
-                "description": "%request_type_filter_text%",
-                "default": [],
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "BATCH_APEX",
-                    "EXECUTE_ANONYMOUS",
-                    "FUTURE",
-                    "INBOUND_EMAIL_SERVICE",
-                    "INVOCABLE_ACTION",
-                    "LIGHTNING",
-                    "QUEUEABLE",
-                    "QUICK_ACTION",
-                    "REMOTE_ACTION",
-                    "REST",
-                    "RUN_TESTS_ASYNCHRONOUS",
-                    "RUN_TESTS_SYNCHRONOUS",
-                    "RUN_TESTS_DEPLOY",
-                    "SCHEDULED",
-                    "SOAP",
-                    "SYNCHRONOUS",
-                    "VISUALFORCE"
-                  ]
-                }
-              },
-              "entryPointFilter": {
-                "type": "string",
-                "description": "%entry_point_filter_text%",
-                "default": ""
-              },
-              "sfdxProject": {
-                "type": "string",
-                "description": "%sfdx_project_text%",
-                "default": "${workspaceRoot}"
-              },
-              "trace": {
-                "type": ["boolean", "string"],
-                "description": "%trace_text%",
-                "default": false
-              }
-            }
-          }
-        }
-      }
-    ],
-    "menus": {
-      "commandPalette": [
-        {
-          "command": "sfdx.debug.exception.breakpoint"
-        }
-      ]
-    },
-    "commands": [
-      {
-        "command": "sfdx.debug.exception.breakpoint",
-        "title": "%exception_breakpoint_command_text%"
-      }
-    ]
-  }
+	"name": "salesforcedx-vscode-apex-debugger",
+	"displayName": "Apex Debugger for Visual Studio Code",
+	"description": "Provides debugging support for the Apex programming language",
+	"qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+	"bugs": {
+		"url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+	},
+	"repository": {
+		"url": "https://github.com/forcedotcom/salesforcedx-vscode"
+	},
+	"icon": "images/icon.png",
+	"galleryBanner": {
+		"color": "#ECECEC",
+		"theme": "light"
+	},
+	"version": "41.12.0",
+	"publisher": "salesforce",
+	"license": "BSD-3-Clause",
+	"engines": {
+		"vscode": "^1.17.0"
+	},
+	"categories": [
+		"Debuggers"
+	],
+	"dependencies": {
+		"@salesforce/salesforcedx-apex-debugger": "41.12.0",
+		"vscode-debugprotocol": "1.24.0"
+	},
+	"devDependencies": {
+		"@types/chai": "^4.0.0",
+		"@types/mocha": "2.2.38",
+		"@types/node": "^6.0.40",
+		"@types/sinon": "^2.3.2",
+		"chai": "^4.0.2",
+		"mocha": "3.2.0",
+		"sinon": "^2.3.6",
+		"vscode": "1.1.10"
+	},
+	"extensionDependencies": [
+		"salesforce.salesforcedx-vscode-apex",
+		"salesforce.salesforcedx-vscode-core"
+	],
+	"scripts": {
+		"vscode:prepublish": "npm prune --production",
+		"vscode:package": "vsce package",
+		"vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+		"vscode:publish": "node ../../scripts/publish-vsix.js",
+		"compile": "tsc -p ./",
+		"lint": "tslint --project .",
+		"watch": "tsc -watch -p .",
+		"clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "node ./node_modules/vscode/bin/test",
+		"test:unit": "node ./node_modules/vscode/bin/test"
+	},
+	"activationEvents": [
+		"onDebug",
+		"workspaceContains:sfdx-project.json"
+	],
+	"main": "./out/src",
+	"contributes": {
+		"breakpoints": [
+			{
+				"language": "apex"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "%configuration_title%",
+			"properties": {
+				"salesforcedx-vscode-apex-debugger.connectionTimeoutMs": {
+					"type": "number",
+					"default": 20000,
+					"minimum": 500,
+					"maximum": 120000,
+					"description": "%connection_timeout_ms_description%"
+				}
+			}
+		},
+		"debuggers": [
+			{
+				"type": "apex",
+				"label": "Apex Debugger",
+				"program": "./node_modules/@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
+				"runtime": "node",
+				"languages": [
+					"apex"
+				],
+				"configurationSnippets": [
+					{
+						"label": "%launch_snippet_label_text%",
+						"description": "%launch_snippet_description_text%",
+						"body": {
+							"name": "%launch_snippet_name%",
+							"type": "apex",
+							"request": "launch",
+							"userIdFilter": [],
+							"requestTypeFilter": [],
+							"entryPointFilter": "",
+							"sfdxProject": "^\"\\${workspaceRoot}\""
+						}
+					}
+				],
+				"configurationAttributes": {
+					"launch": {
+						"properties": {
+							"required": [
+								"sfdxProject"
+							],
+							"userIdFilter": {
+								"type": "array",
+								"description": "%user_id_filter_text%",
+								"default": [],
+								"items": {
+									"type": "string"
+								}
+							},
+							"requestTypeFilter": {
+								"type": "array",
+								"description": "%request_type_filter_text%",
+								"default": [],
+								"items": {
+									"type": "string",
+									"enum": [
+										"BATCH_APEX",
+										"EXECUTE_ANONYMOUS",
+										"FUTURE",
+										"INBOUND_EMAIL_SERVICE",
+										"INVOCABLE_ACTION",
+										"LIGHTNING",
+										"QUEUEABLE",
+										"QUICK_ACTION",
+										"REMOTE_ACTION",
+										"REST",
+										"RUN_TESTS_ASYNCHRONOUS",
+										"RUN_TESTS_SYNCHRONOUS",
+										"RUN_TESTS_DEPLOY",
+										"SCHEDULED",
+										"SOAP",
+										"SYNCHRONOUS",
+										"VISUALFORCE"
+									]
+								}
+							},
+							"entryPointFilter": {
+								"type": "string",
+								"description": "%entry_point_filter_text%",
+								"default": ""
+							},
+							"sfdxProject": {
+								"type": "string",
+								"description": "%sfdx_project_text%",
+								"default": "${workspaceRoot}"
+							},
+							"trace": {
+								"type": [
+									"boolean",
+									"string"
+								],
+								"description": "%trace_text%",
+								"default": false
+							}
+						}
+					}
+				}
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "sfdx.debug.exception.breakpoint"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "sfdx.debug.exception.breakpoint",
+				"title": "%exception_breakpoint_command_text%"
+			}
+		]
+	},
+	"__metadata": {
+		"id": "20fb552a-4c08-44e4-b441-95ccffcc7a2b",
+		"publisherDisplayName": "Salesforce",
+		"publisherId": "656b996d-3c70-47b4-937e-e77c013faeea"
+	}
 }
