@@ -1702,7 +1702,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendEvent(new TerminatedEvent());
   }
 
-  private handleStopped(message: DebuggerMessage): void {
+  private async handleStopped(message: DebuggerMessage): Promise<void> {
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
 
     if (threadId !== undefined) {
@@ -1720,8 +1720,25 @@ export class ApexDebug extends LoggingDebugSession {
 
       // log to console and notify client
       this.logEvent(message);
+      let reason = '';
+
+      // if breakpointid is found in exception breakpoint cache
+      // set the reason for stopped event to that reason
+      if (message.sobject.BreakpointId) {
+        const cache: Map<
+          string,
+          string
+        > = this.myBreakpointService.getExceptionBreakpointCache();
+        cache.forEach((value, key) => {
+          if (value === message.sobject.BreakpointId) {
+            if (key.indexOf('Exception') !== -1) {
+              reason = key.substring(key.lastIndexOf('/') + 1);
+            }
+          }
+        });
+      }
       const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
-        '',
+        reason,
         threadId
       );
       this.sendEvent(stoppedEvent);
