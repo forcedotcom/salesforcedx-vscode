@@ -52,7 +52,9 @@ import {
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  SALESFORCE_EXCEPTION_PREFIX,
   SHOW_MESSAGE_EVENT,
+  TRIGGER_EXCEPTION_PREFIX,
   WORKSPACE_SETTINGS_REQUEST
 } from '../../../src/constants';
 import {
@@ -1748,10 +1750,13 @@ describe('Debugger adapter - unit', () => {
     let markEventProcessedSpy: sinon.SinonSpy;
     let getExceptionBreakpointCacheSpy: sinon.SinonStub;
     const knownExceptionBreakpoints: Map<string, string> = new Map([
-      ['com/salesforce/api/exception/AssertException', '07bFAKE1'],
+      [`${SALESFORCE_EXCEPTION_PREFIX}AssertException`, '07bFAKE1'],
       ['namespace/fooexception', '07bFAKE2'],
       ['namespace/MyClass$InnerException', '07bFAKE3'],
-      ['__sfdc_trigger/namespace/MyTrigger$InnerException', '07bFAKE4']
+      [
+        `${TRIGGER_EXCEPTION_PREFIX}namespace/MyTrigger$InnerException`,
+        '07bFAKE4'
+      ]
     ]);
 
     beforeEach(() => {

@@ -63,7 +63,9 @@ import {
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  SALESFORCE_EXCEPTION_PREFIX,
   SHOW_MESSAGE_EVENT,
+  TRIGGER_EXCEPTION_PREFIX,
   WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
 import {
@@ -1734,8 +1736,8 @@ export class ApexDebug extends LoggingDebugSession {
             // typerefs for exceptions will change based on whether they are custom,
             // defined as an inner class, defined in a trigger, or in a namespaced org
             reason = key
-              .replace('com/salesforce/api/exception/', '')
-              .replace('__sfdc_trigger/', '')
+              .replace(SALESFORCE_EXCEPTION_PREFIX, '')
+              .replace(TRIGGER_EXCEPTION_PREFIX, '')
               .replace('$', '.')
               .replace('/', '.');
           }
