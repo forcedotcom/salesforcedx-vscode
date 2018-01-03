@@ -1702,7 +1702,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendEvent(new TerminatedEvent());
   }
 
-  private async handleStopped(message: DebuggerMessage): Promise<void> {
+  private handleStopped(message: DebuggerMessage): void {
     const threadId = this.getThreadIdFromRequestId(message.sobject.RequestId);
 
     if (threadId !== undefined) {
@@ -1731,9 +1731,13 @@ export class ApexDebug extends LoggingDebugSession {
         > = this.myBreakpointService.getExceptionBreakpointCache();
         cache.forEach((value, key) => {
           if (value === message.sobject.BreakpointId) {
-            if (key.indexOf('Exception') !== -1) {
-              reason = key.substring(key.lastIndexOf('/') + 1);
-            }
+            // typerefs for exceptions will change based on whether they are custom,
+            // defined as an inner class, defined in a trigger, or in a namespaced org
+            reason = key
+              .replace('com/salesforce/api/exception/', '')
+              .replace('__sfdc_trigger/', '')
+              .replace('$', '.')
+              .replace('/', '.');
           }
         });
       }
