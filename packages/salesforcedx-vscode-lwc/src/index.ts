@@ -15,16 +15,14 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 
-const LWC_ENGINE_PKG = 'lwc-engine';
-
 export async function activate(context: ExtensionContext) {
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
   );
 
   // Check if ran from a LSC project
-  if (!await isLWCProject() && !isSfdxProject() && !isCore()) {
-    console.log('not a LWC project, exiting extension');
+  if (!isLWCProject() && !isSfdxProject() && !isSFDCInternal()) {
+    console.log('Not a LWC project, exiting extension');
     return;
   }
 
@@ -69,23 +67,30 @@ export async function activate(context: ExtensionContext) {
   context.subscriptions.push(disposable);
 }
 
-async function isLWCProject(): Promise<boolean> {
-  const files = await workspace.findFiles('package.json', 'node_modules', 1);
+function isLWCProject(): boolean {
+  if (!workspace.workspaceFolders) {
+    return false;
+  }
 
-  if (files.length < 1) {
+  const workspaceRoot = workspace.workspaceFolders[0].uri.path;
+  const packageJson = path.join(workspaceRoot, 'package.json');
+  if (!fs.existsSync(packageJson)) {
     return false;
   }
 
   // Check if package.json contains lwc-engine
-  const packageInfo = require(files[0].fsPath);
-  const hasLWCDependency = Object.keys(packageInfo.dependencies || {}).includes(
-    LWC_ENGINE_PKG
-  );
-  const hasLWCDevDependency = Object.keys(
-    packageInfo.devDependencies || {}
-  ).includes(LWC_ENGINE_PKG);
+  const packageInfo = require(packageJson);
 
-  return hasLWCDependency || hasLWCDevDependency;
+  const dependencies = Object.keys(packageInfo.dependencies || {});
+  if (dependencies.includes('lwc-engine')) {
+    return true;
+  }
+  const devDependencies = Object.keys(packageInfo.devDependencies || {});
+  if (devDependencies.includes('lwc-engine')) {
+    return true;
+  }
+
+  return false;
 }
 
 export function isSfdxProject() {
@@ -97,14 +102,14 @@ export function isSfdxProject() {
   return fs.existsSync(path.join(workspaceRoot, 'sfdx-project.json'));
 }
 
-function isCore() {
+function isSFDCInternal() {
   if (!workspace.workspaceFolders) {
     return false;
   }
 
   const workspaceRoot = workspace.workspaceFolders[0].uri.path;
   if (fs.existsSync(path.join(workspaceRoot, 'workspace-user.xml'))) {
-    return true; // opened in core/
+    return true; // opened in SFDC
   }
   if (fs.existsSync(path.join(workspaceRoot, 'modules'))) {
     return true; // opened in core project with modules/ folder

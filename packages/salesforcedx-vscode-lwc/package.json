@@ -22,7 +22,7 @@
   },
   "categories": ["Languages"],
   "dependencies": {
-    "lwc-language-server": "0.11.0",
+    "lwc-language-server": "0.12.0",
     "vscode-languageclient": "3.5.0"
   },
   "devDependencies": {
@@ -38,6 +38,7 @@
     "typescript": "2.4.0",
     "vscode": "1.1.8"
   },
+  "extensionDependencies": ["dbaeumer.vscode-eslint"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -50,6 +51,11 @@
     "test":
       "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:package.json",
+    "workspaceContains:sfdx-project.json",
+    "workspaceContains:workspace-user.xml",
+    "workspaceContains:modules"
+  ],
   "main": "./out/src"
 }
