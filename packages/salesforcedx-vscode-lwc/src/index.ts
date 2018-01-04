@@ -21,7 +21,7 @@ export async function activate(context: ExtensionContext) {
   );
 
   // Check if ran from a LSC project
-  if (!isLWCProject() && !isSfdxProject() && !isSFDCInternal()) {
+  if (!isLWCProject() && !isSfdxProject() && !isSfdcInternal()) {
     console.log('Not a LWC project, exiting extension');
     return;
   }
@@ -102,7 +102,7 @@ export function isSfdxProject() {
   return fs.existsSync(path.join(workspaceRoot, 'sfdx-project.json'));
 }
 
-function isSFDCInternal() {
+function isSfdcInternal() {
   if (!workspace.workspaceFolders) {
     return false;
   }
@@ -112,7 +112,7 @@ function isSFDCInternal() {
     return true; // opened in SFDC
   }
   if (fs.existsSync(path.join(workspaceRoot, 'modules'))) {
-    return true; // opened in core project with modules/ folder
+    return true; // opened in sfdc internal project with modules/ folder
   }
 
   return false;
