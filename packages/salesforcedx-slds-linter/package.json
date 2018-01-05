@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-slds-linter",
   "displayName": "SFDX SLDS Linting for VS Code",
   "description": "Provides linting for deprecated SLDS class names",
-  "version": "41.11.0",
+  "version": "41.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": ["Other"],
@@ -26,8 +26,8 @@
     "remap-istanbul": "^0.9.5",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
-    "typescript": "2.4.0",
-    "vscode": "1.1.8"
+    "typescript": "2.6.2",
+    "vscode": "1.1.10"
   },
   "scripts": {
     "vscode:package": "npm prune --production",
@@ -43,7 +43,7 @@
     "reporter": ["text-summary", "lcov"]
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.12.0",
     "vscode-languageclient": "3.3.0",
     "vscode-languageserver": "^3.3.0"
   }

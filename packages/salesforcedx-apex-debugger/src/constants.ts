@@ -24,3 +24,5 @@ export const LIST_EXCEPTION_BREAKPOINTS_REQUEST = 'listExceptionBreakpoints';
 export const EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS = 'always';
 export const EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER = 'never';
 export const CLIENT_ID = 'sfdx-vscode';
+export const SALESFORCE_EXCEPTION_PREFIX = 'com/salesforce/api/exception/';
+export const TRIGGER_EXCEPTION_PREFIX = '__sfdc_trigger/';

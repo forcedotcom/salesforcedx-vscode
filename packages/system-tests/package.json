@@ -1,7 +1,7 @@
 {
   "name": "system-tests",
   "description": "System tests for Salesforce DX Extensions for VS Code",
-  "version": "41.11.0",
+  "version": "41.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "./out/src",
@@ -9,8 +9,9 @@
     "vscode": "^1.17.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.12.0",
     "@types/chai": "^4.0.0",
+    "@types/mkdirp": "0.5.2",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/rimraf": "0.0.28",
@@ -22,26 +23,28 @@
     "electron": "^1.7.5",
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",
+    "mkdirp": "0.5.1",
     "mocha": "3.2.0",
     "remap-istanbul": "^0.9.5",
     "rimraf": "^2.6.1",
     "shelljs": "^0.7.8",
     "source-map-support": "^0.4.15",
     "spectron": "^3.7.2",
-    "typescript": "2.4.0",
-    "vscode": "1.1.8"
+    "typescript": "2.6.2",
+    "vscode": "1.1.10"
   },
   "scripts": {
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
+    "clean":
+      "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
+    "pretest":
+      "npm run compile && node ../../scripts/download-vscode-for-system-tests",
     "test": "node out/src/main.js",
-    "coverage": "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
+    "coverage":
+      "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
   },
-  "activationEvents": [
-    "*"
-  ]
+  "activationEvents": ["*"]
 }

@@ -63,7 +63,9 @@ import {
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  SALESFORCE_EXCEPTION_PREFIX,
   SHOW_MESSAGE_EVENT,
+  TRIGGER_EXCEPTION_PREFIX,
   WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
 import {
@@ -1720,8 +1722,29 @@ export class ApexDebug extends LoggingDebugSession {
 
       // log to console and notify client
       this.logEvent(message);
+      let reason = '';
+
+      // if breakpointid is found in exception breakpoint cache
+      // set the reason for stopped event to that reason
+      if (message.sobject.BreakpointId) {
+        const cache: Map<
+          string,
+          string
+        > = this.myBreakpointService.getExceptionBreakpointCache();
+        cache.forEach((value, key) => {
+          if (value === message.sobject.BreakpointId) {
+            // typerefs for exceptions will change based on whether they are custom,
+            // defined as an inner class, defined in a trigger, or in a namespaced org
+            reason = key
+              .replace(SALESFORCE_EXCEPTION_PREFIX, '')
+              .replace(TRIGGER_EXCEPTION_PREFIX, '')
+              .replace('$', '.')
+              .replace('/', '.');
+          }
+        });
+      }
       const stoppedEvent: DebugProtocol.StoppedEvent = new StoppedEvent(
-        '',
+        reason,
         threadId
       );
       this.sendEvent(stoppedEvent);

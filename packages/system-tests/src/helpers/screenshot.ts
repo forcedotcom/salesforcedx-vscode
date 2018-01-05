@@ -8,49 +8,44 @@
  */
 
 import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
+import * as path from 'path';
 import { SpectronApplication } from '../spectron/application';
+import { sanitize } from './utilities';
 
 const TEST_TIME = new Date().toISOString();
 
 export class Screenshot {
-  private index = 0;
-  private testPath: string;
+  private counter = 0;
+  private screenshotsDirPath: string;
 
   constructor(
     private spectron: SpectronApplication,
-    testName: string,
+    private testName: string,
     testRetry: number
   ) {
-    const testTime = this.sanitizeFolderName(TEST_TIME);
-    testName = this.sanitizeFolderName(testName);
-
-    this.testPath = `test_data/screenshots/${testTime}/${testName}/${testRetry}`;
-    this.createFolder(this.testPath);
+    this.screenshotsDirPath = path.join(
+      'test_data',
+      'screenshots',
+      sanitize(TEST_TIME)
+    );
   }
 
-  public async capture(): Promise<any> {
-    return new Promise(async (res, rej) => {
-      const image: Electron.NativeImage = await this.spectron.app.browserWindow.capturePage();
-      fs.writeFile(`${this.testPath}/${this.index}.png`, image, err => {
-        if (err) {
-          rej(err);
-        }
-        this.index++;
-        res();
-      });
-    });
-  }
+  public async capture(name?: string): Promise<any> {
+    const screenshotPath = path.join(
+      this.screenshotsDirPath,
+      sanitize(this.testName),
+      name !== undefined
+        ? `${this.counter++}-${sanitize(name)}.png`
+        : `${this.counter++}.png`
+    );
 
-  private createFolder(name: string): void {
-    name.split('/').forEach((folderName, i, fullPath) => {
-      const folder = fullPath.slice(0, i + 1).join('/');
-      if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder);
-      }
-    });
-  }
-
-  private sanitizeFolderName(name: string): string {
-    return name.replace(/[&*:\/]/g, '');
+    const image = await this.spectron.app.browserWindow.capturePage();
+    await new Promise((c, e) =>
+      mkdirp(path.dirname(screenshotPath), err => (err ? e(err) : c()))
+    );
+    await new Promise((c, e) =>
+      fs.writeFile(screenshotPath, image, err => (err ? e(err) : c()))
+    );
   }
 }
