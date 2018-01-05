@@ -52,7 +52,9 @@ import {
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  SALESFORCE_EXCEPTION_PREFIX,
   SHOW_MESSAGE_EVENT,
+  TRIGGER_EXCEPTION_PREFIX,
   WORKSPACE_SETTINGS_REQUEST
 } from '../../../src/constants';
 import {
@@ -1746,8 +1748,21 @@ describe('Debugger adapter - unit', () => {
     let sessionStopSpy: sinon.SinonSpy;
     let eventProcessedSpy: sinon.SinonStub;
     let markEventProcessedSpy: sinon.SinonSpy;
+    let getExceptionBreakpointCacheSpy: sinon.SinonStub;
+    const knownExceptionBreakpoints: Map<string, string> = new Map([
+      [`${SALESFORCE_EXCEPTION_PREFIX}AssertException`, '07bFAKE1'],
+      ['namespace/fooexception', '07bFAKE2'],
+      ['namespace/MyClass$InnerException', '07bFAKE3'],
+      [
+        `${TRIGGER_EXCEPTION_PREFIX}namespace/MyTrigger$InnerException`,
+        '07bFAKE4'
+      ]
+    ]);
 
     beforeEach(() => {
+      getExceptionBreakpointCacheSpy = sinon
+        .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
+        .returns(knownExceptionBreakpoints);
       adapter = new ApexDebugForTest(
         new SessionService(),
         new StreamingService(),
@@ -1776,6 +1791,7 @@ describe('Debugger adapter - unit', () => {
       sessionStopSpy.restore();
       eventProcessedSpy.restore();
       markEventProcessedSpy.restore();
+      getExceptionBreakpointCacheSpy.restore();
     });
 
     it('[SessionTerminated] - Should stop session service', () => {
@@ -2033,6 +2049,94 @@ describe('Debugger adapter - unit', () => {
       expect(adapter.getVariableContainerReferenceByApexId().has(0)).to.equal(
         false
       );
+    });
+
+    it('[Stopped] - Should display exception type when stopped on exception breakpoint', () => {
+      const message: DebuggerMessage = {
+        event: {
+          replayId: 0
+        } as StreamingEvent,
+        sobject: {
+          SessionId: '07aFAKE',
+          Type: 'Stopped',
+          RequestId: '07cFAKE',
+          BreakpointId: '07bFAKE1'
+        }
+      };
+      adapter.addRequestThread('07cFAKE');
+      adapter.handleEvent(message);
+
+      const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
+      expect(stoppedEvent.body).to.deep.equal({
+        threadId: 1,
+        reason: 'AssertException'
+      });
+    });
+
+    it('[Stopped] - Should display exception for namespaced orgs', () => {
+      const message: DebuggerMessage = {
+        event: {
+          replayId: 0
+        } as StreamingEvent,
+        sobject: {
+          SessionId: '07aFAKE',
+          Type: 'Stopped',
+          RequestId: '07cFAKE',
+          BreakpointId: '07bFAKE2'
+        }
+      };
+      adapter.addRequestThread('07cFAKE');
+      adapter.handleEvent(message);
+
+      const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
+      expect(stoppedEvent.body).to.deep.equal({
+        threadId: 1,
+        reason: 'namespace.fooexception'
+      });
+    });
+
+    it('[Stopped] - Should display exception for namespaced org with exception as inner class', () => {
+      const message: DebuggerMessage = {
+        event: {
+          replayId: 0
+        } as StreamingEvent,
+        sobject: {
+          SessionId: '07aFAKE',
+          Type: 'Stopped',
+          RequestId: '07cFAKE',
+          BreakpointId: '07bFAKE3'
+        }
+      };
+      adapter.addRequestThread('07cFAKE');
+      adapter.handleEvent(message);
+
+      const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
+      expect(stoppedEvent.body).to.deep.equal({
+        threadId: 1,
+        reason: 'namespace.MyClass.InnerException'
+      });
+    });
+
+    it('[Stopped] - Should display exception for namespaced org with exception as inner class in a trigger', () => {
+      const message: DebuggerMessage = {
+        event: {
+          replayId: 0
+        } as StreamingEvent,
+        sobject: {
+          SessionId: '07aFAKE',
+          Type: 'Stopped',
+          RequestId: '07cFAKE',
+          BreakpointId: '07bFAKE4'
+        }
+      };
+      adapter.addRequestThread('07cFAKE');
+      adapter.handleEvent(message);
+
+      const stoppedEvent = adapter.getEvents()[1] as StoppedEvent;
+      expect(stoppedEvent.body).to.deep.equal({
+        threadId: 1,
+        reason: 'namespace.MyTrigger.InnerException'
+      });
     });
 
     it('[Stopped] - Should send stepping stopped event', () => {
