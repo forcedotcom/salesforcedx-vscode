@@ -15,7 +15,6 @@ export function applyEdits(document: TextDocument, edits: TextEdit[]): string {
     }
     return startDiff;
   });
-  let lastOffset = text.length;
   sortedEdits.forEach(e => {
     const startOffset = document.offsetAt(e.range.start);
     const endOffset = document.offsetAt(e.range.end);
@@ -23,7 +22,6 @@ export function applyEdits(document: TextDocument, edits: TextEdit[]): string {
       text.substring(0, startOffset) +
       e.newText +
       text.substring(endOffset, text.length);
-    lastOffset = startOffset;
   });
   return text;
 }

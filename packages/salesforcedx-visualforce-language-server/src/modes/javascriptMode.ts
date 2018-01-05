@@ -133,7 +133,8 @@ export function getJavascriptMode(
       const offset = currentTextDocument.offsetAt(position);
       const completions = jsLanguageService.getCompletionsAtPosition(
         FILE_NAME,
-        offset
+        offset,
+        { includeExternalModuleExports: false }
       );
       if (!completions) {
         return { isIncomplete: false, items: [] };
@@ -167,7 +168,9 @@ export function getJavascriptMode(
       const details = jsLanguageService.getCompletionEntryDetails(
         FILE_NAME,
         item.data.offset,
-        item.label
+        item.label,
+        undefined,
+        undefined
       );
       if (details) {
         item.detail = ts.displayPartsToString(details.displayParts);

@@ -30,9 +30,7 @@ documents.listen(connection);
 
 // After the server has started the client sends an initialize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilities.
-let workspaceRoot: string | undefined | null;
 connection.onInitialize((params): InitializeResult => {
-  workspaceRoot = params.rootPath;
   return {
     capabilities: {
       // Tell the client that the server works in FULL text document sync mode
@@ -45,26 +43,39 @@ connection.onInitialize((params): InitializeResult => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
-  validateTextDocument(change.document.getText(), change.document.uri, connection);
+  validateTextDocument(
+    change.document.getText(),
+    change.document.uri,
+    connection
+  );
 });
 
 documents.onDidOpen(change => {
-  validateTextDocument(change.document.getText(), change.document.uri, connection);
+  validateTextDocument(
+    change.document.getText(),
+    change.document.uri,
+    connection
+  );
 });
 
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration(change => {
   // Revalidate any open text documents
-  documents.all().forEach(doc => validateTextDocument(doc.getText(), doc.uri, connection));
+  documents
+    .all()
+    .forEach(doc => validateTextDocument(doc.getText(), doc.uri, connection));
 });
 
 let activeDiagnostics: Diagnostic[] = [];
 
-export function validateTextDocument(textDocument: String, uri: string, conn: any): void {
+export function validateTextDocument(
+  textDocument: String,
+  uri: string,
+  conn: any
+): void {
   activeDiagnostics = [];
   const lines = textDocument.split(/\r?\n/g);
-  let problems = 0;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const found = line.match(/slds\S*--[A-Za-z0-9_-]+/g) || [];
@@ -74,7 +85,6 @@ export function validateTextDocument(textDocument: String, uri: string, conn: an
       if (index >= 0) {
         const foundStringLength = match.length;
         const fixedString = match.replace('--', '_');
-        problems++;
         const diagnostic = <Diagnostic>{
           code: `0${fixedString}`,
           severity: DiagnosticSeverity.Warning,
@@ -82,10 +92,11 @@ export function validateTextDocument(textDocument: String, uri: string, conn: an
             start: { line: i, character: index },
             end: { line: i, character: index + foundStringLength }
           },
-          message: nls.localize('deprecated_class_name', line.substr(
-            index,
-            foundStringLength
-          ), fixedString),
+          message: nls.localize(
+            'deprecated_class_name',
+            line.substr(index, foundStringLength),
+            fixedString
+          ),
           source: 'slds'
         };
         activeDiagnostics.push(diagnostic);
@@ -184,7 +195,6 @@ function sameCodeActions(result: Command[], uri: string, problem: string) {
             codeMessage = nls.localize('fix_same_default');
           }
         }
-
       }
     }
     result.push(

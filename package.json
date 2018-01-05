@@ -8,7 +8,7 @@
     "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
     "tslint": "5.5.0",
-    "typescript": "2.4.0",
+    "typescript": "2.6.2",
     "vsce": "1.29.0"
   },
   "scripts": {
