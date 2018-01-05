@@ -79,7 +79,6 @@ script:
   - |
     if [[ $TRAVIS_OS_NAME == "linux" ]]; then
       travis_wait 30 npm run test:without-system-tests
-      travis_wait 30 npm run coverage:system-tests
     fi
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
