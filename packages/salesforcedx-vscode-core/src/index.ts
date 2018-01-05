@@ -12,6 +12,7 @@ import {
   CompositeParametersGatherer,
   forceAliasList,
   forceApexClassCreate,
+  forceApexDebugLogForReplayDebugger,
   forceApexExecute,
   forceApexTestRun,
   forceApexTriggerCreate,
@@ -189,6 +190,11 @@ function registerCommands(): vscode.Disposable {
     forceApexTriggerCreate
   );
 
+  const forceApexDebugLogForReplayDebuggerCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.debug.log.replay.debugger',
+    forceApexDebugLogForReplayDebugger
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -227,6 +233,7 @@ function registerCommands(): vscode.Disposable {
     forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
     forceApexTriggerCreateCmd,
+    forceApexDebugLogForReplayDebuggerCmd,
     internalCancelCommandExecution
   );
 }
@@ -240,6 +247,27 @@ export async function activate(context: vscode.ExtensionContext) {
     const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
   }
+
+  // remove before merging
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:replay_debugger_extension',
+    true
+  );
+
+  // let replayDebuggerExtensionInstalled = false;
+  // if (
+  //   vscode.extensions.getExtension(
+  //     'salesforce.salesforcedx-vscode-replay-debugger'
+  //   )
+  // ) {
+  //   replayDebuggerExtensionInstalled = true;
+  // }
+  // vscode.commands.executeCommand(
+  //   'setContext',
+  //   'sfdx:replay_debugger_extension',
+  //   replayDebuggerExtensionInstalled
+  // );
 
   // Set environment variable to add logging for VSCode API calls
   process.env[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;

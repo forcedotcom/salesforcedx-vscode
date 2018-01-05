@@ -245,6 +245,10 @@
         {
           "command": "sfdx.force.apex.trigger.create",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.debug.log.replay.debugger",
+          "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         }
       ]
     },
@@ -372,6 +376,10 @@
       {
         "command": "sfdx.force.apex.trigger.create",
         "title": "%force_apex_trigger_create_text%"
+      },
+      {
+        "command": "sfdx.force.apex.debug.log.replay.debugger",
+        "title": "%force_apex_debug_log_replay_debugger_text%"
       }
     ],
     "configuration": {
