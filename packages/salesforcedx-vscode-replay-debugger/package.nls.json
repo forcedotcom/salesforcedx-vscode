@@ -1,0 +1,11 @@
+{
+  "launch_snippet_label_text": "Apex Replay Debugger: Launch",
+  "launch_snippet_description_text":
+    "A new configuration for launching Apex Replay Debugger",
+  "launch_snippet_name": "Launch Apex Replay Debugger",
+  "logfile_text": "Path to an Apex Debug Log file in the workspace folder.",
+  "stop_on_entry_text":
+    "Stop the debugger after launching. If false, the debugger will run until it hits a breakpoint.",
+  "trace_log_text":
+    "Output debug log lines as they are processed by the debugger."
+}
