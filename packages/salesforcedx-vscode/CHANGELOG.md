@@ -1,14 +1,22 @@
 ## 41.16.0 - January 8, 2018
 ### Added
 #### salesforcedx-vscode-apex
+
 * Enable Go To Definition for usages of classes and interfaces in class and interface declarations ([PR #247](https://github.com/forcedotcom/salesforcedx-vscode/pull/247))
+
 #### salesforcedx-apex-debugger
+
 * Add visual indication in the call stack telling the user what exception the debugger is currently paused on ([PR #240](https://github.com/forcedotcom/salesforcedx-vscode/pull/240))
+
 #### salesforcedx-vscode
+
 * Add Dreamforce video links to README ([PR #239](https://github.com/forcedotcom/salesforcedx-vscode/pull/239))
+
 ### Fixed
 #### salesforcedx-vscode-core
+
 * Fix scratch org creation alias request message  ([PR #238](https://github.com/forcedotcom/salesforcedx-vscode/pull/238))
+
 ## 41.12.0 - December 14, 2017
 ### Added
 #### salesforcedx-vscode-core
