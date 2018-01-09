@@ -22,7 +22,7 @@ export const messages = {
   session_started_text: 'Apex Replay Debugger session started for log file %s.',
   session_terminated_text: 'Apex Replay Debugger session terminated.',
   no_log_file_text:
-    'The log file is either missing or does not have any log lines in it.',
+    'The log file either is missing or does not have any log lines in it.',
   prompt_for_log_file_text:
-    'Please enter the path of a debug log file in the workspace folder'
+    'Enter the path of a debug log file in the workspace folder'
 };

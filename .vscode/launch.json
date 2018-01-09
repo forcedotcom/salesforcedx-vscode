@@ -344,7 +344,7 @@
       "cwd": "${workspaceRoot}",
       "program": "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/src/adapter/apexReplayDebug.js",
       "args": [
-        "--server=4711"
+        "--server=4712"
       ],
       "sourceMaps": true,
       "outFiles": [
