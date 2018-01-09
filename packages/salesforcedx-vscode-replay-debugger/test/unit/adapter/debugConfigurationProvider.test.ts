@@ -31,7 +31,7 @@ describe('Configuration provider', () => {
       request: nls.localize('config_request_type_text'),
       logFile: '${workspaceFolder}/${command:AskForLogFileName}',
       stopOnEntry: true,
-      traceLog: true
+      trace: true
     } as vscode.DebugConfiguration;
 
     const configs = provider.provideDebugConfigurations(folder);
@@ -46,7 +46,7 @@ describe('Configuration provider', () => {
       request: nls.localize('config_request_type_text'),
       logFile: '${workspaceFolder}/${command:AskForLogFileName}',
       stopOnEntry: true,
-      traceLog: true
+      trace: true
     } as vscode.DebugConfiguration;
 
     const config = provider.resolveDebugConfiguration(folder, {
@@ -65,7 +65,7 @@ describe('Configuration provider', () => {
       request: 'sampleConfigType',
       logFile: 'foo.log',
       stopOnEntry: false,
-      traceLog: false
+      trace: false
     } as vscode.DebugConfiguration;
 
     const config = provider.resolveDebugConfiguration(folder, expectedConfig);

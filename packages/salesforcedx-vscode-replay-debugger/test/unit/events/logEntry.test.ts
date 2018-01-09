@@ -29,7 +29,7 @@ describe('LogEntry event', () => {
     const logFile = new LogFile({
       logFile: '/path/foo.log',
       stopOnEntry: true,
-      traceLog: true
+      trace: true
     } as LaunchRequestArguments);
     const logEntry = new LogEntry();
 

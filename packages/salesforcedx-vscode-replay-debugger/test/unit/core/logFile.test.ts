@@ -20,7 +20,7 @@ describe('LogFile', () => {
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: '/path/foo.log',
     stopOnEntry: true,
-    traceLog: true
+    trace: true
   };
 
   beforeEach(() => {

@@ -89,7 +89,7 @@
               "logFile":
                 "^\"\\${workspaceFolder}/\\${command:AskForLogFileName}\"",
               "stopOnEntry": true,
-              "traceLog": true
+              "trace": true
             }
           }
         ],
@@ -107,7 +107,7 @@
                 "description": "%stop_on_entry_text%",
                 "default": true
               },
-              "traceLog": {
+              "trace": {
                 "type": "boolean",
                 "description": "%trace_log_text%",
                 "default": true

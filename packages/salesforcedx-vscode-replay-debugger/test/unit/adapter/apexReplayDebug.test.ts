@@ -102,7 +102,7 @@ describe('Replay debugger adapter - unit', () => {
       args = {
         logFile: logFilePath,
         stopOnEntry: true,
-        traceLog: true
+        trace: true
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
       sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
@@ -214,7 +214,7 @@ describe('Replay debugger adapter - unit', () => {
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
       stopOnEntry: true,
-      traceLog: true
+      trace: true
     };
 
     beforeEach(() => {
@@ -258,7 +258,7 @@ describe('Replay debugger adapter - unit', () => {
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
       stopOnEntry: true,
-      traceLog: true
+      trace: true
     };
     const sampleStackFrames: StackFrame[] = [
       {

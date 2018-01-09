@@ -22,7 +22,7 @@ export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
   logFile: string;
   stopOnEntry: boolean | true;
-  traceLog: boolean | true;
+  trace: boolean | true;
 }
 
 export class ApexReplayDebug extends DebugSession {
