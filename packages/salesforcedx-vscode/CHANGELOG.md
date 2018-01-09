@@ -1,7 +1,5 @@
 ## 41.16.0 - January 8, 2018
 ### Added
-#### All
-* Upgrade to TypeScript 2.6.2 ([PR #242](https://github.com/forcedotcom/salesforcedx-vscode/pull/242))
 #### salesforcedx-vscode-apex
 * Enable Go To Definition for usages of classes and interfaces in class and interface declarations ([PR #247](https://github.com/forcedotcom/salesforcedx-vscode/pull/247))
 #### salesforcedx-apex-debugger
