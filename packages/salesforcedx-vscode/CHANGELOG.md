@@ -1,7 +1,22 @@
-##41.16.0 - January 8, 2018
+## 41.16.0 - January 8, 2018
 ### Added
-#### salesforce-vscode-apex
-* Update apex-jorje-lsp.jar to enable go to definition for type usage sites ([PR #247] (https://github.com/forcedotcom/salesforcedx-vscode/pull/247))
+#### All
+* Upgrade to TypeScript 2.6.2 ([PR #242] (https://github.com/forcedotcom/salesforcedx-vscode/pull/242))
+#### salesforcedx-vscode-apex
+* Enable Go To Definition for usages of classes and interfaces in class and interface declarations ([PR #247] (https://github.com/forcedotcom/salesforcedx-vscode/pull/247))
+#### scripts
+* Add script to enable testing with external dependencies ([PR #244] (https://github.com/forcedotcom/salesforcedx-vscode/pull/244))
+#### salesforcedx-apex-debugger
+* Add visual indication in the call stack telling the user what exception the user is currently paused on ([PR #240] (https://github.com/forcedotcom/salesforcedx-vscode/pull/240)
+#### salesforcedx-vscode-lwc
+* Add LWC Extension ([PR #241] (https://github.com/forcedotcom/salesforcedx-vscode/pull/241))
+#### salesforcedx-vscode
+* Add dreamforce video links to README ([PR #239] (https://github.com/forcedotcom/salesforcedx-vscode/pull/239))
+### Fixed
+#### All
+* Update dependency on vscode to 1.1.10 to enable testing against VS Code Insiders build on Linux ([PR #231] (https://github.com/forcedotcom/salesforcedx-vscode/pull/231))
+#### salesforcedx-vscode-core
+* Fix scratch org creation alias request message  ([PR #238] (https://github.com/forcedotcom/salesforcedx-vscode/pull/238))
 ## 41.12.0 - December 14, 2017
 ### Added
 #### salesforcedx-vscode-core
