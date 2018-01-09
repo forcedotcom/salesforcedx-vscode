@@ -109,7 +109,7 @@
               },
               "trace": {
                 "type": "boolean",
-                "description": "%trace_log_text%",
+                "description": "%trace_text%",
                 "default": true
               }
             }
