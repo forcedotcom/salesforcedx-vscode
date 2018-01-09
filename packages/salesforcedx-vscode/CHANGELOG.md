@@ -1,3 +1,7 @@
+##41.16.0 - January 8, 2018
+### Added
+#### salesforce-vscode-apex
+* Update apex-jorje-lsp.jar to enable go to definition for type usage sites ([PR #247] (https://github.com/forcedotcom/salesforcedx-vscode/pull/247))
 ## 41.12.0 - December 14, 2017
 ### Added
 #### salesforcedx-vscode-core
