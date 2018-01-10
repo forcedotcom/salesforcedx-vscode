@@ -7,7 +7,6 @@
 
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { nls } from './messages';
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
@@ -15,8 +14,10 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'extension.replay-debugger.getLogFileName',
       config => {
-        return vscode.window.showInputBox({
-          placeHolder: nls.localize('prompt_for_log_file_text')
+        return vscode.window.showOpenDialog({
+          canSelectFiles: true,
+          canSelectFolders: false,
+          canSelectMany: false
         });
       }
     )
@@ -28,7 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 }
-
 export function deactivate() {
   console.log('Apex Replay Debugger Extension Deactivated');
 }

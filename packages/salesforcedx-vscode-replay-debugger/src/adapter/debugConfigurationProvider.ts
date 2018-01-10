@@ -19,7 +19,7 @@ export class DebugConfigurationProvider
         name: nls.localize('config_name_text'),
         type: nls.localize('config_type_text'),
         request: nls.localize('config_request_type_text'),
-        logFile: '${workspaceFolder}/${command:AskForLogFileName}',
+        logFile: '${command:AskForLogFileName}',
         stopOnEntry: true,
         trace: true
       } as vscode.DebugConfiguration
@@ -34,8 +34,7 @@ export class DebugConfigurationProvider
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || nls.localize('config_type_text');
     config.request = config.request || nls.localize('config_request_type_text');
-    config.logFile =
-      config.logFile || '${workspaceFolder}/${command:AskForLogFileName}';
+    config.logFile = config.logFile || '${command:AskForLogFileName}';
     if (config.stopOnEntry === undefined) {
       config.stopOnEntry = true;
     }

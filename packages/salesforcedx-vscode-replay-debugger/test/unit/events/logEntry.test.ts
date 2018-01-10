@@ -40,7 +40,7 @@ describe('LogEntry event', () => {
     expect(stackFrames.length).to.equal(1);
     const stackFrame = stackFrames[0];
     expect(stackFrame.id).to.equal(0);
-    expect(stackFrame.name).to.equal(logFile.getLogFileName());
+    expect(stackFrame.name).to.equal('');
     expect(stackFrame.line).to.equal(logFile.getLogLinePosition() + 1);
     expect(stackFrame.source.name).to.equal(logFile.getLogFileName());
     expect(stackFrame.source.path).to.equal(

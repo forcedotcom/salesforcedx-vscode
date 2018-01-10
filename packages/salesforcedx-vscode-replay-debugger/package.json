@@ -86,8 +86,7 @@
               "name": "%launch_snippet_name%",
               "type": "apex-replay",
               "request": "launch",
-              "logFile":
-                "^\"\\${workspaceFolder}/\\${command:AskForLogFileName}\"",
+              "logFile": "^\"\\${command:AskForLogFileName}\"",
               "stopOnEntry": true,
               "trace": true
             }
@@ -100,7 +99,7 @@
               "logFile": {
                 "type": "string",
                 "description": "%logfile_text%",
-                "default": "${workspaceFolder}/${command:AskForLogFileName}"
+                "default": "${command:AskForLogFileName}"
               },
               "stopOnEntry": {
                 "type": "boolean",

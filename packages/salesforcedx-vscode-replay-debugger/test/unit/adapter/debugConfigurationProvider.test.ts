@@ -29,7 +29,7 @@ describe('Configuration provider', () => {
       name: nls.localize('config_name_text'),
       type: nls.localize('config_type_text'),
       request: nls.localize('config_request_type_text'),
-      logFile: '${workspaceFolder}/${command:AskForLogFileName}',
+      logFile: '${command:AskForLogFileName}',
       stopOnEntry: true,
       trace: true
     } as vscode.DebugConfiguration;
@@ -44,7 +44,7 @@ describe('Configuration provider', () => {
       name: nls.localize('config_name_text'),
       type: nls.localize('config_type_text'),
       request: nls.localize('config_request_type_text'),
-      logFile: '${workspaceFolder}/${command:AskForLogFileName}',
+      logFile: '${command:AskForLogFileName}',
       stopOnEntry: true,
       trace: true
     } as vscode.DebugConfiguration;

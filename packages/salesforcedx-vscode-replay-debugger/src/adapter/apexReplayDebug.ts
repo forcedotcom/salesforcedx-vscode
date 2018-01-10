@@ -62,6 +62,9 @@ export class ApexReplayDebug extends DebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): void {
+    if (args.logFile) {
+      args.logFile = this.convertDebuggerPathToClient(args.logFile);
+    }
     this.logFile = new LogFile(args);
     if (!this.logFile.hasLogLines()) {
       response.success = false;
