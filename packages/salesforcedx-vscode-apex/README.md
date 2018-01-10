@@ -20,9 +20,9 @@ To see code-completion suggestions, press Ctrl+space when you’re working in a 
 ## View or Jump to Definitions
 You can preview, view, or go to definitions of:  
 * Apex  
-  * classes (from within extending classes)  
+  * classes (from definitions of extending classes)  
   * constructors  
-  * interfaces (from within implementing classes)  
+  * interfaces (from definitions of implementing classes)  
   * methods  
   * properties  
   * variables (local and class variables)  
