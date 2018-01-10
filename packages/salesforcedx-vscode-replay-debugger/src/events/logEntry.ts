@@ -17,7 +17,7 @@ export class LogEntry implements DebugLogEvent {
       .push(
         new StackFrame(
           0,
-          logFileName,
+          '',
           new Source(
             logFileName,
             encodeURI('file://' + logFile.getLogFilePath())
