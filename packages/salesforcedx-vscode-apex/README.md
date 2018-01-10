@@ -20,18 +20,18 @@ To see code-completion suggestions, press Ctrl+space when you’re working in a 
 ## View or Jump to Definitions
 You can preview, view, or go to definitions of:  
 * Apex  
+  * classes (from definitions of extending classes)  
+  * constructors  
+  * interfaces (from definitions of implementing classes)  
   * methods  
   * properties  
-  * constructors  
-  * local variables  
-  * class variables  
+  * variables (local and class variables)  
 * standard objects  
+  * fields (standard and custom fields)
   * object definitions
-  * standard fields  
-  * custom fields  
 * custom objects
+  * fields  
   * object definitions  
-  * custom fields  
 
 (See the "Enable Code Smartness for SObjects" section of this README for information on working with standard and custom objects.)
 
