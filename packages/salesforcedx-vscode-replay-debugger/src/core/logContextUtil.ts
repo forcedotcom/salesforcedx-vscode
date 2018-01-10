@@ -7,9 +7,9 @@
 
 import * as fs from 'fs';
 import { EOL } from 'os';
-import { DebugLogEvent, LogEntry, NoOp } from '../events';
+import { DebugLogState, LogEntryState, NoOpState } from '../states';
 
-export class LogFileUtil {
+export class LogContextUtil {
   public readLogFile(logFilePath: string): string[] {
     try {
       const fileContent = fs.readFileSync(logFilePath).toString('utf-8');
@@ -19,18 +19,18 @@ export class LogFileUtil {
     }
   }
 
-  public parseLogEvent(logLine: string): DebugLogEvent {
+  public parseLogEvent(logLine: string): DebugLogState {
     if (logLine.match(/[\d]{2}\.\d.*APEX_CODE.*SYSTEM.*/)) {
-      return new LogEntry();
+      return new LogEntryState();
     }
     const fields = logLine.split('|');
     if (fields.length >= 3) {
       switch (fields[1]) {
         default:
-          return new NoOp();
+          return new NoOpState();
       }
     }
 
-    return new NoOp();
+    return new NoOpState();
   }
 }

@@ -8,12 +8,12 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
-import { LogFile, LogFileUtil } from '../../../src/core';
-import { NoOp } from '../../../src/events';
+import { LogContext, LogContextUtil } from '../../../src/core';
+import { NoOpState } from '../../../src/states';
 
 // tslint:disable:no-unused-expression
-describe('LogFile', () => {
-  let logFile: LogFile;
+describe('LogContext', () => {
+  let logFile: LogContext;
   let readLogFileStub: sinon.SinonStub;
   let parseLogEventStub: sinon.SinonStub;
   let noOpHandleStub: sinon.SinonStub;
@@ -25,9 +25,9 @@ describe('LogFile', () => {
 
   beforeEach(() => {
     readLogFileStub = sinon
-      .stub(LogFileUtil.prototype, 'readLogFile')
+      .stub(LogContextUtil.prototype, 'readLogFile')
       .returns(['line1', 'line2']);
-    logFile = new LogFile(launchRequestArgs);
+    logFile = new LogContext(launchRequestArgs);
   });
 
   afterEach(() => {
@@ -55,9 +55,9 @@ describe('LogFile', () => {
   it('Should not have log lines', () => {
     readLogFileStub.restore();
     readLogFileStub = sinon
-      .stub(LogFileUtil.prototype, 'readLogFile')
+      .stub(LogContextUtil.prototype, 'readLogFile')
       .returns([]);
-    logFile = new LogFile(launchRequestArgs);
+    logFile = new LogContext(launchRequestArgs);
 
     expect(logFile.hasLogLines()).to.be.false;
   });
@@ -80,7 +80,7 @@ describe('LogFile', () => {
 
   it('Should handle undefined log event', () => {
     parseLogEventStub = sinon
-      .stub(LogFileUtil.prototype, 'parseLogEvent')
+      .stub(LogContextUtil.prototype, 'parseLogEvent')
       .returns(undefined);
 
     logFile.updateFrames();
@@ -89,12 +89,10 @@ describe('LogFile', () => {
   });
 
   it('Should continue handling until the end of log file', () => {
-    noOpHandleStub = sinon
-      .stub(NoOp.prototype, 'handleThenStop')
-      .returns(false);
+    noOpHandleStub = sinon.stub(NoOpState.prototype, 'handle').returns(false);
     parseLogEventStub = sinon
-      .stub(LogFileUtil.prototype, 'parseLogEvent')
-      .returns(new NoOp());
+      .stub(LogContextUtil.prototype, 'parseLogEvent')
+      .returns(new NoOpState());
 
     logFile.updateFrames();
 
@@ -103,14 +101,14 @@ describe('LogFile', () => {
 
   it('Should pause parsing the log', () => {
     noOpHandleStub = sinon
-      .stub(NoOp.prototype, 'handleThenStop')
+      .stub(NoOpState.prototype, 'handle')
       .onFirstCall()
       .returns(false)
       .onSecondCall()
       .returns(true);
     parseLogEventStub = sinon
-      .stub(LogFileUtil.prototype, 'parseLogEvent')
-      .returns(new NoOp());
+      .stub(LogContextUtil.prototype, 'parseLogEvent')
+      .returns(new NoOpState());
 
     logFile.updateFrames();
 

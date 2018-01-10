@@ -17,7 +17,8 @@ export function activate(context: vscode.ExtensionContext) {
         return vscode.window.showOpenDialog({
           canSelectFiles: true,
           canSelectFolders: false,
-          canSelectMany: false
+          canSelectMany: false,
+          defaultUri: getDialogStartingPath()
         });
       }
     )
@@ -29,6 +30,16 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 }
+
+function getDialogStartingPath(): vscode.Uri | undefined {
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders[0]
+  ) {
+    return vscode.workspace.workspaceFolders[0].uri;
+  }
+}
+
 export function deactivate() {
   console.log('Apex Replay Debugger Extension Deactivated');
 }

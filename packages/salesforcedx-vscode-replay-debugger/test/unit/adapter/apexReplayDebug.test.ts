@@ -19,12 +19,12 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
-import { LogFile, LogFileUtil } from '../../../src/core';
+import { LogContext, LogContextUtil } from '../../../src/core';
 import { nls } from '../../../src/messages';
 
 class MockApexReplayDebug extends ApexReplayDebug {
   public setLogFile(args: LaunchRequestArguments) {
-    this.logFile = new LogFile(args);
+    this.logFile = new LogContext(args);
   }
 
   public getDefaultResponse(): DebugProtocol.Response {
@@ -107,9 +107,9 @@ describe('Replay debugger adapter - unit', () => {
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
       sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
       readLogFileStub = sinon
-        .stub(LogFileUtil.prototype, 'readLogFile')
+        .stub(LogContextUtil.prototype, 'readLogFile')
         .returns(['line1', 'line2']);
-      updateFramesStub = sinon.stub(LogFile.prototype, 'updateFrames');
+      updateFramesStub = sinon.stub(LogContext.prototype, 'updateFrames');
       printToDebugConsoleStub = sinon.stub(
         ApexReplayDebug.prototype,
         'printToDebugConsole'
@@ -127,7 +127,7 @@ describe('Replay debugger adapter - unit', () => {
 
     it('Should return error when there are no log lines', () => {
       hasLogLinesStub = sinon
-        .stub(LogFile.prototype, 'hasLogLines')
+        .stub(LogContext.prototype, 'hasLogLines')
         .returns(false);
 
       adapter.launchRequest(response, args);
@@ -145,7 +145,7 @@ describe('Replay debugger adapter - unit', () => {
 
     it('Should stop on first line of log file', () => {
       hasLogLinesStub = sinon
-        .stub(LogFile.prototype, 'hasLogLines')
+        .stub(LogContext.prototype, 'hasLogLines')
         .returns(true);
 
       adapter.launchRequest(response, args);
@@ -224,7 +224,7 @@ describe('Replay debugger adapter - unit', () => {
       });
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
       readLogFileStub = sinon
-        .stub(LogFileUtil.prototype, 'readLogFile')
+        .stub(LogContextUtil.prototype, 'readLogFile')
         .returns(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
     });
@@ -287,11 +287,11 @@ describe('Replay debugger adapter - unit', () => {
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
       readLogFileStub = sinon
-        .stub(LogFileUtil.prototype, 'readLogFile')
+        .stub(LogContextUtil.prototype, 'readLogFile')
         .returns(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
       getFramesStub = sinon
-        .stub(LogFile.prototype, 'getFrames')
+        .stub(LogContext.prototype, 'getFrames')
         .returns(sampleStackFrames);
     });
 

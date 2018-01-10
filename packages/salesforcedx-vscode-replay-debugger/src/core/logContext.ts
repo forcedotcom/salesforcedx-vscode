@@ -8,12 +8,14 @@
 import * as path from 'path';
 import { StackFrame } from 'vscode-debugadapter';
 import { LaunchRequestArguments } from '../adapter/apexReplayDebug';
-import { LogFileUtil } from './logFileUtil';
+import { DebugLogState } from '../states';
+import { LogContextUtil } from './logContextUtil';
 
-export class LogFile {
-  private readonly util = new LogFileUtil();
+export class LogContext {
+  private readonly util = new LogContextUtil();
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
+  private state: DebugLogState;
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
 
@@ -49,8 +51,8 @@ export class LogFile {
   public updateFrames(): void {
     while (++this.logLinePosition < this.logLines.length) {
       const logLine = this.logLines[this.logLinePosition];
-      const logEvent = this.util.parseLogEvent(logLine);
-      if (logEvent && logEvent.handleThenStop(this)) {
+      this.state = this.util.parseLogEvent(logLine);
+      if (this.state && this.state.handle(this)) {
         break;
       }
     }

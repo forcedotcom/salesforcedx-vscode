@@ -6,13 +6,13 @@
  */
 
 import { Source, StackFrame } from 'vscode-debugadapter';
-import { LogFile } from '../core/logFile';
-import { DebugLogEvent } from './debugLogEvent';
+import { LogContext } from '../core/logContext';
+import { DebugLogState } from './debugLogState';
 
-export class LogEntry implements DebugLogEvent {
-  public handleThenStop(logFile: LogFile): boolean {
-    const logFileName = logFile.getLogFileName();
-    logFile
+export class LogEntryState implements DebugLogState {
+  public handle(logContext: LogContext): boolean {
+    const logFileName = logContext.getLogFileName();
+    logContext
       .getFrames()
       .push(
         new StackFrame(
@@ -20,9 +20,9 @@ export class LogEntry implements DebugLogEvent {
           '',
           new Source(
             logFileName,
-            encodeURI('file://' + logFile.getLogFilePath())
+            encodeURI('file://' + logContext.getLogFilePath())
           ),
-          logFile.getLogLinePosition() + 1
+          logContext.getLogLinePosition() + 1
         )
       );
     return true;

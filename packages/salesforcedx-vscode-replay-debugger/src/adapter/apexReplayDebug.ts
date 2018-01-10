@@ -15,7 +15,7 @@ import {
   ThreadEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { LogFile } from '../core/logFile';
+import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
 
 export interface LaunchRequestArguments
@@ -27,7 +27,7 @@ export interface LaunchRequestArguments
 
 export class ApexReplayDebug extends DebugSession {
   public static THREAD_ID = 1;
-  protected logFile: LogFile;
+  protected logFile: LogContext;
 
   constructor() {
     super();
@@ -65,7 +65,7 @@ export class ApexReplayDebug extends DebugSession {
     if (args.logFile) {
       args.logFile = this.convertDebuggerPathToClient(args.logFile);
     }
-    this.logFile = new LogFile(args);
+    this.logFile = new LogContext(args);
     if (!this.logFile.hasLogLines()) {
       response.success = false;
       response.message = nls.localize('no_log_file_text');

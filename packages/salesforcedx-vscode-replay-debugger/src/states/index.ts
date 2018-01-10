@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LogFile } from '../core/logFile';
-
-export interface DebugLogEvent {
-  handleThenStop(logFile: LogFile): boolean;
-}
+export { DebugLogState } from './debugLogState';
+export { LogEntryState } from './logEntryState';
+export { NoOpState } from './noOpState';

@@ -8,8 +8,8 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
-import { LogFile, LogFileUtil } from '../../../src/core';
-import { LogEntry } from '../../../src/events';
+import { LogContext, LogContextUtil } from '../../../src/core';
+import { LogEntryState } from '../../../src/states';
 
 // tslint:disable:no-unused-expression
 describe('LogEntry event', () => {
@@ -17,7 +17,7 @@ describe('LogEntry event', () => {
 
   beforeEach(() => {
     readLogFileStub = sinon
-      .stub(LogFileUtil.prototype, 'readLogFile')
+      .stub(LogContextUtil.prototype, 'readLogFile')
       .returns(['line1', 'line2']);
   });
 
@@ -26,14 +26,14 @@ describe('LogEntry event', () => {
   });
 
   it('Should handle event', () => {
-    const logFile = new LogFile({
+    const logFile = new LogContext({
       logFile: '/path/foo.log',
       stopOnEntry: true,
       trace: true
     } as LaunchRequestArguments);
-    const logEntry = new LogEntry();
+    const logEntry = new LogEntryState();
 
-    const isStopped = logEntry.handleThenStop(logFile);
+    const isStopped = logEntry.handle(logFile);
 
     expect(isStopped).to.be.true;
     const stackFrames = logFile.getFrames();

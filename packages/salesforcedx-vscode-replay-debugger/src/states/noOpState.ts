@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { DebugLogEvent } from './debugLogEvent';
-export { LogEntry } from './logEntry';
-export { NoOp } from './noOp';
+import { LogContext } from '../core/logContext';
+import { DebugLogState } from './debugLogState';
+
+export class NoOpState implements DebugLogState {
+  public handle(logContext: LogContext): boolean {
+    return false;
+  }
+}

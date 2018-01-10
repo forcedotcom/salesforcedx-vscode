@@ -5,11 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LogFile } from '../core/logFile';
-import { DebugLogEvent } from './debugLogEvent';
+import { LogContext } from '../core/logContext';
 
-export class NoOp implements DebugLogEvent {
-  public handleThenStop(logFile: LogFile): boolean {
-    return false;
-  }
+export interface DebugLogState {
+  handle(logFile: LogContext): boolean;
 }
