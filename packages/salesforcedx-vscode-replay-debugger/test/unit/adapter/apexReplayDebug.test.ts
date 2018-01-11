@@ -30,7 +30,7 @@ import { nls } from '../../../src/messages';
 
 class MockApexReplayDebug extends ApexReplayDebug {
   public setLogFile(args: LaunchRequestArguments) {
-    this.logFile = new LogContext(args);
+    this.logContext = new LogContext(args);
   }
 
   public getDefaultResponse(): DebugProtocol.Response {

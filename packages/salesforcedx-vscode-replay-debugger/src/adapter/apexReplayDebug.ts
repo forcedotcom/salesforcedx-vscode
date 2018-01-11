@@ -35,7 +35,7 @@ export interface LaunchRequestArguments
 
 export class ApexReplayDebug extends DebugSession {
   public static THREAD_ID = 1;
-  protected logFile: LogContext;
+  protected logContext: LogContext;
   private breakpointUtil: BreakpointUtil;
   private initializedResponse: DebugProtocol.InitializeResponse;
 
@@ -70,21 +70,21 @@ export class ApexReplayDebug extends DebugSession {
     if (args.logFile) {
       args.logFile = this.convertDebuggerPathToClient(args.logFile);
     }
-    this.logFile = new LogContext(args);
-    if (!this.logFile.hasLogLines()) {
+    this.logContext = new LogContext(args);
+    if (!this.logContext.hasLogLines()) {
       response.success = false;
       response.message = nls.localize('no_log_file_text');
       this.sendResponse(response);
       return;
     }
     if (args.stopOnEntry) {
-      this.logFile.updateFrames();
+      this.logContext.updateFrames();
       this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
     } else {
       // Continue until first breakpoint
     }
     this.printToDebugConsole(
-      nls.localize('session_started_text', this.logFile.getLogFileName())
+      nls.localize('session_started_text', this.logContext.getLogFileName())
     );
     response.success = true;
     this.sendResponse(response);
@@ -102,7 +102,7 @@ export class ApexReplayDebug extends DebugSession {
   public threadsRequest(response: DebugProtocol.ThreadsResponse): void {
     response.body = {
       threads: [
-        new Thread(ApexReplayDebug.THREAD_ID, this.logFile.getLogFileName())
+        new Thread(ApexReplayDebug.THREAD_ID, this.logContext.getLogFileName())
       ]
     };
     response.success = true;
@@ -113,7 +113,7 @@ export class ApexReplayDebug extends DebugSession {
     response: DebugProtocol.StackTraceResponse,
     args: DebugProtocol.StackTraceArguments
   ): void {
-    response.body = { stackFrames: this.logFile.getFrames().reverse() };
+    response.body = { stackFrames: this.logContext.getFrames().reverse() };
     response.success = true;
     this.sendResponse(response);
   }

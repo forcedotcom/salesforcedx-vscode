@@ -7,7 +7,6 @@
 
 import * as fs from 'fs';
 import { EOL } from 'os';
-import { DebugLogState, LogEntryState, NoOpState } from '../states';
 
 export class LogContextUtil {
   public readLogFile(logFilePath: string): string[] {
@@ -17,20 +16,5 @@ export class LogContextUtil {
     } catch (e) {
       return [];
     }
-  }
-
-  public parseLogEvent(logLine: string): DebugLogState {
-    if (logLine.match(/[\d]{2}\.\d.*APEX_CODE.*SYSTEM.*/)) {
-      return new LogEntryState();
-    }
-    const fields = logLine.split('|');
-    if (fields.length >= 3) {
-      switch (fields[1]) {
-        default:
-          return new NoOpState();
-      }
-    }
-
-    return new NoOpState();
   }
 }
