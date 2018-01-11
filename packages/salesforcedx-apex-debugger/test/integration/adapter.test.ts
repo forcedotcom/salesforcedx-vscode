@@ -40,7 +40,7 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
  * These integration tests assume the environment has authenticated to
  * a Dev Hub and it is set as the default Dev Hub.
  */
-describe('Debugger adapter - integration', function() {
+describe('Interactive debugger adapter - integration', function() {
   // tslint:disable-next-line:no-invalid-this
   this.timeout(180000);
   let dc: DebugClient;

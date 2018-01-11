@@ -79,7 +79,7 @@ import {
 } from './apexDebugVariablesHandling.test';
 import os = require('os');
 
-describe('Debugger adapter - unit', () => {
+describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;
 
   describe('Initialize', () => {
