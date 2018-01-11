@@ -17,7 +17,6 @@
  */
 export const messages = {
   config_name_text: 'Launch Apex Replay Debugger',
-  config_request_type_text: 'launch',
   session_language_server_error_text:
     'Apex language server could not provide information about valid breakpoints.',
   session_started_text: 'Apex Replay Debugger session started for log file %s.',

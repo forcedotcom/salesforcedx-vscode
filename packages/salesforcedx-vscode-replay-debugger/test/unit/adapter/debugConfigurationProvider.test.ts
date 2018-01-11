@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
-import { DEBUGGER_TYPE } from '../../../src/constants';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
 describe('Configuration provider', () => {
@@ -29,7 +29,7 @@ describe('Configuration provider', () => {
     const expectedConfig = {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
-      request: nls.localize('config_request_type_text'),
+      request: DEBUGGER_LAUNCH_TYPE,
       logFile: '${command:AskForLogFileName}',
       stopOnEntry: true,
       trace: true
@@ -44,7 +44,7 @@ describe('Configuration provider', () => {
     const expectedConfig = {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
-      request: nls.localize('config_request_type_text'),
+      request: DEBUGGER_LAUNCH_TYPE,
       logFile: '${command:AskForLogFileName}',
       stopOnEntry: true,
       trace: true
