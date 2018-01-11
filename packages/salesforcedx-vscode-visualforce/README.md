@@ -29,6 +29,7 @@ Before you set up this extension, make sure that you have [Visual Studio Code](h
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
 * _[Visualforce Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.pages.meta/pages)_
+* Dreamforce ’17 Session Video: [Building Powerful Tooling For All IDEs Through Language Servers](https://www.salesforce.com/video/1765282/)
 * GitHub: [Language Server Protocol](https://github.com/Microsoft/language-server-protocol)
 * GitHub: [salesforcedx-vscode-visualforce](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-visualforce)
 

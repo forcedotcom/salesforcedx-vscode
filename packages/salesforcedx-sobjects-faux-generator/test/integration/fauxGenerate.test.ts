@@ -99,7 +99,6 @@ describe('Generate faux classes for SObjects', function() {
   });
 
   it('Should emit an error event on failure', async () => {
-    let result = '';
     let errorMessage = '';
     let exitCode: number = LocalCommandExecution.SUCCESS_CODE;
     let rejectOutput = '';
@@ -112,7 +111,7 @@ describe('Generate faux classes for SObjects', function() {
     });
     invalidateProject(projectPath);
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
       rejectOutput = e;
     } finally {
@@ -128,7 +127,6 @@ describe('Generate faux classes for SObjects', function() {
   });
 
   it('Should emit message to stderr on failure', async () => {
-    let result = '';
     let stderrInfo = '';
     let rejectOutput = '';
     const generator = getGenerator();
@@ -137,7 +135,7 @@ describe('Generate faux classes for SObjects', function() {
     });
     invalidateProject(projectPath);
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      await generator.generate(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
       rejectOutput = e;
     } finally {

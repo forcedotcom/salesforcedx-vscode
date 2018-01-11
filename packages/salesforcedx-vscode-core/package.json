@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.12.0",
+  "version": "41.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "41.12.0",
-    "@salesforce/salesforcedx-utils-vscode": "41.12.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "41.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.16.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
@@ -40,8 +40,8 @@
     "mock-spawn": "0.2.6",
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
-    "typescript": "2.4.0",
-    "vscode": "1.1.8"
+    "typescript": "2.6.2",
+    "vscode": "1.1.10"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -55,6 +55,8 @@
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test":
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test",
+    "test:unit":
       "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
   "activationEvents": [

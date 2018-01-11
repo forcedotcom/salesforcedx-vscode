@@ -16,7 +16,7 @@ describe('Apex Language Server Client', () => {
     let originalPlatform: PropertyDescriptor;
 
     before(() => {
-      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
       Object.defineProperty(process, 'platform', { value: 'win32' });
     });
 
@@ -38,7 +38,7 @@ describe('Apex Language Server Client', () => {
     let originalPlatform: PropertyDescriptor;
 
     before(() => {
-      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
       Object.defineProperty(process, 'platform', { value: 'darwin' });
     });
 

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.12.0",
+  "version": "41.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,7 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "41.12.0",
+    "@salesforce/salesforcedx-apex-debugger": "41.16.0",
     "vscode-debugprotocol": "1.24.0"
   },
   "devDependencies": {
@@ -33,7 +33,7 @@
     "chai": "^4.0.2",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "vscode": "1.1.5"
+    "vscode": "1.1.10"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -50,7 +50,8 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
+    "test": "node ./node_modules/vscode/bin/test",
+    "test:unit": "node ./node_modules/vscode/bin/test"
   },
   "activationEvents": ["onDebug", "workspaceContains:sfdx-project.json"],
   "main": "./out/src",

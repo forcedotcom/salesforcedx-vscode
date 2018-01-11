@@ -81,3 +81,12 @@ jspm_packages/
 
 # SalesforceDX
 .sfdx/
+
+# Project test data
+packages/system-tests/project_*
+
+# Node 8 files (not yet used)
+package-lock.json
+
+# External extension dependencies
+packages/dbaeumer*

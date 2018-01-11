@@ -20,18 +20,18 @@ To see code-completion suggestions, press Ctrl+space when you’re working in a 
 ## View or Jump to Definitions
 You can preview, view, or go to definitions of:  
 * Apex  
+  * classes (from definitions of extending classes)  
+  * constructors  
+  * interfaces (from definitions of implementing classes)  
   * methods  
   * properties  
-  * constructors  
-  * local variables  
-  * class variables  
+  * variables (local and class variables)  
 * standard objects  
+  * fields (standard and custom fields)
   * object definitions
-  * standard fields  
-  * custom fields  
 * custom objects
+  * fields  
   * object definitions  
-  * custom fields  
 
 (See the "Enable Code Smartness for SObjects" section of this README for information on working with standard and custom objects.)
 
@@ -71,6 +71,7 @@ If you’re not seeing the Apex completion suggestions that you expect, your Ape
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
 * _[Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)_
+* Dreamforce ’17 Session Video: [Building Powerful Tooling For All IDEs Through Language Servers](https://www.salesforce.com/video/1765282/)
 * GitHub: [Language Server Protocol](https://github.com/Microsoft/language-server-protocol)
 * GitHub: [salesforcedx-vscode-apex](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex)
 
