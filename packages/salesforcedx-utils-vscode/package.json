@@ -1,12 +1,13 @@
 {
   "name": "@salesforce/salesforcedx-utils-vscode",
   "displayName": "SFDX Utilities for VS Code",
-  "description":
-    "Provides utilies to interface the SFDX libraries with VS Code",
-  "version": "41.12.0",
+  "description": "Provides utilies to interface the SFDX libraries with VS Code",
+  "version": "41.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "dependencies": {
     "rxjs": "^5.4.1",
     "tree-kill": "^1.1.0"
@@ -38,15 +39,15 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000",
-    "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000",
+    "test:unit": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
