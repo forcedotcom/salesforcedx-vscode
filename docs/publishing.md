@@ -13,7 +13,7 @@ Marketplace](https://marketplace.visualstudio.com/vscode).
 
 For more information about publishing take a look at 
 
-* [Publishing VS Code Extensions](https://code.visualstudio.com/docs/extensions/publish-extension)
+* [Publishing VS Code Extensions][publish_vscode_ext]
 * [Managing Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
 
 # Steps
@@ -63,6 +63,10 @@ https://developer.salesforce.com/media/vscode/SHA256
 * You have the [AWS CLI](https://aws.amazon.com/cli/) installed and configured
   via `aws configure` or have the `AWS_ACCESS_KEY_ID` and
   `AWS_SECRET_ACCESS_KEY` exported as environment variables.
+* Verify you have access to our S3 bucket:
+```
+$ aws s3 ls s3://dfc-data-production/media/vscode/
+```
 
 ### Steps
 
@@ -77,8 +81,12 @@ https://developer.salesforce.com/media/vscode/SHA256
 ### Prerequisite
 
 * You have a personal access token that for the salesforce publisher id that is
-  exported as `VSCE_PERSONAL_ACCESS_TOKEN`. 
+  exported as `VSCE_PERSONAL_ACCESS_TOKEN`. Go to [Publishing VS Code Extensions][publish_vscode_ext] for steps on getting your personal access token.
 * Or, you have vsce installed and configured with the salesforce publisher id.
+* Verify you have access to publish:
+```
+$ vsce login (publisher name)
+```
 
 ### Steps
 
@@ -118,3 +126,5 @@ from Atlassian on the flow. These steps are manual because you might encounter m
    prune --production`. This is required due to the way Lerna does symlinking.
    See [vscode-vsce#52](https://github.com/Microsoft/vscode-vsce/issues/52) for
    more information.
+
+[publish_vscode_ext]: https://code.visualstudio.com/docs/extensions/publish-extension
