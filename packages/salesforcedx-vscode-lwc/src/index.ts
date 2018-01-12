@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
 import * as lwcLanguageServer from 'lwc-language-server';
 import * as path from 'path';
 import { ExtensionContext, workspace } from 'vscode';
