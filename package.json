@@ -24,7 +24,7 @@
     "test:without-system-tests": "lerna run test --ignore system-tests --concurrency 1 --stream",
     "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream",
     "coverage:system-tests": "lerna run coverage --scope system-tests --concurrency 1 --stream",
-    "vscode:package": "lerna exec -- shx rm -rf node_modules/@types && lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1",
+    "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
