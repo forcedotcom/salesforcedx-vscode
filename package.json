@@ -12,8 +12,8 @@
     "vsce": "1.29.0"
   },
   "scripts": {
-    "postinstall": "lerna bootstrap -- --no-package-lock",
-    "bootstrap": "lerna bootstrap -- --no-package-lock",
+    "postinstall": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+    "bootstrap": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
