@@ -30,7 +30,6 @@
     "vscode": "1.1.10"
   },
   "scripts": {
-    "vscode:package": "npm prune --production",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",

@@ -31,7 +31,6 @@
     "vscode-uri": "^1.0.1"
   },
   "scripts": {
-    "vscode:package": "npm prune --production",
     "compile": "tsc -p ./ && shx cp src/beautify/beautify-* out/src/beautify",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
