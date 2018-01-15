@@ -8,14 +8,14 @@
 import * as path from 'path';
 import { StackFrame } from 'vscode-debugadapter';
 import { LaunchRequestArguments } from '../adapter/apexReplayDebug';
-import { DebugLogState } from '../states';
+import { DebugLogState, LogEntryState, NoOpState } from '../states';
 import { LogContextUtil } from './logContextUtil';
 
 export class LogContext {
   private readonly util = new LogContextUtil();
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
-  private state: DebugLogState;
+  private state: DebugLogState | undefined;
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
 
@@ -48,13 +48,34 @@ export class LogContext {
     return this.stackFrameInfos;
   }
 
+  public setState(state: DebugLogState | undefined): void {
+    this.state = state;
+  }
+
   public updateFrames(): void {
     while (++this.logLinePosition < this.logLines.length) {
       const logLine = this.logLines[this.logLinePosition];
-      this.state = this.util.parseLogEvent(logLine);
-      if (this.state && this.state.handle(this)) {
-        break;
+      if (logLine.length) {
+        this.state = this.parseLogEvent(logLine);
+        if (this.state && this.state.handle(this)) {
+          break;
+        }
       }
     }
+  }
+
+  public parseLogEvent(logLine: string): DebugLogState {
+    if (!this.state) {
+      return new LogEntryState();
+    }
+    const fields = logLine.split('|');
+    if (fields.length >= 3) {
+      switch (fields[1]) {
+        default:
+          return new NoOpState();
+      }
+    }
+
+    return new NoOpState();
   }
 }

@@ -26,25 +26,25 @@ describe('LogEntry event', () => {
   });
 
   it('Should handle event', () => {
-    const logFile = new LogContext({
+    const context = new LogContext({
       logFile: '/path/foo.log',
       stopOnEntry: true,
       trace: true
     } as LaunchRequestArguments);
     const logEntry = new LogEntryState();
 
-    const isStopped = logEntry.handle(logFile);
+    const isStopped = logEntry.handle(context);
 
     expect(isStopped).to.be.true;
-    const stackFrames = logFile.getFrames();
+    const stackFrames = context.getFrames();
     expect(stackFrames.length).to.equal(1);
     const stackFrame = stackFrames[0];
     expect(stackFrame.id).to.equal(0);
     expect(stackFrame.name).to.equal('');
-    expect(stackFrame.line).to.equal(logFile.getLogLinePosition() + 1);
-    expect(stackFrame.source.name).to.equal(logFile.getLogFileName());
+    expect(stackFrame.line).to.equal(context.getLogLinePosition() + 1);
+    expect(stackFrame.source.name).to.equal(context.getLogFileName());
     expect(stackFrame.source.path).to.equal(
-      encodeURI('file://' + logFile.getLogFilePath())
+      encodeURI('file://' + context.getLogFilePath())
     );
   });
 });

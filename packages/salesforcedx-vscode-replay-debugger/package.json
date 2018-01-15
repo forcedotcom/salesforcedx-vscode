@@ -42,7 +42,10 @@
     "vscode": "1.1.10",
     "vscode-debugadapter-testsupport": "1.25.0"
   },
-  "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-core"
+  ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",

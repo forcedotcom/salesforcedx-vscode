@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../constants';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider
@@ -17,8 +18,8 @@ export class DebugConfigurationProvider
     return [
       {
         name: nls.localize('config_name_text'),
-        type: nls.localize('config_type_text'),
-        request: nls.localize('config_request_type_text'),
+        type: DEBUGGER_TYPE,
+        request: DEBUGGER_LAUNCH_TYPE,
         logFile: '${command:AskForLogFileName}',
         stopOnEntry: true,
         trace: true
@@ -32,8 +33,8 @@ export class DebugConfigurationProvider
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     config.name = config.name || nls.localize('config_name_text');
-    config.type = config.type || nls.localize('config_type_text');
-    config.request = config.request || nls.localize('config_request_type_text');
+    config.type = config.type || DEBUGGER_TYPE;
+    config.request = config.request || DEBUGGER_LAUNCH_TYPE;
     config.logFile = config.logFile || '${command:AskForLogFileName}';
     if (config.stopOnEntry === undefined) {
       config.stopOnEntry = true;
