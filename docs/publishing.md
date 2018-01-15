@@ -14,7 +14,8 @@ Marketplace](https://marketplace.visualstudio.com/vscode).
 For more information about publishing take a look at 
 
 * [Publishing VS Code Extensions][publish_vscode_ext]
-* [Managing Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
+* [Managing
+  Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
 
 # Steps
 
@@ -41,14 +42,16 @@ It is possible to run each step manually as illustrated below.
 
 ### Steps
 
-1. `npm install` to install all the dependencies and to symlink interdependent local modules.
+1. `npm install` to install all the dependencies and to symlink interdependent
+   local modules.
 1. `npm run compile` to compile all the TypeScript files.
 1. `lerna publish ...` will increment the version in the individual package.json
    to prepare for publication. **This also commits the changes to git and adds a
    tag.**
 1. `npm run vscode:package` packages _each_ extension as a .vsix.
 
-**At this stage, it is possible to share the .vsix directly for manual installation.**
+**At this stage, it is possible to share the .vsix directly for manual
+installation.**
 
 ## Generating SHA256
 
@@ -64,7 +67,7 @@ https://developer.salesforce.com/media/vscode/SHA256
   via `aws configure` or have the `AWS_ACCESS_KEY_ID` and
   `AWS_SECRET_ACCESS_KEY` exported as environment variables.
 * Verify you have access to our S3 bucket:
-```
+  ```
 $ aws s3 ls s3://dfc-data-production/media/vscode/
 ```
 
