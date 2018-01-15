@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
 describe('Configuration provider', () => {
@@ -27,8 +28,8 @@ describe('Configuration provider', () => {
   it('Should provide default config', () => {
     const expectedConfig = {
       name: nls.localize('config_name_text'),
-      type: nls.localize('config_type_text'),
-      request: nls.localize('config_request_type_text'),
+      type: DEBUGGER_TYPE,
+      request: DEBUGGER_LAUNCH_TYPE,
       logFile: '${command:AskForLogFileName}',
       stopOnEntry: true,
       trace: true
@@ -42,8 +43,8 @@ describe('Configuration provider', () => {
   it('Should fill in empty attributes in the config', () => {
     const expectedConfig = {
       name: nls.localize('config_name_text'),
-      type: nls.localize('config_type_text'),
-      request: nls.localize('config_request_type_text'),
+      type: DEBUGGER_TYPE,
+      request: DEBUGGER_LAUNCH_TYPE,
       logFile: '${command:AskForLogFileName}',
       stopOnEntry: true,
       trace: true

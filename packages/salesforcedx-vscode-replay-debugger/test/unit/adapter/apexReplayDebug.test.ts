@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
+  InitializedEvent,
   Source,
   StackFrame,
   StoppedEvent,
@@ -19,12 +20,17 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
+import { BreakpointUtil, LineBreakpointInfo } from '../../../src/breakpoints';
+import {
+  DEFAULT_INITIALIZE_TIMEOUT_MS,
+  LINE_BREAKPOINT_INFO_REQUEST
+} from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { nls } from '../../../src/messages';
 
 class MockApexReplayDebug extends ApexReplayDebug {
   public setLogFile(args: LaunchRequestArguments) {
-    this.logFile = new LogContext(args);
+    this.logContext = new LogContext(args);
   }
 
   public getDefaultResponse(): DebugProtocol.Response {
@@ -46,8 +52,10 @@ describe('Replay debugger adapter - unit', () => {
 
   describe('Initialize', () => {
     let sendResponseSpy: sinon.SinonSpy;
+    let hasLineNumberMappingStub: sinon.SinonStub;
     let response: DebugProtocol.InitializeResponse;
     let args: DebugProtocol.InitializeRequestArguments;
+    let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -56,33 +64,46 @@ describe('Replay debugger adapter - unit', () => {
         adapterID: ''
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
+      clock = sinon.useFakeTimers();
     });
 
     afterEach(() => {
       sendResponseSpy.restore();
+      hasLineNumberMappingStub.restore();
+      clock.restore();
     });
 
-    it('Should set supported features', () => {
+    it('Should send successful initialized response', () => {
+      hasLineNumberMappingStub = sinon
+        .stub(BreakpointUtil.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
       adapter.initializeRequest(response, args);
 
-      expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse = sendResponseSpy.getCall(0).args[0];
-      expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body).to.deep.equal({
-        supportsCompletionsRequest: false,
-        supportsConditionalBreakpoints: false,
-        supportsDelayedStackTraceLoading: false,
-        supportsEvaluateForHovers: false,
-        supportsExceptionInfoRequest: false,
-        supportsExceptionOptions: false,
-        supportsFunctionBreakpoints: false,
-        supportsHitConditionalBreakpoints: false,
-        supportsLoadedSourcesRequest: false,
-        supportsRestartFrame: false,
-        supportsSetVariable: false,
-        supportsStepBack: false,
-        supportsStepInTargetsRequest: false
-      });
+      setTimeout(() => {
+        expect(hasLineNumberMappingStub.calledOnce).to.be.true;
+        expect(sendResponseSpy.calledOnce).to.be.false;
+      }, DEFAULT_INITIALIZE_TIMEOUT_MS);
+      clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
+    });
+
+    it('Should send language server error message', () => {
+      hasLineNumberMappingStub = sinon
+        .stub(BreakpointUtil.prototype, 'hasLineNumberMapping')
+        .returns(false);
+
+      adapter.initializeRequest(response, args);
+
+      setTimeout(() => {
+        expect(hasLineNumberMappingStub.calledOnce).to.be.true;
+        expect(sendResponseSpy.calledOnce).to.be.true;
+        const actualResponse = sendResponseSpy.getCall(0).args[0];
+        expect(actualResponse.success).to.be.false;
+        expect(actualResponse.message).to.have.string(
+          nls.localize('session_language_server_error_text')
+        );
+      }, DEFAULT_INITIALIZE_TIMEOUT_MS);
+      clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
     });
   });
 
@@ -350,6 +371,205 @@ describe('Replay debugger adapter - unit', () => {
       const stoppedEvent: ThreadEvent = sendEventSpy.getCall(0).args[0];
       expect(stoppedEvent.body.reason).to.equal('exited');
       expect(stoppedEvent.body.threadId).to.equal(ApexReplayDebug.THREAD_ID);
+    });
+  });
+
+  describe('Breakpoints', () => {
+    let sendResponseSpy: sinon.SinonSpy;
+    let canSetLineBreakpointStub: sinon.SinonStub;
+    let response: DebugProtocol.SetBreakpointsResponse;
+    let args: DebugProtocol.SetBreakpointsArguments;
+
+    beforeEach(() => {
+      adapter = new MockApexReplayDebug();
+      response = Object.assign(adapter.getDefaultResponse(), {
+        body: {}
+      });
+      args = {
+        source: {}
+      };
+      sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
+    });
+
+    afterEach(() => {
+      sendResponseSpy.restore();
+      if (canSetLineBreakpointStub) {
+        canSetLineBreakpointStub.restore();
+      }
+    });
+
+    it('Should not return breakpoints when path argument is invalid', () => {
+      args.lines = [1];
+
+      adapter.setBreakPointsRequest(response, args);
+
+      expect(sendResponseSpy.calledOnce).to.be.true;
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(
+        0
+      ).args[0];
+      expect(actualResponse.success).to.be.true;
+      expect(actualResponse.body.breakpoints).to.be.empty;
+    });
+
+    it('Should not return breakpoints when line argument is invalid', () => {
+      args.source.path = 'foo.cls';
+
+      adapter.setBreakPointsRequest(response, args);
+
+      expect(sendResponseSpy.calledOnce).to.be.true;
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(
+        0
+      ).args[0];
+      expect(actualResponse.success).to.be.true;
+      expect(actualResponse.body.breakpoints).to.be.empty;
+    });
+
+    it('Should return breakpoints', () => {
+      args.source.path = 'foo.cls';
+      args.lines = [1, 2];
+      canSetLineBreakpointStub = sinon
+        .stub(BreakpointUtil.prototype, 'canSetLineBreakpoint')
+        .onFirstCall()
+        .returns(true)
+        .onSecondCall()
+        .returns(false);
+
+      adapter.setBreakPointsRequest(response, args);
+
+      expect(sendResponseSpy.calledOnce).to.be.true;
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(
+        0
+      ).args[0];
+      expect(actualResponse.success).to.be.true;
+      expect(actualResponse.body.breakpoints).to.deep.equal([
+        {
+          verified: true,
+          source: { path: 'foo.cls' },
+          line: 1
+        },
+        {
+          verified: false,
+          source: { path: 'foo.cls' },
+          line: 2
+        }
+      ]);
+    });
+  });
+
+  describe('Custom request', () => {
+    describe('Line breakpoint info', () => {
+      let sendResponseSpy: sinon.SinonSpy;
+      let sendEventSpy: sinon.SinonSpy;
+      let setValidLines: sinon.SinonSpy;
+      const initializedResponse = {
+        success: true,
+        type: 'response',
+        body: {
+          supportsCompletionsRequest: false,
+          supportsConditionalBreakpoints: false,
+          supportsDelayedStackTraceLoading: false,
+          supportsEvaluateForHovers: false,
+          supportsExceptionInfoRequest: false,
+          supportsExceptionOptions: false,
+          supportsFunctionBreakpoints: false,
+          supportsHitConditionalBreakpoints: false,
+          supportsLoadedSourcesRequest: false,
+          supportsRestartFrame: false,
+          supportsSetVariable: false,
+          supportsStepBack: false,
+          supportsStepInTargetsRequest: false
+        }
+      } as DebugProtocol.InitializeResponse;
+
+      beforeEach(() => {
+        adapter = new MockApexReplayDebug();
+        adapter.initializeRequest(
+          initializedResponse,
+          {} as DebugProtocol.InitializeRequestArguments
+        );
+        sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
+        sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
+        setValidLines = sinon.spy(BreakpointUtil.prototype, 'setValidLines');
+      });
+
+      afterEach(() => {
+        sendResponseSpy.restore();
+        sendEventSpy.restore();
+        setValidLines.restore();
+      });
+
+      it('Should handle undefined args', () => {
+        adapter.customRequest(
+          LINE_BREAKPOINT_INFO_REQUEST,
+          {} as DebugProtocol.Response,
+          null
+        );
+
+        expect(setValidLines.called).to.be.false;
+        expect(sendResponseSpy.called).to.be.true;
+        const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(
+          0
+        ).args[0];
+        expect(actualResponse.success).to.be.true;
+        expect(actualResponse).to.deep.equal(initializedResponse);
+        expect(sendEventSpy.calledOnce).to.be.true;
+        expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+          InitializedEvent
+        );
+      });
+
+      it('Should handle empty line breakpoint info', () => {
+        adapter.customRequest(
+          LINE_BREAKPOINT_INFO_REQUEST,
+          {} as DebugProtocol.Response,
+          []
+        );
+
+        expect(setValidLines.called).to.be.false;
+        expect(sendResponseSpy.called).to.be.true;
+        const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(
+          0
+        ).args[0];
+        expect(actualResponse.success).to.be.true;
+        expect(actualResponse).to.deep.equal(initializedResponse);
+        expect(sendEventSpy.calledOnce).to.be.true;
+        expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+          InitializedEvent
+        );
+      });
+
+      it('Should save line number mapping', () => {
+        const info: LineBreakpointInfo[] = [
+          { uri: 'file:///foo.cls', typeref: 'foo', lines: [1, 2, 3] },
+          { uri: 'file:///foo.cls', typeref: 'foo$inner', lines: [4, 5, 6] },
+          { uri: 'file:///bar.cls', typeref: 'bar', lines: [1, 2, 3] },
+          { uri: 'file:///bar.cls', typeref: 'bar$inner', lines: [4, 5, 6] }
+        ];
+        const expectedLineNumberMapping: Map<string, number[]> = new Map();
+        expectedLineNumberMapping.set('file:///foo.cls', [1, 2, 3, 4, 5, 6]);
+        expectedLineNumberMapping.set('file:///bar.cls', [1, 2, 3, 4, 5, 6]);
+
+        adapter.customRequest(
+          LINE_BREAKPOINT_INFO_REQUEST,
+          {} as DebugProtocol.Response,
+          info
+        );
+
+        expect(setValidLines.calledOnce).to.be.true;
+        expect(setValidLines.getCall(0).args[0]).to.deep.equal(
+          expectedLineNumberMapping
+        );
+        expect(sendResponseSpy.called).to.be.true;
+        const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(
+          0
+        ).args[0];
+        expect(actualResponse.success).to.be.true;
+        expect(actualResponse).to.deep.equal(initializedResponse);
+        expect(sendEventSpy.calledOnce).to.be.true;
+        expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+          InitializedEvent
+        );
+      });
     });
   });
 
