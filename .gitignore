@@ -85,7 +85,7 @@ jspm_packages/
 # Project test data
 packages/system-tests/project_*
 
-# Node 8 files (not yet used)
+# Node 8 files (actually causes issues with the symlinking that lerna does, so ignore)
 package-lock.json
 
 # External extension dependencies

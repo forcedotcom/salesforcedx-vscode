@@ -30,7 +30,6 @@
     "typescript": "2.6.2"
   },
   "scripts": {
-    "vscode:package": "npm prune --production",
     "compile": "tsc -p ./ && shx cp -R test/fixtures out/test",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
