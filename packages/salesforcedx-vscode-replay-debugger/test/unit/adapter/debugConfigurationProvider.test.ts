@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as vscode from 'vscode';
-import { DebugConfigurationProvider } from '../../../src/adapter/DebugConfigurationProvider';
+import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { nls } from '../../../src/messages';
 
 describe('Configuration provider', () => {
