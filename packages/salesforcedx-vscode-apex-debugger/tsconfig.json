@@ -13,7 +13,13 @@
     "rootDir": ".",
     "outDir": "out",
     "preserveConstEnums": true,
-    "strict": true
+    "strict": true,
+    "baseUrl": "",
+    "paths": {
+      "vscode": [
+        "node_modules/vscode"
+      ]
+    }
   },
   "exclude": [
     "node_modules",
