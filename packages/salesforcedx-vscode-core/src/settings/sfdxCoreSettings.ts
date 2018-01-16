@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import {
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG
-} from './constants';
+} from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
  */

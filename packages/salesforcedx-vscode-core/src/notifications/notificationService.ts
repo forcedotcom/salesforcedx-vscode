@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { DEFAULT_SFDX_CHANNEL } from '../channels';
 import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
-import { SfdxCoreSettings } from '../sfdxCoreSettings';
+import { sfdxCoreSettings } from '../settings';
 
 /**
  * A centralized location for all notification functionalities.
@@ -76,7 +76,6 @@ export class NotificationService {
     observable: Observable<number | undefined>,
     cancellationToken?: vscode.CancellationToken
   ) {
-    const sfdxCoreSettings = SfdxCoreSettings.getInstance();
     observable.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
         const message = nls.localize(

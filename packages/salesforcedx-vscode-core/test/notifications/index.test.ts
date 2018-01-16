@@ -11,7 +11,7 @@ import { CancellationTokenSource, window } from 'vscode';
 import { DEFAULT_SFDX_CHANNEL } from '../../src/channels/channelService';
 import { nls } from '../../src/messages';
 import { NotificationService } from '../../src/notifications/notificationService';
-import { SfdxCoreSettings } from '../../src/sfdxCoreSettings';
+import { SfdxCoreSettings } from '../../src/settings/sfdxCoreSettings';
 
 const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');
 const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize(
