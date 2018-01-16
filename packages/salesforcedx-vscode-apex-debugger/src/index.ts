@@ -24,7 +24,6 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { isvDebugBootstrap } from './isv/bootstrapCmd';
 import { nls } from './messages';
 
 const cachedExceptionBreakpoints: Map<
@@ -113,16 +112,10 @@ function registerCommands(): vscode.Disposable {
     });
   });
 
-  const isvDebugBootstrapCmd = vscode.commands.registerCommand(
-    'sfdx.force.project.create',
-    isvDebugBootstrap
-  );
-
   return vscode.Disposable.from(
     customEventHandler,
     exceptionBreakpointCmd,
-    startSessionHandler,
-    isvDebugBootstrapCmd
+    startSessionHandler
   );
 }
 

@@ -43,6 +43,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 import { restoreDebugLevels } from './commands/forceStopApexDebugLogging';
+import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import {
   CLIENT_ID,
   SFDX_CLIENT_ENV_VAR,
@@ -203,6 +204,11 @@ function registerCommands(): vscode.Disposable {
     forceStopApexDebugLogging
   );
 
+  const isvDebugBootstrapCmd = vscode.commands.registerCommand(
+    'sfdx.debug.isv.bootstrap',
+    isvDebugBootstrap
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -243,6 +249,7 @@ function registerCommands(): vscode.Disposable {
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
+    isvDebugBootstrapCmd,
     internalCancelCommandExecution
   );
 }

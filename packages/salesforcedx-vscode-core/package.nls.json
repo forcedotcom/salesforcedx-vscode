@@ -50,5 +50,7 @@
   "force_start_apex_debug_logging":
     "SFDX: Turn on Apex Debug Log for Replay Debugger",
   "force_stop_apex_debug_logging":
-    "SFDX: Turn off Apex Debug Log for Replay Debugger"
+    "SFDX: Turn off Apex Debug Log for Replay Debugger",
+
+  "isv_bootstrap_command_text": "Setup Project for ISV Debugging"
 }

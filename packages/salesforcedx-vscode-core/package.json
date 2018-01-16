@@ -61,7 +61,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onCommand:sfdx.force.project.create"
+    "onCommand:sfdx.force.project.create",
+    "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
   "contributes": {
@@ -253,6 +254,9 @@
         {
           "command": "sfdx.force.stop.apex.debug.logging",
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
+        },
+        {
+          "command": "sfdx.debug.isv.bootstrap"
         }
       ]
     },
@@ -388,6 +392,11 @@
       {
         "command": "sfdx.force.stop.apex.debug.logging",
         "title": "%force_stop_apex_debug_logging%"
+      },
+      {
+        "command": "sfdx.debug.isv.bootstrap",
+        "title": "%isv_bootstrap_command_text%",
+        "category": "SFDX"
       }
     ],
     "configuration": {

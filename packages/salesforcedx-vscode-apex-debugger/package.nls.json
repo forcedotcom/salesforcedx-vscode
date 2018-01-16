@@ -15,6 +15,5 @@
   "configuration_title": "Salesforce Apex Debugger Configuration",
   "connection_timeout_ms_description":
     "Connection timeout for Apex Debugger API requests (in milliseconds).",
-  "exception_breakpoint_command_text": "Apex Debug: Configure Exceptions",
-  "isv_bootstrap_command_text": "Setup ISV Project for Debugging"
+  "exception_breakpoint_command_text": "Apex Debug: Configure Exceptions"
 }

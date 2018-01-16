@@ -13,7 +13,11 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
-import { channelService } from 'salesforcedx-vscode-core/out/src/channels';
+import * as vscode from 'vscode';
+import { channelService } from '../../channels';
+import { nls } from '../../messages';
+import { notificationService } from '../../notifications';
+import { CancellableStatusBar, taskViewService } from '../../statuses';
 import {
   CancelResponse,
   CompositeParametersGatherer,
@@ -23,7 +27,7 @@ import {
   PostconditionChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
-} from 'salesforcedx-vscode-core/out/src/commands/commands';
+} from '../commands';
 import {
   PathExistsChecker,
   ProjectName,
@@ -31,17 +35,20 @@ import {
   ProjectURI,
   SelectProjectFolder,
   SelectProjectName
-} from 'salesforcedx-vscode-core/out/src/commands/forceProjectCreate';
-import { nls } from 'salesforcedx-vscode-core/out/src/messages';
-import { notificationService } from 'salesforcedx-vscode-core/out/src/notifications';
-import {
-  CancellableStatusBar,
-  taskViewService
-} from 'salesforcedx-vscode-core/out/src/statuses';
-import * as vscode from 'vscode';
+} from '../forceProjectCreate';
+import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
-  public build(data: IsvDebugBootstrapConfig): Command {
+  public buildCreateProjectCommand(data: IsvDebugBootstrapConfig): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_project_create_text'))
+      .withArg('force:project:create')
+      .withFlag('--projectname', data.projectName)
+      .withFlag('--outputdir', data.projectUri)
+      .build();
+  }
+
+  public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_project_create_text'))
       .withArg('force:project:create')
@@ -54,11 +61,14 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: response.data.projectUri
-    }).execute(cancellationToken);
+    const createProjectExecution = new CliCommandExecutor(
+      this.buildCreateProjectCommand(response.data),
+      {
+        cwd: response.data.projectUri
+      }
+    ).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(async data => {
+    createProjectExecution.processExitSubject.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
         await vscode.commands.executeCommand(
           'vscode.openFolder',
@@ -66,14 +76,45 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
             path.join(response.data.projectUri, response.data.projectName)
           )
         );
+
+        const configureProjectExecution = new CliCommandExecutor(
+          this.buildConfigureProjectCommand(response.data),
+          {
+            cwd: response.data.projectUri
+          }
+        ).execute(cancellationToken);
+
+        // configureProjectExecution.processExitSubject(async data2 => {
+        //   if (data2 != undefined && data2.toString() === '0') {
+        //     channelService.streamCommandOutput
+        // });
+
+        this.attachExecution(
+          configureProjectExecution,
+          cancellationTokenSource,
+          cancellationToken
+        );
       }
     });
 
+    this.attachExecution(
+      createProjectExecution,
+      cancellationTokenSource,
+      cancellationToken
+    );
+  }
+
+  protected attachExecution(
+    execution: CommandExecution,
+    cancellationTokenSource: vscode.CancellationTokenSource,
+    cancellationToken: vscode.CancellationToken
+  ) {
+    channelService.streamCommandOutput(execution);
+    channelService.showChannelOutput();
     notificationService.reportExecutionError(
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    channelService.streamCommandOutput(execution);
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
@@ -85,18 +126,18 @@ export interface ForceIdeUri {
   forceIdeUri: string;
 }
 
-export class EnterForceIdeUri implements ParametersGatherer<ProjectName> {
+export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<ProjectName>
+    CancelResponse | ContinueResponse<ForceIdeUri>
   > {
-    const projectNameInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_project_name')
+    const forceIdeUrlInputOptions = {
+      prompt: nls.localize('parameter_gatherer_paste_forceide_url')
     } as vscode.InputBoxOptions;
-    const projectName = await vscode.window.showInputBox(
-      projectNameInputOptions
+    const forceIdeUri = await vscode.window.showInputBox(
+      forceIdeUrlInputOptions
     );
-    return projectName
-      ? { type: 'CONTINUE', data: { projectName } }
+    return forceIdeUri
+      ? { type: 'CONTINUE', data: { forceIdeUri } }
       : { type: 'CANCEL' };
   }
 }
