@@ -67,7 +67,7 @@ https://developer.salesforce.com/media/vscode/SHA256
   via `aws configure` or have the `AWS_ACCESS_KEY_ID` and
   `AWS_SECRET_ACCESS_KEY` exported as environment variables.
 * Verify you have access to our S3 bucket:
-  ```
+```
 $ aws s3 ls s3://dfc-data-production/media/vscode/
 ```
 
