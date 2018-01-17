@@ -41,6 +41,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { debugLevelCleanUp } from './commands/forceApexDebugLogForReplayDebugger';
 import {
   CLIENT_ID,
   SFDX_CLIENT_ENV_VAR,
@@ -320,4 +321,5 @@ export async function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() {
   console.log('SFDX CLI Extension Deactivated');
+  debugLevelCleanUp();
 }
