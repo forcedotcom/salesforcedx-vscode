@@ -39,6 +39,5 @@ export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
 export { forceProjectCreate } from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
-export {
-  forceApexDebugLogForReplayDebugger
-} from './forceApexDebugLogForReplayDebugger';
+export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
+export { forceStopApexDebugLogging } from './forceStopApexDebugLogging';

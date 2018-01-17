@@ -247,7 +247,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.apex.debug.log.replay.debugger",
+          "command": "sfdx.force.start.apex.debug.logging",
+          "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
+        },
+        {
+          "command": "sfdx.force.stop.apex.debug.logging",
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         }
       ]
@@ -378,8 +382,12 @@
         "title": "%force_apex_trigger_create_text%"
       },
       {
-        "command": "sfdx.force.apex.debug.log.replay.debugger",
-        "title": "%force_apex_debug_log_replay_debugger_text%"
+        "command": "sfdx.force.start.apex.debug.logging",
+        "title": "%force_start_apex_debug_logging%"
+      },
+      {
+        "command": "sfdx.force.stop.apex.debug.logging",
+        "title": "%force_stop_apex_debug_logging%"
       }
     ],
     "configuration": {

@@ -14,6 +14,10 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
+  disposeTraceFlagExpiration,
+  showTraceFlagExpiration
+} from '../traceflag-time-decorator';
+import {
   CancelResponse,
   ContinueResponse,
   EmptyParametersGatherer,
@@ -24,23 +28,40 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-let PREV_APEX_CODE_DEBUG_LEVEL: string;
-let PREV_VISUALFORCE_DEBUG_LEVEL: string;
-let DEBUG_LEVEL_ID: string;
-export class ForceApexDebugLogForReplayDebuggerExecutor extends SfdxCommandletExecutor<
+export let prevApexCodeDebugLevel: string;
+export let prevVFDebugLevel: string;
+export let debugLevelId: string;
+
+const MILLISECONDS_PER_SECOND = 60000;
+const LOG_TIMER_LENGTH_MINUTES = 30;
+export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<
   TraceFlagInfo
 > {
   public build(data: TraceFlagInfo): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('force_apex_debug_log_replay_debugger_text')
-      )
+      .withDescription(nls.localize('force_start_apex_debug_logging'))
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'DebugLevel')
       .withFlag('--sobjectid', data.debugLevelId)
       .withFlag('--values', 'ApexCode=Finest Visualforce=Finest')
       .withArg('--usetoolingapi')
       .build();
+  }
+
+  public execute(response: ContinueResponse<TraceFlagInfo>): void {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: vscode.workspace.rootPath
+    }).execute(cancellationToken);
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    execution.processExitSubject.subscribe(async data => {
+      if (data != undefined && data.toString() === '0') {
+        showTraceFlagExpiration(response.data.expirationDate);
+      }
+    });
   }
 }
 
@@ -58,7 +79,7 @@ class TraceFlagInfoGatherer implements ParametersGatherer<TraceFlagInfo> {
         .withArg('force:data:soql:query')
         .withFlag(
           '--query',
-          'select id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce from traceflag'
+          'SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag'
         )
         .withArg('--usetoolingapi')
         .withArg('--json')
@@ -70,21 +91,25 @@ class TraceFlagInfoGatherer implements ParametersGatherer<TraceFlagInfo> {
 
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
-    const resultJson = JSON.parse(result);
-    if (resultJson.result.records.length > 0) {
-      const traceflag = resultJson.result.records[0];
-      DEBUG_LEVEL_ID = traceflag.DebugLevelId;
-      PREV_APEX_CODE_DEBUG_LEVEL = traceflag.DebugLevel.ApexCode;
-      PREV_VISUALFORCE_DEBUG_LEVEL = traceflag.DebugLevel.Visualforce;
-      return {
-        type: 'CONTINUE',
-        data: {
-          traceflagId: traceflag.Id,
-          expirationDate: traceflag.ExpirationDate,
-          debugLevelId: traceflag.DebugLevelId
-        }
-      };
-    } else {
+    try {
+      const resultJson = JSON.parse(result);
+      if (resultJson.result.records.length > 0) {
+        const traceflag = resultJson.result.records[0];
+        debugLevelId = traceflag.DebugLevelId;
+        prevApexCodeDebugLevel = traceflag.DebugLevel.ApexCode;
+        prevVFDebugLevel = traceflag.DebugLevel.Visualforce;
+        return {
+          type: 'CONTINUE',
+          data: {
+            traceflagId: traceflag.Id,
+            expirationDate: traceflag.ExpirationDate,
+            debugLevelId: traceflag.DebugLevelId
+          }
+        };
+      } else {
+        return { type: 'CANCEL' };
+      }
+    } catch (e) {
       return { type: 'CANCEL' };
     }
   }
@@ -98,10 +123,12 @@ export class TraceFlagStartEndChecker
     if (inputs.type === 'CONTINUE') {
       const startDate = new Date();
       let expDate = new Date(inputs.data.expirationDate);
-      if (expDate.getTime() - startDate.valueOf() < 1800000) {
-        expDate = new Date(Date.now() + 30 * 60000);
-        console.log(
-          `StartDate=${startDate.toUTCString()} ExpirationDate=${expDate.toUTCString()}`
+      if (
+        expDate.getTime() - startDate.valueOf() <
+        LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_SECOND
+      ) {
+        expDate = new Date(
+          Date.now() + LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_SECOND
         );
         const execution = new CliCommandExecutor(
           new SfdxCommandBuilder()
@@ -113,11 +140,16 @@ export class TraceFlagStartEndChecker
               `StartDate='${startDate.toUTCString()}' ExpirationDate='${expDate.toUTCString()}'`
             )
             .withArg('--usetoolingapi')
+            .withArg('--json')
             .build(),
           {
             cwd: vscode.workspace.rootPath
           }
         ).execute();
+        const cmdOutput = new CommandOutput();
+        const result = await cmdOutput.getCmdResult(execution);
+        const resultJson = JSON.parse(result);
+        inputs.data.expirationDate = expDate.toLocaleTimeString();
       }
       return inputs;
     }
@@ -125,33 +157,13 @@ export class TraceFlagStartEndChecker
   }
 }
 
-export function debugLevelCleanUp() {
-  if (PREV_APEX_CODE_DEBUG_LEVEL && PREV_VISUALFORCE_DEBUG_LEVEL) {
-    const execution = new CliCommandExecutor(
-      new SfdxCommandBuilder()
-        .withArg('force:data:record:update')
-        .withFlag('--sobjecttype', 'DebugLevel')
-        .withFlag('--sobjectid', DEBUG_LEVEL_ID)
-        .withFlag(
-          '--values',
-          `ApexCode=${PREV_APEX_CODE_DEBUG_LEVEL} Visualforce=${PREV_VISUALFORCE_DEBUG_LEVEL}`
-        )
-        .withArg('--usetoolingapi')
-        .build(),
-      {
-        cwd: vscode.workspace.rootPath
-      }
-    ).execute();
-  }
-}
-
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new TraceFlagInfoGatherer();
 const postconditionChecker = new TraceFlagStartEndChecker();
 
-export function forceApexDebugLogForReplayDebugger() {
+export function forceStartApexDebugLogging() {
   // tslint:disable-next-line:no-invalid-this
-  const executor = new ForceApexDebugLogForReplayDebuggerExecutor();
+  const executor = new ForceStartApexDebugLoggingExecutor();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
