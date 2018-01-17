@@ -13,13 +13,13 @@ import { NoOpState } from '../../../src/states';
 // tslint:disable:no-unused-expression
 describe('NoOp event', () => {
   it('Should handle event', () => {
-    const logFile = new LogContext({
+    const context = new LogContext({
       logFile: '/path/foo.log',
       stopOnEntry: true,
       trace: true
     } as LaunchRequestArguments);
     const unsupported = new NoOpState();
 
-    expect(unsupported.handle(logFile)).to.be.false;
+    expect(unsupported.handle(context)).to.be.false;
   });
 });

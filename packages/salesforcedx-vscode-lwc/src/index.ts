@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
+import * as lwcLanguageServer from 'lwc-language-server';
 import * as path from 'path';
 import { ExtensionContext, workspace } from 'vscode';
 import {
@@ -20,8 +20,19 @@ export async function activate(context: ExtensionContext) {
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
   );
 
-  // Check if ran from a LSC project
-  if (!isLWCProject() && !isSfdxProject() && !isSfdcInternal()) {
+  if (!workspace.workspaceFolders) {
+    console.log('No workspace, exiting extension');
+    return;
+  }
+
+  // Check if ran from a LWC project
+  if (
+    !lwcLanguageServer.isLWC(
+      lwcLanguageServer.detectWorkspaceType(
+        workspace.workspaceFolders[0].uri.path
+      )
+    )
+  ) {
     console.log('Not a LWC project, exiting extension');
     return;
   }
@@ -65,55 +76,4 @@ export async function activate(context: ExtensionContext) {
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
   context.subscriptions.push(disposable);
-}
-
-function isLWCProject(): boolean {
-  if (!workspace.workspaceFolders) {
-    return false;
-  }
-
-  const workspaceRoot = workspace.workspaceFolders[0].uri.path;
-  const packageJson = path.join(workspaceRoot, 'package.json');
-  if (!fs.existsSync(packageJson)) {
-    return false;
-  }
-
-  // Check if package.json contains lwc-engine
-  const packageInfo = require(packageJson);
-
-  const dependencies = Object.keys(packageInfo.dependencies || {});
-  if (dependencies.includes('lwc-engine')) {
-    return true;
-  }
-  const devDependencies = Object.keys(packageInfo.devDependencies || {});
-  if (devDependencies.includes('lwc-engine')) {
-    return true;
-  }
-
-  return false;
-}
-
-export function isSfdxProject() {
-  if (!workspace.workspaceFolders) {
-    return false;
-  }
-
-  const workspaceRoot = workspace.workspaceFolders[0].uri.path;
-  return fs.existsSync(path.join(workspaceRoot, 'sfdx-project.json'));
-}
-
-function isSfdcInternal() {
-  if (!workspace.workspaceFolders) {
-    return false;
-  }
-
-  const workspaceRoot = workspace.workspaceFolders[0].uri.path;
-  if (fs.existsSync(path.join(workspaceRoot, 'workspace-user.xml'))) {
-    return true; // opened in SFDC
-  }
-  if (fs.existsSync(path.join(workspaceRoot, 'modules'))) {
-    return true; // opened in sfdc internal project with modules/ folder
-  }
-
-  return false;
 }

@@ -368,7 +368,14 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%feature_previews_title%"
+      "title": "%feature_previews_title%",
+      "properties": {
+        "salesforcedx-vscode-core.show-cli-success-msg": {
+          "type": ["boolean"],
+          "default": true,
+          "description": "%show_cli_success_msg_description%"
+        }
+      }
     }
   }
 }
