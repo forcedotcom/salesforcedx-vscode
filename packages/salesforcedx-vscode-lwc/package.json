@@ -22,7 +22,7 @@
   },
   "categories": ["Languages"],
   "dependencies": {
-    "lwc-language-server": "0.13.0",
+    "lwc-language-server": "0.14.1",
     "vscode-languageclient": "3.5.0"
   },
   "devDependencies": {
@@ -47,10 +47,7 @@
     "watch": "tsc -watch -p .",
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "pretest": "node ../../scripts/download-vscode-for-system-tests",
-    "test":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
+    "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "activationEvents": [
     "workspaceContains:package.json",
