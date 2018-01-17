@@ -1,3 +1,14 @@
+## 41.17.0 - January 15, 2018
+### Added
+#### salesforcedx-vscode
+
+* Support for use of Node 8([PR #256](https://github.com/forcedotcom/salesforcedx-vscode/pull/256))
+
+### Fixed
+#### salesforcedx-vscode-apex
+
+* Fix Go To Definition for class/interface usage for inner classes ([PR #258](https://github.com/forcedotcom/salesforcedx-vscode/pull/258))
+
 ## 41.16.0 - January 8, 2018
 ### Added
 #### salesforcedx-vscode-apex
