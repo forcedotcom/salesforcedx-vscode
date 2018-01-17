@@ -28,6 +28,7 @@ export const messages = {
   notification_canceled_execution_text: '%s was canceled',
   notification_unsuccessful_execution_text: '%s failed to run',
   notification_show_button_text: 'Show',
+  notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
 
   predicates_no_folder_opened_text:
     'No folder opened. Open a Salesforce DX project in VS Code.',

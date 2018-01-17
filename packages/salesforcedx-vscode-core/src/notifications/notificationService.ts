@@ -9,7 +9,9 @@ import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { DEFAULT_SFDX_CHANNEL } from '../channels';
+import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
+import { sfdxCoreSettings } from '../settings';
 
 /**
  * A centralized location for all notification functionalities.
@@ -76,13 +78,28 @@ export class NotificationService {
   ) {
     observable.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
-        const showButtonText = nls.localize('notification_show_button_text');
-        const selection = await this.showInformationMessage(
-          nls.localize('notification_successful_execution_text', executionName),
-          showButtonText
+        const message = nls.localize(
+          'notification_successful_execution_text',
+          executionName
         );
-        if (selection && selection === showButtonText) {
-          this.channel.show();
+        if (sfdxCoreSettings.getShowCLISuccessMsg()) {
+          const showButtonText = nls.localize('notification_show_button_text');
+          const showOnlyStatusBarButtonText = nls.localize(
+            'notification_show_in_status_bar_button_text'
+          );
+          const selection = await this.showInformationMessage(
+            message,
+            showButtonText,
+            showOnlyStatusBarButtonText
+          );
+          if (selection && selection === showButtonText) {
+            this.channel.show();
+          }
+          if (selection && selection === showOnlyStatusBarButtonText) {
+            sfdxCoreSettings.updateShowCLISuccessMsg(false);
+          }
+        } else {
+          vscode.window.setStatusBarMessage(message, STATUS_BAR_MSG_TIMEOUT_MS);
         }
       } else {
         if (cancellationToken && cancellationToken.isCancellationRequested) {
