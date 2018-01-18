@@ -28,12 +28,15 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
+import { developerLogDebugLevels } from '.';
+
 export let prevApexCodeDebugLevel: string;
 export let prevVFDebugLevel: string;
 export let debugLevelId: string;
 
 const MILLISECONDS_PER_SECOND = 60000;
 const LOG_TIMER_LENGTH_MINUTES = 30;
+
 export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<
   TraceFlagInfo
 > {
@@ -95,9 +98,11 @@ class TraceFlagInfoGatherer implements ParametersGatherer<TraceFlagInfo> {
       const resultJson = JSON.parse(result);
       if (resultJson.result.records.length > 0) {
         const traceflag = resultJson.result.records[0];
-        debugLevelId = traceflag.DebugLevelId;
-        prevApexCodeDebugLevel = traceflag.DebugLevel.ApexCode;
-        prevVFDebugLevel = traceflag.DebugLevel.Visualforce;
+        developerLogDebugLevels.turnOnLogging(
+          traceflag.DebugLevelId,
+          traceflag.DebugLevel.ApexCode,
+          traceflag.DebugLevel.Visualforce
+        );
         return {
           type: 'CONTINUE',
           data: {

@@ -41,3 +41,5 @@ export { forceProjectCreate } from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
 export { forceStopApexDebugLogging } from './forceStopApexDebugLogging';
+import { DeveloperLogDebugLevels } from '../DeveloperLogDebugLevels';
+export const developerLogDebugLevels = DeveloperLogDebugLevels.getInstance();

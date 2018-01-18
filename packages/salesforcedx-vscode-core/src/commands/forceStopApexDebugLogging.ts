@@ -12,11 +12,13 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
+import { developerLogDebugLevels } from '.';
 import { nls } from '../messages';
 import { disposeTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
+  CancelResponse,
   ContinueResponse,
-  EmptyParametersGatherer,
+  ParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -43,6 +45,7 @@ class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     execution.processExitSubject.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
+        developerLogDebugLevels.turnOffLogging();
         disposeTraceFlagExpiration();
       }
     });
@@ -62,17 +65,24 @@ function getRestoreLevelsCommand(): Command {
     .withDescription(nls.localize('force_stop_apex_debug_logging'))
     .withArg('force:data:record:update')
     .withFlag('--sobjecttype', 'DebugLevel')
-    .withFlag('--sobjectid', debugLevelId)
+    .withFlag('--sobjectid', developerLogDebugLevels.getDebugLevelId())
     .withFlag(
       '--values',
-      `ApexCode=${prevApexCodeDebugLevel} Visualforce=${prevVFDebugLevel}`
+      `ApexCode=${developerLogDebugLevels.getPrevApexCodeDebugLevel()} Visualforce=${developerLogDebugLevels.getPrevApexCodeDebugLevel()}`
     )
     .withArg('--usetoolingapi')
     .build();
 }
-
+class ActiveLogging implements ParametersGatherer<{}> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    if (developerLogDebugLevels.isActive()) {
+      return { type: 'CONTINUE', data: {} };
+    }
+    return { type: 'CANCEL' };
+  }
+}
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
+const parameterGatherer = new ActiveLogging();
 const executor = new ForceStopApexDebugLoggingExecutor();
 const commandlet = new SfdxCommandlet(
   workspaceChecker,
