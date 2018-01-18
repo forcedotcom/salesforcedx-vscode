@@ -1,0 +1,132 @@
+{
+  "name": "salesforcedx-vscode-replay-debugger",
+  "displayName": "Apex Replay Debugger for Visual Studio Code",
+  "description": "Replay Apex execution from Apex Debug Log",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "41.17.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.19.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "41.17.0",
+    "vscode-debugadapter": "1.25.0",
+    "vscode-debugprotocol": "1.25.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "cross-env": "5.0.4",
+    "mocha": "3.2.0",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
+    "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
+    "typescript": "2.6.2",
+    "vscode": "1.1.10",
+    "vscode-debugadapter-testsupport": "1.25.0"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-core"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters"
+  },
+  "activationEvents": [
+    "onDebug",
+    "onCommand:extension.replay-debugger.getLogFileName"
+  ],
+  "main": "./out/src",
+  "contributes": {
+    "breakpoints": [
+      {
+        "language": "apex"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "apex-replay",
+        "label": "Apex Replay Debugger",
+        "program": "./out/src/adapter/apexReplayDebug.js",
+        "runtime": "node",
+        "languages": [
+          "apex"
+        ],
+        "variables": {
+          "AskForLogFileName": "extension.replay-debugger.getLogFileName"
+        },
+        "configurationSnippets": [
+          {
+            "label": "%launch_snippet_label_text%",
+            "description": "%launch_snippet_description_text%",
+            "body": {
+              "name": "%launch_snippet_name%",
+              "type": "apex-replay",
+              "request": "launch",
+              "logFile": "^\"\\${command:AskForLogFileName}\"",
+              "stopOnEntry": true,
+              "trace": true
+            }
+          }
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "required": [
+                "logFile"
+              ],
+              "logFile": {
+                "type": "string",
+                "description": "%logfile_text%",
+                "default": "${command:AskForLogFileName}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "%stop_on_entry_text%",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "%trace_text%",
+                "default": true
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "nyc": {
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
+  }
+}

@@ -16,7 +16,7 @@ environment:
   SFDX_DOMAIN_RETRY: 300
 
 install:
-  - ps: Install-Product node 7.4.0 x64
+  - ps: Install-Product node 8 x64
   - appveyor-retry npm install
   - curl -fsSL -o sfdx-windows-amd64.tar.xz %SFDX_URL_WINDOWS%
   - 7z x sfdx-windows-amd64.tar.xz
