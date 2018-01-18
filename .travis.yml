@@ -48,7 +48,7 @@ before_install:
       travis_retry wget -qO- $SFDX_URL_LINUX | tar xJf -
       "./sfdx/install"
       export PATH=./sfdx/$(pwd):$PATH
-      travis_retry sfdx update
+      travis_retry sfdx update master
       export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
     fi
   - |
@@ -59,7 +59,7 @@ before_install:
       echo Installing SFDX CLI macOS
       travis_retry wget -q $SFDX_URL_OSX
       sudo installer -pkg sfdx-osx.pkg -target /
-      travis_retry sfdx update
+      travis_retry sfdx update master
       export SFDX_CI_KEY_LOCATION=/Users/travis/devhub.key
     fi
   - |
