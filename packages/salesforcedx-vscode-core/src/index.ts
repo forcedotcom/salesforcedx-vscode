@@ -263,19 +263,19 @@ export async function activate(context: vscode.ExtensionContext) {
     true
   );
 
-  // let replayDebuggerExtensionInstalled = false;
-  // if (
-  //   vscode.extensions.getExtension(
-  //     'salesforce.salesforcedx-vscode-replay-debugger'
-  //   )
-  // ) {
-  //   replayDebuggerExtensionInstalled = true;
-  // }
-  // vscode.commands.executeCommand(
-  //   'setContext',
-  //   'sfdx:replay_debugger_extension',
-  //   replayDebuggerExtensionInstalled
-  // );
+  let replayDebuggerExtensionInstalled = false;
+  if (
+    vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-replay-debugger'
+    )
+  ) {
+    replayDebuggerExtensionInstalled = true;
+  }
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:replay_debugger_extension',
+    replayDebuggerExtensionInstalled
+  );
 
   // Set environment variable to add logging for VSCode API calls
   process.env[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
