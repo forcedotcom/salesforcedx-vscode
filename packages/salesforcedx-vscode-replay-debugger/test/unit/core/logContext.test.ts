@@ -8,8 +8,9 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { BreakpointUtil } from '../../../src/breakpoints';
 import { LogContext, LogContextUtil } from '../../../src/core';
-import { LogEntryState, NoOpState } from '../../../src/states';
+import { NoOpState } from '../../../src/states';
 
 // tslint:disable:no-unused-expression
 describe('LogContext', () => {
@@ -19,7 +20,6 @@ describe('LogContext', () => {
   let noOpHandleStub: sinon.SinonStub;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: '/path/foo.log',
-    stopOnEntry: true,
     trace: true
   };
 
@@ -27,7 +27,7 @@ describe('LogContext', () => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns(['line1', 'line2']);
-    context = new LogContext(launchRequestArgs);
+    context = new LogContext(launchRequestArgs, new BreakpointUtil());
   });
 
   afterEach(() => {
@@ -57,7 +57,7 @@ describe('LogContext', () => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns([]);
-    context = new LogContext(launchRequestArgs);
+    context = new LogContext(launchRequestArgs, new BreakpointUtil());
 
     expect(context.hasLogLines()).to.be.false;
   });
@@ -117,8 +117,7 @@ describe('LogContext', () => {
 
   describe('Log event parser', () => {
     beforeEach(() => {
-      context = new LogContext(launchRequestArgs);
-      context.setState(new LogEntryState());
+      context = new LogContext(launchRequestArgs, new BreakpointUtil());
     });
 
     it('Should detect NoOp with empty log line', () => {
@@ -135,15 +134,6 @@ describe('LogContext', () => {
       expect(context.parseLogEvent('timestamp|foo|bar')).to.be.an.instanceof(
         NoOpState
       );
-    });
-
-    it('Should detect LogEntry', () => {
-      context.setState(undefined);
-      expect(
-        context.parseLogEvent(
-          '41.0 APEX_CODE,FINEST;APEX_PROFILING,FINEST;CALLOUT,FINEST;DB,FINEST;SYSTEM,FINE;VALIDATION,INFO;VISUALFORCE,FINER;WAVE,FINEST;WORKFLOW,FINER'
-        )
-      ).to.be.an.instanceof(LogEntryState);
     });
   });
 });

@@ -11,9 +11,8 @@ import {
   InitializedEvent,
   Source,
   StackFrame,
-  StoppedEvent,
-  Thread,
-  ThreadEvent
+  TerminatedEvent,
+  Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
@@ -30,7 +29,7 @@ import { nls } from '../../../src/messages';
 
 class MockApexReplayDebug extends ApexReplayDebug {
   public setLogFile(args: LaunchRequestArguments) {
-    this.logContext = new LogContext(args);
+    this.logContext = new LogContext(args, new BreakpointUtil());
   }
 
   public getDefaultResponse(): DebugProtocol.Response {
@@ -122,7 +121,6 @@ describe('Replay debugger adapter - unit', () => {
       response = adapter.getDefaultResponse();
       args = {
         logFile: logFilePath,
-        stopOnEntry: true,
         trace: true
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
@@ -164,7 +162,7 @@ describe('Replay debugger adapter - unit', () => {
       );
     });
 
-    it('Should stop on first line of log file', () => {
+    it('Should launch successfully', () => {
       hasLogLinesStub = sinon
         .stub(LogContext.prototype, 'hasLogLines')
         .returns(true);
@@ -172,13 +170,9 @@ describe('Replay debugger adapter - unit', () => {
       adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
-      expect(updateFramesStub.calledOnce).to.be.true;
-      expect(sendEventSpy.calledOnce).to.be.true;
-      const stoppedEvent: StoppedEvent = sendEventSpy.getCall(0).args[0];
-      expect(stoppedEvent.body.reason).to.equal('entry');
-      expect(stoppedEvent.body.threadId).to.equal(ApexReplayDebug.THREAD_ID);
-      expect(printToDebugConsoleStub.calledOnce).to.be.true;
-      const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
+      expect(updateFramesStub.called).to.be.false;
+      expect(printToDebugConsoleStub.calledTwice).to.be.true;
+      const consoleMessage = printToDebugConsoleStub.getCall(1).args[0];
       expect(consoleMessage).to.be.equal(
         nls.localize('session_started_text', logFileName)
       );
@@ -234,7 +228,6 @@ describe('Replay debugger adapter - unit', () => {
     let readLogFileStub: sinon.SinonStub;
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
-      stopOnEntry: true,
       trace: true
     };
 
@@ -278,7 +271,6 @@ describe('Replay debugger adapter - unit', () => {
     let getFramesStub: sinon.SinonStub;
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
-      stopOnEntry: true,
       trace: true
     };
     const sampleStackFrames: StackFrame[] = [
@@ -287,14 +279,14 @@ describe('Replay debugger adapter - unit', () => {
         name: 'firstFrame',
         line: 5,
         column: 0,
-        source: new Source(logFileName, encodeURI(`file://${logFilePath}`))
+        source: new Source(logFileName, logFilePath)
       },
       {
         id: 1,
         name: 'secondFrame',
         line: 10,
         column: 0,
-        source: new Source(logFileName, encodeURI(`file://${logFilePath}`))
+        source: new Source(logFileName, logFilePath)
       }
     ];
 
@@ -330,8 +322,8 @@ describe('Replay debugger adapter - unit', () => {
         0
       ).args[0];
       expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body.stackFrames).to.equal(
-        sampleStackFrames.reverse()
+      expect(actualResponse.body.stackFrames).to.eql(
+        sampleStackFrames.slice().reverse()
       );
     });
   });
@@ -339,11 +331,17 @@ describe('Replay debugger adapter - unit', () => {
   describe('Continue/run', () => {
     let sendResponseSpy: sinon.SinonSpy;
     let sendEventSpy: sinon.SinonSpy;
+    let hasLogLinesStub: sinon.SinonStub;
     let response: DebugProtocol.ContinueResponse;
     let args: DebugProtocol.ContinueArguments;
+    const launchRequestArgs: LaunchRequestArguments = {
+      logFile: logFilePath,
+      trace: true
+    };
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
+      adapter.setLogFile(launchRequestArgs);
       response = Object.assign(adapter.getDefaultResponse(), {
         body: {}
       });
@@ -357,9 +355,14 @@ describe('Replay debugger adapter - unit', () => {
     afterEach(() => {
       sendResponseSpy.restore();
       sendEventSpy.restore();
+      hasLogLinesStub.restore();
     });
 
-    it('Should exit thread', () => {
+    it('Should terminate session', () => {
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .returns(false);
+
       adapter.continueRequest(response, args);
 
       expect(sendResponseSpy.calledOnce).to.be.true;
@@ -368,20 +371,26 @@ describe('Replay debugger adapter - unit', () => {
       ).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.calledOnce).to.be.true;
-      const stoppedEvent: ThreadEvent = sendEventSpy.getCall(0).args[0];
-      expect(stoppedEvent.body.reason).to.equal('exited');
-      expect(stoppedEvent.body.threadId).to.equal(ApexReplayDebug.THREAD_ID);
+      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+        TerminatedEvent
+      );
     });
   });
 
   describe('Breakpoints', () => {
     let sendResponseSpy: sinon.SinonSpy;
     let canSetLineBreakpointStub: sinon.SinonStub;
+    let hasStateStub: sinon.SinonStub;
     let response: DebugProtocol.SetBreakpointsResponse;
     let args: DebugProtocol.SetBreakpointsArguments;
+    const launchRequestArgs: LaunchRequestArguments = {
+      logFile: logFilePath,
+      trace: true
+    };
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
+      adapter.setLogFile(launchRequestArgs);
       response = Object.assign(adapter.getDefaultResponse(), {
         body: {}
       });
@@ -389,10 +398,14 @@ describe('Replay debugger adapter - unit', () => {
         source: {}
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
+      hasStateStub = sinon
+        .stub(LogContext.prototype, 'hasState')
+        .returns(true);
     });
 
     afterEach(() => {
       sendResponseSpy.restore();
+      hasStateStub.restore();
       if (canSetLineBreakpointStub) {
         canSetLineBreakpointStub.restore();
       }

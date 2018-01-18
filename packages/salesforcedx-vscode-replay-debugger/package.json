@@ -24,7 +24,8 @@
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "41.17.0",
     "vscode-debugadapter": "1.25.0",
-    "vscode-debugprotocol": "1.25.0"
+    "vscode-debugprotocol": "1.25.0",
+    "vscode-uri": "1.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -104,15 +105,10 @@
                 "description": "%logfile_text%",
                 "default": "${command:AskForLogFileName}"
               },
-              "stopOnEntry": {
-                "type": "boolean",
-                "description": "%stop_on_entry_text%",
-                "default": true
-              },
               "trace": {
-                "type": "boolean",
+                "type": ["boolean", "string"],
                 "description": "%trace_text%",
-                "default": true
+                "default": false
               }
             }
           }

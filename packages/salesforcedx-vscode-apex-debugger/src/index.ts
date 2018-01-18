@@ -6,6 +6,7 @@
  */
 
 import {
+  DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
@@ -28,7 +29,7 @@ import { nls } from './messages';
 const cachedExceptionBreakpoints: Map<
   string,
   ExceptionBreakpointItem
-> = new Map();
+  > = new Map();
 
 export class ApexDebuggerConfigurationProvider
   implements vscode.DebugConfigurationProvider {
@@ -39,7 +40,7 @@ export class ApexDebuggerConfigurationProvider
     return [
       {
         name: 'Launch Apex Debugger',
-        type: 'apex',
+        type: DEBUGGER_TYPE,
         request: 'launch',
         userIdFilter: [],
         requestTypeFilter: [],
@@ -53,7 +54,7 @@ export class ApexDebuggerConfigurationProvider
 function registerCommands(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
-      if (event && event.session) {
+      if (event && event.session && event.session.type === DEBUGGER_TYPE) {
         if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
           const sfdxApex = vscode.extensions.getExtension(
             'salesforce.salesforcedx-vscode-apex'
@@ -240,7 +241,7 @@ export function updateExceptionBreakpointCache(
 export function getExceptionBreakpointCache(): Map<
   string,
   ExceptionBreakpointItem
-> {
+  > {
   return cachedExceptionBreakpoints;
 }
 
