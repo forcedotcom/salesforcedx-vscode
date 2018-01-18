@@ -25,6 +25,11 @@ The files under scripts use [shelljs/shx](https://github.com/shelljs/shx) and
 [shelljs/shelljs](https://github.com/shelljs/shelljs) to write scripts in a
 portable manner across platforms.
 
+1. `git checkout -t origin release/vxx.yy.zz`
+1. `npm install`
+1. `export SALESFORCEDX_VSCODE_VERSION=xx.yy.zz` (must match the branch version)
+1. `scripts/publish.js`
+
 It is possible to run each step manually as illustrated below.
 
 ## Packaging as .vsix
@@ -32,8 +37,6 @@ It is possible to run each step manually as illustrated below.
 ### Prerequisite
 
 * Lerna is properly installed (`npm install -g lerna@2.4.0`).
-* You have a clean workspace. You can use `git clean -xfd` to get to a pristine
-  stage.
 * All tests have been run prior to publishing. We don't run the tests during the
   publishing cycle since it generates artifacts that we do not want to include
   in the packaged extensions.
