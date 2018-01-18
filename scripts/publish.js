@@ -84,7 +84,7 @@ if (checkTags.includes(nextVersion)) {
 }
 
 // Real-clean
-shell.exec('git clean -xfd');
+shell.exec('git clean -xfd -e node_modules');
 
 // Install and bootstrap
 shell.exec('npm install');
@@ -98,9 +98,6 @@ shell.exec('npm run compile');
 shell.exec(
   `lerna publish --force-publish --exact --repo-version ${nextVersion} --yes --skip-npm`
 );
-
-// Reformat with prettier since lerna changes the formatting in package.json
-shell.exec('./scripts/reformat-with-prettier.js');
 
 // Generate the .vsix files
 shell.exec(`npm run vscode:package`);
