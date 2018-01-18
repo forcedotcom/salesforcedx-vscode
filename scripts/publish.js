@@ -25,7 +25,7 @@ if (parseInt(major) !== 8 || parseInt(minor) < 9) {
   console.log(
     'You do not have the right version of node. We require version 8.9.0.'
   );
-  exit(-1);
+  process.exit(-1);
 }
 
 // Checks that you have access to our bucket on AWS
@@ -39,7 +39,7 @@ if (awsExitCode !== 0) {
   console.log(
     'You do not have the s3 command line installed or you do not have access to the aws s3 bucket.'
   );
-  exit(-1);
+  process.exit(-1);
 }
 
 // Checks that you have access to the salesforce publisher
@@ -48,7 +48,7 @@ if (!publishers.includes('salesforce')) {
   console.log(
     'You do not have the vsce command line installed or you do not have access to the salesforce publisher id as part of vsce.'
   );
-  exit(-1);
+  process.exit(-1);
 }
 
 // Checks that you have specified the next version as an environment variable, and that it's properly formatted.
@@ -57,7 +57,7 @@ if (!nextVersion) {
   console.log(
     'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
   );
-  exit(-1);
+  process.exit(-1);
 } else {
   const [version, major, minor, patch] = nextVersion.match(
     /^(\d+)\.(\d+)\.(\d+)$/
@@ -70,7 +70,7 @@ if (!nextVersion) {
     console.log(
       `You must execute this script in a release branch including SALESFORCEDX_VSCODE_VERSION (e.g, release/v${nextVersion} or hotfix/v${nextVersion})`
     );
-    exit(-1);
+    process.exit(-1);
   }
 }
 
@@ -80,7 +80,7 @@ if (checkTags.includes(nextVersion)) {
   console.log(
     'There is a conflicting git tag. Reclone the repository and start fresh to avoid versioning problems.'
   );
-  exit(-1);
+  process.exit(-1);
 }
 
 // Real-clean
