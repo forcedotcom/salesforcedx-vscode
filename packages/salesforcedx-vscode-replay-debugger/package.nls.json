@@ -1,7 +1,12 @@
 {
   "launch_snippet_label_text": "Apex Replay Debugger: Launch",
-  "launch_snippet_description_text": "A new configuration for launching Apex Replay Debugger",
+  "launch_snippet_description_text":
+    "A new configuration for launching Apex Replay Debugger",
   "launch_snippet_name": "Launch Apex Replay Debugger",
-  "logfile_text": "Path to an Apex Debug Log file (*.log) in the workspace folder.",
-  "trace_text": "Produce diagnostic output. Instead of setting this to true you can list one or more selectors separated with commas. The 'all' selector enables very detailed output. Other selectors are 'protocol', 'launch', 'breakpoints'."
+  "logfile_text":
+    "Path to an Apex Debug Log file (*.log) in the workspace folder.",
+  "stop_on_entry_text":
+    "Stop the debugger after launching. If false, the debugger will run until it hits a breakpoint.",
+  "trace_text":
+    "Produce diagnostic output. Instead of setting this to true you can list one or more selectors separated with commas. The 'all' selector enables very detailed output. Other selectors are 'protocol', 'launch', 'breakpoints'."
 }

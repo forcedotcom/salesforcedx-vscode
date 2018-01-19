@@ -39,6 +39,7 @@ export type TraceCategory = 'all' | 'protocol' | 'launch' | 'breakpoints';
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
   logFile: string;
+  stopOnEntry?: boolean | true;
   trace?: boolean | string;
 }
 
@@ -95,6 +96,14 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.sendResponse(response);
       return;
     }
+    if (args.stopOnEntry) {
+      this.logContext.updateFrames();
+      this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
+    } else {
+      this.continueRequest({} as DebugProtocol.ContinueResponse, {
+        threadId: ApexReplayDebug.THREAD_ID
+      });
+    }
     this.printToDebugConsole(
       nls.localize('session_started_text', this.logContext.getLogFileName())
     );
@@ -128,9 +137,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public threadsRequest(response: DebugProtocol.ThreadsResponse): void {
     response.body = {
-      threads: [
-        new Thread(ApexReplayDebug.THREAD_ID, this.logContext.getLogFileName())
-      ]
+      threads: [new Thread(ApexReplayDebug.THREAD_ID, '')]
     };
     response.success = true;
     this.sendResponse(response);
@@ -215,12 +222,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
     }
     response.success = true;
     this.sendResponse(response);
-
-    if (!this.logContext.hasState()) {
-      this.continueRequest({} as DebugProtocol.ContinueResponse, {
-        threadId: ApexReplayDebug.THREAD_ID
-      });
-    }
   }
 
   public customRequest(
@@ -247,6 +248,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           }
           this.breakpointUtil.setValidLines(lineNumberMapping, typerefMapping);
         }
+        this.sendEvent(new InitializedEvent());
         if (this.initializedResponse) {
           this.initializedResponse.body = {
             supportsCompletionsRequest: false,
@@ -265,7 +267,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
           };
           this.initializedResponse.success = true;
           this.sendResponse(this.initializedResponse);
-          this.sendEvent(new InitializedEvent());
           break;
         }
     }

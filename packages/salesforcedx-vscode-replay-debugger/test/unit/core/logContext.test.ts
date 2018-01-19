@@ -24,6 +24,7 @@ import { LogContext, LogContextUtil } from '../../../src/core';
 import {
   FrameEntryState,
   FrameExitState,
+  LogEntryState,
   NoOpState,
   StatementExecuteState
 } from '../../../src/states';
@@ -144,22 +145,26 @@ describe('LogContext', () => {
     });
 
     it('Should detect NoOp with empty log line', () => {
+      context.setState(new LogEntryState());
       expect(context.parseLogEvent('')).to.be.an.instanceof(NoOpState);
     });
 
     it('Should detect NoOp with unexpected number of fields', () => {
+      context.setState(new LogEntryState());
       expect(context.parseLogEvent('timestamp|foo')).to.be.an.instanceof(
         NoOpState
       );
     });
 
     it('Should detect NoOp with unknown event', () => {
+      context.setState(new LogEntryState());
       expect(context.parseLogEvent('timestamp|foo|bar')).to.be.an.instanceof(
         NoOpState
       );
     });
 
     it('Should detect execute anonymous script line', () => {
+      context.setState(new LogEntryState());
       context.parseLogEvent(`${EVENT_EXECUTE_ANONYMOUS}: foo`);
 
       expect(context.getExecAnonScriptMapping().size).to.be.equal(1);
@@ -167,42 +172,56 @@ describe('LogContext', () => {
     });
 
     it('Should detect FrameEntry with CODE_UNIT_STARTED', () => {
+      context.setState(new LogEntryState());
+
       expect(
         context.parseLogEvent(`|${EVENT_CODE_UNIT_STARTED}|`)
       ).to.be.an.instanceof(FrameEntryState);
     });
 
     it('Should detect FrameEntry with CONSTRUCTOR_ENTRY', () => {
+      context.setState(new LogEntryState());
+
       expect(
         context.parseLogEvent(`|${EVENT_CONSTRUCTOR_ENTRY}|`)
       ).to.be.an.instanceof(FrameEntryState);
     });
 
     it('Should detect FrameEntry with METHOD_ENTRY', () => {
+      context.setState(new LogEntryState());
+
       expect(
         context.parseLogEvent(`|${EVENT_METHOD_ENTRY}|`)
       ).to.be.an.instanceof(FrameEntryState);
     });
 
     it('Should detect FrameExit with CODE_UNIT_FINISHED', () => {
+      context.setState(new LogEntryState());
+
       expect(
         context.parseLogEvent(`|${EVENT_CODE_UNIT_FINISHED}|`)
       ).to.be.an.instanceof(FrameExitState);
     });
 
     it('Should detect FrameExit with CONSTRUCTOR_EXIT', () => {
+      context.setState(new LogEntryState());
+
       expect(
         context.parseLogEvent(`|${EVENT_CONSTRUCTOR_EXIT}|`)
       ).to.be.an.instanceof(FrameExitState);
     });
 
     it('Should detect FrameExit with METHOD_EXIT', () => {
+      context.setState(new LogEntryState());
+
       expect(
         context.parseLogEvent(`|${EVENT_METHOD_EXIT}|`)
       ).to.be.an.instanceof(FrameExitState);
     });
 
     it('Should detect StatementExecute with STATEMENT_EXECUTE', () => {
+      context.setState(new LogEntryState());
+
       expect(
         context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)
       ).to.be.an.instanceof(StatementExecuteState);

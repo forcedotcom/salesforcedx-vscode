@@ -24,6 +24,7 @@ import {
   DebugLogState,
   FrameEntryState,
   FrameExitState,
+  LogEntryState,
   NoOpState,
   StatementExecuteState
 } from '../states';
@@ -66,6 +67,10 @@ export class LogContext {
 
   public getLogFilePath(): string {
     return this.launchArgs.logFile;
+  }
+
+  public shouldStopOnEntry(): boolean {
+    return this.launchArgs.stopOnEntry === true;
   }
 
   public getLogLinePosition(): number {
@@ -118,6 +123,9 @@ export class LogContext {
   }
 
   public updateFrames(): void {
+    if (this.state instanceof LogEntryState) {
+      this.stackFrameInfos.pop();
+    }
     while (++this.logLinePosition < this.logLines.length) {
       const logLine = this.logLines[this.logLinePosition];
       this.setState(this.parseLogEvent(logLine));
@@ -128,6 +136,9 @@ export class LogContext {
   }
 
   public parseLogEvent(logLine: string): DebugLogState {
+    if (this.state === undefined) {
+      return new LogEntryState();
+    }
     if (logLine.startsWith(EVENT_EXECUTE_ANONYMOUS)) {
       this.execAnonMapping.set(
         this.execAnonMapping.size + 1,

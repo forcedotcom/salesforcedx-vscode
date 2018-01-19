@@ -21,6 +21,7 @@ export class DebugConfigurationProvider
         type: DEBUGGER_TYPE,
         request: DEBUGGER_LAUNCH_TYPE,
         logFile: '${command:AskForLogFileName}',
+        stopOnEntry: true,
         trace: true
       } as vscode.DebugConfiguration
     ];
@@ -35,6 +36,9 @@ export class DebugConfigurationProvider
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
     config.logFile = config.logFile || '${command:AskForLogFileName}';
+    if (config.stopOnEntry === undefined) {
+      config.stopOnEntry = true;
+    }
     if (config.trace === undefined) {
       config.trace = true;
     }

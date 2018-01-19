@@ -134,7 +134,8 @@ describe('Replay debugger adapter - unit', () => {
       response = adapter.getDefaultResponse();
       args = {
         logFile: logFilePath,
-        trace: true
+        stopOnEntry: true,
+        trace: false
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
       sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
@@ -175,7 +176,7 @@ describe('Replay debugger adapter - unit', () => {
       );
     });
 
-    it('Should launch successfully', () => {
+    it('Should send stopped event', () => {
       hasLogLinesStub = sinon
         .stub(LogContext.prototype, 'hasLogLines')
         .returns(true);
@@ -183,9 +184,12 @@ describe('Replay debugger adapter - unit', () => {
       adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
-      expect(updateFramesStub.called).to.be.false;
-      expect(printToDebugConsoleStub.calledTwice).to.be.true;
-      const consoleMessage = printToDebugConsoleStub.getCall(1).args[0];
+      expect(updateFramesStub.called).to.be.true;
+      expect(sendEventSpy.calledOnce).to.be.true;
+      const event = sendEventSpy.getCall(0).args[0];
+      expect(event).to.be.instanceof(StoppedEvent);
+      expect(printToDebugConsoleStub.calledOnce).to.be.true;
+      const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
       expect(consoleMessage).to.be.equal(
         nls.localize('session_started_text', logFileName)
       );
@@ -272,7 +276,6 @@ describe('Replay debugger adapter - unit', () => {
       expect(actualResponse.body.threads.length).to.equal(1);
       const thread: Thread = actualResponse.body.threads[0];
       expect(thread.id).to.equal(ApexReplayDebug.THREAD_ID);
-      expect(thread.name).to.equal(logFileName);
     });
   });
 
@@ -424,7 +427,6 @@ describe('Replay debugger adapter - unit', () => {
   describe('Breakpoints', () => {
     let sendResponseSpy: sinon.SinonSpy;
     let canSetLineBreakpointStub: sinon.SinonStub;
-    let hasStateStub: sinon.SinonStub;
     let response: DebugProtocol.SetBreakpointsResponse;
     let args: DebugProtocol.SetBreakpointsArguments;
     const launchRequestArgs: LaunchRequestArguments = {
@@ -442,12 +444,10 @@ describe('Replay debugger adapter - unit', () => {
         source: {}
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-      hasStateStub = sinon.stub(LogContext.prototype, 'hasState').returns(true);
     });
 
     afterEach(() => {
       sendResponseSpy.restore();
-      hasStateStub.restore();
       if (canSetLineBreakpointStub) {
         canSetLineBreakpointStub.restore();
       }

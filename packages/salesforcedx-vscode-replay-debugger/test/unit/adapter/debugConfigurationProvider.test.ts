@@ -31,6 +31,7 @@ describe('Configuration provider', () => {
       type: DEBUGGER_TYPE,
       request: DEBUGGER_LAUNCH_TYPE,
       logFile: '${command:AskForLogFileName}',
+      stopOnEntry: true,
       trace: true
     } as vscode.DebugConfiguration;
 
@@ -45,6 +46,7 @@ describe('Configuration provider', () => {
       type: DEBUGGER_TYPE,
       request: DEBUGGER_LAUNCH_TYPE,
       logFile: '${command:AskForLogFileName}',
+      stopOnEntry: true,
       trace: true
     } as vscode.DebugConfiguration;
 
