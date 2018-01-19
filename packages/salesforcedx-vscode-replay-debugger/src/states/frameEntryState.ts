@@ -23,12 +23,14 @@ export class FrameEntryState implements DebugLogState {
     logContext
       .getFrames()
       .push(
-      new StackFrame(
-        logContext.getFrames().length,
-        this.signature,
-        sourceUri ? new Source(basename(sourceUri), Uri.parse(sourceUri).path) : undefined,
-        undefined
-      )
+        new StackFrame(
+          logContext.getFrames().length,
+          this.signature,
+          sourceUri
+            ? new Source(basename(sourceUri), Uri.parse(sourceUri).path)
+            : undefined,
+          undefined
+        )
       );
     return false;
   }

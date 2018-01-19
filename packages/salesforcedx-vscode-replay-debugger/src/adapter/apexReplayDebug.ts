@@ -34,11 +34,7 @@ const TRACE_CATEGORY_PROTOCOL = 'protocol';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
 
-export type TraceCategory =
-  | 'all'
-  | 'protocol'
-  | 'launch'
-  | 'breakpoints';
+export type TraceCategory = 'all' | 'protocol' | 'launch' | 'breakpoints';
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
@@ -49,11 +45,11 @@ export interface LaunchRequestArguments
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext: LogContext;
-  private trace: string[] | undefined;
-  private traceAll = false;
+  protected trace: string[] | undefined;
+  protected traceAll = false;
   private breakpointUtil: BreakpointUtil;
   private initializedResponse: DebugProtocol.InitializeResponse;
-  private breakpoints: Map<string, number[]> = new Map();
+  protected breakpoints: Map<string, number[]> = new Map();
 
   constructor() {
     super('apex-replay-debug-adapter.log');
@@ -83,18 +79,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): void {
-    if (typeof args.trace === 'boolean') {
-      this.trace = args.trace ? [TRACE_ALL] : undefined;
-      this.traceAll = args.trace;
-    } else if (typeof args.trace === 'string') {
-      this.trace = args.trace.split(',').map(category => category.trim());
-      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
-    }
-    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
-      logger.setup(Logger.LogLevel.Verbose, false);
-    } else {
-      logger.setup(Logger.LogLevel.Stop, false);
-    }
+    this.setupLogger(args);
 
     this.log(
       TRACE_CATEGORY_LAUNCH,
@@ -115,6 +100,21 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
     response.success = true;
     this.sendResponse(response);
+  }
+
+  public setupLogger(args: LaunchRequestArguments): void {
+    if (typeof args.trace === 'boolean') {
+      this.trace = args.trace ? [TRACE_ALL] : undefined;
+      this.traceAll = args.trace;
+    } else if (typeof args.trace === 'string') {
+      this.trace = args.trace.split(',').map(category => category.trim());
+      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+    }
+    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+      logger.setup(Logger.LogLevel.Verbose, false);
+    } else {
+      logger.setup(Logger.LogLevel.Stop, false);
+    }
   }
 
   public disconnectRequest(
@@ -160,7 +160,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.logContext.updateFrames();
       const topFrame = this.logContext.getTopFrame();
       if (topFrame && topFrame.source) {
-        const topFrameUri = this.convertClientPathToDebugger(topFrame.source.path);
+        const topFrameUri = this.convertClientPathToDebugger(
+          topFrame.source.path
+        );
         const topFrameLine = this.convertClientLineToDebugger(topFrame.line);
         if (
           this.breakpoints.has(topFrameUri) &&

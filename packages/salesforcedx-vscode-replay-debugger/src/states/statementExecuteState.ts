@@ -19,8 +19,10 @@ export class StatementExecuteState implements DebugLogState {
   public handle(logContext: LogContext): boolean {
     const frame = logContext.getTopFrame();
     if (frame) {
-      frame.line = frame.name === EXEC_ANON_SIGNATURE
-        ? logContext.getExecAnonScriptLocationInDebugLog(this.line) : this.line;
+      frame.line =
+        frame.name === EXEC_ANON_SIGNATURE
+          ? logContext.getExecAnonScriptLocationInDebugLog(this.line)
+          : this.line;
     }
     return true;
   }

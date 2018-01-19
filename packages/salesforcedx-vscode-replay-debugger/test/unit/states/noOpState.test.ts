@@ -17,7 +17,6 @@ describe('NoOp event', () => {
     const context = new LogContext(
       {
         logFile: '/path/foo.log',
-        stopOnEntry: true,
         trace: true
       } as LaunchRequestArguments,
       new BreakpointUtil()

@@ -17,4 +17,8 @@ export class LogContextUtil {
       return [];
     }
   }
+
+  public stripBrackets(value: string): string {
+    return value.replace('[', '').replace(']', '');
+  }
 }

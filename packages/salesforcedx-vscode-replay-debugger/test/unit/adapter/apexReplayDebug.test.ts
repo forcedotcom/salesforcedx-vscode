@@ -11,6 +11,7 @@ import {
   InitializedEvent,
   Source,
   StackFrame,
+  StoppedEvent,
   TerminatedEvent,
   Thread
 } from 'vscode-debugadapter';
@@ -27,7 +28,7 @@ import {
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { nls } from '../../../src/messages';
 
-class MockApexReplayDebug extends ApexReplayDebug {
+export class MockApexReplayDebug extends ApexReplayDebug {
   public setLogFile(args: LaunchRequestArguments) {
     this.logContext = new LogContext(args, new BreakpointUtil());
   }
@@ -40,6 +41,18 @@ class MockApexReplayDebug extends ApexReplayDebug {
       seq: 0,
       type: 'response'
     };
+  }
+
+  public getTraceConfig(): string[] | undefined {
+    return this.trace;
+  }
+
+  public getTraceAllConfig(): boolean {
+    return this.traceAll;
+  }
+
+  public getBreakpoints(): Map<string, number[]> {
+    return this.breakpoints;
   }
 }
 
@@ -332,6 +345,8 @@ describe('Replay debugger adapter - unit', () => {
     let sendResponseSpy: sinon.SinonSpy;
     let sendEventSpy: sinon.SinonSpy;
     let hasLogLinesStub: sinon.SinonStub;
+    let updateFramesStub: sinon.SinonStub;
+    let getTopFrameStub: sinon.SinonStub;
     let response: DebugProtocol.ContinueResponse;
     let args: DebugProtocol.ContinueArguments;
     const launchRequestArgs: LaunchRequestArguments = {
@@ -356,6 +371,12 @@ describe('Replay debugger adapter - unit', () => {
       sendResponseSpy.restore();
       sendEventSpy.restore();
       hasLogLinesStub.restore();
+      if (updateFramesStub) {
+        updateFramesStub.restore();
+      }
+      if (getTopFrameStub) {
+        getTopFrameStub.restore();
+      }
     });
 
     it('Should terminate session', () => {
@@ -371,9 +392,32 @@ describe('Replay debugger adapter - unit', () => {
       ).args[0];
       expect(actualResponse.success).to.be.true;
       expect(sendEventSpy.calledOnce).to.be.true;
-      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
-        TerminatedEvent
-      );
+      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(TerminatedEvent);
+    });
+
+    it('Should hit breakpoint', () => {
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .onFirstCall()
+        .returns(true)
+        .onSecondCall()
+        .returns(false);
+      updateFramesStub = sinon.stub(LogContext.prototype, 'updateFrames');
+      getTopFrameStub = sinon
+        .stub(LogContext.prototype, 'getTopFrame')
+        .returns({ line: 2, source: { path: '/path/foo.cls' } } as StackFrame);
+      adapter.getBreakpoints().set('file:///path/foo.cls', [2]);
+
+      adapter.continueRequest(response, args);
+
+      expect(sendResponseSpy.calledOnce).to.be.true;
+      const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.getCall(
+        0
+      ).args[0];
+      expect(actualResponse.success).to.be.true;
+      expect(sendEventSpy.calledOnce).to.be.true;
+      const event = sendEventSpy.getCall(0).args[0];
+      expect(event).to.be.instanceof(StoppedEvent);
     });
   });
 
@@ -398,9 +442,7 @@ describe('Replay debugger adapter - unit', () => {
         source: {}
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-      hasStateStub = sinon
-        .stub(LogContext.prototype, 'hasState')
-        .returns(true);
+      hasStateStub = sinon.stub(LogContext.prototype, 'hasState').returns(true);
     });
 
     afterEach(() => {
@@ -582,116 +624,6 @@ describe('Replay debugger adapter - unit', () => {
         expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
           InitializedEvent
         );
-      });
-    });
-  });
-
-  describe('Debug console', () => {
-    let sendEventSpy: sinon.SinonSpy;
-
-    describe('Print', () => {
-      beforeEach(() => {
-        adapter = new MockApexReplayDebug();
-        sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
-      });
-
-      afterEach(() => {
-        sendEventSpy.restore();
-      });
-
-      it('Should not print if message is undefined', () => {
-        adapter.printToDebugConsole(undefined);
-
-        expect(sendEventSpy.notCalled).to.be.true;
-      });
-
-      it('Should not print is message is empty', () => {
-        adapter.printToDebugConsole('');
-
-        expect(sendEventSpy.notCalled).to.be.true;
-      });
-
-      it('Should send Output event', () => {
-        const source = new Source(
-          logFileName,
-          encodeURI(`file://${logFilePath}`)
-        );
-        adapter.printToDebugConsole('test', source, 5);
-
-        expect(sendEventSpy.calledOnce).to.be.true;
-        const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)
-          .args[0];
-        expect(outputEvent.body.output).to.have.string('test');
-        expect(outputEvent.body.category).to.equal('stdout');
-        expect(outputEvent.body.line).to.equal(5);
-        expect(outputEvent.body.column).to.equal(0);
-        expect(outputEvent.body.source).to.equal(source);
-      });
-    });
-
-    describe('Warn', () => {
-      beforeEach(() => {
-        adapter = new MockApexReplayDebug();
-        sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
-      });
-
-      afterEach(() => {
-        sendEventSpy.restore();
-      });
-
-      it('Should not warn if message is undefined', () => {
-        adapter.warnToDebugConsole(undefined);
-
-        expect(sendEventSpy.notCalled).to.be.true;
-      });
-
-      it('Should not warn is message is empty', () => {
-        adapter.warnToDebugConsole('');
-
-        expect(sendEventSpy.notCalled).to.be.true;
-      });
-
-      it('Should send Output event', () => {
-        adapter.warnToDebugConsole('test');
-
-        expect(sendEventSpy.calledOnce).to.be.true;
-        const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)
-          .args[0];
-        expect(outputEvent.body.output).to.have.string('test');
-        expect(outputEvent.body.category).to.equal('console');
-      });
-    });
-
-    describe('Error', () => {
-      beforeEach(() => {
-        adapter = new MockApexReplayDebug();
-        sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
-      });
-
-      afterEach(() => {
-        sendEventSpy.restore();
-      });
-
-      it('Should not error if message is undefined', () => {
-        adapter.errorToDebugConsole(undefined);
-
-        expect(sendEventSpy.notCalled).to.be.true;
-      });
-
-      it('Should not error is message is empty', () => {
-        adapter.errorToDebugConsole('');
-
-        expect(sendEventSpy.notCalled).to.be.true;
-      });
-
-      it('Should send Output event', () => {
-        adapter.errorToDebugConsole('test');
-
-        expect(sendEventSpy.calledOnce).to.be.true;
-        const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)
-          .args[0];
-        expect(outputEvent.body.output).to.have.string('test');
-        expect(outputEvent.body.category).to.equal('stderr');
       });
     });
   });

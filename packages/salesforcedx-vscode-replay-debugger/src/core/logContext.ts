@@ -94,6 +94,10 @@ export class LogContext {
     return this.execAnonMapping.get(scriptLine) || 0;
   }
 
+  public getExecAnonScriptMapping(): Map<number, number> {
+    return this.execAnonMapping;
+  }
+
   public getUriFromSignature(signature: string): string {
     if (signature === EXEC_ANON_SIGNATURE) {
       return encodeURI('file://' + this.getLogFilePath());
@@ -104,9 +108,7 @@ export class LogContext {
     const typerefMapping = this.breakpointUtil.getTyperefMapping();
     let uri = '';
     typerefMapping.forEach((value, key) => {
-      const processedKey = key
-        .replace('/', '.')
-        .replace('$', '.');
+      const processedKey = key.replace('/', '.').replace('$', '.');
       if (processedKey === processedSignature) {
         uri = value;
         return;
@@ -115,25 +117,22 @@ export class LogContext {
     return uri;
   }
 
-  public stripBrackets(value: string): string {
-    return value.replace('[', '').replace(']', '');
-  }
-
   public updateFrames(): void {
     while (++this.logLinePosition < this.logLines.length) {
       const logLine = this.logLines[this.logLinePosition];
-      if (logLine.length) {
-        this.state = this.parseLogEvent(logLine);
-        if (this.state && this.state.handle(this)) {
-          break;
-        }
+      this.setState(this.parseLogEvent(logLine));
+      if (this.state && this.state.handle(this)) {
+        break;
       }
     }
   }
 
   public parseLogEvent(logLine: string): DebugLogState {
     if (logLine.startsWith(EVENT_EXECUTE_ANONYMOUS)) {
-      this.execAnonMapping.set(this.execAnonMapping.size + 1, this.logLinePosition + 1);
+      this.execAnonMapping.set(
+        this.execAnonMapping.size + 1,
+        this.logLinePosition + 1
+      );
     }
     const fields = logLine.split('|');
     if (fields.length >= 3) {
@@ -148,7 +147,7 @@ export class LogContext {
           return new FrameExitState(fields);
         case EVENT_STATEMENT_EXECUTE:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
-            fields[2] = this.stripBrackets(fields[2]);
+            fields[2] = this.util.stripBrackets(fields[2]);
             return new StatementExecuteState(fields);
           }
           break;

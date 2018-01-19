@@ -9,8 +9,24 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  EVENT_CODE_UNIT_FINISHED,
+  EVENT_CODE_UNIT_STARTED,
+  EVENT_CONSTRUCTOR_ENTRY,
+  EVENT_CONSTRUCTOR_EXIT,
+  EVENT_EXECUTE_ANONYMOUS,
+  EVENT_METHOD_ENTRY,
+  EVENT_METHOD_EXIT,
+  EVENT_STATEMENT_EXECUTE,
+  EXEC_ANON_SIGNATURE
+} from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
-import { NoOpState } from '../../../src/states';
+import {
+  FrameEntryState,
+  FrameExitState,
+  NoOpState,
+  StatementExecuteState
+} from '../../../src/states';
 
 // tslint:disable:no-unused-expression
 describe('LogContext', () => {
@@ -76,6 +92,11 @@ describe('LogContext', () => {
 
   it('Should start with empty array of stackframes', () => {
     expect(context.getFrames()).to.be.empty;
+    expect(context.getTopFrame()).to.be.undefined;
+  });
+
+  it('Should start with no state', () => {
+    expect(context.hasState()).to.be.false;
   });
 
   it('Should handle undefined log event', () => {
@@ -97,6 +118,7 @@ describe('LogContext', () => {
     context.updateFrames();
 
     expect(context.getLogLinePosition()).to.equal(2);
+    expect(context.hasState()).to.be.true;
   });
 
   it('Should pause parsing the log', () => {
@@ -113,6 +135,7 @@ describe('LogContext', () => {
     context.updateFrames();
 
     expect(context.getLogLinePosition()).to.equal(1);
+    expect(context.hasState()).to.be.true;
   });
 
   describe('Log event parser', () => {
@@ -134,6 +157,84 @@ describe('LogContext', () => {
       expect(context.parseLogEvent('timestamp|foo|bar')).to.be.an.instanceof(
         NoOpState
       );
+    });
+
+    it('Should detect execute anonymous script line', () => {
+      context.parseLogEvent(`${EVENT_EXECUTE_ANONYMOUS}: foo`);
+
+      expect(context.getExecAnonScriptMapping().size).to.be.equal(1);
+      expect(context.getExecAnonScriptMapping().get(1)).to.be.equal(0);
+    });
+
+    it('Should detect FrameEntry with CODE_UNIT_STARTED', () => {
+      expect(
+        context.parseLogEvent(`|${EVENT_CODE_UNIT_STARTED}|`)
+      ).to.be.an.instanceof(FrameEntryState);
+    });
+
+    it('Should detect FrameEntry with CONSTRUCTOR_ENTRY', () => {
+      expect(
+        context.parseLogEvent(`|${EVENT_CONSTRUCTOR_ENTRY}|`)
+      ).to.be.an.instanceof(FrameEntryState);
+    });
+
+    it('Should detect FrameEntry with METHOD_ENTRY', () => {
+      expect(
+        context.parseLogEvent(`|${EVENT_METHOD_ENTRY}|`)
+      ).to.be.an.instanceof(FrameEntryState);
+    });
+
+    it('Should detect FrameExit with CODE_UNIT_FINISHED', () => {
+      expect(
+        context.parseLogEvent(`|${EVENT_CODE_UNIT_FINISHED}|`)
+      ).to.be.an.instanceof(FrameExitState);
+    });
+
+    it('Should detect FrameExit with CONSTRUCTOR_EXIT', () => {
+      expect(
+        context.parseLogEvent(`|${EVENT_CONSTRUCTOR_EXIT}|`)
+      ).to.be.an.instanceof(FrameExitState);
+    });
+
+    it('Should detect FrameExit with METHOD_EXIT', () => {
+      expect(
+        context.parseLogEvent(`|${EVENT_METHOD_EXIT}|`)
+      ).to.be.an.instanceof(FrameExitState);
+    });
+
+    it('Should detect StatementExecute with STATEMENT_EXECUTE', () => {
+      expect(
+        context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)
+      ).to.be.an.instanceof(StatementExecuteState);
+    });
+  });
+
+  describe('Signature-to-URI', () => {
+    let getTyperefMappingStub: sinon.SinonStub;
+    const typerefMapping: Map<string, string> = new Map();
+    typerefMapping.set('namespace/Foo$Bar', '/path/foo.cls');
+    typerefMapping.set('namespace/Foo', '/path/foo.cls');
+
+    beforeEach(() => {
+      getTyperefMappingStub = sinon
+        .stub(BreakpointUtil.prototype, 'getTyperefMapping')
+        .returns(typerefMapping);
+    });
+
+    afterEach(() => {
+      getTyperefMappingStub.restore();
+    });
+
+    it('Should return debug log path for execute anonymous signature', () => {
+      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.be.equal(
+        encodeURI('file://' + context.getLogFilePath())
+      );
+    });
+
+    it('Should return URI for inner class', () => {
+      expect(
+        context.getUriFromSignature('namespace.Foo.Bar(Integer)')
+      ).to.be.equal('/path/foo.cls');
     });
   });
 });
