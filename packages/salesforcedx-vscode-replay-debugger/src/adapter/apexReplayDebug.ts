@@ -107,19 +107,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
     response.success = true;
     this.sendResponse(response);
-
-    if (args.stopOnEntry) {
-      // Stop in the debug log
-      this.logContext.updateFrames(this.getHandlerForDebugConsole());
-      this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
-    } else {
-      // Set breakpoints first, then try to continue to the next breakpoint
-      setTimeout(() => {
-        this.continueRequest({} as DebugProtocol.ContinueResponse, {
-          threadId: ApexReplayDebug.THREAD_ID
-        });
-      }, 1);
-    }
   }
 
   public setupLogger(args: LaunchRequestArguments): void {
@@ -134,6 +121,22 @@ export class ApexReplayDebug extends LoggingDebugSession {
       logger.setup(Logger.LogLevel.Verbose, false);
     } else {
       logger.setup(Logger.LogLevel.Stop, false);
+    }
+  }
+
+  public configurationDoneRequest(
+    response: DebugProtocol.ConfigurationDoneResponse,
+    args: DebugProtocol.ConfigurationDoneArguments
+  ): void {
+    if (this.logContext.getLaunchArgs().stopOnEntry) {
+      // Stop in the debug log
+      this.logContext.updateFrames(this.getHandlerForDebugConsole());
+      this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
+    } else {
+      // Set breakpoints first, then try to continue to the next breakpoint
+      this.continueRequest({} as DebugProtocol.ContinueResponse, {
+        threadId: ApexReplayDebug.THREAD_ID
+      });
     }
   }
 
@@ -261,6 +264,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         }
         if (this.initializedResponse) {
           this.initializedResponse.body = {
+            supportsConfigurationDoneRequest: true,
             supportsCompletionsRequest: false,
             supportsConditionalBreakpoints: false,
             supportsDelayedStackTraceLoading: false,
