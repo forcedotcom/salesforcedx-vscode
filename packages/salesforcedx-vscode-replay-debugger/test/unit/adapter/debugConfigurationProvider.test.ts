@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as vscode from 'vscode';
-import { DebugConfigurationProvider } from '../../../src/adapter/DebugConfigurationProvider';
+import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 
