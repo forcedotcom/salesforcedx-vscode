@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/icon.png",
+  "icon": "images/VSCodeApexReplayDebugger.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
