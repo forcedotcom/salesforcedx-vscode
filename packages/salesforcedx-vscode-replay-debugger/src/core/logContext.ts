@@ -69,10 +69,6 @@ export class LogContext {
     return this.launchArgs.logFile;
   }
 
-  public shouldStopOnEntry(): boolean {
-    return this.launchArgs.stopOnEntry === true;
-  }
-
   public getLogLinePosition(): number {
     return this.logLinePosition;
   }

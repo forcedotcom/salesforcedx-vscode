@@ -128,6 +128,7 @@ describe('Replay debugger adapter - unit', () => {
     let readLogFileStub: sinon.SinonStub;
     let updateFramesStub: sinon.SinonStub;
     let printToDebugConsoleStub: sinon.SinonStub;
+    let continueRequestStub: sinon.SinonStub;
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -147,6 +148,10 @@ describe('Replay debugger adapter - unit', () => {
         ApexReplayDebug.prototype,
         'printToDebugConsole'
       );
+      continueRequestStub = sinon.stub(
+        ApexReplayDebug.prototype,
+        'continueRequest'
+      );
     });
 
     afterEach(() => {
@@ -156,6 +161,7 @@ describe('Replay debugger adapter - unit', () => {
       readLogFileStub.restore();
       updateFramesStub.restore();
       printToDebugConsoleStub.restore();
+      continueRequestStub.restore();
     });
 
     it('Should return error when there are no log lines', () => {
@@ -188,6 +194,30 @@ describe('Replay debugger adapter - unit', () => {
       expect(sendEventSpy.calledOnce).to.be.true;
       const event = sendEventSpy.getCall(0).args[0];
       expect(event).to.be.instanceof(StoppedEvent);
+      expect(printToDebugConsoleStub.calledOnce).to.be.true;
+      const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
+      expect(consoleMessage).to.be.equal(
+        nls.localize('session_started_text', logFileName)
+      );
+      expect(sendResponseSpy.calledOnce).to.be.true;
+      const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(
+        0
+      ).args[0];
+      expect(actualResponse.success).to.be.true;
+    });
+
+    it('Should continue until next breakpoint', () => {
+      args.stopOnEntry = false;
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .returns(true);
+
+      adapter.launchRequest(response, args);
+
+      expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(updateFramesStub.called).to.be.false;
+      expect(sendEventSpy.called).to.be.false;
+      expect(continueRequestStub.calledOnce).to.be.true;
       expect(printToDebugConsoleStub.calledOnce).to.be.true;
       const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
       expect(consoleMessage).to.be.equal(

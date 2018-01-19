@@ -7,6 +7,7 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+import { StackFrame } from 'vscode-debugadapter';
 import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
 import { BreakpointUtil } from '../../../src/breakpoints';
 import {
@@ -132,16 +133,23 @@ describe('LogContext', () => {
     parseLogEventStub = sinon
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(new NoOpState());
+    context.setState(new LogEntryState());
+    context.getFrames().push({} as StackFrame);
 
     context.updateFrames();
 
     expect(context.getLogLinePosition()).to.equal(1);
     expect(context.hasState()).to.be.true;
+    expect(context.getFrames()).to.be.empty;
   });
 
   describe('Log event parser', () => {
     beforeEach(() => {
       context = new LogContext(launchRequestArgs, new BreakpointUtil());
+    });
+
+    it('Should detect LogEntry as the first state', () => {
+      expect(context.parseLogEvent('')).to.be.an.instanceof(LogEntryState);
     });
 
     it('Should detect NoOp with empty log line', () => {

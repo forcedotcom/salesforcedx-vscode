@@ -22,18 +22,23 @@ describe('Breakpoint utilities', () => {
     const lineNumberMapping: Map<string, number[]> = new Map();
     lineNumberMapping.set('file:///foo.cls', [1, 2]);
     lineNumberMapping.set('file:///bar.cls', [3, 4]);
+    const typerefMapping: Map<string, string> = new Map();
+    typerefMapping.set('foo', 'file:///foo.cls');
+    typerefMapping.set('bar', 'file:///bar.cls');
     util = new BreakpointUtil();
 
-    util.setValidLines(lineNumberMapping, new Map());
+    util.setValidLines(lineNumberMapping, typerefMapping);
 
     expect(util.hasLineNumberMapping()).to.be.true;
     expect(util.getLineNumberMapping()).to.deep.equal(lineNumberMapping);
+    expect(util.getTyperefMapping()).to.deep.equal(typerefMapping);
   });
 
   it('Should verify line breakpoint', () => {
     const expectedMapping: Map<string, number[]> = new Map();
     expectedMapping.set('file:///foo.cls', [1]);
     util = new BreakpointUtil();
+
     util.setValidLines(expectedMapping, new Map());
 
     expect(util.canSetLineBreakpoint('file:///foo.cls', 1)).to.be.true;
