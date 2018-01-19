@@ -8,5 +8,5 @@
   "stop_on_entry_text":
     "Stop the debugger after launching. If false, the debugger will run until it hits a breakpoint.",
   "trace_text":
-    "Produce diagnostic output. Instead of setting this to true you can list one or more selectors separated with commas. The 'all' selector enables very detailed output. Other selectors are 'protocol', 'launch', 'breakpoints'."
+    "Produce diagnostic output. Instead of setting this to true you can list one or more selectors separated with commas. The 'all' selector enables very detailed output. Other selectors are 'protocol', 'logfile', launch', 'breakpoints'."
 }

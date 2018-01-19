@@ -40,6 +40,8 @@ describe('LogContext', () => {
     logFile: '/path/foo.log',
     trace: true
   };
+  // tslint:disable-next-line:no-empty
+  const debugConsoleHandler = (message: string) => {};
 
   beforeEach(() => {
     readLogFileStub = sinon
@@ -106,7 +108,7 @@ describe('LogContext', () => {
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(undefined);
 
-    context.updateFrames();
+    context.updateFrames(debugConsoleHandler);
 
     expect(context.getLogLinePosition()).to.equal(2);
   });
@@ -117,7 +119,7 @@ describe('LogContext', () => {
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(new NoOpState());
 
-    context.updateFrames();
+    context.updateFrames(debugConsoleHandler);
 
     expect(context.getLogLinePosition()).to.equal(2);
     expect(context.hasState()).to.be.true;
@@ -136,7 +138,7 @@ describe('LogContext', () => {
     context.setState(new LogEntryState());
     context.getFrames().push({} as StackFrame);
 
-    context.updateFrames();
+    context.updateFrames(debugConsoleHandler);
 
     expect(context.getLogLinePosition()).to.equal(1);
     expect(context.hasState()).to.be.true;

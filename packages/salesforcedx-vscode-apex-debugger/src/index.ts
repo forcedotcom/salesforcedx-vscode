@@ -29,7 +29,7 @@ import { nls } from './messages';
 const cachedExceptionBreakpoints: Map<
   string,
   ExceptionBreakpointItem
-  > = new Map();
+> = new Map();
 
 export class ApexDebuggerConfigurationProvider
   implements vscode.DebugConfigurationProvider {
@@ -241,7 +241,7 @@ export function updateExceptionBreakpointCache(
 export function getExceptionBreakpointCache(): Map<
   string,
   ExceptionBreakpointItem
-  > {
+> {
   return cachedExceptionBreakpoints;
 }
 

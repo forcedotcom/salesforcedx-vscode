@@ -43,7 +43,7 @@ export class MockApexReplayDebug extends ApexReplayDebug {
     };
   }
 
-  public getTraceConfig(): string[] | undefined {
+  public getTraceConfig(): string[] {
     return this.trace;
   }
 
@@ -129,6 +129,7 @@ describe('Replay debugger adapter - unit', () => {
     let updateFramesStub: sinon.SinonStub;
     let printToDebugConsoleStub: sinon.SinonStub;
     let continueRequestStub: sinon.SinonStub;
+    let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -152,6 +153,7 @@ describe('Replay debugger adapter - unit', () => {
         ApexReplayDebug.prototype,
         'continueRequest'
       );
+      clock = sinon.useFakeTimers();
     });
 
     afterEach(() => {
@@ -162,6 +164,7 @@ describe('Replay debugger adapter - unit', () => {
       updateFramesStub.restore();
       printToDebugConsoleStub.restore();
       continueRequestStub.restore();
+      clock.restore();
     });
 
     it('Should return error when there are no log lines', () => {
@@ -217,7 +220,6 @@ describe('Replay debugger adapter - unit', () => {
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(updateFramesStub.called).to.be.false;
       expect(sendEventSpy.called).to.be.false;
-      expect(continueRequestStub.calledOnce).to.be.true;
       expect(printToDebugConsoleStub.calledOnce).to.be.true;
       const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
       expect(consoleMessage).to.be.equal(
@@ -228,6 +230,9 @@ describe('Replay debugger adapter - unit', () => {
         0
       ).args[0];
       expect(actualResponse.success).to.be.true;
+      setTimeout(() => {
+        expect(continueRequestStub.calledOnce).to.be.true;
+      }, 1);
     });
   });
 

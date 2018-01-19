@@ -118,15 +118,18 @@ export class LogContext {
     return uri;
   }
 
-  public updateFrames(): void {
+  public updateFrames(printLine: (message: string) => void): void {
     if (this.state instanceof LogEntryState) {
       this.stackFrameInfos.pop();
     }
     while (++this.logLinePosition < this.logLines.length) {
       const logLine = this.logLines[this.logLinePosition];
-      this.setState(this.parseLogEvent(logLine));
-      if (this.state && this.state.handle(this)) {
-        break;
+      if (logLine) {
+        printLine(logLine);
+        this.setState(this.parseLogEvent(logLine));
+        if (this.state && this.state.handle(this)) {
+          break;
+        }
       }
     }
   }

@@ -31,10 +31,16 @@ import { nls } from '../messages';
 
 const TRACE_ALL = 'all';
 const TRACE_CATEGORY_PROTOCOL = 'protocol';
+const TRACE_CATEGORY_LOGFILE = 'logfile';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
 
-export type TraceCategory = 'all' | 'protocol' | 'launch' | 'breakpoints';
+export type TraceCategory =
+  | 'all'
+  | 'protocol'
+  | 'logfile'
+  | 'launch'
+  | 'breakpoints';
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
@@ -46,7 +52,7 @@ export interface LaunchRequestArguments
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext: LogContext;
-  protected trace: string[] | undefined;
+  protected trace: string[] = [];
   protected traceAll = false;
   private breakpointUtil: BreakpointUtil;
   private initializedResponse: DebugProtocol.InitializeResponse;
@@ -96,24 +102,29 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.sendResponse(response);
       return;
     }
-    if (args.stopOnEntry) {
-      this.logContext.updateFrames();
-      this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
-    } else {
-      this.continueRequest({} as DebugProtocol.ContinueResponse, {
-        threadId: ApexReplayDebug.THREAD_ID
-      });
-    }
     this.printToDebugConsole(
       nls.localize('session_started_text', this.logContext.getLogFileName())
     );
     response.success = true;
     this.sendResponse(response);
+
+    if (args.stopOnEntry) {
+      // Stop in the debug log
+      this.logContext.updateFrames(this.getHandlerForDebugConsole());
+      this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
+    } else {
+      // Set breakpoints first, then try to continue to the next breakpoint
+      setTimeout(() => {
+        this.continueRequest({} as DebugProtocol.ContinueResponse, {
+          threadId: ApexReplayDebug.THREAD_ID
+        });
+      }, 1);
+    }
   }
 
   public setupLogger(args: LaunchRequestArguments): void {
     if (typeof args.trace === 'boolean') {
-      this.trace = args.trace ? [TRACE_ALL] : undefined;
+      this.trace = args.trace ? [TRACE_ALL] : [];
       this.traceAll = args.trace;
     } else if (typeof args.trace === 'string') {
       this.trace = args.trace.split(',').map(category => category.trim());
@@ -164,7 +175,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response.success = true;
     this.sendResponse(response);
     while (this.logContext.hasLogLines()) {
-      this.logContext.updateFrames();
+      this.logContext.updateFrames(this.getHandlerForDebugConsole());
       const topFrame = this.logContext.getTopFrame();
       if (topFrame && topFrame.source) {
         const topFrameUri = this.convertClientPathToDebugger(
@@ -248,7 +259,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
           }
           this.breakpointUtil.setValidLines(lineNumberMapping, typerefMapping);
         }
-        this.sendEvent(new InitializedEvent());
         if (this.initializedResponse) {
           this.initializedResponse.body = {
             supportsCompletionsRequest: false,
@@ -267,6 +277,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           };
           this.initializedResponse.success = true;
           this.sendResponse(this.initializedResponse);
+          this.sendEvent(new InitializedEvent());
           break;
         }
     }
@@ -279,6 +290,17 @@ export class ApexReplayDebug extends LoggingDebugSession {
       (this.traceAll || this.trace.indexOf(traceCategory) >= 0)
     ) {
       this.printToDebugConsole(`${process.pid}: ${message}`);
+    }
+  }
+
+  public getHandlerForDebugConsole(): (message: string) => void {
+    if (this.traceAll || this.trace.indexOf(TRACE_CATEGORY_LOGFILE) !== -1) {
+      return (message: string) => {
+        this.printToDebugConsole(message);
+      };
+    } else {
+      // tslint:disable-next-line:no-empty
+      return (message: string) => {};
     }
   }
 

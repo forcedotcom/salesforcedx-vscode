@@ -48,7 +48,7 @@ describe('Debug console', () => {
 
       adapter.setupLogger(args);
 
-      expect(adapter.getTraceConfig()).to.be.undefined;
+      expect(adapter.getTraceConfig()).to.be.empty;
       expect(adapter.getTraceAllConfig()).to.be.false;
     });
 
