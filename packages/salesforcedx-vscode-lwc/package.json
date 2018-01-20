@@ -23,7 +23,9 @@
   "categories": ["Languages"],
   "dependencies": {
     "lwc-language-server": "0.14.1",
-    "vscode-languageclient": "3.5.0"
+    "vscode-languageclient": "3.5.0",
+    "eslint": "4.15.0",
+    "eslint-plugin-lwc": "0.2.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "41.17.0",
@@ -50,6 +52,8 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "pretest": "node ../../scripts/download-vscode-for-system-tests",
     "test":
+      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit":
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": [

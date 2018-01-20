@@ -7,13 +7,19 @@
 
 import * as lwcLanguageServer from 'lwc-language-server';
 import * as path from 'path';
-import { ExtensionContext, workspace } from 'vscode';
+import {
+  ConfigurationTarget,
+  ExtensionContext,
+  workspace,
+  WorkspaceConfiguration
+} from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 
 export async function activate(context: ExtensionContext) {
   const serverModule = context.asAbsolutePath(
@@ -25,21 +31,28 @@ export async function activate(context: ExtensionContext) {
     return;
   }
 
+  const workspaceType = lwcLanguageServer.detectWorkspaceType(
+    workspace.workspaceFolders[0].uri.path
+  );
+
   // Check if ran from a LWC project
-  if (
-    !lwcLanguageServer.isLWC(
-      lwcLanguageServer.detectWorkspaceType(
-        workspace.workspaceFolders[0].uri.path
-      )
-    )
-  ) {
+  if (!lwcLanguageServer.isLWC(workspaceType)) {
     console.log('Not a LWC project, exiting extension');
     return;
   }
 
-  // The debug options for the server
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+  startLWCLanguageServer(serverModule, context);
 
+  if (workspaceType === lwcLanguageServer.WorkspaceType.SFDX) {
+    populateEslintSettingIfNecessary(context, workspace.getConfiguration());
+  }
+}
+
+function startLWCLanguageServer(
+  serverModule: string,
+  context: ExtensionContext
+) {
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
   const serverOptions: ServerOptions = {
@@ -50,11 +63,9 @@ export async function activate(context: ExtensionContext) {
       options: debugOptions
     }
   };
-
   const clientOptions: LanguageClientOptions = {
     documentSelector: ['html', 'javascript'],
     synchronize: {
-      // Notify the server about file changes to '.clientrc files contain in the workspace
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.resource'),
         workspace.createFileSystemWatcher(
@@ -64,7 +75,6 @@ export async function activate(context: ExtensionContext) {
       ]
     }
   };
-
   // Create the language client and start the client.
   const disposable = new LanguageClient(
     'lwcLanguageServer',
@@ -72,8 +82,27 @@ export async function activate(context: ExtensionContext) {
     serverOptions,
     clientOptions
   ).start();
-
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
   context.subscriptions.push(disposable);
+}
+
+export function populateEslintSettingIfNecessary(
+  context: ExtensionContext,
+  config: WorkspaceConfiguration
+) {
+  const nodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
+
+  // User has not set one, use the eslint bundled with our extension
+  // or if it is from salesforcedx-vscode-lwc, update since the path looks like
+  // "eslint.nodePath": ".../.vscode/extensions/salesforce.salesforcedx-vscode-lwc-41.17.0/node_modules",
+  // which contains the version number and needs to be updated on each extension
+  if (!nodePath || nodePath.includes(LWC_EXTENSION_NAME)) {
+    const eslintModule = context.asAbsolutePath(path.join('node_modules'));
+    config.update(
+      ESLINT_NODEPATH_CONFIG,
+      eslintModule,
+      ConfigurationTarget.Workspace
+    );
+  }
 }
