@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { stub } from 'sinon';
 import { ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from '../src/constants';
 import { populateEslintSettingIfNecessary } from '../src/index';
