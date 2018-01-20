@@ -56,11 +56,6 @@
     "test:unit":
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
-  "activationEvents": [
-    "workspaceContains:package.json",
-    "workspaceContains:sfdx-project.json",
-    "workspaceContains:workspace-user.xml",
-    "workspaceContains:modules"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src"
 }
