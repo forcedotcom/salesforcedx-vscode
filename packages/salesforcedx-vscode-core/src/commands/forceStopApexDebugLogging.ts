@@ -12,9 +12,12 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
-import { developerLogDebugLevels } from '.';
+import { developerLogTraceFlag } from '.';
 import { nls } from '../messages';
-import { disposeTraceFlagExpiration } from '../traceflag-time-decorator';
+import {
+  disposeTraceFlagExpiration,
+  hideTraceFlagExpiration
+} from '../traceflag-time-decorator';
 import {
   CancelResponse,
   ContinueResponse,
@@ -45,18 +48,26 @@ class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     execution.processExitSubject.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
-        developerLogDebugLevels.turnOffLogging();
-        disposeTraceFlagExpiration();
+        developerLogTraceFlag.turnOffLogging();
+        hideTraceFlagExpiration();
       }
     });
   }
 }
 
-export function restoreDebugLevels() {
-  if (prevApexCodeDebugLevel && prevVFDebugLevel) {
+export async function restoreDebugLevels(): Promise<void> {
+  if (developerLogTraceFlag.isActive()) {
     const execution = new CliCommandExecutor(getRestoreLevelsCommand(), {
       cwd: vscode.workspace.rootPath
     }).execute();
+    const resultPromise = new CommandOutput().getCmdResult(execution);
+    const result = await resultPromise;
+    const resultJson = JSON.parse(result);
+    if (resultJson.status === 0) {
+      return Promise.resolve();
+    } else {
+      return Promise.reject('Restoring the debug levels failed.');
+    }
   }
 }
 
@@ -65,17 +76,17 @@ function getRestoreLevelsCommand(): Command {
     .withDescription(nls.localize('force_stop_apex_debug_logging'))
     .withArg('force:data:record:update')
     .withFlag('--sobjecttype', 'DebugLevel')
-    .withFlag('--sobjectid', developerLogDebugLevels.getDebugLevelId())
+    .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId())
     .withFlag(
       '--values',
-      `ApexCode=${developerLogDebugLevels.getPrevApexCodeDebugLevel()} Visualforce=${developerLogDebugLevels.getPrevApexCodeDebugLevel()}`
+      `ApexCode=${developerLogTraceFlag.getPrevApexCodeDebugLevel()} Visualforce=${developerLogTraceFlag.getPrevApexCodeDebugLevel()}`
     )
     .withArg('--usetoolingapi')
     .build();
 }
 class ActiveLogging implements ParametersGatherer<{}> {
   public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    if (developerLogDebugLevels.isActive()) {
+    if (developerLogTraceFlag.isActive()) {
       return { type: 'CONTINUE', data: {} };
     }
     return { type: 'CANCEL' };

@@ -24,6 +24,10 @@ export function showTraceFlagExpiration(expirationDate: String) {
   statusBarItem.show();
 }
 
+export function hideTraceFlagExpiration() {
+  statusBarItem.hide();
+}
+
 export function disposeTraceFlagExpiration() {
   statusBarItem.dispose();
 }

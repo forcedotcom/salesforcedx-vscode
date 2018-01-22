@@ -52,6 +52,7 @@ import { notificationService } from './notifications';
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { CancellableStatusBar, taskViewService } from './statuses';
+import { disposeTraceFlagExpiration } from './traceflag-time-decorator';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
@@ -326,7 +327,8 @@ export async function activate(context: vscode.ExtensionContext) {
   return api;
 }
 
-export function deactivate() {
+export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
-  restoreDebugLevels();
+  disposeTraceFlagExpiration();
+  return restoreDebugLevels();
 }
