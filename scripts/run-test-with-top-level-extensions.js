@@ -13,5 +13,12 @@ shell.exec(
     __dirname,
     '..',
     'packages'
+  )}' CODE_TESTS_WORKSPACE='${path.join(
+    __dirname,
+    '..',
+    'packages',
+    'system-tests',
+    'assets',
+    'sfdx-simple'
   )}' node ./node_modules/vscode/bin/test`
 );
