@@ -10,10 +10,12 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
+import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -36,12 +38,15 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../forceProjectCreate';
-import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
+  public build(data: {}): Command {
+    throw new Error('not in use');
+  }
+
   public buildCreateProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_project_create_text'))
+      .withDescription(nls.localize('isv_debug_bootstrap_step1_create_project'))
       .withArg('force:project:create')
       .withFlag('--projectname', data.projectName)
       .withFlag('--outputdir', data.projectUri)
@@ -50,7 +55,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public buildConfigureProjectCommand(data: IsvDebugBootstrapConfig): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_project_create_text'))
+      .withDescription(
+        nls.localize('isv_debug_bootstrap_step1_configure_project')
+      )
       .withArg('force:project:create')
       .withFlag('--projectname', data.projectName)
       .withFlag('--outputdir', data.projectUri)
@@ -77,23 +84,34 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
           )
         );
 
-        const configureProjectExecution = new CliCommandExecutor(
-          this.buildConfigureProjectCommand(response.data),
-          {
-            cwd: response.data.projectUri
+        const configureProjectCommand = `echo '${response.data
+          .forceIdeUri}' > .sfdx/isvsettings.test`;
+        await exec(configureProjectCommand, (err, stdout, stderr) => {
+          if (stderr && err) {
+            console.log('configureProjectCommand:stderr', stderr);
+            return;
           }
-        ).execute(cancellationToken);
 
+          console.log(stdout);
+        });
+
+        // const configureProjectExecution = new CliCommandExecutor(
+        //   this.buildConfigureProjectCommand(response.data),
+        //   {
+        //     cwd: response.data.projectUri
+        //   }
+        // ).execute(cancellationToken);
+        //
         // configureProjectExecution.processExitSubject(async data2 => {
         //   if (data2 != undefined && data2.toString() === '0') {
         //     channelService.streamCommandOutput
         // });
-
-        this.attachExecution(
-          configureProjectExecution,
-          cancellationTokenSource,
-          cancellationToken
-        );
+        //
+        // this.attachExecution(
+        //   configureProjectExecution,
+        //   cancellationTokenSource,
+        //   cancellationToken
+        // );
       }
     });
 

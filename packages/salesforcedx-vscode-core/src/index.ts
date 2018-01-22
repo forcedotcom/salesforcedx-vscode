@@ -294,6 +294,15 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
+  const sfdxApexDebuggerExtension = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-apex-debugger'
+  );
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:apex_debug_extension_installed',
+    sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id
+  );
+
   // Commands
   const commands = registerCommands();
   context.subscriptions.push(commands);
