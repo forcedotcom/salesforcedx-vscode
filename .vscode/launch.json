@@ -8,9 +8,7 @@
       "name": "Attach to Process (Legacy Protocol)",
       "port": 5858,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ]
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
     },
     {
       "type": "node",
@@ -19,23 +17,17 @@
       "name": "Attach to Process (Inspector Protocol)",
       "port": 9229,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ]
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
     },
     {
       "name": "Launch Extensions",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}/packages"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
@@ -43,35 +35,29 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}/packages"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/src/**/*.js"
-      ]
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"]
     },
     {
       "name": "Launch Apex Debug adapter",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}",
-      "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
-      "args": [
-        "--server=4711"
-      ],
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
+      "args": ["--server=4711"],
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Launch Salesforce DX Utils Tests",
-      "program": "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -82,9 +68,7 @@
         "${workspaceRoot}/packages/salesforcedx-utils-vscode/out/test"
       ],
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
     },
@@ -100,9 +84,7 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
@@ -116,9 +98,7 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
@@ -133,9 +113,22 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "name": "Launch Salesforce DX VS Code LWC Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lwc/out/test"
       ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
@@ -149,16 +142,15 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Launch Salesforce DX Visualforce Language Server Tests",
-      "program": "${workspaceRoot}/packages/salesforcedx-visualforce-language-server/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-visualforce-language-server/node_modules/mocha/bin/_mocha",
       "args": [
         "--timeout",
         "999999",
@@ -167,9 +159,7 @@
         "${workspaceRoot}/packages/salesforcedx-visualforce-language-server/out/test"
       ],
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
     },
@@ -177,7 +167,8 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Salesforce DX Visualforce Markup Language Server Tests",
-      "program": "${workspaceRoot}/packages/salesforcedx-visualforce-markup-language-server/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-visualforce-markup-language-server/node_modules/mocha/bin/_mocha",
       "args": [
         "--timeout",
         "999999",
@@ -186,9 +177,7 @@
         "${workspaceRoot}/packages/salesforcedx-visualforce-markup-language-server/out/test"
       ],
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
     },
@@ -203,9 +192,7 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/test/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/test/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
@@ -213,7 +200,8 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
-      "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -229,16 +217,15 @@
       ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "<node_internals>/**"
-      ] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
       "name": "Launch Apex Debugger Adapter Integration Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-apex-debugger",
-      "program": "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-apex-debugger/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -254,9 +241,7 @@
       ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "<node_internals>/**"
-      ] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
       "name": "Launch Apex Debugger Extension Tests",
@@ -269,9 +254,7 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
@@ -279,7 +262,8 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
-      "program": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -300,7 +284,8 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
-      "program": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -321,7 +306,8 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator",
-      "program": "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -342,14 +328,11 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}",
-      "program": "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/src/adapter/apexReplayDebug.js",
-      "args": [
-        "--server=4712"
-      ],
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/src/adapter/apexReplayDebug.js",
+      "args": ["--server=4712"],
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/*/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
       "preLaunchTask": "Compile"
     },
     {
@@ -357,7 +340,8 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger",
-      "program": "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/node_modules/mocha/bin/_mocha",
+      "program":
+        "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -373,25 +357,17 @@
       ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "<node_internals>/**"
-      ] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     }
   ],
   "compounds": [
     {
       "name": "Launch Extensions + Apex Debug adapter",
-      "configurations": [
-        "Launch Extensions",
-        "Launch Apex Debug adapter"
-      ]
+      "configurations": ["Launch Extensions", "Launch Apex Debug adapter"]
     },
     {
       "name": "Launch Extensions + Replay Debugger adapter",
-      "configurations": [
-        "Launch Extensions",
-        "Launch Replay Debugger adapter"
-      ]
+      "configurations": ["Launch Extensions", "Launch Replay Debugger adapter"]
     }
   ]
 }
