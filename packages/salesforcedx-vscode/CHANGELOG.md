@@ -2,12 +2,12 @@
 ### Fixed
 #### salesforcedx-vscode
 
-* Update to the latest Salesforce Icons ([PR #269](https://github.com/forcedotcom/salesforcedx-vscode/pull/269))
+* Update to the latest Salesforce icons ([PR #269](https://github.com/forcedotcom/salesforcedx-vscode/pull/269))
 
 ### Added
 #### salesforcedx-vscode-core
 
-* New workspace setting to control showing success messages from CLI as information messages or status bar messages ([PR #259](https://github.com/forcedotcom/salesforcedx-vscode/pull/259))
+* New workspace setting to control whether Salesforce CLI success messages show as information messages (pop-ups) or status bar messages (in the footer) ([PR #259](https://github.com/forcedotcom/salesforcedx-vscode/pull/259))
 
 ## 41.17.0 - January 15, 2018
 ### Added
