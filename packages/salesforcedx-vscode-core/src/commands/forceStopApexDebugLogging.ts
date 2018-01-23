@@ -26,11 +26,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import {
-  debugLevelId,
-  prevApexCodeDebugLevel,
-  prevVFDebugLevel
-} from './forceStartApexDebugLogging';
 
 class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {

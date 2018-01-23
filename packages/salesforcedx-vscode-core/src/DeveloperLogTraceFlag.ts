@@ -29,7 +29,7 @@ export class DeveloperLogTraceFlag {
     );
   }
 
-  public setTraceFlagInfo(
+  public setTraceFlagDebugLevelInfo(
     id: string,
     startDate: string,
     expirationDate: string,
@@ -44,6 +44,26 @@ export class DeveloperLogTraceFlag {
     this.prevApexCodeDebugLevel = oldApexCodeDebugLevel;
     this.prevVFDebugLevel = oldVFDebugLevel;
     this.active = true;
+  }
+
+  public setDebugLevelInfo(
+    debugLevelId: string,
+    oldApexCodeDebugLevel: string,
+    oldVFDebugLevel: string
+  ) {
+    this.debugLevelId = debugLevelId;
+    this.prevApexCodeDebugLevel = oldApexCodeDebugLevel;
+    this.prevVFDebugLevel = oldVFDebugLevel;
+  }
+
+  public setTraceFlagInfo(
+    id: string,
+    startDate: string,
+    expirationDate: string
+  ) {
+    this.traceflagId = id;
+    this.startDate = new Date(startDate);
+    this.expirationDate = new Date(expirationDate);
   }
 
   public turnOnLogging() {

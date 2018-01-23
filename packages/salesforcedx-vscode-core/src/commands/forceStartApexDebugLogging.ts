@@ -11,6 +11,9 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -29,12 +32,13 @@ import {
 
 import { developerLogTraceFlag } from '.';
 
-export let prevApexCodeDebugLevel: string;
-export let prevVFDebugLevel: string;
-export let debugLevelId: string;
-
 const MILLISECONDS_PER_SECOND = 60000;
 const LOG_TIMER_LENGTH_MINUTES = 30;
+const CONFIG_DIR = vscode.workspace.rootPath
+  ? path.join(vscode.workspace.rootPath, '.sfdx')
+  : path.join(os.homedir(), '.sfdx');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'sfdx-config.json');
+const ALIAS_FILE = path.join(CONFIG_DIR, 'alias.json');
 
 export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
@@ -66,7 +70,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       const resultJson = JSON.parse(result);
       if (resultJson && resultJson.result && resultJson.result.size >= 1) {
         const traceflag = resultJson.result.records[0];
-        developerLogTraceFlag.setTraceFlagInfo(
+        developerLogTraceFlag.setTraceFlagDebugLevelInfo(
           traceflag.Id,
           traceflag.StartDate,
           traceflag.ExpirationDate,
@@ -99,11 +103,108 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
         const updatePromise = Promise.all(promises);
         await updatePromise;
       } else {
-        // create a new traceflag
+        const createDebuglevelCommandlet = new SfdxCommandlet(
+          new SfdxWorkspaceChecker(),
+          new EmptyParametersGatherer(),
+          new CreateDebugLevel()
+        );
+        await createDebuglevelCommandlet.run();
+        const createTraceFlagCommandlet = new SfdxCommandlet(
+          new SfdxWorkspaceChecker(),
+          new EmptyParametersGatherer(),
+          new CreateTraceFlag()
+        );
+        await createTraceFlagCommandlet.run();
       }
       // run executors to update traceflag and debug levels
       // tslint:disable-next-line:no-empty
     } catch (e) {}
+  }
+}
+
+export async function getUserId(projectPath: string): Promise<string> {
+  const execution = new CliCommandExecutor(
+    new SfdxCommandBuilder()
+      .withArg('force:user:display')
+      .withArg('--json')
+      .build(),
+    { cwd: projectPath }
+  ).execute();
+  const cmdOutput = new CommandOutput();
+  const result = await cmdOutput.getCmdResult(execution);
+  try {
+    const orgInfo = JSON.parse(result).result.id;
+    return Promise.resolve(orgInfo);
+  } catch (e) {
+    return Promise.reject(result);
+  }
+}
+
+export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
+  public build(data: {}): Command {
+    return new SfdxCommandBuilder()
+      .withDescription('')
+      .withArg('force:data:record:create')
+      .withFlag('--sobjecttype', 'DebugLevel')
+      .withFlag(
+        '--values',
+        `developername=ReplayDebuggerLevels${Date.now()} MasterLabel=ReplayDebuggerLevels${Date.now()} apexcode=finest visualforce=finest`
+      )
+      .withArg('--usetoolingapi')
+      .withArg('--json')
+      .build();
+  }
+
+  public async execute(response: ContinueResponse<{}>): Promise<void> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: vscode.workspace.rootPath
+    }).execute(cancellationToken);
+    const resultPromise = new CommandOutput().getCmdResult(execution);
+    try {
+      const result = await resultPromise;
+      const resultJson = JSON.parse(result);
+      const debugLevelId = resultJson.result.id;
+      developerLogTraceFlag.setDebugLevelInfo(debugLevelId, 'FINEST', 'FINEST');
+      channelService.streamCommandOutput(execution);
+      channelService.showChannelOutput();
+      CancellableStatusBar.show(execution, cancellationTokenSource);
+      taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}
+
+export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
+  public build(data: { id: string }): Command {
+    return new SfdxCommandBuilder()
+      .withDescription('')
+      .withArg('force:data:record:create')
+      .withFlag('--sobjecttype', 'TraceFlag')
+      .withFlag(
+        '--values',
+        `tracedentityid='${data.id}' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()}`
+      )
+      .withArg('--usetoolingapi')
+      .build();
+  }
+
+  public async execute(
+    response: ContinueResponse<{ id: string }>
+  ): Promise<void> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    response.data.id = await getUserId(vscode.workspace.rootPath!);
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: vscode.workspace.rootPath
+    }).execute(cancellationToken);
+
+    channelService.streamCommandOutput(execution);
+    channelService.showChannelOutput();
+    CancellableStatusBar.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 
@@ -157,7 +258,6 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
           .toUTCString()}'`
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
       .build();
   }
 
