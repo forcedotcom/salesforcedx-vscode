@@ -117,5 +117,8 @@ export const messages = {
     'SFDX: Turn on Apex Debug Log for Replay Debugger',
   force_apex_debug_log_status_bar_text: 'Logging ends at %s',
   force_stop_apex_debug_logging:
-    'SFDX: Turn off Apex Debug Log for Replay Debugger'
+    'SFDX: Turn off Apex Debug Log for Replay Debugger',
+
+  isv_debug_bootstrap_step1_create_project: 'SFDX: Create Project',
+  isv_debug_bootstrap_step1_configure_project: 'SFDX: Configure Project'
 };

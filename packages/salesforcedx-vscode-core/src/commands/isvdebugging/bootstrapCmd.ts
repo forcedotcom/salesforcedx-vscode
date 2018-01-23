@@ -73,13 +73,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     createProjectExecution.processExitSubject.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
-        await vscode.commands.executeCommand(
-          'vscode.openFolder',
-          vscode.Uri.parse(
-            path.join(response.data.projectUri, response.data.projectName)
-          )
-        );
-
         const configureProjectCommand = `echo '${response.data
           .forceIdeUri}' > .sfdx/isvsettings.test`;
         await exec(configureProjectCommand, (err, stdout, stderr) => {
@@ -108,6 +101,14 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         //   cancellationTokenSource,
         //   cancellationToken
         // );
+
+        // last step is open the folder
+        await vscode.commands.executeCommand(
+          'vscode.openFolder',
+          vscode.Uri.parse(
+            path.join(response.data.projectUri, response.data.projectName)
+          )
+        );
       }
     });
 
