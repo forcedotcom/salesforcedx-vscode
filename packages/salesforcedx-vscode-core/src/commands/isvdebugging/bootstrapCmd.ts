@@ -11,7 +11,6 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { exec } from 'child_process';
-import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -26,15 +25,12 @@ import {
   ContinueResponse,
   EmptyPreChecker,
   ParametersGatherer,
-  PostconditionChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from '../commands';
 import {
   PathExistsChecker,
-  ProjectName,
   ProjectNameAndPath,
-  ProjectURI,
   SelectProjectFolder,
   SelectProjectName
 } from '../forceProjectCreate';
