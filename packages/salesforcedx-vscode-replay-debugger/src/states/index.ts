@@ -6,5 +6,8 @@
  */
 
 export { DebugLogState } from './debugLogState';
+export { FrameEntryState } from './frameEntryState';
+export { FrameExitState } from './frameExitState';
 export { LogEntryState } from './logEntryState';
+export { StatementExecuteState } from './statementExecuteState';
 export { NoOpState } from './noOpState';

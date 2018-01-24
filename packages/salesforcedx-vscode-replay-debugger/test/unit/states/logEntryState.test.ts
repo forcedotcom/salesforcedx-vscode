@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { BreakpointUtil } from '../../../src/breakpoints';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { LogEntryState } from '../../../src/states';
 
@@ -26,11 +27,14 @@ describe('LogEntry event', () => {
   });
 
   it('Should handle event', () => {
-    const context = new LogContext({
-      logFile: '/path/foo.log',
-      stopOnEntry: true,
-      trace: true
-    } as LaunchRequestArguments);
+    const context = new LogContext(
+      {
+        logFile: '/path/foo.log',
+        stopOnEntry: true,
+        trace: true
+      } as LaunchRequestArguments,
+      new BreakpointUtil()
+    );
     const logEntry = new LogEntryState();
 
     const isStopped = logEntry.handle(context);

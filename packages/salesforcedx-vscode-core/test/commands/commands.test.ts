@@ -53,7 +53,7 @@ describe('Command Utilities', () => {
         new class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
-          > {
+            > {
             throw new Error('This should not be called');
           }
         }(),
@@ -77,7 +77,7 @@ describe('Command Utilities', () => {
         new class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
-          > {
+            > {
             return { type: 'CANCEL' };
           }
         }(),
@@ -102,7 +102,7 @@ describe('Command Utilities', () => {
         new class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
-          > {
+            > {
             return { type: 'CONTINUE', data: {} };
           }
         }(),
@@ -125,14 +125,14 @@ describe('Command Utilities', () => {
         new class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
-          > {
+            > {
             return { type: 'CONTINUE', data: {} };
           }
         }(),
         new class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
-          > {
+            > {
             return { type: 'CONTINUE', data: {} };
           }
         }()
@@ -147,14 +147,14 @@ describe('Command Utilities', () => {
         new class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
-          > {
+            > {
             return { type: 'CANCEL' };
           }
         }(),
         new class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
-          > {
+            > {
             throw new Error('This should not be called');
           }
         }()
@@ -175,7 +175,7 @@ describe('Command Utilities', () => {
           new class implements ParametersGatherer<{}> {
             public async gather(): Promise<
               CancelResponse | ContinueResponse<{}>
-            > {
+              > {
               return { type: 'CONTINUE', data: {} };
             }
           }()
@@ -203,7 +203,7 @@ describe('Command Utilities', () => {
           new class implements ParametersGatherer<{}> {
             public async gather(): Promise<
               CancelResponse | ContinueResponse<{}>
-            > {
+              > {
               return { type: 'CANCEL' };
             }
           }()
