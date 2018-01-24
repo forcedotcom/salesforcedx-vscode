@@ -38,7 +38,7 @@ describe('Frame exit event', () => {
     const state = new FrameExitState(['signatureFoo']);
 
     expect(state.handle(context)).to.be.false;
-    expect(context.getFrames()).to.not.be.empty;
+    expect(context.getFrames()).to.be.empty;
   });
 
   it('Should remove if signature matches top frame exactly', () => {

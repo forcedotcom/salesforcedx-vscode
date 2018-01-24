@@ -16,13 +16,17 @@ export class FrameExitState implements DebugLogState {
   }
 
   public handle(logContext: LogContext): boolean {
-    const topFrame = logContext.getTopFrame();
-    if (
-      topFrame &&
-      (topFrame.name === this.signature ||
-        topFrame.name.startsWith(this.signature))
-    ) {
-      logContext.getFrames().pop();
+    while (logContext.hasFrames()) {
+      const topFrame = logContext.getTopFrame();
+      if (topFrame) {
+        logContext.getFrames().pop();
+        if (
+          topFrame.name === this.signature ||
+          topFrame.name.startsWith(this.signature)
+        ) {
+          break;
+        }
+      }
     }
     return false;
   }

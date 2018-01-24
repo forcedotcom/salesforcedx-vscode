@@ -122,6 +122,10 @@ export class LogContext {
     return uri;
   }
 
+  public hasFrames(): boolean {
+    return this.stackFrameInfos && this.stackFrameInfos.length > 0;
+  }
+
   public updateFrames(printLine: (message: string) => void): void {
     if (this.state instanceof LogEntryState) {
       this.stackFrameInfos.pop();
