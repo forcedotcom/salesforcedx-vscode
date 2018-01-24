@@ -109,10 +109,13 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
           new CreateDebugLevel()
         );
         await createDebuglevelCommandlet.run();
+        const userId = await getUserId(
+          vscode.workspace.workspaceFolders![0].uri.fsPath
+        );
         const createTraceFlagCommandlet = new SfdxCommandlet(
           new SfdxWorkspaceChecker(),
           new EmptyParametersGatherer(),
-          new CreateTraceFlag()
+          new CreateTraceFlag(userId)
         );
         await createTraceFlagCommandlet.run();
       }
@@ -178,6 +181,13 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
 }
 
 export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
+  private userId: string;
+
+  public constructor(userId: string) {
+    super();
+    this.userId = userId;
+  }
+
   public build(data: { id: string }): Command {
     return new SfdxCommandBuilder()
       .withDescription('')
@@ -185,7 +195,8 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
       .withFlag('--sobjecttype', 'TraceFlag')
       .withFlag(
         '--values',
-        `tracedentityid='${data.id}' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()}`
+        `tracedentityid='${this
+          .userId}' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()}`
       )
       .withArg('--usetoolingapi')
       .build();
@@ -196,7 +207,6 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
   ): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    response.data.id = await getUserId(vscode.workspace.rootPath!);
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
