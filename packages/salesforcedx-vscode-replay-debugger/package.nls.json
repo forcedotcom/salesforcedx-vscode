@@ -7,5 +7,6 @@
     "Path to an Apex Debug Log file (*.log) in the workspace folder.",
   "stop_on_entry_text":
     "Stop the debugger after launching. If false, the debugger will run until it hits a breakpoint.",
-  "trace_text": "Output debug log lines as they are processed by the debugger."
+  "trace_text":
+    "Produce diagnostic output. You can set this to true, false, or one or more selectors separated with commas. Selectors include 'all' (very detailed output; the equivalent of true), 'protocol', 'logfile', 'launch', 'breakpoints'."
 }

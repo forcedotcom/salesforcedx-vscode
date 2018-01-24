@@ -7,9 +7,14 @@
 
 export class BreakpointUtil {
   private lineNumberMapping: Map<string, number[]> = new Map();
+  private typerefMapping: Map<string, string> = new Map();
 
-  public setValidLines(lineNumberMapping: Map<string, number[]>): void {
+  public setValidLines(
+    lineNumberMapping: Map<string, number[]>,
+    typerefMapping: Map<string, string>
+  ): void {
     this.lineNumberMapping = lineNumberMapping;
+    this.typerefMapping = typerefMapping;
   }
 
   public hasLineNumberMapping(): boolean {
@@ -18,6 +23,10 @@ export class BreakpointUtil {
 
   public getLineNumberMapping(): Map<string, number[]> {
     return this.lineNumberMapping;
+  }
+
+  public getTyperefMapping(): Map<string, string> {
+    return this.typerefMapping;
   }
 
   public canSetLineBreakpoint(uri: string, line: number): boolean {

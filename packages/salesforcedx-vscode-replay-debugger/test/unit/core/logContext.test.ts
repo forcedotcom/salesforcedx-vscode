@@ -7,9 +7,28 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+import { StackFrame } from 'vscode-debugadapter';
 import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  EVENT_CODE_UNIT_FINISHED,
+  EVENT_CODE_UNIT_STARTED,
+  EVENT_CONSTRUCTOR_ENTRY,
+  EVENT_CONSTRUCTOR_EXIT,
+  EVENT_EXECUTE_ANONYMOUS,
+  EVENT_METHOD_ENTRY,
+  EVENT_METHOD_EXIT,
+  EVENT_STATEMENT_EXECUTE,
+  EXEC_ANON_SIGNATURE
+} from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
-import { LogEntryState, NoOpState } from '../../../src/states';
+import {
+  FrameEntryState,
+  FrameExitState,
+  LogEntryState,
+  NoOpState,
+  StatementExecuteState
+} from '../../../src/states';
 
 // tslint:disable:no-unused-expression
 describe('LogContext', () => {
@@ -19,15 +38,16 @@ describe('LogContext', () => {
   let noOpHandleStub: sinon.SinonStub;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: '/path/foo.log',
-    stopOnEntry: true,
     trace: true
   };
+  // tslint:disable-next-line:no-empty
+  const debugConsoleHandler = (message: string) => {};
 
   beforeEach(() => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns(['line1', 'line2']);
-    context = new LogContext(launchRequestArgs);
+    context = new LogContext(launchRequestArgs, new BreakpointUtil());
   });
 
   afterEach(() => {
@@ -57,7 +77,7 @@ describe('LogContext', () => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns([]);
-    context = new LogContext(launchRequestArgs);
+    context = new LogContext(launchRequestArgs, new BreakpointUtil());
 
     expect(context.hasLogLines()).to.be.false;
   });
@@ -76,6 +96,11 @@ describe('LogContext', () => {
 
   it('Should start with empty array of stackframes', () => {
     expect(context.getFrames()).to.be.empty;
+    expect(context.getTopFrame()).to.be.undefined;
+  });
+
+  it('Should start with no state', () => {
+    expect(context.hasState()).to.be.false;
   });
 
   it('Should handle undefined log event', () => {
@@ -83,7 +108,7 @@ describe('LogContext', () => {
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(undefined);
 
-    context.updateFrames();
+    context.updateFrames(debugConsoleHandler);
 
     expect(context.getLogLinePosition()).to.equal(2);
   });
@@ -94,9 +119,10 @@ describe('LogContext', () => {
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(new NoOpState());
 
-    context.updateFrames();
+    context.updateFrames(debugConsoleHandler);
 
     expect(context.getLogLinePosition()).to.equal(2);
+    expect(context.hasState()).to.be.true;
   });
 
   it('Should pause parsing the log', () => {
@@ -109,41 +135,135 @@ describe('LogContext', () => {
     parseLogEventStub = sinon
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(new NoOpState());
+    context.setState(new LogEntryState());
+    context.getFrames().push({} as StackFrame);
 
-    context.updateFrames();
+    context.updateFrames(debugConsoleHandler);
 
     expect(context.getLogLinePosition()).to.equal(1);
+    expect(context.hasState()).to.be.true;
+    expect(context.getFrames()).to.be.empty;
   });
 
   describe('Log event parser', () => {
     beforeEach(() => {
-      context = new LogContext(launchRequestArgs);
-      context.setState(new LogEntryState());
+      context = new LogContext(launchRequestArgs, new BreakpointUtil());
+    });
+
+    it('Should detect LogEntry as the first state', () => {
+      expect(context.parseLogEvent('')).to.be.an.instanceof(LogEntryState);
     });
 
     it('Should detect NoOp with empty log line', () => {
+      context.setState(new LogEntryState());
       expect(context.parseLogEvent('')).to.be.an.instanceof(NoOpState);
     });
 
     it('Should detect NoOp with unexpected number of fields', () => {
+      context.setState(new LogEntryState());
       expect(context.parseLogEvent('timestamp|foo')).to.be.an.instanceof(
         NoOpState
       );
     });
 
     it('Should detect NoOp with unknown event', () => {
+      context.setState(new LogEntryState());
       expect(context.parseLogEvent('timestamp|foo|bar')).to.be.an.instanceof(
         NoOpState
       );
     });
 
-    it('Should detect LogEntry', () => {
-      context.setState(undefined);
+    it('Should detect execute anonymous script line', () => {
+      context.setState(new LogEntryState());
+      context.parseLogEvent(`${EVENT_EXECUTE_ANONYMOUS}: foo`);
+
+      expect(context.getExecAnonScriptMapping().size).to.be.equal(1);
+      expect(context.getExecAnonScriptMapping().get(1)).to.be.equal(0);
+    });
+
+    it('Should detect FrameEntry with CODE_UNIT_STARTED', () => {
+      context.setState(new LogEntryState());
+
       expect(
-        context.parseLogEvent(
-          '41.0 APEX_CODE,FINEST;APEX_PROFILING,FINEST;CALLOUT,FINEST;DB,FINEST;SYSTEM,FINE;VALIDATION,INFO;VISUALFORCE,FINER;WAVE,FINEST;WORKFLOW,FINER'
-        )
-      ).to.be.an.instanceof(LogEntryState);
+        context.parseLogEvent(`|${EVENT_CODE_UNIT_STARTED}|`)
+      ).to.be.an.instanceof(FrameEntryState);
+    });
+
+    it('Should detect FrameEntry with CONSTRUCTOR_ENTRY', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_CONSTRUCTOR_ENTRY}|`)
+      ).to.be.an.instanceof(FrameEntryState);
+    });
+
+    it('Should detect FrameEntry with METHOD_ENTRY', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_METHOD_ENTRY}|`)
+      ).to.be.an.instanceof(FrameEntryState);
+    });
+
+    it('Should detect FrameExit with CODE_UNIT_FINISHED', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_CODE_UNIT_FINISHED}|`)
+      ).to.be.an.instanceof(FrameExitState);
+    });
+
+    it('Should detect FrameExit with CONSTRUCTOR_EXIT', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_CONSTRUCTOR_EXIT}|`)
+      ).to.be.an.instanceof(FrameExitState);
+    });
+
+    it('Should detect FrameExit with METHOD_EXIT', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_METHOD_EXIT}|`)
+      ).to.be.an.instanceof(FrameExitState);
+    });
+
+    it('Should detect StatementExecute with STATEMENT_EXECUTE', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)
+      ).to.be.an.instanceof(StatementExecuteState);
+    });
+  });
+
+  describe('Signature-to-URI', () => {
+    let getTyperefMappingStub: sinon.SinonStub;
+    const typerefMapping: Map<string, string> = new Map();
+    typerefMapping.set('namespace/Foo$Bar', '/path/foo.cls');
+    typerefMapping.set('namespace/Foo', '/path/foo.cls');
+
+    beforeEach(() => {
+      getTyperefMappingStub = sinon
+        .stub(BreakpointUtil.prototype, 'getTyperefMapping')
+        .returns(typerefMapping);
+    });
+
+    afterEach(() => {
+      getTyperefMappingStub.restore();
+    });
+
+    it('Should return debug log path for execute anonymous signature', () => {
+      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.be.equal(
+        encodeURI('file://' + context.getLogFilePath())
+      );
+    });
+
+    it('Should return URI for inner class', () => {
+      expect(
+        context.getUriFromSignature('namespace.Foo.Bar(Integer)')
+      ).to.be.equal('/path/foo.cls');
     });
   });
 });

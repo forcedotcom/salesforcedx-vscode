@@ -69,7 +69,14 @@ describe('Configuration provider', () => {
       trace: false
     } as vscode.DebugConfiguration;
 
-    const config = provider.resolveDebugConfiguration(folder, expectedConfig);
+    const config = provider.resolveDebugConfiguration(folder, {
+      name: 'sampleName',
+      type: 'sampleType',
+      request: 'sampleConfigType',
+      logFile: 'foo.log',
+      stopOnEntry: false,
+      trace: false
+    });
 
     expect(config).to.deep.equal(expectedConfig);
   });
