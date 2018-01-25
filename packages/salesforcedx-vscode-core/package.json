@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.17.0",
+  "version": "41.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "41.17.0",
-    "@salesforce/salesforcedx-utils-vscode": "41.17.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "41.18.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.18.0",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1"
   },
