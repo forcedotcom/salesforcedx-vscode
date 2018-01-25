@@ -1,8 +1,7 @@
 {
   "name": "salesforcedx-vscode-apex",
   "displayName": "Apex Code Editor for Visual Studio Code",
-  "description":
-    "Provides code-editing features for the Apex programming language",
+  "description": "Provides code-editing features for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
@@ -15,13 +14,15 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.17.0",
+  "version": "41.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.17.0"
   },
-  "categories": ["Languages"],
+  "categories": [
+    "Languages"
+  ],
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
@@ -43,13 +44,14 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test",
     "test:unit": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "main": "./out/src",
   "contributes": {
     "configuration": {
@@ -57,7 +59,10 @@
       "title": "%configuration_title%",
       "properties": {
         "salesforcedx-vscode-apex.java.home": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "default": null,
           "description": "%java_home_description%"
         }
@@ -66,8 +71,14 @@
     "languages": [
       {
         "id": "apex",
-        "aliases": ["Apex", "apex"],
-        "extensions": [".cls", ".trigger"],
+        "aliases": [
+          "Apex",
+          "apex"
+        ],
+        "extensions": [
+          ".cls",
+          ".trigger"
+        ],
         "configuration": "./syntaxes/apex.configuration.json"
       }
     ],
@@ -80,7 +91,7 @@
     ]
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.18.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
