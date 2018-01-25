@@ -1,7 +1,7 @@
 {
   "name": "salesforcedx-vscode-lwc",
-  "displayName": "Lightning Code Editor for Visual Studio Code",
-  "description": "Provides code-editing features for Lightning components",
+  "displayName": "LWC Code Editor for Visual Studio Code",
+  "description": "Provides code-editing features for LWC",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/VSCodeLightning.png",
+  "icon": "images/VSCodeLWC.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
