@@ -28,27 +28,9 @@ const darwinExecutable = path.join(
 const linuxExecutable = path.join(
   testRunFolderAbsolute,
   'VSCode-linux-x64',
+  'bin',
   'code'
 );
-if (
-  [
-    '0.10.1',
-    '0.10.2',
-    '0.10.3',
-    '0.10.4',
-    '0.10.5',
-    '0.10.6',
-    '0.10.7',
-    '0.10.8',
-    '0.10.9'
-  ].indexOf(version) >= 0
-) {
-  linuxExecutable = path.join(
-    testRunFolderAbsolute,
-    'VSCode-linux-x64',
-    'Code'
-  );
-}
 
 const extensionsDir = path.join(__dirname, '..', 'packages');
 

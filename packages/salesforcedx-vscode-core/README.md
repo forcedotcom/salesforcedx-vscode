@@ -59,6 +59,11 @@ A badge in the footer shows your current default scratch org. It uses the org’
 To check your running tasks, expand the Running Tasks view in the Explorer.  
 ![Running Tasks view, showing that Apex tests are running](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/running_tasks.png)
 
+## Edit Your Workspace Settings
+To edit your workspace settings, select **Code** > **Preferences** > **Settings** (macOS) or **File** > **Preferences** > **Settings** (Windows and Linux).  
+
+To stop Salesforce CLI success messages from showing as pop-up information messages, click **Show Only in Status Bar** in a success message. This button overrides the `salesforcedx-vscode-core.show-cli-success-msg` value in your Default Settings. It changes the Workspace Settings value to `false`. Setting this value to `false` makes the success messages appear in the status bar (in VS Code’s footer) instead of as information messages. If you decide that you liked the information messages after all, change the value back to `true`.   
+
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
