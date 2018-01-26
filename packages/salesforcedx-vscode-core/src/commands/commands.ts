@@ -9,7 +9,8 @@ import {
   CliCommandExecutor,
   Command,
   CommandExecution,
-  CommandOutput
+  CommandOutput,
+  CompositeCliCommandExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
@@ -345,18 +346,30 @@ export abstract class CompositeSfdxCommandletExecutor<
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): void {
-    throw new Error('Method not implemented.');
+    CancellableStatusBar.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-
+    const executionWrapper = new CompositeCliCommandExecutor(
+      this.build(response.data),
+      {
+        cwd: vscode.workspace.rootPath
+      }
+    ).execute(cancellationToken);
+    this.attachExecution(
+      executionWrapper,
+      cancellationTokenSource,
+      cancellationToken
+    );
     for (const executor of this.executors) {
       const execution = new CliCommandExecutor(executor.build(response.data), {
         cwd: vscode.workspace.rootPath
       }).execute(cancellationToken);
       channelService.streamCommandOutput(execution);
       channelService.showChannelOutput();
+
       try {
         const resultPromise = new CommandOutput().getCmdResult(execution);
         const result = await resultPromise;

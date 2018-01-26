@@ -9,6 +9,7 @@ import { ChildProcess, ExecOptions, spawn } from 'child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
+import { EmptyObservable } from 'rxjs/observable/EmptyObservable';
 import { Subscription } from 'rxjs/Subscription';
 
 // tslint:disable-next-line:no-var-requires
@@ -43,6 +44,20 @@ export class CliCommandExecutor {
   }
 }
 
+export class CompositeCliCommandExecutor {
+  private readonly command: Command;
+  private readonly options: ExecOptions;
+
+  public constructor(commands: Command, options: ExecOptions) {
+    this.command = commands;
+    this.options = options;
+  }
+
+  public execute(cancellationToken?: CancellationToken): CommandExecution {
+    return new CompositeCliCommandExecution(this.command, cancellationToken);
+  }
+}
+
 /**
  * Represents a command execution (a process has already been spawned for it).
  * This is tightly coupled with the execution model (child_process).
@@ -56,6 +71,24 @@ export interface CommandExecution {
   readonly processErrorSubject: Observable<Error | undefined>;
   readonly stdoutSubject: Observable<Buffer | string>;
   readonly stderrSubject: Observable<Buffer | string>;
+}
+
+export class CompositeCliCommandExecution implements CommandExecution {
+  public readonly command: Command;
+  public readonly cancellationToken?: CancellationToken;
+  public readonly processExitSubject: Observable<number | undefined>;
+  public readonly processErrorSubject: Observable<Error | undefined>;
+  public readonly stdoutSubject: Observable<Buffer | string>;
+  public readonly stderrSubject: Observable<Buffer | string>;
+
+  constructor(command: Command, cancellationToken?: CancellationToken) {
+    this.command = command;
+    this.cancellationToken = cancellationToken;
+    this.processExitSubject = EmptyObservable.create();
+    this.processErrorSubject = EmptyObservable.create();
+    this.stdoutSubject = EmptyObservable.create();
+    this.stderrSubject = EmptyObservable.create();
+  }
 }
 
 export class CliCommandExecution implements CommandExecution {
