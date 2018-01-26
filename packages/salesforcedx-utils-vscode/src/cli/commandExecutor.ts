@@ -10,6 +10,7 @@ import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
 import { EmptyObservable } from 'rxjs/observable/EmptyObservable';
+import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 
 // tslint:disable-next-line:no-var-requires
@@ -74,6 +75,8 @@ export interface CommandExecution {
 }
 
 export class CompositeCliCommandExecution implements CommandExecution {
+  public readonly exitSubject: Subject<number | undefined>;
+  public readonly errorSubject: Subject<Error | undefined>;
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
   public readonly processExitSubject: Observable<number | undefined>;
@@ -82,12 +85,39 @@ export class CompositeCliCommandExecution implements CommandExecution {
   public readonly stderrSubject: Observable<Buffer | string>;
 
   constructor(command: Command, cancellationToken?: CancellationToken) {
+    this.exitSubject = new Subject();
+    this.errorSubject = new Subject();
     this.command = command;
     this.cancellationToken = cancellationToken;
-    this.processExitSubject = EmptyObservable.create();
-    this.processErrorSubject = EmptyObservable.create();
+    this.processExitSubject = this.exitSubject.asObservable();
+    this.processErrorSubject = this.errorSubject.asObservable();
     this.stdoutSubject = EmptyObservable.create();
     this.stderrSubject = EmptyObservable.create();
+
+    let timerSubscriber: Subscription | null;
+    if (cancellationToken) {
+      const timer = Observable.interval(1000);
+      timerSubscriber = timer.subscribe(async next => {
+        if (cancellationToken.isCancellationRequested) {
+          try {
+            this.exitSubject.next();
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      });
+    }
+    this.processErrorSubject.subscribe(next => {
+      if (timerSubscriber) {
+        timerSubscriber.unsubscribe();
+      }
+    });
+
+    this.processExitSubject.subscribe(next => {
+      if (timerSubscriber) {
+        timerSubscriber.unsubscribe();
+      }
+    });
   }
 }
 

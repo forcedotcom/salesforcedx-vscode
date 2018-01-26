@@ -346,6 +346,10 @@ export abstract class CompositeSfdxCommandletExecutor<
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): void {
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
@@ -367,8 +371,7 @@ export abstract class CompositeSfdxCommandletExecutor<
       const execution = new CliCommandExecutor(executor.build(response.data), {
         cwd: vscode.workspace.rootPath
       }).execute(cancellationToken);
-      channelService.streamCommandOutput(execution);
-      channelService.showChannelOutput();
+      executionWrapper.attachSubExecution(execution);
 
       try {
         const resultPromise = new CommandOutput().getCmdResult(execution);
