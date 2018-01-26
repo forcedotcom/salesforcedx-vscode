@@ -165,9 +165,7 @@ describe('Replay debugger adapter - unit', () => {
         0
       ).args[0];
       expect(actualResponse.success).to.be.false;
-      expect(actualResponse.message).to.be.equal(
-        nls.localize('no_log_file_text')
-      );
+      expect(actualResponse.message).to.equal(nls.localize('no_log_file_text'));
     });
 
     it('Should send response', () => {
@@ -180,7 +178,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(printToDebugConsoleStub.calledOnce).to.be.true;
       const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
-      expect(consoleMessage).to.be.equal(
+      expect(consoleMessage).to.equal(
         nls.localize('session_started_text', logFileName)
       );
       expect(sendResponseSpy.calledOnce).to.be.true;
@@ -280,9 +278,7 @@ describe('Replay debugger adapter - unit', () => {
 
       expect(printToDebugConsoleStub.calledOnce).to.be.true;
       const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
-      expect(consoleMessage).to.be.equal(
-        nls.localize('session_terminated_text')
-      );
+      expect(consoleMessage).to.equal(nls.localize('session_terminated_text'));
       expect(sendResponseSpy.calledOnce).to.be.true;
       const actualResponse: DebugProtocol.DisconnectResponse = sendResponseSpy.getCall(
         0

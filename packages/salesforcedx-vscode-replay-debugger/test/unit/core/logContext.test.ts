@@ -96,6 +96,7 @@ describe('LogContext', () => {
 
   it('Should start with empty array of stackframes', () => {
     expect(context.getFrames()).to.be.empty;
+    expect(context.getNumOfFrames()).to.equal(0);
     expect(context.getTopFrame()).to.be.undefined;
   });
 
@@ -177,8 +178,8 @@ describe('LogContext', () => {
       context.setState(new LogEntryState());
       context.parseLogEvent(`${EVENT_EXECUTE_ANONYMOUS}: foo`);
 
-      expect(context.getExecAnonScriptMapping().size).to.be.equal(1);
-      expect(context.getExecAnonScriptMapping().get(1)).to.be.equal(0);
+      expect(context.getExecAnonScriptMapping().size).to.equal(1);
+      expect(context.getExecAnonScriptMapping().get(1)).to.equal(0);
     });
 
     it('Should detect FrameEntry with CODE_UNIT_STARTED', () => {
@@ -255,7 +256,7 @@ describe('LogContext', () => {
     });
 
     it('Should return debug log path for execute anonymous signature', () => {
-      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.be.equal(
+      expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.equal(
         encodeURI('file://' + context.getLogFilePath())
       );
     });
@@ -263,7 +264,7 @@ describe('LogContext', () => {
     it('Should return URI for inner class', () => {
       expect(
         context.getUriFromSignature('namespace.Foo.Bar(Integer)')
-      ).to.be.equal('/path/foo.cls');
+      ).to.equal('/path/foo.cls');
     });
   });
 });

@@ -189,11 +189,70 @@ export class ApexReplayDebug extends LoggingDebugSession {
           this.breakpoints.has(topFrameUri) &&
           this.breakpoints.get(topFrameUri)!.indexOf(topFrameLine) !== -1
         ) {
-          this.sendEvent(
+          return this.sendEvent(
             new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID)
           );
-          return;
         }
+      }
+    }
+    this.sendEvent(new TerminatedEvent());
+  }
+
+  protected async nextRequest(
+    response: DebugProtocol.NextResponse,
+    args: DebugProtocol.NextArguments
+  ): Promise<void> {
+    response.success = true;
+    this.sendResponse(response);
+    const numOfFrames = this.logContext.getNumOfFrames();
+    while (this.logContext.hasLogLines()) {
+      this.logContext.updateFrames(this.getHandlerForDebugConsole());
+      if (
+        this.logContext.getNumOfFrames() !== 0 &&
+        this.logContext.getNumOfFrames() <= numOfFrames
+      ) {
+        return this.sendEvent(
+          new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
+        );
+      }
+    }
+    this.sendEvent(new TerminatedEvent());
+  }
+
+  protected async stepInRequest(
+    response: DebugProtocol.StepInResponse,
+    args: DebugProtocol.StepInArguments
+  ): Promise<void> {
+    response.success = true;
+    this.sendResponse(response);
+    const numOfFrames = this.logContext.getNumOfFrames();
+    while (this.logContext.hasLogLines()) {
+      this.logContext.updateFrames(this.getHandlerForDebugConsole());
+      if (this.logContext.getNumOfFrames() >= numOfFrames) {
+        return this.sendEvent(
+          new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
+        );
+      }
+    }
+    this.sendEvent(new TerminatedEvent());
+  }
+
+  protected async stepOutRequest(
+    response: DebugProtocol.StepOutResponse,
+    args: DebugProtocol.StepOutArguments
+  ): Promise<void> {
+    response.success = true;
+    this.sendResponse(response);
+    const numOfFrames = this.logContext.getNumOfFrames();
+    while (this.logContext.hasLogLines()) {
+      this.logContext.updateFrames(this.getHandlerForDebugConsole());
+      if (
+        this.logContext.getNumOfFrames() !== 0 &&
+        this.logContext.getNumOfFrames() < numOfFrames
+      ) {
+        return this.sendEvent(
+          new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
+        );
       }
     }
     this.sendEvent(new TerminatedEvent());
