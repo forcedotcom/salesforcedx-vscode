@@ -8,7 +8,8 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandExecution
+  CommandExecution,
+  CommandOutput
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
@@ -317,7 +318,6 @@ export abstract class SfdxCommandletExecutor<T>
   public execute(response: ContinueResponse<T>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
@@ -325,6 +325,48 @@ export abstract class SfdxCommandletExecutor<T>
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
+  public updateResponse(data: T, resultJson: any): void {
+    return;
+  }
+
+  public abstract build(data: T): Command;
+}
+
+export abstract class CompositeSfdxCommandletExecutor<
+  T
+> extends SfdxCommandletExecutor<T> {
+  private executors: SfdxCommandletExecutor<T>[];
+  public constructor(...executors: SfdxCommandletExecutor<T>[]) {
+    super();
+    this.executors = executors;
+  }
+  protected attachExecution(
+    execution: CommandExecution,
+    cancellationTokenSource: vscode.CancellationTokenSource,
+    cancellationToken: vscode.CancellationToken
+  ): void {
+    throw new Error('Method not implemented.');
+  }
+  public async execute(response: ContinueResponse<T>): Promise<void> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    for (const executor of this.executors) {
+      const execution = new CliCommandExecutor(executor.build(response.data), {
+        cwd: vscode.workspace.rootPath
+      }).execute(cancellationToken);
+      channelService.streamCommandOutput(execution);
+      channelService.showChannelOutput();
+      try {
+        const resultPromise = new CommandOutput().getCmdResult(execution);
+        const result = await resultPromise;
+        const resultJson = JSON.parse(result);
+        executor.updateResponse(response.data, resultJson);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
   public abstract build(data: T): Command;
 }
 
