@@ -67,7 +67,8 @@
       "explorer/context": [
         {
           "command": "sfdx.force.lightning.lwc.create",
-          "when": "explorerResourceIsFolder && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename == lightningcomponents && sfdx:project_opened"
         }
       ],
       "commandPalette": [
