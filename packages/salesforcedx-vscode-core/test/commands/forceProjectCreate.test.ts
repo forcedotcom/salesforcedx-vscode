@@ -1,8 +1,8 @@
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { ContinueResponse } from '../../src/commands/commands';
 import {
   ForceProjectCreateExecutor,
   PathExistsChecker,
