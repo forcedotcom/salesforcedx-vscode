@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
-import { ChannelService, channelService } from './channels';
+import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
   forceAliasList,
@@ -45,14 +45,10 @@ import {
   SFDX_CLIENT_ENV_VAR,
   TERMINAL_INTEGRATED_ENVS
 } from './constants';
-import { NotificationService, notificationService } from './notifications';
+import { notificationService } from './notifications';
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
-import {
-  CancellableStatusBar,
-  TaskViewService,
-  taskViewService
-} from './statuses';
+import { CancellableStatusBar, taskViewService } from './statuses';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
@@ -278,7 +274,7 @@ export async function activate(context: vscode.ExtensionContext) {
     scratchOrgDecorator.monitorConfigChanges();
   }
 
-  const api = {
+  const api: any = {
     CancellableStatusBar,
     CompositeParametersGatherer,
     SelectFileName,

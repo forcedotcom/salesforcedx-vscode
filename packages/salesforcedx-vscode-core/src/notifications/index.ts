@@ -6,6 +6,5 @@
  */
 
 import { NotificationService } from './notificationService';
-export { NotificationService } from './notificationService';
 
 export const notificationService = NotificationService.getInstance();
