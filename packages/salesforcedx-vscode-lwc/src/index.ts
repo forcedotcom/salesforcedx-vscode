@@ -16,6 +16,7 @@ import {
 } from 'vscode-languageclient';
 import { forceLightningLwcCreate } from './commands/forceLightningLwcCreate';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
+import { nls } from './messages';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
@@ -27,7 +28,24 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(forceLightningLwcCreateCmd);
 }
 
+function isDependencyInstalled(): boolean {
+  const coreDependency = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-core'
+  );
+  return coreDependency && coreDependency.exports;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
+  if (!isDependencyInstalled()) {
+    vscode.window.showErrorMessage(
+      nls.localize('salesforcedx_vscode_core_not_installed_text')
+    );
+    console.log(
+      'salesforce.salesforcedx-vscode-core not installed or activated, exiting extension'
+    );
+    return;
+  }
+
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
   );
