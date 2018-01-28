@@ -1,0 +1,16 @@
+version: 2
+jobs:
+   build:
+     docker:
+       - image: circleci/node:8.9.4
+     steps:
+       - checkout
+       - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+       - run: npm install
+       - run: npm run compile
+       - run: npm run vscode:package
+       - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
