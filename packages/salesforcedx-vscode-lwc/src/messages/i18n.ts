@@ -23,6 +23,6 @@ export const messages = {
 
   warning_prompt_lightning_bundle_overwrite:
     'An LWC bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
-  warning_prompt_yes: 'Yes',
-  warning_prompt_no: 'No'
+  warning_prompt_overwrite_confirm: 'Overwrite',
+  warning_prompt_overwrite_cancel: 'Cancel'
 };

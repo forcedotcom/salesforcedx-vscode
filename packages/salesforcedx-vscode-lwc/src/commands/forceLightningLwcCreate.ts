@@ -49,7 +49,7 @@ export class LightningFilePathExistsChecker
         inputs.data.fileName
       );
       const files = await vscode.workspace.findFiles(
-        `{${baseFileName}.app,${baseFileName}.cmp,${baseFileName}.intf,${baseFileName}.evt}`
+        `{${baseFileName}${LIGHTNING_LWC_EXTENSION},${baseFileName}.html}`
       );
       // If file does not exist then create it, otherwise prompt user to overwrite the file
       if (files.length === 0) {
@@ -57,10 +57,10 @@ export class LightningFilePathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_lightning_bundle_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
           return inputs;
         }
       }
@@ -103,7 +103,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
             path.join(
               vscode.workspace.rootPath,
               response.data.outputdir,
-              // fileName is also used to create a subdirectory for the app in the aura directory
+              // fileName is also used to create a subdirectory for the app in the lightningcomponents directory
               response.data.fileName,
               response.data.fileName + LIGHTNING_LWC_EXTENSION
             )

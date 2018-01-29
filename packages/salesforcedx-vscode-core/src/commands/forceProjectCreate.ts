@@ -126,10 +126,10 @@ export class PathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_dir_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
           return inputs;
         }
       }

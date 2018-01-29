@@ -47,10 +47,10 @@ export class LightningFilePathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_lightning_bundle_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
           return inputs;
         }
       }
@@ -83,10 +83,10 @@ export class FilePathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_file_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
           return inputs;
         }
       }
