@@ -185,24 +185,24 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.executeStep(response, Step.Run);
   }
 
-  public async nextRequest(
+  public nextRequest(
     response: DebugProtocol.NextResponse,
     args: DebugProtocol.NextArguments
-  ): Promise<void> {
+  ): void {
     this.executeStep(response, Step.Over);
   }
 
-  public async stepInRequest(
+  public stepInRequest(
     response: DebugProtocol.StepInResponse,
     args: DebugProtocol.StepInArguments
-  ): Promise<void> {
+  ): void {
     this.executeStep(response, Step.In);
   }
 
-  public async stepOutRequest(
+  public stepOutRequest(
     response: DebugProtocol.StepOutResponse,
     args: DebugProtocol.StepOutArguments
-  ): Promise<void> {
+  ): void {
     this.executeStep(response, Step.Out);
   }
 
