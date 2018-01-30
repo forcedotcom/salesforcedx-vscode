@@ -3,8 +3,8 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  IsvDebugBootstrapExecutor,
-  EnterForceIdeUri
+  EnterForceIdeUri,
+  IsvDebugBootstrapExecutor
 } from '../../../src/commands/isvdebugging/bootstrapCmd';
 import { nls } from '../../../src/messages';
 

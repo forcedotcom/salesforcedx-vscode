@@ -10,11 +10,9 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { exec } from 'child_process';
 import * as path from 'path';
 import * as querystring from 'querystring';
 import { Observable } from 'rxjs/Observable';
-import { Url } from 'url';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
