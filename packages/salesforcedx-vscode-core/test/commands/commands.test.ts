@@ -353,9 +353,9 @@ describe('Command Utilities', () => {
         warningSpy = sinon
           .stub(notificationService, 'showWarningMessage')
           .onFirstCall()
-          .returns(nls.localize('warning_prompt_yes'))
+          .returns(nls.localize('warning_prompt_overwrite_confirm'))
           .onSecondCall()
-          .returns(nls.localize('warning_prompt_no'));
+          .returns(nls.localize('warning_prompt_overwrite_cancel'));
       });
 
       after(() => {
@@ -458,9 +458,9 @@ describe('Command Utilities', () => {
         warningSpy = sinon
           .stub(notificationService, 'showWarningMessage')
           .onFirstCall()
-          .returns(nls.localize('warning_prompt_yes'))
+          .returns(nls.localize('warning_prompt_overwrite_confirm'))
           .onSecondCall()
-          .returns(nls.localize('warning_prompt_no'));
+          .returns(nls.localize('warning_prompt_overwrite_cancel'));
       });
 
       after(() => {

@@ -96,8 +96,12 @@ describe('Force Project Create', () => {
 
     before(() => {
       showWarningBoxSpy = sinon.stub(vscode.window, 'showWarningMessage');
-      showWarningBoxSpy.onCall(0).returns(nls.localize('warning_prompt_no'));
-      showWarningBoxSpy.onCall(1).returns(nls.localize('warning_prompt_yes'));
+      showWarningBoxSpy
+        .onCall(0)
+        .returns(nls.localize('warning_prompt_overwrite_cancel'));
+      showWarningBoxSpy
+        .onCall(1)
+        .returns(nls.localize('warning_prompt_overwrite_confirm'));
     });
 
     after(() => {
