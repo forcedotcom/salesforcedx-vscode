@@ -10,6 +10,11 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as querystring from 'querystring';
 import { Observable } from 'rxjs/Observable';
@@ -21,11 +26,8 @@ import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { CancellableStatusBar, taskViewService } from '../../statuses';
 import {
-  CancelResponse,
   CompositeParametersGatherer,
-  ContinueResponse,
   EmptyPreChecker,
-  ParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from '../commands';
