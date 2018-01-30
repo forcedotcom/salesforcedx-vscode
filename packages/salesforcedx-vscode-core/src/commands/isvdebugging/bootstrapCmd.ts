@@ -12,8 +12,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { exec } from 'child_process';
 import * as path from 'path';
+import * as querystring from 'querystring';
 import { Observable } from 'rxjs/Observable';
+import { Url } from 'url';
 import * as vscode from 'vscode';
+import { Uri } from 'vscode';
 import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
@@ -54,9 +57,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('isv_debug_bootstrap_step1_configure_project')
       )
-      .withArg('force:project:create')
-      .withFlag('--projectname', data.projectName)
-      .withFlag('--outputdir', data.projectUri)
+      .withArg('force:config:set')
+      .withArg(`isvDebuggerSid=${data.sessionId}`)
+      .withArg(`isvDebuggerUrl=${data.loginUrl}`)
       .build();
   }
 
@@ -73,41 +76,29 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     createProjectExecution.processExitSubject.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
-        const configureProjectCommand = `echo '${response.data
-          .forceIdeUri}' > .sfdx/isvsettings.test`;
-        await exec(configureProjectCommand, (err, stdout, stderr) => {
-          if (stderr && err) {
-            console.log('configureProjectCommand:stderr', stderr);
-            return;
+        const configureProjectExecution = new CliCommandExecutor(
+          this.buildConfigureProjectCommand(response.data),
+          {
+            cwd: response.data.projectUri
           }
+        ).execute(cancellationToken);
 
-          console.log(stdout);
+        configureProjectExecution.processExitSubject.subscribe(async data2 => {
+          if (data2 != undefined && data2.toString() === '0') {
+            // last step is open the folder
+            await vscode.commands.executeCommand(
+              'vscode.openFolder',
+              vscode.Uri.parse(
+                path.join(response.data.projectUri, response.data.projectName)
+              )
+            );
+          }
         });
 
-        // const configureProjectExecution = new CliCommandExecutor(
-        //   this.buildConfigureProjectCommand(response.data),
-        //   {
-        //     cwd: response.data.projectUri
-        //   }
-        // ).execute(cancellationToken);
-        //
-        // configureProjectExecution.processExitSubject(async data2 => {
-        //   if (data2 != undefined && data2.toString() === '0') {
-        //     channelService.streamCommandOutput
-        // });
-        //
-        // this.attachExecution(
-        //   configureProjectExecution,
-        //   cancellationTokenSource,
-        //   cancellationToken
-        // );
-
-        // last step is open the folder
-        await vscode.commands.executeCommand(
-          'vscode.openFolder',
-          vscode.Uri.parse(
-            path.join(response.data.projectUri, response.data.projectName)
-          )
+        this.attachExecution(
+          configureProjectExecution,
+          cancellationTokenSource,
+          cancellationToken
         );
       }
     });
@@ -138,7 +129,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 export type IsvDebugBootstrapConfig = ProjectNameAndPath & ForceIdeUri;
 
 export interface ForceIdeUri {
-  forceIdeUri: string;
+  loginUrl: string;
+  sessionId: string;
 }
 
 export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
@@ -151,9 +143,26 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
     const forceIdeUri = await vscode.window.showInputBox(
       forceIdeUrlInputOptions
     );
-    return forceIdeUri
-      ? { type: 'CONTINUE', data: { forceIdeUri } }
-      : { type: 'CANCEL' };
+
+    if (forceIdeUri) {
+      const url = Uri.parse(forceIdeUri);
+      const parameter = querystring.parse(url.query);
+      if (parameter.url && parameter.sessionId) {
+        return {
+          type: 'CONTINUE',
+          data: {
+            loginUrl: parameter.url,
+            sessionId: parameter.sessionId
+          }
+        };
+      }
+
+      vscode.window.showErrorMessage(
+        nls.localize('parameter_gatherer_invalid_forceide_url')
+      );
+    }
+
+    return { type: 'CANCEL' };
   }
 }
 

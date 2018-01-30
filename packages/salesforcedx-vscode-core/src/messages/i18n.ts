@@ -50,6 +50,7 @@ export const messages = {
     'Enter a scratch org alias or use default alias',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL',
+  parameter_gatherer_invalid_forceide_url: 'The forceide:// URL is incorrect',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -119,6 +120,8 @@ export const messages = {
   force_stop_apex_debug_logging:
     'SFDX: Turn off Apex Debug Log for Replay Debugger',
 
-  isv_debug_bootstrap_step1_create_project: 'SFDX: Create Project',
-  isv_debug_bootstrap_step1_configure_project: 'SFDX: Configure Project'
+  isv_debug_bootstrap_step1_create_project:
+    'SFDX: ISV Debugger Setup Step 1: Create Project',
+  isv_debug_bootstrap_step1_configure_project:
+    'SFDX: ISV Debugger Setup Step 2: Configure Project'
 };
