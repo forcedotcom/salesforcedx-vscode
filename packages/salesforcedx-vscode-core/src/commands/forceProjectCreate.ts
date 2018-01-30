@@ -10,6 +10,12 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer,
+  PostconditionChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
@@ -19,12 +25,8 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import {
-  CancelResponse,
   CompositeParametersGatherer,
-  ContinueResponse,
   EmptyPreChecker,
-  ParametersGatherer,
-  PostconditionChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from './commands';
@@ -124,10 +126,10 @@ export class PathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_dir_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
           return inputs;
         }
       }

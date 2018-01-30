@@ -88,8 +88,8 @@ export const messages = {
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_lightning_bundle_overwrite:
     'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
-  warning_prompt_yes: 'Yes',
-  warning_prompt_no: 'No',
+  warning_prompt_overwrite_confirm: 'Overwrite',
+  warning_prompt_overwrite_cancel: 'Cancel',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text:

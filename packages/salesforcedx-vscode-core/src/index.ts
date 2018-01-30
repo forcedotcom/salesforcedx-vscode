@@ -7,7 +7,9 @@
 
 import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import { channelService } from './channels';
 import {
+  CompositeParametersGatherer,
   forceAliasList,
   forceApexClassCreate,
   forceApexExecute,
@@ -31,16 +33,22 @@ import {
   forceSourceStatus,
   forceTaskStop,
   forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  forceVisualforcePageCreate,
+  SelectFileName,
+  SelectStrictDirPath,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
 } from './commands';
 import {
   CLIENT_ID,
   SFDX_CLIENT_ENV_VAR,
   TERMINAL_INTEGRATED_ENVS
 } from './constants';
+import { notificationService } from './notifications';
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
-import { taskViewService } from './statuses';
+import { CancellableStatusBar, taskViewService } from './statuses';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
@@ -265,6 +273,21 @@ export async function activate(context: vscode.ExtensionContext) {
     scratchOrgDecorator.showOrg();
     scratchOrgDecorator.monitorConfigChanges();
   }
+
+  const api: any = {
+    CancellableStatusBar,
+    CompositeParametersGatherer,
+    SelectFileName,
+    SelectStrictDirPath,
+    SfdxCommandlet,
+    SfdxCommandletExecutor,
+    SfdxWorkspaceChecker,
+    channelService,
+    notificationService,
+    taskViewService
+  };
+
+  return api;
 }
 
 export function deactivate() {

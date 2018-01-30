@@ -10,6 +10,14 @@ import {
   Command,
   CommandExecution
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  CancelResponse,
+  ContinueResponse,
+  DirFileNameSelection,
+  ParametersGatherer,
+  PostconditionChecker,
+  PreconditionChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import glob = require('glob');
@@ -18,18 +26,6 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { CancellableStatusBar, taskViewService } from '../statuses';
-
-// Precondition checking
-////////////////////////
-export interface PreconditionChecker {
-  check(): boolean;
-}
-
-export interface PostconditionChecker<T> {
-  check(
-    inputs: ContinueResponse<T> | CancelResponse
-  ): Promise<ContinueResponse<T> | CancelResponse>;
-}
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -51,10 +47,10 @@ export class LightningFilePathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_lightning_bundle_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
           return inputs;
         }
       }
@@ -87,10 +83,10 @@ export class FilePathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_file_overwrite'),
-          nls.localize('warning_prompt_yes'),
-          nls.localize('warning_prompt_no')
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_yes')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
           return inputs;
         }
       }
@@ -122,21 +118,6 @@ export class EmptyPreChecker implements PreconditionChecker {
   public check(): boolean {
     return true;
   }
-}
-
-// Input gathering
-//////////////////
-export interface ContinueResponse<T> {
-  type: 'CONTINUE';
-  data: T;
-}
-
-export interface CancelResponse {
-  type: 'CANCEL';
-}
-
-export interface ParametersGatherer<T> {
-  gather(): Promise<CancelResponse | ContinueResponse<T>>;
 }
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
@@ -203,11 +184,6 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
       : { type: 'CANCEL' };
   }
 }
-
-export type DirFileNameSelection = {
-  fileName: string;
-  outputdir: string;
-};
 
 export class SelectFileName
   implements ParametersGatherer<{ fileName: string }> {

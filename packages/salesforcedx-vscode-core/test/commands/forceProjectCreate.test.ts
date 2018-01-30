@@ -1,8 +1,8 @@
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { ContinueResponse } from '../../src/commands/commands';
 import {
   ForceProjectCreateExecutor,
   PathExistsChecker,
@@ -96,8 +96,12 @@ describe('Force Project Create', () => {
 
     before(() => {
       showWarningBoxSpy = sinon.stub(vscode.window, 'showWarningMessage');
-      showWarningBoxSpy.onCall(0).returns(nls.localize('warning_prompt_no'));
-      showWarningBoxSpy.onCall(1).returns(nls.localize('warning_prompt_yes'));
+      showWarningBoxSpy
+        .onCall(0)
+        .returns(nls.localize('warning_prompt_overwrite_cancel'));
+      showWarningBoxSpy
+        .onCall(1)
+        .returns(nls.localize('warning_prompt_overwrite_confirm'));
     });
 
     after(() => {
