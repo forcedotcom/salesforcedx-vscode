@@ -2,113 +2,86 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { IsvDebugBootstrapExecutor } from '../../../src/commands/isvdebugging/bootstrapCmd';
+import {
+  IsvDebugBootstrapExecutor,
+  EnterForceIdeUri
+} from '../../../src/commands/isvdebugging/bootstrapCmd';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
-describe('Force Project Create', () => {
+describe('ISV Debugging Project Bootstrap Command', () => {
   const LOGIN_URL = 'a.b.c';
   const SESSION_ID = '0x123';
   const PROJECT_NAME = 'sfdx-simple';
   const WORKSPACE_PATH = path.join(vscode.workspace.rootPath!, '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
-  // describe('SelectProjectName Gatherer', () => {
-  //   let inputBoxSpy: sinon.SinonStub;
+  describe('EnterForceIdeUri Gatherer', () => {
+    let inputBoxSpy: sinon.SinonStub;
+    let showErrorMessageSpy: sinon.SinonStub;
 
-  //   before(() => {
-  //     inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
-  //     inputBoxSpy.onCall(0).returns(undefined);
-  //     inputBoxSpy.onCall(1).returns('');
-  //     inputBoxSpy.onCall(2).returns(PROJECT_NAME);
-  //   });
+    before(() => {
+      inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
+      inputBoxSpy.onCall(0).returns(undefined);
+      inputBoxSpy.onCall(1).returns('');
+      inputBoxSpy
+        .onCall(2)
+        .returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
+      inputBoxSpy.onCall(3).returns(`forceide://abc?url=${LOGIN_URL}`);
+      inputBoxSpy.onCall(4).returns(`forceide://abc?sessionId=${SESSION_ID}`);
+      showErrorMessageSpy = sinon.stub(vscode.window, 'showErrorMessage');
+    });
 
-  //   after(() => {
-  //     inputBoxSpy.restore();
-  //   });
+    after(() => {
+      inputBoxSpy.restore();
+      showErrorMessageSpy.restore();
+    });
 
-  //   it('Should return cancel if project name is undefined', async () => {
-  //     const gatherer = new SelectProjectName();
-  //     const response = await gatherer.gather();
-  //     expect(inputBoxSpy.calledOnce).to.be.true;
-  //     expect(response.type).to.equal('CANCEL');
-  //   });
+    it('Should return cancel if forceide url is undefined', async () => {
+      const gatherer = new EnterForceIdeUri();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+      expect(showErrorMessageSpy.notCalled).to.be.true;
+    });
 
-  //   it('Should return cancel if user input is empty string', async () => {
-  //     const gatherer = new SelectProjectName();
-  //     const response = await gatherer.gather();
-  //     expect(inputBoxSpy.calledTwice).to.be.true;
-  //     expect(response.type).to.equal('CANCEL');
-  //   });
+    it('Should return cancel if user input is empty string', async () => {
+      const gatherer = new EnterForceIdeUri();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledTwice).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+      expect(showErrorMessageSpy.notCalled).to.be.true;
+    });
 
-  //   it('Should return Continue with inputted project name if project name is not undefined or empty', async () => {
-  //     const gatherer = new SelectProjectName();
-  //     const response = await gatherer.gather();
-  //     expect(inputBoxSpy.calledThrice).to.be.true;
-  //     if (response.type === 'CONTINUE') {
-  //       expect(response.data.projectName).to.equal(PROJECT_NAME);
-  //     } else {
-  //       expect.fail('Response should be of type ContinueResponse');
-  //     }
-  //   });
-  // });
+    it('Should return Continue with inputted url if not undefined or empty', async () => {
+      const gatherer = new EnterForceIdeUri();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledThrice).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(LOGIN_URL);
+        expect(response.data.sessionId).to.equal(SESSION_ID);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
 
-  // describe('SelectProjectFolder Gatherer', () => {
-  //   let showOpenDialogSpy: sinon.SinonStub;
-
-  //   before(() => {
-  //     // showOpenDialog only returns the path or undefined
-  //     showOpenDialogSpy = sinon.stub(vscode.window, 'showOpenDialog');
-  //     showOpenDialogSpy.onCall(0).returns(undefined);
-  //     showOpenDialogSpy.onCall(1).returns(PROJECT_DIR);
-  //   });
-
-  //   after(() => {
-  //     showOpenDialogSpy.restore();
-  //   });
-
-  //   it('Should return cancel if project uri is undefined', async () => {
-  //     const gatherer = new SelectProjectFolder();
-  //     const response = await gatherer.gather();
-  //     expect(showOpenDialogSpy.calledOnce).to.be.true;
-  //     expect(response.type).to.equal('CANCEL');
-  //   });
-
-  //   it('Should return Continue with inputted project name if project name is not undefined or empty', async () => {
-  //     const gatherer = new SelectProjectFolder();
-  //     const response = await gatherer.gather();
-  //     expect(showOpenDialogSpy.calledTwice).to.be.true;
-  //     if (response.type === 'CONTINUE') {
-  //       expect(response.data.projectUri).to.equal(PROJECT_DIR[0].fsPath);
-  //     } else {
-  //       expect.fail('Response should be of type ContinueResponse');
-  //     }
-  //   });
-  // });
-
-  // describe('PathExistsChecker PostCondition', () => {
-  //   let showWarningBoxSpy: sinon.SinonStub;
-
-  //   before(() => {
-  //     showWarningBoxSpy = sinon.stub(vscode.window, 'showWarningMessage');
-  //     showWarningBoxSpy.onCall(0).returns(nls.localize('warning_prompt_no'));
-  //     showWarningBoxSpy.onCall(1).returns(nls.localize('warning_prompt_yes'));
-  //   });
-
-  //   after(() => {
-  //     showWarningBoxSpy.restore();
-  //   });
-
-  //   it('Should return cancel if project path is in use and user selects No', async () => {
-  //     const checker = new PathExistsChecker();
-  //     const response = await checker.check({
-  //       type: 'CONTINUE',
-  //       data: { projectName: PROJECT_NAME, projectUri: PROJECT_DIR[0].fsPath }
-  //     });
-  //     expect(showWarningBoxSpy.calledOnce).to.be.true;
-  //     expect(response.type).to.equal('CANCEL');
-  //   });
-  // });
+    it('Should return cancel and show error if forceide url is missing sessionId', async () => {
+      expect(showErrorMessageSpy.calledOnce).to.be.false;
+      const gatherer = new EnterForceIdeUri();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.callCount).equal(4);
+      expect(response.type).to.equal('CANCEL');
+      expect(showErrorMessageSpy.calledOnce).to.be.true;
+    });
+    it('Should return cancel and show error if forceide url is missing login address', async () => {
+      expect(showErrorMessageSpy.calledTwice).to.be.false;
+      const gatherer = new EnterForceIdeUri();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.callCount).equal(5);
+      expect(response.type).to.equal('CANCEL');
+      expect(showErrorMessageSpy.calledTwice).to.be.true;
+    });
+  });
 
   describe('CLI Builder', () => {
     it('Should build the project create command', async () => {
