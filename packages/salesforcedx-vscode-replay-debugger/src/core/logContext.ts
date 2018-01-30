@@ -18,9 +18,10 @@ import {
   EVENT_METHOD_ENTRY,
   EVENT_METHOD_EXIT,
   EVENT_STATEMENT_EXECUTE,
+  EVENT_VF_APEX_CALL_END,
+  EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE,
-  VF_APEX_CALL_START,
-  VF_APEX_CALL_END
+  SFDC_TRIGGER
 } from '../constants';
 import {
   DebugLogState,
@@ -120,8 +121,8 @@ export class LogContext {
     let uri = '';
     typerefMapping.forEach((value, key) => {
 
-      let processedKey = "";
-      if (key.startsWith('__sfdc_trigger/')) {
+      let processedKey = '';
+      if (key.startsWith(SFDC_TRIGGER)) {
         processedKey = key;
       } else {
         processedKey = key.replace('/', '.').replace('$', '.');
@@ -171,12 +172,12 @@ export class LogContext {
         case EVENT_CODE_UNIT_STARTED:
         case EVENT_CONSTRUCTOR_ENTRY:
         case EVENT_METHOD_ENTRY:
-        case VF_APEX_CALL_START:
+        case EVENT_VF_APEX_CALL_START:
           return new FrameEntryState(fields);
         case EVENT_CODE_UNIT_FINISHED:
         case EVENT_CONSTRUCTOR_EXIT:
         case EVENT_METHOD_EXIT:
-        case VF_APEX_CALL_END:
+        case EVENT_VF_APEX_CALL_END:
           return new FrameExitState(fields);
         case EVENT_STATEMENT_EXECUTE:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
