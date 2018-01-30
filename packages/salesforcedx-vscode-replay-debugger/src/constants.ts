@@ -19,3 +19,6 @@ export const EVENT_STATEMENT_EXECUTE = 'STATEMENT_EXECUTE';
 export const EXEC_ANON_SIGNATURE = 'execute_anonymous_apex';
 export const GET_LINE_BREAKPOINT_INFO_EVENT = 'getLineBreakpointInfo';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
+export const VF_APEX_CALL_START = 'VF_APEX_CALL_START';
+export const VF_APEX_CALL_END = 'VF_APEX_CALL_END';
+
