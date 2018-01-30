@@ -11,14 +11,16 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { developerLogTraceFlag } from '.';
 import { nls } from '../messages';
 import { hideTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker

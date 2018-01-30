@@ -11,6 +11,7 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
@@ -18,7 +19,6 @@ import { nls } from '../messages';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import { showTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
-  ContinueResponse,
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
