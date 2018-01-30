@@ -13,19 +13,14 @@ import { nls } from '../../src/messages';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Status', () => {
-  let getTraceFlagIdStub: sinon.SinonStub;
   let getDebugLevelIdStub: sinon.SinonStub;
   let prevApexCodeDebugLevelStub: sinon.SinonStub;
   let prevVisualForceDebugLevelStub: sinon.SinonStub;
-  const fakeTraceFlagId = 'fakeTraceFlagId';
   const fakeDebugLevelId = 'fakeDebugLevelId';
   const apexCodeLevel = 'INFO';
   const vfCodeLevel = 'NONE';
 
   before(() => {
-    getTraceFlagIdStub = sinon
-      .stub(developerLogTraceFlag, 'getTraceFlagId')
-      .returns(fakeTraceFlagId);
     getDebugLevelIdStub = sinon
       .stub(developerLogTraceFlag, 'getDebugLevelId')
       .returns(fakeDebugLevelId);
@@ -36,6 +31,13 @@ describe('Force Source Status', () => {
       .stub(developerLogTraceFlag, 'getPrevVFCodeDebugLevel')
       .returns(vfCodeLevel);
   });
+
+  after(() => {
+    getDebugLevelIdStub.restore();
+    prevApexCodeDebugLevelStub.restore();
+    prevVisualForceDebugLevelStub.restore();
+  });
+
   it('Should build the source command no flag', async () => {
     const forceStopLogging = new ForceStopApexDebugLoggingExecutor();
     const forceStopLoggingCmd = forceStopLogging.build();
