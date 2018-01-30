@@ -60,6 +60,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('force:config:set')
       .withArg(`isvDebuggerSid=${data.sessionId}`)
       .withArg(`isvDebuggerUrl=${data.loginUrl}`)
+      .withArg(`instanceUrl=${data.loginUrl}`)
       .build();
   }
 

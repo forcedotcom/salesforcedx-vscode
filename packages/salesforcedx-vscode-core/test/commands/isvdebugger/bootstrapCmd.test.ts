@@ -114,7 +114,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         }
       );
       expect(configureCommand.toCommand()).to.equal(
-        `sfdx force:config:set isvDebuggerSid=${SESSION_ID} isvDebuggerUrl=${LOGIN_URL}`
+        `sfdx force:config:set isvDebuggerSid=${SESSION_ID} isvDebuggerUrl=${LOGIN_URL} instanceUrl=${LOGIN_URL}`
       );
       expect(configureCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_step1_configure_project')
