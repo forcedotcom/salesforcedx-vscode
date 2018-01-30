@@ -257,7 +257,6 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened = files && files.length > 0;
   }
 
-  // remove before merging
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:replay_debugger_extension',

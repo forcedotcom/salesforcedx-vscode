@@ -8,8 +8,8 @@ export class DeveloperLogTraceFlag {
   private prevApexCodeDebugLevel: string;
   private prevVFDebugLevel: string;
 
-  private MILLISECONDS_PER_SECOND = 60000;
-  private LOG_TIMER_LENGTH_MINUTES = 30;
+  public MILLISECONDS_PER_SECOND = 60000;
+  public LOG_TIMER_LENGTH_MINUTES = 30;
 
   private constructor() {
     this.active = false;

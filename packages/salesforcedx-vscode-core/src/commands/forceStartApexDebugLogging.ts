@@ -16,6 +16,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import { showTraceFlagExpiration } from '../traceflag-time-decorator';
@@ -146,12 +147,12 @@ export async function getUserId(projectPath: string): Promise<string> {
 export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription('')
+      .withDescription(nls.localize('force_start_apex_debug_logging'))
       .withArg('force:data:record:create')
       .withFlag('--sobjecttype', 'DebugLevel')
       .withFlag(
         '--values',
-        `developername=ReplayDebuggerLevels${Date.now()} MasterLabel=ReplayDebuggerLevels${Date.now()} apexcode=finest visualforce=finest`
+        `developername=ReplayDebuggerLevels${Date.now()} MasterLabel=ReplayDebuggerLevels${Date.now()} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
       .withArg('--usetoolingapi')
       .withArg('--json')
@@ -169,7 +170,11 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
       const result = await resultPromise;
       const resultJson = JSON.parse(result);
       const debugLevelId = resultJson.result.id;
-      developerLogTraceFlag.setDebugLevelInfo(debugLevelId, 'FINEST', 'FINEST');
+      developerLogTraceFlag.setDebugLevelInfo(
+        debugLevelId,
+        APEX_CODE_DEBUG_LEVEL,
+        VISUALFORCE_DEBUG_LEVEL
+      );
       channelService.streamCommandOutput(execution);
       channelService.showChannelOutput();
       CancellableStatusBar.show(execution, cancellationTokenSource);
@@ -180,7 +185,7 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
+export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
   private userId: string;
 
   public constructor(userId: string) {
@@ -188,9 +193,9 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
     this.userId = userId;
   }
 
-  public build(data: { id: string }): Command {
+  public build(): Command {
     return new SfdxCommandBuilder()
-      .withDescription('')
+      .withDescription(nls.localize('force_start_apex_debug_logging'))
       .withArg('force:data:record:create')
       .withFlag('--sobjecttype', 'TraceFlag')
       .withFlag(
@@ -202,12 +207,10 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
       .build();
   }
 
-  public async execute(
-    response: ContinueResponse<{ id: string }>
-  ): Promise<void> {
+  public async execute(response: ContinueResponse<{}>): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
+    const execution = new CliCommandExecutor(this.build(), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
 
@@ -221,11 +224,14 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{ id: string }> {
 export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription('')
+      .withDescription(nls.localize('force_start_apex_debug_logging'))
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'DebugLevel')
       .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId())
-      .withFlag('--values', 'ApexCode=Finest Visualforce=Finest')
+      .withFlag(
+        '--values',
+        `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`
+      )
       .withArg('--usetoolingapi')
       .build();
   }
@@ -255,7 +261,7 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
 export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription('')
+      .withDescription(nls.localize('force_start_apex_debug_logging'))
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'TraceFlag')
       .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId())
