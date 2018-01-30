@@ -14,10 +14,7 @@ import {
 import * as vscode from 'vscode';
 import { developerLogTraceFlag } from '.';
 import { nls } from '../messages';
-import {
-  disposeTraceFlagExpiration,
-  hideTraceFlagExpiration
-} from '../traceflag-time-decorator';
+import { hideTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
   CancelResponse,
   ContinueResponse,

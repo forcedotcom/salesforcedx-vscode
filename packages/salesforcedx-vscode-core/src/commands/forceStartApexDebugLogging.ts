@@ -11,9 +11,6 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
@@ -21,25 +18,14 @@ import { nls } from '../messages';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import { showTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
-  CancelResponse,
   ContinueResponse,
   EmptyParametersGatherer,
-  ParametersGatherer,
-  PostconditionChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 
 import { developerLogTraceFlag } from '.';
-
-const MILLISECONDS_PER_SECOND = 60000;
-const LOG_TIMER_LENGTH_MINUTES = 30;
-const CONFIG_DIR = vscode.workspace.rootPath
-  ? path.join(vscode.workspace.rootPath, '.sfdx')
-  : path.join(os.homedir(), '.sfdx');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'sfdx-config.json');
-const ALIAS_FILE = path.join(CONFIG_DIR, 'alias.json');
 
 export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
