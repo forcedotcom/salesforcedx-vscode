@@ -257,12 +257,6 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened = files && files.length > 0;
   }
 
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:replay_debugger_extension',
-    true
-  );
-
   let replayDebuggerExtensionInstalled = false;
   if (
     vscode.extensions.getExtension(

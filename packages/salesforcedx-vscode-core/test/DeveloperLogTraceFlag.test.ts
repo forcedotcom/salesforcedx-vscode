@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { expect } from 'chai';
 import { developerLogTraceFlag } from '../src/commands';
 
@@ -15,11 +22,11 @@ describe('Force Start Apex Debug Logging', () => {
       );
     });
 
-    it('Should return false if date is invalid length', async () => {
+    it('Should return false if date is invalid length', () => {
       expect(developerLogTraceFlag.isValidDateLength()).to.be.false;
     });
 
-    it('Should update dates to a 30 minute window if date length is invalid', async () => {
+    it('Should update dates to a 30 minute window if date length is invalid', () => {
       expect(developerLogTraceFlag.isValidDateLength()).to.be.false;
       developerLogTraceFlag.validateDates();
       expect(
@@ -31,7 +38,7 @@ describe('Force Start Apex Debug Logging', () => {
       );
     });
 
-    it('Should create dates with a 30 minute window when creating a new traceflag', async () => {
+    it('Should create dates with a 30 minute window when creating a new traceflag', () => {
       developerLogTraceFlag.createTraceFlagInfo();
       expect(
         developerLogTraceFlag.getExpirationDate().getTime() -

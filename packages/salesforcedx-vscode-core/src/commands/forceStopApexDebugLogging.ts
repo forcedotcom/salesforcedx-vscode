@@ -24,8 +24,8 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
-  public build(data: {}): Command {
+export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
+  public build(): Command {
     return getRestoreLevelsCommand();
   }
 
@@ -33,7 +33,7 @@ class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
-    const execution = new CliCommandExecutor(this.build(response.data), {
+    const execution = new CliCommandExecutor(this.build(), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
 
@@ -71,7 +71,7 @@ function getRestoreLevelsCommand(): Command {
     .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId())
     .withFlag(
       '--values',
-      `ApexCode=${developerLogTraceFlag.getPrevApexCodeDebugLevel()} Visualforce=${developerLogTraceFlag.getPrevApexCodeDebugLevel()}`
+      `ApexCode=${developerLogTraceFlag.getPrevApexCodeDebugLevel()} Visualforce=${developerLogTraceFlag.getPrevVFCodeDebugLevel()}`
     )
     .withArg('--usetoolingapi')
     .build();
