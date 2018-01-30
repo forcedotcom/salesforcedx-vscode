@@ -7,32 +7,56 @@
 
 import * as lwcLanguageServer from 'lwc-language-server';
 import * as path from 'path';
-import {
-  ConfigurationTarget,
-  ExtensionContext,
-  workspace,
-  WorkspaceConfiguration
-} from 'vscode';
+import * as vscode from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import { forceLightningLwcCreate } from './commands/forceLightningLwcCreate';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
+import { nls } from './messages';
 
-export async function activate(context: ExtensionContext) {
+function registerCommands(): vscode.Disposable {
+  // Customer-facing commands
+  const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.lwc.create',
+    forceLightningLwcCreate
+  );
+
+  return vscode.Disposable.from(forceLightningLwcCreateCmd);
+}
+
+function isDependencyInstalled(): boolean {
+  const coreDependency = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-core'
+  );
+  return coreDependency && coreDependency.exports;
+}
+
+export async function activate(context: vscode.ExtensionContext) {
+  if (!isDependencyInstalled()) {
+    vscode.window.showErrorMessage(
+      nls.localize('salesforcedx_vscode_core_not_installed_text')
+    );
+    console.log(
+      'salesforce.salesforcedx-vscode-core not installed or activated, exiting extension'
+    );
+    return;
+  }
+
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
   );
 
-  if (!workspace.workspaceFolders) {
+  if (!vscode.workspace.workspaceFolders) {
     console.log('No workspace, exiting extension');
     return;
   }
 
   const workspaceType = lwcLanguageServer.detectWorkspaceType(
-    workspace.workspaceFolders[0].uri.path
+    vscode.workspace.workspaceFolders[0].uri.path
   );
 
   // Check if ran from a LWC project
@@ -44,13 +68,20 @@ export async function activate(context: ExtensionContext) {
   startLWCLanguageServer(serverModule, context);
 
   if (workspaceType === lwcLanguageServer.WorkspaceType.SFDX) {
-    populateEslintSettingIfNecessary(context, workspace.getConfiguration());
+    populateEslintSettingIfNecessary(
+      context,
+      vscode.workspace.getConfiguration()
+    );
   }
+
+  // Commands
+  const commands = registerCommands();
+  context.subscriptions.push(commands);
 }
 
 function startLWCLanguageServer(
   serverModule: string,
-  context: ExtensionContext
+  context: vscode.ExtensionContext
 ) {
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
   // If the extension is launched in debug mode then the debug server options are used
@@ -67,11 +98,13 @@ function startLWCLanguageServer(
     documentSelector: ['html', 'javascript'],
     synchronize: {
       fileEvents: [
-        workspace.createFileSystemWatcher('**/*.resource'),
-        workspace.createFileSystemWatcher(
+        vscode.workspace.createFileSystemWatcher('**/*.resource'),
+        vscode.workspace.createFileSystemWatcher(
           '**/labels/CustomLabels.labels-meta.xml'
         ),
-        workspace.createFileSystemWatcher('**/lightningcomponents/*/*.js')
+        vscode.workspace.createFileSystemWatcher(
+          '**/lightningcomponents/*/*.js'
+        )
       ]
     }
   };
@@ -88,8 +121,8 @@ function startLWCLanguageServer(
 }
 
 export function populateEslintSettingIfNecessary(
-  context: ExtensionContext,
-  config: WorkspaceConfiguration
+  context: vscode.ExtensionContext,
+  config: vscode.WorkspaceConfiguration
 ) {
   const nodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
 
@@ -102,7 +135,7 @@ export function populateEslintSettingIfNecessary(
     config.update(
       ESLINT_NODEPATH_CONFIG,
       eslintModule,
-      ConfigurationTarget.Workspace
+      vscode.ConfigurationTarget.Workspace
     );
   }
 }
