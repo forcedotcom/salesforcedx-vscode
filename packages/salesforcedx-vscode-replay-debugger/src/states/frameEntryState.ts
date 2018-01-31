@@ -8,9 +8,9 @@
 import { basename } from 'path';
 import { Source, StackFrame } from 'vscode-debugadapter';
 import Uri from 'vscode-uri';
+import { SFDC_TRIGGER } from '../constants';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
-import { SFDC_TRIGGER } from '../constants';
 
 export class FrameEntryState implements DebugLogState {
   private readonly signature: string;
