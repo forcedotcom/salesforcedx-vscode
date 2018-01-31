@@ -42,6 +42,13 @@ export type TraceCategory =
   | 'launch'
   | 'breakpoints';
 
+export enum Step {
+  Over,
+  In,
+  Out,
+  Run
+}
+
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
   logFile: string;
@@ -175,28 +182,78 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response: DebugProtocol.ContinueResponse,
     args: DebugProtocol.ContinueArguments
   ): void {
+    this.executeStep(response, Step.Run);
+  }
+
+  public nextRequest(
+    response: DebugProtocol.NextResponse,
+    args: DebugProtocol.NextArguments
+  ): void {
+    this.executeStep(response, Step.Over);
+  }
+
+  public stepInRequest(
+    response: DebugProtocol.StepInResponse,
+    args: DebugProtocol.StepInArguments
+  ): void {
+    this.executeStep(response, Step.In);
+  }
+
+  public stepOutRequest(
+    response: DebugProtocol.StepOutResponse,
+    args: DebugProtocol.StepOutArguments
+  ): void {
+    this.executeStep(response, Step.Out);
+  }
+
+  protected executeStep(
+    response: DebugProtocol.Response,
+    stepType: Step
+  ): void {
     response.success = true;
     this.sendResponse(response);
+    const prevNumOfFrames = this.logContext.getNumOfFrames();
     while (this.logContext.hasLogLines()) {
       this.logContext.updateFrames(this.getHandlerForDebugConsole());
-      const topFrame = this.logContext.getTopFrame();
-      if (topFrame && topFrame.source) {
-        const topFrameUri = this.convertClientPathToDebugger(
-          topFrame.source.path
+      const curNumOfFrames = this.logContext.getNumOfFrames();
+      if (
+        (stepType === Step.Over &&
+          curNumOfFrames !== 0 &&
+          curNumOfFrames <= prevNumOfFrames) ||
+        (stepType === Step.In && curNumOfFrames >= prevNumOfFrames) ||
+        (stepType === Step.Out &&
+          curNumOfFrames !== 0 &&
+          curNumOfFrames < prevNumOfFrames)
+      ) {
+        return this.sendEvent(
+          new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
         );
-        const topFrameLine = this.convertClientLineToDebugger(topFrame.line);
-        if (
-          this.breakpoints.has(topFrameUri) &&
-          this.breakpoints.get(topFrameUri)!.indexOf(topFrameLine) !== -1
-        ) {
-          this.sendEvent(
-            new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID)
-          );
-          return;
-        }
+      }
+      if (this.shouldStopForBreakpoint()) {
+        return;
       }
     }
     this.sendEvent(new TerminatedEvent());
+  }
+
+  protected shouldStopForBreakpoint(): boolean {
+    const topFrame = this.logContext.getTopFrame();
+    if (topFrame && topFrame.source) {
+      const topFrameUri = this.convertClientPathToDebugger(
+        topFrame.source.path
+      );
+      const topFrameLine = this.convertClientLineToDebugger(topFrame.line);
+      if (
+        this.breakpoints.has(topFrameUri) &&
+        this.breakpoints.get(topFrameUri)!.indexOf(topFrameLine) !== -1
+      ) {
+        this.sendEvent(
+          new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID)
+        );
+        return true;
+      }
+    }
+    return false;
   }
 
   public setBreakPointsRequest(
