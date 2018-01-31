@@ -41,7 +41,7 @@ describe('LogEntry event', () => {
 
     expect(isStopped).to.be.true;
     const stackFrames = context.getFrames();
-    expect(stackFrames.length).to.equal(1);
+    expect(context.getNumOfFrames()).to.equal(1);
     const stackFrame = stackFrames[0];
     expect(stackFrame.id).to.equal(0);
     expect(stackFrame.name).to.equal('');

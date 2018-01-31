@@ -81,6 +81,10 @@ export class LogContext {
     return this.stackFrameInfos;
   }
 
+  public getNumOfFrames(): number {
+    return this.stackFrameInfos.length;
+  }
+
   public getTopFrame(): StackFrame | undefined {
     if (this.stackFrameInfos.length > 0) {
       return this.stackFrameInfos[this.stackFrameInfos.length - 1];

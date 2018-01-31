@@ -27,7 +27,7 @@ describe('Log context utilities', () => {
     });
 
     it('Should strip brackets', () => {
-      expect(util.stripBrackets('[20]')).to.be.equal('20');
+      expect(util.stripBrackets('[20]')).to.equal('20');
     });
   });
 });

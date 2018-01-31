@@ -39,7 +39,7 @@ describe('Statement execute event', () => {
     const state = new StatementExecuteState(['2']);
 
     expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()[0].line).to.be.equal(2);
+    expect(context.getFrames()[0].line).to.equal(2);
   });
 
   it('Should update execute anonymous specific frame', () => {
@@ -48,6 +48,6 @@ describe('Statement execute event', () => {
     const state = new StatementExecuteState(['2']);
 
     expect(state.handle(context)).to.be.true;
-    expect(context.getFrames()[0].line).to.be.equal(5);
+    expect(context.getFrames()[0].line).to.equal(5);
   });
 });

@@ -43,7 +43,7 @@ describe('Frame entry event', () => {
     expect(state.handle(context)).to.be.false;
 
     const frames = context.getFrames();
-    expect(frames.length).to.be.equal(2);
+    expect(context.getNumOfFrames()).to.equal(2);
     expect(frames[1]).to.deep.equal({
       id: 1,
       line: 0,
