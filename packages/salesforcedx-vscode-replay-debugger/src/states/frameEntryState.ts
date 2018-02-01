@@ -8,14 +8,21 @@
 import { basename } from 'path';
 import { Source, StackFrame } from 'vscode-debugadapter';
 import Uri from 'vscode-uri';
+import { SFDC_TRIGGER } from '../constants';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
 export class FrameEntryState implements DebugLogState {
   private readonly signature: string;
+  private readonly frameName: string;
 
   constructor(fields: string[]) {
     this.signature = fields[fields.length - 1];
+    if (this.signature.startsWith(SFDC_TRIGGER)) {
+      this.frameName = this.signature.substring(SFDC_TRIGGER.length);
+    } else {
+      this.frameName = this.signature;
+    }
   }
 
   public handle(logContext: LogContext): boolean {
@@ -25,7 +32,7 @@ export class FrameEntryState implements DebugLogState {
       .push(
         new StackFrame(
           logContext.getFrames().length,
-          this.signature,
+          this.frameName,
           sourceUri
             ? new Source(basename(sourceUri), Uri.parse(sourceUri).path)
             : undefined,
