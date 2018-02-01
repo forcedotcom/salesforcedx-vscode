@@ -7,8 +7,10 @@
 
 import * as path from 'path';
 import { StackFrame } from 'vscode-debugadapter';
-import { LaunchRequestArguments } from '../adapter/apexReplayDebug';
-import { BreakpointUtil } from '../breakpoints';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../adapter/apexReplayDebug';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -18,6 +20,7 @@ import {
   EVENT_METHOD_ENTRY,
   EVENT_METHOD_EXIT,
   EVENT_STATEMENT_EXECUTE,
+  EVENT_USER_DEBUG,
   EVENT_VF_APEX_CALL_END,
   EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE,
@@ -29,13 +32,14 @@ import {
   FrameExitState,
   LogEntryState,
   NoOpState,
-  StatementExecuteState
+  StatementExecuteState,
+  UserDebugState
 } from '../states';
 import { LogContextUtil } from './logContextUtil';
 
 export class LogContext {
   private readonly util = new LogContextUtil();
-  private readonly breakpointUtil: BreakpointUtil;
+  private readonly session: ApexReplayDebug;
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
   private state: DebugLogState | undefined;
@@ -43,17 +47,18 @@ export class LogContext {
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
 
-  constructor(
-    launchArgs: LaunchRequestArguments,
-    breakpointUtil: BreakpointUtil
-  ) {
+  constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
-    this.breakpointUtil = breakpointUtil;
+    this.session = session;
     this.logLines = this.util.readLogFile(launchArgs.logFile);
   }
 
   public getLaunchArgs(): LaunchRequestArguments {
     return this.launchArgs;
+  }
+
+  public getSession(): ApexReplayDebug {
+    return this.session;
   }
 
   public getLogLines(): string[] {
@@ -117,10 +122,9 @@ export class LogContext {
     const processedSignature = signature.endsWith(')')
       ? signature.substring(0, signature.lastIndexOf('.'))
       : signature;
-    const typerefMapping = this.breakpointUtil.getTyperefMapping();
+    const typerefMapping = this.session.getBreakpointUtil().getTyperefMapping();
     let uri = '';
     typerefMapping.forEach((value, key) => {
-
       let processedKey = '';
       if (key.startsWith(SFDC_TRIGGER)) {
         processedKey = key;
@@ -140,14 +144,16 @@ export class LogContext {
     return this.stackFrameInfos && this.stackFrameInfos.length > 0;
   }
 
-  public updateFrames(printLine: (message: string) => void): void {
+  public updateFrames(): void {
     if (this.state instanceof LogEntryState) {
       this.stackFrameInfos.pop();
     }
     while (++this.logLinePosition < this.logLines.length) {
       const logLine = this.logLines[this.logLinePosition];
       if (logLine) {
-        printLine(logLine);
+        if (this.session.shouldTraceLogFile()) {
+          this.session.printToDebugConsole(logLine);
+        }
         this.setState(this.parseLogEvent(logLine));
         if (this.state && this.state.handle(this)) {
           break;
@@ -183,6 +189,12 @@ export class LogContext {
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
             fields[2] = this.util.stripBrackets(fields[2]);
             return new StatementExecuteState(fields);
+          }
+          break;
+        case EVENT_USER_DEBUG:
+          if (logLine.match(/.*\|.*\|\[\d{1,}\]\|.*\|.*/)) {
+            fields[2] = this.util.stripBrackets(fields[2]);
+            return new UserDebugState(fields);
           }
           break;
         default:

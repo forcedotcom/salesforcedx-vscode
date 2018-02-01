@@ -41,6 +41,7 @@ describe('Debug console', () => {
 
       expect(adapter.getTraceConfig()).to.be.eql(['all']);
       expect(adapter.getTraceAllConfig()).to.be.true;
+      expect(adapter.shouldTraceLogFile()).to.be.true;
     });
 
     it('Should accept boolean false', () => {
@@ -50,6 +51,7 @@ describe('Debug console', () => {
 
       expect(adapter.getTraceConfig()).to.be.empty;
       expect(adapter.getTraceAllConfig()).to.be.false;
+      expect(adapter.shouldTraceLogFile()).to.be.false;
     });
 
     it('Should accept multiple trace categories', () => {
@@ -64,6 +66,16 @@ describe('Debug console', () => {
       ]);
       expect(adapter.getTraceAllConfig()).to.be.true;
     });
+
+    it('Should accept logfile category', () => {
+      args.trace = 'logfile';
+
+      adapter.setupLogger(args);
+
+      expect(adapter.getTraceConfig()).to.be.eql(['logfile']);
+      expect(adapter.getTraceAllConfig()).to.be.false;
+      expect(adapter.shouldTraceLogFile()).to.be.true;
+    });
   });
 
   describe('Print', () => {
@@ -74,12 +86,6 @@ describe('Debug console', () => {
 
     afterEach(() => {
       sendEventSpy.restore();
-    });
-
-    it('Should not print if message is undefined', () => {
-      adapter.printToDebugConsole(undefined);
-
-      expect(sendEventSpy.notCalled).to.be.true;
     });
 
     it('Should not print is message is empty', () => {
@@ -93,7 +99,7 @@ describe('Debug console', () => {
         logFileName,
         encodeURI(`file://${logFilePath}`)
       );
-      adapter.printToDebugConsole('test', source, 5);
+      adapter.printToDebugConsole('test', 'stdout', source, 5);
 
       expect(sendEventSpy.calledOnce).to.be.true;
       const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)
@@ -114,12 +120,6 @@ describe('Debug console', () => {
 
     afterEach(() => {
       sendEventSpy.restore();
-    });
-
-    it('Should not warn if message is undefined', () => {
-      adapter.warnToDebugConsole(undefined);
-
-      expect(sendEventSpy.notCalled).to.be.true;
     });
 
     it('Should not warn is message is empty', () => {
@@ -147,12 +147,6 @@ describe('Debug console', () => {
 
     afterEach(() => {
       sendEventSpy.restore();
-    });
-
-    it('Should not error if message is undefined', () => {
-      adapter.errorToDebugConsole(undefined);
-
-      expect(sendEventSpy.notCalled).to.be.true;
     });
 
     it('Should not error is message is empty', () => {

@@ -8,7 +8,10 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { StackFrame } from 'vscode-debugadapter';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { BreakpointUtil } from '../../../src/breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,
@@ -19,6 +22,7 @@ import {
   EVENT_METHOD_ENTRY,
   EVENT_METHOD_EXIT,
   EVENT_STATEMENT_EXECUTE,
+  EVENT_USER_DEBUG,
   EVENT_VF_APEX_CALL_END,
   EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE
@@ -29,7 +33,8 @@ import {
   FrameExitState,
   LogEntryState,
   NoOpState,
-  StatementExecuteState
+  StatementExecuteState,
+  UserDebugState
 } from '../../../src/states';
 
 // tslint:disable:no-unused-expression
@@ -42,14 +47,12 @@ describe('LogContext', () => {
     logFile: '/path/foo.log',
     trace: true
   };
-  // tslint:disable-next-line:no-empty
-  const debugConsoleHandler = (message: string) => { };
 
   beforeEach(() => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns(['line1', 'line2']);
-    context = new LogContext(launchRequestArgs, new BreakpointUtil());
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
   });
 
   afterEach(() => {
@@ -79,7 +82,7 @@ describe('LogContext', () => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns([]);
-    context = new LogContext(launchRequestArgs, new BreakpointUtil());
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     expect(context.hasLogLines()).to.be.false;
   });
@@ -111,7 +114,7 @@ describe('LogContext', () => {
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(undefined);
 
-    context.updateFrames(debugConsoleHandler);
+    context.updateFrames();
 
     expect(context.getLogLinePosition()).to.equal(2);
   });
@@ -122,7 +125,7 @@ describe('LogContext', () => {
       .stub(LogContext.prototype, 'parseLogEvent')
       .returns(new NoOpState());
 
-    context.updateFrames(debugConsoleHandler);
+    context.updateFrames();
 
     expect(context.getLogLinePosition()).to.equal(2);
     expect(context.hasState()).to.be.true;
@@ -141,7 +144,7 @@ describe('LogContext', () => {
     context.setState(new LogEntryState());
     context.getFrames().push({} as StackFrame);
 
-    context.updateFrames(debugConsoleHandler);
+    context.updateFrames();
 
     expect(context.getLogLinePosition()).to.equal(1);
     expect(context.hasState()).to.be.true;
@@ -150,7 +153,7 @@ describe('LogContext', () => {
 
   describe('Log event parser', () => {
     beforeEach(() => {
-      context = new LogContext(launchRequestArgs, new BreakpointUtil());
+      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     });
 
     it('Should detect LogEntry as the first state', () => {
@@ -255,6 +258,14 @@ describe('LogContext', () => {
         context.parseLogEvent(`|${EVENT_STATEMENT_EXECUTE}|[1]`)
       ).to.be.an.instanceof(StatementExecuteState);
     });
+
+    it('Should detect UserDebug with USER_DEBUG', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_USER_DEBUG}|[1]|DEBUG|Hello`)
+      ).to.be.an.instanceof(UserDebugState);
+    });
   });
 
   describe('Signature-to-URI', () => {
@@ -262,7 +273,10 @@ describe('LogContext', () => {
     const typerefMapping: Map<string, string> = new Map();
     typerefMapping.set('namespace/Foo$Bar', '/path/foo.cls');
     typerefMapping.set('namespace/Foo', '/path/foo.cls');
-    typerefMapping.set('__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger');
+    typerefMapping.set(
+      '__sfdc_trigger/namespace/MyTrigger',
+      '/path/MyTrigger.trigger'
+    );
 
     beforeEach(() => {
       getTyperefMappingStub = sinon
