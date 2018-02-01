@@ -19,6 +19,8 @@ import {
   EVENT_METHOD_ENTRY,
   EVENT_METHOD_EXIT,
   EVENT_STATEMENT_EXECUTE,
+  EVENT_VF_APEX_CALL_END,
+  EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE
 } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
@@ -41,7 +43,7 @@ describe('LogContext', () => {
     trace: true
   };
   // tslint:disable-next-line:no-empty
-  const debugConsoleHandler = (message: string) => {};
+  const debugConsoleHandler = (message: string) => { };
 
   beforeEach(() => {
     readLogFileStub = sinon
@@ -206,6 +208,14 @@ describe('LogContext', () => {
       ).to.be.an.instanceof(FrameEntryState);
     });
 
+    it('Should detect FrameEntry with VF_APEX_CALL_START', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_VF_APEX_CALL_START}|`)
+      ).to.be.an.instanceof(FrameEntryState);
+    });
+
     it('Should detect FrameExit with CODE_UNIT_FINISHED', () => {
       context.setState(new LogEntryState());
 
@@ -230,6 +240,14 @@ describe('LogContext', () => {
       ).to.be.an.instanceof(FrameExitState);
     });
 
+    it('Should detect FrameExit with VF_APEX_CALL_END', () => {
+      context.setState(new LogEntryState());
+
+      expect(
+        context.parseLogEvent(`|${EVENT_VF_APEX_CALL_END}|`)
+      ).to.be.an.instanceof(FrameExitState);
+    });
+
     it('Should detect StatementExecute with STATEMENT_EXECUTE', () => {
       context.setState(new LogEntryState());
 
@@ -244,6 +262,7 @@ describe('LogContext', () => {
     const typerefMapping: Map<string, string> = new Map();
     typerefMapping.set('namespace/Foo$Bar', '/path/foo.cls');
     typerefMapping.set('namespace/Foo', '/path/foo.cls');
+    typerefMapping.set('__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger');
 
     beforeEach(() => {
       getTyperefMappingStub = sinon
@@ -265,6 +284,12 @@ describe('LogContext', () => {
       expect(
         context.getUriFromSignature('namespace.Foo.Bar(Integer)')
       ).to.equal('/path/foo.cls');
+    });
+
+    it('Should return URI for trigger', () => {
+      expect(
+        context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')
+      ).to.be.equal('/path/MyTrigger.trigger');
     });
   });
 });
