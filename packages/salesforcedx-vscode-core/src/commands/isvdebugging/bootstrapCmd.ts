@@ -139,12 +139,9 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ForceIdeUri>
   > {
-    const forceIdeUrlInputOptions = {
+    const forceIdeUri = await vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_paste_forceide_url')
-    } as vscode.InputBoxOptions;
-    const forceIdeUri = await vscode.window.showInputBox(
-      forceIdeUrlInputOptions
-    );
+    });
 
     if (forceIdeUri) {
       const url = Uri.parse(forceIdeUri);
