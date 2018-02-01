@@ -56,7 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   const workspaceType = lwcLanguageServer.detectWorkspaceType(
-    vscode.workspace.workspaceFolders[0].uri.path
+    vscode.workspace.workspaceFolders[0].uri.fsPath
   );
 
   // Check if ran from a LWC project
