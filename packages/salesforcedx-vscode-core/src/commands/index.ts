@@ -39,3 +39,7 @@ export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
 export { forceProjectCreate } from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
+export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
+export { forceStopApexDebugLogging } from './forceStopApexDebugLogging';
+import { DeveloperLogTraceFlag } from '../DeveloperLogTraceFlag';
+export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
