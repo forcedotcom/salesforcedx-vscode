@@ -8,21 +8,13 @@
 import { basename } from 'path';
 import { Source, StackFrame } from 'vscode-debugadapter';
 import Uri from 'vscode-uri';
-import { SFDC_TRIGGER } from '../constants';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
+import { FrameState } from './frameState';
 
-export class FrameEntryState implements DebugLogState {
-  private readonly signature: string;
-  private readonly frameName: string;
-
+export class FrameEntryState extends FrameState implements DebugLogState {
   constructor(fields: string[]) {
-    this.signature = fields[fields.length - 1];
-    if (this.signature.startsWith(SFDC_TRIGGER)) {
-      this.frameName = this.signature.substring(SFDC_TRIGGER.length);
-    } else {
-      this.frameName = this.signature;
-    }
+    super(fields);
   }
 
   public handle(logContext: LogContext): boolean {
