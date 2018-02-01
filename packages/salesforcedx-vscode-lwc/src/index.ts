@@ -79,6 +79,21 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(commands);
 }
 
+// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
+export function code2ProtocolConverter(value: vscode.Uri) {
+  if (/^win32/.test(process.platform)) {
+    // The *first* : is also being encoded which is not the standard for URI on Windows
+    // Here we transform it back to the standard way
+    return value.toString().replace('%3A', ':');
+  } else {
+    return value.toString();
+  }
+}
+
+function protocol2CodeConverter(value: string) {
+  return vscode.Uri.parse(value);
+}
+
 function startLWCLanguageServer(
   serverModule: string,
   context: vscode.ExtensionContext
@@ -106,6 +121,10 @@ function startLWCLanguageServer(
           '**/lightningcomponents/*/*.js'
         )
       ]
+    },
+    uriConverters: {
+      code2Protocol: code2ProtocolConverter,
+      protocol2Code: protocol2CodeConverter
     }
   };
   // Create the language client and start the client.
