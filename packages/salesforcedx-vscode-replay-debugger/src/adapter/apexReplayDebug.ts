@@ -360,14 +360,14 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public printToDebugConsole(
     msg: string,
-    type = 'stdout',
+    category = 'stdout',
     sourceFile?: Source,
     sourceLine?: number
   ): void {
     if (msg && msg.length !== 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(
         `${msg}${EOL}`,
-        type
+        category
       );
       event.body.source = sourceFile;
       event.body.line = sourceLine;
