@@ -111,5 +111,10 @@ export const messages = {
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
-  force_apex_trigger_create_text: 'SFDX: Create Apex Trigger'
+  force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
+  force_start_apex_debug_logging:
+    'SFDX: Turn on Apex Debug Log for Replay Debugger',
+  force_apex_debug_log_status_bar_text: 'Logging ends at %s',
+  force_stop_apex_debug_logging:
+    'SFDX: Turn off Apex Debug Log for Replay Debugger'
 };
