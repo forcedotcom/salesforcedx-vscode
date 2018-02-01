@@ -256,7 +256,8 @@
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         },
         {
-          "command": "sfdx.debug.isv.bootstrap"
+          "command": "sfdx.debug.isv.bootstrap",
+          "when": "config.salesforcedx-vscode-core.isv-debugger.enabled"
         }
       ]
     },
@@ -406,6 +407,11 @@
           "type": ["boolean"],
           "default": true,
           "description": "%show_cli_success_msg_description%"
+        },
+        "salesforcedx-vscode-core.isv-debugger.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%isv_debugger_enabled_description%"
         }
       }
     }
