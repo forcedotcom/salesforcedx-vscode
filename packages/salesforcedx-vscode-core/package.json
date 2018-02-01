@@ -395,8 +395,7 @@
       },
       {
         "command": "sfdx.debug.isv.bootstrap",
-        "title": "%isv_bootstrap_command_text%",
-        "category": "SFDX"
+        "title": "%isv_bootstrap_command_text%"
       }
     ],
     "configuration": {

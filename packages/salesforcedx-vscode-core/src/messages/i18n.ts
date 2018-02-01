@@ -121,7 +121,7 @@ export const messages = {
     'SFDX: Turn off Apex Debug Log for Replay Debugger',
 
   isv_debug_bootstrap_step1_create_project:
-    'SFDX: ISV Debugger Setup Step 1: Create Project',
+    'SFDX: ISV Debugger Setup, Step 1 of 2: Create Project',
   isv_debug_bootstrap_step1_configure_project:
-    'SFDX: ISV Debugger Setup Step 2: Configure Project'
+    'SFDX: ISV Debugger Setup, Step 2 of 2: Configure Project'
 };
