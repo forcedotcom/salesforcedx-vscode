@@ -68,10 +68,13 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
+    const projectParentPath = response.data.projectUri;
+    const projectPath = path.join(projectParentPath, response.data.projectName);
+
     const createProjectExecution = new CliCommandExecutor(
       this.buildCreateProjectCommand(response.data),
       {
-        cwd: response.data.projectUri
+        cwd: projectParentPath
       }
     ).execute(cancellationToken);
 
@@ -80,7 +83,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         const configureProjectExecution = new CliCommandExecutor(
           this.buildConfigureProjectCommand(response.data),
           {
-            cwd: response.data.projectUri
+            cwd: projectPath
           }
         ).execute(cancellationToken);
 
@@ -89,9 +92,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
             // last step is open the folder
             await vscode.commands.executeCommand(
               'vscode.openFolder',
-              vscode.Uri.parse(
-                path.join(response.data.projectUri, response.data.projectName)
-              )
+              vscode.Uri.parse(projectPath)
             );
           }
         });
