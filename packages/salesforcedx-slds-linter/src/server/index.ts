@@ -119,25 +119,27 @@ connection.onCodeAction(params => {
   let code = '';
 
   for (const diagnostic of diagnostics) {
-    const codeStr = <string>diagnostic.code;
-    code = codeStr[0];
-    const replacementStr = codeStr.slice(1);
+    if (diagnostic.code) {
+      const codeStr = diagnostic.code as string;
+      code = codeStr[0];
+      const replacementStr = codeStr.slice(1);
 
-    switch (code) {
-      case '0': {
-        edits.push({
-          range: diagnostic.range,
-          newText: replacementStr
-        });
+      switch (code) {
+        case '0': {
+          edits.push({
+            range: diagnostic.range,
+            newText: replacementStr
+          });
 
-        result.push(
-          Command.create(
-            nls.localize('fix_problem', diagnostic.message),
-            'sfdx.force.lightning.slds.fix.deprecated.class',
-            uri,
-            edits
-          )
-        );
+          result.push(
+            Command.create(
+              nls.localize('fix_problem', diagnostic.message),
+              'sfdx.force.lightning.slds.fix.deprecated.class',
+              uri,
+              edits
+            )
+          );
+        }
       }
     }
   }
