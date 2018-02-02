@@ -7,8 +7,10 @@
 
 import { expect } from 'chai';
 import { StackFrame } from 'vscode-debugadapter';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { StatementExecuteState } from '../../../src/states';
@@ -24,7 +26,7 @@ describe('Statement execute event', () => {
   };
 
   beforeEach(() => {
-    context = new LogContext(launchRequestArgs, new BreakpointUtil());
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
   });
 
   it('Should not update frame without any frames', () => {

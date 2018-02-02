@@ -6,8 +6,10 @@
  */
 
 import { expect } from 'chai';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { NoOpState } from '../../../src/states';
 
@@ -19,7 +21,7 @@ describe('NoOp event', () => {
         logFile: '/path/foo.log',
         trace: true
       } as LaunchRequestArguments,
-      new BreakpointUtil()
+      new ApexReplayDebug()
     );
     const unsupported = new NoOpState();
 
