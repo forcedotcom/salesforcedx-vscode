@@ -49,8 +49,9 @@ export const messages = {
   parameter_gatherer_enter_alias_name:
     'Enter a scratch org alias or use default alias',
   parameter_gatherer_enter_project_name: 'Enter project name',
-  parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL',
-  parameter_gatherer_invalid_forceide_url: 'The forceide:// URL is incorrect',
+  parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
+  parameter_gatherer_invalid_forceide_url:
+    "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
