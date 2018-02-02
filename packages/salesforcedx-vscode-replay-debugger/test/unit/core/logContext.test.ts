@@ -43,6 +43,8 @@ describe('LogContext', () => {
   let readLogFileStub: sinon.SinonStub;
   let parseLogEventStub: sinon.SinonStub;
   let noOpHandleStub: sinon.SinonStub;
+  let shouldTraceLogFileStub: sinon.SinonStub;
+  let printToDebugConsoleStub: sinon.SinonStub;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: '/path/foo.log',
     trace: true
@@ -52,6 +54,13 @@ describe('LogContext', () => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns(['line1', 'line2']);
+    shouldTraceLogFileStub = sinon
+      .stub(ApexReplayDebug.prototype, 'shouldTraceLogFile')
+      .returns(true);
+    printToDebugConsoleStub = sinon.stub(
+      ApexReplayDebug.prototype,
+      'printToDebugConsole'
+    );
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
   });
 
@@ -63,6 +72,8 @@ describe('LogContext', () => {
     if (noOpHandleStub) {
       noOpHandleStub.restore();
     }
+    shouldTraceLogFileStub.restore();
+    printToDebugConsoleStub.restore();
   });
 
   it('Should return array of log lines', () => {
@@ -149,6 +160,7 @@ describe('LogContext', () => {
     expect(context.getLogLinePosition()).to.equal(1);
     expect(context.hasState()).to.be.true;
     expect(context.getFrames()).to.be.empty;
+    expect(printToDebugConsoleStub.calledTwice).to.be.true;
   });
 
   describe('Log event parser', () => {

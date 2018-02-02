@@ -360,9 +360,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public printToDebugConsole(
     msg: string,
-    category = 'stdout',
     sourceFile?: Source,
-    sourceLine?: number
+    sourceLine?: number,
+    category = 'stdout'
   ): void {
     if (msg && msg.length !== 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(
@@ -381,7 +381,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     sourceFile?: Source,
     sourceLine?: number
   ): void {
-    this.printToDebugConsole(msg, 'console', sourceFile, sourceLine);
+    this.printToDebugConsole(msg, sourceFile, sourceLine, 'console');
   }
 
   public errorToDebugConsole(
@@ -389,7 +389,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     sourceFile?: Source,
     sourceLine?: number
   ): void {
-    this.printToDebugConsole(msg, 'stderr', sourceFile, sourceLine);
+    this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
   }
 
   public getBreakpointUtil(): BreakpointUtil {

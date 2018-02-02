@@ -85,6 +85,10 @@ export class LogContext {
     return this.logLinePosition;
   }
 
+  public incrementLogLinePosition(): void {
+    this.logLinePosition += 1;
+  }
+
   public getFrames(): StackFrame[] {
     return this.stackFrameInfos;
   }
@@ -151,10 +155,13 @@ export class LogContext {
     while (++this.logLinePosition < this.logLines.length) {
       const logLine = this.logLines[this.logLinePosition];
       if (logLine) {
-        if (this.session.shouldTraceLogFile()) {
+        this.setState(this.parseLogEvent(logLine));
+        if (
+          this.session.shouldTraceLogFile() &&
+          !(this.state instanceof UserDebugState)
+        ) {
           this.session.printToDebugConsole(logLine);
         }
-        this.setState(this.parseLogEvent(logLine));
         if (this.state && this.state.handle(this)) {
           break;
         }

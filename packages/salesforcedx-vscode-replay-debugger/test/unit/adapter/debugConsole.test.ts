@@ -99,7 +99,7 @@ describe('Debug console', () => {
         logFileName,
         encodeURI(`file://${logFilePath}`)
       );
-      adapter.printToDebugConsole('test', 'stdout', source, 5);
+      adapter.printToDebugConsole('test', source, 5, 'stdout');
 
       expect(sendEventSpy.calledOnce).to.be.true;
       const outputEvent: DebugProtocol.OutputEvent = sendEventSpy.getCall(0)

@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import { EOL } from 'os';
 import * as sinon from 'sinon';
 import { StackFrame } from 'vscode-debugadapter';
 import {
@@ -19,6 +20,7 @@ import { UserDebugState } from '../../../src/states';
 // tslint:disable:no-unused-expression
 describe('User debug event', () => {
   let warnToDebugConsoleStub: sinon.SinonStub;
+  let getLogLinesStub: sinon.SinonStub;
   let context: LogContext;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
@@ -33,10 +35,14 @@ describe('User debug event', () => {
       ApexReplayDebug.prototype,
       'warnToDebugConsole'
     );
+    getLogLinesStub = sinon
+      .stub(LogContext.prototype, 'getLogLines')
+      .returns(['foo', 'bar', 'timestamp|USER_DEBUG|[3]|DEBUG|Next message']);
   });
 
   afterEach(() => {
     warnToDebugConsoleStub.restore();
+    getLogLinesStub.restore();
   });
 
   it('Should not print without any frames', () => {
@@ -71,7 +77,7 @@ describe('User debug event', () => {
     expect(state.handle(context)).to.be.false;
     expect(warnToDebugConsoleStub.calledOnce).to.be.true;
     expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([
-      'Hello',
+      `Hello${EOL}foo${EOL}bar`,
       frame.source,
       5
     ]);
@@ -94,7 +100,7 @@ describe('User debug event', () => {
     expect(state.handle(context)).to.be.false;
     expect(warnToDebugConsoleStub.calledOnce).to.be.true;
     expect(warnToDebugConsoleStub.getCall(0).args).to.have.same.members([
-      'Hello',
+      `Hello${EOL}foo${EOL}bar`,
       frame.source,
       2
     ]);
