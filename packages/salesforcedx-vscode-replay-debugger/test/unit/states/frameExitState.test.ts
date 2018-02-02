@@ -7,8 +7,10 @@
 
 import { expect } from 'chai';
 import { StackFrame } from 'vscode-debugadapter';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { FrameExitState } from '../../../src/states';
 
@@ -23,7 +25,7 @@ describe('Frame exit event', () => {
   };
 
   beforeEach(() => {
-    context = new LogContext(launchRequestArgs, new BreakpointUtil());
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
   });
 
   it('Should not remove anything if there are no frames', () => {

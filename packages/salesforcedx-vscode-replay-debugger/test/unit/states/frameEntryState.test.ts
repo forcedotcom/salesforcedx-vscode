@@ -8,8 +8,10 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { StackFrame } from 'vscode-debugadapter';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState } from '../../../src/states';
 
@@ -35,7 +37,7 @@ describe('Frame entry event', () => {
 
   it('Should add a frame', () => {
     const state = new FrameEntryState(['signature']);
-    const context = new LogContext(launchRequestArgs, new BreakpointUtil());
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context
       .getFrames()
       .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);

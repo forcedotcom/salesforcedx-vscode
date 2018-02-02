@@ -7,8 +7,10 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { LogEntryState } from '../../../src/states';
 
@@ -33,7 +35,7 @@ describe('LogEntry event', () => {
         stopOnEntry: true,
         trace: true
       } as LaunchRequestArguments,
-      new BreakpointUtil()
+      new ApexReplayDebug()
     );
     const logEntry = new LogEntryState();
 

@@ -16,10 +16,10 @@ export const EVENT_EXECUTE_ANONYMOUS = 'Execute Anonymous';
 export const EVENT_METHOD_ENTRY = 'METHOD_ENTRY';
 export const EVENT_METHOD_EXIT = 'METHOD_EXIT';
 export const EVENT_STATEMENT_EXECUTE = 'STATEMENT_EXECUTE';
+export const EVENT_USER_DEBUG = 'USER_DEBUG';
 export const EVENT_VF_APEX_CALL_START = 'VF_APEX_CALL_START';
 export const EVENT_VF_APEX_CALL_END = 'VF_APEX_CALL_END';
 export const EXEC_ANON_SIGNATURE = 'execute_anonymous_apex';
 export const GET_LINE_BREAKPOINT_INFO_EVENT = 'getLineBreakpointInfo';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
 export const SFDC_TRIGGER = '__sfdc_trigger/';
-
