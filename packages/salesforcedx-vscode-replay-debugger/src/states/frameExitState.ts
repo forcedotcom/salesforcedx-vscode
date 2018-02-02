@@ -7,12 +7,11 @@
 
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
+import { FrameState } from './frameState';
 
-export class FrameExitState implements DebugLogState {
-  private readonly signature: string;
-
+export class FrameExitState extends FrameState implements DebugLogState {
   constructor(fields: string[]) {
-    this.signature = fields[fields.length - 1];
+    super(fields);
   }
 
   public handle(logContext: LogContext): boolean {
@@ -21,8 +20,8 @@ export class FrameExitState implements DebugLogState {
       if (topFrame) {
         logContext.getFrames().pop();
         if (
-          topFrame.name === this.signature ||
-          topFrame.name.startsWith(this.signature)
+          topFrame.name === this.frameName ||
+          topFrame.name.startsWith(this.frameName)
         ) {
           break;
         }
