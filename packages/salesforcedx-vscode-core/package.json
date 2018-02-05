@@ -407,11 +407,6 @@
           "type": ["boolean"],
           "default": true,
           "description": "%show_cli_success_msg_description%"
-        },
-        "salesforcedx-vscode-core.isv-debugger.enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "%isv_debugger_enabled_description%"
         }
       }
     }
