@@ -39,6 +39,7 @@
     "mocha": "3.2.0",
     "mock-spawn": "0.2.6",
     "nyc": "^11.0.2",
+    "ps-node": "0.1.6",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
     "vscode": "1.1.10"
@@ -166,6 +167,10 @@
         },
         {
           "command": "sfdx.force.apex.test.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.run.codeAction",
           "when": "sfdx:project_opened"
         },
         {

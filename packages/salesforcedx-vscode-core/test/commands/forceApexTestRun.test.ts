@@ -47,7 +47,7 @@ describe('Force Apex Test Run', () => {
       const command = builder.build({
         label: nls.localize('force_apex_test_run_all_test_label'),
         description: nls.localize(
-          'force_apex_test_run_all_tests_desription_text'
+          'force_apex_test_run_all_tests_description_text'
         ),
         type: TestType.All
       });
@@ -68,7 +68,7 @@ describe('Force Apex Test Run', () => {
       quickPickStub = sinon.stub(vscode.window, 'showQuickPick').returns({
         label: nls.localize('force_apex_test_run_all_test_label'),
         description: nls.localize(
-          'force_apex_test_run_all_tests_desription_text'
+          'force_apex_test_run_all_tests_description_text'
         ),
         type: TestType.All
       });
@@ -95,7 +95,7 @@ describe('Force Apex Test Run', () => {
         nls.localize('force_apex_test_run_all_test_label')
       );
       expect(fileItems[2].description).to.equal(
-        nls.localize('force_apex_test_run_all_tests_desription_text')
+        nls.localize('force_apex_test_run_all_tests_description_text')
       );
       expect(fileItems[2].type).to.equal(TestType.All);
     });
