@@ -1,6 +1,4 @@
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
 import { ForceApexTestRunCodeActionExecutor } from '../../src/commands/forceApexTestRunCodeAction';
 import { nls } from '../../src/messages';
 
