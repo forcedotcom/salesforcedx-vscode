@@ -111,6 +111,7 @@ function registerCommands(): vscode.Disposable {
       session.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
     });
   });
+
   return vscode.Disposable.from(
     customEventHandler,
     exceptionBreakpointCmd,
