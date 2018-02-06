@@ -73,8 +73,10 @@ export const messages = {
 
   force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
   force_apex_test_run_all_test_label: 'All tests',
-  force_apex_test_run_all_tests_desription_text:
+  force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
+
+  force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
 
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',

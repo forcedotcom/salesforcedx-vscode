@@ -169,6 +169,10 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.apex.test.run.codeAction",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.task.stop",
           "when": "sfdx:project_opened"
         },
