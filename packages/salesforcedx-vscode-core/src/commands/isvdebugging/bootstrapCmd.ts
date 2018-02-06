@@ -8,6 +8,8 @@
 import {
   CliCommandExecutor,
   Command,
+  CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
@@ -15,12 +17,12 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ExecOptions } from 'child_process';
 import * as path from 'path';
 import * as querystring from 'querystring';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
-import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -64,52 +66,68 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  public execute(response: ContinueResponse<IsvDebugBootstrapConfig>): void {
+  public async execute(
+    response: ContinueResponse<IsvDebugBootstrapConfig>
+  ): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
     const projectParentPath = response.data.projectUri;
     const projectPath = path.join(projectParentPath, response.data.projectName);
 
-    const createProjectExecution = new CliCommandExecutor(
-      this.buildCreateProjectCommand(response.data),
-      {
-        cwd: projectParentPath
-      }
-    ).execute(cancellationToken);
-
-    createProjectExecution.processExitSubject.subscribe(async data => {
-      if (data != undefined && data.toString() === '0') {
-        const configureProjectExecution = new CliCommandExecutor(
+    await Promise.resolve()
+      .then(
+        // 1: create project
+        this.executeCommand(
+          this.buildCreateProjectCommand(response.data),
+          {
+            cwd: projectParentPath
+          },
+          cancellationTokenSource,
+          cancellationToken
+        )
+      )
+      .then(
+        // 2: configure project
+        this.executeCommand(
           this.buildConfigureProjectCommand(response.data),
           {
             cwd: projectPath
-          }
-        ).execute(cancellationToken);
-
-        configureProjectExecution.processExitSubject.subscribe(async data2 => {
-          if (data2 != undefined && data2.toString() === '0') {
-            // last step is open the folder
-            await vscode.commands.executeCommand(
-              'vscode.openFolder',
-              vscode.Uri.parse(projectPath)
-            );
-          }
-        });
-
-        this.attachExecution(
-          configureProjectExecution,
+          },
           cancellationTokenSource,
           cancellationToken
+        )
+      )
+      .then(async () => {
+        // last step: open the folder in VS Code
+        await vscode.commands.executeCommand(
+          'vscode.openFolder',
+          vscode.Uri.parse(projectPath)
         );
-      }
-    });
+      });
+  }
 
-    this.attachExecution(
-      createProjectExecution,
-      cancellationTokenSource,
-      cancellationToken
-    );
+  public executeCommand(
+    command: Command,
+    options: ExecOptions,
+    cancellationTokenSource: vscode.CancellationTokenSource,
+    cancellationToken: vscode.CancellationToken
+  ): () => Promise<string> {
+    return () => {
+      const execution = new CliCommandExecutor(command, options).execute(
+        cancellationToken
+      );
+
+      const result = new CommandOutput().getCmdResult(execution);
+
+      this.attachExecution(
+        execution,
+        cancellationTokenSource,
+        cancellationToken
+      );
+
+      return result;
+    };
   }
 
   protected attachExecution(
