@@ -26,12 +26,10 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
   }
 
   public build(data: {}): Command {
-    // inspect test value to determine description text
-    const description = this.test.includes('.')
-      ? 'force_apex_test_run_codeAction_testMethod_description_text'
-      : 'force_apex_test_run_codeAction_all_tests_description_text';
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize(description, this.test))
+      .withDescription(
+        nls.localize('force_apex_test_run_codeAction_description_text')
+      )
       .withArg('force:apex:test:run')
       .withFlag('--tests', this.test)
       .withFlag('--resultformat', 'human')
