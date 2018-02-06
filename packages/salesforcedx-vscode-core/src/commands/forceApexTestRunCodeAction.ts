@@ -38,12 +38,10 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
 export function forceApexTestRunCodeAction(test: string) {
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
+    new SfdxWorkspaceChecker(),
+    new EmptyParametersGatherer(),
     new ForceApexTestRunCodeActionExecutor(test)
   );
   commandlet.run();

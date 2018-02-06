@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { ForceApexTestRunCodeActionExecutor } from '../../src/commands/forceApexTestRunCodeAction';
-import { nls } from '../../src/messages';
 
 describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Class', () => {
