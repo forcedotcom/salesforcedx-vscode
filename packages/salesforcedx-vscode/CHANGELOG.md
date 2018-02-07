@@ -2,12 +2,11 @@
 ### Added
 #### salesforcedx-vscode-core
 
-* Code action to run apex tests; run a single method or all test methods in a test class ([PR #291](https://github.com/forcedotcom/salesforcedx-vscode/pull/291))
-* Command to bootstrap a project for ISV debugging ([PR #282](https://github.com/forcedotcom/salesforcedx-vscode/pull/282))
+* Code action to run Apex tests; run a single method or all test methods in a test class ([PR #291](https://github.com/forcedotcom/salesforcedx-vscode/pull/291))
 
 #### salesforcedx-vscode-apex
 
-* Finding all references for Apex fields and properties; includes usage in expressions, declarations and references in apex code ([PR #292](https://github.com/forcedotcom/salesforcedx-vscode/pull/292))
+* Find All References feature for Apex fields and properties; includes usage in expressions, declarations, and references in Apex code ([PR #292](https://github.com/forcedotcom/salesforcedx-vscode/pull/292))
 
 ## 41.18.0 - January 22, 2018
 ### Fixed
