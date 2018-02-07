@@ -42,6 +42,13 @@ To view a definition, right-click the item and select **Peek Definition**, or pr
 To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.  
 ![Previewing, viewing, and jumping to a definition](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_go_to_definition.gif)
 
+## Find All References to Types
+You can find all references to:
+* Apex class variables
+* Apex properties
+
+To find references to an item, right-click the item and select **Find All References**, or press Shift+F12.
+
 ## Check Syntax Errors in Your Code
 If you leave out a `;`, `}`, or `)`, the syntax error is marked with a red squiggly line in the editor.  
 
