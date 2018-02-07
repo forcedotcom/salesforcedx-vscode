@@ -130,9 +130,16 @@ export const messages = {
   force_stop_apex_debug_logging:
     'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_step1_create_project:
-    'SFDX: ISV Debugger Setup, Step 1 of 2: Create Project',
-  isv_debug_bootstrap_step1_configure_project:
-    'SFDX: ISV Debugger Setup, Step 2 of 2: Configure Project',
+    'SFDX: ISV Debugger Setup, Step 1 of 4: Create Project',
+  isv_debug_bootstrap_step2_configure_project:
+    'SFDX: ISV Debugger Setup, Step 2 of 4: Configure Project',
+  isv_debug_bootstrap_step3_retrieve_org_source:
+    'SFDX: ISV Debugger Setup, Step 3 of 4: Retrieving unpackaged Apex Source',
+  isv_debug_bootstrap_step4_convert_org_source:
+    'SFDX: ISV Debugger Setup, Step 4 of 4: Converting unpackaged Apex Source',
+
+  error_creating_packagexml: 'Error creating package.xml. %s',
+
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
