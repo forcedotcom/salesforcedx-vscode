@@ -6,18 +6,23 @@
  */
 
 import { expect } from 'chai';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import { NoOpState } from '../../../src/states';
 
 // tslint:disable:no-unused-expression
 describe('NoOp event', () => {
   it('Should handle event', () => {
-    const context = new LogContext({
-      logFile: '/path/foo.log',
-      stopOnEntry: true,
-      trace: true
-    } as LaunchRequestArguments);
+    const context = new LogContext(
+      {
+        logFile: '/path/foo.log',
+        trace: true
+      } as LaunchRequestArguments,
+      new ApexReplayDebug()
+    );
     const unsupported = new NoOpState();
 
     expect(unsupported.handle(context)).to.be.false;

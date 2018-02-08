@@ -10,12 +10,12 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/icon.png",
+  "icon": "images/VSCodeBundle.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.16.0",
+  "version": "41.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {

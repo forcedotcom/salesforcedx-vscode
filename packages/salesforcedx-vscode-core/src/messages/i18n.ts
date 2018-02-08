@@ -49,6 +49,9 @@ export const messages = {
   parameter_gatherer_enter_alias_name:
     'Enter a scratch org alias or use default alias',
   parameter_gatherer_enter_project_name: 'Enter project name',
+  parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
+  parameter_gatherer_invalid_forceide_url:
+    "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -70,8 +73,10 @@ export const messages = {
 
   force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
   force_apex_test_run_all_test_label: 'All tests',
-  force_apex_test_run_all_tests_desription_text:
+  force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
+
+  force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
 
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
@@ -88,8 +93,8 @@ export const messages = {
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_lightning_bundle_overwrite:
     'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
-  warning_prompt_yes: 'Yes',
-  warning_prompt_no: 'No',
+  warning_prompt_overwrite_confirm: 'Overwrite',
+  warning_prompt_overwrite_cancel: 'Cancel',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text:
@@ -111,5 +116,15 @@ export const messages = {
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
-  force_apex_trigger_create_text: 'SFDX: Create Apex Trigger'
+  force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
+  force_start_apex_debug_logging:
+    'SFDX: Turn on Apex Debug Log for Replay Debugger',
+  force_apex_debug_log_status_bar_text: 'Logging ends at %s',
+  force_stop_apex_debug_logging:
+    'SFDX: Turn off Apex Debug Log for Replay Debugger',
+
+  isv_debug_bootstrap_step1_create_project:
+    'SFDX: ISV Debugger Setup, Step 1 of 2: Create Project',
+  isv_debug_bootstrap_step1_configure_project:
+    'SFDX: ISV Debugger Setup, Step 2 of 2: Configure Project'
 };

@@ -9,12 +9,12 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/icon.png",
+  "icon": "images/VSCodeApexReplayDebugger.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.16.0",
+  "version": "41.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,9 +22,10 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.18.0",
     "vscode-debugadapter": "1.25.0",
-    "vscode-debugprotocol": "1.25.0"
+    "vscode-debugprotocol": "1.25.0",
+    "vscode-uri": "1.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -32,12 +33,12 @@
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
-    "mocha": "3.2.0",
-    "sinon": "^2.3.6",
-    "nyc": "^11.0.2",
     "cross-env": "5.0.4",
+    "mocha": "3.2.0",
     "mocha-junit-reporter": "^1.13.0",
     "mocha-multi-reporters": "^1.1.4",
+    "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
     "typescript": "2.6.2",
     "vscode": "1.1.10",
     "vscode-debugadapter-testsupport": "1.25.0"
@@ -110,9 +111,9 @@
                 "default": true
               },
               "trace": {
-                "type": "boolean",
+                "type": ["boolean", "string"],
                 "description": "%trace_text%",
-                "default": true
+                "default": false
               }
             }
           }

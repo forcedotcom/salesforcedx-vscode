@@ -7,11 +7,14 @@
 
 import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import { channelService } from './channels';
 import {
+  CompositeParametersGatherer,
   forceAliasList,
   forceApexClassCreate,
   forceApexExecute,
   forceApexTestRun,
+  forceApexTestRunCodeAction,
   forceApexTriggerCreate,
   forceAuthWebLogin,
   forceConfigList,
@@ -29,18 +32,29 @@ import {
   forceSourcePull,
   forceSourcePush,
   forceSourceStatus,
+  forceStartApexDebugLogging,
+  forceStopApexDebugLogging,
   forceTaskStop,
   forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  forceVisualforcePageCreate,
+  SelectFileName,
+  SelectStrictDirPath,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
 } from './commands';
+import { restoreDebugLevels } from './commands/forceStopApexDebugLogging';
+import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import {
   CLIENT_ID,
   SFDX_CLIENT_ENV_VAR,
   TERMINAL_INTEGRATED_ENVS
 } from './constants';
+import { notificationService } from './notifications';
 import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
-import { taskViewService } from './statuses';
+import { CancellableStatusBar, taskViewService } from './statuses';
+import { disposeTraceFlagExpiration } from './traceflag-time-decorator';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
@@ -91,6 +105,10 @@ function registerCommands(): vscode.Disposable {
   const forceApexTestRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.run',
     forceApexTestRun
+  );
+  const forceApexTestRunCodeActionCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.run.codeAction',
+    forceApexTestRunCodeAction
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
@@ -181,6 +199,21 @@ function registerCommands(): vscode.Disposable {
     forceApexTriggerCreate
   );
 
+  const forceStartApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.force.start.apex.debug.logging',
+    forceStartApexDebugLogging
+  );
+
+  const forceStopApexDebugLoggingCmd = vscode.commands.registerCommand(
+    'sfdx.force.stop.apex.debug.logging',
+    forceStopApexDebugLogging
+  );
+
+  const isvDebugBootstrapCmd = vscode.commands.registerCommand(
+    'sfdx.debug.isv.bootstrap',
+    isvDebugBootstrap
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -191,6 +224,7 @@ function registerCommands(): vscode.Disposable {
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
+    forceApexTestRunCodeActionCmd,
     forceAuthWebLoginCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
@@ -219,6 +253,9 @@ function registerCommands(): vscode.Disposable {
     forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
     forceApexTriggerCreateCmd,
+    forceStartApexDebugLoggingCmd,
+    forceStopApexDebugLoggingCmd,
+    isvDebugBootstrapCmd,
     internalCancelCommandExecution
   );
 }
@@ -232,6 +269,20 @@ export async function activate(context: vscode.ExtensionContext) {
     const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
   }
+
+  let replayDebuggerExtensionInstalled = false;
+  if (
+    vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-replay-debugger'
+    )
+  ) {
+    replayDebuggerExtensionInstalled = true;
+  }
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:replay_debugger_extension',
+    replayDebuggerExtensionInstalled
+  );
 
   // Set environment variable to add logging for VSCode API calls
   process.env[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
@@ -247,6 +298,15 @@ export async function activate(context: vscode.ExtensionContext) {
     'setContext',
     'sfdx:project_opened',
     sfdxProjectOpened
+  );
+
+  const sfdxApexDebuggerExtension = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-apex-debugger'
+  );
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:apex_debug_extension_installed',
+    sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id
   );
 
   // Commands
@@ -265,8 +325,25 @@ export async function activate(context: vscode.ExtensionContext) {
     scratchOrgDecorator.showOrg();
     scratchOrgDecorator.monitorConfigChanges();
   }
+
+  const api: any = {
+    CancellableStatusBar,
+    CompositeParametersGatherer,
+    SelectFileName,
+    SelectStrictDirPath,
+    SfdxCommandlet,
+    SfdxCommandletExecutor,
+    SfdxWorkspaceChecker,
+    channelService,
+    notificationService,
+    taskViewService
+  };
+
+  return api;
 }
 
-export function deactivate() {
+export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
+  disposeTraceFlagExpiration();
+  return restoreDebugLevels();
 }

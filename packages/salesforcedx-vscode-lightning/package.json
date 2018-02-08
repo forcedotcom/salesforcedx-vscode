@@ -9,12 +9,12 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/icon.png",
+  "icon": "images/VSCodeLightning.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.16.0",
+  "version": "41.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,10 +22,10 @@
   },
   "categories": ["Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "41.16.0"
+    "@salesforce/salesforcedx-slds-linter": "41.18.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "41.18.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",

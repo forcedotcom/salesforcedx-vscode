@@ -5,21 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  CancelResponse,
+  ContinueResponse,
+  DirFileNameSelection,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  CancelResponse,
   CommandletExecutor,
   CompositeParametersGatherer,
-  ContinueResponse,
-  DirFileNameSelection,
   EmptyParametersGatherer,
   EmptyPostChecker,
   FilePathExistsChecker,
   LightningFilePathExistsChecker,
-  ParametersGatherer,
   SelectPrioritizedDirPath,
   SelectStrictDirPath,
   SfdxCommandlet
@@ -351,9 +353,9 @@ describe('Command Utilities', () => {
         warningSpy = sinon
           .stub(notificationService, 'showWarningMessage')
           .onFirstCall()
-          .returns(nls.localize('warning_prompt_yes'))
+          .returns(nls.localize('warning_prompt_overwrite_confirm'))
           .onSecondCall()
-          .returns(nls.localize('warning_prompt_no'));
+          .returns(nls.localize('warning_prompt_overwrite_cancel'));
       });
 
       after(() => {
@@ -456,9 +458,9 @@ describe('Command Utilities', () => {
         warningSpy = sinon
           .stub(notificationService, 'showWarningMessage')
           .onFirstCall()
-          .returns(nls.localize('warning_prompt_yes'))
+          .returns(nls.localize('warning_prompt_overwrite_confirm'))
           .onSecondCall()
-          .returns(nls.localize('warning_prompt_no'));
+          .returns(nls.localize('warning_prompt_overwrite_cancel'));
       });
 
       after(() => {

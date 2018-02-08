@@ -9,12 +9,14 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as vscode from 'vscode';
-import { nls } from '../messages';
 import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as vscode from 'vscode';
+import { nls } from '../messages';
+import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker

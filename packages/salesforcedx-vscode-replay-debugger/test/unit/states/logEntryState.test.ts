@@ -7,7 +7,10 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { LaunchRequestArguments } from '../../../src/adapter/apexReplayDebug';
+import {
+  ApexReplayDebug,
+  LaunchRequestArguments
+} from '../../../src/adapter/apexReplayDebug';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { LogEntryState } from '../../../src/states';
 
@@ -26,18 +29,21 @@ describe('LogEntry event', () => {
   });
 
   it('Should handle event', () => {
-    const context = new LogContext({
-      logFile: '/path/foo.log',
-      stopOnEntry: true,
-      trace: true
-    } as LaunchRequestArguments);
+    const context = new LogContext(
+      {
+        logFile: '/path/foo.log',
+        stopOnEntry: true,
+        trace: true
+      } as LaunchRequestArguments,
+      new ApexReplayDebug()
+    );
     const logEntry = new LogEntryState();
 
     const isStopped = logEntry.handle(context);
 
     expect(isStopped).to.be.true;
     const stackFrames = context.getFrames();
-    expect(stackFrames.length).to.equal(1);
+    expect(context.getNumOfFrames()).to.equal(1);
     const stackFrame = stackFrames[0];
     expect(stackFrame.id).to.equal(0);
     expect(stackFrame.name).to.equal('');

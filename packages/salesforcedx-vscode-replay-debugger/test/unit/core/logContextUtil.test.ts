@@ -25,5 +25,9 @@ describe('Log context utilities', () => {
       const logFilePath = `${process.cwd()}/test/integration/config/data/apexTest.log`;
       expect(util.readLogFile(logFilePath)).to.not.be.empty;
     });
+
+    it('Should strip brackets', () => {
+      expect(util.stripBrackets('[20]')).to.equal('20');
+    });
   });
 });

@@ -12,7 +12,7 @@ const prettierExecutable = path.join(
 );
 
 shell.exec(
-  `${prettierExecutable} --single-quote --write "packages/salesforcedx-*/package.json"`,
+  `${prettierExecutable} --single-quote --write "packages/salesforcedx-*/package.json" "package.json"`,
   {
     cwd: path.join(__dirname, '..')
   }

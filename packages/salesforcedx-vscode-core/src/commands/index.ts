@@ -5,9 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export {
+  CompositeParametersGatherer,
+  SelectFileName,
+  SelectStrictDirPath,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from './commands';
 export { forceApexExecute } from './forceApexExecute';
 export { forceAuthWebLogin } from './forceAuthWebLogin';
 export { forceApexTestRun } from './forceApexTestRun';
+export { forceApexTestRunCodeAction } from './forceApexTestRunCodeAction';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
@@ -31,3 +40,7 @@ export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
 export { forceProjectCreate } from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
+export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
+export { forceStopApexDebugLogging } from './forceStopApexDebugLogging';
+import { DeveloperLogTraceFlag } from '../DeveloperLogTraceFlag';
+export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

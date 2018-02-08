@@ -26,16 +26,18 @@ The files under scripts use [shelljs/shx](https://github.com/shelljs/shx) and
 [shelljs/shelljs](https://github.com/shelljs/shelljs) to write scripts in a
 portable manner across platforms.
 
+1. `git checkout -t origin release/vxx.yy.zz`
+1. `npm install`
+1. `export SALESFORCEDX_VSCODE_VERSION=xx.yy.zz` (must match the branch version)
+1. `scripts/publish.js`
+
 It is possible to run each step manually as illustrated below.
 
 ## Packaging as .vsix
 
 ### Prerequisite
 
-* Lerna is properly installed (`npm install -g lerna@2.0.0`).
-* shelljs is properly installed (`npm install -g shelljs`).
-* You have a clean workspace. You can use `git clean -xfd` to get to a pristine
-  stage.
+* Lerna is properly installed (`npm install -g lerna@2.4.0`).
 * All tests have been run prior to publishing. We don't run the tests during the
   publishing cycle since it generates artifacts that we do not want to include
   in the packaged extensions.
@@ -45,9 +47,9 @@ It is possible to run each step manually as illustrated below.
 1. `npm install` to install all the dependencies and to symlink interdependent
    local modules.
 1. `npm run compile` to compile all the TypeScript files.
-1. `lerna publish ...` will increment the version in the individual package.json
-   to prepare for publication. **This also commits the changes to git and adds a
-   tag.**
+1. `lerna publish ...` (see scripts/publish.js for the full command) will
+   increment the version in the individual package.json to prepare for
+   publication. **This also commits the changes to git and adds a tag.**
 1. `npm run vscode:package` packages _each_ extension as a .vsix.
 
 **At this stage, it is possible to share the .vsix directly for manual
