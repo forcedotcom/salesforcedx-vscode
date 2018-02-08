@@ -159,6 +159,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 </Package>`
       );
     } catch (error) {
+      console.error(error);
       channelService.appendLine(
         nls.localize('error_creating_packagexml', error.toString())
       );
@@ -185,6 +186,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       );
       zip.extractAllTo(projectMetadataTempPath, true);
     } catch (error) {
+      console.error(error);
       channelService.appendLine(
         nls.localize('error_extracting_org_source', error.toString())
       );
