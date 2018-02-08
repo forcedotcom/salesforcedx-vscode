@@ -1,4 +1,4 @@
-## 42.2.0 - February 5, 2018
+## 42.2.0 - February 10, 2018
 ### Added
 #### salesforcedx-vscode-core
 
