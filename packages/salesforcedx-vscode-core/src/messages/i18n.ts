@@ -130,13 +130,19 @@ export const messages = {
   force_stop_apex_debug_logging:
     'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_step1_create_project:
-    'SFDX: ISV Debugger Setup, Step 1 of 4: Create Project',
+    'SFDX: ISV Debugger Setup, Step 1 of 7: Create Project',
   isv_debug_bootstrap_step2_configure_project:
-    'SFDX: ISV Debugger Setup, Step 2 of 4: Configure Project',
+    'SFDX: ISV Debugger Setup, Step 2 of 7: Configure Project',
   isv_debug_bootstrap_step3_retrieve_org_source:
-    'SFDX: ISV Debugger Setup, Step 3 of 4: Retrieving unpackaged Apex Source',
+    'SFDX: ISV Debugger Setup, Step 3 of 7: Retrieving unpackaged Apex Source',
   isv_debug_bootstrap_step4_convert_org_source:
-    'SFDX: ISV Debugger Setup, Step 4 of 4: Converting unpackaged Apex Source',
+    'SFDX: ISV Debugger Setup, Step 4 of 7: Converting unpackaged Apex Source',
+  isv_debug_bootstrap_step5_list_installed_packages:
+    'SFDX: ISV Debugger Setup, Step 5 of 7: Quering for installed Packages',
+  isv_debug_bootstrap_step6_retrieve_packages_source:
+    'SFDX: ISV Debugger Setup, Step 6 of 7: Retrieving Packages',
+  isv_debug_bootstrap_step7_convert_package_source:
+    'SFDX: ISV Debugger Setup, Step 7 of 7: Converting Package: %s',
 
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
@@ -144,5 +150,7 @@ export const messages = {
   force_apex_log_list_text: 'Getting Apex debug logs',
 
   error_creating_packagexml: 'Error creating package.xml. %s',
-  error_extracting_org_source: 'Error extracting downloaded Apex source. %s'
+  error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
+  error_extracting_packages: 'Error extracting packages: %s',
+  error_updateing_sfdx_project: 'Error updating sfdx-project.json: %s'
 };

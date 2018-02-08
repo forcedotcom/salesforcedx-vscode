@@ -90,7 +90,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  public buildMetadataApiConvertCommand(
+  public buildMetadataApiConvertOrgSourceCommand(
     data: IsvDebugBootstrapConfig
   ): Command {
     return new SfdxCommandBuilder()
@@ -101,6 +101,59 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('-r', path.join(this.relativeMetdataTempPath, 'unpackaged'))
       .withFlag('-d', 'force-app')
       .build();
+  }
+
+  public buildPackageInstalledListAsJsonCommand(
+    data: IsvDebugBootstrapConfig
+  ): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
+      )
+      .withArg('force:package:installed:list')
+      .withFlag('-u', data.sessionId)
+      .withArg('--json')
+      .build();
+  }
+
+  public buildRetrievePackagesSourceCommand(
+    data: IsvDebugBootstrapConfig,
+    packageNames: string[]
+  ): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
+      )
+      .withArg('force:mdapi:retrieve')
+      .withFlag('-r', this.relativeMetdataTempPath)
+      .withFlag('-p', packageNames.join(','))
+      .withFlag('-u', data.sessionId)
+      .build();
+  }
+
+  public buildMetadataApiConvertPackageSourceCommand(
+    data: IsvDebugBootstrapConfig,
+    packageName: string
+  ): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize(
+          'isv_debug_bootstrap_step7_convert_package_source',
+          packageName
+        )
+      )
+      .withArg('force:mdapi:convert')
+      .withFlag(
+        '-r',
+        path.join(this.relativeMetdataTempPath, 'packages', packageName)
+      )
+      .withFlag('-d', path.join('packages', packageName))
+      .build();
+  }
+
+  public parsePackageInstalledListJson(packagesJson: string): string[] {
+    const packagesData = JSON.parse(packagesJson);
+    return packagesData.result.map((entry: any) => entry.SubscriberPackageName);
   }
 
   public async execute(
@@ -170,7 +223,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     }
 
     // 3b: retrieve unmanged org source
-    this.executeCommand(
+    await this.executeCommand(
       this.buildRetrieveOrgSourceCommand(response.data),
       {
         cwd: projectPath
@@ -198,7 +251,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 4b: convert org source
     await this.executeCommand(
-      this.buildMetadataApiConvertCommand(response.data),
+      this.buildMetadataApiConvertOrgSourceCommand(response.data),
       {
         cwd: projectPath
       },
@@ -206,7 +259,94 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       cancellationToken
     );
 
+    // 5: get list of installed packages
+    const packagesJson = await this.executeCommand(
+      this.buildPackageInstalledListAsJsonCommand(response.data),
+      {
+        cwd: projectPath
+      },
+      cancellationTokenSource,
+      cancellationToken
+    );
+    const packageNames = this.parsePackageInstalledListJson(packagesJson);
+
+    // 6: fetch packages
+    await this.executeCommand(
+      this.buildRetrievePackagesSourceCommand(response.data, packageNames),
+      {
+        cwd: projectPath
+      },
+      cancellationTokenSource,
+      cancellationToken
+    );
+
+    // 7a: unzip downloaded packages
+    try {
+      const packagesPath: string = path.join(
+        projectMetadataTempPath,
+        'packages'
+      );
+      this.mkdirSyncRecursive(packagesPath);
+      this.mkdirSyncRecursive(path.join(projectPath, 'packages'));
+      const zip = new AdmZip(
+        path.join(projectMetadataTempPath, 'unpackaged.zip')
+      );
+      zip.extractAllTo(packagesPath, true);
+    } catch (error) {
+      console.error(error);
+      channelService.appendLine(
+        nls.localize('error_extracting_packages', error.toString())
+      );
+      notificationService.showErrorMessage(
+        nls.localize('error_extracting_packages', error.toString())
+      );
+      return;
+    }
+
+    // 7b: convert packages
+    for (const packageName of packageNames) {
+      channelService.appendLine(`Processing package: ${packageName}`);
+      await this.executeCommand(
+        this.buildMetadataApiConvertPackageSourceCommand(
+          response.data,
+          packageName
+        ),
+        {
+          cwd: projectPath
+        },
+        cancellationTokenSource,
+        cancellationToken
+      );
+    }
+
+    // 7c: add list of packages to sfdx-project.json
+    try {
+      const sfdxProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
+      const sfdxProjectConfig = JSON.parse(
+        fs.readFileSync(sfdxProjectJsonFile).toString()
+      );
+      for (const packageName of packageNames) {
+        sfdxProjectConfig.packageDirectories.push({
+          path: `packages/${packageName}`
+        });
+      }
+      fs.writeFileSync(
+        sfdxProjectJsonFile,
+        JSON.stringify(sfdxProjectConfig, null, 2)
+      );
+    } catch (error) {
+      console.error(error);
+      channelService.appendLine(
+        nls.localize('error_updateing_sfdx_project', error.toString())
+      );
+      notificationService.showErrorMessage(
+        nls.localize('error_updateing_sfdx_project', error.toString())
+      );
+      return;
+    }
+
     // last step: open the folder in VS Code
+    channelService.appendLine('Now opening VS Code Folder.');
     await vscode.commands.executeCommand(
       'vscode.openFolder',
       vscode.Uri.parse(projectPath)
@@ -298,7 +438,9 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
         return {
           type: 'CONTINUE',
           data: {
-            loginUrl: parameter.url,
+            loginUrl: parameter.url.toLowerCase().startsWith('http')
+              ? parameter.url
+              : 'https://' + parameter.url,
             sessionId: parameter.sessionId
           }
         };
