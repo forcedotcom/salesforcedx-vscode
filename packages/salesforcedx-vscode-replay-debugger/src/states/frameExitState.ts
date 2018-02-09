@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause l.
+ * For full license text, see LICENSE.txt icensefile in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { LogContext } from '../core/logContext';
@@ -20,8 +20,8 @@ export class FrameExitState extends FrameState implements DebugLogState {
       if (topFrame) {
         logContext.getFrames().pop();
         if (
-          topFrame.name === this.frameName ||
-          topFrame.name.startsWith(this.frameName)
+          topFrame.name === this._frameName ||
+          topFrame.name.startsWith(this._frameName)
         ) {
           break;
         }

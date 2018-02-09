@@ -18,13 +18,13 @@ export class FrameEntryState extends FrameState implements DebugLogState {
   }
 
   public handle(logContext: LogContext): boolean {
-    const sourceUri = logContext.getUriFromSignature(this.signature);
+    const sourceUri = logContext.getUriFromSignature(this._signature);
     logContext
       .getFrames()
       .push(
         new StackFrame(
           logContext.getFrames().length,
-          this.frameName,
+          this._frameName,
           sourceUri
             ? new Source(basename(sourceUri), Uri.parse(sourceUri).path)
             : undefined,
