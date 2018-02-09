@@ -371,7 +371,7 @@ export abstract class CompositeSfdxCommandletExecutor<
       const execution = new CliCommandExecutor(executor.build(response.data), {
         cwd: vscode.workspace.rootPath
       }).execute(cancellationToken);
-      executionWrapper.attachSubExecution(execution);
+      this.attachSubExecution(execution);
 
       try {
         const resultPromise = new CommandOutput().getCmdResult(execution);
@@ -379,10 +379,18 @@ export abstract class CompositeSfdxCommandletExecutor<
         const resultJson = JSON.parse(result);
         executor.updateResponse(response.data, resultJson);
       } catch (e) {
-        console.log(e);
+        executionWrapper.failureExit();
+        return;
       }
     }
+    executionWrapper.successfulExit();
   }
+
+  public attachSubExecution(execution: CommandExecution) {
+    channelService.streamCommandOutput(execution);
+    channelService.showChannelOutput();
+  }
+
   public abstract build(data: T): Command;
 }
 

@@ -54,7 +54,9 @@ export class CompositeCliCommandExecutor {
     this.options = options;
   }
 
-  public execute(cancellationToken?: CancellationToken): CommandExecution {
+  public execute(
+    cancellationToken?: CancellationToken
+  ): CompositeCliCommandExecution {
     return new CompositeCliCommandExecution(this.command, cancellationToken);
   }
 }
@@ -118,6 +120,14 @@ export class CompositeCliCommandExecution implements CommandExecution {
         timerSubscriber.unsubscribe();
       }
     });
+  }
+
+  public successfulExit() {
+    this.exitSubject.next(0);
+  }
+
+  public failureExit() {
+    this.exitSubject.next(1);
   }
 }
 
