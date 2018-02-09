@@ -67,7 +67,7 @@ describe('Force Start Apex Debug Logging', () => {
 
   it('Should build the traceflag update command for logging', async () => {
     const updateTraceFlagsExecutor = new UpdateTraceFlagsExecutor();
-    const updateTraceFlagCmd = updateTraceFlagsExecutor.build({});
+    const updateTraceFlagCmd = updateTraceFlagsExecutor.build();
     expect(updateTraceFlagCmd.toCommand()).to.equal(
       `sfdx force:data:record:update --sobjecttype TraceFlag --sobjectid ${fakeTraceFlagId} --values StartDate='${startDate.toUTCString()}' ExpirationDate='${endDate.toUTCString()}' --usetoolingapi`
     );
@@ -78,7 +78,7 @@ describe('Force Start Apex Debug Logging', () => {
 
   it('Should build the debuglevel update command for logging', async () => {
     const updateDebugLevelsExecutor = new UpdateDebugLevelsExecutor();
-    const updateDebugLevelCmd = updateDebugLevelsExecutor.build({});
+    const updateDebugLevelCmd = updateDebugLevelsExecutor.build();
     expect(updateDebugLevelCmd.toCommand()).to.equal(
       `sfdx force:data:record:update --sobjecttype DebugLevel --sobjectid ${fakeDebugLevelId} --values ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL} --usetoolingapi`
     );
@@ -100,7 +100,7 @@ describe('Force Start Apex Debug Logging', () => {
 
   it('Should build the debuglevel create command for logging', async () => {
     const createDebugLevelExecutor = new CreateDebugLevel();
-    const createDebugLevelCmd = createDebugLevelExecutor.build({});
+    const createDebugLevelCmd = createDebugLevelExecutor.build();
     expect(createDebugLevelCmd.toCommand()).to.equal(
       `sfdx force:data:record:create --sobjecttype DebugLevel --values developername=ReplayDebuggerLevels${Date.now()} MasterLabel=ReplayDebuggerLevels${Date.now()} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL} --usetoolingapi --json`
     );
