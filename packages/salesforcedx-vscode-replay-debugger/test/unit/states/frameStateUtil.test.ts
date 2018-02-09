@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import 'mocha';
 import { FrameStateUtil } from '../../../src/states/frameStateUtil';
 
 // tslint:disable:no-unused-expression

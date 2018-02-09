@@ -21,7 +21,6 @@ export class FrameStateUtil {
     const invokeMatch = ' invoke\\((.*)\\)';
     let frameName = '';
     switch (fields[1]) {
-      // Oh frame names, how I love thee
       case EVENT_CODE_UNIT_STARTED:
       case EVENT_CODE_UNIT_FINISHED:
         if (sig.startsWith(SFDC_TRIGGER)) {
