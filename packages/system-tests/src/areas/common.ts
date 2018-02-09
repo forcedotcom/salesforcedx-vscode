@@ -70,12 +70,12 @@ export class CommonActions {
     );
   }
 
-  public async getConsoleHtml(): Promise<any> {
+  public async getConsoleOutput(): Promise<any> {
     const htmlTag = `div[class="view-lines"]`;
     const el = await this.spectron.client.element(htmlTag);
     if (el.status === 0) {
       const html = await this.spectron.client.getHTML(htmlTag);
-      return html;
+      return this.extractTextFromHTML(html);
     }
     return undefined;
   }
@@ -222,5 +222,15 @@ export class CommonActions {
 
   private closeCurrentNotification(): Promise<any> {
     return this.spectron.command('workbench.action.closeMessages');
+  }
+
+  private extractTextFromHTML(htmlString: string[]): string[] {
+    const resultArray = [];
+    for (let i = 0; i < htmlString.length; i += 1) {
+      resultArray.push(
+        htmlString[i].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ')
+      );
+    }
+    return resultArray;
   }
 }
