@@ -74,8 +74,8 @@ export class CommonActions {
     const htmlTag = `div[class="view-lines"]`;
     const el = await this.spectron.client.element(htmlTag);
     if (el.status === 0) {
-      const html = await this.spectron.client.getHTML(htmlTag);
-      return this.extractTextFromHTML(html);
+      const textFromElement = await this.spectron.client.getText(htmlTag);
+      return textFromElement;
     }
     return undefined;
   }
@@ -222,15 +222,5 @@ export class CommonActions {
 
   private closeCurrentNotification(): Promise<any> {
     return this.spectron.command('workbench.action.closeMessages');
-  }
-
-  private extractTextFromHTML(htmlString: string[]): string[] {
-    const resultArray = [];
-    for (let i = 0; i < htmlString.length; i += 1) {
-      resultArray.push(
-        htmlString[i].replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ')
-      );
-    }
-    return resultArray;
   }
 }
