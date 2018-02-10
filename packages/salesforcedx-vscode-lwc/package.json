@@ -14,20 +14,21 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.18.0",
+  "version": "42.2.0",
   "publisher": "salesforce",
+  "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.17.0"
   },
   "categories": ["Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.18.0",
-    "lwc-language-server": "0.16.2",
-    "vscode-languageclient": "3.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.2.0",
     "eslint": "4.16.0",
     "eslint-plugin-lwc": "0.3.2",
-    "rxjs": "^5.4.1"
+    "lwc-language-server": "0.16.4",
+    "rxjs": "^5.4.1",
+    "vscode-languageclient": "3.5.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
