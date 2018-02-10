@@ -9,14 +9,16 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -65,7 +67,7 @@ export class TestsSelector
     fileItems.push({
       label: nls.localize('force_apex_test_run_all_test_label'),
       description: nls.localize(
-        'force_apex_test_run_all_tests_desription_text'
+        'force_apex_test_run_all_tests_description_text'
       ),
       type: TestType.All
     });

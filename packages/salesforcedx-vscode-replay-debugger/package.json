@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.18.0",
+  "version": "42.2.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,9 +22,10 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.18.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.2.0",
     "vscode-debugadapter": "1.25.0",
-    "vscode-debugprotocol": "1.25.0"
+    "vscode-debugprotocol": "1.25.0",
+    "vscode-uri": "1.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -110,9 +111,9 @@
                 "default": true
               },
               "trace": {
-                "type": "boolean",
+                "type": ["boolean", "string"],
                 "description": "%trace_text%",
-                "default": true
+                "default": false
               }
             }
           }

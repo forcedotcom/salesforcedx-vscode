@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
@@ -69,7 +70,9 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    return vscode.workspace.workspaceFolders[0].uri;
+    return vscode.Uri.file(
+      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx')
+    );
   }
 }
 

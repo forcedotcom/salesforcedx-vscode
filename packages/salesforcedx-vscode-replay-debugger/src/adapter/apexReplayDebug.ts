@@ -10,11 +10,14 @@ import {
   DebugSession,
   Event,
   InitializedEvent,
+  logger,
+  Logger,
+  LoggingDebugSession,
   OutputEvent,
   Source,
   StoppedEvent,
-  Thread,
-  ThreadEvent
+  TerminatedEvent,
+  Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { BreakpointUtil, LineBreakpointInfo } from '../breakpoints';
@@ -26,21 +29,44 @@ import {
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
 
+const TRACE_ALL = 'all';
+const TRACE_CATEGORY_PROTOCOL = 'protocol';
+const TRACE_CATEGORY_LOGFILE = 'logfile';
+const TRACE_CATEGORY_LAUNCH = 'launch';
+const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
+
+export type TraceCategory =
+  | 'all'
+  | 'protocol'
+  | 'logfile'
+  | 'launch'
+  | 'breakpoints';
+
+export enum Step {
+  Over,
+  In,
+  Out,
+  Run
+}
+
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
   logFile: string;
-  stopOnEntry: boolean | true;
-  trace: boolean | true;
+  stopOnEntry?: boolean | true;
+  trace?: boolean | string;
 }
 
-export class ApexReplayDebug extends DebugSession {
+export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext: LogContext;
+  protected trace: string[] = [];
+  protected traceAll = false;
   private breakpointUtil: BreakpointUtil;
   private initializedResponse: DebugProtocol.InitializeResponse;
+  protected breakpoints: Map<string, number[]> = new Map();
 
   constructor() {
-    super();
+    super('apex-replay-debug-adapter.log');
     this.setDebuggerLinesStartAt1(true);
     this.setDebuggerPathFormat('uri');
     this.breakpointUtil = new BreakpointUtil();
@@ -67,27 +93,58 @@ export class ApexReplayDebug extends DebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): void {
+    this.setupLogger(args);
+
+    this.log(
+      TRACE_CATEGORY_LAUNCH,
+      `launchRequest: args=${JSON.stringify(args)}`
+    );
     if (args.logFile) {
       args.logFile = this.convertDebuggerPathToClient(args.logFile);
     }
-    this.logContext = new LogContext(args);
+    this.logContext = new LogContext(args, this);
     if (!this.logContext.hasLogLines()) {
       response.success = false;
       response.message = nls.localize('no_log_file_text');
       this.sendResponse(response);
       return;
     }
-    if (args.stopOnEntry) {
-      this.logContext.updateFrames();
-      this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
-    } else {
-      // Continue until first breakpoint
-    }
     this.printToDebugConsole(
       nls.localize('session_started_text', this.logContext.getLogFileName())
     );
     response.success = true;
     this.sendResponse(response);
+  }
+
+  public setupLogger(args: LaunchRequestArguments): void {
+    if (typeof args.trace === 'boolean') {
+      this.trace = args.trace ? [TRACE_ALL] : [];
+      this.traceAll = args.trace;
+    } else if (typeof args.trace === 'string') {
+      this.trace = args.trace.split(',').map(category => category.trim());
+      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+    }
+    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+      logger.setup(Logger.LogLevel.Verbose, false);
+    } else {
+      logger.setup(Logger.LogLevel.Stop, false);
+    }
+  }
+
+  public configurationDoneRequest(
+    response: DebugProtocol.ConfigurationDoneResponse,
+    args: DebugProtocol.ConfigurationDoneArguments
+  ): void {
+    if (this.logContext.getLaunchArgs().stopOnEntry) {
+      // Stop in the debug log
+      this.logContext.updateFrames();
+      this.sendEvent(new StoppedEvent('entry', ApexReplayDebug.THREAD_ID));
+    } else {
+      // Set breakpoints first, then try to continue to the next breakpoint
+      this.continueRequest({} as DebugProtocol.ContinueResponse, {
+        threadId: ApexReplayDebug.THREAD_ID
+      });
+    }
   }
 
   public disconnectRequest(
@@ -101,9 +158,7 @@ export class ApexReplayDebug extends DebugSession {
 
   public threadsRequest(response: DebugProtocol.ThreadsResponse): void {
     response.body = {
-      threads: [
-        new Thread(ApexReplayDebug.THREAD_ID, this.logContext.getLogFileName())
-      ]
+      threads: [new Thread(ApexReplayDebug.THREAD_ID, '')]
     };
     response.success = true;
     this.sendResponse(response);
@@ -113,7 +168,12 @@ export class ApexReplayDebug extends DebugSession {
     response: DebugProtocol.StackTraceResponse,
     args: DebugProtocol.StackTraceArguments
   ): void {
-    response.body = { stackFrames: this.logContext.getFrames().reverse() };
+    response.body = {
+      stackFrames: this.logContext
+        .getFrames()
+        .slice()
+        .reverse()
+    };
     response.success = true;
     this.sendResponse(response);
   }
@@ -122,9 +182,78 @@ export class ApexReplayDebug extends DebugSession {
     response: DebugProtocol.ContinueResponse,
     args: DebugProtocol.ContinueArguments
   ): void {
-    this.sendEvent(new ThreadEvent('exited', ApexReplayDebug.THREAD_ID));
+    this.executeStep(response, Step.Run);
+  }
+
+  public nextRequest(
+    response: DebugProtocol.NextResponse,
+    args: DebugProtocol.NextArguments
+  ): void {
+    this.executeStep(response, Step.Over);
+  }
+
+  public stepInRequest(
+    response: DebugProtocol.StepInResponse,
+    args: DebugProtocol.StepInArguments
+  ): void {
+    this.executeStep(response, Step.In);
+  }
+
+  public stepOutRequest(
+    response: DebugProtocol.StepOutResponse,
+    args: DebugProtocol.StepOutArguments
+  ): void {
+    this.executeStep(response, Step.Out);
+  }
+
+  protected executeStep(
+    response: DebugProtocol.Response,
+    stepType: Step
+  ): void {
     response.success = true;
     this.sendResponse(response);
+    const prevNumOfFrames = this.logContext.getNumOfFrames();
+    while (this.logContext.hasLogLines()) {
+      this.logContext.updateFrames();
+      const curNumOfFrames = this.logContext.getNumOfFrames();
+      if (
+        (stepType === Step.Over &&
+          curNumOfFrames !== 0 &&
+          curNumOfFrames <= prevNumOfFrames) ||
+        (stepType === Step.In && curNumOfFrames >= prevNumOfFrames) ||
+        (stepType === Step.Out &&
+          curNumOfFrames !== 0 &&
+          curNumOfFrames < prevNumOfFrames)
+      ) {
+        return this.sendEvent(
+          new StoppedEvent('step', ApexReplayDebug.THREAD_ID)
+        );
+      }
+      if (this.shouldStopForBreakpoint()) {
+        return;
+      }
+    }
+    this.sendEvent(new TerminatedEvent());
+  }
+
+  protected shouldStopForBreakpoint(): boolean {
+    const topFrame = this.logContext.getTopFrame();
+    if (topFrame && topFrame.source) {
+      const topFrameUri = this.convertClientPathToDebugger(
+        topFrame.source.path
+      );
+      const topFrameLine = this.convertClientLineToDebugger(topFrame.line);
+      if (
+        this.breakpoints.has(topFrameUri) &&
+        this.breakpoints.get(topFrameUri)!.indexOf(topFrameLine) !== -1
+      ) {
+        this.sendEvent(
+          new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID)
+        );
+        return true;
+      }
+    }
+    return false;
   }
 
   public setBreakPointsRequest(
@@ -133,17 +262,34 @@ export class ApexReplayDebug extends DebugSession {
   ): void {
     response.body = { breakpoints: [] };
     if (args.source.path && args.lines) {
+      this.log(
+        TRACE_CATEGORY_BREAKPOINTS,
+        `setBreakPointsRequest: path=${args.source
+          .path} lines=${args.lines.join(',')}`
+      );
       const uri = this.convertClientPathToDebugger(args.source.path);
+      this.breakpoints.set(uri, []);
       for (const lineArg of args.lines) {
+        const isVerified = this.breakpointUtil.canSetLineBreakpoint(
+          uri,
+          this.convertClientLineToDebugger(lineArg)
+        );
         response.body.breakpoints.push({
-          verified: this.breakpointUtil.canSetLineBreakpoint(
-            uri,
-            this.convertClientLineToDebugger(lineArg)
-          ),
+          verified: isVerified,
           source: args.source,
           line: lineArg
         });
+        if (isVerified) {
+          this.breakpoints.get(uri)!.push(
+            this.convertClientLineToDebugger(lineArg)
+          );
+        }
       }
+      this.log(
+        TRACE_CATEGORY_BREAKPOINTS,
+        `setBreakPointsRequest: path=${args.source
+          .path} verified lines=${this.breakpoints.get(uri)!.join(',')}`
+      );
     }
     response.success = true;
     this.sendResponse(response);
@@ -160,6 +306,7 @@ export class ApexReplayDebug extends DebugSession {
         const lineBpInfo: LineBreakpointInfo[] = args;
         if (lineBpInfo && lineBpInfo.length > 0) {
           const lineNumberMapping: Map<string, number[]> = new Map();
+          const typerefMapping: Map<string, string> = new Map();
           for (const info of lineBpInfo) {
             if (!lineNumberMapping.has(info.uri)) {
               lineNumberMapping.set(info.uri, []);
@@ -168,11 +315,13 @@ export class ApexReplayDebug extends DebugSession {
               info.uri,
               lineNumberMapping.get(info.uri)!.concat(info.lines)
             );
+            typerefMapping.set(info.typeref, info.uri);
           }
-          this.breakpointUtil.setValidLines(lineNumberMapping);
+          this.breakpointUtil.setValidLines(lineNumberMapping, typerefMapping);
         }
         if (this.initializedResponse) {
           this.initializedResponse.body = {
+            supportsConfigurationDoneRequest: true,
             supportsCompletionsRequest: false,
             supportsConditionalBreakpoints: false,
             supportsDelayedStackTraceLoading: false,
@@ -196,15 +345,29 @@ export class ApexReplayDebug extends DebugSession {
     this.sendResponse(response);
   }
 
+  public log(traceCategory: TraceCategory, message: string) {
+    if (
+      this.trace &&
+      (this.traceAll || this.trace.indexOf(traceCategory) >= 0)
+    ) {
+      this.printToDebugConsole(`${process.pid}: ${message}`);
+    }
+  }
+
+  public shouldTraceLogFile(): boolean {
+    return this.traceAll || this.trace.indexOf(TRACE_CATEGORY_LOGFILE) !== -1;
+  }
+
   public printToDebugConsole(
-    msg?: string,
+    msg: string,
     sourceFile?: Source,
-    sourceLine?: number
+    sourceLine?: number,
+    category = 'stdout'
   ): void {
     if (msg && msg.length !== 0) {
       const event: DebugProtocol.OutputEvent = new OutputEvent(
         `${msg}${EOL}`,
-        'stdout'
+        category
       );
       event.body.source = sourceFile;
       event.body.line = sourceLine;
@@ -213,16 +376,24 @@ export class ApexReplayDebug extends DebugSession {
     }
   }
 
-  public warnToDebugConsole(msg?: string): void {
-    if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${EOL}`, 'console'));
-    }
+  public warnToDebugConsole(
+    msg: string,
+    sourceFile?: Source,
+    sourceLine?: number
+  ): void {
+    this.printToDebugConsole(msg, sourceFile, sourceLine, 'console');
   }
 
-  public errorToDebugConsole(msg?: string): void {
-    if (msg && msg.length !== 0) {
-      this.sendEvent(new OutputEvent(`${msg}${EOL}`, 'stderr'));
-    }
+  public errorToDebugConsole(
+    msg: string,
+    sourceFile?: Source,
+    sourceLine?: number
+  ): void {
+    this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
+  }
+
+  public getBreakpointUtil(): BreakpointUtil {
+    return this.breakpointUtil;
   }
 }
 
