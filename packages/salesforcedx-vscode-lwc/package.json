@@ -14,21 +14,23 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "41.18.0",
+  "version": "42.2.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.17.0"
   },
-  "categories": ["Languages"],
+  "categories": [
+    "Languages"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "41.18.0",
-    "lwc-language-server": "0.16.4",
-    "vscode-languageclient": "3.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.2.0",
     "eslint": "4.16.0",
     "eslint-plugin-lwc": "0.3.2",
-    "rxjs": "^5.4.1"
+    "lwc-language-server": "0.16.4",
+    "rxjs": "^5.4.1",
+    "vscode-languageclient": "3.5.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -54,24 +56,22 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "pretest": "node ../../scripts/download-vscode-for-system-tests",
-    "test":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
+    "test": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "main": "./out/src",
   "contributes": {
     "menus": {
       "explorer/context": [
         {
           "command": "sfdx.force.lightning.lwc.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename == lightningcomponents && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == lightningcomponents && sfdx:project_opened"
         }
       ],
       "commandPalette": [
