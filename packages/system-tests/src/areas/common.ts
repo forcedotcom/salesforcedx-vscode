@@ -70,12 +70,12 @@ export class CommonActions {
     );
   }
 
-  public async getConsoleHtml(): Promise<any> {
+  public async getConsoleOutput(): Promise<any> {
     const htmlTag = `div[class="view-lines"]`;
     const el = await this.spectron.client.element(htmlTag);
     if (el.status === 0) {
-      const html = await this.spectron.client.getHTML(htmlTag);
-      return html;
+      const textFromElement = await this.spectron.client.getText(htmlTag);
+      return textFromElement;
     }
     return undefined;
   }
