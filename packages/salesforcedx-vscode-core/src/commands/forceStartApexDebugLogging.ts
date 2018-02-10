@@ -24,7 +24,6 @@ import { nls } from '../messages';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import { showTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
-  CompositeSfdxCommandletExecutor,
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -118,30 +117,33 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
         resultPromise = new CommandOutput().getCmdResult(execution);
         result = await resultPromise;
         resultJson = JSON.parse(result);
-
-        execution = new CliCommandExecutor(new CreateDebugLevel().build(), {
-          cwd: vscode.workspace.rootPath
-        }).execute(cancellationToken);
-        this.attachSubExecution(execution);
-        resultPromise = new CommandOutput().getCmdResult(execution);
-        result = await resultPromise;
-        resultJson = JSON.parse(result);
+        const debugLevelId = resultJson.result.id;
+        developerLogTraceFlag.setDebugLevelInfo(
+          debugLevelId,
+          APEX_CODE_DEBUG_LEVEL,
+          VISUALFORCE_DEBUG_LEVEL
+        );
+        channelService.streamCommandOutput(execution);
+        channelService.showChannelOutput();
+        CancellableStatusBar.show(execution, cancellationTokenSource);
+        taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
         const userId = await getUserId(
           vscode.workspace.workspaceFolders![0].uri.fsPath
         );
 
-        execution = new CliCommandExecutor(new CreateDebugLevel().build(), {
-          cwd: vscode.workspace.rootPath
-        }).execute(cancellationToken);
+        execution = new CliCommandExecutor(
+          new CreateTraceFlag(userId).build(),
+          {
+            cwd: vscode.workspace.rootPath
+          }
+        ).execute(cancellationToken);
         this.attachSubExecution(execution);
         resultPromise = new CommandOutput().getCmdResult(execution);
         result = await resultPromise;
         resultJson = JSON.parse(result);
       }
       executionWrapper.successfulExit();
-      // run executors to update traceflag and debug levels
-      // tslint:disable-next-line:no-empty
     } catch (e) {
       executionWrapper.failureExit();
     }
@@ -258,11 +260,6 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('--json')
       .build();
   }
-  public updateResponse(data: any, resultJson: any): void {
-    showTraceFlagExpiration(
-      developerLogTraceFlag.getExpirationDate().toLocaleString()
-    );
-  }
 }
 
 export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
@@ -281,19 +278,12 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
           .toUTCString()}'`
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
       .build();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-
-class Test extends CompositeSfdxCommandletExecutor<any> {
-  public build(data: any): Command {
-    return new SfdxCommandBuilder().withDescription('test').build();
-  }
-}
 
 export class ForceQueryTraceFlag extends SfdxCommandletExecutor<any> {
   public build(): Command {
@@ -305,24 +295,7 @@ export class ForceQueryTraceFlag extends SfdxCommandletExecutor<any> {
         "SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
       .build();
-  }
-
-  public updateResponse(data: any, resultJson: any): void {
-    if (resultJson && resultJson.result && resultJson.result.size >= 1) {
-      const traceflag = resultJson.result.records[0];
-      developerLogTraceFlag.setTraceFlagDebugLevelInfo(
-        traceflag.Id,
-        traceflag.StartDate,
-        traceflag.ExpirationDate,
-        traceflag.DebugLevelId,
-        traceflag.DebugLevel.ApexCode,
-        traceflag.DebugLevel.Visualforce
-      );
-      developerLogTraceFlag.turnOnLogging();
-      developerLogTraceFlag.validateDates();
-    }
   }
 }
 
@@ -333,11 +306,6 @@ export function forceStartApexDebugLogging() {
     workspaceChecker,
     parameterGatherer,
     executor
-    // new Test(
-    //   new ForceQueryTraceFlag(),
-    //   new UpdateDebugLevelsExecutor(),
-    //   new UpdateTraceFlagsExecutor()
-    // )
   );
   commandlet.run();
 }
