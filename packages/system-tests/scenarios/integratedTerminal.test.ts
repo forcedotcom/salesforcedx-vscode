@@ -44,7 +44,7 @@ describe(TITLE, () => {
   it('Should open terminal and check that new terminals will have SFDX_SET_CLIENT_IDS', async () => {
     // Show terminal
     await app.command('workbench.action.quickOpen');
-    await common.type('>View: Toggle Integrated Terminal');
+    await common.type('>Terminal: Focus Terminal');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
