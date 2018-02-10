@@ -43,12 +43,12 @@ import {
 } from '../forceProjectCreate';
 
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
-  protected readonly relativeMetdataTempPath = path.join(
+  public readonly relativeMetdataTempPath = path.join(
     '.sfdx',
     'isvdebugger',
     'mdapitmp'
   );
-  protected readonly relativeApexPackageXmlPath = path.join(
+  public readonly relativeApexPackageXmlPath = path.join(
     this.relativeMetdataTempPath,
     'package.xml'
   );
@@ -132,7 +132,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public buildMetadataApiConvertPackageSourceCommand(
-    data: IsvDebugBootstrapConfig,
     packageName: string
   ): Command {
     return new SfdxCommandBuilder()
@@ -176,9 +175,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // 1: create project
     await this.executeCommand(
       this.buildCreateProjectCommand(response.data),
-      {
-        cwd: projectParentPath
-      },
+      { cwd: projectParentPath },
       cancellationTokenSource,
       cancellationToken
     );
@@ -186,9 +183,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // 2: configure project
     await this.executeCommand(
       this.buildConfigureProjectCommand(response.data),
-      {
-        cwd: projectPath
-      },
+      { cwd: projectPath },
       cancellationTokenSource,
       cancellationToken
     );
@@ -225,9 +220,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // 3b: retrieve unmanged org source
     await this.executeCommand(
       this.buildRetrieveOrgSourceCommand(response.data),
-      {
-        cwd: projectPath
-      },
+      { cwd: projectPath },
       cancellationTokenSource,
       cancellationToken
     );
@@ -252,9 +245,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // 4b: convert org source
     await this.executeCommand(
       this.buildMetadataApiConvertOrgSourceCommand(response.data),
-      {
-        cwd: projectPath
-      },
+      { cwd: projectPath },
       cancellationTokenSource,
       cancellationToken
     );
@@ -262,9 +253,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // 5: get list of installed packages
     const packagesJson = await this.executeCommand(
       this.buildPackageInstalledListAsJsonCommand(response.data),
-      {
-        cwd: projectPath
-      },
+      { cwd: projectPath },
       cancellationTokenSource,
       cancellationToken
     );
@@ -273,9 +262,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     // 6: fetch packages
     await this.executeCommand(
       this.buildRetrievePackagesSourceCommand(response.data, packageNames),
-      {
-        cwd: projectPath
-      },
+      { cwd: projectPath },
       cancellationTokenSource,
       cancellationToken
     );
@@ -307,13 +294,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     for (const packageName of packageNames) {
       channelService.appendLine(`Processing package: ${packageName}`);
       await this.executeCommand(
-        this.buildMetadataApiConvertPackageSourceCommand(
-          response.data,
-          packageName
-        ),
-        {
-          cwd: projectPath
-        },
+        this.buildMetadataApiConvertPackageSourceCommand(packageName),
+        { cwd: projectPath },
         cancellationTokenSource,
         cancellationToken
       );
