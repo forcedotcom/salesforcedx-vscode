@@ -55,26 +55,29 @@ export class Message implements LocalizationProvider {
   }
 
   public localize(label: string, ...args: any[]): string {
-    const possibleLabel = this.getLabel(label);
+    let possibleLabel = this.getLabel(label);
 
     if (!possibleLabel) {
-      throw new Error("Message '" + label + "' doesn't exist");
+      console.warn(`Missing label for key: ${label}`);
+      possibleLabel = `!!! MISSING LABEL !!! ${label}`;
+      if (args.length >= 1) {
+        args.forEach(arg => {
+          possibleLabel += ` (${arg})`;
+        });
+      }
+      return possibleLabel;
     }
 
     if (args.length >= 1) {
       const expectedNumArgs = possibleLabel.split('%s').length - 1;
       if (args.length !== expectedNumArgs) {
-        throw new Error(
-          'Wrong number of args for message: ' +
-            label +
-            '\nExpect ' +
-            expectedNumArgs +
-            ' got ' +
-            args.length
+        // just log it, we might want to hide some in some languges on purpose
+        console.log(
+          `Arguments do not match for label '${label}', got ${args.length} but want ${expectedNumArgs}`
         );
       }
 
-      args.unshift(this.messages[label]);
+      args.unshift(possibleLabel);
       return util.format.apply(util, args);
     }
 
