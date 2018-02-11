@@ -70,9 +70,16 @@ describe('Localization tests', () => {
     expect(nls.localize('key_2')).to.be.equals('Bye');
   });
 
-  it('Should error if arg counts do no match', () => {
+  it('Should not fail if a key is missing in default locale', () => {
     const nls = new Localization(loadMessageBundle());
-    expect(() => nls.localize('key_3')).to.throw();
+    expect(nls.localize('non_existent_key')).to.be.equals(
+      '!!! MISSING LABEL !!! non_existent_key'
+    );
+  });
+
+  it('Should not error if arg counts do no match', () => {
+    const nls = new Localization(loadMessageBundle());
+    expect(() => nls.localize('key_3')).to.not.throw();
   });
 
   it('Should perform substitution in default locale if args >=1', () => {
@@ -84,6 +91,13 @@ describe('Localization tests', () => {
     const nls = new Localization(loadMessageBundle({ locale: 'ja' }));
     expect(nls.localize('key_3_with_args', 'John')).to.be.equals(
       'こんにちは Johnさん'
+    );
+  });
+
+  it('Should append args for missing label', () => {
+    const nls = new Localization(loadMessageBundle());
+    expect(nls.localize('non_existent_key', 'John')).to.be.equals(
+      '!!! MISSING LABEL !!! non_existent_key (John)'
     );
   });
 });
