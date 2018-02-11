@@ -62,14 +62,8 @@ export class DeveloperLogTraceFlag {
     this.prevVFDebugLevel = oldVFDebugLevel;
   }
 
-  public setTraceFlagInfo(
-    id: string,
-    startDate: string,
-    expirationDate: string
-  ) {
+  public setTraceFlagId(id: string) {
     this.traceflagId = id;
-    this.startDate = new Date(startDate);
-    this.expirationDate = new Date(expirationDate);
   }
 
   public turnOnLogging() {
@@ -79,8 +73,9 @@ export class DeveloperLogTraceFlag {
   public isValidDateLength() {
     const currDate = new Date().valueOf();
     return (
+      this.expirationDate &&
       this.expirationDate.getTime() - currDate >
-      this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND
+        this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND
     );
   }
 

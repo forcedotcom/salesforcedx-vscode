@@ -126,8 +126,11 @@ export class CompositeCliCommandExecution implements CommandExecution {
     this.exitSubject.next(0);
   }
 
-  public failureExit() {
+  public failureExit(e?: any) {
     this.exitSubject.next(1);
+    if (e) {
+      console.log(e);
+    }
   }
 }
 
