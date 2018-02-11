@@ -8,9 +8,7 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandExecution,
-  CommandOutput,
-  CompositeCliCommandExecutor
+  CommandExecution
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,

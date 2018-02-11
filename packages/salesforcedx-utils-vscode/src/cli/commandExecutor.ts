@@ -47,11 +47,9 @@ export class CliCommandExecutor {
 
 export class CompositeCliCommandExecutor {
   private readonly command: Command;
-  private readonly options: ExecOptions;
 
-  public constructor(commands: Command, options: ExecOptions) {
+  public constructor(commands: Command) {
     this.command = commands;
-    this.options = options;
   }
 
   public execute(

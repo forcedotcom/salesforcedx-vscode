@@ -14,10 +14,7 @@ import {
   CompositeCliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  CancelResponse,
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
@@ -48,9 +45,9 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
   public async execute(response: ContinueResponse<{}>): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const executionWrapper = new CompositeCliCommandExecutor(this.build(), {
-      cwd: vscode.workspace.rootPath
-    }).execute(cancellationToken);
+    const executionWrapper = new CompositeCliCommandExecutor(
+      this.build()
+    ).execute(cancellationToken);
     this.attachExecution(
       executionWrapper,
       cancellationTokenSource,
