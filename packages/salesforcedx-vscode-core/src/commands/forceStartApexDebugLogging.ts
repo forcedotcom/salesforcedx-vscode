@@ -19,7 +19,6 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
-import { CancellableStatusBar, taskViewService } from '../statuses';
 import { showTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
   EmptyParametersGatherer,
@@ -39,7 +38,6 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 
   public attachSubExecution(execution: CommandExecution) {
     channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
@@ -176,31 +174,6 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
       .withArg('--json')
       .build();
   }
-
-  public async execute(response: ContinueResponse<{}>): Promise<void> {
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(), {
-      cwd: vscode.workspace.rootPath
-    }).execute(cancellationToken);
-    const resultPromise = new CommandOutput().getCmdResult(execution);
-    try {
-      const result = await resultPromise;
-      const resultJson = JSON.parse(result);
-      const debugLevelId = resultJson.result.id;
-      developerLogTraceFlag.setDebugLevelInfo(
-        debugLevelId,
-        APEX_CODE_DEBUG_LEVEL,
-        VISUALFORCE_DEBUG_LEVEL
-      );
-      channelService.streamCommandOutput(execution);
-      channelService.showChannelOutput();
-      CancellableStatusBar.show(execution, cancellationTokenSource);
-      taskViewService.addCommandExecution(execution, cancellationTokenSource);
-    } catch (e) {
-      console.log(e);
-    }
-  }
 }
 
 export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
@@ -228,19 +201,6 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
       .withArg('--usetoolingapi')
       .withArg('--json')
       .build();
-  }
-
-  public async execute(response: ContinueResponse<{}>): Promise<void> {
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(), {
-      cwd: vscode.workspace.rootPath
-    }).execute(cancellationToken);
-
-    channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
-    CancellableStatusBar.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 

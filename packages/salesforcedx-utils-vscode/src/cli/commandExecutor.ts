@@ -75,24 +75,28 @@ export interface CommandExecution {
 }
 
 export class CompositeCliCommandExecution implements CommandExecution {
-  public readonly exitSubject: Subject<number | undefined>;
-  public readonly errorSubject: Subject<Error | undefined>;
+  private readonly exitSubject: Subject<number | undefined>;
+  private readonly errorSubject: Subject<Error | undefined>;
+  private readonly stdout: Subject<string>;
+  private readonly stderr: Subject<string>;
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
   public readonly processExitSubject: Observable<number | undefined>;
   public readonly processErrorSubject: Observable<Error | undefined>;
-  public readonly stdoutSubject: Observable<Buffer | string>;
-  public readonly stderrSubject: Observable<Buffer | string>;
+  public readonly stdoutSubject: Observable<string>;
+  public readonly stderrSubject: Observable<string>;
 
   constructor(command: Command, cancellationToken?: CancellationToken) {
     this.exitSubject = new Subject();
     this.errorSubject = new Subject();
+    this.stdout = new Subject();
+    this.stderr = new Subject();
     this.command = command;
     this.cancellationToken = cancellationToken;
     this.processExitSubject = this.exitSubject.asObservable();
     this.processErrorSubject = this.errorSubject.asObservable();
-    this.stdoutSubject = EmptyObservable.create();
-    this.stderrSubject = EmptyObservable.create();
+    this.stdoutSubject = this.stdout.asObservable();
+    this.stderrSubject = this.stderr.asObservable();
 
     let timerSubscriber: Subscription | null;
     if (cancellationToken) {
@@ -125,10 +129,10 @@ export class CompositeCliCommandExecution implements CommandExecution {
   }
 
   public failureExit(e?: any) {
-    this.exitSubject.next(1);
     if (e) {
-      console.log(e);
+      this.stderr.next(`${e}\n`);
     }
+    this.exitSubject.next(1);
   }
 }
 
