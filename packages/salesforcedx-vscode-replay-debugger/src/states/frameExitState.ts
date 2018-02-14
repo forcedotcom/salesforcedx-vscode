@@ -20,8 +20,8 @@ export class FrameExitState extends FrameState implements DebugLogState {
       if (topFrame) {
         logContext.getFrames().pop();
         if (
-          topFrame.name === this.frameName ||
-          topFrame.name.startsWith(this.frameName)
+          topFrame.name === this._frameName ||
+          topFrame.name.startsWith(this._frameName)
         ) {
           break;
         }
