@@ -6,17 +6,35 @@
  */
 
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
+import { APEX_CODE_DEBUG_LEVEL } from './constants';
 import { nls } from './messages';
 
 let statusBarItem: StatusBarItem;
 
-export function showTraceFlagExpiration(expirationDate: String) {
+export function showTraceFlagExpiration(expirationDate: Date) {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 40);
   }
   statusBarItem.text = nls.localize(
     'force_apex_debug_log_status_bar_text',
-    expirationDate
+    expirationDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  );
+
+  statusBarItem.tooltip = nls.localize(
+    'force_apex_debug_log_status_bar_hover_text',
+    APEX_CODE_DEBUG_LEVEL,
+    expirationDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    expirationDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    })
   );
   statusBarItem.show();
 }

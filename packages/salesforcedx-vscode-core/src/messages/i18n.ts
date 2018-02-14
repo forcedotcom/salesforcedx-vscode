@@ -118,11 +118,13 @@ export const messages = {
   force_project_create_open_dialog_create_label: 'Create Project',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
-    'SFDX: Turn on Apex Debug Log for Replay Debugger',
-  force_apex_debug_log_status_bar_text: 'Logging ends at %s',
+    'SFDX: Turn On Apex Debug Log for Replay Debugger',
+  force_apex_debug_log_status_bar_text:
+    '$(file-text) Recording detailed logs until %s',
+  force_apex_debug_log_status_bar_hover_text:
+    'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
   force_stop_apex_debug_logging:
-    'SFDX: Turn off Apex Debug Log for Replay Debugger',
-
+    'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_step1_create_project:
     'SFDX: ISV Debugger Setup, Step 1 of 2: Create Project',
   isv_debug_bootstrap_step1_configure_project:

@@ -48,9 +48,9 @@
   "show_cli_success_msg_description":
     "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
   "force_start_apex_debug_logging":
-    "SFDX: Turn on Apex Debug Log for Replay Debugger",
+    "SFDX: Turn On Apex Debug Log for Replay Debugger",
   "force_stop_apex_debug_logging":
-    "SFDX: Turn off Apex Debug Log for Replay Debugger",
+    "SFDX: Turn Off Apex Debug Log for Replay Debugger",
 
   "isv_bootstrap_command_text":
     "SFDX: Create and Set Up Project for ISV Debugging",

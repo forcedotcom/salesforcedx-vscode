@@ -317,7 +317,6 @@ export abstract class SfdxCommandletExecutor<T>
   public execute(response: ContinueResponse<T>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
