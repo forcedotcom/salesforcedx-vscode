@@ -6,6 +6,7 @@
  */
 
 import { ChildProcess, ExecOptions, spawn } from 'child_process';
+import * as os from 'os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
@@ -129,7 +130,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
 
   public failureExit(e?: any) {
     if (e) {
-      this.stderr.next(`${e}\n`);
+      this.stderr.next(`${e}${os.EOL}`);
     }
     this.exitSubject.next(1);
   }

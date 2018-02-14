@@ -90,7 +90,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
     }
   }
 
-  public async subExecute(command: Command) {
+  private async subExecute(command: Command) {
     if (!this.cancellationToken.isCancellationRequested) {
       const execution = new CliCommandExecutor(command, {
         cwd: vscode.workspace.workspaceFolders![0].uri.fsPath

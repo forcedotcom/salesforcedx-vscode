@@ -72,7 +72,7 @@ export class DeveloperLogTraceFlag {
 
   public turnOnLogging() {
     this.active = true;
-    showTraceFlagExpiration(this.getExpirationDate().toLocaleString());
+    showTraceFlagExpiration(this.getExpirationDate());
   }
 
   public isValidDateLength() {
