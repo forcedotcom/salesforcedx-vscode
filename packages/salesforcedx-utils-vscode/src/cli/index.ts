@@ -18,7 +18,8 @@ export { CommandBuilder, SfdxCommandBuilder } from './commandBuilder';
 export {
   CliCommandExecutor,
   CliCommandExecution,
-  CommandExecution
+  CommandExecution,
+  CompositeCliCommandExecutor
 } from './commandExecutor';
 export { CommandOutput } from './commandOutput';
 export { LocalCommandExecution } from './localCommandExecutor';

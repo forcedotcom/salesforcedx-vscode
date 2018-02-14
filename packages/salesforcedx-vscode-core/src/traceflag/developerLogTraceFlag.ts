@@ -4,6 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
+import { showTraceFlagExpiration } from '../traceflag-time-decorator';
+
 export class DeveloperLogTraceFlag {
   private static instance: DeveloperLogTraceFlag;
   private active: boolean;
@@ -54,26 +58,21 @@ export class DeveloperLogTraceFlag {
 
   public setDebugLevelInfo(
     debugLevelId: string,
-    oldApexCodeDebugLevel: string,
-    oldVFDebugLevel: string
+    oldApexCodeDebugLevel = APEX_CODE_DEBUG_LEVEL,
+    oldVFDebugLevel = VISUALFORCE_DEBUG_LEVEL
   ) {
     this.debugLevelId = debugLevelId;
     this.prevApexCodeDebugLevel = oldApexCodeDebugLevel;
     this.prevVFDebugLevel = oldVFDebugLevel;
   }
 
-  public setTraceFlagInfo(
-    id: string,
-    startDate: string,
-    expirationDate: string
-  ) {
+  public setTraceFlagId(id: string) {
     this.traceflagId = id;
-    this.startDate = new Date(startDate);
-    this.expirationDate = new Date(expirationDate);
   }
 
   public turnOnLogging() {
     this.active = true;
+    showTraceFlagExpiration(this.getExpirationDate());
   }
 
   public isValidDateLength() {
