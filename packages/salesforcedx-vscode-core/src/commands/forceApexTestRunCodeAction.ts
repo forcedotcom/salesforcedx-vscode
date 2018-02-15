@@ -32,8 +32,9 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
       )
       .withArg('force:apex:test:run')
       .withFlag('--tests', this.test)
-      .withFlag('--resultformat', 'human')
+      .withFlag('--resultformat', 'ide')
       .withArg('--synchronous')
+      .withFlag('--loglevel', 'error')
       .build();
   }
 }

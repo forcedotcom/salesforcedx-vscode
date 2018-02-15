@@ -10,7 +10,7 @@ describe('Force Apex Test Run - Code Action', () => {
       const command = builder.build({});
 
       expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testClass} --resultformat human --synchronous`
+        `sfdx force:apex:test:run --tests ${testClass} --resultformat ide --synchronous --loglevel error`
       );
     });
   });
@@ -23,7 +23,7 @@ describe('Force Apex Test Run - Code Action', () => {
       const command = builder.build({});
 
       expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --synchronous`
+        `sfdx force:apex:test:run --tests ${testMethod} --resultformat ide --synchronous --loglevel error`
       );
     });
   });
