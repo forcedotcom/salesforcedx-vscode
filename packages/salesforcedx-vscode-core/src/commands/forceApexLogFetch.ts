@@ -40,11 +40,13 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceApexLogFetchExecutor extends SfdxCommandletExecutor<ApexDebugLogId> {
+class ForceApexLogFetchExecutor extends SfdxCommandletExecutor<
+  ApexDebugLogIdStartTime
+> {
   private cancellationTokenSource = new vscode.CancellationTokenSource();
   private cancellationToken = this.cancellationTokenSource.token;
 
-  public build(data: ApexDebugLogId): Command {
+  public build(data: ApexDebugLogIdStartTime): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_log_fetch_text'))
       .withArg('force:apex:log:get')
@@ -53,12 +55,8 @@ class ForceApexLogFetchExecutor extends SfdxCommandletExecutor<ApexDebugLogId> {
       .build();
   }
 
-  public attachSubExecution(execution: CommandExecution) {
-    channelService.streamCommandOutput(execution);
-  }
-
   public async execute(
-    response: ContinueResponse<ApexDebugLogId>
+    response: ContinueResponse<ApexDebugLogIdStartTime>
   ): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -80,8 +78,12 @@ class ForceApexLogFetchExecutor extends SfdxCommandletExecutor<ApexDebugLogId> {
       if (!fs.existsSync(logDir)) {
         mkdir('-p', logDir);
       }
+      const date = new Date(response.data.startTime)
+        .toISOString()
+        .replace('T', ' ')
+        .replace('.000', '');
       fs.writeFile(
-        path.join(logDir, `${response.data.id}.log`),
+        path.join(logDir, `${response.data.id}_${date}.log`),
         resultJson.result.log
       );
     }
@@ -93,15 +95,9 @@ export enum ApexDebugLogRequest {
   Application = 'Application'
 }
 
-export type ApexDebugLogInfo = ApexDebugLogId & {
-  operation: string;
-  startTime: string;
-  loglength: number;
-  requestType: ApexDebugLogRequest;
-};
-
-export type ApexDebugLogId = {
+export type ApexDebugLogIdStartTime = {
   id: string;
+  startTime: string;
 };
 
 export type ApexDebugLogObject = {
@@ -114,10 +110,10 @@ export type ApexDebugLogObject = {
 
 export async function getLogs(
   cancellationTokenSource: vscode.CancellationTokenSource
-): Promise<ApexDebugLogInfo[]> {
+): Promise<ApexDebugLogObject[]> {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
-      .withDescription('Fetching logs')
+      .withDescription(nls.localize('force_apex_log_list_text'))
       .withArg('force:apex:log:list')
       .withArg('--json')
       .build(),
@@ -128,24 +124,13 @@ export async function getLogs(
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   try {
-    const apexDebugLogInfos: ApexDebugLogInfo[] = [];
-    const logGetJson: ApexDebugLogObject[] = JSON.parse(result).result;
-    logGetJson.forEach(log => {
-      const logInfo: ApexDebugLogInfo = {
-        id: log.Id,
-        operation: log.Operation,
-        startTime: log.StartTime,
-        loglength: log.LogLength,
-        requestType: log.Request
-      } as ApexDebugLogInfo;
-      apexDebugLogInfos.push(logInfo);
+    const apexDebugLogObjects: ApexDebugLogObject[] = JSON.parse(result).result;
+    apexDebugLogObjects.sort(function(a, b): number {
+      return new Date(b.StartTime).valueOf() - new Date(a.StartTime).valueOf();
     });
-    apexDebugLogInfos.sort(function(a, b): number {
-      return new Date(a.startTime).valueOf() - new Date(b.startTime).valueOf();
-    });
-    return Promise.resolve(apexDebugLogInfos);
+    return Promise.resolve(apexDebugLogObjects);
   } catch (e) {
-    return Promise.reject(result);
+    return Promise.reject(e);
   }
 }
 
@@ -153,31 +138,47 @@ export interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;
 }
 
-export class LogFileSelector implements ParametersGatherer<ApexDebugLogId> {
+export class LogFileSelector
+  implements ParametersGatherer<ApexDebugLogIdStartTime> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<ApexDebugLogId>
+    CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await getLogs(cancellationTokenSource);
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
+        let icon = '$(alert) ';
+        switch (logInfo.Request) {
+          case ApexDebugLogRequest.Api:
+            icon = '$(rocket) ';
+            break;
+          case ApexDebugLogRequest.Application:
+            icon = '$(squirrel) ';
+            break;
+        }
         return {
-          id: logInfo.id,
-          label: logInfo.operation,
-          description: logInfo.startTime,
-          detail: String(logInfo.loglength)
+          id: logInfo.Id,
+          label: icon + logInfo.Operation,
+          description: logInfo.StartTime,
+          detail: String(logInfo.LogLength)
         } as ApexDebugLogItem;
       });
       const logItem = await vscode.window.showQuickPick(
         logItems,
-        { placeHolder: 'pick a log' },
+        { placeHolder: nls.localize('force_apex_log_fetch_pick_log_text') },
         cancellationTokenSource.token
       );
       if (logItem) {
-        return { type: 'CONTINUE', data: { id: logItem.id } };
+        return {
+          type: 'CONTINUE',
+          data: { id: logItem.id, startTime: logItem.description }
+        };
       }
     } else {
-      return { type: 'CANCEL', msg: 'No logs were found' } as CancelResponse;
+      return {
+        type: 'CANCEL',
+        msg: nls.localize('force_apex_log_fetch_no_logs_text')
+      } as CancelResponse;
     }
     return { type: 'CANCEL' };
   }
