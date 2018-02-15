@@ -2,8 +2,10 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { ContinueResponse } from '../../../../salesforcedx-utils-vscode/out/src/types/index';
 import {
   EnterForceIdeUri,
+  IsvDebugBootstrapConfig,
   IsvDebugBootstrapExecutor
 } from '../../../src/commands/isvdebugging/bootstrapCmd';
 import { nls } from '../../../src/messages';
@@ -29,6 +31,14 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         .returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
       inputBoxSpy.onCall(3).returns(`forceide://abc?url=${LOGIN_URL}`);
       inputBoxSpy.onCall(4).returns(`forceide://abc?sessionId=${SESSION_ID}`);
+      inputBoxSpy
+        .onCall(5)
+        .returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
+      inputBoxSpy
+        .onCall(6)
+        .returns(
+          `forceide://abc?url=${LOGIN_URL}&secure=0&sessionId=${SESSION_ID}`
+        );
       showErrorMessageSpy = sinon.stub(vscode.window, 'showErrorMessage');
     });
 
@@ -58,7 +68,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const response = await gatherer.gather();
       expect(inputBoxSpy.calledThrice).to.be.true;
       if (response.type === 'CONTINUE') {
-        expect(response.data.loginUrl).to.equal(LOGIN_URL);
+        expect(response.data.loginUrl).to.not.be.undefined;
         expect(response.data.sessionId).to.equal(SESSION_ID);
       } else {
         expect.fail('Response should be of type ContinueResponse');
@@ -73,6 +83,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       expect(response.type).to.equal('CANCEL');
       expect(showErrorMessageSpy.calledOnce).to.be.true;
     });
+
     it('Should return cancel and show error if forceide url is missing login address', async () => {
       expect(showErrorMessageSpy.calledTwice).to.be.false;
       const gatherer = new EnterForceIdeUri();
@@ -80,6 +91,28 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       expect(inputBoxSpy.callCount).equal(5);
       expect(response.type).to.equal('CANCEL');
       expect(showErrorMessageSpy.calledTwice).to.be.true;
+    });
+
+    it('Should add proper https:// prefix for url', async () => {
+      const gatherer = new EnterForceIdeUri();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.callCount).equal(6);
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal('https://' + LOGIN_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should add proper http:// prefix for non-secure url', async () => {
+      const gatherer = new EnterForceIdeUri();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.callCount).equal(7);
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal('http://' + LOGIN_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
     });
   });
 
@@ -208,32 +241,30 @@ describe('ISV Debugging Project Bootstrap Command', () => {
   });
 
   describe('IsvDebugBootstrapExecutor execution', () => {
-    let inputBoxSpy: sinon.SinonStub;
-    let showErrorMessageSpy: sinon.SinonStub;
+    let executor: IsvDebugBootstrapExecutor;
+    let executeCommandSpy: sinon.SinonStub;
 
-    before(() => {
-      inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
-      inputBoxSpy.onCall(0).returns(undefined);
-      inputBoxSpy.onCall(1).returns('');
-      inputBoxSpy
-        .onCall(2)
-        .returns(`forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`);
-      inputBoxSpy.onCall(3).returns(`forceide://abc?url=${LOGIN_URL}`);
-      inputBoxSpy.onCall(4).returns(`forceide://abc?sessionId=${SESSION_ID}`);
-      showErrorMessageSpy = sinon.stub(vscode.window, 'showErrorMessage');
+    beforeEach(() => {
+      executor = new IsvDebugBootstrapExecutor();
+      executeCommandSpy = sinon.stub(executor, 'executeCommand');
     });
 
-    after(() => {
-      inputBoxSpy.restore();
-      showErrorMessageSpy.restore();
+    afterEach(() => {
+      executeCommandSpy.restore();
     });
 
     it('Should return cancel if forceide url is undefined', async () => {
-      const gatherer = new EnterForceIdeUri();
-      const response = await gatherer.gather();
-      expect(inputBoxSpy.calledOnce).to.be.true;
-      expect(response.type).to.equal('CANCEL');
-      expect(showErrorMessageSpy.notCalled).to.be.true;
+      const input = {
+        type: 'CONTINUE',
+        data: {
+          loginUrl: LOGIN_URL,
+          sessionId: SESSION_ID,
+          projectName: PROJECT_NAME,
+          projectUri: PROJECT_DIR[0].fsPath
+        }
+      } as ContinueResponse<IsvDebugBootstrapConfig>;
+      const response = await executor.execute(input);
+      expect(executeCommandSpy.calledOnce).to.be.true;
     });
   });
 });

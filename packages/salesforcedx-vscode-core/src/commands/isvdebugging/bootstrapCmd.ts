@@ -417,12 +417,13 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
       const url = Uri.parse(forceIdeUri);
       const parameter = querystring.parse(url.query);
       if (parameter.url && parameter.sessionId) {
+        const protocolPrefix = parameter.secure === '0' ? 'http://' : 'https://';
         return {
           type: 'CONTINUE',
           data: {
             loginUrl: parameter.url.toLowerCase().startsWith('http')
               ? parameter.url
-              : 'https://' + parameter.url,
+              : protocolPrefix + parameter.url,
             sessionId: parameter.sessionId
           }
         };
