@@ -25,7 +25,8 @@
     "@salesforce/salesforcedx-sobjects-faux-generator": "42.4.0",
     "@salesforce/salesforcedx-utils-vscode": "42.4.0",
     "glob": "^7.1.2",
-    "rxjs": "^5.4.1"
+    "rxjs": "^5.4.1",
+    "shelljs": "0.7.8"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -34,6 +35,7 @@
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
+    "@types/shelljs": "0.7.4",
     "chai": "^4.0.2",
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
@@ -274,6 +276,10 @@
         {
           "command": "sfdx.force.apex.test.method.run",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.apex.log.fetch",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -429,6 +435,10 @@
       {
         "command": "sfdx.debug.isv.bootstrap",
         "title": "%isv_bootstrap_command_text%"
+      },
+      {
+        "command": "sfdx.force.apex.log.fetch",
+        "title": "%force_apex_log_fetch_text%"
       }
     ],
     "configuration": {
