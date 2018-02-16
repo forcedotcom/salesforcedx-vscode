@@ -76,7 +76,13 @@ export const messages = {
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
 
+  force_apex_test_run_class_text: 'SFDX: Invoke All Apex Tests in Class',
+  force_apex_test_run_method_text: 'SFDX: Invoke Apex Test Method',
   force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
+  force_apex_test_run_codeAction_no_class_test_param_text:
+    'Test class not provided.  Please run Apex test code action on a test class.',
+  force_apex_test_run_codeAction_no_method_test_param_text:
+    'Test method not provided.  Please run Apex test code action on a test method.',
 
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
