@@ -39,11 +39,24 @@ const executable =
     ? darwinExecutable
     : process.platform === 'win32' ? windowsExecutable : linuxExecutable;
 
+if (process.platform === 'linux-x64') {
+  // Somehow the code executable doesn't have +x set on the autobuilds -- set it here
+  shell.chmod('+x', `${executable}`);
+}
+
 // We always invoke this script with 'node install-vsix-dependencies arg'
 // so position2 is where the first argument is
 for (let arg = 2; arg < process.argv.length; arg++) {
-  shell.exec(
-    `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${process
-      .argv[arg]}`
-  );
+  if (process.platform === 'win32') {
+    // Windows Powershell doesn't like the single quotes around the executable
+    shell.exec(
+      `${executable} --extensions-dir ${extensionsDir} --install-extension ${process
+        .argv[arg]}`
+    );
+  } else {
+    shell.exec(
+      `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${process
+        .argv[arg]}`
+    );
+  }
 }
