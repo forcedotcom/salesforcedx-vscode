@@ -15,7 +15,7 @@ const downloadPlatform =
     ? 'darwin'
     : process.platform === 'win32' ? 'win32-archive' : 'linux-x64';
 
-const windowsExecutable = path.join(testRunFolderAbsolute, 'Code');
+const windowsExecutable = path.join(testRunFolderAbsolute, 'bin', 'code');
 const darwinExecutable = path.join(
   testRunFolderAbsolute,
   'Visual Studio Code.app',
@@ -49,6 +49,10 @@ if (process.platform === 'linux') {
 for (let arg = 2; arg < process.argv.length; arg++) {
   if (process.platform === 'win32') {
     // Windows Powershell doesn't like the single quotes around the executable
+    shell.exec(
+      `${executable} --extensions-dir ${extensionsDir} --install-extension ${process
+        .argv[arg]}`
+    );
     shell.exec(
       `${executable} --extensions-dir ${extensionsDir} --install-extension ${process
         .argv[arg]}`
