@@ -53,10 +53,6 @@ for (let arg = 2; arg < process.argv.length; arg++) {
       `${executable} --extensions-dir ${extensionsDir} --install-extension ${process
         .argv[arg]}`
     );
-    shell.exec(
-      `${executable} --extensions-dir ${extensionsDir} --install-extension ${process
-        .argv[arg]}`
-    );
   } else {
     shell.exec(
       `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${process
