@@ -14,11 +14,14 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { forceLightningLwcCreate } from './commands/forceLightningLwcCreate';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { nls } from './messages';
 
 function registerCommands(): vscode.Disposable {
+  const {
+    forceLightningLwcCreate
+  } = require('./commands/forceLightningLwcCreate');
+
   // Customer-facing commands
   const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.lwc.create',
