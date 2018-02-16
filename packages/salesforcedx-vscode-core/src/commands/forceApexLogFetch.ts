@@ -8,33 +8,21 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandBuilder,
-  CommandExecution,
   CommandOutput,
-  CompositeCliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
-  FilePathExistsChecker,
-  SelectFileName,
-  SelectPrioritizedDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -43,9 +31,6 @@ import {
 class ForceApexLogFetchExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
 > {
-  private cancellationTokenSource = new vscode.CancellationTokenSource();
-  private cancellationToken = this.cancellationTokenSource.token;
-
   public build(data: ApexDebugLogIdStartTime): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_log_fetch_text'))
