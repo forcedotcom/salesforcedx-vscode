@@ -28,16 +28,16 @@ function isNotEmpty(value: string): boolean {
 
 // cache last test class and test method values to
 // enable re-running w/o command context via built-in LRU
-class ForceApexTestRunCache {
+class ForceApexTestRunCacheService {
   public lastClassTestParam: string;
   public lastMethodTestParam: string;
-  private static instance: ForceApexTestRunCache;
+  private static instance: ForceApexTestRunCacheService;
 
   public static getInstance() {
-    if (!ForceApexTestRunCache.instance) {
-      ForceApexTestRunCache.instance = new ForceApexTestRunCache();
+    if (!ForceApexTestRunCacheService.instance) {
+      ForceApexTestRunCacheService.instance = new ForceApexTestRunCacheService();
     }
-    return ForceApexTestRunCache.instance;
+    return ForceApexTestRunCacheService.instance;
   }
 
   public constructor() {
@@ -53,6 +53,8 @@ class ForceApexTestRunCache {
     return isNotEmpty(this.lastMethodTestParam);
   }
 }
+
+export const forceApexTestRunCacheService = ForceApexTestRunCacheService.getInstance();
 
 // build force:apex:test:run w/ given test class or test method
 export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
@@ -91,15 +93,14 @@ function forceApexTestRunCodeAction(test: string) {
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
 export function resolveTestClassParam(testClass: string): string {
-  const testCache = ForceApexTestRunCache.getInstance();
   if (isEmpty(testClass)) {
     // value not provided for re-run invocations
     // apply cached value, if available
-    if (testCache.hasCachedClassTestParam()) {
-      testClass = testCache.lastClassTestParam;
+    if (forceApexTestRunCacheService.hasCachedClassTestParam()) {
+      testClass = forceApexTestRunCacheService.lastClassTestParam;
     }
   } else {
-    testCache.lastClassTestParam = testClass;
+    forceApexTestRunCacheService.lastClassTestParam = testClass;
   }
 
   return testClass;
@@ -124,15 +125,14 @@ export function forceApexTestClassRunCodeAction(testClass: string) {
 // evaluate test method param: if not provided, apply cached value
 // exported for testability
 export function resolveTestMethodParam(testMethod: string): string {
-  const testCache = ForceApexTestRunCache.getInstance();
   if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available
-    if (testCache.hasCachedMethodTestParam()) {
-      testMethod = testCache.lastMethodTestParam;
+    if (forceApexTestRunCacheService.hasCachedMethodTestParam()) {
+      testMethod = forceApexTestRunCacheService.lastMethodTestParam;
     }
   } else {
-    testCache.lastMethodTestParam = testMethod;
+    forceApexTestRunCacheService.lastMethodTestParam = testMethod;
   }
 
   return testMethod;

@@ -80,9 +80,9 @@ export const messages = {
   force_apex_test_run_method_text: 'SFDX: Invoke Apex Test Method',
   force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
   force_apex_test_run_codeAction_no_class_test_param_text:
-    'Test class not provided.  Please run Apex test code action on a test class.',
+    'Test class not provided. Run the code action on a class annotated with @isTest.',
   force_apex_test_run_codeAction_no_method_test_param_text:
-    'Test method not provided.  Please run Apex test code action on a test method.',
+    'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
 
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
