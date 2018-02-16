@@ -39,7 +39,7 @@ const executable =
     ? darwinExecutable
     : process.platform === 'win32' ? windowsExecutable : linuxExecutable;
 
-if (process.platform === 'linux-x64') {
+if (process.platform === 'linux') {
   // Somehow the code executable doesn't have +x set on the autobuilds -- set it here
   shell.chmod('+x', `${executable}`);
 }
