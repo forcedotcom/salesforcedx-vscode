@@ -54,7 +54,7 @@ class ForceApexTestRunCacheService {
   }
 }
 
-export const forceApexTestRunCacheService = ForceApexTestRunCacheService.getInstance();
+const forceApexTestRunCacheService = ForceApexTestRunCacheService.getInstance();
 
 // build force:apex:test:run w/ given test class or test method
 export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
