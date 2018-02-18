@@ -169,14 +169,6 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.apex.test.class.run",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.apex.test.method.run",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.task.stop",
           "when": "sfdx:project_opened"
         },
@@ -266,6 +258,14 @@
         {
           "command": "sfdx.debug.isv.bootstrap",
           "when": "config.salesforcedx-vscode-core.isv-debugger.enabled"
+        },
+        {
+          "command": "sfdx.force.apex.test.class.run",
+          "when": "sfdx:has_cached_test_class"
+        },
+        {
+          "command": "sfdx.force.apex.test.method.run",
+          "when": "sfdx:has_cached_test_method"
         }
       ]
     },

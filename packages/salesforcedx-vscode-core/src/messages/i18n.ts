@@ -76,8 +76,8 @@ export const messages = {
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
 
-  force_apex_test_run_class_text: 'SFDX: Invoke All Apex Tests in Class',
-  force_apex_test_run_method_text: 'SFDX: Invoke Apex Test Method',
+  force_apex_test_run_class_text: 'SFDX: Invoke Last Executed Test Class',
+  force_apex_test_run_method_text: 'SFDX: Invoke Last Execute Test Method',
   force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
   force_apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',

@@ -14,7 +14,9 @@ import {
   forceApexClassCreate,
   forceApexExecute,
   forceApexTestClassRunCodeAction,
+  forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
+  forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
   forceApexTriggerCreate,
   forceAuthWebLogin,
@@ -107,9 +109,17 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.apex.test.run',
     forceApexTestRun
   );
+  const forceApexTestClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.class.run.delegate',
+    forceApexTestClassRunCodeActionDelegate
+  );
   const forceApexTestClassRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.class.run',
     forceApexTestClassRunCodeAction
+  );
+  const forceApexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.method.run.delegate',
+    forceApexTestMethodRunCodeActionDelegate
   );
   const forceApexTestMethodRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.method.run',
@@ -230,7 +240,9 @@ function registerCommands(): vscode.Disposable {
     forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
     forceApexTestClassRunCmd,
+    forceApexTestClassRunDelegateCmd,
     forceApexTestMethodRunCmd,
+    forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,

@@ -18,7 +18,9 @@ export { forceAuthWebLogin } from './forceAuthWebLogin';
 export { forceApexTestRun } from './forceApexTestRun';
 export {
   forceApexTestClassRunCodeAction,
-  forceApexTestMethodRunCodeAction
+  forceApexTestClassRunCodeActionDelegate,
+  forceApexTestMethodRunCodeAction,
+  forceApexTestMethodRunCodeActionDelegate
 } from './forceApexTestRunCodeAction';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';

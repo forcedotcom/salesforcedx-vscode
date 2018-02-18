@@ -9,6 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import {
@@ -90,6 +91,20 @@ function forceApexTestRunCodeAction(test: string) {
 
 //   T E S T   C L A S S
 
+// redirects to run-all-tests cmd
+export function forceApexTestClassRunCodeActionDelegate(testClass: string) {
+  // enable then run 'last executed' command so command
+  // added to 'recently used'
+  vscode.commands
+    .executeCommand('setContext', 'sfdx:has_cached_test_class', true)
+    .then(() =>
+      vscode.commands.executeCommand(
+        'sfdx.force.apex.test.class.run',
+        testClass
+      )
+    );
+}
+
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
 export function resolveTestClassParam(testClass: string): string {
@@ -121,6 +136,20 @@ export function forceApexTestClassRunCodeAction(testClass: string) {
 }
 
 //   T E S T   M E T H O D
+
+// redirects to run-test-method cmd
+export function forceApexTestMethodRunCodeActionDelegate(testMethod: string) {
+  // enable then run 'last executed' command so command
+  // added to 'recently used'
+  vscode.commands
+    .executeCommand('setContext', 'sfdx:has_cached_test_method', true)
+    .then(() =>
+      vscode.commands.executeCommand(
+        'sfdx.force.apex.test.method.run',
+        testMethod
+      )
+    );
+}
 
 // evaluate test method param: if not provided, apply cached value
 // exported for testability
