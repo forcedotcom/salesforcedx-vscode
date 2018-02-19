@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as path from 'path';
+import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ContinueResponse } from '../../../../salesforcedx-utils-vscode/out/src/types/index';
@@ -163,7 +164,16 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectUri: PROJECT_DIR[0].fsPath
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve -r .sfdx/isvdebugger/mdapitmp -k .sfdx/isvdebugger/mdapitmp/package.xml -u ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve -r ${path.join(
+          '.sfdx',
+          'isvdebugger',
+          'mdapitmp'
+        )} -k ${path.join(
+          '.sfdx',
+          'isvdebugger',
+          'mdapitmp',
+          'package.xml'
+        )} -u ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
@@ -179,7 +189,12 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectUri: PROJECT_DIR[0].fsPath
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:convert -r .sfdx/isvdebugger/mdapitmp/unpackaged -d force-app`
+        `sfdx force:mdapi:convert -r ${path.join(
+          '.sfdx',
+          'isvdebugger',
+          'mdapitmp',
+          'unpackaged'
+        )} -d force-app`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step4_convert_org_source')
@@ -215,7 +230,11 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageNames
       );
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve -r .sfdx/isvdebugger/mdapitmp -p mypackage_abc,mpackage_def -u ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve -r ${path.join(
+          '.sfdx',
+          'isvdebugger',
+          'mdapitmp'
+        )} -p mypackage_abc,mpackage_def -u ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
@@ -229,7 +248,13 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageName
       );
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:convert -r .sfdx/isvdebugger/mdapitmp/packages/${packageName} -d packages/${packageName}`
+        `sfdx force:mdapi:convert -r ${path.join(
+          '.sfdx',
+          'isvdebugger',
+          'mdapitmp',
+          'packages',
+          packageName
+        )} -d ${path.join('packages', packageName)}`
       );
       expect(command.description).to.equal(
         nls.localize(
@@ -243,6 +268,16 @@ describe('ISV Debugging Project Bootstrap Command', () => {
   describe('IsvDebugBootstrapExecutor execution', () => {
     let executor: IsvDebugBootstrapExecutor;
     let executeCommandSpy: sinon.SinonStub;
+    const TEST_DATA_DIRT = path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'test',
+      'commands',
+      'isvdebugger',
+      'testdata'
+    );
 
     beforeEach(() => {
       executor = new IsvDebugBootstrapExecutor();
@@ -253,7 +288,55 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       executeCommandSpy.restore();
     });
 
-    it('Should return cancel if forceide url is undefined', async () => {
+    it('Should successfully pass through execution', async () => {
+      // fake org source retrieval into unpackaged.zip
+      executeCommandSpy.onCall(2).callsFake(() => {
+        shell.cp(
+          path.join(TEST_DATA_DIRT, 'org-source.zip'),
+          path.join(
+            PROJECT_DIR[0].fsPath,
+            PROJECT_NAME,
+            '.sfdx',
+            'isvdebugger',
+            'mdapitmp',
+            'unpackaged.zip'
+          )
+        );
+      });
+
+      // fake package list retrieval
+      executeCommandSpy.onCall(4).returns(
+        JSON.stringify({
+          status: 0,
+          result: [
+            {
+              Id: '0A3xx000000000bCAA',
+              SubscriberPackageId: '033xx00000008cpAAA',
+              SubscriberPackageName: 'mypackage',
+              SubscriberPackageNamespace: 'developer',
+              SubscriberPackageVersionId: '04txx000000079pAAA',
+              SubscriberPackageVersionName: 'Third',
+              SubscriberPackageVersionNumber: '1.3.0.1'
+            }
+          ]
+        })
+      );
+
+      // fake package source retrieval into unpackaged.zip
+      executeCommandSpy.onCall(5).callsFake(() => {
+        shell.cp(
+          path.join(TEST_DATA_DIRT, 'package-source.zip'),
+          path.join(
+            PROJECT_DIR[0].fsPath,
+            PROJECT_NAME,
+            '.sfdx',
+            'isvdebugger',
+            'mdapitmp',
+            'unpackaged.zip'
+          )
+        );
+      });
+
       const input = {
         type: 'CONTINUE',
         data: {
@@ -263,8 +346,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           projectUri: PROJECT_DIR[0].fsPath
         }
       } as ContinueResponse<IsvDebugBootstrapConfig>;
-      const response = await executor.execute(input);
-      expect(executeCommandSpy.calledOnce).to.be.true;
+      await executor.execute(input);
+      expect(executeCommandSpy.callCount).to.equal(7);
     });
   });
 });
