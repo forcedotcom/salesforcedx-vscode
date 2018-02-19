@@ -261,11 +261,11 @@
         },
         {
           "command": "sfdx.force.apex.test.class.run",
-          "when": "sfdx:has_cached_test_class"
+          "when": "sfdx:project_opened && sfdx:has_cached_test_class"
         },
         {
           "command": "sfdx.force.apex.test.method.run",
-          "when": "sfdx:has_cached_test_method"
+          "when": "sfdx:project_opened && sfdx:has_cached_test_method"
         }
       ]
     },

@@ -92,17 +92,18 @@ function forceApexTestRunCodeAction(test: string) {
 //   T E S T   C L A S S
 
 // redirects to run-all-tests cmd
-export function forceApexTestClassRunCodeActionDelegate(testClass: string) {
+export async function forceApexTestClassRunCodeActionDelegate(
+  testClass: string
+) {
   // enable then run 'last executed' command so command
   // added to 'recently used'
-  vscode.commands
-    .executeCommand('setContext', 'sfdx:has_cached_test_class', true)
-    .then(() =>
-      vscode.commands.executeCommand(
-        'sfdx.force.apex.test.class.run',
-        testClass
-      )
-    );
+  await vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:has_cached_test_class',
+    true
+  );
+
+  vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
 }
 
 // evaluate test class param: if not provided, apply cached value
@@ -138,17 +139,18 @@ export function forceApexTestClassRunCodeAction(testClass: string) {
 //   T E S T   M E T H O D
 
 // redirects to run-test-method cmd
-export function forceApexTestMethodRunCodeActionDelegate(testMethod: string) {
+export async function forceApexTestMethodRunCodeActionDelegate(
+  testMethod: string
+) {
   // enable then run 'last executed' command so command
   // added to 'recently used'
-  vscode.commands
-    .executeCommand('setContext', 'sfdx:has_cached_test_method', true)
-    .then(() =>
-      vscode.commands.executeCommand(
-        'sfdx.force.apex.test.method.run',
-        testMethod
-      )
-    );
+  await vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:has_cached_test_method',
+    true
+  );
+
+  vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
 }
 
 // evaluate test method param: if not provided, apply cached value
