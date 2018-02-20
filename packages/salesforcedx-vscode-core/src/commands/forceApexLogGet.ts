@@ -18,9 +18,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
 import {
   SfdxCommandlet,
@@ -106,6 +108,10 @@ async function getLogs(
   ).execute();
   CancellableStatusBar.show(execution, cancellationTokenSource);
   taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  notificationService.reportExecutionError(
+    execution.command.toString(),
+    (execution.processErrorSubject as any) as Observable<Error | undefined>
+  );
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   try {
@@ -143,8 +149,14 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
         return {
           id: logInfo.Id,
           label: icon + logInfo.Operation,
-          description: logInfo.StartTime,
-          detail: String(logInfo.LogLength)
+          description: new Date(logInfo.StartTime).toLocaleTimeString('en-US', {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          detail: `${(logInfo.LogLength / 1000).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });
       const logItem = await vscode.window.showQuickPick(
