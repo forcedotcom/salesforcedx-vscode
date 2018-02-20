@@ -13,11 +13,11 @@ import {
   forceAliasList,
   forceApexClassCreate,
   forceApexExecute,
-  forceApexLogFetch,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
+  forceApexLogGet,
   forceApexTestRun,
   forceApexTriggerCreate,
   forceAuthWebLogin,
@@ -238,9 +238,9 @@ function registerCommands(): vscode.Disposable {
     isvDebugBootstrap
   );
 
-  const forceApexLogFetchCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.log.fetch',
-    forceApexLogFetch
+  const forceApexLogGetCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.log.get',
+    forceApexLogGet
   );
 
   // Internal commands
@@ -290,7 +290,7 @@ function registerCommands(): vscode.Disposable {
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogFetchCmd,
+    forceApexLogGetCmd,
     internalCancelCommandExecution
   );
 }

@@ -62,5 +62,5 @@
     "SFDX: Create and Set Up Project for ISV Debugging",
   "isv_debugger_enabled_description":
     "Set to true to enable a feature preview of the ISV Debugger.",
-  "force_apex_log_fetch_text": "SFDX: Fetch Apex Debug Logs..."
+  "force_apex_log_get_text": "SFDX: Get Apex Debug Logs..."
 }

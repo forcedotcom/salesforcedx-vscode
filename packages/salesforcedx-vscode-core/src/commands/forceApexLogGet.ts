@@ -28,12 +28,12 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceApexLogFetchExecutor extends SfdxCommandletExecutor<
+class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
 > {
   public build(data: ApexDebugLogIdStartTime): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_log_fetch_text'))
+      .withDescription(nls.localize('force_apex_log_get_text'))
       .withArg('force:apex:log:get')
       .withFlag('--logid', data.id)
       .withArg('--json')
@@ -75,17 +75,17 @@ class ForceApexLogFetchExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export enum ApexDebugLogRequest {
+enum ApexDebugLogRequest {
   Api = 'Api',
   Application = 'Application'
 }
 
-export type ApexDebugLogIdStartTime = {
+type ApexDebugLogIdStartTime = {
   id: string;
   startTime: string;
 };
 
-export type ApexDebugLogObject = {
+type ApexDebugLogObject = {
   Id: string;
   StartTime: string;
   LogLength: number;
@@ -93,7 +93,7 @@ export type ApexDebugLogObject = {
   Request: string;
 };
 
-export async function getLogs(
+async function getLogs(
   cancellationTokenSource: vscode.CancellationTokenSource
 ): Promise<ApexDebugLogObject[]> {
   const execution = new CliCommandExecutor(
@@ -119,12 +119,11 @@ export async function getLogs(
   }
 }
 
-export interface ApexDebugLogItem extends vscode.QuickPickItem {
+interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;
 }
 
-export class LogFileSelector
-  implements ParametersGatherer<ApexDebugLogIdStartTime> {
+class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
@@ -150,7 +149,7 @@ export class LogFileSelector
       });
       const logItem = await vscode.window.showQuickPick(
         logItems,
-        { placeHolder: nls.localize('force_apex_log_fetch_pick_log_text') },
+        { placeHolder: nls.localize('force_apex_log_get_pick_log_text') },
         cancellationTokenSource.token
       );
       if (logItem) {
@@ -162,7 +161,7 @@ export class LogFileSelector
     } else {
       return {
         type: 'CANCEL',
-        msg: nls.localize('force_apex_log_fetch_no_logs_text')
+        msg: nls.localize('force_apex_log_get_no_logs_text')
       } as CancelResponse;
     }
     return { type: 'CANCEL' };
@@ -172,11 +171,11 @@ export class LogFileSelector
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new LogFileSelector();
 
-export async function forceApexLogFetch(explorerDir?: any) {
+export async function forceApexLogGet(explorerDir?: any) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceApexLogFetchExecutor()
+    new ForceApexLogGetExecutor()
   );
   commandlet.run();
 }
