@@ -1,4 +1,5 @@
 {
+  "view_checkpoints": "Checkpoints",
   "launch_snippet_label_text": "Apex Replay Debugger: Launch",
   "launch_snippet_description_text":
     "A new configuration for launching Apex Replay Debugger",
