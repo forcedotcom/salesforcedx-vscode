@@ -145,7 +145,7 @@ export const messages = {
     'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
   isv_debug_bootstrap_open_project:
-    'Opening Project in new Visual Studio Code Window',
+    'Opening project in new Visual Studio Code window',
 
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
@@ -155,5 +155,5 @@ export const messages = {
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
-  error_updateing_sfdx_project: 'Error updating sfdx-project.json: %s'
+  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s'
 };

@@ -323,10 +323,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     } catch (error) {
       console.error(error);
       channelService.appendLine(
-        nls.localize('error_updateing_sfdx_project', error.toString())
+        nls.localize('error_updating_sfdx_project', error.toString())
       );
       notificationService.showErrorMessage(
-        nls.localize('error_updateing_sfdx_project', error.toString())
+        nls.localize('error_updating_sfdx_project', error.toString())
       );
       return;
     }
