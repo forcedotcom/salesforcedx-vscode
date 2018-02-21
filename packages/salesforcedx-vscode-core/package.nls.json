@@ -16,8 +16,12 @@
   "force_source_status_text":
     "SFDX: View All Changes (Local and in Default Scratch Org)",
   "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
-  "force_apex_test_run_class_text": "SFDX: Invoke Last Executed Test Class",
-  "force_apex_test_run_method_text": "SFDX: Invoke Last Executed Test Method",
+  "force_apex_test_class_run_text": "SFDX: Invoke Apex Test Class",
+  "force_apex_test_method_run_text": "SFDX: Invoke Apex Test Method",
+  "force_apex_test_last_class_run_text":
+    "SFDX: Re-Run Last Executed Test Class",
+  "force_apex_test_last_method_run_text":
+    "SFDX: Re-Run Last Executed Test Method",
   "cancel_sfdx_command_text": "SFDX: Cancel Active Command",
   "force_apex_class_create_text": "SFDX: Create Apex Class",
   "force_visualforce_component_create_text":

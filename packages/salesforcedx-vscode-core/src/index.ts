@@ -113,6 +113,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.apex.test.class.run.delegate',
     forceApexTestClassRunCodeActionDelegate
   );
+  const forceApexTestLastClassRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.last.class.run',
+    forceApexTestClassRunCodeAction
+  );
   const forceApexTestClassRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.class.run',
     forceApexTestClassRunCodeAction
@@ -120,6 +124,10 @@ function registerCommands(): vscode.Disposable {
   const forceApexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.method.run.delegate',
     forceApexTestMethodRunCodeActionDelegate
+  );
+  const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.last.method.run',
+    forceApexTestMethodRunCodeAction
   );
   const forceApexTestMethodRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.method.run',
@@ -239,8 +247,10 @@ function registerCommands(): vscode.Disposable {
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
+    forceApexTestLastClassRunCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,
+    forceApexTestLastMethodRunCmd,
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
