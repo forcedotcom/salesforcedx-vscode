@@ -8,7 +8,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { checkpointService } from './breakpoints';
+import { checkpointService } from './breakpoints/checkpointService';
 import {
   DEBUGGER_TYPE,
   GET_LINE_BREAKPOINT_INFO_EVENT,

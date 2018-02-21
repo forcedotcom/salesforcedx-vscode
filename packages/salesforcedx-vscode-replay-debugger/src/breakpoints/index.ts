@@ -12,5 +12,3 @@ export interface LineBreakpointInfo {
 }
 
 export { BreakpointUtil } from './breakpointUtil';
-import { CheckpointService } from './checkpointService';
-export const checkpointService = CheckpointService.getInstance();

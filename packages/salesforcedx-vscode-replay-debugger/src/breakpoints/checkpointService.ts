@@ -45,6 +45,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   }
 }
 
+export const checkpointService = CheckpointService.getInstance();
+
 export abstract class BaseNode extends TreeItem {
   public abstract getChildren(): BaseNode[];
 }
