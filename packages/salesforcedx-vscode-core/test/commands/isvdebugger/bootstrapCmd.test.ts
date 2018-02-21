@@ -1,6 +1,6 @@
+import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ContinueResponse } from '../../../../salesforcedx-utils-vscode/out/src/types/index';
@@ -289,19 +289,17 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     });
 
     it('Should successfully pass through execution', async () => {
+      const projectPath = path.join(PROJECT_DIR[0].fsPath, PROJECT_NAME);
+      const projectMetadataTempPath = path.join(
+        projectPath,
+        executor.relativeMetdataTempPath
+      );
+
       // fake org source retrieval into unpackaged.zip
       executeCommandSpy.onCall(2).callsFake(() => {
-        shell.cp(
-          path.join(TEST_DATA_DIRT, 'org-source.zip'),
-          path.join(
-            PROJECT_DIR[0].fsPath,
-            PROJECT_NAME,
-            '.sfdx',
-            'isvdebugger',
-            'mdapitmp',
-            'unpackaged.zip'
-          )
-        );
+        const zip = new AdmZip();
+        zip.addLocalFolder(path.join(TEST_DATA_DIRT, 'org-source'));
+        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
       // fake package list retrieval
@@ -324,17 +322,9 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
       // fake package source retrieval into unpackaged.zip
       executeCommandSpy.onCall(5).callsFake(() => {
-        shell.cp(
-          path.join(TEST_DATA_DIRT, 'package-source.zip'),
-          path.join(
-            PROJECT_DIR[0].fsPath,
-            PROJECT_NAME,
-            '.sfdx',
-            'isvdebugger',
-            'mdapitmp',
-            'unpackaged.zip'
-          )
-        );
+        const zip = new AdmZip();
+        zip.addLocalFolder(path.join(TEST_DATA_DIRT, 'packages-source'));
+        zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
       const input = {

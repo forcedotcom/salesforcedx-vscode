@@ -195,7 +195,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         apexRetrievePackageXmlPath,
         `<?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
-  <version>41.0</version>
   <types>
     <members>*</members>
     <name>ApexClass</name>
@@ -417,7 +416,8 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
       const url = Uri.parse(forceIdeUri);
       const parameter = querystring.parse(url.query);
       if (parameter.url && parameter.sessionId) {
-        const protocolPrefix = parameter.secure === '0' ? 'http://' : 'https://';
+        const protocolPrefix =
+          parameter.secure === '0' ? 'http://' : 'https://';
         return {
           type: 'CONTINUE',
           data: {
