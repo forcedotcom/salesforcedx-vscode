@@ -31,7 +31,9 @@
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
-    "eslint-check": "eslint --print-config .eslintrc.json | eslint-config-prettier-check"
+    "eslint-check":
+      "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
+    "reformat": "node scripts/reformat-with-prettier.js"
   },
   "repository": {
     "type": "git",
