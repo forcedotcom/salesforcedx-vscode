@@ -164,16 +164,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectUri: PROJECT_DIR[0].fsPath
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve -r ${path.join(
-          '.sfdx',
-          'isvdebugger',
-          'mdapitmp'
-        )} -k ${path.join(
-          '.sfdx',
-          'isvdebugger',
-          'mdapitmp',
-          'package.xml'
-        )} -u ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --unpackaged ${builder.relativeApexPackageXmlPath} --targetusername ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
@@ -189,12 +180,10 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectUri: PROJECT_DIR[0].fsPath
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:convert -r ${path.join(
-          '.sfdx',
-          'isvdebugger',
-          'mdapitmp',
+        `sfdx force:mdapi:convert --rootdir ${path.join(
+          builder.relativeMetdataTempPath,
           'unpackaged'
-        )} -d force-app`
+        )} --outputdir force-app`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step4_convert_org_source')
@@ -210,7 +199,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectUri: PROJECT_DIR[0].fsPath
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:package:installed:list -u ${SESSION_ID} --json`
+        `sfdx force:package:installed:list --targetusername ${SESSION_ID} --json`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
@@ -230,11 +219,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageNames
       );
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve -r ${path.join(
-          '.sfdx',
-          'isvdebugger',
-          'mdapitmp'
-        )} -p mypackage_abc,mpackage_def -u ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --packagenames mypackage_abc,mpackage_def --targetusername ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
@@ -248,13 +233,11 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageName
       );
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:convert -r ${path.join(
-          '.sfdx',
-          'isvdebugger',
-          'mdapitmp',
+        `sfdx force:mdapi:convert --rootdir ${path.join(
+          builder.relativeMetdataTempPath,
           'packages',
           packageName
-        )} -d ${path.join('packages', packageName)}`
+        )} --outputdir ${path.join('packages', packageName)}`
       );
       expect(command.description).to.equal(
         nls.localize(

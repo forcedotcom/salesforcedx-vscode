@@ -84,9 +84,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
       )
       .withArg('force:mdapi:retrieve')
-      .withFlag('-r', this.relativeMetdataTempPath)
-      .withFlag('-k', this.relativeApexPackageXmlPath)
-      .withFlag('-u', data.sessionId)
+      .withFlag('--retrievetargetdir', this.relativeMetdataTempPath)
+      .withFlag('--unpackaged', this.relativeApexPackageXmlPath)
+      .withFlag('--targetusername', data.sessionId)
       .build();
   }
 
@@ -98,8 +98,11 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('isv_debug_bootstrap_step4_convert_org_source')
       )
       .withArg('force:mdapi:convert')
-      .withFlag('-r', path.join(this.relativeMetdataTempPath, 'unpackaged'))
-      .withFlag('-d', 'force-app')
+      .withFlag(
+        '--rootdir',
+        path.join(this.relativeMetdataTempPath, 'unpackaged')
+      )
+      .withFlag('--outputdir', 'force-app')
       .build();
   }
 
@@ -111,7 +114,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('isv_debug_bootstrap_step5_list_installed_packages')
       )
       .withArg('force:package:installed:list')
-      .withFlag('-u', data.sessionId)
+      .withFlag('--targetusername', data.sessionId)
       .withArg('--json')
       .build();
   }
@@ -125,9 +128,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')
       )
       .withArg('force:mdapi:retrieve')
-      .withFlag('-r', this.relativeMetdataTempPath)
-      .withFlag('-p', packageNames.join(','))
-      .withFlag('-u', data.sessionId)
+      .withFlag('--retrievetargetdir', this.relativeMetdataTempPath)
+      .withFlag('--packagenames', packageNames.join(','))
+      .withFlag('--targetusername', data.sessionId)
       .build();
   }
 
@@ -143,10 +146,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('force:mdapi:convert')
       .withFlag(
-        '-r',
+        '--rootdir',
         path.join(this.relativeMetdataTempPath, 'packages', packageName)
       )
-      .withFlag('-d', path.join('packages', packageName))
+      .withFlag('--outputdir', path.join('packages', packageName))
       .build();
   }
 
