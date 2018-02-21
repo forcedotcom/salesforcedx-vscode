@@ -91,6 +91,7 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
         .withArg('force:apex:test:run')
         .withFlag('--suitenames', `${data.label}`)
         .withFlag('--resultformat', 'human')
+        .withFlag('--loglevel', 'error')
         .build();
     } else if (data.type === TestType.Class) {
       return new SfdxCommandBuilder()
@@ -99,12 +100,14 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
         .withFlag('--classnames', `${data.label}`)
         .withFlag('--resultformat', 'human')
         .withArg('--synchronous')
+        .withFlag('--loglevel', 'error')
         .build();
     } else {
       return new SfdxCommandBuilder()
         .withDescription(nls.localize('force_apex_test_run_text'))
         .withArg('force:apex:test:run')
         .withFlag('--resultformat', 'human')
+        .withFlag('--loglevel', 'error')
         .build();
     }
   }
