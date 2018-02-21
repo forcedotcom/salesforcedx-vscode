@@ -71,7 +71,7 @@ export async function activate(context: vscode.ExtensionContext) {
   startLWCLanguageServer(serverModule, context);
 
   if (workspaceType === lwcLanguageServer.WorkspaceType.SFDX) {
-    populateEslintSettingIfNecessary(
+    await populateEslintSettingIfNecessary(
       context,
       vscode.workspace.getConfiguration()
     );
@@ -142,7 +142,7 @@ function startLWCLanguageServer(
   context.subscriptions.push(disposable);
 }
 
-export function populateEslintSettingIfNecessary(
+export async function populateEslintSettingIfNecessary(
   context: vscode.ExtensionContext,
   config: vscode.WorkspaceConfiguration
 ) {
@@ -154,7 +154,7 @@ export function populateEslintSettingIfNecessary(
   // which contains the version number and needs to be updated on each extension
   if (!nodePath || nodePath.includes(LWC_EXTENSION_NAME)) {
     const eslintModule = context.asAbsolutePath(path.join('node_modules'));
-    config.update(
+    await config.update(
       ESLINT_NODEPATH_CONFIG,
       eslintModule,
       vscode.ConfigurationTarget.Workspace
