@@ -291,7 +291,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 7b: convert packages
     for (const packageName of packageNames) {
-      channelService.appendLine(`Processing package: ${packageName}`);
+      channelService.appendLine(
+        nls.localize('isv_debug_bootstrap_processing_package', packageName)
+      );
       await this.executeCommand(
         this.buildMetadataApiConvertPackageSourceCommand(packageName),
         { cwd: projectPath },
@@ -327,7 +329,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     }
 
     // last step: open the folder in VS Code
-    channelService.appendLine('Now opening VS Code Folder.');
+    channelService.appendLine(nls.localize('isv_debug_bootstrap_open_project'));
     await vscode.commands.executeCommand(
       'vscode.openFolder',
       vscode.Uri.parse(projectPath)

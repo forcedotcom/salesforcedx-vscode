@@ -268,7 +268,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
   describe('IsvDebugBootstrapExecutor execution', () => {
     let executor: IsvDebugBootstrapExecutor;
     let executeCommandSpy: sinon.SinonStub;
-    const TEST_DATA_DIRT = path.join(
+    const TEST_DATA_FOLDER = path.join(
       __dirname,
       '..',
       '..',
@@ -298,7 +298,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       // fake org source retrieval into unpackaged.zip
       executeCommandSpy.onCall(2).callsFake(() => {
         const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_DIRT, 'org-source'));
+        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
         zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
@@ -323,7 +323,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       // fake package source retrieval into unpackaged.zip
       executeCommandSpy.onCall(5).callsFake(() => {
         const zip = new AdmZip();
-        zip.addLocalFolder(path.join(TEST_DATA_DIRT, 'packages-source'));
+        zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
         zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
