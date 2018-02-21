@@ -19,9 +19,9 @@
   "force_apex_test_class_run_text": "SFDX: Invoke Apex Test Class",
   "force_apex_test_method_run_text": "SFDX: Invoke Apex Test Method",
   "force_apex_test_last_class_run_text":
-    "SFDX: Re-Run Last Executed Test Class",
+    "SFDX: Re-Run Last Invoked Apex Test Class",
   "force_apex_test_last_method_run_text":
-    "SFDX: Re-Run Last Executed Test Method",
+    "SFDX: Re-Run Last Invoked Apex Test Method",
   "cancel_sfdx_command_text": "SFDX: Cancel Active Command",
   "force_apex_class_create_text": "SFDX: Create Apex Class",
   "force_visualforce_component_create_text":
