@@ -256,6 +256,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       '..',
       '..',
       '..',
+      '..',
       'test',
       'commands',
       'isvdebugger',
