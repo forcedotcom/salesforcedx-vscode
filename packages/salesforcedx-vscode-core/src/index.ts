@@ -13,8 +13,11 @@ import {
   forceAliasList,
   forceApexClassCreate,
   forceApexExecute,
+  forceApexTestClassRunCodeAction,
+  forceApexTestClassRunCodeActionDelegate,
+  forceApexTestMethodRunCodeAction,
+  forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
-  forceApexTestRunCodeAction,
   forceApexTriggerCreate,
   forceAuthWebLogin,
   forceConfigList,
@@ -106,9 +109,29 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.apex.test.run',
     forceApexTestRun
   );
-  const forceApexTestRunCodeActionCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.run.codeAction',
-    forceApexTestRunCodeAction
+  const forceApexTestClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.class.run.delegate',
+    forceApexTestClassRunCodeActionDelegate
+  );
+  const forceApexTestLastClassRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.last.class.run',
+    forceApexTestClassRunCodeAction
+  );
+  const forceApexTestClassRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.class.run',
+    forceApexTestClassRunCodeAction
+  );
+  const forceApexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.method.run.delegate',
+    forceApexTestMethodRunCodeActionDelegate
+  );
+  const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.last.method.run',
+    forceApexTestMethodRunCodeAction
+  );
+  const forceApexTestMethodRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.method.run',
+    forceApexTestMethodRunCodeAction
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
@@ -224,7 +247,12 @@ function registerCommands(): vscode.Disposable {
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
-    forceApexTestRunCodeActionCmd,
+    forceApexTestLastClassRunCmd,
+    forceApexTestClassRunCmd,
+    forceApexTestClassRunDelegateCmd,
+    forceApexTestLastMethodRunCmd,
+    forceApexTestMethodRunCmd,
+    forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
