@@ -29,6 +29,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 
 class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
@@ -40,6 +41,19 @@ class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       .withFlag('--logid', data.id)
       .withArg('--json')
       .build();
+  }
+
+  protected attachExecution(
+    execution: CommandExecution,
+    cancellationTokenSource: vscode.CancellationTokenSource,
+    cancellationToken: vscode.CancellationToken
+  ) {
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
+    CancellableStatusBar.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
   public async execute(
@@ -73,6 +87,10 @@ class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
         path.join(logDir, `${response.data.id}_${date}.log`),
         resultJson.result.log
       );
+      const document = await vscode.workspace.openTextDocument(
+        path.join(logDir, `${response.data.id}_${date}.log`)
+      );
+      vscode.window.showTextDocument(document);
     }
   }
 }
@@ -137,26 +155,19 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
     const logInfos = await getLogs(cancellationTokenSource);
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
-        let icon = '$(alert) ';
-        switch (logInfo.Request) {
-          case ApexDebugLogRequest.Api:
-            icon = '$(rocket) ';
-            break;
-          case ApexDebugLogRequest.Application:
-            icon = '$(squirrel) ';
-            break;
-        }
+        const icon = '$(file-text) ';
         return {
           id: logInfo.Id,
           label: icon + logInfo.Operation,
-          description: new Date(logInfo.StartTime).toLocaleTimeString('en-US', {
+          detail: new Date(logInfo.StartTime).toLocaleTimeString('en-US', {
             year: 'numeric',
             month: 'numeric',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            second: '2-digit'
           }),
-          detail: `${(logInfo.LogLength / 1000).toFixed(2)} KB`
+          description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });
       const logItem = await vscode.window.showQuickPick(
@@ -167,7 +178,7 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
       if (logItem) {
         return {
           type: 'CONTINUE',
-          data: { id: logItem.id, startTime: logItem.description }
+          data: { id: logItem.id, startTime: logItem.detail! }
         };
       }
     } else {
