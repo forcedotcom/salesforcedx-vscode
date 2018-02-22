@@ -61,7 +61,11 @@ To check your running tasks, expand the Running Tasks view in the Explorer.
 
 ## Run Apex Tests
 To run Apex tests, in your `.cls` file, click the name of an Apex test class or method. Next, click the code actions lightbulb that appears by the class or method signature, and then select **SFDX: Invoke Apex Test Method** or **SFDX: Invoke All Apex Tests in Class**.  
-![GIF that shows running Apex tests for a method and then a class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)
+![GIF that shows running Apex tests for a method and then a class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)  
+
+Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Ctrl and click that stack trace.  
+
+After you run Apex tests, two new commands are available in the command palette: **SFDX: Re-Run Last Invoked Apex Test Class** and **SFDX: Re-Run Last Invoked Apex Test Method**.  
 
 ## Edit Your Workspace Settings
 To edit your workspace settings, select **Code** > **Preferences** > **Settings** (macOS) or **File** > **Preferences** > **Settings** (Windows and Linux).  
