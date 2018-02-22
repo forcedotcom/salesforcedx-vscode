@@ -14,15 +14,17 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.2.0",
+  "version": "42.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.19.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.2.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.4.0",
     "vscode-debugadapter": "1.25.0",
     "vscode-debugprotocol": "1.25.0",
     "vscode-uri": "1.0.1"
@@ -53,13 +55,10 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
-    "test:unit":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters"
+    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters"
   },
   "activationEvents": [
     "onDebug",
@@ -78,7 +77,9 @@
         "label": "Apex Replay Debugger",
         "program": "./out/src/adapter/apexReplayDebug.js",
         "runtime": "node",
-        "languages": ["apex"],
+        "languages": [
+          "apex"
+        ],
         "variables": {
           "AskForLogFileName": "extension.replay-debugger.getLogFileName"
         },
@@ -99,7 +100,9 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": ["logFile"],
+              "required": [
+                "logFile"
+              ],
               "logFile": {
                 "type": "string",
                 "description": "%logfile_text%",
@@ -111,7 +114,10 @@
                 "default": true
               },
               "trace": {
-                "type": ["boolean", "string"],
+                "type": [
+                  "boolean",
+                  "string"
+                ],
                 "description": "%trace_text%",
                 "default": false
               }
@@ -122,6 +128,9 @@
     ]
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
