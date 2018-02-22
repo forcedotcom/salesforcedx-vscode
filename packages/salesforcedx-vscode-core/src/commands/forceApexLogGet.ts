@@ -21,6 +21,7 @@ import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
+import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
@@ -29,9 +30,8 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 
-class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
+export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
 > {
   public build(data: ApexDebugLogIdStartTime): Command {
@@ -95,17 +95,12 @@ class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   }
 }
 
-enum ApexDebugLogRequest {
-  Api = 'Api',
-  Application = 'Application'
-}
-
-type ApexDebugLogIdStartTime = {
+export type ApexDebugLogIdStartTime = {
   id: string;
   startTime: string;
 };
 
-type ApexDebugLogObject = {
+export type ApexDebugLogObject = {
   Id: string;
   StartTime: string;
   LogLength: number;
@@ -113,46 +108,18 @@ type ApexDebugLogObject = {
   Request: string;
 };
 
-async function getLogs(
-  cancellationTokenSource: vscode.CancellationTokenSource
-): Promise<ApexDebugLogObject[]> {
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_log_list_text'))
-      .withArg('force:apex:log:list')
-      .withArg('--json')
-      .build(),
-    { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
-  ).execute();
-  CancellableStatusBar.show(execution, cancellationTokenSource);
-  taskViewService.addCommandExecution(execution, cancellationTokenSource);
-  notificationService.reportExecutionError(
-    execution.command.toString(),
-    (execution.processErrorSubject as any) as Observable<Error | undefined>
-  );
-  const cmdOutput = new CommandOutput();
-  const result = await cmdOutput.getCmdResult(execution);
-  try {
-    const apexDebugLogObjects: ApexDebugLogObject[] = JSON.parse(result).result;
-    apexDebugLogObjects.sort(function(a, b): number {
-      return new Date(b.StartTime).valueOf() - new Date(a.StartTime).valueOf();
-    });
-    return Promise.resolve(apexDebugLogObjects);
-  } catch (e) {
-    return Promise.reject(e);
-  }
-}
-
 interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;
 }
 
-class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
+export class LogFileSelector
+  implements ParametersGatherer<ApexDebugLogIdStartTime> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
+    console.log('log file selector not mocked');
     const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const logInfos = await getLogs(cancellationTokenSource);
+    const logInfos = await ForceApexLogList.getLogs(cancellationTokenSource);
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
@@ -188,6 +155,42 @@ class LogFileSelector implements ParametersGatherer<ApexDebugLogIdStartTime> {
       } as CancelResponse;
     }
     return { type: 'CANCEL' };
+  }
+}
+
+export class ForceApexLogList {
+  public static async getLogs(
+    cancellationTokenSource: vscode.CancellationTokenSource
+  ): Promise<ApexDebugLogObject[]> {
+    console.log('not entering the mock getLogs');
+    const execution = new CliCommandExecutor(
+      new SfdxCommandBuilder()
+        .withDescription(nls.localize('force_apex_log_list_text'))
+        .withArg('force:apex:log:list')
+        .withArg('--json')
+        .build(),
+      { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
+    ).execute();
+    CancellableStatusBar.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    notificationService.reportExecutionError(
+      execution.command.toString(),
+      (execution.processErrorSubject as any) as Observable<Error | undefined>
+    );
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const apexDebugLogObjects: ApexDebugLogObject[] = JSON.parse(result)
+        .result;
+      apexDebugLogObjects.sort(function(a, b): number {
+        return (
+          new Date(b.StartTime).valueOf() - new Date(a.StartTime).valueOf()
+        );
+      });
+      return Promise.resolve(apexDebugLogObjects);
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 }
 
