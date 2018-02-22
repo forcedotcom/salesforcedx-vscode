@@ -3,10 +3,7 @@
 #### salesforcedx-vscode-core
 
 * Include source links to apex classes on apex test failures ([PR #308](https://github.com/forcedotcom/salesforcedx-vscode/pull/308))
-
-#### salesforcedx-utils-vscode
-
-* Avoid build failures caused by missing labels while developing the vscode extension ([PR #295](https://github.com/forcedotcom/salesforcedx-vscode/pull/295))
+* `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` show up in the command palette after you have run a test to make it easier to re-run your test. ([PR #308](https://github.com/forcedotcom/salesforcedx-vscode/pull/308))
 
 ## 42.2.0 - February 10, 2018
 ### Added
