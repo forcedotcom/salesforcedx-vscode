@@ -117,7 +117,6 @@ export class LogFileSelector
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
-    console.log('log file selector not mocked');
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await ForceApexLogList.getLogs(cancellationTokenSource);
     if (logInfos.length > 0) {
@@ -162,7 +161,6 @@ export class ForceApexLogList {
   public static async getLogs(
     cancellationTokenSource: vscode.CancellationTokenSource
   ): Promise<ApexDebugLogObject[]> {
-    console.log('not entering the mock getLogs');
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withDescription(nls.localize('force_apex_log_list_text'))
