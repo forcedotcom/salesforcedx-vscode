@@ -16,6 +16,12 @@
   "force_source_status_text":
     "SFDX: View All Changes (Local and in Default Scratch Org)",
   "force_apex_test_run_text": "SFDX: Invoke Apex Tests...",
+  "force_apex_test_class_run_text": "SFDX: Invoke Apex Test Class",
+  "force_apex_test_method_run_text": "SFDX: Invoke Apex Test Method",
+  "force_apex_test_last_class_run_text":
+    "SFDX: Re-Run Last Invoked Apex Test Class",
+  "force_apex_test_last_method_run_text":
+    "SFDX: Re-Run Last Invoked Apex Test Method",
   "cancel_sfdx_command_text": "SFDX: Cancel Active Command",
   "force_apex_class_create_text": "SFDX: Create Apex Class",
   "force_visualforce_component_create_text":
@@ -48,9 +54,9 @@
   "show_cli_success_msg_description":
     "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
   "force_start_apex_debug_logging":
-    "SFDX: Turn on Apex Debug Log for Replay Debugger",
+    "SFDX: Turn On Apex Debug Log for Replay Debugger",
   "force_stop_apex_debug_logging":
-    "SFDX: Turn off Apex Debug Log for Replay Debugger",
+    "SFDX: Turn Off Apex Debug Log for Replay Debugger",
 
   "isv_bootstrap_command_text":
     "SFDX: Create and Set Up Project for ISV Debugging",

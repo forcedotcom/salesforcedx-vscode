@@ -15,7 +15,7 @@ const downloadPlatform =
     ? 'darwin'
     : process.platform === 'win32' ? 'win32-archive' : 'linux-x64';
 
-const windowsExecutable = path.join(testRunFolderAbsolute, 'Code');
+const windowsExecutable = path.join(testRunFolderAbsolute, 'bin', 'code');
 const darwinExecutable = path.join(
   testRunFolderAbsolute,
   'Visual Studio Code.app',
@@ -39,11 +39,24 @@ const executable =
     ? darwinExecutable
     : process.platform === 'win32' ? windowsExecutable : linuxExecutable;
 
+if (process.platform === 'linux') {
+  // Somehow the code executable doesn't have +x set on the autobuilds -- set it here
+  shell.chmod('+x', `${executable}`);
+}
+
 // We always invoke this script with 'node install-vsix-dependencies arg'
 // so position2 is where the first argument is
 for (let arg = 2; arg < process.argv.length; arg++) {
-  shell.exec(
-    `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${process
-      .argv[arg]}`
-  );
+  if (process.platform === 'win32') {
+    // Windows Powershell doesn't like the single quotes around the executable
+    shell.exec(
+      `${executable} --extensions-dir ${extensionsDir} --install-extension ${process
+        .argv[arg]}`
+    );
+  } else {
+    shell.exec(
+      `'${executable}' --extensions-dir ${extensionsDir} --install-extension ${process
+        .argv[arg]}`
+    );
+  }
 }
