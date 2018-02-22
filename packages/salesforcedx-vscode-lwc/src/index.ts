@@ -73,7 +73,10 @@ export async function activate(context: vscode.ExtensionContext) {
   if (workspaceType === lwcLanguageServer.WorkspaceType.SFDX) {
     await populateEslintSettingIfNecessary(
       context,
-      vscode.workspace.getConfiguration()
+      vscode.workspace.getConfiguration(
+        '',
+        vscode.workspace.workspaceFolders[0].uri
+      )
     );
   }
 
