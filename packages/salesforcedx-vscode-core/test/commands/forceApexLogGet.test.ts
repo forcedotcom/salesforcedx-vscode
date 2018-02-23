@@ -20,7 +20,15 @@ import { nls } from '../../src/messages';
 describe('Force Apex Log Get Logging', () => {
   const newerStartTime = new Date(Date.now());
   const olderStartTime = new Date(Date.now() - 10 * 60000);
+  const oldestStartTime = new Date(Date.now() - 20 * 60000);
   const logInfos: ApexDebugLogObject[] = [
+    {
+      Id: 'id3',
+      LogLength: 300,
+      Operation: '/should/show/up/third',
+      Request: 'Api',
+      StartTime: oldestStartTime.toISOString()
+    },
     {
       Id: 'id2',
       LogLength: 200,
@@ -46,6 +54,9 @@ describe('Force Apex Log Get Logging', () => {
       .onFirstCall()
       .returns([])
       .onSecondCall()
+      .returns(logInfos.slice(0, 1))
+      .onThirdCall()
+      .returns(logInfos.slice(0, 2))
       .returns(logInfos);
 
     showQuickPickStub = sinon
@@ -79,9 +90,21 @@ describe('Force Apex Log Get Logging', () => {
     expect(showQuickPickStub.notCalled).to.be.true;
   });
 
-  it('Should display the loginfos in reverse chronological order', async () => {
+  it('Should display one logInfo', async () => {
+    const logFileSelector = new LogFileSelector();
+    await logFileSelector.gather();
+    showQuickPickStub.calledWith([logInfos[0]]);
+  });
+
+  it('Should display two logInfos in reverse chronological order', async () => {
     const logFileSelector = new LogFileSelector();
     await logFileSelector.gather();
     showQuickPickStub.calledWith([logInfos[1], logInfos[0]]);
+  });
+
+  it('Should display the loginfos in reverse chronological order', async () => {
+    const logFileSelector = new LogFileSelector();
+    await logFileSelector.gather();
+    showQuickPickStub.calledWith([logInfos[2], logInfos[1], logInfos[0]]);
   });
 });

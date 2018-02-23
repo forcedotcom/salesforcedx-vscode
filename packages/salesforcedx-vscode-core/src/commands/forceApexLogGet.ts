@@ -22,6 +22,7 @@ import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
+import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { CancellableStatusBar, taskViewService } from '../statuses';
@@ -48,6 +49,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
+    channelService.streamCommandStartStop(execution);
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken
@@ -65,8 +67,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    const resultPromise = new CommandOutput().getCmdResult(execution);
-    const result = await resultPromise;
+    const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0) {
       const logDir = path.join(
@@ -119,6 +120,7 @@ export class LogFileSelector
   > {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await ForceApexLogList.getLogs(cancellationTokenSource);
+    console.log('loginfos: ' + logInfos);
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
@@ -180,7 +182,7 @@ export class ForceApexLogList {
     try {
       const apexDebugLogObjects: ApexDebugLogObject[] = JSON.parse(result)
         .result;
-      apexDebugLogObjects.sort(function(a, b): number {
+      apexDebugLogObjects.sort((a, b) => {
         return (
           new Date(b.StartTime).valueOf() - new Date(a.StartTime).valueOf()
         );
