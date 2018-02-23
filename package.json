@@ -1,13 +1,11 @@
 {
   "devDependencies": {
-    "@types/shelljs": "^0.7.8",
     "eslint": "4.13.1",
     "eslint-config-prettier": "2.9.0",
     "istanbul": "1.1.0-alpha.1",
     "lerna": "2.4.0",
     "prettier": "1.6.0",
     "remap-istanbul": "^0.9.5",
-    "shelljs": "^0.8.1",
     "shx": "0.2.2",
     "tslint": "5.5.0",
     "typescript": "2.6.2",

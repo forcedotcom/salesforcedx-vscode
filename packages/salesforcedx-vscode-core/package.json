@@ -28,7 +28,7 @@
     "glob": "^7.1.2",
     "moment": "2.20.1",
     "rxjs": "^5.4.1",
-    "shelljs": "0.7.8"
+    "shelljs": "^0.8.1"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.31",
@@ -37,8 +37,8 @@
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
+    "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
-    "@types/shelljs": "0.7.4",
     "chai": "^4.0.2",
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",

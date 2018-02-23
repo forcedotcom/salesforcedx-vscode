@@ -23,6 +23,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as querystring from 'querystring';
 import { Observable } from 'rxjs/Observable';
+import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { channelService } from '../../channels';
@@ -193,7 +194,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 3a: create package.xml for downloading org apex
     try {
-      this.mkdirSyncRecursive(projectMetadataTempPath);
+      shell.mkdir('-p', projectMetadataTempPath);
       fs.writeFileSync(
         apexRetrievePackageXmlPath,
         `<?xml version="1.0" encoding="UTF-8"?>
@@ -275,8 +276,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         projectMetadataTempPath,
         'packages'
       );
-      this.mkdirSyncRecursive(packagesPath);
-      this.mkdirSyncRecursive(path.join(projectPath, 'packages'));
+      shell.mkdir('-p', packagesPath);
+      shell.mkdir('-p', path.join(projectPath, 'packages'));
       const zip = new AdmZip(
         path.join(projectMetadataTempPath, 'unpackaged.zip')
       );
@@ -369,36 +370,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     );
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
-  }
-
-  public mkdirSyncRecursive(dirPath: string) {
-    dirPath = path.resolve(dirPath);
-
-    try {
-      fs.mkdirSync(dirPath);
-    } catch (error) {
-      switch (error.code) {
-        case 'ENOENT':
-          // make parent first
-          this.mkdirSyncRecursive(path.dirname(dirPath));
-          // try again
-          this.mkdirSyncRecursive(dirPath);
-          break;
-
-        // catch path exists error, which is ok
-        default:
-          let dirStat;
-          try {
-            dirStat = fs.statSync(dirPath);
-          } catch (statError) {
-            throw error; // re-throw original error
-          }
-          if (!dirStat.isDirectory()) {
-            throw error;
-          }
-          break;
-      }
-    }
   }
 }
 
