@@ -99,9 +99,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: args=${JSON.stringify(args)}`
     );
-    if (args.logFile) {
-      args.logFile = this.convertDebuggerPathToClient(args.logFile);
-    }
     this.logContext = new LogContext(args, this);
     if (!this.logContext.hasLogLines()) {
       response.success = false;
