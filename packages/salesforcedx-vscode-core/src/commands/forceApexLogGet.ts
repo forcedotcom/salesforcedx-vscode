@@ -17,6 +17,7 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
+import * as moment from 'moment';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
@@ -80,17 +81,13 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       if (!fs.existsSync(logDir)) {
         mkdir('-p', logDir);
       }
-      const date = new Date(response.data.startTime)
-        .toISOString()
-        .replace('T', ' ')
-        .replace('.000', '');
-      fs.writeFile(
-        path.join(logDir, `${response.data.id}_${date}.log`),
-        resultJson.result.log
+
+      const date = moment(new Date(response.data.startTime)).format(
+        'YYYYMMDDhhmmss'
       );
-      const document = await vscode.workspace.openTextDocument(
-        path.join(logDir, `${response.data.id}_${date}.log`)
-      );
+      const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
+      fs.writeFileSync(logPath, resultJson.result.log);
+      const document = await vscode.workspace.openTextDocument(logPath);
       vscode.window.showTextDocument(document);
     }
   }
