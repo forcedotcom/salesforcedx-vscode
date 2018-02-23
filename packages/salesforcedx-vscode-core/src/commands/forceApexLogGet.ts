@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -124,14 +124,9 @@ export class LogFileSelector
         return {
           id: logInfo.Id,
           label: icon + logInfo.Operation,
-          detail: new Date(logInfo.StartTime).toLocaleTimeString('en-US', {
-            year: 'numeric',
-            month: 'numeric',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          }),
+          detail: moment(new Date(logInfo.StartTime)).format(
+            'M/DD/YYYY, h:mm:s a'
+          ),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });
