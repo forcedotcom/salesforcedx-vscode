@@ -24,6 +24,7 @@
   "categories": ["Languages"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.4.0",
+    "ajv": "^6.1.1",
     "eslint": "4.16.0",
     "eslint-plugin-lwc": "0.3.2",
     "lwc-language-server": "0.16.4",
