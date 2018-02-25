@@ -1,4 +1,4 @@
-# 
+#
 version: 2
 jobs:
    build:
@@ -9,7 +9,7 @@ jobs:
         - SFDX_AUTOUPDATE_DISABLE=true
         - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
         - SFDX_DOMAIN_RETRY=300
-        
+
      steps:
        - checkout
        - restore_cache:
@@ -17,6 +17,12 @@ jobs:
        - run: npm install
        - run: npm run compile
        - run: npm run vscode:package
+       - run:
+          command: |
+            mkdir extensions
+            find . -name "*.vsix" -type f -exec cp {} ./extensions \;
+       - store_artifacts:
+          path: ./extensions
        - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
