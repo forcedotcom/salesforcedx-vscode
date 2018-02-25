@@ -73,8 +73,6 @@ after_test:
 artifacts:
   - path: '**\*.vsix'
 
-
-
 on_finish:
   - del C:\projects\devhub.key
   - codecov --disable=gcov
