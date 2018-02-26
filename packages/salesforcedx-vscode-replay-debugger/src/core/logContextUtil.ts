@@ -6,13 +6,11 @@
  */
 
 import * as fs from 'fs';
-import { EOL } from 'os';
 
 export class LogContextUtil {
   public readLogFile(logFilePath: string): string[] {
     try {
-      const fileContent = fs.readFileSync(logFilePath).toString('utf-8');
-      return fileContent.split(EOL);
+      return fs.readFileSync(logFilePath, 'utf-8').split(/\r?\n/);
     } catch (e) {
       return [];
     }

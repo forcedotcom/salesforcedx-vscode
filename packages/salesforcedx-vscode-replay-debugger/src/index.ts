@@ -18,13 +18,18 @@ import {
 function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
-    config => {
-      return vscode.window.showOpenDialog({
+    async config => {
+      const fileUris:
+        | vscode.Uri[]
+        | undefined = await vscode.window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
         defaultUri: getDialogStartingPath()
       });
+      if (fileUris && fileUris.length === 1) {
+        return fileUris[0].fsPath;
+      }
     }
   );
   return vscode.Disposable.from(promptForLogCmd);

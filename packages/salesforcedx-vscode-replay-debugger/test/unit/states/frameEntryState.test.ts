@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { StackFrame } from 'vscode-debugadapter';
+import Uri from 'vscode-uri';
 import {
   ApexReplayDebug,
   LaunchRequestArguments
@@ -20,6 +21,7 @@ describe('Frame entry event', () => {
   let getUriFromSignatureStub: sinon.SinonStub;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
+  const uriFromSignature = 'file:///path/foo.cls';
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: logFilePath,
     trace: true
@@ -28,7 +30,7 @@ describe('Frame entry event', () => {
   beforeEach(() => {
     getUriFromSignatureStub = sinon
       .stub(LogContext.prototype, 'getUriFromSignature')
-      .returns('file:///path/foo.cls');
+      .returns(uriFromSignature);
   });
 
   afterEach(() => {
@@ -53,7 +55,7 @@ describe('Frame entry event', () => {
       name: 'signature',
       source: {
         name: 'foo.cls',
-        path: '/path/foo.cls',
+        path: Uri.parse(uriFromSignature).fsPath,
         sourceReference: 0
       }
     } as StackFrame);
