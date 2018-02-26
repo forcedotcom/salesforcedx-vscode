@@ -1,6 +1,7 @@
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as path from 'path';
+import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ContinueResponse } from '../../../../salesforcedx-utils-vscode/out/src/types/index';
@@ -311,17 +312,22 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
-      const input = {
-        type: 'CONTINUE',
-        data: {
-          loginUrl: LOGIN_URL,
-          sessionId: SESSION_ID,
-          projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath
-        }
-      } as ContinueResponse<IsvDebugBootstrapConfig>;
-      await executor.execute(input);
-      expect(executeCommandSpy.callCount).to.equal(7);
+      try {
+        const input = {
+          type: 'CONTINUE',
+          data: {
+            loginUrl: LOGIN_URL,
+            sessionId: SESSION_ID,
+            projectName: PROJECT_NAME,
+            projectUri: PROJECT_DIR[0].fsPath
+          }
+        } as ContinueResponse<IsvDebugBootstrapConfig>;
+        await executor.execute(input);
+        expect(executeCommandSpy.callCount).to.equal(7);
+      } finally {
+        // clean-up additional folders we created
+        shell.rm('-rf', path.join(projectPath, 'packages'));
+      }
     });
   });
 });
