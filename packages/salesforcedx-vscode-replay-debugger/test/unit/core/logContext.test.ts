@@ -300,9 +300,9 @@ describe('LogContext', () => {
       getTyperefMappingStub.restore();
     });
 
-    it('Should return debug log path for execute anonymous signature', () => {
+    it('Should return debug log fs path for execute anonymous signature', () => {
       expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).to.equal(
-        encodeURI('file://' + context.getLogFilePath())
+        context.getLogFilePath()
       );
     });
 

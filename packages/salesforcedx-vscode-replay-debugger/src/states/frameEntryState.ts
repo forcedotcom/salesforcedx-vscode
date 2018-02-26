@@ -26,7 +26,7 @@ export class FrameEntryState extends FrameState implements DebugLogState {
           logContext.getFrames().length,
           this._frameName,
           sourceUri
-            ? new Source(basename(sourceUri), Uri.parse(sourceUri).path)
+            ? new Source(basename(sourceUri), Uri.parse(sourceUri).fsPath)
             : undefined,
           undefined
         )
