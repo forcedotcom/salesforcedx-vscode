@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as moment from 'moment';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL } from './constants';
 import { nls } from './messages';
@@ -17,24 +18,14 @@ export function showTraceFlagExpiration(expirationDate: Date) {
   }
   statusBarItem.text = nls.localize(
     'force_apex_debug_log_status_bar_text',
-    expirationDate.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    moment(expirationDate).format('LT')
   );
 
   statusBarItem.tooltip = nls.localize(
     'force_apex_debug_log_status_bar_hover_text',
     APEX_CODE_DEBUG_LEVEL,
-    expirationDate.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    expirationDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    })
+    moment(expirationDate).format('LT'),
+    moment(expirationDate).format('l')
   );
   statusBarItem.show();
 }

@@ -26,6 +26,7 @@ export interface ContinueResponse<T> {
 
 export interface CancelResponse {
   type: 'CANCEL';
+  msg?: string;
 }
 
 export interface ParametersGatherer<T> {
