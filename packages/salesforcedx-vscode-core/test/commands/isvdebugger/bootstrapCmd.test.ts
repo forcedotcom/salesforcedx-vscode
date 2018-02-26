@@ -252,6 +252,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
   describe('IsvDebugBootstrapExecutor execution', () => {
     let executor: IsvDebugBootstrapExecutor;
     let executeCommandSpy: sinon.SinonStub;
+    let vscodeCommandSpy: sinon.SinonStub;
     const TEST_DATA_FOLDER = path.join(
       __dirname,
       '..',
@@ -267,10 +268,12 @@ describe('ISV Debugging Project Bootstrap Command', () => {
     beforeEach(() => {
       executor = new IsvDebugBootstrapExecutor();
       executeCommandSpy = sinon.stub(executor, 'executeCommand');
+      vscodeCommandSpy = sinon.stub(vscode.commands, 'executeCommand');
     });
 
     afterEach(() => {
       executeCommandSpy.restore();
+      vscodeCommandSpy.restore();
     });
 
     it('Should successfully pass through execution', async () => {
@@ -324,6 +327,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         } as ContinueResponse<IsvDebugBootstrapConfig>;
         await executor.execute(input);
         expect(executeCommandSpy.callCount).to.equal(7);
+        expect(vscodeCommandSpy.callCount).to.equal(1);
       } finally {
         // clean-up additional folders we created
         shell.rm('-rf', path.join(projectPath, 'packages'));
