@@ -132,5 +132,9 @@ export const messages = {
   isv_debug_bootstrap_step1_create_project:
     'SFDX: ISV Debugger Setup, Step 1 of 2: Create Project',
   isv_debug_bootstrap_step1_configure_project:
-    'SFDX: ISV Debugger Setup, Step 2 of 2: Configure Project'
+    'SFDX: ISV Debugger Setup, Step 2 of 2: Configure Project',
+  force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
+  force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
+  force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
+  force_apex_log_list_text: 'Getting Apex debug logs'
 };
