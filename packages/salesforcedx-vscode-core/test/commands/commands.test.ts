@@ -231,6 +231,7 @@ describe('Command Utilities', () => {
         const dirList: string[] = dirPathGatherer.globDirs(
           vscode.workspace.rootPath
         );
+        console.log(`Found dirs: ${dirList}`);
         expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
         expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
       });

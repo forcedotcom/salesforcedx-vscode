@@ -72,25 +72,37 @@ function run(testsRoot: any, clb: any): any {
   // Glob test files
   glob('**/**.test.js', { cwd: testsRoot }, (error, files): any => {
     if (error) {
+      console.error('An error occured: ' + error);
       return clb(error);
     }
     try {
       // Fill into Mocha
       files.forEach((f): Mocha => {
+        console.log(`Adding test script: ${f}`);
         return mocha.addFile(paths.join(testsRoot, f));
       });
       // Run the tests
       let failureCount = 0;
 
       mocha
-        .run()
+        .run(function(failures: any) {
+          process.on('exit', function() {
+            console.log(
+              `Existing test process, code should be ${failureCount}`
+            );
+            process.exit(failures); // exit with non-zero status if there were failures
+          });
+        })
         .on('fail', (test: any, err: any): void => {
+          console.log(`Failure in test '${test}': ${err}`);
           failureCount++;
         })
         .on('end', (): void => {
+          console.log(`Tests ended with ${failureCount} failure(s)`);
           clb(undefined, failureCount);
         });
     } catch (error) {
+      console.error('An error occured: ' + error);
       return clb(error);
     }
   });

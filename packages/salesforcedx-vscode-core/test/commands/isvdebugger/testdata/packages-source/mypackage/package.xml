@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>mypackage</fullName>
+    <apiAccessLevel>Unrestricted</apiAccessLevel>
+    <description>A sample test package.</description>
+    <namespacePrefix>developer</namespacePrefix>
+    <types>
+        <members>Logger</members>
+        <members>LoggerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>AccountLogger</members>
+        <name>ApexTrigger</name>
+    </types>
+</Package>

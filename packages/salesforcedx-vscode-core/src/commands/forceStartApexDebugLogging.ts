@@ -122,13 +122,15 @@ export async function getUserId(projectPath: string): Promise<string> {
 }
 
 export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
+  public readonly developerName = `ReplayDebuggerLevels${Date.now()}`;
   public build(): Command {
     return new SfdxCommandBuilder()
       .withArg('force:data:record:create')
       .withFlag('--sobjecttype', 'DebugLevel')
       .withFlag(
         '--values',
-        `developername=ReplayDebuggerLevels${Date.now()} MasterLabel=ReplayDebuggerLevels${Date.now()} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
+        `developername=${this.developerName} MasterLabel=${this
+          .developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
       .withArg('--usetoolingapi')
       .withArg('--json')
