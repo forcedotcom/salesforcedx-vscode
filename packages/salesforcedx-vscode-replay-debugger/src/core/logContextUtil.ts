@@ -10,7 +10,7 @@ import * as fs from 'fs';
 export class LogContextUtil {
   public readLogFile(logFilePath: string): string[] {
     try {
-      return fs.readFileSync(logFilePath, 'utf-8').split('\n');
+      return fs.readFileSync(logFilePath, 'utf-8').split(/\r?\n/);
     } catch (e) {
       return [];
     }
