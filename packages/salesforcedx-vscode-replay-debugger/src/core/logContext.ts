@@ -30,6 +30,7 @@ import {
   DebugLogState,
   FrameEntryState,
   FrameExitState,
+  FrameStateUtil,
   LogEntryState,
   NoOpState,
   StatementExecuteState,
@@ -121,7 +122,7 @@ export class LogContext {
 
   public getUriFromSignature(signature: string): string {
     if (signature === EXEC_ANON_SIGNATURE) {
-      return encodeURI('file://' + this.getLogFilePath());
+      return this.getLogFilePath();
     }
     const processedSignature = signature.endsWith(')')
       ? signature.substring(0, signature.lastIndexOf('.'))
@@ -185,13 +186,31 @@ export class LogContext {
         case EVENT_CODE_UNIT_STARTED:
         case EVENT_CONSTRUCTOR_ENTRY:
         case EVENT_METHOD_ENTRY:
-        case EVENT_VF_APEX_CALL_START:
           return new FrameEntryState(fields);
+        case EVENT_VF_APEX_CALL_START:
+          if (
+            FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(
+              fields[fields.length - 2]
+            )
+          ) {
+            return new NoOpState();
+          } else {
+            return new FrameEntryState(fields);
+          }
         case EVENT_CODE_UNIT_FINISHED:
         case EVENT_CONSTRUCTOR_EXIT:
         case EVENT_METHOD_EXIT:
-        case EVENT_VF_APEX_CALL_END:
           return new FrameExitState(fields);
+        case EVENT_VF_APEX_CALL_END:
+          if (
+            FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(
+              fields[fields.length - 2]
+            )
+          ) {
+            return new NoOpState();
+          } else {
+            return new FrameExitState(fields);
+          }
         case EVENT_STATEMENT_EXECUTE:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
             fields[2] = this.util.stripBrackets(fields[2]);

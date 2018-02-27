@@ -32,7 +32,7 @@ import { notificationService } from '../../src/notifications';
 // tslint:disable:no-unused-expression
 describe('Command Utilities', () => {
   const WORKSPACE_NAME = 'sfdx-simple';
-  const SFDX_SIMPLE_NUM_OF_DIRS = 14;
+  const SFDX_SIMPLE_NUM_OF_DIRS = 15;
   describe('EmptyParametersGatherer', () => {
     it('Should always return continue with empty object as data', async () => {
       const gatherer = new EmptyParametersGatherer();
@@ -231,6 +231,7 @@ describe('Command Utilities', () => {
         const dirList: string[] = dirPathGatherer.globDirs(
           vscode.workspace.rootPath
         );
+        console.log(`Found dirs: ${dirList}`);
         expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
         expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
       });

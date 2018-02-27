@@ -9,7 +9,8 @@
     "shx": "0.2.2",
     "tslint": "5.5.0",
     "typescript": "2.6.2",
-    "vsce": "1.29.0"
+    "ajv": "6.1.1",
+    "vsce": "^1.36.3"
   },
   "scripts": {
     "postinstall":
@@ -35,7 +36,8 @@
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
     "eslint-check":
-      "eslint --print-config .eslintrc.json | eslint-config-prettier-check"
+      "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
+    "reformat": "node scripts/reformat-with-prettier.js"
   },
   "repository": {
     "type": "git",

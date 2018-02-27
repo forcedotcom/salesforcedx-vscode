@@ -77,6 +77,10 @@ export const messages = {
     'Runs all tests in the current project',
 
   force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
+  force_apex_test_run_codeAction_no_class_test_param_text:
+    'Test class not provided. Run the code action on a class annotated with @isTest.',
+  force_apex_test_run_codeAction_no_method_test_param_text:
+    'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
 
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
@@ -118,13 +122,38 @@ export const messages = {
   force_project_create_open_dialog_create_label: 'Create Project',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
-    'SFDX: Turn on Apex Debug Log for Replay Debugger',
-  force_apex_debug_log_status_bar_text: 'Logging ends at %s',
+    'SFDX: Turn On Apex Debug Log for Replay Debugger',
+  force_apex_debug_log_status_bar_text:
+    '$(file-text) Recording detailed logs until %s',
+  force_apex_debug_log_status_bar_hover_text:
+    'Writing debug logs for Apex and Visualforce at the %s log level until %s on %s',
   force_stop_apex_debug_logging:
-    'SFDX: Turn off Apex Debug Log for Replay Debugger',
-
+    'SFDX: Turn Off Apex Debug Log for Replay Debugger',
   isv_debug_bootstrap_step1_create_project:
-    'SFDX: ISV Debugger Setup, Step 1 of 2: Create Project',
-  isv_debug_bootstrap_step1_configure_project:
-    'SFDX: ISV Debugger Setup, Step 2 of 2: Configure Project'
+    'SFDX: ISV Debugger Setup, Step 1 of 7: Creating project',
+  isv_debug_bootstrap_step2_configure_project:
+    'SFDX: ISV Debugger Setup, Step 2 of 7: Configuring project',
+  isv_debug_bootstrap_step3_retrieve_org_source:
+    'SFDX: ISV Debugger Setup, Step 3 of 7: Retrieving unpackaged Apex code',
+  isv_debug_bootstrap_step4_convert_org_source:
+    'SFDX: ISV Debugger Setup, Step 4 of 7: Converting unpackaged Apex code',
+  isv_debug_bootstrap_step5_list_installed_packages:
+    'SFDX: ISV Debugger Setup, Step 5 of 7: Querying for installed packages',
+  isv_debug_bootstrap_step6_retrieve_packages_source:
+    'SFDX: ISV Debugger Setup, Step 6 of 7: Retrieving packages',
+  isv_debug_bootstrap_step7_convert_package_source:
+    'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',
+  isv_debug_bootstrap_processing_package: 'Processing package: %s',
+  isv_debug_bootstrap_open_project:
+    'Opening project in new Visual Studio Code window',
+
+  force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
+  force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
+  force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
+  force_apex_log_list_text: 'Getting Apex debug logs',
+
+  error_creating_packagexml: 'Error creating package.xml. %s',
+  error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
+  error_extracting_packages: 'Error extracting packages: %s',
+  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s'
 };
