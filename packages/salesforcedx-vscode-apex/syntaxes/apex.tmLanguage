@@ -685,7 +685,7 @@
                </dict>
                <dict>
                   <key>match</key>
-                  <string>\b(return|break|case|continue|default|do|while|for|switch|if|else)\b</string>
+                  <string>\b(return|break|case|continue|default|do|while|for|switch|when|if|else)\b</string>
                   <key>name</key>
                   <string>keyword.control.apex</string>
                </dict>
