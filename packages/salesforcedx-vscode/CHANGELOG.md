@@ -1,3 +1,15 @@
+## 42.5.0 - March 1, 2018
+### Added
+#### salesforcedx-vscode-apex
+
+* Find all references for user-defined types e.g., class, enum, interface (from type declaration and type usage) ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
+* Find matching references for Apex methods ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
+
+### Fixes
+#### salesforcedx-vscode-core
+
+* Change code action to run Apex tests to code lense based on vscode conventions ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
+
 ## 42.4.0 - February 22, 2018
 ### Added
 #### salesforcedx-vscode-core
