@@ -20,6 +20,7 @@ export class SessionService {
   private project: string;
   private sessionId: string;
   private connected = false;
+  private username: string;
 
   public static getInstance() {
     if (!SessionService.instance) {
@@ -40,6 +41,11 @@ export class SessionService {
 
   public withEntryFilter(filter?: string): SessionService {
     this.entryFilter = filter || '';
+    return this;
+  }
+
+  public withUsername(username: string): SessionService {
+    this.username = username;
     return this;
   }
 
@@ -70,6 +76,7 @@ export class SessionService {
           `UserIdFilter='${this.userFilter}' EntryPointFilter='${this
             .entryFilter}' RequestTypeFilter='${this.requestFilter}'`
         )
+        .withFlag('--targetusername', this.username)
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
@@ -105,6 +112,7 @@ export class SessionService {
         .withFlag('--sobjectid', this.sessionId)
         .withFlag('--values', "Status='Detach'")
         .withArg('--usetoolingapi')
+        .withFlag('--targetusername', this.username)
         .withArg('--json')
         .build(),
       { cwd: this.project, env: RequestService.getEnvVars() }

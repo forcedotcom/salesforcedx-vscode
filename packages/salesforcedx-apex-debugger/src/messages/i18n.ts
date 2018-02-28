@@ -36,5 +36,7 @@ export const messages = {
   idle_warn_text:
     'You have been idle for %s minutes. To prevent your debugger session from being terminated, run or step through code, or inspect your variables, in the next %s minutes.',
   idle_terminated_text:
-    'Your debugger session is being terminated because it has been idle for %s minutes.'
+    'Your debugger session is being terminated because it has been idle for %s minutes.',
+  invalid_isv_project_config:
+    'Your project configuration is invalid/incomplete for ISV debugging. Create a new ISV project and try again.'
 };

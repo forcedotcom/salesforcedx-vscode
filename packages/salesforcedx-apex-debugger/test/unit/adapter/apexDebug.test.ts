@@ -898,10 +898,6 @@ describe('Interactive debugger adapter - unit', () => {
         new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
-      adapter.setOrgInfo({
-        instanceUrl: 'https://www.salesforce.com',
-        accessToken: '123'
-      } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -972,10 +968,6 @@ describe('Interactive debugger adapter - unit', () => {
         new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
-      adapter.setOrgInfo({
-        instanceUrl: 'https://www.salesforce.com',
-        accessToken: '123'
-      } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -1077,10 +1069,6 @@ describe('Interactive debugger adapter - unit', () => {
         new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
-      adapter.setOrgInfo({
-        instanceUrl: 'https://www.salesforce.com',
-        accessToken: '123'
-      } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
       lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
     });

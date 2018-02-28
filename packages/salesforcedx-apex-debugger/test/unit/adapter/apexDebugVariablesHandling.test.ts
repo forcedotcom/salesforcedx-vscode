@@ -578,10 +578,6 @@ describe('Debugger adapter variable handling - unit', () => {
         new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
-      adapter.setOrgInfo({
-        instanceUrl: 'https://www.salesforce.com',
-        accessToken: '123'
-      } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -771,10 +767,6 @@ describe('Debugger adapter variable handling - unit', () => {
         new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
-      adapter.setOrgInfo({
-        instanceUrl: 'https://www.salesforce.com',
-        accessToken: '123'
-      } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
     });
 
@@ -938,10 +930,6 @@ describe('Debugger adapter variable handling - unit', () => {
         new RequestService()
       );
       adapter.setSfdxProject('someProjectPath');
-      adapter.setOrgInfo({
-        instanceUrl: 'https://www.salesforce.com',
-        accessToken: '123'
-      } as OrgInfo);
       adapter.addRequestThread('07cFAKE');
       resetIdleTimersSpy = sinon.spy(
         ApexDebugForTest.prototype,

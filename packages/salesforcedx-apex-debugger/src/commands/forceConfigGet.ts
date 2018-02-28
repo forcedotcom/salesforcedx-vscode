@@ -12,7 +12,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 export class ForceConfigGet {
-  public async getConfig(projectPath: string, ...keys: string[]): Promise<any> {
+  public async getConfig(
+    projectPath: string,
+    ...keys: string[]
+  ): Promise<Map<string, string>> {
     const commandBuilder = new SfdxCommandBuilder().withArg('force:config:get');
     keys.forEach(key => commandBuilder.withArg(key));
 
@@ -26,8 +29,10 @@ export class ForceConfigGet {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
     try {
-      const forceConfig = JSON.parse(result).result as any;
-      return Promise.resolve(forceConfig);
+      const forceConfigMap = new Map<string, string>();
+      const results = JSON.parse(result).result as any[];
+      results.forEach(entry => forceConfigMap.set(entry.key, entry.value));
+      return Promise.resolve(forceConfigMap);
     } catch (e) {
       return Promise.reject(result);
     }

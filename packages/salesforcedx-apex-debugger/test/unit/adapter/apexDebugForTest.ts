@@ -143,10 +143,6 @@ export class ApexDebugForTest extends ApexDebug {
     this.sfdxProject = projectPath;
   }
 
-  public setOrgInfo(orgInfo: OrgInfo): void {
-    this.orgInfo = orgInfo;
-  }
-
   public addRequestThread(requestId: string): void {
     this.requestThreads.set(this.threadId++, requestId);
   }
