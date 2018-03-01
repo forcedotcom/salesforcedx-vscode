@@ -46,6 +46,7 @@ To jump to the location of a definition, right-click the item and select **Go to
 You can find all references to:
 * Apex class variables
 * Apex properties
+* User-defined Apex classes, enums, interfaces, and methods
 
 To find references to an item, right-click the item and select **Find All References**, or press Shift+F12.
 

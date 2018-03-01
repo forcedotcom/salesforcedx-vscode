@@ -26,6 +26,7 @@ These Salesforce CLI commands are available:
 * `force:apex:class:create ...`: **SFDX: Create Apex Class**
 * `force:apex:execute`: **SFDX: Execute Anonymous Apex with Currently Selected Text**
 * `force:apex:execute --apexcodefile`: **SFDX: Execute Anonymous Apex with Editor Contents**
+* `force:apex:log:get ...`: **SFDX: Get Apex Debug Logs...**
 * `force:apex:test:run --resultformat human ...`: **SFDX: Invoke Apex Tests...**
 * `force:apex:trigger:create ...`: **SFDX: Create Apex Trigger**
 * `force:auth:web:login --setdefaultdevhubusername`: **SFDX: Authorize a Dev Hub**
@@ -60,8 +61,7 @@ To check your running tasks, expand the Running Tasks view in the Explorer.
 ![Running Tasks view, showing that Apex tests are running](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/running_tasks.png)
 
 ## Run Apex Tests
-To run Apex tests, in your `.cls` file, click the name of an Apex test class or method. Next, click the code actions lightbulb that appears by the class or method signature, and then select **SFDX: Invoke Apex Test Method** or **SFDX: Invoke All Apex Tests in Class**.  
-![GIF that shows running Apex tests for a method and then a class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)  
+To run Apex tests, in your `.cls` file, click **Run Test** or **Run All Tests** above the definition of an Apex test method or class.  
 
 Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Cmd (macOS) or Ctrl (Windows and Linux) and click that stack trace.  
 
