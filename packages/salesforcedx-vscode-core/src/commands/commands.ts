@@ -353,6 +353,9 @@ export class SfdxCommandlet<T> {
         case 'CONTINUE':
           return this.executor.execute(inputs);
         case 'CANCEL':
+          if (inputs.msg) {
+            notificationService.showErrorMessage(inputs.msg);
+          }
           return;
       }
     }

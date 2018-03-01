@@ -99,7 +99,7 @@ describe('Force Start Apex Debug Logging', () => {
     const createDebugLevelExecutor = new CreateDebugLevel();
     const createDebugLevelCmd = createDebugLevelExecutor.build();
     expect(createDebugLevelCmd.toCommand()).to.equal(
-      `sfdx force:data:record:create --sobjecttype DebugLevel --values developername=ReplayDebuggerLevels${Date.now()} MasterLabel=ReplayDebuggerLevels${Date.now()} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL} --usetoolingapi --json`
+      `sfdx force:data:record:create --sobjecttype DebugLevel --values developername=${createDebugLevelExecutor.developerName} MasterLabel=${createDebugLevelExecutor.developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL} --usetoolingapi --json`
     );
   });
 });

@@ -122,7 +122,7 @@ export class LogContext {
 
   public getUriFromSignature(signature: string): string {
     if (signature === EXEC_ANON_SIGNATURE) {
-      return encodeURI('file://' + this.getLogFilePath());
+      return this.getLogFilePath();
     }
     const processedSignature = signature.endsWith(')')
       ? signature.substring(0, signature.lastIndexOf('.'))
