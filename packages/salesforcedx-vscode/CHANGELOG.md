@@ -1,3 +1,15 @@
+## 42.5.0 - March 1, 2018
+### Added
+#### salesforcedx-vscode-apex
+
+* Find All References for user-defined classes, enums, interfaces and methods ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
+* `SFDX: Get Apex Debug Logs` command to fetch debug logs ([PR #310](https://github.com/forcedotcom/salesforcedx-vscode/pull/310)
+
+### Fixed
+#### salesforcedx-vscode-core
+
+* Change code actions for running Apex tests to code lenses, to follow VS Code conventions ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
+
 ## 42.4.0 - February 22, 2018
 ### Added
 #### salesforcedx-vscode-core
