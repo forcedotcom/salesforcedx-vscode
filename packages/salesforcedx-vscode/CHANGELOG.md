@@ -2,8 +2,8 @@
 ### Added
 #### salesforcedx-vscode-apex
 
-* Find All References for user-defined classes, enums, and interfaces (from type declarations and type usages) ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
-* Find matching references for Apex methods ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
+* Find All References for user-defined classes, enums, interfaces and methods ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
+* `SFDX: Get Apex Debug Logs` command to fetch debug logs ([PR #310](https://github.com/forcedotcom/salesforcedx-vscode/pull/310)
 
 ### Fixed
 #### salesforcedx-vscode-core
