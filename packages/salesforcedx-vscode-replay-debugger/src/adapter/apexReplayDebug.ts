@@ -14,6 +14,7 @@ import {
   Logger,
   LoggingDebugSession,
   OutputEvent,
+  Scope,
   Source,
   StoppedEvent,
   TerminatedEvent,
@@ -29,7 +30,7 @@ import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../constants';
-import { LogContext } from '../core/logContext';
+import { LogContext, SCOPE_TYPES, ScopeContainer } from '../core/logContext';
 import { nls } from '../messages';
 
 const TRACE_ALL = 'all';
@@ -175,6 +176,63 @@ export class ApexReplayDebug extends LoggingDebugSession {
         .reverse()
     };
     response.success = true;
+    this.sendResponse(response);
+  }
+
+  protected async scopesRequest(
+    response: DebugProtocol.ScopesResponse,
+    args: DebugProtocol.ScopesArguments
+  ): Promise<void> {
+    response.success = true;
+    const frameInfo = this.logContext.getFrameHandler().get(args.frameId);
+    if (!frameInfo) {
+      response.body = { scopes: [] };
+      this.sendResponse(response);
+      return;
+    }
+    const scopes = new Array<Scope>();
+    scopes.push(
+      new Scope(
+        'Local',
+        this.logContext
+          .getScopeHandler()
+          .create(new ScopeContainer(SCOPE_TYPES.LOCAL, frameInfo.locals)),
+        false
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Static',
+        this.logContext
+          .getScopeHandler()
+          .create(new ScopeContainer(SCOPE_TYPES.STATIC, frameInfo.statics)),
+        false
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Global',
+        this.logContext
+          .getScopeHandler()
+          .create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
+        false
+      )
+    );
+    response.body = { scopes: scopes };
+    this.sendResponse(response);
+  }
+
+  protected async variablesRequest(
+    response: DebugProtocol.VariablesResponse,
+    args: DebugProtocol.VariablesArguments
+  ): Promise<void> {
+    response.success = true;
+    const scopesContainer = this.logContext
+      .getScopeHandler()
+      .get(args.variablesReference);
+    response.body = {
+      variables: scopesContainer ? scopesContainer.variables : []
+    };
     this.sendResponse(response);
   }
 
