@@ -125,7 +125,7 @@ export class LogFileSelector
           id: logInfo.Id,
           label: icon + logInfo.Operation,
           detail: moment(new Date(logInfo.StartTime)).format(
-            'M/DD/YYYY, h:mm:s a'
+            'M/DD/YYYY, h:mm:ss a'
           ),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;

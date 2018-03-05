@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import { Handles, StackFrame, Variable, Scope } from 'vscode-debugadapter';
+import { Handles, Scope, StackFrame, Variable } from 'vscode-debugadapter';
 import {
   ApexReplayDebug,
   LaunchRequestArguments
@@ -37,20 +37,21 @@ import {
   NoOpState,
   StatementExecuteState,
   UserDebugState,
+  VariableAssignmentState,
   VariableBeginState
 } from '../states';
 import { LogContextUtil } from './logContextUtil';
 
 export class ApexDebugStackFrameInfo {
   public readonly frameNumber: number;
-  public globals: Variable[];
-  public statics: Variable[];
-  public locals: Variable[];
+  public globals: Map<String, Variable>;
+  public statics: Map<String, Variable>;
+  public locals: Map<String, Variable>;
   public constructor(frameNumber: number) {
     this.frameNumber = frameNumber;
-    this.globals = [];
-    this.statics = [];
-    this.locals = [];
+    this.globals = new Map<String, Variable>();
+    this.statics = new Map<String, Variable>();
+    this.locals = new Map<String, Variable>();
   }
 }
 
@@ -250,7 +251,7 @@ export class LogContext {
         case EVENT_VARIABLE_SCOPE_BEGIN:
           return new VariableBeginState(fields);
         case EVENT_VARIABLE_ASSIGNMENT:
-          return new NoOpState();
+          return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
           if (
             FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(

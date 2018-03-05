@@ -14,3 +14,4 @@ export { NoOpState } from './noOpState';
 export { StatementExecuteState } from './statementExecuteState';
 export { UserDebugState } from './userDebugState';
 export { VariableBeginState } from './variableBeginState';
+export { VariableAssignmentState } from './variableAssignmentState';

@@ -22,9 +22,13 @@ export class VariableBeginState implements DebugLogState {
       const frameInfo = logContext.getFrameHandler().get(id);
       const name = this.fields[3];
       const type = this.fields[4];
-      const isRef = this.fields[5];
-      const isStatic = this.fields[6];
-      frameInfo.globals.push(new Variable(name, 'test1'));
+      const isRef = this.fields[5] === 'true';
+      const isStatic = this.fields[6] === 'true';
+      if (isStatic) {
+        frameInfo.statics.set(name, new Variable(name, ''));
+      } else {
+        frameInfo.locals.set(name, new Variable(name, ''));
+      }
     }
 
     return false;

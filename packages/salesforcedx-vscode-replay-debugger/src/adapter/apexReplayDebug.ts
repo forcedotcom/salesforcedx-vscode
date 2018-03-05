@@ -196,7 +196,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
         'Local',
         this.logContext
           .getScopeHandler()
-          .create(new ScopeContainer(SCOPE_TYPES.LOCAL, frameInfo.locals)),
+          .create(
+            new ScopeContainer(
+              SCOPE_TYPES.LOCAL,
+              Array.from(frameInfo.locals.values())
+            )
+          ),
         false
       )
     );
@@ -205,7 +210,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
         'Static',
         this.logContext
           .getScopeHandler()
-          .create(new ScopeContainer(SCOPE_TYPES.STATIC, frameInfo.statics)),
+          .create(
+            new ScopeContainer(
+              SCOPE_TYPES.STATIC,
+              Array.from(frameInfo.statics.values())
+            )
+          ),
         false
       )
     );
@@ -214,7 +224,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
         'Global',
         this.logContext
           .getScopeHandler()
-          .create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
+          .create(
+            new ScopeContainer(
+              SCOPE_TYPES.GLOBAL,
+              Array.from(frameInfo.globals.values())
+            )
+          ),
         false
       )
     );
