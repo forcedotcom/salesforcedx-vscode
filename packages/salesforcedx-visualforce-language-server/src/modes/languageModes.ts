@@ -27,6 +27,7 @@ import {
 } from 'vscode-languageserver-types';
 
 import {
+  Color,
   ColorInformation,
   ColorPresentation
 } from 'vscode-languageserver-protocol/lib/protocol.colorProvider.proposed';
@@ -89,7 +90,8 @@ export interface LanguageMode {
   findDocumentColors?: (document: TextDocument) => ColorInformation[];
   getColorPresentations?: (
     document: TextDocument,
-    colorInfo: ColorInformation
+    color: Color,
+    range: Range
   ) => ColorPresentation[];
   doAutoClose?: (document: TextDocument, position: Position) => string;
   onDocumentRemoved(document: TextDocument): void;

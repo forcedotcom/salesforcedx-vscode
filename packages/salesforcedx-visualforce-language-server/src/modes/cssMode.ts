@@ -5,13 +5,14 @@
 'use strict';
 
 import { getCSSLanguageService, Stylesheet } from 'vscode-css-languageservice';
-import { Position, TextDocument } from 'vscode-languageserver-types';
+import { Color } from 'vscode-languageserver-protocol/lib/protocol.colorProvider.proposed';
+import { Position, Range, TextDocument } from 'vscode-languageserver-types';
 import {
   getLanguageModelCache,
   LanguageModelCache
 } from '../languageModelCache';
 import { CSS_STYLE_RULE, HTMLDocumentRegions } from './embeddedSupport';
-import { ColorInformation, LanguageMode, Settings } from './languageModes';
+import { LanguageMode, Settings } from './languageModes';
 
 export function getCSSMode(
   documentRegions: LanguageModelCache<HTMLDocumentRegions>
@@ -94,12 +95,13 @@ export function getCSSMode(
         cssStylesheets.get(embedded)
       );
     },
-    getColorPresentations(document: TextDocument, colorInfo: ColorInformation) {
+    getColorPresentations(document: TextDocument, color: Color, range: Range) {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.getColorPresentations(
         embedded,
         cssStylesheets.get(embedded),
-        colorInfo
+        color,
+        range
       );
     },
     onDocumentRemoved(document: TextDocument) {

@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-visualforce-markup-language-server": "42.5.0",
-    "vscode-css-languageservice": "2.1.9",
-    "vscode-languageserver": "3.4.2",
-    "vscode-languageserver-protocol": "3.4.2",
-    "vscode-languageserver-types": "3.4.0",
+    "vscode-css-languageservice": "3.0.0",
+    "vscode-languageserver": "3.5.0",
+    "vscode-languageserver-protocol": "3.5.0",
+    "vscode-languageserver-types": "3.5.0",
     "vscode-nls": "2.0.2",
     "vscode-uri": "1.0.1"
   },
