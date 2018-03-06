@@ -84,6 +84,6 @@
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
-    "vscode-languageclient": "3.3.0"
+    "vscode-languageclient": "3.5.0"
   }
 }
