@@ -21,10 +21,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { BreakpointUtil, LineBreakpointInfo } from '../breakpoints';
-import {
-  CheckpointMessage,
-  checkpointService
-} from '../breakpoints/checkpointService';
+import { CheckpointMessage } from '../breakpoints/checkpointService';
 import {
   CHECKPOINT,
   CHECKPOINT_INFO_EVENT,

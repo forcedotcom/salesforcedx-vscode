@@ -17,7 +17,6 @@ import {
   APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT,
   APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT_TYPE,
   APEX_EXECUTION_OVERLAY_ACTION_EXECUTABLE_ENTITY_NAME,
-  APEX_EXECUTION_OVERLAY_ACTION_EXPIRATION_DATE,
   APEX_EXECUTION_OVERLAY_ACTION_IS_DUMPING_HEAP,
   APEX_EXECUTION_OVERLAY_ACTION_ITERATION,
   APEX_EXECUTION_OVERLAY_ACTION_LINE,
@@ -27,8 +26,6 @@ import {
 import { CheckpointUtil } from './checkpointUtil';
 
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
-
-const TRACE_CATEGORY_CHECKPOINTS = 'checkpoints';
 
 // This is the CHECKPOINT_INFO_EVENT message type. It is currently only
 // called from the apexReplayDebug's setBreakPointsRequest and is used
