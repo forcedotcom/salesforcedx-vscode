@@ -18,6 +18,12 @@ import {
 } from './commands';
 
 export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
+  public static withoutShowingChannel(): ForceAuthLogoutAll {
+    const instance = new ForceAuthLogoutAll();
+    instance.showChannelOutput = false;
+    return instance;
+  }
+
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_logout_all_text'))

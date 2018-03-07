@@ -71,13 +71,19 @@ export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}
     CancellableStatusBar.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
-    const cmdOutput = new CommandOutput();
-    const result = await cmdOutput.getCmdResult(execution);
-
-    if (isProdOrg(JSON.parse(result))) {
-      promptLogOutForProdOrg();
+    try {
+      const result = await new CommandOutput().getCmdResult(execution);
+      if (isProdOrg(JSON.parse(result))) {
+        promptLogOutForProdOrg();
+      } else {
+        notificationService.showSuccessfulExecution(
+          execution.command.toString()
+        );
+      }
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
     }
-    return Promise.resolve();
   }
 }
 
@@ -85,7 +91,7 @@ export function promptLogOutForProdOrg() {
   new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new DemoModePromptGatherer(),
-    new ForceAuthLogoutAll()
+    ForceAuthLogoutAll.withoutShowingChannel()
   ).run();
 }
 

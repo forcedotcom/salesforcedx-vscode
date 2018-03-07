@@ -317,13 +317,19 @@ export interface CommandletExecutor<T> {
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  protected showChannelOutput = true;
+
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
     channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
+
+    if (this.showChannelOutput) {
+      channelService.showChannelOutput();
+    }
+
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken
