@@ -45,4 +45,72 @@ describe('Breakpoint utilities', () => {
     expect(util.canSetLineBreakpoint('file:///foo.cls', 2)).to.be.false;
     expect(util.canSetLineBreakpoint('file:///bar.cls', 1));
   });
+
+  it('Should return top level typeRef for URI', () => {
+    const lineNumberMapping: Map<string, number[]> = new Map();
+    const typerefMapping: Map<string, string> = new Map();
+    // It should be noted that the order of insertion is intentionally being mixed  up to ensure
+    // that insertion order doesn't play any part in what is returned.
+    typerefMapping.set('YourClassName', 'file:///ClassWithNoNamespace.cls');
+    typerefMapping.set(
+      'YourClassName$InnerClass',
+      'file:///ClassWithNoNamespace.cls'
+    );
+    typerefMapping.set(
+      'YourClassName$InnerClass$InnerInnerClass',
+      'file:///ClassWithNoNamespace.cls'
+    );
+    typerefMapping.set(
+      'YourNamespace/YourClassName$InnerClass$InnerInnerClass',
+      'file:///ClassWithNamespace.cls'
+    );
+    typerefMapping.set(
+      'YourNamespace/YourClassName',
+      'file:///ClassWithNamespace.cls'
+    );
+    typerefMapping.set(
+      'YourNamespace/YourClassName$InnerClass',
+      'file:///ClassWithNamespace.cls'
+    );
+    typerefMapping.set(
+      '__sfdc_trigger/YourTriggerName$TriggerInnerClass',
+      'file:///triggerNoNamespace.trigger'
+    );
+    typerefMapping.set(
+      '__sfdc_trigger/YourTriggerName',
+      'file:///triggerNoNamespace.trigger'
+    );
+    typerefMapping.set(
+      '__sfdc_trigger/YourTriggerName$TriggerInnerClass$TriggerInnerInnerClass',
+      'file:///triggerNoNamespace.trigger'
+    );
+    typerefMapping.set(
+      '__sfdc_trigger/Namespace/YourTriggerName/$InnerTriggerClass',
+      'file:///triggerWithNamespace.trigger'
+    );
+    typerefMapping.set(
+      '__sfdc_trigger/Namespace/YourTriggerName/$InnerTriggerClass$TriggerInnerInnerClass',
+      'file:///triggerWithNamespace.trigger'
+    );
+    typerefMapping.set(
+      '__sfdc_trigger/Namespace/YourTriggerName',
+      'file:///triggerWithNamespace.trigger'
+    );
+
+    util = new BreakpointUtil();
+    util.setValidLines(lineNumberMapping, typerefMapping);
+
+    expect(
+      util.getTopLevelTyperefForUri('file:///ClassWithNoNamespace.cls')
+    ).to.be.equal('YourClassName');
+    expect(
+      util.getTopLevelTyperefForUri('file:///ClassWithNamespace.cls')
+    ).to.be.equal('YourNamespace/YourClassName');
+    expect(
+      util.getTopLevelTyperefForUri('file:///triggerNoNamespace.trigger')
+    ).to.be.equal('__sfdc_trigger/YourTriggerName');
+    expect(
+      util.getTopLevelTyperefForUri('file:///triggerWithNamespace.trigger')
+    ).to.be.equal('__sfdc_trigger/Namespace/YourTriggerName');
+  });
 });

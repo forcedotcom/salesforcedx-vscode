@@ -23,24 +23,36 @@ import {
   SFDC_TRIGGER
 } from '../constants';
 
-import { CheckpointUtil } from './checkpointUtil';
-
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
+
+const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
+const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
+const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
 
 // This is the CHECKPOINT_INFO_EVENT message type. It is currently only
 // called from the apexReplayDebug's setBreakPointsRequest and is used
 // to send an event that'll create a checkpoint object in the IDE.
 export interface CheckpointMessage {
-  source: DebugProtocol.Source;
+  sourceFile: string;
+  typeRef: string;
   line: number;
   uri: string;
 }
 
 // These are the action script types for the ApexExecutionOverlayAction.
-export enum ActionScriptType {
-  None,
-  Apex,
-  SOQL
+export enum ActionScriptEnum {
+  None = 'None',
+  Apex = 'Apex',
+  SOQL = 'SOQL'
+}
+
+export interface ApexExecutionOverlayAction {
+  ActionScript: string;
+  ActionScriptType: ActionScriptEnum;
+  ExecutableEntityName: string;
+  IsDumpingHeap: boolean;
+  Iteration: number;
+  Line: number;
 }
 
 export class CheckpointService implements TreeDataProvider<BaseNode> {
@@ -76,16 +88,13 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     return element.getChildren();
   }
 
-  public update(): void {
-    this._onDidChangeTreeData.fire();
-  }
-
   public addCheckpointNode(
-    source: DebugProtocol.Source,
+    sourceFile: string,
+    typeRef: string,
     line: number,
     uri: string
   ): CheckpointNode {
-    const cpNode = new CheckpointNode(source, line, uri);
+    const cpNode = new CheckpointNode(sourceFile, typeRef, line, uri);
     this.checkpoints.push(cpNode);
     this._onDidChangeTreeData.fire();
     return cpNode;
@@ -100,80 +109,50 @@ export abstract class BaseNode extends TreeItem {
 
 export class CheckpointNode extends BaseNode {
   private readonly children: CheckpointInfoNode[] = [];
-  // These variables are necessary for the ApexExecutionOverlayAction
-  // and are not user editable. All user editable checkpoint pieces
-  // are stored on the children.
-  public executableEntityName: string;
-  public isDumpingHeap: boolean;
-  public line: number;
-  // Stored for convenience
-  public isTrigger: boolean;
+
+  public checkpointOverlayAction: ApexExecutionOverlayAction;
+
   // Source and URI are two things that the user cannot edit and
   // it's debatable whether or not they need to be stored at all
-  public source: DebugProtocol.Source;
+  public sourceFile: string;
   public uri: string;
 
   constructor(
-    sourceInput: DebugProtocol.Source,
+    sourceFileInput: string,
+    typeRefInput: string,
     lineInput: number,
     uriInput: string
   ) {
-    super(
-      sourceInput.name + ':' + lineInput,
-      TreeItemCollapsibleState.Expanded
-    );
+    super(sourceFileInput + ':' + lineInput, TreeItemCollapsibleState.Expanded);
 
-    this.line = lineInput;
-    this.source = sourceInput;
+    this.checkpointOverlayAction = {
+      ActionScript: '',
+      ActionScriptType: ActionScriptEnum.None,
+      ExecutableEntityName: typeRefInput,
+      IsDumpingHeap: true,
+      Iteration: 1,
+      Line: lineInput
+    };
+    this.sourceFile = sourceFileInput;
     this.uri = uriInput;
-    const sourceNameSplit = this.source.name!.split('.');
-    // Get the executableEntityName from the sourceInput, if this is a trigger
-    // then ensure that the SFDC_TRIGGER prefix is prepended to the trigger name
-    if (sourceNameSplit[1].toLocaleLowerCase() === 'trigger') {
-      this.executableEntityName = SFDC_TRIGGER + sourceNameSplit[0];
-      this.isTrigger = true;
-    } else {
-      this.executableEntityName = sourceNameSplit[0];
-      this.isTrigger = false;
-    }
-    this.isDumpingHeap = true;
 
     // Create the items that the user is going to be able to control (Type, Script, Iteration)
     const cpASTNode = new CheckpointInfoActionScriptTypeNode(
-      ActionScriptType.None
+      this.checkpointOverlayAction
     );
     this.children.push(cpASTNode);
-    const cpScriptNode = new CheckpointInfoActionScriptNode('');
+    const cpScriptNode = new CheckpointInfoActionScriptNode(
+      this.checkpointOverlayAction
+    );
     this.children.push(cpScriptNode);
-    const cpIterationNode = new CheckpointInfoIterationNode(1);
+    const cpIterationNode = new CheckpointInfoIterationNode(
+      this.checkpointOverlayAction
+    );
     this.children.push(cpIterationNode);
   }
 
-  public createJsonStringForApexExecutionOverlayAction(): string {
-    const jsonNameValueSeperator = ', ';
-    // Start the JSON name/value pairs with the executable entity name
-    let returnString = CheckpointUtil.formatNameValuePairForJSon(
-      APEX_EXECUTION_OVERLAY_ACTION_EXECUTABLE_ENTITY_NAME,
-      this.executableEntityName
-    );
-    returnString += jsonNameValueSeperator;
-    // Add all of the children
-    for (const cpInfoNode of this.children) {
-      returnString += cpInfoNode.createJsonStringForApexExecutionOverlayAction();
-      returnString += jsonNameValueSeperator;
-    }
-    // Add isDumpingHeap
-    returnString += CheckpointUtil.formatNameValuePairForJSon(
-      APEX_EXECUTION_OVERLAY_ACTION_IS_DUMPING_HEAP,
-      this.isDumpingHeap
-    );
-    returnString += jsonNameValueSeperator;
-    // Add line
-    returnString += CheckpointUtil.formatNameValuePairForJSon(
-      APEX_EXECUTION_OVERLAY_ACTION_LINE,
-      this.line
-    );
-    return returnString;
+  public createJSonStringForOverlayAction(): string {
+    return JSON.stringify(this.checkpointOverlayAction);
   }
 
   public getChildren(): CheckpointInfoNode[] {
@@ -182,9 +161,6 @@ export class CheckpointNode extends BaseNode {
 }
 
 export class CheckpointInfoNode extends BaseNode {
-  public createJsonStringForApexExecutionOverlayAction(): string {
-    return '';
-  }
   public getChildren(): BaseNode[] {
     return [];
   }
@@ -198,52 +174,37 @@ export class CheckpointInfoNode extends BaseNode {
 // The reason for creating these would be to add specific validations when
 // the fields are made editable.
 export class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
-  public actionScript: string;
-  constructor(actionScriptInput: string) {
-    super('Script: ' + actionScriptInput);
-    this.actionScript = actionScriptInput;
-  }
-  public createJsonStringForApexExecutionOverlayAction(): string {
-    return CheckpointUtil.formatNameValuePairForJSon(
-      APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT,
-      this.actionScript
+  private checkpointOverlayAction: ApexExecutionOverlayAction;
+  constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
+    super(
+      EDITABLE_FIELD_LABEL_ACTION_SCRIPT + cpOverlayActionInput.ActionScript
     );
+    this.checkpointOverlayAction = cpOverlayActionInput;
   }
-
   public getChildren(): BaseNode[] {
     return [];
   }
 }
 
 export class CheckpointInfoActionScriptTypeNode extends CheckpointInfoNode {
-  public actionScriptType: ActionScriptType;
-  constructor(actionScriptTypeInput: ActionScriptType) {
-    super('Type: ' + ActionScriptType[actionScriptTypeInput]);
-    this.actionScriptType = actionScriptTypeInput;
-  }
-  public createJsonStringForApexExecutionOverlayAction(): string {
-    return CheckpointUtil.formatNameValuePairForJSon(
-      APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT_TYPE,
-      ActionScriptType[this.actionScriptType]
+  private checkpointOverlayAction: ApexExecutionOverlayAction;
+  constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
+    super(
+      EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE +
+        cpOverlayActionInput.ActionScriptType
     );
+    this.checkpointOverlayAction = cpOverlayActionInput;
   }
-
   public getChildren(): BaseNode[] {
     return [];
   }
 }
 
 export class CheckpointInfoIterationNode extends CheckpointInfoNode {
-  public iteration: number;
-  constructor(iterationInput: number) {
-    super('Iterations: ' + iterationInput);
-    this.iteration = iterationInput;
-  }
-  public createJsonStringForApexExecutionOverlayAction(): string {
-    return CheckpointUtil.formatNameValuePairForJSon(
-      APEX_EXECUTION_OVERLAY_ACTION_ITERATION,
-      this.iteration
-    );
+  private checkpointOverlayAction: ApexExecutionOverlayAction;
+  constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
+    super(EDITABLE_FIELD_LABEL_ITERATIONS + cpOverlayActionInput.Iteration);
+    this.checkpointOverlayAction = cpOverlayActionInput;
   }
 
   public getChildren(): BaseNode[] {

@@ -59,16 +59,17 @@ function registerDebugHandlers(): vscode.Disposable {
           const eventBody = event.body as CheckpointMessage;
           if (
             eventBody &&
-            eventBody.source &&
+            eventBody.sourceFile &&
+            eventBody.typeRef &&
             eventBody.line &&
             eventBody.uri
           ) {
             checkpointService.addCheckpointNode(
-              eventBody.source,
+              eventBody.sourceFile,
+              eventBody.typeRef,
               eventBody.line,
               eventBody.uri
             );
-            // JRS Log something here?
           }
         }
       }

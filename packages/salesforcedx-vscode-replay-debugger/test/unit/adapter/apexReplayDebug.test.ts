@@ -700,6 +700,8 @@ describe('Replay debugger adapter - unit', () => {
     it('Should return breakpoints', () => {
       args.source.path = 'foo.cls';
       args.lines = [1, 2];
+      args.breakpoints = [];
+      args.breakpoints.push({ line: 1 }, { line: 2 });
       canSetLineBreakpointStub = sinon
         .stub(BreakpointUtil.prototype, 'canSetLineBreakpoint')
         .onFirstCall()

@@ -272,8 +272,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       // While processing the breakpoints, if there's a conditional breakpoint
       // then create a checkpoint. This requires checking the breakpoint condition
       // for the appropriate args.lines item being processed.
-      let i: number;
-      for (i = 0; i < args.lines.length; i++) {
+      for (let i = 0; i < args.lines.length; i++) {
         const lineArg = args.lines[i];
         const isVerified = this.breakpointUtil.canSetLineBreakpoint(
           uri,
@@ -296,10 +295,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
             args.breakpoints[i].condition!.toLowerCase().indexOf(CHECKPOINT) >=
             0
           ) {
-            // JRS
             this.sendEvent(
               new Event(CHECKPOINT_INFO_EVENT, {
-                source: args.source,
+                sourceFile: args.source.name,
+                typeRef: this.breakpointUtil.getTopLevelTyperefForUri(uri),
                 line: lineArg,
                 uri: uri
               } as CheckpointMessage)
