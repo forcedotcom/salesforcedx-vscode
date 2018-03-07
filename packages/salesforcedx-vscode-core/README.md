@@ -62,6 +62,7 @@ To check your running tasks, expand the Running Tasks view in the Explorer.
 
 ## Run Apex Tests
 To run Apex tests, in your `.cls` file, click **Run Test** or **Run All Tests** above the definition of an Apex test method or class.  
+![Running Apex tests using the Run Test and Run All Tests code lenses](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)
 
 Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Cmd (macOS) or Ctrl (Windows and Linux) and click that stack trace.  
 
