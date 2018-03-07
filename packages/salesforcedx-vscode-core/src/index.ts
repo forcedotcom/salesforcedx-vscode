@@ -67,6 +67,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
   );
+  const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.logout.all',
+    forceAuthLogoutAll
+  );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
     forceOrgCreate
@@ -261,6 +265,7 @@ function registerCommands(): vscode.Disposable {
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
+    forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
