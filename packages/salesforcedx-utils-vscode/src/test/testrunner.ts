@@ -78,7 +78,6 @@ function run(testsRoot: any, clb: any): any {
     try {
       // Fill into Mocha
       files.forEach((f): Mocha => {
-        console.log(`Adding test script: ${f}`);
         return mocha.addFile(paths.join(testsRoot, f));
       });
       // Run the tests

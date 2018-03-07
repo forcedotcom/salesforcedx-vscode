@@ -46,7 +46,11 @@ export { forceOrgDisplay } from './forceOrgDisplay';
 export { forceProjectCreate } from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
-export { forceStopApexDebugLogging } from './forceStopApexDebugLogging';
+export {
+  forceStopApexDebugLogging,
+  restoreDebugLevels
+} from './forceStopApexDebugLogging';
 export { forceApexLogGet } from './forceApexLogGet';
+export { forceAuthLogoutAll } from './forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();

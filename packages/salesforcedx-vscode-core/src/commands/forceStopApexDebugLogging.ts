@@ -18,8 +18,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { developerLogTraceFlag } from '.';
+import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
-import { hideTraceFlagExpiration } from '../traceflag-time-decorator';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
