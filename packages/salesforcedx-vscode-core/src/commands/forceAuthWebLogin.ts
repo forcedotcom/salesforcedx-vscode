@@ -9,15 +9,27 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandOutput';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+import { Observable } from 'rxjs/Observable';
+import { CancellationToken, CancellationTokenSource, workspace } from 'vscode';
+import { channelService } from '../channels/index';
 import { nls } from '../messages';
+import { isDemoMode, isProdOrg } from '../modes/demo-mode';
+import { notificationService } from '../notifications/index';
+import { taskViewService } from '../statuses/index';
+import { CancellableStatusBar } from '../statuses/statusBar';
 import {
+  DemoModePromptGatherer,
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { ForceAuthLogoutAll } from './forceAuthLogout';
 
-class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(
@@ -29,15 +41,74 @@ class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
+export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}> {
+  public build(data: {}): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize('force_auth_web_login_authorize_dev_hub_text')
+      )
+      .withArg('force:auth:web:login')
+      .withArg('--setdefaultdevhubusername')
+      .withArg('--noprompt')
+      .withArg('--json')
+      .build();
+  }
+
+  public async execute(response: ContinueResponse<{}>): Promise<void> {
+    const cancellationTokenSource = new CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new CliCommandExecutor(this.build({}), {
+      cwd: workspace.rootPath
+    }).execute(cancellationToken);
+
+    notificationService.reportExecutionError(
+      execution.command.toString(),
+      (execution.stderrSubject as any) as Observable<Error | undefined>
+    );
+
+    channelService.streamCommandOutput(execution);
+    CancellableStatusBar.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+
+    try {
+      const result = await new CommandOutput().getCmdResult(execution);
+      if (isProdOrg(JSON.parse(result))) {
+        promptLogOutForProdOrg();
+      } else {
+        notificationService.showSuccessfulExecution(
+          execution.command.toString()
+        );
+      }
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+}
+
+export function promptLogOutForProdOrg() {
+  new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new DemoModePromptGatherer(),
+    ForceAuthLogoutAll.withoutShowingChannel()
+  ).run();
+}
+
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceAuthWebLoginExecutor();
-const commandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
+
+export function createExecutor(): SfdxCommandletExecutor<{}> {
+  return isDemoMode()
+    ? new ForceAuthWebDemoModeLoginExecutor()
+    : new ForceAuthWebLoginExecutor();
+}
 
 export function forceAuthWebLogin() {
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    createExecutor()
+  );
   commandlet.run();
 }

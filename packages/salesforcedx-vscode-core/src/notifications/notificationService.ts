@@ -78,46 +78,55 @@ export class NotificationService {
   ) {
     observable.subscribe(async data => {
       if (data != undefined && data.toString() === '0') {
-        const message = nls.localize(
-          'notification_successful_execution_text',
-          executionName
-        );
-        if (sfdxCoreSettings.getShowCLISuccessMsg()) {
-          const showButtonText = nls.localize('notification_show_button_text');
-          const showOnlyStatusBarButtonText = nls.localize(
-            'notification_show_in_status_bar_button_text'
-          );
-          const selection = await this.showInformationMessage(
-            message,
-            showButtonText,
-            showOnlyStatusBarButtonText
-          );
-          if (selection && selection === showButtonText) {
-            this.channel.show();
-          }
-          if (selection && selection === showOnlyStatusBarButtonText) {
-            sfdxCoreSettings.updateShowCLISuccessMsg(false);
-          }
-        } else {
-          vscode.window.setStatusBarMessage(message, STATUS_BAR_MSG_TIMEOUT_MS);
-        }
+        await this.showSuccessfulExecution(executionName);
       } else {
         if (cancellationToken && cancellationToken.isCancellationRequested) {
-          this.showWarningMessage(
-            nls.localize('notification_canceled_execution_text', executionName)
-          );
-          this.channel.show();
+          this.showCanceledExecution(executionName);
         } else {
-          this.showErrorMessage(
-            nls.localize(
-              'notification_unsuccessful_execution_text',
-              executionName
-            )
-          );
-          this.channel.show();
+          this.showFailedExecution(executionName);
         }
       }
     });
+  }
+
+  private showFailedExecution(executionName: string) {
+    this.showErrorMessage(
+      nls.localize('notification_unsuccessful_execution_text', executionName)
+    );
+    this.channel.show();
+  }
+
+  private showCanceledExecution(executionName: string) {
+    this.showWarningMessage(
+      nls.localize('notification_canceled_execution_text', executionName)
+    );
+    this.channel.show();
+  }
+
+  public async showSuccessfulExecution(executionName: string) {
+    const message = nls.localize(
+      'notification_successful_execution_text',
+      executionName
+    );
+    if (sfdxCoreSettings.getShowCLISuccessMsg()) {
+      const showButtonText = nls.localize('notification_show_button_text');
+      const showOnlyStatusBarButtonText = nls.localize(
+        'notification_show_in_status_bar_button_text'
+      );
+      const selection = await this.showInformationMessage(
+        message,
+        showButtonText,
+        showOnlyStatusBarButtonText
+      );
+      if (selection && selection === showButtonText) {
+        this.channel.show();
+      }
+      if (selection && selection === showOnlyStatusBarButtonText) {
+        sfdxCoreSettings.updateShowCLISuccessMsg(false);
+      }
+    } else {
+      vscode.window.setStatusBarMessage(message, STATUS_BAR_MSG_TIMEOUT_MS);
+    }
   }
 
   public reportExecutionError(

@@ -6,7 +6,7 @@
  */
 
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
-import { showTraceFlagExpiration } from '../traceflag-time-decorator';
+import { showTraceFlagExpiration } from '../decorators';
 
 export class DeveloperLogTraceFlag {
   private static instance: DeveloperLogTraceFlag;

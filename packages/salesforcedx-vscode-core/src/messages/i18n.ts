@@ -155,5 +155,13 @@ export const messages = {
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
-  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s'
+  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
+
+  demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
+  demo_mode_status_tooltip:
+    'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
+  demo_mode_prompt:
+    'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
+
+  force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs'
 };
