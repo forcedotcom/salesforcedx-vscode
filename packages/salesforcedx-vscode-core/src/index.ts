@@ -392,10 +392,5 @@ export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
 
   decorators.disposeTraceFlagExpiration();
-
-  if (isDemoMode()) {
-    forceAuthLogoutAll();
-  }
-
   return restoreDebugLevels();
 }
