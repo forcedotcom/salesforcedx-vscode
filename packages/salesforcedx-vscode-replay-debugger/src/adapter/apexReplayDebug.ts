@@ -18,7 +18,8 @@ import {
   Source,
   StoppedEvent,
   TerminatedEvent,
-  Thread
+  Thread,
+  Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { BreakpointUtil, LineBreakpointInfo } from '../breakpoints';
@@ -30,7 +31,7 @@ import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../constants';
-import { LogContext, SCOPE_TYPES, ScopeContainer } from '../core/logContext';
+import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
 
 const TRACE_ALL = 'all';
@@ -58,6 +59,35 @@ export interface LaunchRequestArguments
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
+}
+
+export class ApexDebugStackFrameInfo {
+  public readonly frameNumber: number;
+  public globals: Map<String, Variable>;
+  public statics: Map<String, Variable>;
+  public locals: Map<String, Variable>;
+  public constructor(frameNumber: number) {
+    this.frameNumber = frameNumber;
+    this.globals = new Map<String, Variable>();
+    this.statics = new Map<String, Variable>();
+    this.locals = new Map<String, Variable>();
+  }
+}
+
+export enum SCOPE_TYPES {
+  LOCAL = 'local',
+  STATIC = 'static',
+  GLOBAL = 'global'
+}
+
+export class ScopeContainer {
+  public readonly type: SCOPE_TYPES;
+  public readonly variables: Variable[];
+
+  public constructor(type: SCOPE_TYPES, variables: Variable[]) {
+    this.type = type;
+    this.variables = variables;
+  }
 }
 
 export class ApexReplayDebug extends LoggingDebugSession {

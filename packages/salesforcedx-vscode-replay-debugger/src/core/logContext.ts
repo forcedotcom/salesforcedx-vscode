@@ -8,8 +8,10 @@
 import * as path from 'path';
 import { Handles, Scope, StackFrame, Variable } from 'vscode-debugadapter';
 import {
+  ApexDebugStackFrameInfo,
   ApexReplayDebug,
-  LaunchRequestArguments
+  LaunchRequestArguments,
+  ScopeContainer
 } from '../adapter/apexReplayDebug';
 import {
   EVENT_CODE_UNIT_FINISHED,
@@ -42,35 +44,6 @@ import {
 } from '../states';
 import { LogContextUtil } from './logContextUtil';
 
-export class ApexDebugStackFrameInfo {
-  public readonly frameNumber: number;
-  public globals: Map<String, Variable>;
-  public statics: Map<String, Variable>;
-  public locals: Map<String, Variable>;
-  public constructor(frameNumber: number) {
-    this.frameNumber = frameNumber;
-    this.globals = new Map<String, Variable>();
-    this.statics = new Map<String, Variable>();
-    this.locals = new Map<String, Variable>();
-  }
-}
-
-export enum SCOPE_TYPES {
-  LOCAL = 'local',
-  STATIC = 'static',
-  GLOBAL = 'global'
-}
-
-export class ScopeContainer {
-  public readonly type: SCOPE_TYPES;
-  public readonly variables: Variable[];
-
-  public constructor(type: SCOPE_TYPES, variables: Variable[]) {
-    this.type = type;
-    this.variables = variables;
-  }
-}
-
 export class LogContext {
   private readonly util = new LogContextUtil();
   private readonly session: ApexReplayDebug;
@@ -79,6 +52,7 @@ export class LogContext {
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
   private scopeHandles = new Handles<ScopeContainer>();
+  private typeRefVariableClassMap = new Map<String, Map<String, Variable>>();
   private variableHandles = new Handles<Variable>();
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
