@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import {
   CommandletExecutor,
   CompositeParametersGatherer,
+  DemoModePromptGatherer,
   EmptyParametersGatherer,
   EmptyPostChecker,
   FilePathExistsChecker,
@@ -231,7 +232,6 @@ describe('Command Utilities', () => {
         const dirList: string[] = dirPathGatherer.globDirs(
           vscode.workspace.rootPath
         );
-        console.log(`Found dirs: ${dirList}`);
         expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
         expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
       });
@@ -503,6 +503,38 @@ describe('Command Utilities', () => {
         sinon.assert.called(warningSpy);
         expect(response.type).to.equal('CANCEL');
       });
+    });
+  });
+
+  // Due to the way the prompt is phrased
+  // CONTINUE means that we will execute the forceLogoutAll command
+  // CANCEL means that we will not execute the forceLogoutAll command
+  describe('DemoModePrompGatherer', () => {
+    let showInformationMessageStub: sinon.SinonStub;
+
+    before(() => {
+      showInformationMessageStub = sinon.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
+    });
+
+    after(() => {
+      sinon.restore(vscode.window);
+    });
+
+    it('Should return CONTINUE if message is Cancel', async () => {
+      showInformationMessageStub.onFirstCall().returns('Cancel');
+      const gatherer = new DemoModePromptGatherer();
+      const result = await gatherer.gather();
+      expect(result.type).to.equal('CONTINUE');
+      expect((result as ContinueResponse<{}>).data!).to.eql({});
+    });
+    it('Should return CANCEL if message is Authorize Org', async () => {
+      showInformationMessageStub.onFirstCall().returns('Cancel');
+      const gatherer = new DemoModePromptGatherer();
+      const result = await gatherer.gather();
+      expect(result.type).to.equal('CANCEL');
     });
   });
 });

@@ -16,7 +16,7 @@ import { Observable } from 'rxjs/Observable';
 import { CancellationToken, CancellationTokenSource, workspace } from 'vscode';
 import { channelService } from '../channels/index';
 import { nls } from '../messages';
-import { isDemoMode, isTrialOrg } from '../modes/demo-mode';
+import { isDemoMode, isProdOrg } from '../modes/demo-mode';
 import { notificationService } from '../notifications/index';
 import { taskViewService } from '../statuses/index';
 import { CancellableStatusBar } from '../statuses/statusBar';
@@ -29,7 +29,7 @@ import {
 } from './commands';
 import { ForceAuthLogoutAll } from './forceAuthLogout';
 
-class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(
@@ -41,16 +41,16 @@ class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(
         nls.localize('force_auth_web_login_authorize_dev_hub_text')
       )
       .withArg('force:auth:web:login')
+      .withArg('--setdefaultdevhubusername')
       .withArg('--noprompt')
       .withArg('--json')
-      .withArg('--setdefaultdevhubusername')
       .build();
   }
 
@@ -74,14 +74,14 @@ class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}> {
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
 
-    if (isTrialOrg(JSON.parse(result))) {
-      promptLogOutForDemoMode();
+    if (isProdOrg(JSON.parse(result))) {
+      promptLogOutForProdOrg();
     }
     return Promise.resolve();
   }
 }
 
-export function promptLogOutForDemoMode() {
+export function promptLogOutForProdOrg() {
   new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new DemoModePromptGatherer(),
@@ -92,22 +92,17 @@ export function promptLogOutForDemoMode() {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-let commandlet: SfdxCommandlet<{}>;
-
-if (isDemoMode()) {
-  commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new ForceAuthWebDemoModeLoginExecutor()
-  );
-} else {
-  commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    new ForceAuthWebLoginExecutor()
-  );
+export function createExecutor(): SfdxCommandletExecutor<{}> {
+  return isDemoMode()
+    ? new ForceAuthWebDemoModeLoginExecutor()
+    : new ForceAuthWebLoginExecutor();
 }
 
 export function forceAuthWebLogin() {
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    createExecutor()
+  );
   commandlet.run();
 }

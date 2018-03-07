@@ -17,10 +17,10 @@ export type authResponse = {
   refreshToken?: string;
   loginUrl?: string;
   clientId?: string;
-  trialExpirationDate?: string;
+  trialExpirationDate?: string | null;
   clientSecret?: string;
 };
 
-export function isTrialOrg(response: { status: number; result: authResponse }) {
+export function isProdOrg(response: { status: number; result: authResponse }) {
   return response.result.trialExpirationDate ? false : true;
 }
