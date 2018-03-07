@@ -159,9 +159,9 @@ export const messages = {
 
   demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
   demo_mode_status_tooltip:
-    'You are running the SFDX VS Code extensions in demo mode. You will be prompted if you are connecting to production orgs.',
+    'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
   demo_mode_prompt:
-    'Authenticating against a business or production org is not recommended on a demo or shared machine. Continue authenticating or cancel?',
+    'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "sfdx force:auth:logout --targetusername --noprompt" when you\'re done using the org. Are you sure you want to authorize this org?',
 
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs'
 };

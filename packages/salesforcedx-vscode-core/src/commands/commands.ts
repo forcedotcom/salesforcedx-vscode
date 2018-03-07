@@ -291,7 +291,7 @@ export class SelectUsername
 
 export class DemoModePromptGatherer implements ParametersGatherer<{}> {
   private readonly LOGOUT_RESPONSE = 'Cancel';
-  private readonly DO_NOT_LOGOUT_RESPONSE = 'Continue';
+  private readonly DO_NOT_LOGOUT_RESPONSE = 'Authorize Org';
   private readonly prompt: string;
 
   public constructor() {
