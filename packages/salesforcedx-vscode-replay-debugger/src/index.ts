@@ -76,6 +76,14 @@ export function activate(context: vscode.ExtensionContext) {
     debugConfigProvider,
     checkpointsView
   );
+
+  // Set some breakpoints first in the extension host then reload this
+  console.log(vscode.debug.breakpoints); // this will be empty at first
+  vscode.debug.onDidChangeBreakpoints(e => {
+    console.log(e.added);
+    console.log(e.changed);
+    console.log(e.removed);
+  });
 }
 
 function getDialogStartingPath(): vscode.Uri | undefined {
