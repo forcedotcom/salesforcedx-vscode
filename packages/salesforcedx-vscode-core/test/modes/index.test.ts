@@ -33,7 +33,7 @@ describe('Demo Mode Utils', () => {
   });
 
   describe('isProdOrg', () => {
-    it('Should report trial org if trialExpirationDate is a date string', () => {
+    it('Should not be a prod org if trialExpirationDate is a date string', () => {
       expect(
         isProdOrg({
           status: 0,
@@ -46,7 +46,7 @@ describe('Demo Mode Utils', () => {
       ).to.be.false;
     });
 
-    it('Should not report trial org if trialExpirationDate is undefined', () => {
+    it('Should be a prod org if trialExpirationDate is undefined', () => {
       expect(
         isProdOrg({
           status: 0,
@@ -58,7 +58,7 @@ describe('Demo Mode Utils', () => {
       ).to.be.true;
     });
 
-    it('Should not report trial org if trialExpirationDate is null', () => {
+    it('Should be a prod org if trialExpirationDate is null', () => {
       expect(
         isProdOrg({
           status: 0,
