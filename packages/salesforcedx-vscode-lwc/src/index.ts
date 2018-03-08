@@ -38,7 +38,25 @@ function isDependencyInstalled(): boolean {
   return coreDependency && coreDependency.exports;
 }
 
+function isLwcNextInstalled(): boolean {
+  const coreDependency = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-lwc-next'
+  );
+  return coreDependency ? true : false;
+}
+
+function shouldForceLoadCurrentLwc(): boolean {
+  return process.env.FORCE_LOAD_CURRENT_LWC;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
+  if (isLwcNextInstalled() && !shouldForceLoadCurrentLwc()) {
+    console.log(
+      'salesforce.salesforcedx-vscode-lwc-next is installed; starting that (lwc-next) instead of this (lwc).'
+    );
+    return;
+  }
+
   if (!isDependencyInstalled()) {
     vscode.window.showErrorMessage(
       nls.localize('salesforcedx_vscode_core_not_installed_text')
