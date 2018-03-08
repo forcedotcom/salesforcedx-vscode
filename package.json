@@ -1,7 +1,9 @@
 {
   "devDependencies": {
+    "ajv": "6.1.1",
     "eslint": "4.13.1",
     "eslint-config-prettier": "2.9.0",
+    "husky": "^0.14.3",
     "istanbul": "1.1.0-alpha.1",
     "lerna": "2.4.0",
     "prettier": "1.6.0",
@@ -9,7 +11,6 @@
     "shx": "0.2.2",
     "tslint": "5.5.0",
     "typescript": "2.6.2",
-    "ajv": "6.1.1",
     "vsce": "^1.36.3"
   },
   "scripts": {
@@ -21,6 +22,7 @@
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
+    "prepush": "npm run lint",
     "test": "lerna run test --concurrency 1 --stream",
     "test:unit": "lerna run test:unit --concurrency 1 --stream",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
