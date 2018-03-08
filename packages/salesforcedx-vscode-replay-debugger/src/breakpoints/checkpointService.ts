@@ -12,17 +12,6 @@ import {
   TreeItem,
   TreeItemCollapsibleState
 } from 'vscode';
-
-import {
-  APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT,
-  APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT_TYPE,
-  APEX_EXECUTION_OVERLAY_ACTION_EXECUTABLE_ENTITY_NAME,
-  APEX_EXECUTION_OVERLAY_ACTION_IS_DUMPING_HEAP,
-  APEX_EXECUTION_OVERLAY_ACTION_ITERATION,
-  APEX_EXECUTION_OVERLAY_ACTION_LINE,
-  SFDC_TRIGGER
-} from '../constants';
-
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
@@ -110,12 +99,12 @@ export abstract class BaseNode extends TreeItem {
 export class CheckpointNode extends BaseNode {
   private readonly children: CheckpointInfoNode[] = [];
 
-  public checkpointOverlayAction: ApexExecutionOverlayAction;
+  private readonly checkpointOverlayAction: ApexExecutionOverlayAction;
 
   // Source and URI are two things that the user cannot edit and
   // it's debatable whether or not they need to be stored at all
-  public sourceFile: string;
-  public uri: string;
+  private readonly sourceFile: string;
+  private readonly uri: string;
 
   constructor(
     sourceFileInput: string,
@@ -173,6 +162,10 @@ export class CheckpointInfoNode extends BaseNode {
 // CheckpointInfoIterationsNode: holds the number of iterations (integer)
 // The reason for creating these would be to add specific validations when
 // the fields are made editable.
+// OK, for the moment the checkpointOverlayAction's are not used. They will be once
+// these checkpoints become editable but until then TSLint is going to fail in AppVeyer
+// because they're not. Remove the tags when they're editable.
+/* tslint:disable */
 export class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
   private checkpointOverlayAction: ApexExecutionOverlayAction;
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
@@ -211,3 +204,5 @@ export class CheckpointInfoIterationNode extends CheckpointInfoNode {
     return [];
   }
 }
+// Not sure this is entierly necessary but better safe than sorry.
+/* tslint:enable */

@@ -4,15 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export const APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT = 'ActionScript';
-export const APEX_EXECUTION_OVERLAY_ACTION_ACTION_SCRIPT_TYPE =
-  'ActionScriptType';
-export const APEX_EXECUTION_OVERLAY_ACTION_EXECUTABLE_ENTITY_NAME =
-  'ExecutableEntityName';
-export const APEX_EXECUTION_OVERLAY_ACTION_EXPIRATION_DATE = 'ExpirationDate';
-export const APEX_EXECUTION_OVERLAY_ACTION_IS_DUMPING_HEAP = 'IsDumpingHeap';
-export const APEX_EXECUTION_OVERLAY_ACTION_ITERATION = 'Iteration';
-export const APEX_EXECUTION_OVERLAY_ACTION_LINE = 'Line';
 export const CHECKPOINT = 'checkpoint';
 export const CHECKPOINT_INFO_EVENT = 'checkpointInfo';
 export const DEBUGGER_LAUNCH_TYPE = 'launch';
