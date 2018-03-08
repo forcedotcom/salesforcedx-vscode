@@ -61,6 +61,14 @@ export interface LaunchRequestArguments
   trace?: boolean | string;
 }
 
+export class ApexVariable extends Variable {
+  public type: string;
+  public constructor(name: string, value: string, type: string) {
+    super(name, value);
+    this.type = type;
+  }
+}
+
 export class ApexDebugStackFrameInfo {
   public readonly frameNumber: number;
   public readonly signature: string;
@@ -84,9 +92,9 @@ export enum SCOPE_TYPES {
 
 export class ScopeContainer {
   public readonly type: SCOPE_TYPES;
-  public readonly variables: Variable[];
+  public readonly variables: ApexVariable[];
 
-  public constructor(type: SCOPE_TYPES, variables: Variable[]) {
+  public constructor(type: SCOPE_TYPES, variables: ApexVariable[]) {
     this.type = type;
     this.variables = variables;
   }
@@ -229,10 +237,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
         this.logContext
           .getScopeHandler()
           .create(
-            new ScopeContainer(
-              SCOPE_TYPES.LOCAL,
-              Array.from(frameInfo.locals.values())
-            )
+            new ScopeContainer(SCOPE_TYPES.LOCAL, Array.from(
+              frameInfo.locals.values()
+            ) as ApexVariable[])
           ),
         false
       )
@@ -243,10 +250,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
         this.logContext
           .getScopeHandler()
           .create(
-            new ScopeContainer(
-              SCOPE_TYPES.STATIC,
-              Array.from(frameInfo.statics.values())
-            )
+            new ScopeContainer(SCOPE_TYPES.STATIC, Array.from(
+              frameInfo.statics.values()
+            ) as ApexVariable[])
           ),
         false
       )
@@ -257,10 +263,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
         this.logContext
           .getScopeHandler()
           .create(
-            new ScopeContainer(
-              SCOPE_TYPES.GLOBAL,
-              Array.from(frameInfo.globals.values())
-            )
+            new ScopeContainer(SCOPE_TYPES.GLOBAL, Array.from(
+              frameInfo.globals.values()
+            ) as ApexVariable[])
           ),
         false
       )

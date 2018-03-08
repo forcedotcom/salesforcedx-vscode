@@ -6,6 +6,7 @@
  */
 
 import { Variable } from 'vscode-debugadapter';
+import { ApexVariable } from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
@@ -28,13 +29,13 @@ export class VariableBeginState implements DebugLogState {
       if (!logContext.getTypeRefVariablesMap().has(className)) {
         logContext
           .getTypeRefVariablesMap()
-          .set(className, new Map<String, Variable>());
+          .set(className, new Map<String, ApexVariable>());
       }
       const statics = logContext.getTypeRefVariablesMap().get(className)!;
       if (isStatic) {
-        statics.set(name, new Variable(name, ''));
+        statics.set(name, new ApexVariable(name, '', type));
       } else {
-        frameInfo.locals.set(name, new Variable(name, ''));
+        frameInfo.locals.set(name, new ApexVariable(name, '', type));
       }
     }
 

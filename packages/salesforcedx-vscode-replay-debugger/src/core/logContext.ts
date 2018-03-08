@@ -10,6 +10,7 @@ import { Handles, Scope, StackFrame, Variable } from 'vscode-debugadapter';
 import {
   ApexDebugStackFrameInfo,
   ApexReplayDebug,
+  ApexVariable,
   LaunchRequestArguments,
   ScopeContainer
 } from '../adapter/apexReplayDebug';
@@ -52,8 +53,11 @@ export class LogContext {
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
   private scopeHandles = new Handles<ScopeContainer>();
-  private typeRefVariableClassMap = new Map<String, Map<String, Variable>>();
-  private variableHandles = new Handles<Variable>();
+  private typeRefVariableClassMap = new Map<
+    String,
+    Map<String, ApexVariable>
+  >();
+  private variableHandles = new Handles<ApexVariable>();
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
@@ -126,7 +130,7 @@ export class LogContext {
     return this.scopeHandles;
   }
 
-  public getVariablehandler(): Handles<Variable> {
+  public getVariableHandler(): Handles<ApexVariable> {
     return this.variableHandles;
   }
 

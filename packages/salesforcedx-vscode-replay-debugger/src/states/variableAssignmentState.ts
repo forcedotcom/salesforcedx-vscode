@@ -6,6 +6,7 @@
  */
 
 import { Variable } from 'vscode-debugadapter';
+import { ApexVariable } from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
@@ -24,11 +25,14 @@ export class VariableAssignmentState implements DebugLogState {
       const value = this.fields[4];
       const addr = Boolean(this.fields[5]);
       if (frameInfo.statics.has(name)) {
-        frameInfo.statics.set(name, new Variable(name, value));
-      } else if (name.indexOf('.') !== -1) {
-        frameInfo.globals.set(name, new Variable(name, value));
-      } else {
-        frameInfo.locals.set(name, new Variable(name, value));
+        const x = frameInfo.statics.get(name) as ApexVariable;
+        x.value = value;
+      } else if (frameInfo.globals.has(name)) {
+        const x = frameInfo.globals.get(name) as ApexVariable;
+        x.value = value;
+      } else if (frameInfo.locals.has(name)) {
+        const x = frameInfo.locals.get(name) as ApexVariable;
+        x.value = value;
       }
     }
 
