@@ -38,7 +38,18 @@ function isDependencyInstalled(): boolean {
   return coreDependency && coreDependency.exports;
 }
 
+function shouldForceLoadCurrentLwc(): boolean {
+  return process.env.FORCE_LOAD_CURRENT_LWC;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
+  if (shouldForceLoadCurrentLwc()) {
+    console.log(
+      'salesforce.salesforcedx-vscode-lwc was force loaded; starting that (lwc) intead of this (lwc-next).'
+    );
+    return;
+  }
+
   if (!isDependencyInstalled()) {
     vscode.window.showErrorMessage(
       nls.localize('salesforcedx_vscode_core_not_installed_text')
