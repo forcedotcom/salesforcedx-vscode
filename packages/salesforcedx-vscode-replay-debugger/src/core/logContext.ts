@@ -114,6 +114,10 @@ export class LogContext {
     }
   }
 
+  public getTypeRefVariablesMap(): Map<String, Map<String, Variable>> {
+    return this.typeRefVariableClassMap;
+  }
+
   public getFrameHandler(): Handles<ApexDebugStackFrameInfo> {
     return this.frameHandles;
   }
@@ -121,6 +125,7 @@ export class LogContext {
   public getScopeHandler(): Handles<ScopeContainer> {
     return this.scopeHandles;
   }
+
   public getVariablehandler(): Handles<Variable> {
     return this.variableHandles;
   }

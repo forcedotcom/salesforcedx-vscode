@@ -22,18 +22,17 @@ export class FrameEntryState extends FrameState implements DebugLogState {
     const sourceUri = logContext.getUriFromSignature(this._signature);
     const frame = new ApexDebugStackFrameInfo(logContext.getFrames().length);
     const id = logContext.getFrameHandler().create(frame);
+    const src = sourceUri
+      ? new Source(basename(sourceUri), Uri.parse(sourceUri).fsPath)
+      : undefined;
+    if (src && logContext.getTypeRefVariablesMap().has(src.path)) {
+      frame.statics = logContext.getTypeRefVariablesMap().get(src.path)!;
+    } else if (src) {
+      logContext.getTypeRefVariablesMap().set(src.path, frame.statics);
+    }
     logContext
       .getFrames()
-      .push(
-        new StackFrame(
-          id,
-          this._frameName,
-          sourceUri
-            ? new Source(basename(sourceUri), Uri.parse(sourceUri).fsPath)
-            : undefined,
-          undefined
-        )
-      );
+      .push(new StackFrame(id, this._frameName, src, undefined));
     return false;
   }
 }

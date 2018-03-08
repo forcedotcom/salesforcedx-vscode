@@ -20,12 +20,6 @@ export class VariableAssignmentState implements DebugLogState {
     if (currFrame) {
       const id = currFrame.id;
       const frameInfo = logContext.getFrameHandler().get(id);
-      if (logContext.getFrames().length > 1) {
-        const frames = logContext.getFrames();
-        const prevId = frames[frames.length - 2].id;
-        const prevFrame = logContext.getFrameHandler().get(prevId);
-        frameInfo.statics = prevFrame.statics;
-      }
       const name = this.fields[3];
       const value = this.fields[4];
       const addr = Boolean(this.fields[5]);
