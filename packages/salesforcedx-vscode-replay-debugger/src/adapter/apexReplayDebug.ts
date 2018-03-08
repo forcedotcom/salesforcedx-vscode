@@ -63,11 +63,13 @@ export interface LaunchRequestArguments
 
 export class ApexDebugStackFrameInfo {
   public readonly frameNumber: number;
+  public readonly signature: string;
   public globals: Map<String, Variable>;
   public statics: Map<String, Variable>;
   public locals: Map<String, Variable>;
-  public constructor(frameNumber: number) {
+  public constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
+    this.signature = signature;
     this.globals = new Map<String, Variable>();
     this.statics = new Map<String, Variable>();
     this.locals = new Map<String, Variable>();
