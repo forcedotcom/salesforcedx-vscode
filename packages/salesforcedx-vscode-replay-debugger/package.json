@@ -21,6 +21,7 @@
     "vscode": "^1.19.0"
   },
   "categories": ["Debuggers"],
+  "enableProposedApi": true,
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.5.0",
     "vscode-debugadapter": "1.25.0",
