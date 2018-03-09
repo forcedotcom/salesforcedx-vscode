@@ -67,9 +67,6 @@ test_script:
       }
   - npm run coverage:system-tests
 
-after_test:
-  - npm run vscode:package
-
 artifacts:
   - path: '**\*.vsix'
 
