@@ -38,21 +38,14 @@ function isDependencyInstalled(): boolean {
   return coreDependency && coreDependency.exports;
 }
 
-function isLwcNextInstalled(): boolean {
-  const coreDependency = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-lwc-next'
-  );
-  return coreDependency ? true : false;
-}
-
 function shouldForceLoadCurrentLwc(): boolean {
   return process.env.FORCE_LOAD_CURRENT_LWC;
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  if (isLwcNextInstalled() && !shouldForceLoadCurrentLwc()) {
+  if (shouldForceLoadCurrentLwc()) {
     console.log(
-      'salesforce.salesforcedx-vscode-lwc-next is installed; starting that (lwc-next) instead of this (lwc).'
+      'salesforce.salesforcedx-vscode-lwc was force loaded; starting that (lwc) intead of this (lwc-next).'
     );
     return;
   }
