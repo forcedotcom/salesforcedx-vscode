@@ -41,33 +41,6 @@
       "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"]
     },
     {
-      "name": "Launch Extensions (use current LWC)",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
-      "stopOnEntry": false,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
-      "preLaunchTask": "Compile",
-      "env": {
-        "FORCE_LOAD_CURRENT_LWC": "true"
-      }
-    },
-    {
-      "name": "Launch Extensions without compile (use current LWC)",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
-      "stopOnEntry": false,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
-      "env": {
-        "FORCE_LOAD_CURRENT_LWC": "true"
-      }
-    },
-    {
       "name": "Launch Apex Debug adapter",
       "type": "node",
       "request": "launch",
@@ -363,7 +336,7 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch Replay Debugger Unit Tests",
+      "name": "Launch Replay Debugger Adapter Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger",
@@ -376,7 +349,7 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/test/unit/"
+        "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/adaptertest/unit/"
       ],
       "sourceMaps": true,
       "outFiles": [
@@ -385,6 +358,20 @@
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+    },
+    {
+      "name": "Launch Replay Debugger Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/test"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
     }
   ],
   "compounds": [

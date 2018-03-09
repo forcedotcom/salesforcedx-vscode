@@ -12,7 +12,6 @@ import {
   TreeItem,
   TreeItemCollapsibleState
 } from 'vscode';
-import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -25,7 +24,6 @@ export interface CheckpointMessage {
   sourceFile: string;
   typeRef: string;
   line: number;
-  uri: string;
 }
 
 // These are the action script types for the ApexExecutionOverlayAction.
@@ -80,10 +78,9 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   public addCheckpointNode(
     sourceFile: string,
     typeRef: string,
-    line: number,
-    uri: string
+    line: number
   ): CheckpointNode {
-    const cpNode = new CheckpointNode(sourceFile, typeRef, line, uri);
+    const cpNode = new CheckpointNode(sourceFile, typeRef, line);
     this.checkpoints.push(cpNode);
     this._onDidChangeTreeData.fire();
     return cpNode;
@@ -101,16 +98,10 @@ export class CheckpointNode extends BaseNode {
 
   private readonly checkpointOverlayAction: ApexExecutionOverlayAction;
 
-  // Source and URI are two things that the user cannot edit and
-  // it's debatable whether or not they need to be stored at all
-  private readonly sourceFile: string;
-  private readonly uri: string;
-
   constructor(
     sourceFileInput: string,
     typeRefInput: string,
-    lineInput: number,
-    uriInput: string
+    lineInput: number
   ) {
     super(sourceFileInput + ':' + lineInput, TreeItemCollapsibleState.Expanded);
 
@@ -122,8 +113,6 @@ export class CheckpointNode extends BaseNode {
       Iteration: 1,
       Line: lineInput
     };
-    this.sourceFile = sourceFileInput;
-    this.uri = uriInput;
 
     // Create the items that the user is going to be able to control (Type, Script, Iteration)
     const cpASTNode = new CheckpointInfoActionScriptTypeNode(

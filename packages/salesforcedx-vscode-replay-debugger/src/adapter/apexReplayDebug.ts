@@ -299,8 +299,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
               new Event(CHECKPOINT_INFO_EVENT, {
                 sourceFile: args.source.name,
                 typeRef: this.breakpointUtil.getTopLevelTyperefForUri(uri),
-                line: lineArg,
-                uri: uri
+                line: lineArg
               } as CheckpointMessage)
             );
           }
@@ -344,7 +343,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           this.initializedResponse.body = {
             supportsConfigurationDoneRequest: true,
             supportsCompletionsRequest: false,
-            supportsConditionalBreakpoints: false,
+            supportsConditionalBreakpoints: true,
             supportsDelayedStackTraceLoading: false,
             supportsEvaluateForHovers: false,
             supportsExceptionInfoRequest: false,

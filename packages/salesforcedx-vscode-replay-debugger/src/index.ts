@@ -61,14 +61,12 @@ function registerDebugHandlers(): vscode.Disposable {
             eventBody &&
             eventBody.sourceFile &&
             eventBody.typeRef &&
-            eventBody.line &&
-            eventBody.uri
+            eventBody.line
           ) {
             checkpointService.addCheckpointNode(
               eventBody.sourceFile,
               eventBody.typeRef,
-              eventBody.line,
-              eventBody.uri
+              eventBody.line
             );
           }
         }
