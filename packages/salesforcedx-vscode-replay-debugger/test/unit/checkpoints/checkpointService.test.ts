@@ -9,7 +9,6 @@ import { expect } from 'chai';
 import {
   ActionScriptEnum,
   ApexExecutionOverlayAction,
-  CheckpointMessage,
   CheckpointNode,
   checkpointService
 } from '../../../src/breakpoints/checkpointService';
