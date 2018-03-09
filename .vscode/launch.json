@@ -41,6 +41,33 @@
       "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"]
     },
     {
+      "name": "Launch Extensions (use current LWC)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
+      "preLaunchTask": "Compile",
+      "env": {
+        "FORCE_LOAD_CURRENT_LWC": "true"
+      }
+    },
+    {
+      "name": "Launch Extensions without compile (use current LWC)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
+      "env": {
+        "FORCE_LOAD_CURRENT_LWC": "true"
+      }
+    },
+    {
       "name": "Launch Apex Debug adapter",
       "type": "node",
       "request": "launch",
