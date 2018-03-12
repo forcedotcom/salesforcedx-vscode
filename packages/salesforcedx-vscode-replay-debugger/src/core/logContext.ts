@@ -53,7 +53,7 @@ export class LogContext {
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
   private scopeHandles = new Handles<ScopeContainer>();
-  private typeRefVariableClassMap = new Map<
+  private staticVariablesClassMap = new Map<
     String,
     Map<String, ApexVariable>
   >();
@@ -118,8 +118,8 @@ export class LogContext {
     }
   }
 
-  public getTypeRefVariablesMap(): Map<String, Map<String, Variable>> {
-    return this.typeRefVariableClassMap;
+  public getStaticVariablesClassMap(): Map<String, Map<String, Variable>> {
+    return this.staticVariablesClassMap;
   }
 
   public getFrameHandler(): Handles<ApexDebugStackFrameInfo> {

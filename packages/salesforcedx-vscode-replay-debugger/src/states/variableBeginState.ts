@@ -26,12 +26,12 @@ export class VariableBeginState implements DebugLogState {
       const isRef = this.fields[5] === 'true';
       const isStatic = this.fields[6] === 'true';
       const className = name.substring(0, name.lastIndexOf('.'));
-      if (!logContext.getTypeRefVariablesMap().has(className)) {
+      if (!logContext.getStaticVariablesClassMap().has(className)) {
         logContext
-          .getTypeRefVariablesMap()
+          .getStaticVariablesClassMap()
           .set(className, new Map<String, ApexVariable>());
       }
-      const statics = logContext.getTypeRefVariablesMap().get(className)!;
+      const statics = logContext.getStaticVariablesClassMap().get(className)!;
       if (isStatic) {
         // will need to use the last index in case of something like OuterClass.InnerClass.method()
         const varNameSplit = name.split('.');

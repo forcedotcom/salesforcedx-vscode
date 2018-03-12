@@ -29,10 +29,10 @@ export class FrameEntryState extends FrameState implements DebugLogState {
       0,
       this._signature.lastIndexOf('.')
     );
-    if (logContext.getTypeRefVariablesMap().has(className)) {
-      frame.statics = logContext.getTypeRefVariablesMap().get(className)!;
+    if (logContext.getStaticVariablesClassMap().has(className)) {
+      frame.statics = logContext.getStaticVariablesClassMap().get(className)!;
     } else {
-      logContext.getTypeRefVariablesMap().set(className, frame.statics);
+      logContext.getStaticVariablesClassMap().set(className, frame.statics);
     }
     logContext
       .getFrames()
