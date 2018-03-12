@@ -21,7 +21,9 @@ import {
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
 import { BreakpointUtil, LineBreakpointInfo } from '../../../src/breakpoints';
+import { CheckpointMessage } from '../../../src/breakpoints/checkpointService';
 import {
+  CHECKPOINT_INFO_EVENT,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../../../src/constants';
@@ -700,6 +702,8 @@ describe('Replay debugger adapter - unit', () => {
     it('Should return breakpoints', () => {
       args.source.path = 'foo.cls';
       args.lines = [1, 2];
+      args.breakpoints = [];
+      args.breakpoints.push({ line: 1 }, { line: 2 });
       canSetLineBreakpointStub = sinon
         .stub(BreakpointUtil.prototype, 'canSetLineBreakpoint')
         .onFirstCall()
@@ -726,6 +730,52 @@ describe('Replay debugger adapter - unit', () => {
           line: 2
         }
       ]);
+    });
+    it('Should schedule checkpoint when condition is set to checkpoint', () => {
+      // Create the breakpoint information for the typeRef lookup
+      const lineNumberMapping: Map<string, number[]> = new Map();
+      lineNumberMapping.set('file:///bar.cls', [3, 4]);
+      const typerefMapping: Map<string, string> = new Map();
+      typerefMapping.set('bar', 'file:///bar.cls');
+
+      // path should, in theory, be the entire path to the file whereas name should just be the filename
+      args.source.path = 'bar.cls';
+      args.source.name = 'bar.cls';
+      args.lines = [3];
+      args.breakpoints = [];
+      args.breakpoints.push({ line: 3, condition: 'checkpoint' });
+      canSetLineBreakpointStub = sinon
+        .stub(BreakpointUtil.prototype, 'canSetLineBreakpoint')
+        .onFirstCall()
+        .returns(true)
+        .onSecondCall()
+        .returns(false);
+
+      // Add the lineNumberMapping and the typerefMapping to the apexReplayDebug for
+      // the typeref lookup that is part of the eventBody for the CheckpointMessage
+      adapter
+        .getBreakpointUtil()
+        .setValidLines(lineNumberMapping, typerefMapping);
+      adapter.setBreakPointsRequest(response, args);
+
+      expect(sendResponseSpy.calledOnce).to.be.true;
+      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(
+        0
+      ).args[0];
+
+      // Verify the successful response
+      expect(actualResponse.success).to.be.true;
+
+      // Ensure that the event was fired
+      expect(sendEventSpy.called).to.be.true;
+
+      // Retrieve the event, ensure that it was a CHECKPOINT_INFO_EVENT
+      const event = sendEventSpy.getCall(0).args[0];
+      expect(event.event).to.be.equal(CHECKPOINT_INFO_EVENT);
+      const eventBody = event.body as CheckpointMessage;
+      expect(eventBody.line).to.be.equal(3);
+      expect(eventBody.sourceFile).to.be.equal('bar.cls');
+      expect(eventBody.typeRef).to.be.equal('bar');
     });
   });
 

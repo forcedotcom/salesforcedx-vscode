@@ -8,8 +8,12 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { checkpointService } from './breakpoints/checkpointService';
 import {
+  CheckpointMessage,
+  checkpointService
+} from './breakpoints/checkpointService';
+import {
+  CHECKPOINT_INFO_EVENT,
   DEBUGGER_TYPE,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
@@ -50,6 +54,20 @@ function registerDebugHandlers(): vscode.Disposable {
               lineBpInfo
             );
             console.log('Retrieved line breakpoint info from language server');
+          }
+        } else if (event.event === CHECKPOINT_INFO_EVENT) {
+          const eventBody = event.body as CheckpointMessage;
+          if (
+            eventBody &&
+            eventBody.sourceFile &&
+            eventBody.typeRef &&
+            eventBody.line
+          ) {
+            checkpointService.addCheckpointNode(
+              eventBody.sourceFile,
+              eventBody.typeRef,
+              eventBody.line
+            );
           }
         }
       }
