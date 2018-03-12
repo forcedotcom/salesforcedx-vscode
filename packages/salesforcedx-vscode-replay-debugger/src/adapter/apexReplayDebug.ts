@@ -21,7 +21,10 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { BreakpointUtil, LineBreakpointInfo } from '../breakpoints';
+import { CheckpointMessage } from '../breakpoints/checkpointService';
 import {
+  CHECKPOINT,
+  CHECKPOINT_INFO_EVENT,
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
@@ -258,7 +261,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.SetBreakpointsArguments
   ): void {
     response.body = { breakpoints: [] };
-    if (args.source.path && args.lines) {
+    if (args.source.path && args.lines && args.breakpoints) {
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
         `setBreakPointsRequest: path=${args.source
@@ -266,7 +269,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
       );
       const uri = this.convertClientPathToDebugger(args.source.path);
       this.breakpoints.set(uri, []);
-      for (const lineArg of args.lines) {
+      // While processing the breakpoints, if there's a conditional breakpoint
+      // then create a checkpoint. This requires checking the breakpoint condition
+      // for the appropriate args.lines item being processed.
+      for (let i = 0; i < args.lines.length; i++) {
+        const lineArg = args.lines[i];
         const isVerified = this.breakpointUtil.canSetLineBreakpoint(
           uri,
           this.convertClientLineToDebugger(lineArg)
@@ -280,6 +287,22 @@ export class ApexReplayDebug extends LoggingDebugSession {
           this.breakpoints.get(uri)!.push(
             this.convertClientLineToDebugger(lineArg)
           );
+        }
+        // If there is a condition and that condition is a checkpoint then
+        // sent CHECKPOINT_INFO_EVENT with the args.source, line and uri
+        if (args.breakpoints[i].condition) {
+          if (
+            args.breakpoints[i].condition!.toLowerCase().indexOf(CHECKPOINT) >=
+            0
+          ) {
+            this.sendEvent(
+              new Event(CHECKPOINT_INFO_EVENT, {
+                sourceFile: args.source.name,
+                typeRef: this.breakpointUtil.getTopLevelTyperefForUri(uri),
+                line: lineArg
+              } as CheckpointMessage)
+            );
+          }
         }
       }
       this.log(
@@ -320,7 +343,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           this.initializedResponse.body = {
             supportsConfigurationDoneRequest: true,
             supportsCompletionsRequest: false,
-            supportsConditionalBreakpoints: false,
+            supportsConditionalBreakpoints: true,
             supportsDelayedStackTraceLoading: false,
             supportsEvaluateForHovers: false,
             supportsExceptionInfoRequest: false,

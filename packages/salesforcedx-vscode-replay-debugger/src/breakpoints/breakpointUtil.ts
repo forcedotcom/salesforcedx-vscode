@@ -35,4 +35,17 @@ export class BreakpointUtil {
       this.lineNumberMapping.get(uri)!.indexOf(line) !== -1
     );
   }
+
+  public getTopLevelTyperefForUri(uriInput: string): string {
+    let returnValue = '';
+    this.typerefMapping.forEach((value, key) => {
+      if (value === uriInput) {
+        if (key.indexOf('$') === -1) {
+          returnValue = key;
+          return;
+        }
+      }
+    });
+    return returnValue;
+  }
 }
