@@ -25,10 +25,10 @@ export class FrameEntryState extends FrameState implements DebugLogState {
       this._signature
     );
     const id = logContext.getFrameHandler().create(frame);
-    const className = this._signature.substring(
-      0,
-      this._signature.lastIndexOf('.')
-    );
+    const className =
+      this._signature.indexOf('.') > -1
+        ? this._signature.substring(0, this._signature.lastIndexOf('.'))
+        : this._signature;
     if (logContext.getStaticVariablesClassMap().has(className)) {
       frame.statics = logContext.getStaticVariablesClassMap().get(className)!;
     } else {
