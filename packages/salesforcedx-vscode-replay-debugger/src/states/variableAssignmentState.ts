@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Variable } from 'vscode-debugadapter';
 import { ApexVariable } from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
@@ -23,7 +22,6 @@ export class VariableAssignmentState implements DebugLogState {
       const frameInfo = logContext.getFrameHandler().get(id);
       const name = this.fields[3];
       const value = this.fields[4];
-      const addr = Boolean(this.fields[5]);
       if (frameInfo.statics.has(name)) {
         const frameStatics = frameInfo.statics.get(name) as ApexVariable;
         frameStatics.value = value;
