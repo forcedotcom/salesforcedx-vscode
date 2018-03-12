@@ -33,7 +33,13 @@ export class VariableBeginState implements DebugLogState {
       }
       const statics = logContext.getTypeRefVariablesMap().get(className)!;
       if (isStatic) {
-        statics.set(name, new ApexVariable(name, '', type));
+        // will need to use the last index in case of something like OuterClass.InnerClass.method()
+        const varNameSplit = name.split('.');
+        const varName =
+          varNameSplit.length > 1
+            ? varNameSplit[varNameSplit.length - 1]
+            : name;
+        statics.set(name, new ApexVariable(varName, '', type));
       } else {
         frameInfo.locals.set(name, new ApexVariable(name, '', type));
       }
