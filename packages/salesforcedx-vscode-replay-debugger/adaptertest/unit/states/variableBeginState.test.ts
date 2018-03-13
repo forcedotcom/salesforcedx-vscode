@@ -19,6 +19,7 @@ import { FrameEntryState, VariableBeginState } from '../../../src/states';
 
 // tslint:disable:no-unused-expression
 describe('Variable begin scope event', () => {
+  let getUriFromSignatureStub: sinon.SinonStub;
   let getStaticMapStub: sinon.SinonStub;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
@@ -27,28 +28,34 @@ describe('Variable begin scope event', () => {
     logFile: logFilePath,
     trace: true
   };
-  const staticVarLogLine =
-    'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|fakeClass.staticInteger|5|false|true';
-  const newStaticVarLogLine =
-    'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|anotherFakeClass.staticInteger|5|false|true';
-  const localVarLogLine =
-    'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|localInteger|10|false|false';
+  const STATIC_VARIABLE_LOG_LINE =
+    'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|fakeClass.staticInteger|Integer|false|true';
+  const NEW_STATIC_VARIABLE_LOG_LINE =
+    'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|anotherFakeClass.staticInteger|Integer|false|true';
+  const LOCAL_VARIABLE_LOG_LINE =
+    'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|localInteger|Integer|false|false';
   let map: Map<String, Map<String, ApexVariable>>;
 
   beforeEach(() => {
     map = new Map<String, Map<String, ApexVariable>>();
     map.set('fakeClass', new Map<String, ApexVariable>());
+    getUriFromSignatureStub = sinon
+      .stub(LogContext.prototype, 'getUriFromSignature')
+      .returns(uriFromSignature);
     getStaticMapStub = sinon
       .stub(LogContext.prototype, 'getStaticVariablesClassMap')
       .returns(map);
   });
 
   afterEach(() => {
+    getUriFromSignatureStub.restore();
     getStaticMapStub.restore();
   });
 
   it('Should add static variable to frame', () => {
-    const entryState = new VariableBeginState(staticVarLogLine.split('|'));
+    const entryState = new VariableBeginState(
+      STATIC_VARIABLE_LOG_LINE.split('|')
+    );
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context
       .getFrames()
@@ -65,24 +72,45 @@ describe('Variable begin scope event', () => {
   });
 
   it('Should add local variable to frame', () => {
-    const entryState = new VariableBeginState(localVarLogLine.split('|'));
+    const state = new FrameEntryState(['signature']);
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context
       .getFrames()
       .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
 
-    expect(entryState.handle(context)).to.be.false;
-    expect(context.getStaticVariablesClassMap().has('fakeClass')).to.be.true;
-    expect(
-      context.getStaticVariablesClassMap().get('fakeClass')!.size
-    ).to.equal(1);
-    expect(context.getStaticVariablesClassMap().get('fakeClass')).to.have.key(
-      'fakeClass.localInteger'
+    expect(state.handle(context)).to.be.false;
+
+    const frames = context.getFrames();
+    expect(context.getNumOfFrames()).to.equal(2);
+    expect(frames[1]).to.deep.equal({
+      id: 1000,
+      line: 0,
+      column: 0,
+      name: 'signature',
+      source: {
+        name: 'foo.cls',
+        path: Uri.parse(uriFromSignature).fsPath,
+        sourceReference: 0
+      }
+    } as StackFrame);
+    const entryState = new VariableBeginState(
+      LOCAL_VARIABLE_LOG_LINE.split('|')
     );
+    expect(entryState.handle(context)).to.be.false;
+    const id = context.getTopFrame()!.id;
+    const frameInfo = context.getFrameHandler().get(id);
+    expect(frameInfo.locals.size).to.equal(1);
+    expect(frameInfo.locals.has('localInteger')).to.be.true;
+    expect(frameInfo.locals.get('localInteger')).to.include({
+      name: 'localInteger',
+      type: 'Integer'
+    });
   });
 
   it('Should create class entry in static variable map when class has not been seen before', () => {
-    const entryState = new VariableBeginState(staticVarLogLine.split('|'));
+    const entryState = new VariableBeginState(
+      STATIC_VARIABLE_LOG_LINE.split('|')
+    );
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context
       .getFrames()

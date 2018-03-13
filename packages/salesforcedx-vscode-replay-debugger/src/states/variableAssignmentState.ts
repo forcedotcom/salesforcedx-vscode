@@ -21,12 +21,15 @@ export class VariableAssignmentState implements DebugLogState {
       const id = currFrame.id;
       const frameInfo = logContext.getFrameHandler().get(id);
       const name = this.fields[3];
+      const nameSplit = this.fields[3].split('.');
+      const varName =
+        nameSplit.length > 0 ? nameSplit[nameSplit.length - 1] : name;
       const value = this.fields[4];
       if (frameInfo.statics.has(name)) {
         const frameStatics = frameInfo.statics.get(name) as ApexVariable;
         frameStatics.value = value;
-      } else if (frameInfo.locals.has(name)) {
-        const frameLocals = frameInfo.locals.get(name) as ApexVariable;
+      } else if (frameInfo.locals.has(varName)) {
+        const frameLocals = frameInfo.locals.get(varName) as ApexVariable;
         frameLocals.value = value;
       }
     }

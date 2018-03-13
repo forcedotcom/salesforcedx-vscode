@@ -100,13 +100,13 @@ describe('Frame entry event', () => {
         sourceReference: 0
       }
     } as StackFrame);
-    expect(context.getStaticVariablesClassMap().has('className')).to.be.true;
+    expect(context.getStaticVariablesClassMap()).to.include.keys('className');
     expect(
       context.getStaticVariablesClassMap().get('className')!.size
     ).to.equal(0);
   });
 
-  it('Should reuse static variables for a new frame if class has been previously seen', () => {
+  it('Should update existing static variables map for a new frame if class has been previously seen', () => {
     const state = new FrameEntryState(['previousClass.seenBefore']);
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context
@@ -128,8 +128,9 @@ describe('Frame entry event', () => {
         sourceReference: 0
       }
     } as StackFrame);
-    expect(context.getStaticVariablesClassMap().has('previousClass')).to.be
-      .true;
+    expect(context.getStaticVariablesClassMap()).to.include.keys(
+      'previousClass'
+    );
     expect(
       context.getStaticVariablesClassMap().get('previousClass')!.size
     ).to.equal(1);
