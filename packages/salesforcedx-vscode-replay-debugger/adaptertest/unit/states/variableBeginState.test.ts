@@ -30,8 +30,6 @@ describe('Variable begin scope event', () => {
   };
   const STATIC_VARIABLE_LOG_LINE =
     'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|fakeClass.staticInteger|Integer|false|true';
-  const NEW_STATIC_VARIABLE_LOG_LINE =
-    'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|anotherFakeClass.staticInteger|Integer|false|true';
   const LOCAL_VARIABLE_LOG_LINE =
     'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|localInteger|Integer|false|false';
   let map: Map<String, Map<String, ApexVariable>>;
