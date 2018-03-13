@@ -19,7 +19,7 @@ matrix:
 
 env:
   global:
-    - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+    - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-cli/channels/stable/sfdx-cli-linux-x64.tar.xz
     - SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
     - SFDX_AUTOUPDATE_DISABLE=true
     - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
