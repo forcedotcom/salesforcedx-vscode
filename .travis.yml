@@ -45,7 +45,8 @@ before_install:
       sleep 3
       # install CLI
       echo Installing SFDX CLI Linux
-      travis_retry wget -qO- $SFDX_URL_LINUX | tar xJf -
+      mkdir sfdx
+      travis_retry wget -qO- $SFDX_URL_LINUX | tar xJf -C sfdx --strip-components=1 -
       "./sfdx/install"
       export PATH=./sfdx/$(pwd):$PATH
       travis_retry sfdx update
