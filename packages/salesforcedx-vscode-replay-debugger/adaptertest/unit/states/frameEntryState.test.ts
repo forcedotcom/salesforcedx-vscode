@@ -106,7 +106,7 @@ describe('Frame entry event', () => {
     ).to.equal(0);
   });
 
-  it('Should update existing static variables map for a new frame if class has been previously seen', () => {
+  it('Should use existing static variables when the entry is for a class that was seen earlier', () => {
     const state = new FrameEntryState(['previousClass.seenBefore']);
     const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     context
@@ -131,8 +131,8 @@ describe('Frame entry event', () => {
     expect(context.getStaticVariablesClassMap()).to.include.keys(
       'previousClass'
     );
-    expect(
-      context.getStaticVariablesClassMap().get('previousClass')!.size
-    ).to.equal(1);
+    expect(context.getStaticVariablesClassMap().get('previousClass')).equals(
+      map.get('previousClass')
+    );
   });
 });
