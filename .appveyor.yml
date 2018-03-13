@@ -11,7 +11,7 @@ skip_branch_with_pr: true
 platform: x64
 
 environment:
-  SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-cli/channels/stable/sfdx-cli-windows-x64.tar.xz
+  SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-v5.99.1-d7efd75-windows-amd64.tar.xz
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
 
@@ -20,7 +20,7 @@ install:
   - appveyor-retry npm install
   - curl -fsSL -o sfdx-windows-amd64.tar.xz %SFDX_URL_WINDOWS%
   - 7z x sfdx-windows-amd64.tar.xz
-  - 7z x sfdx-windows-amd64.tar -o%APPVEYOR_BUILD_FOLDER%\sfdx
+  - 7z x sfdx-windows-amd64.tar
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\sfdx\bin;%PATH%
   - sfdx update
   - npm install -g codecov 
@@ -66,6 +66,9 @@ test_script:
         exit $NpmTestsExitCode
       }
   - npm run coverage:system-tests
+
+after_test:
+  - npm run vscode:package
 
 artifacts:
   - path: '**\*.vsix'
