@@ -1,9 +1,20 @@
+## 42.7.0 - March 15, 2018
+### Added
+#### salesforcedx-vscode-core
+
+* Add demo mode for VS Code ([PR #335](https://github.com/forcedotcom/salesforcedx-vscode/pull/335))
+
+### Fixed
+#### salesforcedx-vscode-apex
+
+* Handle apex language server failures without disrupting indexing ([PR #341](https://github.com/forcedotcom/salesforcedx-vscode/pull/341))
+
 ## 42.5.0 - March 1, 2018
 ### Added
 #### salesforcedx-vscode-apex
 
 * Find All References for user-defined classes, enums, interfaces and methods ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
-* `SFDX: Get Apex Debug Logs` command to fetch debug logs ([PR #310](https://github.com/forcedotcom/salesforcedx-vscode/pull/310)
+* `SFDX: Get Apex Debug Logs` command to fetch debug logs ([PR #310](https://github.com/forcedotcom/salesforcedx-vscode/pull/310))
 
 ### Fixed
 #### salesforcedx-vscode-core
