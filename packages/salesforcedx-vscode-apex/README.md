@@ -19,19 +19,19 @@ To see code-completion suggestions, press Ctrl+space when you’re working in a 
 
 ## View or Jump to Definitions
 You can preview, view, or go to definitions of:  
-* Apex  
-  * classes (from definitions of extending classes)  
-  * constructors  
-  * interfaces (from definitions of implementing classes)  
-  * methods  
-  * properties  
-  * variables (local and class variables)  
-* standard objects  
-  * fields (standard and custom fields)
-  * object definitions
-* custom objects
-  * fields  
-  * object definitions  
+* User-defined Apex  
+  * Classes (from definitions of extending classes)  
+  * Constructors  
+  * Interfaces (from definitions of implementing classes)  
+  * Methods  
+  * Properties  
+  * Variables (local and class variables)  
+* Standard objects  
+  * Fields (standard and custom fields)
+  * Object definitions
+* Custom objects
+  * Fields  
+  * Object definitions  
 
 (See the "Enable Code Smartness for SObjects" section of this README for information on working with standard and custom objects.)
 
@@ -43,10 +43,13 @@ To jump to the location of a definition, right-click the item and select **Go to
 ![Previewing, viewing, and jumping to a definition](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_go_to_definition.gif)
 
 ## Find All References to Types
-You can find all references to:
-* Apex class variables
-* Apex properties
-* User-defined Apex classes, enums, interfaces, and methods
+You can find all references to user-defined Apex:  
+* Classes  
+* Class variables  
+* Enums  
+* Interfaces  
+* Methods  
+* Properties  
 
 To find references to an item, right-click the item and select **Find All References**, or press Shift+F12.
 
@@ -82,6 +85,7 @@ If you’re not seeing the Apex completion suggestions that you expect, your Ape
 * Dreamforce ’17 Session Video: [Building Powerful Tooling For All IDEs Through Language Servers](https://www.salesforce.com/video/1765282/)
 * GitHub: [Language Server Protocol](https://github.com/Microsoft/language-server-protocol)
 * GitHub: [salesforcedx-vscode-apex](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex)
+* GitHub Wiki for salesforcedx-vscode: [Apex Language Server](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Language-Server)
 
 ---
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.    

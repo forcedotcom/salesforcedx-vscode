@@ -41,7 +41,9 @@ To report issues with Salesforce Extensions for VS Code, visit us on [GitHub](ht
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
 * Dreamforce ’17 Session Video: [Getting Started In VS Code With Salesforce DX](https://www.salesforce.com/video/1768045/)
 * Dreamforce ’17 Session Video: [Visual Studio Code for Eclipse Users](https://www.salesforce.com/video/1774284/)
-* GitHub: [salesforcedx-vscode](https://github.com/forcedotcom/salesforcedx-vscode)
+* GitHub: [salesforcedx-vscode](https://github.com/forcedotcom/salesforcedx-vscode)  
+* GitHub Wiki for salesforcedx-vscode: [Tips and Tricks](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Tips-and-Tricks)
+* GitHub Wiki for salesforcedx-vscode: [Troubleshooting](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Troubleshooting)
 
 ---
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.  
