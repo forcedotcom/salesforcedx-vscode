@@ -2,12 +2,13 @@
 ### Added
 #### salesforcedx-vscode-core
 
-* Add demo mode for VS Code ([PR #335](https://github.com/forcedotcom/salesforcedx-vscode/pull/335))
+* Demo mode for VS Code warns users who authorize business or production orgs on demo machines about the security risk ([PR #335](https://github.com/forcedotcom/salesforcedx-vscode/pull/335))
+* `SFDX: Log Out from All Authorized Orgs` command supports demo mode ([PR #335](https://github.com/forcedotcom/salesforcedx-vscode/pull/335))
 
 ### Fixed
 #### salesforcedx-vscode-apex
 
-* Handle apex language server failures without disrupting indexing ([PR #341](https://github.com/forcedotcom/salesforcedx-vscode/pull/341))
+* Handle Apex language server failures without disrupting indexing ([PR #341](https://github.com/forcedotcom/salesforcedx-vscode/pull/341))
 
 ## 42.5.0 - March 1, 2018
 ### Added
