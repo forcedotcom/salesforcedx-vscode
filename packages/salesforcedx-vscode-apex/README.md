@@ -42,7 +42,7 @@ To view a definition, right-click the item and select **Peek Definition**, or pr
 To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.  
 ![Previewing, viewing, and jumping to a definition](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_go_to_definition.gif)
 
-## Find All References to Types
+## Find All References
 You can find all references to user-defined Apex:  
 * Classes  
 * Class variables  
@@ -82,10 +82,10 @@ If you’re not seeing the Apex completion suggestions that you expect, your Ape
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
 * _[Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)_
-* Dreamforce ’17 Session Video: [Building Powerful Tooling For All IDEs Through Language Servers](https://www.salesforce.com/video/1765282/)
+* Dreamforce ’17 session video: [Building Powerful Tooling For All IDEs Through Language Servers](https://www.salesforce.com/video/1765282/)
 * GitHub: [Language Server Protocol](https://github.com/Microsoft/language-server-protocol)
 * GitHub: [salesforcedx-vscode-apex](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex)
-* GitHub Wiki for salesforcedx-vscode: [Apex Language Server](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Language-Server)
+* GitHub wiki for salesforcedx-vscode: [Apex Language Server](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Language-Server)
 
 ---
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.    

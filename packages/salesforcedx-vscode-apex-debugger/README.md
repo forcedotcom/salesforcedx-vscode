@@ -153,7 +153,7 @@ These entry points aren’t supported:
 * _[Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)_
 * _Force.com IDE Developer Guide_: [Explore a Simple Debugging Puzzle](https://developer.salesforce.com/docs/atlas.en-us.eclipse.meta/eclipse/debugger_puzzle_parent.htm)
 * GitHub: [salesforcedx-vscode-apex-debugger](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger)
-* GitHub Wiki for salesforcedx-vscode: [Apex Debugger](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Debugger)  
+* GitHub wiki for salesforcedx-vscode: [Apex Debugger](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Debugger)  
 
 ---
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.  

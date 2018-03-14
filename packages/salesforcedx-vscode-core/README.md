@@ -75,9 +75,9 @@ To edit your workspace settings, select **Code** > **Preferences** > **Settings*
 To stop Salesforce CLI success messages from showing as pop-up information messages, click **Show Only in Status Bar** in a success message. This button overrides the `salesforcedx-vscode-core.show-cli-success-msg` value in your Default Settings. It changes the Workspace Settings value to `false`. Setting this value to `false` makes the success messages appear in the status bar (in VS Code’s footer) instead of as information messages. If you decide that you liked the information messages after all, change the value back to `true`.   
 
 ## Activate Demo Mode
-If you’re setting up a machine that will be used to give demos at a conference (or otherwise used by people you don’t know), set up demo mode. When in demo mode, VS Code warns users who authorize business or production orgs of the potential security risks of using these orgs on shared machines.  
+If you’re setting up a machine to use for demos at a conference (or for other public use), set up demo mode. When in demo mode, VS Code warns users who authorize business or production orgs of the potential security risks of using these orgs on shared machines.  
 
-To activate demo mode, add an environment variable called `DEMO` and set its value to `true`.  
+To activate demo mode, add an environment variable called `SFDX_ENV` and set its value to `DEMO`: `SFDX_ENV=DEMO`.  
 
 When you’re done with your event, run **SFDX: Log Out from All Authorized Orgs**.  
 
