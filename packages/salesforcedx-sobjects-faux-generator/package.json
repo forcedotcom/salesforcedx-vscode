@@ -1,16 +1,15 @@
 {
   "name": "@salesforce/salesforcedx-sobjects-faux-generator",
   "displayName": "Salesforce SObject Faux Generator",
-  "description":
-    "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
-  "version": "42.5.0",
+  "description": "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
+  "version": "42.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.17.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.7.0",
     "request-light": "0.2.1",
     "rxjs": "^5.4.1",
     "shelljs": "0.7.8",
@@ -36,14 +35,14 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
-    "test:unit":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit",
-    "test:integration":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration"
+    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit",
+    "test:integration": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
