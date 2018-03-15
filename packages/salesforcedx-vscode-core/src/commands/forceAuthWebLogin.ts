@@ -13,7 +13,7 @@ import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/sr
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandOutput';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import { Observable } from 'rxjs/Observable';
-import { CancellationToken, CancellationTokenSource, workspace } from 'vscode';
+import { CancellationTokenSource, workspace } from 'vscode';
 import { channelService } from '../channels/index';
 import { nls } from '../messages';
 import { isDemoMode, isProdOrg } from '../modes/demo-mode';
