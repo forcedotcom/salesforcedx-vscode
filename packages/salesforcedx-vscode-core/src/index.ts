@@ -20,6 +20,7 @@ import {
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
   forceApexTriggerCreate,
+  forceAuthLogoutAll,
   forceAuthWebLogin,
   forceConfigList,
   forceDataSoqlQuery,
@@ -41,30 +42,34 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
+  restoreDebugLevels,
   SelectFileName,
   SelectStrictDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { restoreDebugLevels } from './commands/forceStopApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import {
   CLIENT_ID,
   SFDX_CLIENT_ENV_VAR,
   TERMINAL_INTEGRATED_ENVS
 } from './constants';
+import * as decorators from './decorators';
+import { isDemoMode } from './modes/demo-mode';
 import { notificationService } from './notifications';
-import * as scratchOrgDecorator from './scratch-org-decorator';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { CancellableStatusBar, taskViewService } from './statuses';
-import { disposeTraceFlagExpiration } from './traceflag-time-decorator';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
+  );
+  const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.logout.all',
+    forceAuthLogoutAll
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
@@ -260,6 +265,7 @@ function registerCommands(): vscode.Disposable {
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
+    forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
@@ -357,8 +363,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Scratch Org Decorator
   if (vscode.workspace.rootPath) {
-    scratchOrgDecorator.showOrg();
-    scratchOrgDecorator.monitorConfigChanges();
+    decorators.showOrg();
+    decorators.monitorOrgConfigChanges();
+  }
+
+  // Demo mode Decorator
+  if (vscode.workspace.rootPath && isDemoMode()) {
+    decorators.showDemoMode();
   }
 
   const api: any = {
@@ -379,6 +390,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
-  disposeTraceFlagExpiration();
+
+  decorators.disposeTraceFlagExpiration();
   return restoreDebugLevels();
 }

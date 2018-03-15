@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "42.5.0",
+  "version": "42.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,7 +26,7 @@
     "typescript": "2.6.2"
   },
   "dependencies": {
-    "vscode-languageserver-types": "^3.3.0",
+    "vscode-languageserver-types": "3.4.0",
     "vscode-nls": "^2.0.2",
     "vscode-uri": "^1.0.1"
   },

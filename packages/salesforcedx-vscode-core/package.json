@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.5.0",
+  "version": "42.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "42.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "42.5.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "42.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.7.0",
     "adm-zip": "^0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -131,6 +131,10 @@
       "commandPalette": [
         {
           "command": "sfdx.force.auth.web.login",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.auth.logout.all",
           "when": "sfdx:project_opened"
         },
         {
@@ -290,6 +294,10 @@
       {
         "command": "sfdx.force.auth.web.login",
         "title": "%force_auth_web_login_authorize_dev_hub_text%"
+      },
+      {
+        "command": "sfdx.force.auth.logout.all",
+        "title": "%force_auth_logout_all_text%"
       },
       {
         "command": "sfdx.force.org.create",

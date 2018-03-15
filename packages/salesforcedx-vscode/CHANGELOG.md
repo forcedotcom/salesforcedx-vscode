@@ -1,9 +1,21 @@
+## 42.7.0 - March 15, 2018
+### Added
+#### salesforcedx-vscode-core
+
+* Demo mode for VS Code warns users who authorize business or production orgs on demo machines about the security risk ([PR #335](https://github.com/forcedotcom/salesforcedx-vscode/pull/335))
+* `SFDX: Log Out from All Authorized Orgs` command supports demo mode ([PR #335](https://github.com/forcedotcom/salesforcedx-vscode/pull/335))
+
+### Fixed
+#### salesforcedx-vscode-apex
+
+* Handle Apex language server failures without disrupting indexing ([PR #341](https://github.com/forcedotcom/salesforcedx-vscode/pull/341))
+
 ## 42.5.0 - March 1, 2018
 ### Added
 #### salesforcedx-vscode-apex
 
 * Find All References for user-defined classes, enums, interfaces and methods ([PR #324](https://github.com/forcedotcom/salesforcedx-vscode/pull/324))
-* `SFDX: Get Apex Debug Logs` command to fetch debug logs ([PR #310](https://github.com/forcedotcom/salesforcedx-vscode/pull/310)
+* `SFDX: Get Apex Debug Logs` command to fetch debug logs ([PR #310](https://github.com/forcedotcom/salesforcedx-vscode/pull/310))
 
 ### Fixed
 #### salesforcedx-vscode-core

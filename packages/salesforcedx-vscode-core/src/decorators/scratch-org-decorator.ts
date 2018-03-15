@@ -25,7 +25,7 @@ export function showOrg() {
   displayDefaultUserName(CONFIG_FILE);
 }
 
-export function monitorConfigChanges() {
+export function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
   watcher.onDidChange(uri => {
     displayDefaultUserName(uri.fsPath);

@@ -289,6 +289,24 @@ export class SelectUsername
   }
 }
 
+export class DemoModePromptGatherer implements ParametersGatherer<{}> {
+  private readonly LOGOUT_RESPONSE = 'Cancel';
+  private readonly DO_NOT_LOGOUT_RESPONSE = 'Authorize Org';
+  private readonly prompt = nls.localize('demo_mode_prompt');
+
+  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    const response = await vscode.window.showInformationMessage(
+      this.prompt,
+      this.DO_NOT_LOGOUT_RESPONSE,
+      this.LOGOUT_RESPONSE
+    );
+
+    return response && response === this.LOGOUT_RESPONSE
+      ? { type: 'CONTINUE', data: {} }
+      : { type: 'CANCEL' };
+  }
+}
+
 // Command Execution
 ////////////////////
 export interface CommandletExecutor<T> {
@@ -299,13 +317,19 @@ export interface CommandletExecutor<T> {
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  protected showChannelOutput = true;
+
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
     channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
+
+    if (this.showChannelOutput) {
+      channelService.showChannelOutput();
+    }
+
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken

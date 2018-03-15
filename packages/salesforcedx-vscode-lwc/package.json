@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.5.0",
+  "version": "42.7.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,13 +23,13 @@
   },
   "categories": ["Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.7.0",
     "ajv": "^6.1.1",
     "eslint": "4.16.0",
     "eslint-plugin-lwc": "0.3.2",
     "lwc-language-server": "0.16.4",
     "rxjs": "^5.4.1",
-    "vscode-languageclient": "3.5.0"
+    "vscode-languageclient": "3.5.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -60,9 +60,9 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "pretest": "node ../../scripts/download-vscode-for-system-tests",
     "test":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
+      "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
     "test:unit":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
+      "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",

@@ -29,6 +29,7 @@ These Salesforce CLI commands are available:
 * `force:apex:log:get ...`: **SFDX: Get Apex Debug Logs...**
 * `force:apex:test:run --resultformat human ...`: **SFDX: Invoke Apex Tests...**
 * `force:apex:trigger:create ...`: **SFDX: Create Apex Trigger**
+* `force:auth:logout --all --noprompt`: **SFDX: Log Out from All Authorized Orgs**
 * `force:auth:web:login --setdefaultdevhubusername`: **SFDX: Authorize a Dev Hub**
 * `force:config:list`: **SFDX: List All Config Variables**
 * `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
@@ -62,6 +63,7 @@ To check your running tasks, expand the Running Tasks view in the Explorer.
 
 ## Run Apex Tests
 To run Apex tests, in your `.cls` file, click **Run Test** or **Run All Tests** above the definition of an Apex test method or class.  
+![Running Apex tests using the Run Test and Run All Tests code lenses](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)
 
 Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Cmd (macOS) or Ctrl (Windows and Linux) and click that stack trace.  
 
@@ -71,6 +73,13 @@ After you run Apex tests, two new commands are available in the command palette:
 To edit your workspace settings, select **Code** > **Preferences** > **Settings** (macOS) or **File** > **Preferences** > **Settings** (Windows and Linux).  
 
 To stop Salesforce CLI success messages from showing as pop-up information messages, click **Show Only in Status Bar** in a success message. This button overrides the `salesforcedx-vscode-core.show-cli-success-msg` value in your Default Settings. It changes the Workspace Settings value to `false`. Setting this value to `false` makes the success messages appear in the status bar (in VS Code’s footer) instead of as information messages. If you decide that you liked the information messages after all, change the value back to `true`.   
+
+## Activate Demo Mode
+If you’re setting up a machine to use for demos at a conference (or for other public use), set up demo mode. When in demo mode, VS Code warns users who authorize business or production orgs of the potential security risks of using these orgs on shared machines.  
+
+To activate demo mode, add an environment variable called `SFDX_ENV` and set its value to `DEMO`: `SFDX_ENV=DEMO`.  
+
+When you’re done with your event, run **SFDX: Log Out from All Authorized Orgs**.  
 
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
