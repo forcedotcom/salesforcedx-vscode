@@ -14,10 +14,8 @@
     "vsce": "^1.36.3"
   },
   "scripts": {
-    "postinstall":
-      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
-    "bootstrap":
-      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+    "postinstall": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+    "bootstrap": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
@@ -26,19 +24,14 @@
     "test": "lerna run test --concurrency 1 --stream",
     "test:unit": "lerna run test:unit --concurrency 1 --stream",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
-    "test:without-system-tests":
-      "lerna run test --ignore system-tests --concurrency 1 --stream",
-    "test:system-tests":
-      "lerna run test --scope system-tests --concurrency 1 --stream",
-    "coverage:system-tests":
-      "lerna run coverage --scope system-tests --concurrency 1 --stream",
-    "vscode:package":
-      "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
+    "test:without-system-tests": "lerna run test --ignore system-tests --concurrency 1 --stream",
+    "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream",
+    "coverage:system-tests": "lerna run coverage --scope system-tests --concurrency 1 --stream",
+    "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
-    "eslint-check":
-      "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
+    "eslint-check": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
     "reformat": "node scripts/reformat-with-prettier.js"
   },
   "repository": {

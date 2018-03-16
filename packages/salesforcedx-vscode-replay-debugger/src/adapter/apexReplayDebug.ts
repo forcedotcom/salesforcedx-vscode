@@ -14,10 +14,12 @@ import {
   Logger,
   LoggingDebugSession,
   OutputEvent,
+  Scope,
   Source,
   StoppedEvent,
   TerminatedEvent,
-  Thread
+  Thread,
+  Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { BreakpointUtil, LineBreakpointInfo } from '../breakpoints';
@@ -57,6 +59,45 @@ export interface LaunchRequestArguments
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
+}
+
+export class ApexVariable extends Variable {
+  public type: string;
+  public constructor(name: string, value: string, type: string) {
+    super(name, value);
+    this.type = type;
+  }
+}
+
+export class ApexDebugStackFrameInfo {
+  public readonly frameNumber: number;
+  public readonly signature: string;
+  public globals: Map<String, Variable>;
+  public statics: Map<String, Variable>;
+  public locals: Map<String, Variable>;
+  public constructor(frameNumber: number, signature: string) {
+    this.frameNumber = frameNumber;
+    this.signature = signature;
+    this.globals = new Map<String, Variable>();
+    this.statics = new Map<String, Variable>();
+    this.locals = new Map<String, Variable>();
+  }
+}
+
+export enum SCOPE_TYPES {
+  LOCAL = 'local',
+  STATIC = 'static',
+  GLOBAL = 'global'
+}
+
+export class ScopeContainer {
+  public readonly type: SCOPE_TYPES;
+  public readonly variables: ApexVariable[];
+
+  public constructor(type: SCOPE_TYPES, variables: ApexVariable[]) {
+    this.type = type;
+    this.variables = variables;
+  }
 }
 
 export class ApexReplayDebug extends LoggingDebugSession {
@@ -175,6 +216,75 @@ export class ApexReplayDebug extends LoggingDebugSession {
         .reverse()
     };
     response.success = true;
+    this.sendResponse(response);
+  }
+
+  protected async scopesRequest(
+    response: DebugProtocol.ScopesResponse,
+    args: DebugProtocol.ScopesArguments
+  ): Promise<void> {
+    response.success = true;
+    const frameInfo = this.logContext.getFrameHandler().get(args.frameId);
+    if (!frameInfo) {
+      response.body = { scopes: [] };
+      this.sendResponse(response);
+      return;
+    }
+    const scopes = new Array<Scope>();
+    scopes.push(
+      new Scope(
+        'Local',
+        this.logContext
+          .getScopeHandler()
+          .create(
+            new ScopeContainer(SCOPE_TYPES.LOCAL, Array.from(
+              frameInfo.locals.values()
+            ) as ApexVariable[])
+          ),
+        false
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Static',
+        this.logContext
+          .getScopeHandler()
+          .create(
+            new ScopeContainer(SCOPE_TYPES.STATIC, Array.from(
+              frameInfo.statics.values()
+            ) as ApexVariable[])
+          ),
+        false
+      )
+    );
+    scopes.push(
+      new Scope(
+        'Global',
+        this.logContext
+          .getScopeHandler()
+          .create(
+            new ScopeContainer(SCOPE_TYPES.GLOBAL, Array.from(
+              frameInfo.globals.values()
+            ) as ApexVariable[])
+          ),
+        false
+      )
+    );
+    response.body = { scopes: scopes };
+    this.sendResponse(response);
+  }
+
+  protected async variablesRequest(
+    response: DebugProtocol.VariablesResponse,
+    args: DebugProtocol.VariablesArguments
+  ): Promise<void> {
+    response.success = true;
+    const scopesContainer = this.logContext
+      .getScopeHandler()
+      .get(args.variablesReference);
+    response.body = {
+      variables: scopesContainer ? scopesContainer.variables : []
+    };
     this.sendResponse(response);
   }
 

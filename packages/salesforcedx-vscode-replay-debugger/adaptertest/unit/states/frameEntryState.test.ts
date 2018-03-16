@@ -11,6 +11,7 @@ import { StackFrame } from 'vscode-debugadapter';
 import Uri from 'vscode-uri';
 import {
   ApexReplayDebug,
+  ApexVariable,
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
@@ -19,6 +20,7 @@ import { FrameEntryState } from '../../../src/states';
 // tslint:disable:no-unused-expression
 describe('Frame entry event', () => {
   let getUriFromSignatureStub: sinon.SinonStub;
+  let getStaticMapStub: sinon.SinonStub;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const uriFromSignature = 'file:///path/foo.cls';
@@ -26,15 +28,26 @@ describe('Frame entry event', () => {
     logFile: logFilePath,
     trace: true
   };
+  let map: Map<String, Map<String, ApexVariable>>;
 
   beforeEach(() => {
+    map = new Map<String, Map<String, ApexVariable>>();
+    map.set('previousClass', new Map<String, ApexVariable>());
+    map.get('previousClass')!.set(
+      'var1',
+      new ApexVariable('var1', '0', 'Integer')
+    );
     getUriFromSignatureStub = sinon
       .stub(LogContext.prototype, 'getUriFromSignature')
       .returns(uriFromSignature);
+    getStaticMapStub = sinon
+      .stub(LogContext.prototype, 'getStaticVariablesClassMap')
+      .returns(map);
   });
 
   afterEach(() => {
     getUriFromSignatureStub.restore();
+    getStaticMapStub.restore();
   });
 
   it('Should add a frame', () => {
@@ -49,7 +62,7 @@ describe('Frame entry event', () => {
     const frames = context.getFrames();
     expect(context.getNumOfFrames()).to.equal(2);
     expect(frames[1]).to.deep.equal({
-      id: 1,
+      id: 1000,
       line: 0,
       column: 0,
       name: 'signature',
@@ -59,5 +72,67 @@ describe('Frame entry event', () => {
         sourceReference: 0
       }
     } as StackFrame);
+    expect(context.getStaticVariablesClassMap().has('signature')).to.be.true;
+    expect(
+      context.getStaticVariablesClassMap().get('signature')!.size
+    ).to.equal(0);
+  });
+
+  it('Should parse the class name from method signature and add it to static variable map', () => {
+    const state = new FrameEntryState(['className.method']);
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+    context
+      .getFrames()
+      .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+
+    expect(state.handle(context)).to.be.false;
+
+    const frames = context.getFrames();
+    expect(context.getNumOfFrames()).to.equal(2);
+    expect(frames[1]).to.deep.equal({
+      id: 1000,
+      line: 0,
+      column: 0,
+      name: 'className.method',
+      source: {
+        name: 'foo.cls',
+        path: Uri.parse(uriFromSignature).fsPath,
+        sourceReference: 0
+      }
+    } as StackFrame);
+    expect(context.getStaticVariablesClassMap()).to.include.keys('className');
+    expect(
+      context.getStaticVariablesClassMap().get('className')!.size
+    ).to.equal(0);
+  });
+
+  it('Should use existing static variables when the entry is for a class that was seen earlier', () => {
+    const state = new FrameEntryState(['previousClass.seenBefore']);
+    const context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+    context
+      .getFrames()
+      .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+
+    expect(state.handle(context)).to.be.false;
+
+    const frames = context.getFrames();
+    expect(context.getNumOfFrames()).to.equal(2);
+    expect(frames[1]).to.deep.equal({
+      id: 1000,
+      line: 0,
+      column: 0,
+      name: 'previousClass.seenBefore',
+      source: {
+        name: 'foo.cls',
+        path: Uri.parse(uriFromSignature).fsPath,
+        sourceReference: 0
+      }
+    } as StackFrame);
+    expect(context.getStaticVariablesClassMap()).to.include.keys(
+      'previousClass'
+    );
+    expect(context.getStaticVariablesClassMap().get('previousClass')).equals(
+      map.get('previousClass')
+    );
   });
 });

@@ -6,10 +6,13 @@
  */
 
 import * as path from 'path';
-import { StackFrame } from 'vscode-debugadapter';
+import { Handles, StackFrame, Variable } from 'vscode-debugadapter';
 import {
+  ApexDebugStackFrameInfo,
   ApexReplayDebug,
-  LaunchRequestArguments
+  ApexVariable,
+  LaunchRequestArguments,
+  ScopeContainer
 } from '../adapter/apexReplayDebug';
 import {
   EVENT_CODE_UNIT_FINISHED,
@@ -21,6 +24,8 @@ import {
   EVENT_METHOD_EXIT,
   EVENT_STATEMENT_EXECUTE,
   EVENT_USER_DEBUG,
+  EVENT_VARIABLE_ASSIGNMENT,
+  EVENT_VARIABLE_SCOPE_BEGIN,
   EVENT_VF_APEX_CALL_END,
   EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE,
@@ -34,7 +39,9 @@ import {
   LogEntryState,
   NoOpState,
   StatementExecuteState,
-  UserDebugState
+  UserDebugState,
+  VariableAssignmentState,
+  VariableBeginState
 } from '../states';
 import { LogContextUtil } from './logContextUtil';
 
@@ -44,6 +51,13 @@ export class LogContext {
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
   private state: DebugLogState | undefined;
+  private frameHandles = new Handles<ApexDebugStackFrameInfo>();
+  private scopeHandles = new Handles<ScopeContainer>();
+  private staticVariablesClassMap = new Map<
+    String,
+    Map<String, ApexVariable>
+  >();
+  private variableHandles = new Handles<ApexVariable>();
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
@@ -102,6 +116,22 @@ export class LogContext {
     if (this.stackFrameInfos.length > 0) {
       return this.stackFrameInfos[this.stackFrameInfos.length - 1];
     }
+  }
+
+  public getStaticVariablesClassMap(): Map<String, Map<String, Variable>> {
+    return this.staticVariablesClassMap;
+  }
+
+  public getFrameHandler(): Handles<ApexDebugStackFrameInfo> {
+    return this.frameHandles;
+  }
+
+  public getScopeHandler(): Handles<ScopeContainer> {
+    return this.scopeHandles;
+  }
+
+  public getVariableHandler(): Handles<ApexVariable> {
+    return this.variableHandles;
   }
 
   public setState(state: DebugLogState | undefined): void {
@@ -201,6 +231,10 @@ export class LogContext {
         case EVENT_CONSTRUCTOR_EXIT:
         case EVENT_METHOD_EXIT:
           return new FrameExitState(fields);
+        case EVENT_VARIABLE_SCOPE_BEGIN:
+          return new VariableBeginState(fields);
+        case EVENT_VARIABLE_ASSIGNMENT:
+          return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
           if (
             FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(
