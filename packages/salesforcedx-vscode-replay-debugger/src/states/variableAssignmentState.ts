@@ -59,27 +59,35 @@ export class VariableAssignmentState implements DebugLogState {
             .getVariableHandler()
             .create(localVariableContainer);
           if (value.indexOf('{') !== -1) {
-            const attrs = this.fixJSON(value);
+            const vars = this.getVars(value);
+            localVariableContainer.variables.push(...vars);
           }
         }
         // if normal local var then update varcontainer since it should be in locals
         localVariableContainer.value = value;
-      } else if (name.indexOf('.') !== -1) {
-        const topLevelVar = name.split('.')[0];
-        if (frameInfo.locals.has(topLevelVar)) {
-          const topContainer = frameInfo.locals.get(topLevelVar)!;
-          topContainer.variables.push(
-            new ApexVariableContainer(varName, value, '')
-          );
-        }
+      } else if (name.indexOf('.') !== -1 && ref !== '0') {
+        const container = logContext.getRefsMap().get(ref)!;
+        container.variables.push(new ApexVariableContainer(varName, value, ''));
       }
     }
 
     return false;
   }
 
-  private fixJSON(params: string): string {
+  private getVars(value: string): ApexVariableContainer[] {
+    // str.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "\"$1\":\"$2\"");
     // "{"changeThis": 10,"nsInstanceBlob": BLOB(5 bytes),"nsInstanceDub": 2.4,"nsInstanceInt": 5,"nsInstanceStr": "inDevNs anotherNSCla (2 more) ..."}"
-    return '';
+    const keyValues = value
+      .replace(/{/, '')
+      .replace(/}/, '')
+      .replace(/['"]+/g, '')
+      .split(',');
+    const varList: ApexVariableContainer[] = [];
+    keyValues.forEach(pair => {
+      const name = pair.split(':')[0];
+      const val = pair.split(':')[1];
+      varList.push(new ApexVariableContainer(name, val, ''));
+    });
+    return varList;
   }
 }
