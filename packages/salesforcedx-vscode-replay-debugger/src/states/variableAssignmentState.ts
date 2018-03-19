@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexVariable } from '../adapter/apexReplayDebug';
+import {
+  ApexVariable,
+  ApexVariableContainer
+} from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
@@ -29,12 +32,30 @@ export class VariableAssignmentState implements DebugLogState {
       const varName =
         nameSplit.length > 0 ? nameSplit[nameSplit.length - 1] : name;
       const value = this.fields[4];
+      let ref = '0';
+      if (this.fields.length === 6) {
+        ref = this.fields[5];
+      }
       if (logContext.getStaticVariablesClassMap().has(className)) {
         const statics = logContext.getStaticVariablesClassMap().get(className)!;
-        statics.get(name)!.value = value;
+        const container = statics.get(name)! as ApexVariableContainer;
+        container.value = value;
+        if (ref !== '0') {
+          container.variablesRef = logContext
+            .getVariableHandler()
+            .create(container);
+        }
       } else if (frameInfo.locals.has(varName)) {
-        const frameLocals = frameInfo.locals.get(varName) as ApexVariable;
-        frameLocals.value = value;
+        const localsContainer = frameInfo.locals.get(
+          varName
+        ) as ApexVariableContainer;
+        localsContainer.value = value;
+        if (ref !== '0') {
+          localsContainer.variablesRef = logContext
+            .getVariableHandler()
+            .create(localsContainer);
+          logContext.getRefsMap().set(ref, localsContainer);
+        }
       }
     }
 

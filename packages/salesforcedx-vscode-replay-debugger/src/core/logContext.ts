@@ -11,8 +11,10 @@ import {
   ApexDebugStackFrameInfo,
   ApexReplayDebug,
   ApexVariable,
+  ApexVariableContainer,
   LaunchRequestArguments,
-  ScopeContainer
+  ScopeContainer,
+  VariableContainer
 } from '../adapter/apexReplayDebug';
 import {
   EVENT_CODE_UNIT_FINISHED,
@@ -52,12 +54,12 @@ export class LogContext {
   private readonly logLines: string[] = [];
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
-  private scopeHandles = new Handles<ScopeContainer>();
   private staticVariablesClassMap = new Map<
     String,
-    Map<String, ApexVariable>
+    Map<String, ApexVariableContainer>
   >();
-  private variableHandles = new Handles<ApexVariable>();
+  private refsMap = new Map<String, ApexVariableContainer>();
+  private variableHandles = new Handles<ApexVariableContainer>();
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
@@ -128,7 +130,14 @@ export class LogContext {
     }
   }
 
-  public getStaticVariablesClassMap(): Map<String, Map<String, Variable>> {
+  public getRefsMap(): Map<String, ApexVariableContainer> {
+    return this.refsMap;
+  }
+
+  public getStaticVariablesClassMap(): Map<
+    String,
+    Map<String, VariableContainer>
+  > {
     return this.staticVariablesClassMap;
   }
 
@@ -136,11 +145,7 @@ export class LogContext {
     return this.frameHandles;
   }
 
-  public getScopeHandler(): Handles<ScopeContainer> {
-    return this.scopeHandles;
-  }
-
-  public getVariableHandler(): Handles<ApexVariable> {
+  public getVariableHandler(): Handles<VariableContainer> {
     return this.variableHandles;
   }
 

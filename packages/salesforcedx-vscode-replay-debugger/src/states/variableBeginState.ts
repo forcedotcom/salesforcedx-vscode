@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexVariable } from '../adapter/apexReplayDebug';
+import {
+  ApexVariable,
+  ApexVariableContainer,
+  VariableContainer
+} from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
@@ -22,12 +26,13 @@ export class VariableBeginState implements DebugLogState {
       const frameInfo = logContext.getFrameHandler().get(id);
       const name = this.fields[3];
       const type = this.fields[4];
+      const isRef = this.fields[5] === 'true';
       const isStatic = this.fields[6] === 'true';
       const className = name.substring(0, name.lastIndexOf('.'));
       if (!logContext.getStaticVariablesClassMap().has(className)) {
         logContext
           .getStaticVariablesClassMap()
-          .set(className, new Map<String, ApexVariable>());
+          .set(className, new Map<String, VariableContainer>());
       }
       const statics = logContext.getStaticVariablesClassMap().get(className)!;
       if (isStatic) {
@@ -37,9 +42,9 @@ export class VariableBeginState implements DebugLogState {
           varNameSplit.length > 1
             ? varNameSplit[varNameSplit.length - 1]
             : name;
-        statics.set(name, new ApexVariable(varName, '', type));
+        statics.set(name, new ApexVariableContainer(varName, '', type));
       } else {
-        frameInfo.locals.set(name, new ApexVariable(name, '', type));
+        frameInfo.locals.set(name, new ApexVariableContainer(name, '', type));
       }
     }
 
