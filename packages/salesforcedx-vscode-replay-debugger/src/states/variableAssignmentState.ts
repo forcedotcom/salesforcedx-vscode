@@ -46,19 +46,40 @@ export class VariableAssignmentState implements DebugLogState {
             .create(container);
         }
       } else if (frameInfo.locals.has(varName)) {
-        const localsContainer = frameInfo.locals.get(
+        // if name does not contain '.' (i.e. this.attr or a.Name), it should be in locals and we can update the value
+        const localVariableContainer = frameInfo.locals.get(
           varName
         ) as ApexVariableContainer;
-        localsContainer.value = value;
+        // if a local var is a reference, should be in locals already
         if (ref !== '0') {
-          localsContainer.variablesRef = logContext
+          if (!logContext.getRefsMap().has(ref)) {
+            logContext.getRefsMap().set(ref, localVariableContainer);
+          }
+          localVariableContainer.variablesRef = logContext
             .getVariableHandler()
-            .create(localsContainer);
-          logContext.getRefsMap().set(ref, localsContainer);
+            .create(localVariableContainer);
+          if (value.indexOf('{') !== -1) {
+            const attrs = this.fixJSON(value);
+          }
+        }
+        // if normal local var then update varcontainer since it should be in locals
+        localVariableContainer.value = value;
+      } else if (name.indexOf('.') !== -1) {
+        const topLevelVar = name.split('.')[0];
+        if (frameInfo.locals.has(topLevelVar)) {
+          const topContainer = frameInfo.locals.get(topLevelVar)!;
+          topContainer.variables.push(
+            new ApexVariableContainer(varName, value, '')
+          );
         }
       }
     }
 
     return false;
+  }
+
+  private fixJSON(params: string): string {
+    // "{"changeThis": 10,"nsInstanceBlob": BLOB(5 bytes),"nsInstanceDub": 2.4,"nsInstanceInt": 5,"nsInstanceStr": "inDevNs anotherNSCla (2 more) ..."}"
+    return '';
   }
 }

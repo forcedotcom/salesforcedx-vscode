@@ -131,7 +131,9 @@ export class ApexVariableContainer extends VariableContainer {
     const result: ApexVariable[] = [];
     this.variables.forEach(container => {
       const avc = container as ApexVariableContainer;
-      return new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef);
+      result.push(
+        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
+      );
     });
     return result;
   }
