@@ -2,7 +2,7 @@
 ### Added
 #### salesforcedx-vscode-apex
 
-* Go To Definition and Find All References for Handling of inner interfaces and implicit constructors ([PR #353](https://github.com/forcedotcom/salesforcedx-vscode/pull/353))
+* Go To Definition and Find All References for inner interfaces and implicit constructors ([PR #353](https://github.com/forcedotcom/salesforcedx-vscode/pull/353))
 
 ## 42.7.0 - March 15, 2018
 ### Added
