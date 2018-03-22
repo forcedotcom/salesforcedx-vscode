@@ -20,9 +20,7 @@
   "engines": {
     "vscode": "^1.17.0"
   },
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "@salesforce/salesforcedx-sobjects-faux-generator": "42.8.0",
     "@salesforce/salesforcedx-utils-vscode": "42.8.0",
@@ -58,10 +56,13 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test",
-    "test:unit": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
+    "test":
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test",
+    "test:unit":
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
@@ -88,35 +89,43 @@
       "explorer/context": [
         {
           "command": "sfdx.force.apex.class.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.component.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.page.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.app.create",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.component.create",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.event.create",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.interface.create",
-          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.apex.trigger.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
         }
       ],
       "commandPalette": [
@@ -448,9 +457,7 @@
       "title": "%feature_previews_title%",
       "properties": {
         "salesforcedx-vscode-core.show-cli-success-msg": {
-          "type": [
-            "boolean"
-          ],
+          "type": ["boolean"],
           "default": true,
           "description": "%show_cli_success_msg_description%"
         },
