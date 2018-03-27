@@ -6,7 +6,6 @@
  */
 
 import {
-  ApexVariable,
   ApexVariableContainer,
   VariableContainer
 } from '../adapter/apexReplayDebug';
@@ -26,7 +25,6 @@ export class VariableBeginState implements DebugLogState {
       const frameInfo = logContext.getFrameHandler().get(id);
       const name = this.fields[3];
       const type = this.fields[4];
-      const isRef = this.fields[5] === 'true';
       const isStatic = this.fields[6] === 'true';
       const className = name.substring(0, name.lastIndexOf('.'));
       if (!logContext.getStaticVariablesClassMap().has(className)) {

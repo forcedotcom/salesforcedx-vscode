@@ -6,14 +6,12 @@
  */
 
 import * as path from 'path';
-import { Handles, StackFrame, Variable } from 'vscode-debugadapter';
+import { Handles, StackFrame } from 'vscode-debugadapter';
 import {
   ApexDebugStackFrameInfo,
   ApexReplayDebug,
-  ApexVariable,
   ApexVariableContainer,
   LaunchRequestArguments,
-  ScopeContainer,
   VariableContainer
 } from '../adapter/apexReplayDebug';
 import {

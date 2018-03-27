@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ApexVariable,
-  ApexVariableContainer
-} from '../adapter/apexReplayDebug';
+import { ApexVariableContainer } from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 

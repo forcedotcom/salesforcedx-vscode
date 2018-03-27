@@ -310,9 +310,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
       return;
     }
     const scopes = new Array<Scope>();
-    const localContainers = Array.from(
-      frameInfo.locals.values()
-    ) as ApexVariableContainer[];
     scopes.push(
       new Scope(
         'Local',
