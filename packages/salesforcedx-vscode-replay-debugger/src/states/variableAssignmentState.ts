@@ -59,15 +59,21 @@ export class VariableAssignmentState implements DebugLogState {
             .getVariableHandler()
             .create(localVariableContainer);
           if (value.indexOf('{') !== -1) {
-            const vars = this.getVars(value);
-            localVariableContainer.variables.push(...vars);
+            const containers = this.getVars(value);
+            containers.forEach(container => {
+              localVariableContainer.variables.set(container.name, container);
+            });
           }
         }
         // if normal local var then update varcontainer since it should be in locals
         localVariableContainer.value = value;
       } else if (name.indexOf('.') !== -1 && ref !== '0') {
         const container = logContext.getRefsMap().get(ref)!;
-        container.variables.push(new ApexVariableContainer(varName, value, ''));
+        container.variables.set(
+          varName,
+          new ApexVariableContainer(varName, value, '')
+        );
+        console.log(container.variables);
       }
     }
 

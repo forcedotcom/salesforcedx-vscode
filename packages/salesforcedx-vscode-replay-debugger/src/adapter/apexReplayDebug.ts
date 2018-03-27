@@ -99,13 +99,27 @@ export enum SCOPE_TYPES {
 }
 
 export abstract class VariableContainer {
-  public readonly variables: VariableContainer[];
+  public readonly variables: Map<String, VariableContainer>;
 
-  public constructor(variables: VariableContainer[] = []) {
+  public constructor(
+    variables: Map<String, VariableContainer> = new Map<
+      String,
+      VariableContainer
+    >()
+  ) {
     this.variables = variables;
   }
 
-  public abstract getAllVariables(): ApexVariable[];
+  public getAllVariables(): ApexVariable[] {
+    const result: ApexVariable[] = [];
+    this.variables.forEach(container => {
+      const avc = container as ApexVariableContainer;
+      result.push(
+        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
+      );
+    });
+    return result;
+  }
 }
 
 export class ApexVariableContainer extends VariableContainer {
@@ -117,10 +131,9 @@ export class ApexVariableContainer extends VariableContainer {
     name: string,
     value: string,
     type: string,
-    ref: number = 0,
-    variables: VariableContainer[] = []
+    ref: number = 0
   ) {
-    super(variables);
+    super();
     this.name = name;
     this.value = value;
     this.type = type;
@@ -142,21 +155,23 @@ export class ApexVariableContainer extends VariableContainer {
 export class ScopeContainer extends VariableContainer {
   public readonly type: SCOPE_TYPES;
 
-  public constructor(type: SCOPE_TYPES, variables: VariableContainer[] = []) {
+  public constructor(
+    type: SCOPE_TYPES,
+    variables: Map<String, VariableContainer>
+  ) {
     super(variables);
     this.type = type;
   }
 
   public getAllVariables(): ApexVariable[] {
-    const apexVariables = this.variables as ApexVariableContainer[];
-    return apexVariables.map(container => {
-      return new ApexVariable(
-        container.name,
-        container.value,
-        container.type,
-        container.variablesRef
+    const apexVariables: ApexVariable[] = [];
+    this.variables.forEach(entry => {
+      const avc = entry as ApexVariableContainer;
+      apexVariables.push(
+        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
       );
     });
+    return apexVariables;
   }
 }
 
@@ -303,11 +318,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         'Local',
         this.logContext
           .getVariableHandler()
-          .create(
-            new ScopeContainer(SCOPE_TYPES.LOCAL, Array.from(
-              frameInfo.locals.values()
-            ) as VariableContainer[])
-          ),
+          .create(new ScopeContainer(SCOPE_TYPES.LOCAL, frameInfo.locals)),
         false
       )
     );
@@ -316,11 +327,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         'Static',
         this.logContext
           .getVariableHandler()
-          .create(
-            new ScopeContainer(SCOPE_TYPES.STATIC, Array.from(
-              frameInfo.statics.values()
-            ) as VariableContainer[])
-          ),
+          .create(new ScopeContainer(SCOPE_TYPES.STATIC, frameInfo.statics)),
         false
       )
     );
