@@ -53,7 +53,11 @@ describe('LogContext', () => {
   beforeEach(() => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
-      .returns(['line1', 'line2']);
+      .returns([
+        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
+        'line1',
+        'line2'
+      ]);
     shouldTraceLogFileStub = sinon
       .stub(ApexReplayDebug.prototype, 'shouldTraceLogFile')
       .returns(true);
@@ -79,9 +83,9 @@ describe('LogContext', () => {
   it('Should return array of log lines', () => {
     const logLines = context.getLogLines();
 
-    expect(logLines.length).to.equal(2);
-    expect(logLines[0]).to.equal('line1');
-    expect(logLines[1]).to.equal('line2');
+    expect(logLines.length).to.equal(3);
+    expect(logLines[1]).to.equal('line1');
+    expect(logLines[2]).to.equal('line2');
   });
 
   it('Should have log lines', () => {
@@ -96,6 +100,22 @@ describe('LogContext', () => {
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     expect(context.hasLogLines()).to.be.false;
+  });
+
+  it('Should detect log level requirements', () => {
+    expect(context.meetsLogLevelRequirements()).to.be.true;
+
+    readLogFileStub.restore();
+    readLogFileStub = sinon
+      .stub(LogContextUtil.prototype, 'readLogFile')
+      .returns([
+        '43.0 APEX_CODE,DEBUG;...;VISUALFORCE,DEBUG;..',
+        'line1',
+        'line2'
+      ]);
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    expect(context.meetsLogLevelRequirements()).to.be.false;
   });
 
   it('Should return log file name', () => {
@@ -127,7 +147,7 @@ describe('LogContext', () => {
 
     context.updateFrames();
 
-    expect(context.getLogLinePosition()).to.equal(2);
+    expect(context.getLogLinePosition()).to.equal(3);
   });
 
   it('Should continue handling until the end of log file', () => {
@@ -138,7 +158,7 @@ describe('LogContext', () => {
 
     context.updateFrames();
 
-    expect(context.getLogLinePosition()).to.equal(2);
+    expect(context.getLogLinePosition()).to.equal(3);
     expect(context.hasState()).to.be.true;
   });
 

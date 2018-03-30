@@ -137,6 +137,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): void {
+    response.success = false;
     this.setupLogger(args);
 
     this.log(
@@ -145,8 +146,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
     this.logContext = new LogContext(args, this);
     if (!this.logContext.hasLogLines()) {
-      response.success = false;
       response.message = nls.localize('no_log_file_text');
+      this.sendResponse(response);
+      return;
+    } else if (!this.logContext.meetsLogLevelRequirements()) {
+      response.message = nls.localize('incorrect_log_levels_text');
       this.sendResponse(response);
       return;
     }
