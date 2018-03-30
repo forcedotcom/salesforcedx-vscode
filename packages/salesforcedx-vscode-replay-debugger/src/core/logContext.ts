@@ -93,7 +93,7 @@ export class LogContext {
       this.logLines &&
       this.logLines.length > 0 &&
       this.logLines[0].match(
-        /\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;.*/
+        /\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;.*/
       ) !== null
     );
   }

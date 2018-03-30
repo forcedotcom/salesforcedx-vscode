@@ -54,7 +54,7 @@ describe('LogContext', () => {
     readLogFileStub = sinon
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns([
-        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINEST;..',
+        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
         'line1',
         'line2'
       ]);
