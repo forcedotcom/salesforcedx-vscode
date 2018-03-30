@@ -24,5 +24,5 @@ export const messages = {
   no_log_file_text:
     'The log file either is missing or does not have any log lines in it.',
   incorrect_log_levels_text:
-    'The log must be generated with log categories Apex code and Visualforce at the FINEST level.'
+    'The log must be generated with log categories Apex code at the FINEST level and Visualforce at the FINER level.'
 };
