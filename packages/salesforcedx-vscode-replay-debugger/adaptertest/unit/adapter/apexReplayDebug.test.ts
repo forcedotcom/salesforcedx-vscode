@@ -130,6 +130,7 @@ describe('Replay debugger adapter - unit', () => {
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
     let hasLogLinesStub: sinon.SinonStub;
+    let meetsLogLevelRequirementsStub: sinon.SinonStub;
     let readLogFileStub: sinon.SinonStub;
     let printToDebugConsoleStub: sinon.SinonStub;
 
@@ -154,6 +155,7 @@ describe('Replay debugger adapter - unit', () => {
     afterEach(() => {
       sendResponseSpy.restore();
       hasLogLinesStub.restore();
+      meetsLogLevelRequirementsStub.restore();
       readLogFileStub.restore();
       printToDebugConsoleStub.restore();
     });
@@ -162,10 +164,14 @@ describe('Replay debugger adapter - unit', () => {
       hasLogLinesStub = sinon
         .stub(LogContext.prototype, 'hasLogLines')
         .returns(false);
+      meetsLogLevelRequirementsStub = sinon
+        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
+        .returns(false);
 
       adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(meetsLogLevelRequirementsStub.calledOnce).to.be.false;
       expect(sendResponseSpy.calledOnce).to.be.true;
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(
         0
@@ -174,14 +180,40 @@ describe('Replay debugger adapter - unit', () => {
       expect(actualResponse.message).to.equal(nls.localize('no_log_file_text'));
     });
 
+    it('Should return error when log levels are incorrect', () => {
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .returns(true);
+      meetsLogLevelRequirementsStub = sinon
+        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
+        .returns(false);
+
+      adapter.launchRequest(response, args);
+
+      expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
+      expect(sendResponseSpy.calledOnce).to.be.true;
+      const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(
+        0
+      ).args[0];
+      expect(actualResponse.success).to.be.false;
+      expect(actualResponse.message).to.equal(
+        nls.localize('incorrect_log_levels_text')
+      );
+    });
+
     it('Should send response', () => {
       hasLogLinesStub = sinon
         .stub(LogContext.prototype, 'hasLogLines')
+        .returns(true);
+      meetsLogLevelRequirementsStub = sinon
+        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
         .returns(true);
 
       adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
       expect(printToDebugConsoleStub.calledOnce).to.be.true;
       const consoleMessage = printToDebugConsoleStub.getCall(0).args[0];
       expect(consoleMessage).to.equal(

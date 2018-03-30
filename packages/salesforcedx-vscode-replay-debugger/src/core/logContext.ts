@@ -88,6 +88,16 @@ export class LogContext {
     );
   }
 
+  public meetsLogLevelRequirements(): boolean {
+    return (
+      this.logLines &&
+      this.logLines.length > 0 &&
+      this.logLines[0].match(
+        /\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;.*/
+      ) !== null
+    );
+  }
+
   public getLogFileName(): string {
     return path.basename(this.launchArgs.logFile);
   }
