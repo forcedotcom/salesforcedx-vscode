@@ -42,10 +42,12 @@ export class VariableBeginState implements DebugLogState {
             : name;
         statics.set(name, new ApexVariableContainer(varName, 'null', type));
       } else {
-        frameInfo.locals.set(
-          name,
-          new ApexVariableContainer(name, 'null', type)
-        );
+        if (!frameInfo.locals.has(name)) {
+          frameInfo.locals.set(
+            name,
+            new ApexVariableContainer(name, 'null', type)
+          );
+        }
       }
     }
 

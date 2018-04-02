@@ -51,11 +51,18 @@ export class VariableAssignmentState implements DebugLogState {
         if (ref !== '0') {
           if (!logContext.getRefsMap().has(ref)) {
             logContext.getRefsMap().set(ref, localVariableContainer);
+          } else {
+            // if the ref already exists then that means we are assigning another pointer to a ref so we need to merge the info from the ref into the variable container
+            Object.assign(
+              localVariableContainer,
+              logContext.getRefsMap().get(ref)
+            );
+            localVariableContainer.name = varName;
           }
           localVariableContainer.variablesRef = logContext
             .getVariableHandler()
             .create(localVariableContainer);
-          if (value.indexOf('{') !== -1) {
+          if (value.indexOf('{') !== -1 && value !== '{}') {
             const containers = this.getVars(value);
             containers.forEach(container => {
               localVariableContainer.variables.set(container.name, container);
@@ -66,11 +73,12 @@ export class VariableAssignmentState implements DebugLogState {
         localVariableContainer.value = value;
       } else if (name.indexOf('.') !== -1 && ref !== '0') {
         const container = logContext.getRefsMap().get(ref)!;
-        container.variables.set(
-          varName,
-          new ApexVariableContainer(varName, value, '')
-        );
-        console.log(container.variables);
+        if (container) {
+          container.variables.set(
+            varName,
+            new ApexVariableContainer(varName, value, '')
+          );
+        }
       }
     }
 
