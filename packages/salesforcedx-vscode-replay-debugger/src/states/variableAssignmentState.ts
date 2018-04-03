@@ -47,16 +47,17 @@ export class VariableAssignmentState implements DebugLogState {
         const localVariableContainer = frameInfo.locals.get(
           varName
         ) as ApexVariableContainer;
+        localVariableContainer.value = value;
         // if a local var is a reference, should be in locals already
         if (ref !== '0') {
+          localVariableContainer.value = '';
           if (!logContext.getRefsMap().has(ref)) {
             logContext.getRefsMap().set(ref, localVariableContainer);
           } else {
             // if the ref already exists then that means we are assigning another pointer to a ref so we need to merge the info from the ref into the variable container
-            Object.assign(
-              localVariableContainer,
-              logContext.getRefsMap().get(ref)
-            );
+            const refContainer = logContext.getRefsMap().get(ref)!;
+            localVariableContainer.variables = refContainer.variables;
+            localVariableContainer.variablesRef = refContainer.variablesRef;
             localVariableContainer.name = varName;
           }
           localVariableContainer.variablesRef = logContext
@@ -69,8 +70,6 @@ export class VariableAssignmentState implements DebugLogState {
             });
           }
         }
-        // if normal local var then update varcontainer since it should be in locals
-        localVariableContainer.value = value;
       } else if (name.indexOf('.') !== -1 && ref !== '0') {
         const container = logContext.getRefsMap().get(ref)!;
         if (container) {

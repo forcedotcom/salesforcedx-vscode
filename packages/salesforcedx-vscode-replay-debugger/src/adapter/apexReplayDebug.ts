@@ -99,7 +99,7 @@ export enum SCOPE_TYPES {
 }
 
 export abstract class VariableContainer {
-  public readonly variables: Map<String, VariableContainer>;
+  public variables: Map<String, VariableContainer>;
 
   public constructor(
     variables: Map<String, VariableContainer> = new Map<
@@ -138,17 +138,6 @@ export class ApexVariableContainer extends VariableContainer {
     this.value = value;
     this.type = type;
     this.variablesRef = ref;
-  }
-
-  public getAllVariables(): ApexVariable[] {
-    const result: ApexVariable[] = [];
-    this.variables.forEach(container => {
-      const avc = container as ApexVariableContainer;
-      result.push(
-        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
-      );
-    });
-    return result;
   }
 }
 
