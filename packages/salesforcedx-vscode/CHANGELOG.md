@@ -8,7 +8,7 @@
 ### Fixed
 #### salesforcedx-vscode-apex
 
-* Go To Definition not working after moving a class/trigger to a different directory ([PR #362](https://github.com/forcedotcom/salesforcedx-vscode/pull/362))
+* Go To Definition now works after moving a class/trigger to a different directory ([PR #362](https://github.com/forcedotcom/salesforcedx-vscode/pull/362))
 
 ## 42.8.0 - March 22, 2018
 ### Added
