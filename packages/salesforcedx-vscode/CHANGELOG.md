@@ -1,3 +1,15 @@
+## 42.10.0 - April 5, 2018
+### Added
+#### salesforcedx-vscode-apex
+
+* Go To Definition and Find All References for type usage in collection constructors ([PR #362](https://github.com/forcedotcom/salesforcedx-vscode/pull/362))
+* Go To Definition and Find All References for type usage in casting ([PR #362](https://github.com/forcedotcom/salesforcedx-vscode/pull/362))
+
+### Fixed
+#### salesforcedx-vscode-apex
+
+* Go To Definition not working after moving a class/trigger to a different directory ([PR #362](https://github.com/forcedotcom/salesforcedx-vscode/pull/362))
+
 ## 42.8.0 - March 22, 2018
 ### Added
 #### salesforcedx-vscode-apex
