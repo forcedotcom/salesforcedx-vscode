@@ -1,0 +1,91 @@
+{
+  "name": "salesforcedx-vscode-sobject-explorer",
+  "displayName": "Salesforce SObject Explorer",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "ntotten",
+  "engines": {
+    "vscode": "^1.19.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:extension.sayHello",
+    "onView:sObjectExplorer"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sObjectExplorer.refresh",
+        "title": "SFDX: Refresh sObject Explorer",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "openSObjectNode",
+        "title": "Open sObject"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "sObjectExplorer",
+          "name": "Salesforce Object Explorer"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "sObjectExplorer.refresh",
+          "when": "view == sObjectExplorer",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-core"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/adaptertest --reporter mocha-multi-reporters && node ./node_modules/vscode/bin/test",
+    "test:unit":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/adaptertest/unit --reporter mocha-multi-reporters"
+  },
+  "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "42.8.0",
+    "@types/handlebars": "^4.0.36",
+    "async-file": "^2.0.2",
+    "handlebars": "^4.0.11"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "cross-env": "5.0.4",
+    "mocha": "3.2.0",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
+    "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
+    "typescript": "2.6.2",
+    "vscode": "1.1.10"
+  },
+  "nyc": {
+    "reporter": ["text-summary", "lcov"]
+  }
+}
