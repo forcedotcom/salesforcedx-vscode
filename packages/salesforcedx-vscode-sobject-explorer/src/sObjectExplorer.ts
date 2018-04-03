@@ -1,6 +1,5 @@
 import {
   CancellationToken,
-  commands,
   Event,
   EventEmitter,
   ExtensionContext,
@@ -9,25 +8,19 @@ import {
   TreeDataProvider,
   TreeItem,
   TreeItemCollapsibleState,
-  Uri,
-  window,
-  workspace,
-  WorkspaceFolder
+  Uri
 } from 'vscode';
 
 import * as fs from 'async-file';
 import * as Handlebars from 'handlebars';
 import * as path from 'path';
 
-import * as vscode from 'vscode';
-
 import { ForceOrgDisplay, OrgInfo } from './commands/forceOrgDisplay';
 import { RequestService } from './requestService';
 
 import {
   DefineGlobalResponse,
-  GetDataCommand,
-  GetSObjectResponse
+  GetDataCommand
 } from './commands/getDataCommand';
 
 import { SObject } from './SObject';
@@ -43,7 +36,7 @@ export interface ISObjectDescription {
 }
 
 export class SObjectNode implements ISObjectNode {
-  constructor(private sObject: SObject, private _parent: string) {}
+  constructor(private sObject: SObject) {}
 
   public get name(): string {
     return this.sObject.name;
@@ -79,7 +72,6 @@ export class SObjectService {
   private myRequestService = new RequestService();
   private sobjects: Array<SObject>;
   private sobjectDescriptions: Map<string, any>;
-  private readonly sobjectsCachePath: string;
 
   private template: any;
 
@@ -205,12 +197,11 @@ export class SObjectDataProvider
 
   private service: SObjectService;
 
-  constructor(private context: vscode.ExtensionContext) {
+  constructor(private context: ExtensionContext) {
     this.service = new SObjectService(context.storagePath || '');
   }
 
   public getIconName(type: string) {
-    const iconName = 'document';
     switch (type) {
       case 'boolean':
       case 'string':
@@ -276,7 +267,7 @@ export class SObjectDataProvider
       return this.service
         .getSObjects()
         .then(sobjects => {
-          return sobjects.map(entity => new SObjectNode(entity, '/'));
+          return sobjects.map(entity => new SObjectNode(entity));
         })
         .catch(error => {
           console.error(error);

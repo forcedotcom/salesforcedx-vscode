@@ -1,5 +1,3 @@
-import { Url } from 'url';
-
 export class SObject {
   public activateable: boolean;
   public createable: boolean;
