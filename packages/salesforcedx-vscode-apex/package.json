@@ -75,12 +75,13 @@
       {
         "language": "apex",
         "scopeName": "source.apex",
-        "path": "./syntaxes/apex.tmLanguage"
+        "path": "./node_modules/apex-tmlanguage/grammars/apex.tmLanguage"
       }
     ]
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.8.0",
+    "apex-tmlanguage": "^0.1.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
