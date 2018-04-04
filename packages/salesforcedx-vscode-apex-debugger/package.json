@@ -23,7 +23,7 @@
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-apex-debugger": "42.8.0",
-    "vscode-debugprotocol": "1.24.0"
+    "vscode-debugprotocol": "1.28.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",

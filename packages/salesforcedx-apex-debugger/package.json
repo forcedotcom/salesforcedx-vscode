@@ -14,8 +14,8 @@
     "async-lock": "1.0.0",
     "faye": "1.1.2",
     "request-light": "0.2.1",
-    "vscode-debugadapter": "1.24.0",
-    "vscode-debugprotocol": "1.24.0"
+    "vscode-debugadapter": "1.28.0",
+    "vscode-debugprotocol": "1.28.0"
   },
   "devDependencies": {
     "@types/async-lock": "0.0.20",
@@ -34,7 +34,7 @@
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
     "vscode": "1.1.10",
-    "vscode-debugadapter-testsupport": "1.24.0"
+    "vscode-debugadapter-testsupport": "1.28.0"
   },
   "scripts": {
     "compile": "tsc -p ./",
