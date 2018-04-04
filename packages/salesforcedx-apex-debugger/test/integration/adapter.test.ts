@@ -14,9 +14,9 @@ import * as util from '@salesforce/salesforcedx-utils-vscode/out/src/test/orgUti
 import { expect } from 'chai';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-import * as Url from 'url';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import Uri from 'vscode-uri';
 import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints/lineBreakpoint';
 import { LINE_BREAKPOINT_INFO_REQUEST } from '../../src/constants';
@@ -55,9 +55,12 @@ describe('Interactive debugger adapter - integration', function() {
     await util.createSFDXProject(PROJECT_NAME);
     // Create scratch org with Debug Apex enabled
     util.addFeatureToScratchOrgConfig(PROJECT_NAME, 'DebugApex');
-    apexClassUri = util.pathToUri(
+    apexClassUri = Uri.file(
       `${projectPath}/force-app/main/default/classes/BasicVariables.cls`
-    );
+    ).toString();
+    if (process.platform === 'win32') {
+      apexClassUri = apexClassUri.replace('%3A', ':');
+    }
     console.log(`apexClassUri: ${apexClassUri}`);
     LINE_BREAKPOINT_INFO.push({
       uri: apexClassUri,
@@ -135,7 +138,7 @@ describe('Interactive debugger adapter - integration', function() {
     expect(launchResponse.success).to.equal(true);
     try {
       // Add breakpoint
-      const apexClassPath = Url.parse(apexClassUri).pathname;
+      const apexClassPath = Uri.parse(apexClassUri).fsPath;
       console.log(`apexClassPath: ${apexClassPath}`);
       const addBreakpointsResponse = await dc.setBreakpointsRequest({
         source: {
