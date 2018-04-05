@@ -8,16 +8,17 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
+import { BreakpointUtil } from './breakpoints/breakpointUtil';
 import {
-  CheckpointMessage,
-  checkpointService
+  checkpointService,
+  processBreakpointChangedForCheckpoints
 } from './breakpoints/checkpointService';
 import {
-  CHECKPOINT_INFO_EVENT,
   DEBUGGER_TYPE,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
 } from './constants';
+import { nls } from './messages';
 
 function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
@@ -44,31 +45,19 @@ function registerDebugHandlers(): vscode.Disposable {
     async event => {
       if (event && event.session && event.session.type === DEBUGGER_TYPE) {
         if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
-          const sfdxApex = vscode.extensions.getExtension(
-            'salesforce.salesforcedx-vscode-apex'
+          // Load the breakpoint line info stuff right here. Need to await this, otherwise
+          // we can (and will if they're stored) get breakpoint events before the line
+          // breakpoint information is fully loaded.
+          if (!BreakpointUtil.getInstance().hasLineNumberMapping()) {
+            console.log(
+              'in registerDebugHandlers, getting line breakpoint info'
+            );
+            await retrieveLineBreakpointInfo();
+          }
+          event.session.customRequest(
+            LINE_BREAKPOINT_INFO_REQUEST,
+            BreakpointUtil.getInstance().getRawLineBPInfo()
           );
-          if (sfdxApex && sfdxApex.exports) {
-            const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-            event.session.customRequest(
-              LINE_BREAKPOINT_INFO_REQUEST,
-              lineBpInfo
-            );
-            console.log('Retrieved line breakpoint info from language server');
-          }
-        } else if (event.event === CHECKPOINT_INFO_EVENT) {
-          const eventBody = event.body as CheckpointMessage;
-          if (
-            eventBody &&
-            eventBody.sourceFile &&
-            eventBody.typeRef &&
-            eventBody.line
-          ) {
-            checkpointService.addCheckpointNode(
-              eventBody.sourceFile,
-              eventBody.typeRef,
-              eventBody.line
-            );
-          }
         }
       }
     }
@@ -76,7 +65,7 @@ function registerDebugHandlers(): vscode.Disposable {
   return vscode.Disposable.from(customEventHandler);
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
@@ -94,6 +83,22 @@ export function activate(context: vscode.ExtensionContext) {
     debugConfigProvider,
     checkpointsView
   );
+
+  await checkpointService.activateRequestService();
+
+  // Load the breakpoint line info stuff right here. Need to await this, otherwise
+  // we can (and will if they're stored) get breakpoint events before the line
+  // breakpoint information is fully loaded.
+  if (!BreakpointUtil.getInstance().hasLineNumberMapping()) {
+    console.log('in activate, getting line breakpoint info');
+    await retrieveLineBreakpointInfo();
+  }
+
+  // This particular event handler will get called whether or not there
+  // is an active debug session. It is necessary for checkpoints to able to
+  // be created without an active debug session since the information from
+  // them will potentially be used for the reply-debugger session.
+  vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
 }
 
 function getDialogStartingPath(): vscode.Uri | undefined {
@@ -107,6 +112,45 @@ function getDialogStartingPath(): vscode.Uri | undefined {
   }
 }
 
+async function retrieveLineBreakpointInfo() {
+  const sfdxApex = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-apex'
+  );
+  if (sfdxApex && sfdxApex.exports) {
+    let expired = false;
+    let i = 0;
+    while (!sfdxApex.exports.isLanguageClientReady() && !expired) {
+      await imposeSlightDelay(100);
+      if (i >= 30) {
+        expired = true;
+      }
+      i++;
+    }
+    if (expired) {
+      console.log(
+        'Unable to retrieve breakpoint info from language server, LanguageClient is not ready'
+      );
+    } else {
+      const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
+      if (lineBpInfo && lineBpInfo.length > 0) {
+        console.log('Retrieved line breakpoint info from language server');
+        BreakpointUtil.getInstance().createMappingsFromLineBreakpointInfo(
+          lineBpInfo
+        );
+      } else {
+        console.log(
+          'Connected to language server, there was no line breakpoint info to retrieve'
+        );
+      }
+    }
+  } else {
+    console.log(nls.localize('session_language_server_error_text'));
+  }
+}
+
+function imposeSlightDelay(ms = 0) {
+  return new Promise(r => setTimeout(r, ms));
+}
 export function deactivate() {
   console.log('Apex Replay Debugger Extension Deactivated');
 }

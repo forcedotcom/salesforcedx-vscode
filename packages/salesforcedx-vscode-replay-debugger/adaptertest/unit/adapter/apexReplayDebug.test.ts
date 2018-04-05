@@ -8,7 +8,6 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
-  InitializedEvent,
   Source,
   StackFrame,
   StoppedEvent,
@@ -20,13 +19,8 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil, LineBreakpointInfo } from '../../../src/breakpoints';
-import { CheckpointMessage } from '../../../src/breakpoints/checkpointService';
-import {
-  CHECKPOINT_INFO_EVENT,
-  DEFAULT_INITIALIZE_TIMEOUT_MS,
-  LINE_BREAKPOINT_INFO_REQUEST
-} from '../../../src/constants';
+import { BreakpointUtil } from '../../../src/breakpoints';
+import { DEFAULT_INITIALIZE_TIMEOUT_MS } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { nls } from '../../../src/messages';
 
@@ -70,7 +64,6 @@ describe('Replay debugger adapter - unit', () => {
 
   describe('Initialize', () => {
     let sendResponseSpy: sinon.SinonSpy;
-    let hasLineNumberMappingStub: sinon.SinonStub;
     let response: DebugProtocol.InitializeResponse;
     let args: DebugProtocol.InitializeRequestArguments;
     let clock: sinon.SinonFakeTimers;
@@ -87,39 +80,14 @@ describe('Replay debugger adapter - unit', () => {
 
     afterEach(() => {
       sendResponseSpy.restore();
-      hasLineNumberMappingStub.restore();
       clock.restore();
     });
 
     it('Should send successful initialized response', () => {
-      hasLineNumberMappingStub = sinon
-        .stub(BreakpointUtil.prototype, 'hasLineNumberMapping')
-        .returns(true);
-
       adapter.initializeRequest(response, args);
 
       setTimeout(() => {
-        expect(hasLineNumberMappingStub.calledOnce).to.be.true;
         expect(sendResponseSpy.calledOnce).to.be.false;
-      }, DEFAULT_INITIALIZE_TIMEOUT_MS);
-      clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
-    });
-
-    it('Should send language server error message', () => {
-      hasLineNumberMappingStub = sinon
-        .stub(BreakpointUtil.prototype, 'hasLineNumberMapping')
-        .returns(false);
-
-      adapter.initializeRequest(response, args);
-
-      setTimeout(() => {
-        expect(hasLineNumberMappingStub.calledOnce).to.be.true;
-        expect(sendResponseSpy.calledOnce).to.be.true;
-        const actualResponse = sendResponseSpy.getCall(0).args[0];
-        expect(actualResponse.success).to.be.false;
-        expect(actualResponse.message).to.have.string(
-          nls.localize('session_language_server_error_text')
-        );
       }, DEFAULT_INITIALIZE_TIMEOUT_MS);
       clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
     });
@@ -763,52 +731,6 @@ describe('Replay debugger adapter - unit', () => {
         }
       ]);
     });
-    it('Should schedule checkpoint when condition is set to checkpoint', () => {
-      // Create the breakpoint information for the typeRef lookup
-      const lineNumberMapping: Map<string, number[]> = new Map();
-      lineNumberMapping.set('file:///bar.cls', [3, 4]);
-      const typerefMapping: Map<string, string> = new Map();
-      typerefMapping.set('bar', 'file:///bar.cls');
-
-      // path should, in theory, be the entire path to the file whereas name should just be the filename
-      args.source.path = 'bar.cls';
-      args.source.name = 'bar.cls';
-      args.lines = [3];
-      args.breakpoints = [];
-      args.breakpoints.push({ line: 3, condition: 'checkpoint' });
-      canSetLineBreakpointStub = sinon
-        .stub(BreakpointUtil.prototype, 'canSetLineBreakpoint')
-        .onFirstCall()
-        .returns(true)
-        .onSecondCall()
-        .returns(false);
-
-      // Add the lineNumberMapping and the typerefMapping to the apexReplayDebug for
-      // the typeref lookup that is part of the eventBody for the CheckpointMessage
-      adapter
-        .getBreakpointUtil()
-        .setValidLines(lineNumberMapping, typerefMapping);
-      adapter.setBreakPointsRequest(response, args);
-
-      expect(sendResponseSpy.calledOnce).to.be.true;
-      const actualResponse: DebugProtocol.SetBreakpointsResponse = sendResponseSpy.getCall(
-        0
-      ).args[0];
-
-      // Verify the successful response
-      expect(actualResponse.success).to.be.true;
-
-      // Ensure that the event was fired
-      expect(sendEventSpy.called).to.be.true;
-
-      // Retrieve the event, ensure that it was a CHECKPOINT_INFO_EVENT
-      const event = sendEventSpy.getCall(0).args[0];
-      expect(event.event).to.be.equal(CHECKPOINT_INFO_EVENT);
-      const eventBody = event.body as CheckpointMessage;
-      expect(eventBody.line).to.be.equal(3);
-      expect(eventBody.sourceFile).to.be.equal('bar.cls');
-      expect(eventBody.typeRef).to.be.equal('bar');
-    });
   });
 
   describe('Custom request', () => {
@@ -853,6 +775,7 @@ describe('Replay debugger adapter - unit', () => {
         setValidLines.restore();
       });
 
+      /*JRS-these can be removed
       it('Should handle undefined args', () => {
         adapter.customRequest(
           LINE_BREAKPOINT_INFO_REQUEST,
@@ -925,6 +848,7 @@ describe('Replay debugger adapter - unit', () => {
           InitializedEvent
         );
       });
+*/
     });
   });
 });

@@ -18,11 +18,13 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.19.0"
+    "vscode": "^1.21.0"
   },
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.10.0",
+    "@salesforce/salesforcedx-apex-debugger": "42.10.0",
+    "request-light": "0.2.1",
     "vscode-debugadapter": "1.25.0",
     "vscode-debugprotocol": "1.25.0",
     "vscode-uri": "1.0.1"

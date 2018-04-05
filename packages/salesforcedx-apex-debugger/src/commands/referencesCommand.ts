@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from './baseCommand';
+import { BaseDebuggerCommand } from './baseDebuggerCommand';
 import { DebuggerRequest, ReferenceRequest } from './protocol';
 
-export class ReferencesCommand extends BaseCommand {
+export class ReferencesCommand extends BaseDebuggerCommand {
   protected static createGetReferenceRequest(
     apexReferences: number[]
   ): DebuggerRequest {
