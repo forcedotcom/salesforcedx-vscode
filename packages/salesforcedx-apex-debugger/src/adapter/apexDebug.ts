@@ -523,10 +523,10 @@ export class MapTupleContainer implements VariableContainer {
 }
 
 export class ApexDebug extends LoggingDebugSession {
-  protected mySessionService = SessionService.getInstance();
-  protected myBreakpointService = BreakpointService.getInstance();
+  protected myRequestService = new RequestService();
+  protected mySessionService = new SessionService(this.myRequestService);
+  protected myBreakpointService = new BreakpointService(this.myRequestService);
   protected myStreamingService = StreamingService.getInstance();
-  protected myRequestService = RequestService.getInstance();
   protected sfdxProject: string;
   protected requestThreads: Map<number, string>;
   protected threadId: number;
@@ -690,9 +690,7 @@ export class ApexDebug extends LoggingDebugSession {
       }
 
       const isStreamingConnected = await this.connectStreaming(
-        args.sfdxProject,
-        this.myRequestService.instanceUrl,
-        this.myRequestService.accessToken
+        args.sfdxProject
       );
       if (!isStreamingConnected) {
         return this.sendResponse(response);
@@ -703,7 +701,6 @@ export class ApexDebug extends LoggingDebugSession {
         .withUserFilter(this.toCommaSeparatedString(args.userIdFilter))
         .withEntryFilter(args.entryPointFilter)
         .withRequestFilter(this.toCommaSeparatedString(args.requestTypeFilter))
-        .withUsername(this.myRequestService.accessToken)
         .start();
       if (this.mySessionService.isConnected()) {
         response.success = true;
@@ -1508,11 +1505,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public async connectStreaming(
-    projectPath: string,
-    instanceUrl: string,
-    accessToken: string
-  ): Promise<boolean> {
+  public async connectStreaming(projectPath: string): Promise<boolean> {
     const clientInfos: StreamingClientInfo[] = [];
     for (const channel of [
       StreamingService.SYSTEM_EVENT_CHANNEL,
@@ -1547,8 +1540,7 @@ export class ApexDebug extends LoggingDebugSession {
 
     return this.myStreamingService.subscribe(
       projectPath,
-      instanceUrl,
-      accessToken,
+      this.myRequestService,
       systemChannelInfo,
       userChannelInfo
     );

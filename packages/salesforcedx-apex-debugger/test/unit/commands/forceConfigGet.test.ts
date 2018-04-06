@@ -33,18 +33,18 @@ describe('force:config:get', () => {
   });
 
   it('Should return config successfully', async () => {
-    const config = {
-      key1: 'val1',
-      key2: 'key2'
-    };
+    const response = new Array<any>();
+    response.push({ key: 'key1', value: 'val1' });
+    response.push({ key: 'key2', value: 'val2' });
     mySpawn.setDefault(
-      mySpawn.simple(0, `{ "status": 0, "result": ${JSON.stringify(config)}}`)
+      mySpawn.simple(0, `{ "status": 0, "result": ${JSON.stringify(response)}}`)
     );
 
     const cmdOutput = await command.getConfig('foo', 'key1', 'key2');
 
-    expect(cmdOutput).to.deep.equal(config);
-    expect(cmdWithArgSpy.calledTwice).to.equal(true);
+    expect(cmdOutput.get('key1')).to.equal('val1');
+    expect(cmdOutput.get('key2')).to.equal('val2');
+    expect(cmdWithArgSpy.callCount).to.equal(4);
     expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
       'force:config:get'
     ]);
@@ -69,8 +69,9 @@ describe('force:config:get', () => {
 
     try {
       await command.getConfig('foo');
+      expect(false).to.equal('should not reach this point!');
     } catch (error) {
-      expect(error).to.equal('{ not valid JSON');
+      // good
     }
   });
 });

@@ -13,7 +13,7 @@ import {
   LaunchRequestArguments,
   VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { OrgInfo, Reference, RequestService } from '../../../src/commands';
+import { Reference, RequestService } from '../../../src/commands';
 import {
   BreakpointService,
   SessionService,
@@ -25,16 +25,30 @@ export class ApexDebugForTest extends ApexDebug {
   private receivedEvents: DebugProtocol.Event[] = [];
 
   constructor(
-    sessionService: SessionService,
-    streamingService: StreamingService,
-    breakpointService: BreakpointService,
-    requestService: RequestService
+    requestService: RequestService,
+    sessionService?: SessionService,
+    streamingService?: StreamingService,
+    breakpointService?: BreakpointService
   ) {
     super();
-    this.mySessionService = sessionService;
-    this.myStreamingService = streamingService;
-    this.myBreakpointService = breakpointService;
     this.myRequestService = requestService;
+    this.mySessionService = sessionService
+      ? sessionService
+      : new SessionService(requestService);
+    this.myStreamingService = streamingService
+      ? streamingService
+      : new StreamingService();
+    this.myBreakpointService = breakpointService
+      ? breakpointService
+      : new BreakpointService(requestService);
+  }
+
+  public getBreakpointService(): BreakpointService {
+    return this.myBreakpointService;
+  }
+
+  public getRequestService(): RequestService {
+    return this.myRequestService;
   }
 
   public getResponse(index: number): DebugProtocol.Response {

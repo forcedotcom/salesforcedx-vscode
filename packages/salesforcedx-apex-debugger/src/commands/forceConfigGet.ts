@@ -34,7 +34,7 @@ export class ForceConfigGet {
       results.forEach(entry => forceConfigMap.set(entry.key, entry.value));
       return Promise.resolve(forceConfigMap);
     } catch (e) {
-      return Promise.reject(result);
+      return Promise.reject(e);
     }
   }
 }

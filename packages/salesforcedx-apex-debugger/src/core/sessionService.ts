@@ -13,20 +13,16 @@ import {
 import { RequestService } from '../commands';
 
 export class SessionService {
-  private static instance: SessionService;
   private userFilter: string;
   private requestFilter: string;
   private entryFilter: string;
   private project: string;
   private sessionId: string;
   private connected = false;
-  private username: string;
+  private readonly requestService: RequestService;
 
-  public static getInstance() {
-    if (!SessionService.instance) {
-      SessionService.instance = new SessionService();
-    }
-    return SessionService.instance;
+  constructor(requestService: RequestService) {
+    this.requestService = requestService;
   }
 
   public withUserFilter(filter?: string): SessionService {
@@ -41,11 +37,6 @@ export class SessionService {
 
   public withEntryFilter(filter?: string): SessionService {
     this.entryFilter = filter || '';
-    return this;
-  }
-
-  public withUsername(username: string): SessionService {
-    this.username = username;
     return this;
   }
 
@@ -76,13 +67,12 @@ export class SessionService {
           `UserIdFilter='${this.userFilter}' EntryPointFilter='${this
             .entryFilter}' RequestTypeFilter='${this.requestFilter}'`
         )
-        .withFlag('--targetusername', this.username)
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
       {
         cwd: this.project,
-        env: RequestService.getEnvVars()
+        env: this.requestService.getEnvVars()
       }
     ).execute();
 
@@ -112,10 +102,9 @@ export class SessionService {
         .withFlag('--sobjectid', this.sessionId)
         .withFlag('--values', "Status='Detach'")
         .withArg('--usetoolingapi')
-        .withFlag('--targetusername', this.username)
         .withArg('--json')
         .build(),
-      { cwd: this.project, env: RequestService.getEnvVars() }
+      { cwd: this.project, env: this.requestService.getEnvVars() }
     ).execute();
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);

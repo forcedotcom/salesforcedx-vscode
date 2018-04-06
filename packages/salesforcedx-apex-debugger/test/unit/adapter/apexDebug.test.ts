@@ -29,6 +29,7 @@ import {
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import {
+  ForceConfigGet,
   ForceOrgDisplay,
   OrgInfo,
   RequestService,
@@ -91,12 +92,7 @@ describe('Interactive debugger adapter - unit', () => {
     let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       breakpointClearSpy = sinon.spy(
         BreakpointService.prototype,
         'clearSavedBreakpoints'
@@ -174,12 +170,7 @@ describe('Interactive debugger adapter - unit', () => {
     let args: DebugProtocol.AttachRequestArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       response = {
         command: '',
         success: true,
@@ -209,16 +200,12 @@ describe('Interactive debugger adapter - unit', () => {
     let breakpointHasLineNumberMappingSpy: sinon.SinonStub;
     let streamingSubscribeSpy: sinon.SinonStub;
     let orgInfoSpy: sinon.SinonStub;
+    let configGetSpy: sinon.SinonStub;
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       sessionProjectSpy = sinon.spy(SessionService.prototype, 'forProject');
       sessionUserFilterSpy = sinon.spy(
         SessionService.prototype,
@@ -239,6 +226,9 @@ describe('Interactive debugger adapter - unit', () => {
       orgInfoSpy = sinon
         .stub(ForceOrgDisplay.prototype, 'getOrgInfo')
         .returns({} as OrgInfo);
+      configGetSpy = sinon
+        .stub(ForceConfigGet.prototype, 'getConfig')
+        .returns({} as Map<string, string>);
       response = {
         command: '',
         success: true,
@@ -269,6 +259,7 @@ describe('Interactive debugger adapter - unit', () => {
       streamingSubscribeSpy.restore();
       breakpointHasLineNumberMappingSpy.restore();
       orgInfoSpy.restore();
+      configGetSpy.restore();
       if (sessionPrintToDebugSpy) {
         sessionPrintToDebugSpy.restore();
       }
@@ -387,6 +378,54 @@ describe('Interactive debugger adapter - unit', () => {
       );
       expect(adapter.getEvents().length).to.equal(0);
       expect(resetIdleTimersSpy.called).to.equal(false);
+    });
+
+    it('Should launch successfully for ISV project', async () => {
+      const sessionId = '07aFAKE';
+      sessionStartSpy = sinon
+        .stub(SessionService.prototype, 'start')
+        .returns(Promise.resolve(sessionId));
+      sessionConnectedSpy = sinon
+        .stub(SessionService.prototype, 'isConnected')
+        .returns(true);
+      streamingSubscribeSpy = sinon
+        .stub(StreamingService.prototype, 'subscribe')
+        .returns(Promise.resolve(true));
+      breakpointHasLineNumberMappingSpy = sinon
+        .stub(BreakpointService.prototype, 'hasLineNumberMapping')
+        .returns(true);
+
+      args.connectType = 'ISV_DEBUGGER';
+      const config = new Map<string, string>();
+      config.set('isvDebuggerSid', '123');
+      config.set('isvDebuggerUrl', 'instanceurl');
+      configGetSpy.returns(config);
+
+      await adapter.launchReq(response, args);
+
+      expect(adapter.getRequestService().accessToken).to.equal('123');
+      expect(adapter.getRequestService().instanceUrl).to.equal('instanceurl');
+
+      expect(sessionStartSpy.calledOnce).to.equal(true);
+      expect(adapter.getResponse(0).success).to.equal(true);
+      expect(adapter.getEvents()[0].event).to.equal('output');
+      expect(
+        (adapter.getEvents()[0] as OutputEvent).body.output
+      ).to.have.string(nls.localize('session_started_text', sessionId));
+      expect(adapter.getEvents()[1].event).to.equal('initialized');
+      expect(sessionUserFilterSpy.calledOnce).to.equal(true);
+      expect(sessionEntryFilterSpy.calledOnce).to.equal(true);
+      expect(sessionRequestFilterSpy.calledOnce).to.equal(true);
+      expect(sessionUserFilterSpy.getCall(0).args).to.have.same.members([
+        '005FAKE1,005FAKE2'
+      ]);
+      expect(sessionEntryFilterSpy.getCall(0).args).to.have.same.members([
+        'entry'
+      ]);
+      expect(sessionRequestFilterSpy.getCall(0).args).to.have.same.members([
+        'RUN_TESTS_SYNCHRONOUS,EXECUTE_ANONYMOUS'
+      ]);
+      expect(resetIdleTimersSpy.calledOnce).to.equal(true);
     });
 
     it('Should configure tracing with boolean', async () => {
@@ -525,12 +564,7 @@ describe('Interactive debugger adapter - unit', () => {
     let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       clock = sinon.useFakeTimers();
     });
 
@@ -618,12 +652,7 @@ describe('Interactive debugger adapter - unit', () => {
     let args: DebugProtocol.DisconnectArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       streamingDisconnectSpy = sinon.stub(
         StreamingService.prototype,
         'disconnect'
@@ -727,12 +756,7 @@ describe('Interactive debugger adapter - unit', () => {
     let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       breakpointGetSpy = sinon.spy(
         BreakpointService.prototype,
         'getBreakpointsFor'
@@ -891,12 +915,7 @@ describe('Interactive debugger adapter - unit', () => {
     let runSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
@@ -961,12 +980,7 @@ describe('Interactive debugger adapter - unit', () => {
     let stepSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
@@ -1023,12 +1037,7 @@ describe('Interactive debugger adapter - unit', () => {
 
   describe('Threads request', () => {
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
     });
 
     it('Should return known debugged requests', () => {
@@ -1062,12 +1071,7 @@ describe('Interactive debugger adapter - unit', () => {
     let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
       lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
@@ -1237,12 +1241,7 @@ describe('Interactive debugger adapter - unit', () => {
       } as DebugProtocol.InitializeResponse;
 
       beforeEach(() => {
-        adapter = new ApexDebugForTest(
-          new SessionService(),
-          new StreamingService(),
-          new BreakpointService(),
-          new RequestService()
-        );
+        adapter = new ApexDebugForTest(new RequestService());
         adapter.initializeReq(
           initializedResponse,
           {} as DebugProtocol.InitializeRequestArguments
@@ -1315,12 +1314,7 @@ describe('Interactive debugger adapter - unit', () => {
 
     describe('Hotswap warning', () => {
       beforeEach(() => {
-        adapter = new ApexDebugForTest(
-          new SessionService(),
-          new StreamingService(),
-          new BreakpointService(),
-          new RequestService()
-        );
+        adapter = new ApexDebugForTest(new RequestService());
       });
 
       it('Should log warning to debug console', () => {
@@ -1345,12 +1339,7 @@ describe('Interactive debugger adapter - unit', () => {
 
       beforeEach(() => {
         requestService = new RequestService();
-        adapter = new ApexDebugForTest(
-          new SessionService(),
-          new StreamingService(),
-          new BreakpointService(),
-          requestService
-        );
+        adapter = new ApexDebugForTest(requestService);
       });
 
       it('Should save proxy settings', () => {
@@ -1396,12 +1385,7 @@ describe('Interactive debugger adapter - unit', () => {
       let sessionIdSpy: sinon.SinonStub;
 
       beforeEach(() => {
-        adapter = new ApexDebugForTest(
-          new SessionService(),
-          new StreamingService(),
-          new BreakpointService(),
-          new RequestService()
-        );
+        adapter = new ApexDebugForTest(new RequestService());
         adapter.setSfdxProject('someProjectPath');
         lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
         reconcileExceptionBreakpointSpy = sinon
@@ -1560,12 +1544,7 @@ describe('Interactive debugger adapter - unit', () => {
       ]);
 
       beforeEach(() => {
-        adapter = new ApexDebugForTest(
-          new SessionService(),
-          new StreamingService(),
-          new BreakpointService(),
-          new RequestService()
-        );
+        adapter = new ApexDebugForTest(new RequestService());
         getExceptionBreakpointCacheSpy = sinon
           .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
           .returns(knownExceptionBreakpoints);
@@ -1612,13 +1591,8 @@ describe('Interactive debugger adapter - unit', () => {
     typerefMapping.set('bar', 'file:///bar.cls');
 
     beforeEach(() => {
-      breakpointService = new BreakpointService();
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        breakpointService,
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
+      breakpointService = adapter.getBreakpointService();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
     });
 
@@ -1690,12 +1664,7 @@ describe('Interactive debugger adapter - unit', () => {
     let streamingSubscribeSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
         .returns(Promise.resolve());
@@ -1706,16 +1675,15 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should call streaming service subscribe', () => {
-      adapter.connectStreaming('foo', 'https://www.salesforce.com', '123');
+      adapter.connectStreaming('foo');
 
       expect(streamingSubscribeSpy.calledOnce).to.equal(true);
-      expect(streamingSubscribeSpy.getCall(0).args.length).to.equal(5);
+      expect(streamingSubscribeSpy.getCall(0).args.length).to.equal(4);
       expect(streamingSubscribeSpy.getCall(0).args[0]).to.equal('foo');
       expect(streamingSubscribeSpy.getCall(0).args[1]).to.equal(
-        'https://www.salesforce.com'
+        adapter.getRequestService()
       );
-      expect(streamingSubscribeSpy.getCall(0).args[2]).to.equal('123');
-      for (const index of [3, 4]) {
+      for (const index of [2, 3]) {
         const obj = streamingSubscribeSpy.getCall(0).args[index];
         expect(obj).to.be.instanceof(StreamingClientInfo);
         const clientInfo = obj as StreamingClientInfo;
@@ -1754,12 +1722,7 @@ describe('Interactive debugger adapter - unit', () => {
       getExceptionBreakpointCacheSpy = sinon
         .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
         .returns(knownExceptionBreakpoints);
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')

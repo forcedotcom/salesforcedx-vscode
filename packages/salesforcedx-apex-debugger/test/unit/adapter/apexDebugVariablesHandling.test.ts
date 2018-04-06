@@ -22,14 +22,11 @@ import {
 } from '../../../src/adapter/apexDebug';
 import {
   LocalValue,
-  OrgInfo,
   Reference,
   RequestService,
   Value
 } from '../../../src/commands';
 import { BreakpointService } from '../../../src/core/breakpointService';
-import { SessionService } from '../../../src/core/sessionService';
-import { StreamingService } from '../../../src/core/streamingService';
 import { ApexDebugForTest } from './apexDebugForTest';
 
 describe('Debugger adapter variable handling - unit', () => {
@@ -239,12 +236,7 @@ describe('Debugger adapter variable handling - unit', () => {
     let adapter: ApexDebugForTest;
 
     it('Should expand object correctly', async () => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
 
       const references: Reference[] = [
         {
@@ -280,12 +272,7 @@ describe('Debugger adapter variable handling - unit', () => {
     });
 
     it('Should expand list correctly', async () => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
 
       const references: Reference[] = [
         {
@@ -347,12 +334,7 @@ describe('Debugger adapter variable handling - unit', () => {
     });
 
     it('Should expand set correctly', async () => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
 
       const references: Reference[] = [
         {
@@ -390,12 +372,8 @@ describe('Debugger adapter variable handling - unit', () => {
     });
 
     it('Should expand map correctly', async () => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
+
       const tupleA = {
         key: {
           name: 'key',
@@ -455,12 +433,7 @@ describe('Debugger adapter variable handling - unit', () => {
     });
 
     it('Should not expand unknown reference type', async () => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
 
       const references: Reference[] = [
         {
@@ -491,12 +464,7 @@ describe('Debugger adapter variable handling - unit', () => {
     let referencesSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
     });
 
     afterEach(() => {
@@ -571,12 +539,7 @@ describe('Debugger adapter variable handling - unit', () => {
     let adapter: ApexDebugForTest;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
@@ -760,12 +723,7 @@ describe('Debugger adapter variable handling - unit', () => {
     let resolveApexIdToVariableReferenceSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
@@ -923,12 +881,7 @@ describe('Debugger adapter variable handling - unit', () => {
     let resetIdleTimersSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(
-        new SessionService(),
-        new StreamingService(),
-        new BreakpointService(),
-        new RequestService()
-      );
+      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
       resetIdleTimersSpy = sinon.spy(
