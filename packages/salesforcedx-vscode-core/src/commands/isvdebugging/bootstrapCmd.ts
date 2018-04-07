@@ -43,6 +43,15 @@ import {
   SelectProjectName
 } from '../forceProjectCreate';
 
+export interface InstalledPackageInfo {
+  id: string;
+  name: string;
+  namespace: string;
+  versionId: string;
+  versionName: string;
+  versionNumber: string;
+}
+
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
     '.sfdx',
@@ -52,6 +61,11 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeApexPackageXmlPath = path.join(
     this.relativeMetdataTempPath,
     'package.xml'
+  );
+  public readonly relativeInstalledPackagesPath = path.join(
+    '.sfdx',
+    'tools',
+    'installed-packages'
   );
 
   public build(data: {}): Command {
@@ -150,13 +164,27 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         '--rootdir',
         path.join(this.relativeMetdataTempPath, 'packages', packageName)
       )
-      .withFlag('--outputdir', path.join('packages', packageName))
+      .withFlag(
+        '--outputdir',
+        path.join(this.relativeInstalledPackagesPath, packageName)
+      )
       .build();
   }
 
-  public parsePackageInstalledListJson(packagesJson: string): string[] {
+  public parsePackageInstalledListJson(
+    packagesJson: string
+  ): InstalledPackageInfo[] {
     const packagesData = JSON.parse(packagesJson);
-    return packagesData.result.map((entry: any) => entry.SubscriberPackageName);
+    return packagesData.result.map((entry: any) => {
+      return {
+        id: entry.SubscriberPackageId,
+        name: entry.SubscriberPackageName,
+        namespace: entry.SubscriberPackageNamespace,
+        versionId: entry.SubscriberPackageVersionId,
+        versionName: entry.SubscriberPackageVersionName,
+        versionNumber: entry.SubscriberPackageVersionNumber
+      } as InstalledPackageInfo;
+    });
   }
 
   public async execute(
@@ -260,11 +288,14 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       cancellationTokenSource,
       cancellationToken
     );
-    const packageNames = this.parsePackageInstalledListJson(packagesJson);
+    const packageInfos = this.parsePackageInstalledListJson(packagesJson);
 
     // 6: fetch packages
     await this.executeCommand(
-      this.buildRetrievePackagesSourceCommand(response.data, packageNames),
+      this.buildRetrievePackagesSourceCommand(
+        response.data,
+        packageInfos.map(entry => entry.name)
+      ),
       { cwd: projectPath },
       cancellationTokenSource,
       cancellationToken
@@ -277,7 +308,10 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
         'packages'
       );
       shell.mkdir('-p', packagesPath);
-      shell.mkdir('-p', path.join(projectPath, 'packages'));
+      shell.mkdir(
+        '-p',
+        path.join(projectPath, this.relativeInstalledPackagesPath)
+      );
       const zip = new AdmZip(
         path.join(projectMetadataTempPath, 'unpackaged.zip')
       );
@@ -294,42 +328,38 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     }
 
     // 7b: convert packages
-    for (const packageName of packageNames) {
+    for (const packageInfo of packageInfos) {
       channelService.appendLine(
-        nls.localize('isv_debug_bootstrap_processing_package', packageName)
+        nls.localize('isv_debug_bootstrap_processing_package', packageInfo.name)
       );
       await this.executeCommand(
-        this.buildMetadataApiConvertPackageSourceCommand(packageName),
+        this.buildMetadataApiConvertPackageSourceCommand(packageInfo.name),
         { cwd: projectPath },
         cancellationTokenSource,
         cancellationToken
       );
-    }
 
-    // 7c: add list of packages to sfdx-project.json
-    try {
-      const sfdxProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
-      const sfdxProjectConfig = JSON.parse(
-        fs.readFileSync(sfdxProjectJsonFile).toString()
-      );
-      for (const packageName of packageNames) {
-        sfdxProjectConfig.packageDirectories.push({
-          path: `packages/${packageName}`
-        });
+      // generate installed-package.json file
+      try {
+        fs.writeFileSync(
+          path.join(
+            projectPath,
+            this.relativeInstalledPackagesPath,
+            packageInfo.name,
+            'installed-package.json'
+          ),
+          JSON.stringify(packageInfo, null, 2)
+        );
+      } catch (error) {
+        console.error(error);
+        channelService.appendLine(
+          nls.localize('error_writing_installed_package_info', error.toString())
+        );
+        notificationService.showErrorMessage(
+          nls.localize('error_writing_installed_package_info', error.toString())
+        );
+        return;
       }
-      fs.writeFileSync(
-        sfdxProjectJsonFile,
-        JSON.stringify(sfdxProjectConfig, null, 2)
-      );
-    } catch (error) {
-      console.error(error);
-      channelService.appendLine(
-        nls.localize('error_updating_sfdx_project', error.toString())
-      );
-      notificationService.showErrorMessage(
-        nls.localize('error_updating_sfdx_project', error.toString())
-      );
-      return;
     }
 
     // last step: open the folder in VS Code
