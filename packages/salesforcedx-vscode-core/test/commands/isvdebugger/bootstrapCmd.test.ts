@@ -1,7 +1,6 @@
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ContinueResponse } from '../../../../salesforcedx-utils-vscode/out/src/types/index';
@@ -156,6 +155,40 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
     });
 
+    it('Verify buildQueryForOrgNamespacePrefixCommand', async () => {
+      const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
+      const command = forceProjectConfigBuilder.buildQueryForOrgNamespacePrefixCommand(
+        {
+          loginUrl: LOGIN_URL,
+          sessionId: SESSION_ID,
+          projectName: PROJECT_NAME,
+          projectUri: PROJECT_DIR[0].fsPath
+        }
+      );
+      expect(command.toCommand()).to.equal(
+        `sfdx force:data:soql:query --query SELECT NamespacePrefix FROM Organization LIMIT 1 --targetusername ${SESSION_ID} --json`
+      );
+      expect(command.description).to.equal(
+        nls.localize(
+          'isv_debug_bootstrap_step2_configure_project_retrieve_namespace'
+        )
+      );
+    });
+
+    it('Verify parseOrgNamespaceQueryResultJson', async () => {
+      const forceProjectConfigBuilder = new IsvDebugBootstrapExecutor();
+      expect(
+        forceProjectConfigBuilder.parseOrgNamespaceQueryResultJson(
+          '{"status":0,"result":{"totalSize":1,"done":true,"records":[{"attributes":{"type":"Organization","url":"/services/data/v42.0/sobjects/Organization/00D1F0000008gTUUAY"},"NamespacePrefix":null}]}}'
+        )
+      ).to.equal('');
+      expect(
+        forceProjectConfigBuilder.parseOrgNamespaceQueryResultJson(
+          '{"status":0,"result":{"totalSize":1,"done":true,"records":[{"attributes":{"type":"Organization","url":"/services/data/v42.0/sobjects/Organization/00D1F0000008gTUUAY"},"NamespacePrefix":"abc"}]}}'
+        )
+      ).to.equal('abc');
+    });
+
     it('Verify buildRetrieveOrgSourceCommand', async () => {
       const builder = new IsvDebugBootstrapExecutor();
       const command = builder.buildRetrieveOrgSourceCommand({
@@ -238,7 +271,10 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           builder.relativeMetdataTempPath,
           'packages',
           packageName
-        )} --outputdir ${path.join('packages', packageName)}`
+        )} --outputdir ${path.join(
+          builder.relativeInstalledPackagesPath,
+          packageName
+        )}`
       );
       expect(command.description).to.equal(
         nls.localize(
@@ -283,15 +319,22 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         executor.relativeMetdataTempPath
       );
 
+      // fake namespace query
+      executeCommandSpy
+        .onCall(2)
+        .returns(
+          '{"status":0,"result":{"totalSize":1,"done":true,"records":[{"attributes":{"type":"Organization","url":"/services/data/v42.0/sobjects/Organization/00D1F0000008gTUUAY"},"NamespacePrefix":null}]}}'
+        );
+
       // fake org source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(2).callsFake(() => {
+      executeCommandSpy.onCall(3).callsFake(() => {
         const zip = new AdmZip();
         zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
         zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
       // fake package list retrieval
-      executeCommandSpy.onCall(4).returns(
+      executeCommandSpy.onCall(5).returns(
         JSON.stringify({
           status: 0,
           result: [
@@ -309,29 +352,24 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       );
 
       // fake package source retrieval into unpackaged.zip
-      executeCommandSpy.onCall(5).callsFake(() => {
+      executeCommandSpy.onCall(6).callsFake(() => {
         const zip = new AdmZip();
         zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
         zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
-      try {
-        const input = {
-          type: 'CONTINUE',
-          data: {
-            loginUrl: LOGIN_URL,
-            sessionId: SESSION_ID,
-            projectName: PROJECT_NAME,
-            projectUri: PROJECT_DIR[0].fsPath
-          }
-        } as ContinueResponse<IsvDebugBootstrapConfig>;
-        await executor.execute(input);
-        expect(executeCommandSpy.callCount).to.equal(7);
-        expect(vscodeCommandSpy.callCount).to.equal(1);
-      } finally {
-        // clean-up additional folders we created
-        shell.rm('-rf', path.join(projectPath, 'packages'));
-      }
+      const input = {
+        type: 'CONTINUE',
+        data: {
+          loginUrl: LOGIN_URL,
+          sessionId: SESSION_ID,
+          projectName: PROJECT_NAME,
+          projectUri: PROJECT_DIR[0].fsPath
+        }
+      } as ContinueResponse<IsvDebugBootstrapConfig>;
+      await executor.execute(input);
+      expect(executeCommandSpy.callCount).to.equal(8);
+      expect(vscodeCommandSpy.callCount).to.equal(1);
     });
   });
 });

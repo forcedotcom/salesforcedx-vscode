@@ -133,6 +133,8 @@ export const messages = {
     'SFDX: ISV Debugger Setup, Step 1 of 7: Creating project',
   isv_debug_bootstrap_step2_configure_project:
     'SFDX: ISV Debugger Setup, Step 2 of 7: Configuring project',
+  isv_debug_bootstrap_step2_configure_project_retrieve_namespace:
+    'SFDX: ISV Debugger Setup, Step 2 of 7: Configuring project: Retrieving namespace',
   isv_debug_bootstrap_step3_retrieve_org_source:
     'SFDX: ISV Debugger Setup, Step 3 of 7: Retrieving unpackaged Apex code',
   isv_debug_bootstrap_step4_convert_org_source:
@@ -155,6 +157,7 @@ export const messages = {
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
+  error_updating_sfdx_project: 'Error updateing sfdx-project.json: %s',
   error_writing_installed_package_info:
     'Error writing installed-package.json: %s',
 
