@@ -70,13 +70,26 @@ export class VariableAssignmentState implements DebugLogState {
             });
           }
         }
+        // if it's not in locals then it's assigning a field of a local
       } else if (name.indexOf('.') !== -1 && ref !== '0') {
         const container = logContext.getRefsMap().get(ref)!;
         if (container) {
-          container.variables.set(
-            varName,
-            new ApexVariableContainer(varName, value, '')
-          );
+          if (value.indexOf('{') !== -1 && value !== '{}') {
+            const topLevel = new ApexVariableContainer(varName, '', '');
+            container.variables.set(varName, topLevel);
+            topLevel.variablesRef = logContext
+              .getVariableHandler()
+              .create(topLevel);
+            const containers = this.getVars(value);
+            containers.forEach(c => {
+              topLevel.variables.set(c.name, c);
+            });
+          } else {
+            container.variables.set(
+              varName,
+              new ApexVariableContainer(varName, value, '')
+            );
+          }
         }
       }
     }
