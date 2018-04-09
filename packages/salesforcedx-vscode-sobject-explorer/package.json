@@ -3,35 +3,29 @@
   "displayName": "Salesforce SObject Explorer",
   "description": "",
   "version": "0.0.1",
-  "publisher": "ntotten",
+  "license": "BSD-3-Clause",
+  "publisher": "salesforce",
   "engines": {
-    "vscode": "^1.19.0"
+    "vscode": "^1.17.0"
   },
   "categories": ["Other"],
-  "activationEvents": [
-    "onCommand:extension.sayHello",
-    "onView:sObjectExplorer"
-  ],
-  "main": "./out/extension",
+  "activationEvents": ["onView:sfdx.force.sobjectexplorer"],
+  "main": "./out/src",
   "contributes": {
     "commands": [
       {
-        "command": "sObjectExplorer.refresh",
-        "title": "SFDX: Refresh sObject Explorer",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "command": "sfdx.force.internal.opensobjectnode",
+        "title": "Open sObject"
       },
       {
-        "command": "openSObjectNode",
-        "title": "Open sObject"
+        "command": "sfdx.force.internal.opensobjectcategorynode",
+        "title": "Open sObject Category"
       }
     ],
     "views": {
       "explorer": [
         {
-          "id": "sObjectExplorer",
+          "id": "sfdx.force.sobjectexplorer",
           "name": "Salesforce Object Explorer"
         }
       ]
@@ -39,17 +33,14 @@
     "menus": {
       "view/title": [
         {
-          "command": "sObjectExplorer.refresh",
-          "when": "view == sObjectExplorer",
+          "command": "sfdx.force.internal.sobjectexplorerrefresh",
+          "when": "view == sfdx.force.sobjectexplorer",
           "group": "navigation"
         }
       ]
     }
   },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-core"
-  ],
+  "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -65,11 +56,14 @@
       "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/adaptertest/unit --reporter mocha-multi-reporters"
   },
   "dependencies": {
+    "@salesforce/salesforcedx-sobjects-faux-generator": "42.8.0",
     "@salesforce/salesforcedx-utils-vscode": "42.8.0",
     "@types/handlebars": "^4.0.36",
     "async-file": "^2.0.2",
+    "request-light": "^0.2.2",
+    "rxjs": "^5.4.1",
     "handlebars": "^4.0.11",
-    "request-light": "^0.2.2"
+    "tree-kill": "^1.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",

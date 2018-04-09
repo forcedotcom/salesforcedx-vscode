@@ -1,4 +1,13 @@
 import {
+  ChildRelationship,
+  Field,
+  SObject,
+  SObjectCategory,
+  SObjectDescribe
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
+import { FauxClassReader } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/reader';
+import * as path from 'path';
+import {
   CancellationToken,
   Event,
   EventEmitter,
@@ -8,184 +17,44 @@ import {
   TreeDataProvider,
   TreeItem,
   TreeItemCollapsibleState,
-  Uri
+  Uri,
+  workspace
 } from 'vscode';
-
-import * as fs from 'async-file';
-import * as Handlebars from 'handlebars';
-import * as path from 'path';
-
-import { ForceOrgDisplay, OrgInfo } from './commands/forceOrgDisplay';
-import { RequestService } from './requestService';
-
-import {
-  DefineGlobalResponse,
-  GetDataCommand
-} from './commands/getDataCommand';
-
-import { SObject } from './SObject';
 
 export interface ISObjectNode {
   name: string;
   type: string;
+  category: SObjectCategory;
   resource: Uri;
 }
 
-export interface ISObjectDescription {
-  fields: Array<any>;
+export class SObjectCategoryNode implements ISObjectNode {
+  constructor(public category: SObjectCategory) {}
+
+  public get name(): string {
+    return this.category === SObjectCategory.CUSTOM
+      ? 'Custom Objects'
+      : 'Standard Objects';
+  }
+
+  public get type(): string {
+    return 'sObjectCategory';
+  }
+
+  public get resource(): Uri {
+    return Uri.parse(`sobject://${this.category}`);
+  }
 }
 
 export class SObjectNode implements ISObjectNode {
-  constructor(private sObject: SObject) {}
-
-  public get name(): string {
-    return this.sObject.name;
-  }
+  constructor(public name: string, public category: SObjectCategory) {}
 
   public get type(): string {
     return 'sObject';
   }
 
   public get resource(): Uri {
-    return Uri.parse('sobject://' + this.sObject.urls.sobject);
-  }
-}
-
-export class SObjectFieldNode implements ISObjectNode {
-  constructor(private sObjectField: any, private _parent: string) {}
-
-  public get name(): string {
-    return `${this.sObjectField.name}: ${this.sObjectField.type}`;
-  }
-
-  public get type(): string {
-    return this.sObjectField.type;
-  }
-
-  public get resource(): Uri {
-    return Uri.parse(`sobject://${this._parent}/${this.sObjectField.name}`);
-  }
-}
-
-export class SObjectService {
-  private orgInfo: OrgInfo;
-  private myRequestService = new RequestService();
-  private sobjects: Array<SObject>;
-  private sobjectDescriptions: Map<string, any>;
-
-  private template: any;
-
-  constructor(private storagePath: string) {
-    this.sobjectDescriptions = new Map<string, any>();
-    this.template = Handlebars.compile(`{{#each this}}
-{{@key}}: {{this}}
-{{/each}}`);
-  }
-
-  private async connect() {
-    if (this.orgInfo) {
-      return;
-    }
-    this.orgInfo = await new ForceOrgDisplay().getOrgInfo();
-    this.myRequestService.instanceUrl = this.orgInfo.instanceUrl;
-    this.myRequestService.accessToken = this.orgInfo.accessToken;
-  }
-
-  private async saveObjectToCache(fileName: string, obj: any) {
-    const cacheFilePath = path.join(this.storagePath, fileName);
-    try {
-      const json = JSON.stringify(obj);
-      if (!await fs.exists(this.storagePath)) {
-        fs.mkdir(this.storagePath);
-      }
-      await fs.writeFile(cacheFilePath, json);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  private async getObjectFromCache(fileName: string): Promise<any> {
-    const cacheFilePath = path.join(this.storagePath, fileName);
-    if (await fs.exists(cacheFilePath)) {
-      try {
-        const json = await fs.readFile(cacheFilePath);
-        return JSON.parse(json);
-      } catch (err1) {
-        console.warn(err1);
-        try {
-          await fs.unlink(cacheFilePath);
-        } catch (err2) {
-          console.warn(err2);
-        }
-      }
-    }
-  }
-
-  private async getSObjectsFromServer() {
-    return this.connect()
-      .then(() =>
-        this.myRequestService.execute(
-          new GetDataCommand('services/data/v41.0/sobjects')
-        )
-      )
-      .then(response => {
-        const obj: DefineGlobalResponse = JSON.parse(response);
-        return obj.sobjects;
-      });
-  }
-
-  private async getSObjectFromServer(uriPath: string): Promise<any> {
-    return this.connect()
-      .then(() =>
-        this.myRequestService.execute(new GetDataCommand(uriPath + '/describe'))
-      )
-      .then(response => {
-        const obj = JSON.parse(response);
-        return obj;
-      });
-  }
-
-  public async getSObjects(): Promise<Array<SObject>> {
-    if (!this.sobjects) {
-      // No warmed cache, try to load from file
-      this.sobjects = await this.getObjectFromCache('sobjects.json');
-      if (!this.sobjects) {
-        // No cached file, request from server and save to cache
-        this.sobjects = await this.getSObjectsFromServer();
-        await this.saveObjectToCache('sobjects.json', this.sobjects);
-      }
-    }
-    return this.sobjects;
-  }
-
-  public async getSObjectDescription(
-    resource: Uri
-  ): Promise<ISObjectDescription> {
-    let description;
-    if (this.sobjectDescriptions.has(resource.path)) {
-      description = this.sobjectDescriptions.get(resource.path);
-    } else {
-      description = await this.getSObjectFromServer(resource.path);
-    }
-
-    return description;
-  }
-
-  public async refreshCache() {
-    this.sobjects = await this.getSObjectsFromServer();
-    await this.saveObjectToCache('sobjects.json', this.sobjects);
-  }
-
-  public async getContent(resource: Uri): Promise<string> {
-    const resourceUri = Uri.parse(
-      `sobjects://${resource.path.substring(0, resource.path.lastIndexOf('/'))}`
-    );
-    const fieldName = resource.path.substring(
-      resource.path.lastIndexOf('/') + 1
-    );
-    const obj = await this.getSObjectDescription(resourceUri);
-    const field: any = obj.fields.find(f => f.name === fieldName);
-    return this.template(field);
+    return Uri.parse(`sobject://${this.category}/${this.name}.cls`);
   }
 }
 
@@ -195,84 +64,80 @@ export class SObjectDataProvider
   public readonly onDidChangeTreeData: Event<any> = this._onDidChangeTreeData
     .event;
 
-  private service: SObjectService;
+  private reader: FauxClassReader;
 
   constructor(private context: ExtensionContext) {
-    this.service = new SObjectService(context.storagePath || '');
+    this.reader = new FauxClassReader();
   }
 
-  public getIconName(type: string) {
-    switch (type) {
-      case 'boolean':
-      case 'string':
-        return type;
-      case 'double':
-      case 'int':
-        return 'number';
-      case 'sObject':
-        return 'folder';
-      default:
-        return 'document';
-    }
+  // public getIconName(type: string) {
+  //   switch (type) {
+  //     case 'boolean':
+  //     case 'string':
+  //       return type;
+  //     case 'double':
+  //     case 'int':
+  //       return 'number';
+  //     case 'sObject':
+  //       return 'folder';
+  //     default:
+  //       return 'document';
+  //   }
+  // }
+
+  private getIcon(fileName: string): any {
+    return {
+      light: this.context.asAbsolutePath(
+        path.join('resources', 'light', fileName)
+      ),
+      dark: this.context.asAbsolutePath(
+        path.join('resources', 'dark', fileName)
+      )
+    };
   }
 
   public getTreeItem(element: ISObjectNode): TreeItem | Thenable<TreeItem> {
-    return {
-      label: element.name,
-      collapsibleState:
-        element.type === 'sObject'
-          ? TreeItemCollapsibleState.Collapsed
-          : void 0,
-      command:
-        element.type === 'sObject'
-          ? void 0
-          : {
-              command: 'openSObjectNode',
-              arguments: [element],
-              title: 'Open sObject'
-            },
-      iconPath: {
-        light: this.context.asAbsolutePath(
-          path.join(
-            'resources',
-            'light',
-            this.getIconName(element.type) + '.svg'
-          )
-        ),
-        dark: this.context.asAbsolutePath(
-          path.join(
-            'resources',
-            'dark',
-            this.getIconName(element.type) + '.svg'
-          )
-        )
-      }
-    };
+    if (element.type === 'sObjectCategory') {
+      return {
+        label: element.name,
+        collapsibleState: TreeItemCollapsibleState.Collapsed
+      };
+    } else if (element.type === 'sObject') {
+      return {
+        label: element.name,
+        collapsibleState: TreeItemCollapsibleState.None,
+        iconPath: this.getIcon('document.svg'),
+        command: {
+          command: 'sfdx.force.internal.opensobjectnode',
+          arguments: [element],
+          title: 'Open sObject'
+        }
+      };
+    } else {
+      return {
+        label: element.name,
+        collapsibleState: TreeItemCollapsibleState.None,
+        command: void 0
+        //iconPath: this.getIcon()
+      };
+    }
   }
 
   public getChildren(element?: ISObjectNode): ProviderResult<ISObjectNode[]> {
     if (element) {
-      return this.service
-        .getSObjectDescription(element.resource)
-        .then(obj => {
-          return obj.fields.map(
-            entity => new SObjectFieldNode(entity, element.resource.path)
-          );
-        })
-        .catch(error => {
-          console.error(error);
-          return new Array<SObjectFieldNode>();
-        });
+      const projectPath: string = workspace.rootPath as string;
+      const sObjectNames = this.reader.getSObjectNames(
+        projectPath,
+        element.category
+      );
+      return sObjectNames.map(
+        sObjectName => new SObjectNode(sObjectName, element.category)
+      );
     } else {
-      return this.service
-        .getSObjects()
-        .then(sobjects => {
-          return sobjects.map(entity => new SObjectNode(entity));
-        })
-        .catch(error => {
-          console.error(error);
-          return new Array<SObjectNode>();
-        });
+      return [
+        new SObjectCategoryNode(SObjectCategory.CUSTOM),
+        new SObjectCategoryNode(SObjectCategory.STANDARD)
+      ];
     }
   }
 
@@ -280,15 +145,20 @@ export class SObjectDataProvider
     uri: Uri,
     token: CancellationToken
   ): ProviderResult<string> {
-    return this.service.getContent(uri).catch(error => {
-      console.error(error);
-      return 'Error loading sObject.';
-    });
+    const projectPath: string = workspace.rootPath as string;
+
+    const parts = uri.path.split('/');
+
+    const objectType: SObjectCategory =
+      parts[0] === SObjectCategory.CUSTOM
+        ? SObjectCategory.CUSTOM
+        : SObjectCategory.STANDARD;
+    const objectName = parts[1];
+
+    return this.reader.getContent(projectPath, objectType, objectName);
   }
 
-  public refresh(): Promise<void> {
-    return this.service.refreshCache().then(() => {
-      this._onDidChangeTreeData.fire();
-    });
+  public refresh(): void {
+    this._onDidChangeTreeData.fire();
   }
 }

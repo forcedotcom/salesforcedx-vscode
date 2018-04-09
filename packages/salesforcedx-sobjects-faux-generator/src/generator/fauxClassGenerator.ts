@@ -19,16 +19,11 @@ import {
   SObjectDescribe
 } from '../describe';
 import { nls } from '../messages';
+import { getSObjectsFolderPath } from '../utils';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
-
-const SFDX_DIR = '.sfdx';
-const TOOLS_DIR = 'tools';
-const SOBJECTS_DIR = 'sobjects';
-const STANDARDOBJECTS_DIR = 'standardObjects';
-const CUSTOMOBJECTS_DIR = 'customObjects';
 
 export class FauxClassGenerator {
   private emitter: EventEmitter;
@@ -107,19 +102,17 @@ export class FauxClassGenerator {
     projectPath: string,
     type: SObjectCategory
   ): Promise<string> {
-    const sobjectsFolderPath = path.join(
+    const sobjectsFolderPath = getSObjectsFolderPath(
       projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR
+      SObjectCategory.ALL
     );
-    const standardSObjectsFolderPath = path.join(
-      sobjectsFolderPath,
-      STANDARDOBJECTS_DIR
+    const standardSObjectsFolderPath = getSObjectsFolderPath(
+      projectPath,
+      SObjectCategory.STANDARD
     );
-    const customSObjectsFolderPath = path.join(
-      sobjectsFolderPath,
-      CUSTOMOBJECTS_DIR
+    const customSObjectsFolderPath = getSObjectsFolderPath(
+      projectPath,
+      SObjectCategory.CUSTOM
     );
 
     if (
