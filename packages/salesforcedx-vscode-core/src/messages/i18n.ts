@@ -157,7 +157,7 @@ export const messages = {
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
-  error_updating_sfdx_project: 'Error updateing sfdx-project.json: %s',
+  error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
   error_writing_installed_package_info:
     'Error writing installed-package.json: %s',
 
