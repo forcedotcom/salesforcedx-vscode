@@ -16,6 +16,7 @@ import {
   ThreadEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import Uri from 'vscode-uri';
 import {
   ApexDebugStackFrameInfo,
   ApexVariable,
@@ -1136,9 +1137,10 @@ describe('Interactive debugger adapter - unit', () => {
             '{"stateResponse":{"state":{"stack":{"stackFrame":[{"typeRef":"FooDebug","fullName":"FooDebug.test()","lineNumber":1,"frameNumber":0},{"typeRef":"BarDebug","fullName":"BarDebug.test()","lineNumber":2,"frameNumber":1}]}}}}'
           )
         );
+      const fileUri = 'file:///foo.cls';
       sourcePathSpy = sinon
         .stub(BreakpointService.prototype, 'getSourcePathFromTyperef')
-        .returns('file:///foo.cls');
+        .returns(fileUri);
 
       await adapter.stackTraceRequest(
         {} as DebugProtocol.StackTraceResponse,
@@ -1159,7 +1161,7 @@ describe('Interactive debugger adapter - unit', () => {
         new StackFrame(
           1000,
           'FooDebug.test()',
-          new Source('foo.cls', '/foo.cls'),
+          new Source('foo.cls', Uri.parse(fileUri).fsPath),
           1,
           0
         )
@@ -1168,7 +1170,7 @@ describe('Interactive debugger adapter - unit', () => {
         new StackFrame(
           1001,
           'BarDebug.test()',
-          new Source('foo.cls', '/foo.cls'),
+          new Source('foo.cls', Uri.parse(fileUri).fsPath),
           2,
           0
         )
@@ -1609,15 +1611,16 @@ describe('Interactive debugger adapter - unit', () => {
       LineBreakpointsInTyperef[]
     > = new Map();
     const typerefMapping: Map<string, string> = new Map();
-    lineNumberMapping.set('file:///foo.cls', [
+    const fooUri = 'file:///foo.cls';
+    lineNumberMapping.set(fooUri, [
       { typeref: 'foo', lines: [1, 2] },
       { typeref: 'foo$inner', lines: [3, 4] }
     ]);
     lineNumberMapping.set('file:///bar.cls', [
       { typeref: 'bar', lines: [3, 4] }
     ]);
-    typerefMapping.set('foo', 'file:///foo.cls');
-    typerefMapping.set('foo$inner', 'file:///foo.cls');
+    typerefMapping.set('foo', fooUri);
+    typerefMapping.set('foo$inner', fooUri);
     typerefMapping.set('bar', 'file:///bar.cls');
 
     beforeEach(() => {
@@ -1690,7 +1693,7 @@ describe('Interactive debugger adapter - unit', () => {
           .sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject
           .Stacktrace}`
       );
-      expect(outputEvent.body.source!.path).to.equal('/foo.cls');
+      expect(outputEvent.body.source!.path).to.equal(Uri.parse(fooUri).fsPath);
       expect(outputEvent.body.line).to.equal(4);
     });
   });
