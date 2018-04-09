@@ -1,12 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  ChildRelationship,
-  Field,
-  SObject,
-  SObjectCategory,
-  SObjectDescribe
-} from '../describe';
+import { SObjectCategory } from '../describe';
 import { nls } from '../messages';
 import { getSObjectsFolderPath } from '../utils';
 

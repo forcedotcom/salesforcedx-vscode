@@ -20,6 +20,14 @@
       {
         "command": "sfdx.force.internal.opensobjectcategorynode",
         "title": "Open sObject Category"
+      },
+      {
+        "command": "sfdx.force.internal.sobjectexplorerrefresh",
+        "title": "Refresh",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       }
     ],
     "views": {

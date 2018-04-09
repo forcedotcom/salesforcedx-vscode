@@ -6,7 +6,7 @@ import { getSObjectsFolderPath } from '@salesforce/salesforcedx-sobjects-faux-ge
 import { callExternalCommand } from './commands/callExternalCommand';
 import { openSObjectNodeCommand } from './commands/openSObjectNodeCommand';
 import { CORE_EXTENTION_ID, REFRESH_SOBJECTS_COMMAND_NAME } from './constants';
-import { SObjectDataProvider, SObjectNode } from './sObjectExplorer';
+import { SObjectDataProvider } from './sObjectExplorer';
 
 export function activate(context: vscode.ExtensionContext) {
   const sObjectDataProvider = new SObjectDataProvider(context);

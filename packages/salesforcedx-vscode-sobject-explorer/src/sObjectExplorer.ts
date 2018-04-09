@@ -1,10 +1,4 @@
-import {
-  ChildRelationship,
-  Field,
-  SObject,
-  SObjectCategory,
-  SObjectDescribe
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
+import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import { FauxClassReader } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/reader';
 import * as path from 'path';
 import {
@@ -70,28 +64,13 @@ export class SObjectDataProvider
     this.reader = new FauxClassReader();
   }
 
-  // public getIconName(type: string) {
-  //   switch (type) {
-  //     case 'boolean':
-  //     case 'string':
-  //       return type;
-  //     case 'double':
-  //     case 'int':
-  //       return 'number';
-  //     case 'sObject':
-  //       return 'folder';
-  //     default:
-  //       return 'document';
-  //   }
-  // }
-
-  private getIcon(fileName: string): any {
+  private getIcons(iconName: string): any {
     return {
       light: this.context.asAbsolutePath(
-        path.join('resources', 'light', fileName)
+        path.join('resources', 'light', iconName)
       ),
       dark: this.context.asAbsolutePath(
-        path.join('resources', 'dark', fileName)
+        path.join('resources', 'dark', iconName)
       )
     };
   }
@@ -100,13 +79,14 @@ export class SObjectDataProvider
     if (element.type === 'sObjectCategory') {
       return {
         label: element.name,
-        collapsibleState: TreeItemCollapsibleState.Collapsed
+        collapsibleState: TreeItemCollapsibleState.Collapsed,
+        iconPath: this.getIcons('folder.svg')
       };
     } else if (element.type === 'sObject') {
       return {
         label: element.name,
         collapsibleState: TreeItemCollapsibleState.None,
-        iconPath: this.getIcon('document.svg'),
+        iconPath: this.getIcons('salesforce.svg'),
         command: {
           command: 'sfdx.force.internal.opensobjectnode',
           arguments: [element],
@@ -116,9 +96,7 @@ export class SObjectDataProvider
     } else {
       return {
         label: element.name,
-        collapsibleState: TreeItemCollapsibleState.None,
-        command: void 0
-        //iconPath: this.getIcon()
+        collapsibleState: TreeItemCollapsibleState.None
       };
     }
   }
