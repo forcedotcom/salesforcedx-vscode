@@ -1,3 +1,15 @@
+## 42.11.0 - April 12, 2018
+### Added
+#### salesforcedx-vscode-apex
+
+* Go To Definition and Find All References for built-in exceptions ([PR #370](https://github.com/forcedotcom/salesforcedx-vscode/pull/370))
+
+### Fixed
+#### salesforcedx-vscode-apex
+
+* Go To Definition and Find All References now works for sobject in Apex Trigger declaration ([PR #370](https://github.com/forcedotcom/salesforcedx-vscode/pull/370))
+* Language server only processes apex code on the folder structure configured in sfdx-project.json ([PR #370](https://github.com/forcedotcom/salesforcedx-vscode/pull/370))
+
 ## 42.10.0 - April 5, 2018
 ### Added
 #### salesforcedx-vscode-apex
