@@ -1,3 +1,19 @@
+## 42.11.0 - April 12, 2018
+### Added
+#### salesforcedx-vscode-apex
+
+* Go To Definition and Find All References for [built-in (`System`) exceptions](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) ([PR #370](https://github.com/forcedotcom/salesforcedx-vscode/pull/370))
+* Go To Definition and Find All References for sObjects in Apex trigger declarations ([PR #370](https://github.com/forcedotcom/salesforcedx-vscode/pull/370))
+
+### Fixed
+#### salesforcedx-vscode-apex
+
+* Language server processes Apex code only in the `packageDirectories` set in `sfdx-project.json` (and their subdirectories) ([PR #370](https://github.com/forcedotcom/salesforcedx-vscode/pull/370))
+
+#### salesforcedx-vscode-apex-debugger
+
+* Apex Debugger works on Windows even when there are spaces in the project's path ([PR #359](https://github.com/forcedotcom/salesforcedx-vscode/pull/359))
+
 ## 42.10.0 - April 5, 2018
 ### Added
 #### salesforcedx-vscode-apex
