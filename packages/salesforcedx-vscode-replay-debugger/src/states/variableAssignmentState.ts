@@ -79,6 +79,12 @@ export class VariableAssignmentState implements DebugLogState {
       } else if (name.indexOf('.') !== -1 && ref !== '0') {
         const container = logContext.getRefsMap().get(ref)!;
         if (container) {
+          if (container.variablesRef === 0) {
+            container.variablesRef = logContext
+              .getVariableHandler()
+              .create(container);
+            container.value = '';
+          }
           if (value.indexOf('{') !== -1 && value !== '{}') {
             const topLevel = new ApexVariableContainer(varName, '', '');
             container.variables.set(varName, topLevel);
