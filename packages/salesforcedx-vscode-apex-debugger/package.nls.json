@@ -11,7 +11,7 @@
     "A new configuration for launching Apex Debugger",
   "launch_snippet_name": "Launch Apex Debugger",
   "trace_text":
-    "Produce diagnostic output. You can set this to true, false, or one or more selectors separated with commas. Selectors include 'all' (very detailed output; the equivalent of true), 'protocol', 'variables', 'launch', 'breakpoints'.",
+    "Produce diagnostic output. You can set this to true, false, or one or more selectors separated with commas. Selectors include 'all' (very detailed output; the equivalent of true), 'protocol', 'variables', 'launch', 'breakpoints' and 'streaming'.",
   "configuration_title": "Salesforce Apex Debugger Configuration",
   "connection_timeout_ms_description":
     "Connection timeout for Apex Debugger API requests (in milliseconds).",
