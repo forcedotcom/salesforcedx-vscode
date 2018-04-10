@@ -1,6 +1,7 @@
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
 import * as path from 'path';
+import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ContinueResponse } from '../../../../salesforcedx-utils-vscode/out/src/types/index';
@@ -356,6 +357,18 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         const zip = new AdmZip();
         zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'packages-source'));
         zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
+      });
+
+      // fake package metadate convert
+      executeCommandSpy.onCall(7).callsFake(() => {
+        shell.mkdir(
+          '-p',
+          path.join(
+            projectPath,
+            executor.relativeInstalledPackagesPath,
+            'mypackage'
+          )
+        );
       });
 
       const input = {
