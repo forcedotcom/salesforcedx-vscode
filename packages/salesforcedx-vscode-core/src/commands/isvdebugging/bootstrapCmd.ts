@@ -266,14 +266,15 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     try {
       const sfdxProjectJsonFile = path.join(projectPath, 'sfdx-project.json');
       const sfdxProjectConfig = JSON.parse(
-        fs.readFileSync(sfdxProjectJsonFile).toString()
+        fs.readFileSync(sfdxProjectJsonFile, { encoding: 'utf-8' })
       );
       sfdxProjectConfig.namespace = this.parseOrgNamespaceQueryResultJson(
         orgNamespaceInfoResponseJson
       );
       fs.writeFileSync(
         sfdxProjectJsonFile,
-        JSON.stringify(sfdxProjectConfig, null, 2)
+        JSON.stringify(sfdxProjectConfig, null, 2),
+        { encoding: 'utf-8' }
       );
     } catch (error) {
       console.error(error);
@@ -301,7 +302,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     <members>*</members>
     <name>ApexTrigger</name>
   </types>
-</Package>`
+</Package>`,
+        { encoding: 'utf-8' }
       );
     } catch (error) {
       console.error(error);
@@ -407,7 +409,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
             packageInfo.name,
             'installed-package.json'
           ),
-          JSON.stringify(packageInfo, null, 2)
+          JSON.stringify(packageInfo, null, 2),
+          { encoding: 'utf-8' }
         );
       } catch (error) {
         console.error(error);
