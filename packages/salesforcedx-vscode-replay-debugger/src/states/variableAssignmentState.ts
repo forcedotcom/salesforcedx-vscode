@@ -49,8 +49,12 @@ export class VariableAssignmentState implements DebugLogState {
         ) as ApexVariableContainer;
         localVariableContainer.value = value;
         // if a local var is a reference, should be in locals already
-        if (ref !== '0') {
-          localVariableContainer.value = '';
+        if (
+          ref !== '0' &&
+          !localVariableContainer.type.startsWith('Map<') &&
+          !localVariableContainer.type.startsWith('List<') &&
+          !localVariableContainer.type.startsWith('Set<')
+        ) {
           if (!logContext.getRefsMap().has(ref)) {
             logContext.getRefsMap().set(ref, localVariableContainer);
           } else {
@@ -60,11 +64,12 @@ export class VariableAssignmentState implements DebugLogState {
             localVariableContainer.variablesRef = refContainer.variablesRef;
             localVariableContainer.name = varName;
           }
-          localVariableContainer.variablesRef = logContext
-            .getVariableHandler()
-            .create(localVariableContainer);
-          if (value.indexOf('{') !== -1 && value !== '{}') {
-            const containers = this.getVars(value);
+          if (value.indexOf('{') === 0 && value !== '{}') {
+            localVariableContainer.value = '';
+            localVariableContainer.variablesRef = logContext
+              .getVariableHandler()
+              .create(localVariableContainer);
+            const containers = this.parseVars(value);
             containers.forEach(container => {
               localVariableContainer.variables.set(container.name, container);
             });
@@ -80,7 +85,7 @@ export class VariableAssignmentState implements DebugLogState {
             topLevel.variablesRef = logContext
               .getVariableHandler()
               .create(topLevel);
-            const containers = this.getVars(value);
+            const containers = this.parseVars(value);
             containers.forEach(c => {
               topLevel.variables.set(c.name, c);
             });
@@ -97,20 +102,12 @@ export class VariableAssignmentState implements DebugLogState {
     return false;
   }
 
-  private getVars(value: string): ApexVariableContainer[] {
-    // str.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "\"$1\":\"$2\"");
-    // "{"changeThis": 10,"nsInstanceBlob": BLOB(5 bytes),"nsInstanceDub": 2.4,"nsInstanceInt": 5,"nsInstanceStr": "inDevNs anotherNSCla (2 more) ..."}"
-    const keyValues = value
-      .replace(/{/, '')
-      .replace(/}/, '')
-      .replace(/['"]+/g, '')
-      .split(',');
-    const varList: ApexVariableContainer[] = [];
-    keyValues.forEach(pair => {
-      const name = pair.split(':')[0];
-      const val = pair.split(':')[1];
-      varList.push(new ApexVariableContainer(name, val, ''));
+  private parseVars(value: string): ApexVariableContainer[] {
+    const obj = JSON.parse(value);
+    const jsonVarList: ApexVariableContainer[] = [];
+    Object.keys(obj).forEach(key => {
+      jsonVarList.push(new ApexVariableContainer(key, String(obj[key]), ''));
     });
-    return varList;
+    return jsonVarList;
   }
 }
