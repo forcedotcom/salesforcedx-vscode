@@ -54,7 +54,6 @@ export class SObjectNode implements ISObjectNode {
 
 export class SObjectService
   implements TreeDataProvider<ISObjectNode>, TextDocumentContentProvider {
-  private static instance: SObjectService;
   private _onDidChangeTreeData: EventEmitter<any> = new EventEmitter<any>();
   public readonly onDidChangeTreeData: Event<any> = this._onDidChangeTreeData
     .event;
