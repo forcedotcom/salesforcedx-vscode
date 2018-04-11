@@ -44,6 +44,8 @@ export class VariableAssignmentState implements DebugLogState {
       if (container) {
         container.value = value;
       }
+
+      // assigning to top level variable in locals
       if (
         ref !== '0' &&
         container &&
@@ -65,16 +67,17 @@ export class VariableAssignmentState implements DebugLogState {
           container.variablesRef = logContext
             .getVariableHandler()
             .create(container);
-          this.parseVars(value, container);
+          this.parseAndPopulate(value, container);
         }
+        // assigning to variable's fields, currently only going to work for a variable in local
       } else if (name.indexOf('.') !== -1 && ref !== '0') {
         container = logContext.getRefsMap().get(ref)!;
         if (container) {
+          container.value = '';
           if (container.variablesRef === 0) {
             container.variablesRef = logContext
               .getVariableHandler()
               .create(container);
-            container.value = '';
           }
           if (value.indexOf('{') !== -1 && value !== '{}') {
             const topLevel = new ApexVariableContainer(varName, '', '');
@@ -82,7 +85,7 @@ export class VariableAssignmentState implements DebugLogState {
             topLevel.variablesRef = logContext
               .getVariableHandler()
               .create(topLevel);
-            this.parseVars(value, topLevel);
+            this.parseAndPopulate(value, topLevel);
           } else {
             container.variables.set(
               varName,
@@ -92,11 +95,10 @@ export class VariableAssignmentState implements DebugLogState {
         }
       }
     }
-
     return false;
   }
 
-  private parseVars(value: string, container: ApexVariableContainer) {
+  private parseAndPopulate(value: string, container: ApexVariableContainer) {
     try {
       const obj = JSON.parse(value);
       Object.keys(obj).forEach(key => {
