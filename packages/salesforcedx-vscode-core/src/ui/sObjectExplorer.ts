@@ -86,7 +86,7 @@ export class SObjectService
       return {
         label: element.name,
         collapsibleState: TreeItemCollapsibleState.None,
-        iconPath: this.getIcons('salesforce.svg'),
+        iconPath: this.getIcons('document.svg'),
         command: {
           command: 'sfdx.force.internal.opensobjectnode',
           arguments: [element],
