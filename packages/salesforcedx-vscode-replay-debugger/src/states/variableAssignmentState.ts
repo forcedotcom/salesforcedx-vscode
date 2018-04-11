@@ -37,10 +37,58 @@ export class VariableAssignmentState implements DebugLogState {
         const statics = logContext.getStaticVariablesClassMap().get(className)!;
         const container = statics.get(name)! as ApexVariableContainer;
         container.value = value;
-        if (ref !== '0') {
-          container.variablesRef = logContext
-            .getVariableHandler()
-            .create(container);
+        if (
+          ref !== '0' &&
+          !container.type.startsWith('Map<') &&
+          !container.type.startsWith('List<') &&
+          !container.type.startsWith('Set<')
+        ) {
+          if (!logContext.getRefsMap().has(ref)) {
+            logContext.getRefsMap().set(ref, container);
+          } else {
+            // if the ref already exists then that means we are assigning another pointer to a ref so we need to merge the info from the ref into the variable container
+            const refContainer = logContext.getRefsMap().get(ref)!;
+            container.variables = refContainer.variables;
+            container.variablesRef = refContainer.variablesRef;
+            container.name = varName;
+          }
+          if (value.indexOf('{') === 0 && value !== '{}') {
+            container.value = '';
+            container.variablesRef = logContext
+              .getVariableHandler()
+              .create(container);
+            const containers = this.parseVars(value);
+            containers.forEach(c => {
+              c.variables.set(c.name, c);
+            });
+          }
+        }
+        // if it's not in locals then it's assigning a field of a local
+      } else if (name.indexOf('.') !== -1 && ref !== '0') {
+        const container = logContext.getRefsMap().get(ref)!;
+        if (container) {
+          if (container.variablesRef === 0) {
+            container.variablesRef = logContext
+              .getVariableHandler()
+              .create(container);
+            container.value = '';
+          }
+          if (value.indexOf('{') !== -1 && value !== '{}') {
+            const topLevel = new ApexVariableContainer(varName, '', '');
+            container.variables.set(varName, topLevel);
+            topLevel.variablesRef = logContext
+              .getVariableHandler()
+              .create(topLevel);
+            const containers = this.parseVars(value);
+            containers.forEach(c => {
+              topLevel.variables.set(c.name, c);
+            });
+          } else {
+            container.variables.set(
+              varName,
+              new ApexVariableContainer(varName, value, '')
+            );
+          }
         }
       } else if (frameInfo.locals.has(varName)) {
         // if name does not contain '.' (i.e. this.attr or a.Name), it should be in locals and we can update the value
