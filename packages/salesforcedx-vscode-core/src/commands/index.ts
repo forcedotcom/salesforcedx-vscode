@@ -25,6 +25,7 @@ export {
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
+export { forceOpenSObjectNode } from './forceOpenSObjectNode';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
 export { forceSourceStatus } from './forceSourceStatus';

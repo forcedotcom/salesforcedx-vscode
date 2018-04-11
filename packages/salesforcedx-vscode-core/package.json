@@ -76,6 +76,10 @@
         {
           "id": "sfdx.force.tasks.view",
           "name": "%running_tasks_title_text%"
+        },
+        {
+          "id": "sfdx.force.sobjectexplorer",
+          "name": "Salesforce Object Explorer"
         }
       ]
     },
@@ -84,6 +88,13 @@
         {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "sfdx.force.internal.sobjectexplorerrefresh",
+          "when": "view == sfdx.force.sobjectexplorer",
+          "group": "navigation"
         }
       ],
       "explorer/context": [
@@ -450,6 +461,18 @@
       {
         "command": "sfdx.force.apex.log.get",
         "title": "%force_apex_log_get_text%"
+      },
+      {
+        "command": "sfdx.force.internal.opensobjectnode",
+        "title": "Open sObject"
+      },
+      {
+        "command": "sfdx.force.internal.sobjectexplorerrefresh",
+        "title": "Refresh",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       }
     ],
     "configuration": {
