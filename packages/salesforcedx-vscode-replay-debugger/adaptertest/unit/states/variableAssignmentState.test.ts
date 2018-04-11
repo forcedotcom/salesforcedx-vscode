@@ -10,8 +10,8 @@ import * as sinon from 'sinon';
 import { StackFrame } from 'vscode-debugadapter';
 import {
   ApexReplayDebug,
-  LaunchRequestArguments,
-  ApexVariableContainer
+  ApexVariableContainer,
+  LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
 import { LogContext } from '../../../src/core';
 import {
