@@ -123,12 +123,10 @@ describe('Variable assignment event', () => {
 
   describe('Local nested assignment', () => {
     const DUMMY_REF = '0x00000000';
-    const INNER_DUMMY_REF = '0x11111111';
-    const INNER_DUMMY_REF2 = '0x22222222';
     const LOCAL_NESTED_VARIABLE_SCOPE_BEGIN =
       'fakeTime|VARIABLE_SCOPE_BEGIN|[8]|this|NestedClass|true|false';
     const LOCAL_NESTED_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`;
-    const LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`;
+    const LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{"a":"0x37e2e22e","m":"0xff6e2ff","s":"MyObject.s"}|${DUMMY_REF}`;
     const LOCAL_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|this.s|"MyObject.s"|${DUMMY_REF}`;
     const LOCAL_NESTED_JSON_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|{"Name":"MyObjectAccount"}|${DUMMY_REF}`;
     beforeEach(() => {
@@ -193,6 +191,33 @@ describe('Variable assignment event', () => {
       expect(innerContainer.value).to.equal('"MyObject.s"');
       expect(innerContainer.variables).to.be.empty;
       expect(innerContainer.variablesRef).to.equal(0);
+    });
+
+    it('Should update variable to a nested variable if json assignment', () => {
+      let state = new VariableAssignmentState(
+        LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|')
+      );
+      state.handle(context);
+      const frameInfo = context
+        .getFrameHandler()
+        .get(context.getTopFrame()!.id);
+      const container = frameInfo.locals.get('this') as ApexVariableContainer;
+      state = new VariableAssignmentState(
+        LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT.split('|')
+      );
+      state.handle(context);
+      expect(container.value).to.equal('');
+      expect(container.variablesRef).to.not.equal(0);
+      expect(container.variables).to.have.keys(['a', 'm', 's']);
+      const VAR_VALUES = ['0x37e2e22e', '0xff6e2ff', 'MyObject.s'];
+      ['a', 'm', 's'].forEach((element, index) => {
+        const innerContainer = container.variables.get(
+          element
+        ) as ApexVariableContainer;
+        expect(innerContainer.value).to.equal(VAR_VALUES[index]);
+        expect(innerContainer.variables).to.be.empty;
+        expect(innerContainer.variablesRef).to.equal(0);
+      });
     });
 
     it('Should update variable to a nested variable holding another nested variable if assigning json to inner value', () => {
