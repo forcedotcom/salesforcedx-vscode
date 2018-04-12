@@ -317,19 +317,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
         false
       )
     );
-    // scopes.push(
-    //   new Scope(
-    //     'Global',
-    //     this.logContext
-    //       .getScopeHandler()
-    //       .create(
-    //         new ScopeContainer(SCOPE_TYPES.GLOBAL, Array.from(
-    //           frameInfo.globals.values()
-    //         ) as ApexVariable[])
-    //       ),
-    //     false
-    //   )
-    // );
     response.body = { scopes: scopes };
     this.sendResponse(response);
   }
