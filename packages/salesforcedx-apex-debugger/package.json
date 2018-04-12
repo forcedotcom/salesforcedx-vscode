@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "42.10.0",
+  "version": "42.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -10,12 +10,12 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.11.0",
     "async-lock": "1.0.0",
     "faye": "1.1.2",
     "request-light": "0.2.1",
-    "vscode-debugadapter": "1.24.0",
-    "vscode-debugprotocol": "1.24.0"
+    "vscode-debugadapter": "1.28.0",
+    "vscode-debugprotocol": "1.28.0"
   },
   "devDependencies": {
     "@types/async-lock": "0.0.20",
@@ -34,7 +34,7 @@
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
     "vscode": "1.1.10",
-    "vscode-debugadapter-testsupport": "1.24.0"
+    "vscode-debugadapter-testsupport": "1.28.0"
   },
   "scripts": {
     "compile": "tsc -p ./",
