@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
+  InitializedEvent,
   Source,
   StackFrame,
   StoppedEvent,
@@ -19,8 +20,15 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil } from '../../../src/breakpoints';
-import { DEFAULT_INITIALIZE_TIMEOUT_MS } from '../../../src/constants';
+import {
+  breakpointUtil,
+  BreakpointUtil,
+  LineBreakpointInfo
+} from '../../../src/breakpoints';
+import {
+  DEFAULT_INITIALIZE_TIMEOUT_MS,
+  LINE_BREAKPOINT_INFO_REQUEST
+} from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { nls } from '../../../src/messages';
 
@@ -737,7 +745,7 @@ describe('Replay debugger adapter - unit', () => {
     describe('Line breakpoint info', () => {
       let sendResponseSpy: sinon.SinonSpy;
       let sendEventSpy: sinon.SinonSpy;
-      let setValidLines: sinon.SinonSpy;
+      let createMappingsFromLineBreakpointInfo: sinon.SinonSpy;
       const initializedResponse = {
         success: true,
         type: 'response',
@@ -766,16 +774,18 @@ describe('Replay debugger adapter - unit', () => {
         );
         sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
         sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
-        setValidLines = sinon.spy(BreakpointUtil.prototype, 'setValidLines');
+        createMappingsFromLineBreakpointInfo = sinon.spy(
+          BreakpointUtil.prototype,
+          'createMappingsFromLineBreakpointInfo'
+        );
       });
 
       afterEach(() => {
         sendResponseSpy.restore();
         sendEventSpy.restore();
-        setValidLines.restore();
+        createMappingsFromLineBreakpointInfo.restore();
       });
 
-      /*JRS-these can be removed
       it('Should handle undefined args', () => {
         adapter.customRequest(
           LINE_BREAKPOINT_INFO_REQUEST,
@@ -783,7 +793,7 @@ describe('Replay debugger adapter - unit', () => {
           null
         );
 
-        expect(setValidLines.called).to.be.false;
+        expect(createMappingsFromLineBreakpointInfo.called).to.be.false;
         expect(sendResponseSpy.called).to.be.true;
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(
           0
@@ -803,7 +813,7 @@ describe('Replay debugger adapter - unit', () => {
           []
         );
 
-        expect(setValidLines.called).to.be.false;
+        expect(createMappingsFromLineBreakpointInfo.called).to.be.true;
         expect(sendResponseSpy.called).to.be.true;
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(
           0
@@ -833,10 +843,10 @@ describe('Replay debugger adapter - unit', () => {
           info
         );
 
-        expect(setValidLines.calledOnce).to.be.true;
-        expect(setValidLines.getCall(0).args[0]).to.deep.equal(
-          expectedLineNumberMapping
-        );
+        expect(createMappingsFromLineBreakpointInfo.calledOnce).to.be.true;
+        expect(
+          createMappingsFromLineBreakpointInfo.getCall(0).args[0]
+        ).to.deep.equal(info);
         expect(sendResponseSpy.called).to.be.true;
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(
           0
@@ -847,8 +857,11 @@ describe('Replay debugger adapter - unit', () => {
         expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
           InitializedEvent
         );
+        // Verify that the line number mapping is the expected line number mapping
+        expect(breakpointUtil.getLineNumberMapping()).to.deep.eq(
+          expectedLineNumberMapping
+        );
       });
-*/
     });
   });
 });

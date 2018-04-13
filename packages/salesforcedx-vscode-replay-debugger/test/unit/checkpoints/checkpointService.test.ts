@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import {
   ActionScriptEnum,
   ApexExecutionOverlayAction,
@@ -14,31 +15,46 @@ import {
   CheckpointInfoIterationNode,
   CheckpointInfoResultNode,
   CheckpointNode,
-  checkpointService
+  checkpointService,
+  CheckpointService
 } from '../../../src/breakpoints/checkpointService';
 import { MAX_ALLOWED_CHECKPOINTS } from '../../../src/constants';
 
 describe('Checkpoint Service - unit', () => {
+  let executeCreateApexExecutionOverlayActionCommandStub: sinon.SinonStub;
+  let executeRemoveApexExecutionOverlayActionCommandStub: sinon.SinonStub;
+
   const actionObjectId = '1doxx000000FAKE';
   const uriInput = 'file:///bar.cls';
   const sourceFileInput = 'foo.cls';
   const typeRefInput = 'foo';
   const lineInput = 5;
+  beforeEach(() => {
+    executeCreateApexExecutionOverlayActionCommandStub = sinon.stub(
+      CheckpointService.prototype,
+      'executeCreateApexExecutionOverlayActionCommand'
+    );
+    executeRemoveApexExecutionOverlayActionCommandStub = sinon.stub(
+      CheckpointService.prototype,
+      'executeRemoveApexExecutionOverlayActionCommand'
+    );
+  });
 
   // Clean out the checkpoint list after each usage to ensure that
   // each test has a clean slate. Also has the added benefit of
   // additional testing for deleteCheckpointNode
   afterEach(() => {
+    executeCreateApexExecutionOverlayActionCommandStub.restore();
+    executeRemoveApexExecutionOverlayActionCommandStub.restore();
     clearOutCheckpoints();
   });
 
   it('Verify checkpoint arguments and pre-set default values', async () => {
-    const cpNode = await checkpointService.addCheckpointNode(
+    const cpNode = await checkpointService.getOrCreateCheckpointNode(
       uriInput,
       sourceFileInput,
       typeRefInput,
-      lineInput,
-      false // do not execute the underlying ApexExecutionOverlayCommands
+      lineInput
     );
 
     // Verify get methods are returning what was input
@@ -66,12 +82,11 @@ describe('Checkpoint Service - unit', () => {
   });
 
   it('Verify CheckpointNode has 4 child CheckpointInfoNodes after creation', async () => {
-    const cpNode = await checkpointService.addCheckpointNode(
+    const cpNode = await checkpointService.getOrCreateCheckpointNode(
       uriInput,
       sourceFileInput,
       typeRefInput,
-      lineInput,
-      false // do not execute the underlying ApexExecutionOverlayCommands
+      lineInput
     );
     // Note: Since the underlying ApexExecutionOverlayCommand is not being executed on creation,
     // The result node needs to be created manually
@@ -119,24 +134,22 @@ describe('Checkpoint Service - unit', () => {
   });
 
   it('Should not create duplicate values for the same Uri/Line number inputs', async () => {
-    const originalNode = await checkpointService.addCheckpointNode(
+    const originalNode = await checkpointService.getOrCreateCheckpointNode(
       uriInput,
       sourceFileInput,
       typeRefInput,
-      lineInput,
-      false // do not execute the underlying ApexExecutionOverlayCommands
+      lineInput
     );
 
     // The uri and line number are what makes a checkpoint node unique. If
     // a the same uri and line number are passed into addCheckpointNode then
     // the returned checkpoint will be the one originally created. Realistically,
     // dupes can't happen with the way that breakpoints/checkpoints are created.
-    const copiedNode = await checkpointService.addCheckpointNode(
+    const copiedNode = await checkpointService.getOrCreateCheckpointNode(
       uriInput,
       sourceFileInput,
       typeRefInput,
-      lineInput,
-      false // do not execute the underlying ApexExecutionOverlayCommands
+      lineInput
     );
 
     // The copied node should be the original node, do a deep verification
@@ -149,12 +162,11 @@ describe('Checkpoint Service - unit', () => {
     // making the CheckpointNode unique, change the line number when creating new nodes
     for (let i = 1; i < MAX_ALLOWED_CHECKPOINTS + 1; i++) {
       expect(checkpointService.canAddCheckpointNote()).to.be.eq(true);
-      await checkpointService.addCheckpointNode(
+      await checkpointService.getOrCreateCheckpointNode(
         uriInput,
         sourceFileInput,
         typeRefInput,
-        i,
-        false // do not execute the underlying ApexExecutionOverlayCommands
+        i
       );
     }
     // after adding 5 nodes expect canAddCheckpointNote to be false
@@ -165,12 +177,11 @@ describe('Checkpoint Service - unit', () => {
     expect(checkpointService.canAddCheckpointNote()).to.be.eq(true);
 
     // add the node back and verify false
-    await checkpointService.addCheckpointNode(
+    await checkpointService.getOrCreateCheckpointNode(
       uriInput,
       sourceFileInput,
       typeRefInput,
-      5,
-      false // do not execute the underlying ApexExecutionOverlayCommands
+      5
     );
     expect(checkpointService.canAddCheckpointNote()).to.be.eq(false);
   });
@@ -181,12 +192,11 @@ describe('Checkpoint Service - unit', () => {
   // result means deleting the old one and creating a new one.
   it('CheckpointNode, CheckpointInfoResultNode child tests', async () => {
     const someErrorMessage = 'This is error text';
-    const cpNode = await checkpointService.addCheckpointNode(
+    const cpNode = await checkpointService.getOrCreateCheckpointNode(
       uriInput,
       sourceFileInput,
       typeRefInput,
-      lineInput,
-      false // do not execute the underlying ApexExecutionOverlayCommands
+      lineInput
     );
 
     // The result node is created with either an actionObjectId or an error message. First create one

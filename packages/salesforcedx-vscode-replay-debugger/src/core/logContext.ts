@@ -14,7 +14,7 @@ import {
   LaunchRequestArguments,
   VariableContainer
 } from '../adapter/apexReplayDebug';
-import { BreakpointUtil } from '../breakpoints';
+import { breakpointUtil } from '../breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -174,7 +174,7 @@ export class LogContext {
           signature.substring(0, signature.indexOf('(')).lastIndexOf('.')
         )
       : signature;
-    const typerefMapping = BreakpointUtil.getInstance().getTyperefMapping();
+    const typerefMapping = breakpointUtil.getTyperefMapping();
     let uri = '';
     typerefMapping.forEach((value, key) => {
       let processedKey = '';

@@ -22,12 +22,12 @@ export interface ApexExecutionOverlaySuccessResult {
 export class ApexExecutionOverlayActionCommand extends BaseCommand {
   private readonly apiPath = 'services/data/v43.0/tooling/sobjects';
   private readonly commandName = 'ApexExecutionOverlayAction';
-  // The request string is basically the json string of the argumnets
-  private readonly requestString: string;
+  // The request string is basically the json string of the argumnets, if there are any
+  private readonly requestString: string | undefined;
   private readonly actionObjectId: string | undefined;
 
   public constructor(
-    requestString: string,
+    requestString?: string,
     actionObjectId?: string,
     queryString?: string
   ) {

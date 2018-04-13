@@ -15,6 +15,7 @@ import { BaseCommand } from './baseCommand';
 // anything in the arguments for the call to deal with them.
 export enum RestHttpMethodEnum {
   Delete = 'DELETE',
+  Get = 'GET',
   Post = 'POST'
 }
 

@@ -8,7 +8,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { BreakpointUtil } from './breakpoints/breakpointUtil';
+import { breakpointUtil } from './breakpoints';
 import {
   checkpointService,
   processBreakpointChangedForCheckpoints
@@ -45,18 +45,10 @@ function registerDebugHandlers(): vscode.Disposable {
     async event => {
       if (event && event.session && event.session.type === DEBUGGER_TYPE) {
         if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
-          // Load the breakpoint line info stuff right here. Need to await this, otherwise
-          // we can (and will if they're stored) get breakpoint events before the line
-          // breakpoint information is fully loaded.
-          if (!BreakpointUtil.getInstance().hasLineNumberMapping()) {
-            console.log(
-              'in registerDebugHandlers, getting line breakpoint info'
-            );
-            await retrieveLineBreakpointInfo();
-          }
+          console.log('in registerDebugHandlers, getting line breakpoint info');
           event.session.customRequest(
             LINE_BREAKPOINT_INFO_REQUEST,
-            BreakpointUtil.getInstance().getRawLineBPInfo()
+            breakpointUtil.getRawLineBPInfo()
           );
         }
       }
@@ -84,21 +76,31 @@ export async function activate(context: vscode.ExtensionContext) {
     checkpointsView
   );
 
-  await checkpointService.activateRequestService();
-
-  // Load the breakpoint line info stuff right here. Need to await this, otherwise
-  // we can (and will if they're stored) get breakpoint events before the line
-  // breakpoint information is fully loaded.
-  if (!BreakpointUtil.getInstance().hasLineNumberMapping()) {
-    console.log('in activate, getting line breakpoint info');
-    await retrieveLineBreakpointInfo();
+  console.log('in activate, getting line breakpoint info');
+  if (!await retrieveLineBreakpointInfo()) {
+    console.log(
+      'in activate, did not retrieve line breakpoint info, returning'
+    );
+    // the error was already reported in the function, return
+    return;
   }
+  console.log('in activate, successfully retrieved line breakpoint info');
 
-  // This particular event handler will get called whether or not there
-  // is an active debug session. It is necessary for checkpoints to able to
-  // be created without an active debug session since the information from
-  // them will potentially be used for the reply-debugger session.
-  vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
+  console.log('in activate, activating request service');
+  if (!await checkpointService.activateRequestService()) {
+    console.log('in activate, activating request service failed, returning');
+    // the error was already reported in the function, return
+    return;
+  }
+  console.log('in activate, successfully activated request service');
+
+  const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
+    processBreakpointChangedForCheckpoints
+  );
+  context.subscriptions.push(breakpointsSub);
+  console.log(
+    'in activate, added breakpointsSub to subscriptions, activation complete'
+  );
 }
 
 function getDialogStartingPath(): vscode.Uri | undefined {
@@ -112,7 +114,7 @@ function getDialogStartingPath(): vscode.Uri | undefined {
   }
 }
 
-async function retrieveLineBreakpointInfo() {
+async function retrieveLineBreakpointInfo(): Promise<boolean> {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
@@ -127,24 +129,28 @@ async function retrieveLineBreakpointInfo() {
       i++;
     }
     if (expired) {
-      console.log(
-        'Unable to retrieve breakpoint info from language server, LanguageClient is not ready'
-      );
+      vscode.window.showErrorMessage(nls.localize('language_client_not_ready'));
+      return false;
     } else {
       const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
       if (lineBpInfo && lineBpInfo.length > 0) {
-        console.log('Retrieved line breakpoint info from language server');
-        BreakpointUtil.getInstance().createMappingsFromLineBreakpointInfo(
-          lineBpInfo
+        vscode.window.showInformationMessage(
+          nls.localize('line_breakpoint_information_success')
         );
+        breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
+        return true;
       } else {
-        console.log(
-          'Connected to language server, there was no line breakpoint info to retrieve'
+        vscode.window.showErrorMessage(
+          nls.localize('no_line_breakpoint_information_for_current_project')
         );
+        return true;
       }
     }
   } else {
-    console.log(nls.localize('session_language_server_error_text'));
+    vscode.window.showErrorMessage(
+      nls.localize('session_language_server_error_text')
+    );
+    return false;
   }
 }
 

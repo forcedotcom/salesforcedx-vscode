@@ -22,7 +22,7 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { BreakpointUtil } from '../breakpoints';
+import { breakpointUtil } from '../breakpoints';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
@@ -407,14 +407,14 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
         `setBreakPointsRequest: path=${args.source
-          .path} lines=${BreakpointUtil.getInstance().returnLinesForLoggingFromBreakpointArgs(
+          .path} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
           args.breakpoints
         )}`
       );
       const uri = this.convertClientPathToDebugger(args.source.path);
       this.breakpoints.set(uri, []);
       for (const bp of args.breakpoints) {
-        const isVerified = BreakpointUtil.getInstance().canSetLineBreakpoint(
+        const isVerified = breakpointUtil.canSetLineBreakpoint(
           uri,
           this.convertClientLineToDebugger(bp.line)
         );
@@ -449,9 +449,13 @@ export class ApexReplayDebug extends LoggingDebugSession {
       case LINE_BREAKPOINT_INFO_REQUEST:
         const lineBpInfo = args;
         if (lineBpInfo) {
-          BreakpointUtil.getInstance().createMappingsFromLineBreakpointInfo(
-            lineBpInfo
+          breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
+        } else {
+          this.initializedResponse.success = false;
+          this.initializedResponse.message = nls.localize(
+            'session_language_server_error_text'
           );
+          this.sendResponse(this.initializedResponse);
         }
         if (this.initializedResponse) {
           this.initializedResponse.body = {

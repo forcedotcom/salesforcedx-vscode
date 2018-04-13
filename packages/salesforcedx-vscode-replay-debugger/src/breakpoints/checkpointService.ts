@@ -18,12 +18,17 @@ import {
   TreeItemCollapsibleState
 } from 'vscode';
 import * as vscode from 'vscode';
-import { BreakpointUtil } from '../breakpoints/breakpointUtil';
+import { breakpointUtil } from '../breakpoints';
 import {
   ApexExecutionOverlayActionCommand,
   ApexExecutionOverlayFailureResult,
   ApexExecutionOverlaySuccessResult
 } from '../commands/apexExecutionOverlayActionCommand';
+import {
+  ApexExecutionOverlayActionRecord,
+  QueryExistingOverlayActionIdsCommand,
+  QueryOverlayActionIdsSuccessResult
+} from '../commands/queryExistingOverlayActionIdsCommand';
 import {
   CHECKPOINT,
   DUPLICATE_VALUE,
@@ -56,29 +61,41 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   private _onDidChangeTreeData: EventEmitter<
     BaseNode | undefined
   > = new EventEmitter<BaseNode | undefined>();
-  private myRequestService = RequestService.getInstance();
+  private myRequestService: RequestService;
   private orgInfo: OrgInfo;
   private sfdxProject: string | null = null;
-
-  //  private orgInfo: OrgInfo;
 
   public readonly onDidChangeTreeData: Event<BaseNode | undefined> = this
     ._onDidChangeTreeData.event;
 
   public constructor() {
     this.checkpoints = [];
+    this.myRequestService = new RequestService();
   }
 
   // This should be called when the project info changes
-  public async activateRequestService() {
+  public async activateRequestService(): Promise<boolean> {
     if (
       vscode.workspace.workspaceFolders &&
       vscode.workspace.workspaceFolders[0]
     ) {
       this.sfdxProject = vscode.workspace.workspaceFolders[0].uri.fsPath;
-      this.orgInfo = await new ForceOrgDisplay().getOrgInfo(this.sfdxProject);
+      try {
+        this.orgInfo = await new ForceOrgDisplay().getOrgInfo(this.sfdxProject);
+      } catch (error) {
+        console.log(error);
+      }
       this.myRequestService.instanceUrl = this.orgInfo.instanceUrl;
       this.myRequestService.accessToken = this.orgInfo.accessToken;
+      if (!await this.clearExistingCheckpoints()) {
+        return false;
+      }
+      return true;
+    } else {
+      vscode.window.showErrorMessage(
+        nls.localize('cannot_determine_workspace')
+      );
+      return false;
     }
   }
 
@@ -107,16 +124,12 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     return this.getChildren().length < MAX_ALLOWED_CHECKPOINTS;
   }
 
-  public async addCheckpointNode(
+  public async getOrCreateCheckpointNode(
     uriInput: string,
     sourceFileInput: string,
     typeRefInput: string,
-    lineInput: number,
-    makeCommandCall = true
+    lineInput: number
   ): Promise<CheckpointNode> {
-    // Before creating a new checkpoint node, check and see if one with the
-    // URI and line number already exists. If one already exists then return
-    // that one, otherwise create one, add it to the list and then return it
     const cpTemp = this.returnCheckpointNodeIfAlreadyExists(
       uriInput,
       lineInput
@@ -130,41 +143,32 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       typeRefInput,
       lineInput
     );
-    // This is here for testing purposes. The command is being tested separately
-    if (makeCommandCall === true) {
-      await this.executeCreateApexExecutionOverlayActionCommand(cpNode);
-    }
+    await this.executeCreateApexExecutionOverlayActionCommand(cpNode);
     this.checkpoints.push(cpNode);
     this._onDidChangeTreeData.fire();
     return cpNode;
   }
 
-  // For checkpoints, there should only ever be one checkpoint for a given uri/line
-  // combination. ApexExecutionOverlayAction will not allow multiple actions for the
-  // same type/line.
   private returnCheckpointNodeIfAlreadyExists(
     uriInput: string,
     lineInput: number
   ): CheckpointNode | undefined {
     for (const cp of this.checkpoints) {
-      if (cp.getCheckpointLineNumber() === lineInput) {
-        if (
-          cp.getCheckpointUri().toLocaleLowerCase() ===
+      if (
+        cp.getCheckpointLineNumber() === lineInput &&
+        cp.getCheckpointUri().toLocaleLowerCase() ===
           uriInput.toLocaleLowerCase()
-        ) {
-          return cp;
-        }
+      ) {
+        return cp;
       }
     }
-    // If we didn't find anything then just return undefined
     return undefined;
   }
 
   public async deleteCheckpointNode(
     uriInput: string,
-    lineInput: number,
-    makeCommandCall = true
-  ): Promise<boolean> {
+    lineInput: number
+  ): Promise<void> {
     const cpNode = this.returnCheckpointNodeIfAlreadyExists(
       uriInput,
       lineInput
@@ -174,18 +178,14 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       if (index > -1) {
         this.checkpoints.splice(index, 1);
         this._onDidChangeTreeData.fire();
-        if (makeCommandCall === true) {
-          await this.executeRemoveApexExecutionOverlayActionCommand(cpNode);
-        }
-        return true;
+        await this.executeRemoveApexExecutionOverlayActionCommand(cpNode);
       }
     }
-    return false;
   }
 
   // recreateIfDupe defaults to true, when the recurisve call is made
   // this is set to false to prevent
-  private async executeCreateApexExecutionOverlayActionCommand(
+  public async executeCreateApexExecutionOverlayActionCommand(
     theNode: CheckpointNode,
     recreateIfDupe = true
   ) {
@@ -210,9 +210,10 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         returnString
       ) as ApexExecutionOverlaySuccessResult;
       theNode.setActionCommandResult(result.id, undefined);
+      return;
     }
     // Failure could mean that there is already an entry with the same the criteria.
-    // If that's the case then passe the Id out, delete it and recreate it.
+    // If that's the case then pase the Id out, delete it and recreate it.
     // Fun fact: the result is an array of 1 item
     // "[{"message":"duplicate value found: ScopeId duplicates value on record with id: 1doxx00000000Pn","errorCode":"DUPLICATE_VALUE","fields":[]}]"
     if (errorString) {
@@ -242,7 +243,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     }
   }
 
-  private async executeRemoveApexExecutionOverlayActionCommand(
+  public async executeRemoveApexExecutionOverlayActionCommand(
     theNode: CheckpointNode
   ) {
     const actionCommandResultId = theNode.getActionCommandResultId();
@@ -260,11 +261,86 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         .then(reason => {
           errorString = reason;
         });
-      // There's not a lot that can be done here. At this point give the user the error message
-      // that was returned from the AppServer.
       if (errorString) {
-        vscode.window.showErrorMessage(errorString);
+        vscode.window.showErrorMessage(
+          nls.localize('cannot_delete_existing_checkpoint')
+        );
       }
+    }
+  }
+
+  // Make VS Code the source of truth for checkpoints
+  public async clearExistingCheckpoints(): Promise<boolean> {
+    const sfdxCore = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-core'
+    );
+    if (sfdxCore && sfdxCore.exports) {
+      const userId = await sfdxCore.exports.getUserId(this.sfdxProject);
+      if (userId) {
+        const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
+        let errorString = undefined;
+        let returnString = undefined;
+        await this.myRequestService
+          .execute(queryCommand, RestHttpMethodEnum.Get)
+          .then(
+            value => {
+              returnString = value;
+            },
+            reason => {
+              errorString = reason;
+            }
+          );
+        if (returnString) {
+          const successResult = JSON.parse(
+            returnString
+          ) as QueryOverlayActionIdsSuccessResult;
+          if (successResult) {
+            for (const record of successResult.records) {
+              const deleteCommand = new ApexExecutionOverlayActionCommand(
+                undefined,
+                record.Id
+              );
+              let deleteError = undefined;
+              await this.myRequestService
+                .execute(deleteCommand, RestHttpMethodEnum.Delete)
+                .then(reason => {
+                  deleteError = reason;
+                });
+              // There's not a lot that can be done here. At this point give the user the error message
+              // that was returned from the AppServer.
+              if (deleteError) {
+                vscode.window.showErrorMessage(
+                  nls.localize('cannot_delete_existing_overlay_action')
+                );
+                return false;
+              }
+            }
+            return true;
+          } else {
+            vscode.window.showErrorMessage(
+              nls.localize('unable_to_parse_checkpoint_query_result')
+            );
+            return false;
+          }
+        } else {
+          vscode.window.showErrorMessage(
+            nls.localize('unable_to_query_for_existing_checkpoints') +
+              ' Error: ' +
+              errorString
+          );
+          return false;
+        }
+      } else {
+        vscode.window.showErrorMessage(
+          nls.localize('unable_to_retrieve_active_user_for_sfdx_project')
+        );
+        return false;
+      }
+    } else {
+      vscode.window.showErrorMessage(
+        nls.localize('unable_to_load_vscode_core_extension')
+      );
+      return false;
     }
   }
 }
@@ -340,6 +416,18 @@ export class CheckpointNode extends BaseNode {
     return undefined;
   }
 
+  public getActionCommandFailureMessage(): string | undefined {
+    // Look for an CheckpointInfoResultNode on the child nodes and
+    // return its id (which will be set or undefined) or undefined
+    // if there isn't one
+    for (const cpInfoNode of this.getChildren()) {
+      if (cpInfoNode instanceof CheckpointInfoResultNode) {
+        return cpInfoNode.getActionObjectFailureMessage();
+      }
+    }
+    return undefined;
+  }
+
   public setActionCommandResult(
     actionObjectId: string | undefined,
     actionObjectFailureMessage: string | undefined
@@ -370,22 +458,6 @@ export class CheckpointInfoNode extends BaseNode {
   }
 }
 
-// Specialty node defintions. These are for nodes that the user will be capable of changing the values
-// for. There are 3 different specialy CheckpointInfoNode value types:
-// CheckpointInfoActionScriptNode: holds the action script (string)
-// CheckpointInfoActionScriptTypeNode: holds the type of action script (ActionScriptType enum)
-// CheckpointInfoIterationsNode: holds the number of iterations (integer)
-// The reason for creating these would be to add specific validations when the fields are made editable
-// (as opposed to storing things on generic CheckpointInfoNodes with an Any type attribute).
-// The checkpointOverlayAction attibutes that are stored on these 3 CheckpointInfoNodes are
-// the same one stored on the parent. Any changes to these will be reflected when the
-// ApexExecutionOverlayAction is accessed to create the JSON string for the ApexExecutionOverlayAction
-// command calls.
-// The last CheckpointInfoNode type, CheckpointInfoResultNode, was created to store/show the results
-// of the ApexExecutionOverlayActionCommand output, the Id when successful or the error message otherwise.
-// Note: Dupes are currently being recreated and the processing here shouldn't allow more than 5 checkpoints
-// be created (the max allowed). Realistically, this should only hold the Id of the checkpoint unless
-// something goes completely sideways.
 // Remove the tags when the nodes using the checkpointOverlayAction become editable.
 /* tslint:disable */
 export class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
@@ -457,64 +529,9 @@ export class CheckpointInfoResultNode extends CheckpointInfoNode {
   }
 }
 
-// The BreakpointsChangeEvent has 3 different arrays, added, changed and removed.
-// These, in theory, should be SouceBreakpoint events for checkpoints which is the
-// only type of breakpoint that is going to be processed in here. There are a couple
-// of things that should be noted about the Breakpoint and SourceBreakpoint classes.
-// The file location that matches our URI from the SourceBreakpoint is the encoded URI
-// string from Location.Uri.toString(false /*skipEncoding*/). It'll have same format as the
-// URI is the setBreakPointsRequest in apexReplayDebug.ts. The line number is also in the
-// location and started as a range. Pull the line number from Location.Range.Start.Line but
-// add 1 because those lines are 0 based.
-// breakpointsChangedEvent.added:
-// This event fires with items in the added array when the extensions are first launched
-// if there were breakpoints in the loaded project. The checkpoints will be entirely empty
-// at that point and time so they need to be populated.
-// breakpointsChangedEvent.changed:
-// The event fires with a list of changed breakpoint events at project shutdown even though
-// nothing in those events has actually changed. Currently the changed event is ignored.
-// breakpointsChangedEvent.removed:
-// The removed events are only going to fire when something is actually removed so unlike
-// the added event there's no ambiguity there
 export async function processBreakpointChangedForCheckpoints(
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): Promise<void> {
-  const breakpointsToRemove: vscode.Breakpoint[] = [];
-  for (const bp of breakpointsChangedEvent.added) {
-    if (
-      bp.enabled &&
-      bp.condition &&
-      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0
-    ) {
-      if (!checkpointService.canAddCheckpointNote()) {
-        breakpointsToRemove.push(bp);
-        continue; // go on to the next iteration
-      }
-      if (bp instanceof vscode.SourceBreakpoint) {
-        const uri = bp.location.uri.toString(false /* skipEncoding */);
-        const typeRef = BreakpointUtil.getInstance().getTopLevelTyperefForUri(
-          uri
-        );
-        const filename = uri.substring(uri.lastIndexOf('/') + 1);
-        await checkpointService.addCheckpointNode(
-          uri,
-          filename,
-          typeRef,
-          bp.location.range.start.line + 1 // need to add 1 since the lines are 0 based
-        );
-      }
-    }
-  }
-  // breakpointsToRemove will be empty unless the user tried to add more than 5 checkpoints.
-  // Call showErrorMessage to dispaly the error message once and remove the breakpoints.
-  // Unfortunately, calling delete below is going to mean that this event handler is going to
-  // get called for the delete.
-  if (breakpointsToRemove.length > 0) {
-    vscode.window.showErrorMessage(nls.localize('up_to_five_checkpoints'));
-    vscode.debug.removeBreakpoints(breakpointsToRemove);
-  }
-
-  // The remove always needs to call delete to get rid of the checkpoint.
   for (const bp of breakpointsChangedEvent.removed) {
     if (
       bp.enabled &&
@@ -522,16 +539,57 @@ export async function processBreakpointChangedForCheckpoints(
       bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0
     ) {
       if (bp instanceof vscode.SourceBreakpoint) {
-        // deleteCheckpointNode checks whether or not the checkpoint with the matching
-        // URI/Line combo exists before trying to delete it. This matters because of the
-        // breakpointsToRemove above. If there user tries to add more than 5, they need to
-        // be removed and the fact that the condition is readonly and can't be changed means
-        // the removeBreakpoints call on that list will end up going through this codepath
         await checkpointService.deleteCheckpointNode(
           bp.location.uri.toString(false /* skipEncoding */),
           bp.location.range.start.line + 1 // need to add 1 since the lines are 0 based
         );
       }
     }
+  }
+
+  const breakpointsToRemove: vscode.Breakpoint[] = [];
+  let overTheLimit: Boolean = false;
+  for (const bp of breakpointsChangedEvent.added) {
+    if (
+      bp.enabled &&
+      bp.condition &&
+      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0
+    ) {
+      if (!checkpointService.canAddCheckpointNote()) {
+        overTheLimit = true;
+        breakpointsToRemove.push(bp);
+        continue; // go on to the next iteration
+      }
+      if (bp instanceof vscode.SourceBreakpoint) {
+        const uri = bp.location.uri.toString(false /* skipEncoding */);
+        const typeRef = breakpointUtil.getTopLevelTyperefForUri(uri);
+        const filename = uri.substring(uri.lastIndexOf('/') + 1);
+        const theNode = await checkpointService.getOrCreateCheckpointNode(
+          uri,
+          filename,
+          typeRef,
+          bp.location.range.start.line + 1 // need to add 1 since the lines are 0 based
+        );
+        const errorMessage = theNode.getActionCommandFailureMessage();
+        if (errorMessage) {
+          vscode.window.showErrorMessage(
+            nls.localize('unable_to_create_checkpoint') +
+              ' Error: ' +
+              errorMessage
+          );
+        }
+      }
+    }
+  }
+
+  // breakpointsToRemove will be empty unless we're over the limit (more than 5 checkpoints) or
+  // there was a failure creating a checkpoint. If there's a failure creating the checkpoint that
+  // error message will already have been showne to the user. If we're over the limit then that
+  // message needs to be displayed. overTheLimit is used to the error is only displayed once
+  if (breakpointsToRemove.length > 0) {
+    if (overTheLimit) {
+      vscode.window.showErrorMessage(nls.localize('up_to_five_checkpoints'));
+    }
+    vscode.debug.removeBreakpoints(breakpointsToRemove);
   }
 }

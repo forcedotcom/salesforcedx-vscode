@@ -71,13 +71,7 @@ export class BreakpointUtil {
   public returnLinesForLoggingFromBreakpointArgs(
     bpArr: DebugProtocol.SourceBreakpoint[]
   ): string {
-    let returnVal = '';
-
-    for (let i = 0; i < bpArr.length - 2; i++) {
-      returnVal += bpArr[i].line + ',';
-    }
-    returnVal += bpArr[bpArr.length - 1].line;
-    return returnVal;
+    return bpArr.map(bp => bp.line).join(',');
   }
 
   public getTopLevelTyperefForUri(uriInput: string): string {
