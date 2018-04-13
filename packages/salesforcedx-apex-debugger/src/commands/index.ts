@@ -6,6 +6,7 @@
  */
 
 export { BaseCommand } from './baseCommand';
+export { ForceConfigGet } from './forceConfigGet';
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export { FrameCommand } from './frameCommand';
 export * from './protocol';

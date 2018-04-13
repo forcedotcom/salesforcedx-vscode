@@ -6,13 +6,13 @@
  */
 
 import * as path from 'path';
-import { Handles, StackFrame, Variable } from 'vscode-debugadapter';
+import { Handles, StackFrame } from 'vscode-debugadapter';
 import {
   ApexDebugStackFrameInfo,
   ApexReplayDebug,
-  ApexVariable,
+  ApexVariableContainer,
   LaunchRequestArguments,
-  ScopeContainer
+  VariableContainer
 } from '../adapter/apexReplayDebug';
 import { BreakpointUtil } from '../breakpoints';
 import {
@@ -53,12 +53,12 @@ export class LogContext {
   private readonly logLines: string[] = [];
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
-  private scopeHandles = new Handles<ScopeContainer>();
   private staticVariablesClassMap = new Map<
     String,
-    Map<String, ApexVariable>
+    Map<String, ApexVariableContainer>
   >();
-  private variableHandles = new Handles<ApexVariable>();
+  private refsMap = new Map<String, ApexVariableContainer>();
+  private variableHandles = new Handles<ApexVariableContainer>();
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
@@ -129,7 +129,14 @@ export class LogContext {
     }
   }
 
-  public getStaticVariablesClassMap(): Map<String, Map<String, Variable>> {
+  public getRefsMap(): Map<String, ApexVariableContainer> {
+    return this.refsMap;
+  }
+
+  public getStaticVariablesClassMap(): Map<
+    String,
+    Map<String, VariableContainer>
+  > {
     return this.staticVariablesClassMap;
   }
 
@@ -137,11 +144,7 @@ export class LogContext {
     return this.frameHandles;
   }
 
-  public getScopeHandler(): Handles<ScopeContainer> {
-    return this.scopeHandles;
-  }
-
-  public getVariableHandler(): Handles<ApexVariable> {
+  public getVariableHandler(): Handles<VariableContainer> {
     return this.variableHandles;
   }
 
@@ -166,7 +169,10 @@ export class LogContext {
       return this.getLogFilePath();
     }
     const processedSignature = signature.endsWith(')')
-      ? signature.substring(0, signature.lastIndexOf('.'))
+      ? signature.substring(
+          0,
+          signature.substring(0, signature.indexOf('(')).lastIndexOf('.')
+        )
       : signature;
     const typerefMapping = BreakpointUtil.getInstance().getTyperefMapping();
     let uri = '';

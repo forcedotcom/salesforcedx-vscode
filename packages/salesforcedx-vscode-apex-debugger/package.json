@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.10.0",
+  "version": "42.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,7 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "42.10.0",
+    "@salesforce/salesforcedx-apex-debugger": "42.11.0",
     "vscode-debugprotocol": "1.28.0"
   },
   "devDependencies": {
@@ -150,6 +150,11 @@
                 "type": ["boolean", "string"],
                 "description": "%trace_text%",
                 "default": false
+              },
+              "connectType": {
+                "type": "string",
+                "description": "%connect_type_text%",
+                "enum": ["DEFAULT", "ISV_DEBUGGER"]
               }
             }
           }

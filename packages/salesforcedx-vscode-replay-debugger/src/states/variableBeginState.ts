@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexVariable } from '../adapter/apexReplayDebug';
+import {
+  ApexVariableContainer,
+  VariableContainer
+} from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
@@ -27,7 +30,7 @@ export class VariableBeginState implements DebugLogState {
       if (!logContext.getStaticVariablesClassMap().has(className)) {
         logContext
           .getStaticVariablesClassMap()
-          .set(className, new Map<String, ApexVariable>());
+          .set(className, new Map<String, VariableContainer>());
       }
       const statics = logContext.getStaticVariablesClassMap().get(className)!;
       if (isStatic) {
@@ -37,9 +40,15 @@ export class VariableBeginState implements DebugLogState {
           varNameSplit.length > 1
             ? varNameSplit[varNameSplit.length - 1]
             : name;
-        statics.set(name, new ApexVariable(varName, '', type));
+        statics.set(name, new ApexVariableContainer(varName, 'null', type));
       } else {
-        frameInfo.locals.set(name, new ApexVariable(name, '', type));
+        // had to add this check because triggers will have variable assignments show up twice and break this
+        if (!frameInfo.locals.has(name)) {
+          frameInfo.locals.set(
+            name,
+            new ApexVariableContainer(name, 'null', type)
+          );
+        }
       }
     }
 

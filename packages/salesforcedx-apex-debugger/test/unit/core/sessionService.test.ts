@@ -10,13 +10,14 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
 import childProcess = require('child_process');
+import { RequestService } from '../../../src/commands';
 
 describe('Debugger session service', () => {
   let service: SessionService;
   const mockSpawn = require('mock-spawn');
 
   beforeEach(() => {
-    service = new SessionService();
+    service = new SessionService(new RequestService());
   });
 
   describe('Helpers', () => {
