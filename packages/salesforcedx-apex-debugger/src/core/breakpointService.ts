@@ -18,7 +18,6 @@ import {
 import { RequestService } from '../commands';
 
 export class BreakpointService {
-  private static instance: BreakpointService;
   private lineNumberMapping: Map<
     string,
     LineBreakpointsInTyperef[]
@@ -29,12 +28,10 @@ export class BreakpointService {
     ApexBreakpointLocation[]
   > = new Map();
   private exceptionBreakpointCache: Map<string, string> = new Map();
+  private readonly requestService: RequestService;
 
-  public static getInstance() {
-    if (!BreakpointService.instance) {
-      BreakpointService.instance = new BreakpointService();
-    }
-    return BreakpointService.instance;
+  constructor(requestService: RequestService) {
+    this.requestService = requestService;
   }
 
   public setValidLines(
@@ -128,7 +125,7 @@ export class BreakpointService {
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
-      { cwd: projectPath, env: RequestService.getEnvVars() }
+      { cwd: projectPath, env: this.requestService.getEnvVars() }
     ).execute();
 
     const cmdOutput = new CommandOutput();
@@ -157,7 +154,7 @@ export class BreakpointService {
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
-      { cwd: projectPath, env: RequestService.getEnvVars() }
+      { cwd: projectPath, env: this.requestService.getEnvVars() }
     ).execute();
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
@@ -244,7 +241,7 @@ export class BreakpointService {
         .withArg('--usetoolingapi')
         .withArg('--json')
         .build(),
-      { cwd: projectPath, env: RequestService.getEnvVars() }
+      { cwd: projectPath, env: this.requestService.getEnvVars() }
     ).execute();
 
     const cmdOutput = new CommandOutput();

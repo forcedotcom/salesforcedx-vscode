@@ -127,18 +127,21 @@ export class StreamingClient {
 
   public constructor(
     url: string,
-    accessToken: string,
+    requestService: RequestService,
     clientInfo: StreamingClientInfo
   ) {
     this.clientInfo = clientInfo;
     this.client = new FayeClient(url, {
       timeout: this.clientInfo.timeout,
       proxy: {
-        origin: RequestService.getInstance().proxyUrl,
-        auth: RequestService.getInstance().proxyAuthorization
+        origin: requestService.proxyUrl,
+        auth: requestService.proxyAuthorization
       }
     });
-    this.client.setHeader('Authorization', `OAuth ${accessToken}`);
+    this.client.setHeader(
+      'Authorization',
+      `OAuth ${requestService.accessToken}`
+    );
     this.client.setHeader('Content-Type', 'application/json');
   }
 

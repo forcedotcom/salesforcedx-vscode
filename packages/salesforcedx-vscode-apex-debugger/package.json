@@ -150,6 +150,11 @@
                 "type": ["boolean", "string"],
                 "description": "%trace_text%",
                 "default": false
+              },
+              "connectType": {
+                "type": "string",
+                "description": "%connect_type_text%",
+                "enum": ["DEFAULT", "ISV_DEBUGGER"]
               }
             }
           }

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { RequestService } from '../commands/requestService';
 import {
   ApexDebuggerEventType,
   StreamingClient,
@@ -72,22 +73,21 @@ export class StreamingService {
 
   public async subscribe(
     projectPath: string,
-    instanceUrl: string,
-    accessToken: string,
+    requestService: RequestService,
     systemEventClientInfo: StreamingClientInfo,
     userEventClientInfo: StreamingClientInfo
   ): Promise<boolean> {
-    const urlElements = [instanceUrl, 'cometd', this.apiVersion];
+    const urlElements = [requestService.instanceUrl, 'cometd', this.apiVersion];
     const streamUrl = urlElements.join('/');
 
     this.systemEventClient = new StreamingClient(
       streamUrl,
-      accessToken,
+      requestService,
       systemEventClientInfo
     );
     this.userEventClient = new StreamingClient(
       streamUrl,
-      accessToken,
+      requestService,
       userEventClientInfo
     );
 

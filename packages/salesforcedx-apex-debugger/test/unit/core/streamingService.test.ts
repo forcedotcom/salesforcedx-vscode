@@ -15,9 +15,13 @@ import {
   StreamingService
 } from '../../../src/core';
 import childProcess = require('child_process');
+import { RequestService } from '../../../src/commands';
 
 describe('Debugger streaming service', () => {
   const mockSpawn = require('mock-spawn');
+  const requestService = new RequestService();
+  requestService.instanceUrl = 'https://www.salesforce.com';
+  requestService.accessToken = '123';
 
   describe('Subscribe', () => {
     let service: StreamingService;
@@ -68,8 +72,7 @@ describe('Debugger streaming service', () => {
 
       const isStreamingConnected = await service.subscribe(
         'foo',
-        'https://www.salesforce.com',
-        '123',
+        requestService,
         new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
@@ -83,8 +86,7 @@ describe('Debugger streaming service', () => {
 
       const isStreamingConnected = await service.subscribe(
         'foo',
-        'https://www.salesforce.com',
-        '123',
+        requestService,
         new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
@@ -126,8 +128,7 @@ describe('Debugger streaming service', () => {
     it('Should call streaming client disconnect', async () => {
       await service.subscribe(
         'foo',
-        'https://www.salesforce.com',
-        '123',
+        requestService,
         new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
@@ -167,8 +168,7 @@ describe('Debugger streaming service', () => {
         .returns(false);
       await service.subscribe(
         'foo',
-        'https://www.salesforce.com',
-        '123',
+        requestService,
         new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
@@ -182,8 +182,7 @@ describe('Debugger streaming service', () => {
         .returns(true);
       await service.subscribe(
         'foo',
-        'https://www.salesforce.com',
-        '123',
+        requestService,
         new StreamingClientInfoBuilder().build(),
         new StreamingClientInfoBuilder().build()
       );
@@ -213,8 +212,7 @@ describe('Debugger streaming service', () => {
         .returns(true);
       await service.subscribe(
         'foo',
-        'https://www.salesforce.com',
-        '123',
+        requestService,
         systemEventClient,
         userEventClient
       );
@@ -364,8 +362,7 @@ describe('Debugger streaming service', () => {
       );
       await service.subscribe(
         'foo',
-        'https://www.salesforce.com',
-        '123',
+        requestService,
         systemEventClient,
         userEventClient
       );
