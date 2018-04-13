@@ -62,7 +62,7 @@ test_script:
       }
       # Fail script in case of test failures
       if($NpmTestsExitCode -ne 0) {
-        $Error | Format-List * -Force
+        #$Error | Format-List * -Force
         exit $NpmTestsExitCode
       }
   - npm run coverage:system-tests
