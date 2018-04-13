@@ -165,7 +165,10 @@ export class LogContext {
       return this.getLogFilePath();
     }
     const processedSignature = signature.endsWith(')')
-      ? signature.substring(0, signature.lastIndexOf('.'))
+      ? signature.substring(
+          0,
+          signature.substring(0, signature.indexOf('(')).lastIndexOf('.')
+        )
       : signature;
     const typerefMapping = this.session.getBreakpointUtil().getTyperefMapping();
     let uri = '';
