@@ -33,6 +33,7 @@ import {
 } from '../breakpoints/lineBreakpoint';
 import {
   DebuggerResponse,
+  ForceConfigGet,
   ForceOrgDisplay,
   FrameCommand,
   LocalValue,
@@ -90,13 +91,17 @@ const TRACE_CATEGORY_VARIABLES = 'variables';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_PROTOCOL = 'protocol';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
+const TRACE_CATEGORY_STREAMINGAPI = 'streaming';
+
+const CONNECT_TYPE_ISV_DEBUGGER = 'ISV_DEBUGGER';
 
 export type TraceCategory =
   | 'all'
   | 'variables'
   | 'launch'
   | 'protocol'
-  | 'breakpoints';
+  | 'breakpoints'
+  | 'streaming';
 
 export interface LaunchRequestArguments
   extends DebugProtocol.LaunchRequestArguments {
@@ -106,6 +111,7 @@ export interface LaunchRequestArguments
   requestTypeFilter?: string[];
   entryPointFilter?: string;
   sfdxProject: string;
+  connectType?: string;
 }
 
 export interface SetExceptionBreakpointsArguments {
@@ -517,12 +523,11 @@ export class MapTupleContainer implements VariableContainer {
 }
 
 export class ApexDebug extends LoggingDebugSession {
-  protected mySessionService = SessionService.getInstance();
-  protected myBreakpointService = BreakpointService.getInstance();
+  protected myRequestService = new RequestService();
+  protected mySessionService = new SessionService(this.myRequestService);
+  protected myBreakpointService = new BreakpointService(this.myRequestService);
   protected myStreamingService = StreamingService.getInstance();
-  protected myRequestService = RequestService.getInstance();
   protected sfdxProject: string;
-  protected orgInfo: OrgInfo;
   protected requestThreads: Map<number, string>;
   protected threadId: number;
 
@@ -659,14 +664,33 @@ export class ApexDebug extends LoggingDebugSession {
     }
 
     try {
-      this.orgInfo = await new ForceOrgDisplay().getOrgInfo(args.sfdxProject);
-      this.myRequestService.instanceUrl = this.orgInfo.instanceUrl;
-      this.myRequestService.accessToken = this.orgInfo.accessToken;
+      if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
+        const forceConfig = await new ForceConfigGet().getConfig(
+          args.sfdxProject,
+          'isvDebuggerSid',
+          'isvDebuggerUrl'
+        );
+        const isvDebuggerSid = forceConfig.get('isvDebuggerSid');
+        const isvDebuggerUrl = forceConfig.get('isvDebuggerUrl');
+        if (
+          typeof isvDebuggerSid === 'undefined' ||
+          typeof isvDebuggerUrl === 'undefined'
+        ) {
+          response.message = nls.localize('invalid_isv_project_config');
+          return this.sendResponse(response);
+        }
+        this.myRequestService.instanceUrl = isvDebuggerUrl;
+        this.myRequestService.accessToken = isvDebuggerSid;
+      } else {
+        const orgInfo = await new ForceOrgDisplay().getOrgInfo(
+          args.sfdxProject
+        );
+        this.myRequestService.instanceUrl = orgInfo.instanceUrl;
+        this.myRequestService.accessToken = orgInfo.accessToken;
+      }
 
       const isStreamingConnected = await this.connectStreaming(
-        args.sfdxProject,
-        this.orgInfo.instanceUrl,
-        this.orgInfo.accessToken
+        args.sfdxProject
       );
       if (!isStreamingConnected) {
         return this.sendResponse(response);
@@ -1481,11 +1505,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public async connectStreaming(
-    projectPath: string,
-    instanceUrl: string,
-    accessToken: string
-  ): Promise<boolean> {
+  public async connectStreaming(projectPath: string): Promise<boolean> {
     const clientInfos: StreamingClientInfo[] = [];
     for (const channel of [
       StreamingService.SYSTEM_EVENT_CHANNEL,
@@ -1520,8 +1540,7 @@ export class ApexDebug extends LoggingDebugSession {
 
     return this.myStreamingService.subscribe(
       projectPath,
-      instanceUrl,
-      accessToken,
+      this.myRequestService,
       systemChannelInfo,
       userChannelInfo
     );
@@ -1531,11 +1550,16 @@ export class ApexDebug extends LoggingDebugSession {
     const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[
       message.sobject.Type
     ];
+    this.log(
+      TRACE_CATEGORY_STREAMINGAPI,
+      `handleEvent: received ${JSON.stringify(message)}`
+    );
     if (
       !this.mySessionService.isConnected() ||
       this.mySessionService.getSessionId() !== message.sobject.SessionId ||
       this.myStreamingService.hasProcessedEvent(type, message.event.replayId)
     ) {
+      this.log(TRACE_CATEGORY_STREAMINGAPI, `handleEvent: event ignored`);
       return;
     }
     switch (type) {

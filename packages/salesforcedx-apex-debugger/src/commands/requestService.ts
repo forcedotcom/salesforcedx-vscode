@@ -10,7 +10,6 @@ import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS } from '../constants';
 import { BaseCommand } from './baseCommand';
 
 export class RequestService {
-  private static instance: RequestService;
   private _instanceUrl: string;
   private _accessToken: string;
   private _proxyUrl: string;
@@ -18,19 +17,20 @@ export class RequestService {
   private _proxyAuthorization: string;
   private _connectionTimeoutMs: number;
 
-  public static getInstance() {
-    if (!RequestService.instance) {
-      RequestService.instance = new RequestService();
-    }
-    return RequestService.instance;
-  }
-
-  public static getEnvVars(): any {
+  public getEnvVars(): any {
     const envVars = Object.assign({}, process.env);
-    const proxyUrl = RequestService.getInstance().proxyUrl;
+    const proxyUrl = this.proxyUrl;
     if (proxyUrl) {
       envVars['HTTP_PROXY'] = proxyUrl;
       envVars['HTTPS_PROXY'] = proxyUrl;
+    }
+    const instanceUrl = this.instanceUrl;
+    if (instanceUrl) {
+      envVars['SFDX_INSTANCE_URL'] = instanceUrl;
+    }
+    const sid = this.accessToken;
+    if (sid) {
+      envVars['SFDX_DEFAULTUSERNAME'] = sid;
     }
     return envVars;
   }
