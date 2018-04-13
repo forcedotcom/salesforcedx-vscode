@@ -63,24 +63,32 @@ export interface LaunchRequestArguments
 
 export class ApexVariable extends Variable {
   public type: string;
-  public constructor(name: string, value: string, type: string) {
-    super(name, value);
+  public apexRef: string | undefined;
+  public constructor(
+    name: string,
+    value: string,
+    type: string,
+    ref = 0,
+    apexRef?: string
+  ) {
+    super(name, value, ref);
     this.type = type;
+    this.apexRef = apexRef;
   }
 }
 
 export class ApexDebugStackFrameInfo {
   public readonly frameNumber: number;
   public readonly signature: string;
-  public globals: Map<String, Variable>;
-  public statics: Map<String, Variable>;
-  public locals: Map<String, Variable>;
+  public globals: Map<String, VariableContainer>;
+  public statics: Map<String, VariableContainer>;
+  public locals: Map<String, VariableContainer>;
   public constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
     this.signature = signature;
-    this.globals = new Map<String, Variable>();
-    this.statics = new Map<String, Variable>();
-    this.locals = new Map<String, Variable>();
+    this.globals = new Map<String, VariableContainer>();
+    this.statics = new Map<String, VariableContainer>();
+    this.locals = new Map<String, VariableContainer>();
   }
 }
 
@@ -90,13 +98,69 @@ export enum SCOPE_TYPES {
   GLOBAL = 'global'
 }
 
-export class ScopeContainer {
-  public readonly type: SCOPE_TYPES;
-  public readonly variables: ApexVariable[];
+export abstract class VariableContainer {
+  public variables: Map<String, VariableContainer>;
 
-  public constructor(type: SCOPE_TYPES, variables: ApexVariable[]) {
-    this.type = type;
+  public constructor(
+    variables: Map<String, VariableContainer> = new Map<
+      String,
+      VariableContainer
+    >()
+  ) {
     this.variables = variables;
+  }
+
+  public getAllVariables(): ApexVariable[] {
+    const result: ApexVariable[] = [];
+    this.variables.forEach(container => {
+      const avc = container as ApexVariableContainer;
+      result.push(
+        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
+      );
+    });
+    return result;
+  }
+}
+
+export class ApexVariableContainer extends VariableContainer {
+  public name: string;
+  public value: string;
+  public readonly type: string;
+  public variablesRef: number;
+  public constructor(
+    name: string,
+    value: string,
+    type: string,
+    ref: number = 0
+  ) {
+    super();
+    this.name = name;
+    this.value = value;
+    this.type = type;
+    this.variablesRef = ref;
+  }
+}
+
+export class ScopeContainer extends VariableContainer {
+  public readonly type: SCOPE_TYPES;
+
+  public constructor(
+    type: SCOPE_TYPES,
+    variables: Map<String, VariableContainer>
+  ) {
+    super(variables);
+    this.type = type;
+  }
+
+  public getAllVariables(): ApexVariable[] {
+    const apexVariables: ApexVariable[] = [];
+    this.variables.forEach(entry => {
+      const avc = entry as ApexVariableContainer;
+      apexVariables.push(
+        new ApexVariable(avc.name, avc.value, avc.type, avc.variablesRef)
+      );
+    });
+    return apexVariables;
   }
 }
 
@@ -239,12 +303,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
       new Scope(
         'Local',
         this.logContext
-          .getScopeHandler()
-          .create(
-            new ScopeContainer(SCOPE_TYPES.LOCAL, Array.from(
-              frameInfo.locals.values()
-            ) as ApexVariable[])
-          ),
+          .getVariableHandler()
+          .create(new ScopeContainer(SCOPE_TYPES.LOCAL, frameInfo.locals)),
         false
       )
     );
@@ -252,25 +312,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
       new Scope(
         'Static',
         this.logContext
-          .getScopeHandler()
-          .create(
-            new ScopeContainer(SCOPE_TYPES.STATIC, Array.from(
-              frameInfo.statics.values()
-            ) as ApexVariable[])
-          ),
-        false
-      )
-    );
-    scopes.push(
-      new Scope(
-        'Global',
-        this.logContext
-          .getScopeHandler()
-          .create(
-            new ScopeContainer(SCOPE_TYPES.GLOBAL, Array.from(
-              frameInfo.globals.values()
-            ) as ApexVariable[])
-          ),
+          .getVariableHandler()
+          .create(new ScopeContainer(SCOPE_TYPES.STATIC, frameInfo.statics)),
         false
       )
     );
@@ -284,10 +327,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
   ): Promise<void> {
     response.success = true;
     const scopesContainer = this.logContext
-      .getScopeHandler()
+      .getVariableHandler()
       .get(args.variablesReference);
     response.body = {
-      variables: scopesContainer ? scopesContainer.variables : []
+      variables: scopesContainer ? scopesContainer.getAllVariables() : []
     };
     this.sendResponse(response);
   }
