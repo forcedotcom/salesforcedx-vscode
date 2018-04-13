@@ -328,7 +328,9 @@ describe('LogContext', () => {
 
     it('Should return URI for inner class', () => {
       expect(
-        context.getUriFromSignature('namespace.Foo.Bar(Integer)')
+        context.getUriFromSignature(
+          'namespace.Foo.Bar(namespace.Foo.Bar, String, Map<String,String>, List<String>)'
+        )
       ).to.equal('/path/foo.cls');
     });
 
