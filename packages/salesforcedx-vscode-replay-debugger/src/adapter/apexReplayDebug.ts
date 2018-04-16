@@ -22,12 +22,8 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { BreakpointUtil, LineBreakpointInfo } from '../breakpoints';
-import { CheckpointMessage } from '../breakpoints/checkpointService';
+import { breakpointUtil } from '../breakpoints';
 import {
-  CHECKPOINT,
-  CHECKPOINT_INFO_EVENT,
-  DEFAULT_INITIALIZE_TIMEOUT_MS,
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../constants';
@@ -169,7 +165,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
   protected logContext: LogContext;
   protected trace: string[] = [];
   protected traceAll = false;
-  private breakpointUtil: BreakpointUtil;
   private initializedResponse: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
 
@@ -177,7 +172,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
     super('apex-replay-debug-adapter.log');
     this.setDebuggerLinesStartAt1(true);
     this.setDebuggerPathFormat('uri');
-    this.breakpointUtil = new BreakpointUtil();
   }
 
   public initializeRequest(
@@ -186,15 +180,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
   ): void {
     this.initializedResponse = response;
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
-    setTimeout(() => {
-      if (!this.breakpointUtil.hasLineNumberMapping()) {
-        this.initializedResponse.success = false;
-        this.initializedResponse.message = nls.localize(
-          'session_language_server_error_text'
-        );
-        this.sendResponse(this.initializedResponse);
-      }
-    }, DEFAULT_INITIALIZE_TIMEOUT_MS);
   }
 
   public launchRequest(
@@ -418,48 +403,30 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.SetBreakpointsArguments
   ): void {
     response.body = { breakpoints: [] };
-    if (args.source.path && args.lines && args.breakpoints) {
+    if (args.source.path && args.breakpoints) {
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
         `setBreakPointsRequest: path=${args.source
-          .path} lines=${args.lines.join(',')}`
+          .path} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
+          args.breakpoints
+        )}`
       );
       const uri = this.convertClientPathToDebugger(args.source.path);
       this.breakpoints.set(uri, []);
-      // While processing the breakpoints, if there's a conditional breakpoint
-      // then create a checkpoint. This requires checking the breakpoint condition
-      // for the appropriate args.lines item being processed.
-      for (let i = 0; i < args.lines.length; i++) {
-        const lineArg = args.lines[i];
-        const isVerified = this.breakpointUtil.canSetLineBreakpoint(
+      for (const bp of args.breakpoints) {
+        const isVerified = breakpointUtil.canSetLineBreakpoint(
           uri,
-          this.convertClientLineToDebugger(lineArg)
+          this.convertClientLineToDebugger(bp.line)
         );
         response.body.breakpoints.push({
           verified: isVerified,
           source: args.source,
-          line: lineArg
+          line: bp.line
         });
         if (isVerified) {
           this.breakpoints.get(uri)!.push(
-            this.convertClientLineToDebugger(lineArg)
+            this.convertClientLineToDebugger(bp.line)
           );
-        }
-        // If there is a condition and that condition is a checkpoint then
-        // sent CHECKPOINT_INFO_EVENT with the args.source, line and uri
-        if (args.breakpoints[i].condition) {
-          if (
-            args.breakpoints[i].condition!.toLowerCase().indexOf(CHECKPOINT) >=
-            0
-          ) {
-            this.sendEvent(
-              new Event(CHECKPOINT_INFO_EVENT, {
-                sourceFile: args.source.name,
-                typeRef: this.breakpointUtil.getTopLevelTyperefForUri(uri),
-                line: lineArg
-              } as CheckpointMessage)
-            );
-          }
         }
       }
       this.log(
@@ -480,21 +447,15 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response.success = true;
     switch (command) {
       case LINE_BREAKPOINT_INFO_REQUEST:
-        const lineBpInfo: LineBreakpointInfo[] = args;
-        if (lineBpInfo && lineBpInfo.length > 0) {
-          const lineNumberMapping: Map<string, number[]> = new Map();
-          const typerefMapping: Map<string, string> = new Map();
-          for (const info of lineBpInfo) {
-            if (!lineNumberMapping.has(info.uri)) {
-              lineNumberMapping.set(info.uri, []);
-            }
-            lineNumberMapping.set(
-              info.uri,
-              lineNumberMapping.get(info.uri)!.concat(info.lines)
-            );
-            typerefMapping.set(info.typeref, info.uri);
-          }
-          this.breakpointUtil.setValidLines(lineNumberMapping, typerefMapping);
+        const lineBpInfo = args;
+        if (lineBpInfo) {
+          breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
+        } else {
+          this.initializedResponse.success = false;
+          this.initializedResponse.message = nls.localize(
+            'session_language_server_error_text'
+          );
+          this.sendResponse(this.initializedResponse);
         }
         if (this.initializedResponse) {
           this.initializedResponse.body = {
@@ -567,10 +528,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
     sourceLine?: number
   ): void {
     this.printToDebugConsole(msg, sourceFile, sourceLine, 'stderr');
-  }
-
-  public getBreakpointUtil(): BreakpointUtil {
-    return this.breakpointUtil;
   }
 }
 

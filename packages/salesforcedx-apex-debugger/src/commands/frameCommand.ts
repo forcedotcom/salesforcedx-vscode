@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from './baseCommand';
+import { BaseDebuggerCommand } from './baseDebuggerCommand';
 
-export class FrameCommand extends BaseCommand {
+export class FrameCommand extends BaseDebuggerCommand {
   public constructor(debuggedRequestId: string, frameId: number) {
     super('frame', debuggedRequestId, `stackFrame=${frameId}`);
   }
