@@ -7,6 +7,7 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+import * as vscode from 'vscode';
 import {
   ActionScriptEnum,
   ApexExecutionOverlayAction,
@@ -21,6 +22,18 @@ import {
 import { MAX_ALLOWED_CHECKPOINTS } from '../../../src/constants';
 
 describe('Checkpoint Service - unit', () => {
+  const config = vscode.workspace.getConfiguration();
+  const checkpointsEnabled = config.get(
+    'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
+    false /* value to return if one is not defined */
+  );
+  if (!checkpointsEnabled) {
+    console.log(
+      'Checkpoints are not enabled, skipping CheckpointService tests'
+    );
+    return;
+  }
+
   let executeCreateApexExecutionOverlayActionCommandStub: sinon.SinonStub;
   let executeRemoveApexExecutionOverlayActionCommandStub: sinon.SinonStub;
 
