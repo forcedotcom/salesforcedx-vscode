@@ -10,6 +10,7 @@
     "Stop the debugger after launching. If false, the debugger will run until it hits a breakpoint.",
   "trace_text":
     "Produce diagnostic output. You can set this to true, false, or one or more selectors separated with commas. Selectors include 'all' (very detailed output; the equivalent of true), 'protocol', 'logfile', 'launch', 'breakpoints'.",
-  "checkpoint_configuration_title": "Replay Debugger Checkpoint Configuration",
-  "replay-debuggerc_checkpoint_enabled": "Replay Debugger Checkpoints Enabled"
+  "replay-debugger_checkpoint_configuration_title":
+    "Replay Debugger Checkpoint Configuration",
+  "replay-debugger_checkpoints_enabled": "Replay Debugger Checkpoints Enabled"
 }

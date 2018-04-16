@@ -135,12 +135,12 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%checkpoint_configuration_title%",
+      "title": "%replay-debugger_checkpoint_configuration_title%",
       "properties": {
         "salesforcedx-vscode-replay-debugger-checkpoints.enabled": {
           "type": "boolean",
           "default": false,
-          "description": "%replay-debuggerc_checkpoint_enabled%"
+          "description": "%replay-debugger_checkpoints_enabled%"
         }
       }
     }
