@@ -14,6 +14,7 @@ import {
   LaunchRequestArguments,
   VariableContainer
 } from '../adapter/apexReplayDebug';
+import { breakpointUtil } from '../breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -93,7 +94,7 @@ export class LogContext {
       this.logLines &&
       this.logLines.length > 0 &&
       this.logLines[0].match(
-        /\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;.*/
+        /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;.*)/
       ) !== null
     );
   }
@@ -173,7 +174,7 @@ export class LogContext {
           signature.substring(0, signature.indexOf('(')).lastIndexOf('.')
         )
       : signature;
-    const typerefMapping = this.session.getBreakpointUtil().getTyperefMapping();
+    const typerefMapping = breakpointUtil.getTyperefMapping();
     let uri = '';
     typerefMapping.forEach((value, key) => {
       let processedKey = '';

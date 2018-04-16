@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from './baseCommand';
+import { BaseDebuggerCommand } from './baseDebuggerCommand';
 
-export class StateCommand extends BaseCommand {
+export class StateCommand extends BaseDebuggerCommand {
   public constructor(debuggedRequestId: string) {
     super('state', debuggedRequestId);
   }

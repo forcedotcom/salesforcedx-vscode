@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
-import { BaseCommand } from '../../../src/commands/baseCommand';
+import { BaseDebuggerCommand } from '../../../src/commands/baseDebuggerCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
 import { RequestService } from '../../../src/commands/requestService';
 import {
@@ -16,7 +16,7 @@ import {
   DEFAULT_CONNECTION_TIMEOUT_MS
 } from '../../../src/constants';
 
-class DummyCommand extends BaseCommand {
+class DummyCommand extends BaseDebuggerCommand {
   public constructor(
     commandName: string,
     debuggedRequestId: string,
@@ -128,7 +128,7 @@ describe('Base command', () => {
 
     await requestService.execute(dummyCommand);
 
-    expect(dummyCommand.getRequest()).to.equal(myRequest);
+    expect(dummyCommand.getRequest()).to.equal(JSON.stringify(myRequest));
     expect(sendRequestSpy.calledOnce).to.equal(true);
     expect(sendRequestSpy.getCall(0).args[0]).to.deep.equal(expectedOptions);
   });

@@ -14,15 +14,21 @@ import {
 import * as languageServer from './languageServer';
 
 let languageClient: LanguageClient | undefined;
+let languageClientReady = false;
 
 export async function activate(context: vscode.ExtensionContext) {
   languageClient = await languageServer.createLanguageServer(context);
   const handle = languageClient.start();
   context.subscriptions.push(handle);
 
+  languageClient.onReady().then(() => {
+    languageClientReady = true;
+  });
+
   const exportedApi = {
     getLineBreakpointInfo,
-    getExceptionBreakpointInfo
+    getExceptionBreakpointInfo,
+    isLanguageClientReady
   };
   return exportedApi;
 }
@@ -41,6 +47,10 @@ async function getExceptionBreakpointInfo(): Promise<{}> {
     response = await languageClient.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS);
   }
   return Promise.resolve(response);
+}
+
+function isLanguageClientReady(): boolean {
+  return languageClientReady;
 }
 
 // tslint:disable-next-line:no-empty

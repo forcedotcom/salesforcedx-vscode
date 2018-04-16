@@ -24,5 +24,26 @@ export const messages = {
   no_log_file_text:
     'The log file either is missing or does not have any log lines in it.',
   incorrect_log_levels_text:
-    'The log must be generated with log categories Apex code at the FINEST level and Visualforce at the FINER level.'
+    'The log must be generated with log categories Apex code at the FINEST level and Visualforce at the FINER level.',
+  up_to_five_checkpoints: 'You can set up to five checkpoints.',
+  // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
+  cannot_determine_workspace:
+    'Unable to determine workspace folders for workspace',
+  cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
+  unable_to_parse_checkpoint_query_result:
+    'Unable to parse checkpoint query result',
+  unable_to_retrieve_active_user_for_sfdx_project:
+    'Unable to retrieve active user for sfdx project',
+  unable_to_query_for_existing_checkpoints:
+    'Unable to query for existing checkpoints',
+  unable_to_load_vscode_core_extension:
+    'unable to load salesforce.salesforcedx-vscode-core extension',
+  unable_to_remove_checkpoint: 'Unable to remove checkpoint',
+  unable_to_create_checkpoint: 'Unable to create checkpoint.',
+  no_line_breakpoint_information_for_current_project:
+    'There is no line breakpoint informatin for the current project',
+  line_breakpoint_information_success:
+    'Retrieved line breakpoint info from language server',
+  language_client_not_ready:
+    'Unable to retrieve breakpoint info from language server, language server is not ready'
 };

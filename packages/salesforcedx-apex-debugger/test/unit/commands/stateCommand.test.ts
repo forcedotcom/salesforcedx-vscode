@@ -10,7 +10,7 @@ import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { RequestService, StateCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
-import { getDefaultHeaders } from './baseCommand.test';
+import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('State command', () => {
   let sendRequestSpy: sinon.SinonStub;

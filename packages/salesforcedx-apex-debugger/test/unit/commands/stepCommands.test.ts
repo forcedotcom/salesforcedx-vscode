@@ -15,7 +15,7 @@ import {
   StepOverCommand
 } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
-import { getDefaultHeaders } from './baseCommand.test';
+import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('Step commands', () => {
   let sendRequestSpy: sinon.SinonStub;

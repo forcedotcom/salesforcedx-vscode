@@ -107,6 +107,7 @@ export async function getUserId(projectPath: string): Promise<string> {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
       .withArg('force:user:display')
+      .withFlag('--loglevel', 'fatal')
       .withArg('--json')
       .build(),
     { cwd: projectPath }

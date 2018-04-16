@@ -49,6 +49,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import {
   CLIENT_ID,
@@ -382,7 +383,8 @@ export async function activate(context: vscode.ExtensionContext) {
     SfdxWorkspaceChecker,
     channelService,
     notificationService,
-    taskViewService
+    taskViewService,
+    getUserId
   };
 
   return api;
