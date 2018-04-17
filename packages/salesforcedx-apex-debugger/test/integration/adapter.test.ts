@@ -128,7 +128,7 @@ describe('Interactive debugger adapter - integration', function() {
     } catch (error) {}
   });
 
-  it('End-to-end flow', async () => {
+  xit('End-to-end flow', async () => {
     // Send line breakpoint info
     await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, LINE_BREAKPOINT_INFO);
     // Launch Apex Debugger session
