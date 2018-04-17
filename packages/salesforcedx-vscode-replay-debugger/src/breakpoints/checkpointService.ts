@@ -55,6 +55,14 @@ export interface ApexExecutionOverlayAction {
   Iteration: number;
   Line: number;
 }
+
+interface OrgInfoError {
+  message: string;
+  status: number;
+  name: string;
+  warnings: string[];
+}
+
 export class CheckpointService implements TreeDataProvider<BaseNode> {
   private static instance: CheckpointService;
   private checkpoints: CheckpointNode[];
@@ -83,7 +91,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       try {
         this.orgInfo = await new ForceOrgDisplay().getOrgInfo(this.sfdxProject);
       } catch (error) {
-        console.log(error);
+        const result = JSON.parse(error) as OrgInfoError;
+        vscode.window.showErrorMessage(
+          nls.localize('unable_to_retrieve_org_info') + ': ' + result.message
+        );
+        return false;
       }
       this.myRequestService.instanceUrl = this.orgInfo.instanceUrl;
       this.myRequestService.accessToken = this.orgInfo.accessToken;
