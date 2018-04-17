@@ -45,5 +45,6 @@ export const messages = {
   line_breakpoint_information_success:
     'Retrieved line breakpoint info from language server',
   language_client_not_ready:
-    'Unable to retrieve breakpoint info from language server, language server is not ready'
+    'Unable to retrieve breakpoint info from language server, language server is not ready',
+  unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo'
 };
