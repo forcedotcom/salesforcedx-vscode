@@ -426,7 +426,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     // 8: generate launch configuration
     channelService.appendLine(
-      nls.localize('isv_debug_bootstrap_generate_launch_info')
+      nls.localize('isv_debug_bootstrap_generate_launchjson')
     );
     try {
       const projectVsCodeFolder = path.join(projectPath, '.sfdx');
