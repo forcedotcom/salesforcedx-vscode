@@ -25,7 +25,7 @@ describe('Checkpoint Service - unit', () => {
   const config = vscode.workspace.getConfiguration();
   const checkpointsEnabled = config.get(
     'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
-    false /* value to return if one is not defined */
+    false
   );
   if (!checkpointsEnabled) {
     console.log(

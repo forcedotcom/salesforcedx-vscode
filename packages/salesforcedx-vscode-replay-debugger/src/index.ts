@@ -80,7 +80,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration();
   const checkpointsEnabled = config.get(
     'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
-    false /* value to return if one is not defined */
+    false
   );
 
   vscode.commands.executeCommand(
