@@ -40,7 +40,7 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
  * These integration tests assume the environment has authenticated to
  * a Dev Hub and it is set as the default Dev Hub.
  */
-describe('Interactive debugger adapter - integration', function() {
+describe.skip('Interactive debugger adapter - integration', function() {
   // tslint:disable-next-line:no-invalid-this
   this.timeout(320000);
   let dc: DebugClient;
@@ -128,7 +128,7 @@ describe('Interactive debugger adapter - integration', function() {
     } catch (error) {}
   });
 
-  xit('End-to-end flow', async () => {
+  it('End-to-end flow', async () => {
     // Send line breakpoint info
     await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, LINE_BREAKPOINT_INFO);
     // Launch Apex Debugger session
