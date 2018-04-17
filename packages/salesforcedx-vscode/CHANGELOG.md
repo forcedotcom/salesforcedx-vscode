@@ -1,3 +1,11 @@
+## 42.12.0 - April 19, 2018
+### Added
+#### salesforcedx-vscode-apex
+
+* Go To Definition and Find All References type usage on array/list constructor ([PR #376](https://github.com/forcedotcom/salesforcedx-vscode/pull/376))
+* Go To Definition and Find All References type usage on instanceOf ([PR #376](https://github.com/forcedotcom/salesforcedx-vscode/pull/376))
+* Go To Definition for implicit constructors across apex classes ([PR #376](https://github.com/forcedotcom/salesforcedx-vscode/pull/376))
+
 ## 42.11.0 - April 12, 2018
 ### Added
 #### salesforcedx-vscode-apex
