@@ -20,7 +20,7 @@ export const messages = {
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
-    'The SFDX CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+    'The Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
@@ -146,6 +146,7 @@ export const messages = {
   isv_debug_bootstrap_step7_convert_package_source:
     'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
+  isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project:
     'Opening project in new Visual Studio Code window',
 
