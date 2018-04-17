@@ -146,6 +146,7 @@ export const messages = {
   isv_debug_bootstrap_step7_convert_package_source:
     'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
+  isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project:
     'Opening project in new Visual Studio Code window',
 

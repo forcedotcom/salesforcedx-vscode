@@ -37,6 +37,7 @@ export class ApexDebuggerConfigurationProvider
     folder: vscode.WorkspaceFolder | undefined,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
+    // note: part of this is duplicated in bootstrapCmd.ts but not linked to avoid hard dependency from core to debugger
     return [
       {
         name: 'Launch Apex Debugger',
