@@ -228,29 +228,37 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // If that's the case then pase the Id out, delete it and recreate it.
     // Fun fact: the result is an array of 1 item
     // "[{"message":"duplicate value found: ScopeId duplicates value on record with id: 1doxx00000000Pn","errorCode":"DUPLICATE_VALUE","fields":[]}]"
+    // Fun fact #2: The result message can also be an outright failure string. For example if we can't connnect up to the AppServer then the result
+    // is a plain string. It'll cause the parsing to fail.
     if (errorString) {
-      const result = <ApexExecutionOverlayFailureResult[]>JSON.parse(
-        errorString
-      );
-      // If the node is a dupe, then delete it and recreate it. If the failure reason
-      // was something else that we don't handle then just set the command result.
-      if (result[0].errorCode === DUPLICATE_VALUE && recreateIfDupe) {
-        // parse the record ID from the result[0].message, call remove and then call add again
-        const duplicateId = result[0].message
-          .substr(result[0].message.lastIndexOf(':') + 1)
-          .trim();
-        // set the id to the duplicate id and call the delete to nuke the record,
-        // then call the delete again with the recreation flag unset
-        theNode.setActionCommandResult(duplicateId, undefined);
-        await this.executeRemoveApexExecutionOverlayActionCommand(theNode);
-        // clear out the action command result
-        theNode.setActionCommandResult(undefined, undefined);
-        await this.executeCreateApexExecutionOverlayActionCommand(
-          theNode,
-          false /* recreateIfDupe */
-        );
-      } else {
-        theNode.setActionCommandResult(undefined, result[0].message);
+      try {
+        const result = JSON.parse(
+          errorString
+        ) as ApexExecutionOverlayFailureResult[];
+        // If the node is a dupe, then delete it and recreate it. If the failure reason
+        // was something else that we don't handle then just set the command result.
+        if (result[0].errorCode === DUPLICATE_VALUE && recreateIfDupe) {
+          // parse the record ID from the result[0].message, call remove and then call add again
+          const duplicateId = result[0].message
+            .substr(result[0].message.lastIndexOf(':') + 1)
+            .trim();
+          // set the id to the duplicate id and call the delete to nuke the record,
+          // then call the delete again with the recreation flag unset
+          theNode.setActionCommandResult(duplicateId, undefined);
+          await this.executeRemoveApexExecutionOverlayActionCommand(theNode);
+          // clear out the action command result
+          theNode.setActionCommandResult(undefined, undefined);
+          await this.executeCreateApexExecutionOverlayActionCommand(
+            theNode,
+            false /* recreateIfDupe */
+          );
+        } else {
+          theNode.setActionCommandResult(undefined, result[0].message);
+        }
+      } catch {
+        // If the JSON parse fails then the message was actually just a string returned.
+        // This can happen when the connection is lost and we try to execute a command.
+        theNode.setActionCommandResult(undefined, errorString);
       }
     }
   }
@@ -275,7 +283,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         });
       if (errorString) {
         vscode.window.showErrorMessage(
-          nls.localize('cannot_delete_existing_checkpoint')
+          nls.localize('cannot_delete_existing_checkpoint') + ': ' + errorString
         );
       }
     }
@@ -322,7 +330,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               // that was returned from the AppServer.
               if (deleteError) {
                 vscode.window.showErrorMessage(
-                  nls.localize('cannot_delete_existing_overlay_action')
+                  nls.localize('cannot_delete_existing_overlay_action') + ': ' + deleteError
                 );
                 return false;
               }
@@ -584,6 +592,7 @@ export async function processBreakpointChangedForCheckpoints(
         );
         const errorMessage = theNode.getActionCommandFailureMessage();
         if (errorMessage) {
+          breakpointsToRemove.push(bp);
           vscode.window.showErrorMessage(
             nls.localize('unable_to_create_checkpoint') +
               ' Error: ' +
