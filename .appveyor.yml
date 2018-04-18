@@ -23,6 +23,8 @@ install:
   - 7z x sfdx-windows-amd64.tar
   - ps: $env:Path += ";" + (Get-ChildItem -Filter "sfdx-cli-*" -Directory).Fullname + "\bin"
   - ps: echo $env:Path
+  - echo %PATH%
+  - sfdx -h
   - npm install -g codecov 
   # the JWT key should be stored base 64 encoded in AppVeyor settings
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
