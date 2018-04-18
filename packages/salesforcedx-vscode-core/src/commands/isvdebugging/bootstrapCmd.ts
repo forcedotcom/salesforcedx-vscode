@@ -429,7 +429,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       nls.localize('isv_debug_bootstrap_generate_launchjson')
     );
     try {
-      const projectVsCodeFolder = path.join(projectPath, '.sfdx');
+      const projectVsCodeFolder = path.join(projectPath, '.vscode');
       shell.mkdir('-p', projectVsCodeFolder);
       fs.writeFileSync(
         path.join(projectVsCodeFolder, 'launch.json'),
