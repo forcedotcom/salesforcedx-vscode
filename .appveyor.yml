@@ -11,7 +11,6 @@ skip_branch_with_pr: true
 platform: x64
 
 environment:
-  SFDX_URL_WINDOWS: https://developer.salesforce.com/media/salesforce-cli/sfdx-cli/channels/stable/sfdx-cli-v6.11.0-9a1ef8794d-windows-x64.tar.xz
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
 
@@ -21,10 +20,7 @@ install:
   - curl -fsSL -o sfdx-windows-amd64.tar.xz %SFDX_URL_WINDOWS%
   - 7z x sfdx-windows-amd64.tar.xz
   - 7z x sfdx-windows-amd64.tar
-  - ps: $env:Path += ";" + (Get-ChildItem -Filter "sfdx-cli-*" -Directory).Fullname + "\bin"
-  - ps: echo $env:Path
-  - echo %PATH%
-  - sfdx -h
+  - npm install -g sfdx-cli
   - npm install -g codecov 
   # the JWT key should be stored base 64 encoded in AppVeyor settings
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
@@ -73,6 +69,6 @@ artifacts:
   - path: '**\*.vsix'
 
 on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - del C:\projects\devhub.key
+  - codecov --disable=gcov
  
