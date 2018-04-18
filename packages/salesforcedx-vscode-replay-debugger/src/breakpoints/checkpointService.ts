@@ -232,9 +232,9 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // is a plain string. It'll cause the parsing to fail.
     if (errorString) {
       try {
-        const result = <ApexExecutionOverlayFailureResult[]>JSON.parse(
+        const result = JSON.parse(
           errorString
-        );
+        ) as ApexExecutionOverlayFailureResult[];
         // If the node is a dupe, then delete it and recreate it. If the failure reason
         // was something else that we don't handle then just set the command result.
         if (result[0].errorCode === DUPLICATE_VALUE && recreateIfDupe) {
