@@ -387,7 +387,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
 
       // there should be a launch config
       expect(
-        fs.existsSync(path.join(projectPath, '.sfdx', 'launch.json')),
+        fs.existsSync(path.join(projectPath, '.vscode', 'launch.json')),
         'there must be a launch.json file'
       ).to.equal(true);
     });
