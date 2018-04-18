@@ -147,9 +147,7 @@ async function retrieveLineBreakpointInfo(): Promise<boolean> {
     } else {
       const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
       if (lineBpInfo && lineBpInfo.length > 0) {
-        vscode.window.showInformationMessage(
-          nls.localize('line_breakpoint_information_success')
-        );
+        console.log(nls.localize('line_breakpoint_information_success'));
         breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
         return true;
       } else {
