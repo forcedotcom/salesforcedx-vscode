@@ -429,26 +429,30 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       nls.localize('isv_debug_bootstrap_generate_launchjson')
     );
     try {
-      const projectVsCodeFolder = path.join(projectPath, '.sfdx');
+      const projectVsCodeFolder = path.join(projectPath, '.vscode');
       shell.mkdir('-p', projectVsCodeFolder);
       fs.writeFileSync(
         path.join(projectVsCodeFolder, 'launch.json'),
         // mostly duplicated from ApexDebuggerConfigurationProvider to avoid hard dependency from core to debugger module
-        JSON.stringify({
-          version: '0.2.0',
-          configurations: [
-            {
-              name: 'Launch Apex Debugger',
-              type: 'apex',
-              request: 'launch',
-              userIdFilter: [],
-              requestTypeFilter: [],
-              entryPointFilter: '',
-              sfdxProject: '${workspaceRoot}',
-              connectType: 'ISV_DEBUGGER'
-            }
-          ]
-        }),
+        JSON.stringify(
+          {
+            version: '0.2.0',
+            configurations: [
+              {
+                name: 'Launch Apex Debugger',
+                type: 'apex',
+                request: 'launch',
+                userIdFilter: [],
+                requestTypeFilter: [],
+                entryPointFilter: '',
+                sfdxProject: '${workspaceRoot}',
+                connectType: 'ISV_DEBUGGER'
+              }
+            ]
+          },
+          null,
+          2
+        ),
         { encoding: 'utf-8' }
       );
     } catch (error) {
