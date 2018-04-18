@@ -9,7 +9,7 @@
 ### Fixed
 #### salesforcedx-vscode-core
 
-* Support invoking the new Salesforce CLI which were installed using the new installers on Windows ([PR #386](https://github.com/forcedotcom/salesforcedx-vscode/pull/386)
+* Support invoking Salesforce CLI commands for CLI installations that used the new installers on Windows  ([PR #386](https://github.com/forcedotcom/salesforcedx-vscode/pull/386))
 
 ## 42.11.0 - April 12, 2018
 ### Added
