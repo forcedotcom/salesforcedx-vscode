@@ -9,8 +9,8 @@ import {
   ForceOrgDisplay,
   OrgInfo
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/constants';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
-
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -42,7 +42,6 @@ import {
   StepOverCommand
 } from '../../../src/commands';
 import {
-  DEFAULT_CONNECTION_TIMEOUT_MS,
   DEFAULT_IDLE_TIMEOUT_MS,
   DEFAULT_IDLE_WARN1_MS,
   DEFAULT_IDLE_WARN2_MS,
