@@ -6,6 +6,11 @@
 * Go To Definition and Find All References for types used with instanceOf ([PR #376](https://github.com/forcedotcom/salesforcedx-vscode/pull/376))
 * Go To Definition for implicit constructors across Apex classes ([PR #376](https://github.com/forcedotcom/salesforcedx-vscode/pull/376))
 
+### Fixed
+#### salesforcedx-vscode-core
+
+* Support invoking Salesforce CLI commands for CLI installations that used the new installers on Windows ([PR #386](https://github.com/forcedotcom/salesforcedx-vscode/pull/386))
+
 ## 42.11.0 - April 12, 2018
 ### Added
 #### salesforcedx-vscode-apex
