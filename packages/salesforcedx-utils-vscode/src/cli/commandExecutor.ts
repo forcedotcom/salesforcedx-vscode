@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ChildProcess, ExecOptions, spawn } from 'child_process';
+import { ChildProcess, SpawnOptions } from 'child_process';
+import * as cross_spawn from 'cross-spawn';
 import * as os from 'os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
@@ -24,15 +25,15 @@ export interface CancellationToken {
 
 export class CliCommandExecutor {
   private readonly command: Command;
-  private readonly options: ExecOptions;
+  private readonly options: SpawnOptions;
 
-  public constructor(command: Command, options: ExecOptions) {
+  public constructor(command: Command, options: SpawnOptions) {
     this.command = command;
     this.options = options;
   }
 
   public execute(cancellationToken?: CancellationToken): CommandExecution {
-    const childProcess = spawn(
+    const childProcess = cross_spawn(
       this.command.command,
       this.command.args,
       this.options
