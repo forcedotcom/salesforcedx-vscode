@@ -18,7 +18,7 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as AdmZip from 'adm-zip';
-import { ExecOptions } from 'child_process';
+import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as querystring from 'querystring';
@@ -434,7 +434,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
   public async executeCommand(
     command: Command,
-    options: ExecOptions,
+    options: SpawnOptions,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): Promise<string> {

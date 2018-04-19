@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.11.0",
+    "cross-spawn": "6.0.5",
     "request-light": "0.2.1",
     "rxjs": "^5.4.1",
     "shelljs": "0.7.8",
