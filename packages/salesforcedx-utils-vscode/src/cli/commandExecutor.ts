@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ChildProcess, spawn, SpawnOptions } from 'child_process';
+import { ChildProcess, SpawnOptions } from 'child_process';
+import * as cross_spawn from 'cross-spawn';
 import * as os from 'os';
-import * as path from 'path';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
-import * as which from 'which';
 
 // tslint:disable-next-line:no-var-requires
 const kill = require('tree-kill');
@@ -31,25 +30,10 @@ export class CliCommandExecutor {
   public constructor(command: Command, options: SpawnOptions) {
     this.command = command;
     this.options = options;
-
-    if (/^win32/.test(process.platform) && command.command === 'sfdx') {
-      this.normalizeSfdxCommand();
-    }
-  }
-
-  // The new installers for Salesforce CLI no longer produces a .exe on Windows
-  // So we need to normalize the calling mechanisms to support both old and new executions
-  private normalizeSfdxCommand(): void {
-    const basename = path.basename(which.sync('sfdx'));
-
-    // https://nodejs.org/api/child_process.html#child_process_spawning_bat_and_cmd_files_on_windows
-    if (/sfdx.cmd/i.test(basename)) {
-      this.options.shell = true;
-    }
   }
 
   public execute(cancellationToken?: CancellationToken): CommandExecution {
-    const childProcess = spawn(
+    const childProcess = cross_spawn(
       this.command.command,
       this.command.args,
       this.options
