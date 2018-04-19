@@ -32,6 +32,7 @@ export class ForceOrgDisplay {
       new SfdxCommandBuilder()
         .withArg('force:org:display')
         .withArg('--json')
+        .withFlag('--loglevel', 'fatal')
         .build(),
       { cwd: projectPath }
     ).execute();

@@ -5,9 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { DebugProtocol } from 'vscode-debugprotocol';
 export class BreakpointUtil {
+  private static instance: BreakpointUtil;
   private lineNumberMapping: Map<string, number[]> = new Map();
   private typerefMapping: Map<string, string> = new Map();
+  private rawLineBPInfo: any | undefined;
 
   public setValidLines(
     lineNumberMapping: Map<string, number[]>,
@@ -15,6 +18,17 @@ export class BreakpointUtil {
   ): void {
     this.lineNumberMapping = lineNumberMapping;
     this.typerefMapping = typerefMapping;
+  }
+
+  public static getInstance(): BreakpointUtil {
+    if (!BreakpointUtil.instance) {
+      BreakpointUtil.instance = new BreakpointUtil();
+    }
+    return BreakpointUtil.instance;
+  }
+
+  public static setInstance(inputInstance: BreakpointUtil): void {
+    BreakpointUtil.instance = inputInstance;
   }
 
   public hasLineNumberMapping(): boolean {
@@ -34,6 +48,30 @@ export class BreakpointUtil {
       this.lineNumberMapping.has(uri) &&
       this.lineNumberMapping.get(uri)!.indexOf(line) !== -1
     );
+  }
+
+  public getRawLineBPInfo(): any | undefined {
+    return this.rawLineBPInfo;
+  }
+
+  public createMappingsFromLineBreakpointInfo(lineBpInfo: any): void {
+    this.rawLineBPInfo = lineBpInfo;
+    for (const info of lineBpInfo) {
+      if (!this.lineNumberMapping.has(info.uri)) {
+        this.lineNumberMapping.set(info.uri, []);
+      }
+      this.lineNumberMapping.set(
+        info.uri,
+        this.lineNumberMapping.get(info.uri)!.concat(info.lines)
+      );
+      this.typerefMapping.set(info.typeref, info.uri);
+    }
+  }
+
+  public returnLinesForLoggingFromBreakpointArgs(
+    bpArr: DebugProtocol.SourceBreakpoint[]
+  ): string {
+    return bpArr.map(bp => bp.line).join(',');
   }
 
   public getTopLevelTyperefForUri(uriInput: string): string {

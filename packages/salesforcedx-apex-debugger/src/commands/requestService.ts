@@ -9,8 +9,17 @@ import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
 import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS } from '../constants';
 import { BaseCommand } from './baseCommand';
 
+// Right now have POST and DELETE (out of Query, GET, POST, PATCH, DELETE),
+// add any new ones needed as they are encountered. Note: when adding those
+// it'll be the responsiblity of whomever added them to verify or change
+// anything in the arguments for the call to deal with them.
+export enum RestHttpMethodEnum {
+  Delete = 'DELETE',
+  Get = 'GET',
+  Post = 'POST'
+}
+
 export class RequestService {
-  private static instance: RequestService;
   private _instanceUrl: string;
   private _accessToken: string;
   private _proxyUrl: string;
@@ -18,19 +27,20 @@ export class RequestService {
   private _proxyAuthorization: string;
   private _connectionTimeoutMs: number;
 
-  public static getInstance() {
-    if (!RequestService.instance) {
-      RequestService.instance = new RequestService();
-    }
-    return RequestService.instance;
-  }
-
-  public static getEnvVars(): any {
+  public getEnvVars(): any {
     const envVars = Object.assign({}, process.env);
-    const proxyUrl = RequestService.getInstance().proxyUrl;
+    const proxyUrl = this.proxyUrl;
     if (proxyUrl) {
       envVars['HTTP_PROXY'] = proxyUrl;
       envVars['HTTPS_PROXY'] = proxyUrl;
+    }
+    const instanceUrl = this.instanceUrl;
+    if (instanceUrl) {
+      envVars['SFDX_INSTANCE_URL'] = instanceUrl;
+    }
+    const sid = this.accessToken;
+    if (sid) {
+      envVars['SFDX_DEFAULTUSERNAME'] = sid;
     }
     return envVars;
   }
@@ -83,7 +93,11 @@ export class RequestService {
     this._connectionTimeoutMs = connectionTimeoutMs;
   }
 
-  public async execute(command: BaseCommand): Promise<string> {
+  // Execute defaults to POST
+  public async execute(
+    command: BaseCommand,
+    restHttpMethodEnum: RestHttpMethodEnum = RestHttpMethodEnum.Post
+  ): Promise<string> {
     if (this.proxyUrl) {
       configure(this._proxyUrl, this._proxyStrictSSL);
     }
@@ -92,11 +106,9 @@ export class RequestService {
       command.getQueryString() == null
         ? urlElements.join('/')
         : urlElements.join('/').concat('?', command.getQueryString()!);
-    const requestBody = command.getRequest()
-      ? JSON.stringify(command.getRequest())
-      : undefined;
+    const requestBody = command.getRequest();
     const options: XHROptions = {
-      type: 'POST',
+      type: restHttpMethodEnum,
       url: requestUrl,
       timeout: this.connectionTimeoutMs,
       headers: {

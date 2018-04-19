@@ -14,6 +14,7 @@ import {
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
 import childProcess = require('child_process');
+import { RequestService } from '../../../src/commands/index';
 
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;
@@ -31,7 +32,7 @@ describe('Debugger breakpoint service', () => {
 
   describe('Helpers', () => {
     beforeEach(() => {
-      service = new BreakpointService();
+      service = new BreakpointService(new RequestService());
     });
 
     it('Should detect an Apex Debugger breakpoint ID by key prefix', () => {
@@ -147,7 +148,7 @@ describe('Debugger breakpoint service', () => {
     let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      service = new BreakpointService();
+      service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
       childProcess.spawn = mySpawn;
@@ -256,7 +257,7 @@ describe('Debugger breakpoint service', () => {
     let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      service = new BreakpointService();
+      service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
       childProcess.spawn = mySpawn;
@@ -308,7 +309,7 @@ describe('Debugger breakpoint service', () => {
     let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      service = new BreakpointService();
+      service = new BreakpointService(new RequestService());
       origSpawn = childProcess.spawn;
       mySpawn = mockSpawn();
       childProcess.spawn = mySpawn;
@@ -400,7 +401,7 @@ describe('Debugger breakpoint service', () => {
     let getTyperefForSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      service = new BreakpointService();
+      service = new BreakpointService(new RequestService());
       service.cacheLineBreakpoint('file:///foo.cls', 3, '07bFAKE3');
       service.cacheLineBreakpoint('file:///foo.cls', 4, '07bFAKE4');
       service.cacheLineBreakpoint('file:///foo.cls', 5, '07bFAKE5');

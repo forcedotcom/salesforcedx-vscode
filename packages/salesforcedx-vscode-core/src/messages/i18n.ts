@@ -20,7 +20,7 @@ export const messages = {
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
-    'The SFDX CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+    'The Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
@@ -133,6 +133,8 @@ export const messages = {
     'SFDX: ISV Debugger Setup, Step 1 of 7: Creating project',
   isv_debug_bootstrap_step2_configure_project:
     'SFDX: ISV Debugger Setup, Step 2 of 7: Configuring project',
+  isv_debug_bootstrap_step2_configure_project_retrieve_namespace:
+    'SFDX: ISV Debugger Setup, Step 2 of 7: Configuring project: Retrieving namespace',
   isv_debug_bootstrap_step3_retrieve_org_source:
     'SFDX: ISV Debugger Setup, Step 3 of 7: Retrieving unpackaged Apex code',
   isv_debug_bootstrap_step4_convert_org_source:
@@ -156,6 +158,8 @@ export const messages = {
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
   error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
+  error_writing_installed_package_info:
+    'Error writing installed-package.json: %s',
 
   demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
   demo_mode_status_tooltip:
