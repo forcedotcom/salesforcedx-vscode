@@ -6,6 +6,7 @@
  */
 
 import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
@@ -14,7 +15,6 @@ import {
 } from '../../../src/breakpoints/lineBreakpoint';
 import { BreakpointService } from '../../../src/core/breakpointService';
 import childProcess = require('child_process');
-import { RequestService } from '../../../src/commands/index';
 
 describe('Debugger breakpoint service', () => {
   let service: BreakpointService;

@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { ForceConfigGet } from '../../../src/commands/forceConfigGet';
+import { ForceConfigGet, SfdxCommandBuilder } from '../../src/cli';
 import childProcess = require('child_process');
 
 describe('force:config:get', () => {

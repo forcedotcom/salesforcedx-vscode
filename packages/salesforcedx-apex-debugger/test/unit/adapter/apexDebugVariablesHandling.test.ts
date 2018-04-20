@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* tslint:disable:no-unused-expression */
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
@@ -20,12 +21,7 @@ import {
   ScopeContainer,
   VariableContainer
 } from '../../../src/adapter/apexDebug';
-import {
-  LocalValue,
-  Reference,
-  RequestService,
-  Value
-} from '../../../src/commands';
+import { LocalValue, Reference, Value } from '../../../src/commands';
 import { BreakpointService } from '../../../src/core/breakpointService';
 import { ApexDebugForTest } from './apexDebugForTest';
 

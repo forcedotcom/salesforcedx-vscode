@@ -6,10 +6,12 @@
  */
 import {
   ForceOrgDisplay,
-  OrgInfo,
+  OrgInfo
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-debugger/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import {
   Event,
   EventEmitter,

@@ -5,13 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ForceOrgDisplay,
-  OrgInfo
-} from '../../../src/commands/forceOrgDisplay';
+import { ForceOrgDisplay, OrgInfo, SfdxCommandBuilder } from '../../src/cli';
 import childProcess = require('child_process');
 
 describe('force:org:display', () => {

@@ -4,7 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import {
+  ForceConfigGet,
+  ForceOrgDisplay,
+  OrgInfo
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/constants';
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -29,10 +35,6 @@ import {
   LineBreakpointsInTyperef
 } from '../../../src/breakpoints/lineBreakpoint';
 import {
-  ForceConfigGet,
-  ForceOrgDisplay,
-  OrgInfo,
-  RequestService,
   RunCommand,
   StateCommand,
   StepIntoCommand,
@@ -40,7 +42,6 @@ import {
   StepOverCommand
 } from '../../../src/commands';
 import {
-  DEFAULT_CONNECTION_TIMEOUT_MS,
   DEFAULT_IDLE_TIMEOUT_MS,
   DEFAULT_IDLE_WARN1_MS,
   DEFAULT_IDLE_WARN2_MS,
