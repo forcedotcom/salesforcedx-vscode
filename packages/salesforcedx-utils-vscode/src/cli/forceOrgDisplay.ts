@@ -5,11 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SfdxCommandBuilder } from './commandBuilder';
+import { CliCommandExecutor } from './commandExecutor';
+import { CommandOutput } from './commandOutput';
 
 export interface OrgInfo {
   username: string;

@@ -6,11 +6,11 @@
  */
 
 import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { SessionService } from '../../../src/core/sessionService';
 import childProcess = require('child_process');
-import { RequestService } from '../../../src/commands';
 
 describe('Debugger session service', () => {
   let service: SessionService;

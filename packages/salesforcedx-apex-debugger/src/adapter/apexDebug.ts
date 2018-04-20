@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  ForceConfigGet,
+  ForceOrgDisplay
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
 import {
@@ -33,14 +38,10 @@ import {
 } from '../breakpoints/lineBreakpoint';
 import {
   DebuggerResponse,
-  ForceConfigGet,
-  ForceOrgDisplay,
   FrameCommand,
   LocalValue,
-  OrgInfo,
   Reference,
   ReferencesCommand,
-  RequestService,
   RunCommand,
   StateCommand,
   StepIntoCommand,

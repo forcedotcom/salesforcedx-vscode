@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { Source } from 'vscode-debugadapter/lib/debugSession';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
@@ -13,7 +14,7 @@ import {
   LaunchRequestArguments,
   VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { Reference, RequestService } from '../../../src/commands';
+import { Reference } from '../../../src/commands';
 import {
   BreakpointService,
   SessionService,
