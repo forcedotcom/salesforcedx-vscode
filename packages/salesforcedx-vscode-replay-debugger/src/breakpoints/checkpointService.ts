@@ -34,6 +34,7 @@ import {
 import {
   CHECKPOINT,
   DUPLICATE_VALUE,
+  FIELD_INTEGRITY_EXCEPTION,
   MAX_ALLOWED_CHECKPOINTS
 } from '../constants';
 import { nls } from '../messages';
@@ -41,7 +42,6 @@ import { nls } from '../messages';
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
-const NONEDITABLE_RESULT_LABEL = 'Result: ';
 
 // These are the action script types for the ApexExecutionOverlayAction.
 export enum ActionScriptEnum {
@@ -223,7 +223,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       const result = JSON.parse(
         returnString
       ) as ApexExecutionOverlaySuccessResult;
-      theNode.setActionCommandResult(result.id, undefined);
+      theNode.setActionCommandResultId(result.id);
       return;
     }
     // Failure could mean that there is already an entry with the same the criteria.
@@ -246,21 +246,26 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             .trim();
           // set the id to the duplicate id and call the delete to nuke the record,
           // then call the delete again with the recreation flag unset
-          theNode.setActionCommandResult(duplicateId, undefined);
+          theNode.setActionCommandResultId(duplicateId);
           await this.executeRemoveApexExecutionOverlayActionCommand(theNode);
-          // clear out the action command result
-          theNode.setActionCommandResult(undefined, undefined);
+          // clear out the action command resultId
+          theNode.setActionCommandResultId(undefined);
           await this.executeCreateApexExecutionOverlayActionCommand(
             theNode,
             false /* recreateIfDupe */
           );
+        // This is the error code we'll see when the local source and the server are out of sync
+        // This means that the local type does not exist on the server. Give the error a more useful
+        // message as to why they can't set the checkpoint.
+        } else if (result[0].errorCode === FIELD_INTEGRITY_EXCEPTION) {
+          theNode.setActionCommandResultFailure(nls.localize('local_source_is_out_of_sync_with_the_server'));
         } else {
-          theNode.setActionCommandResult(undefined, result[0].message);
+          theNode.setActionCommandResultFailure(result[0].message);
         }
       } catch {
         // If the JSON parse fails then the message was actually just a string returned.
         // This can happen when the connection is lost and we try to execute a command.
-        theNode.setActionCommandResult(undefined, errorString);
+        theNode.setActionCommandResultFailure(errorString);
       }
     }
   }
@@ -377,6 +382,9 @@ export class CheckpointNode extends BaseNode {
   private readonly children: CheckpointInfoNode[] = [];
   private readonly uri: string;
   private readonly checkpointOverlayAction: ApexExecutionOverlayAction;
+  private actionObjectId: string | undefined;
+  private actionObjectFailureMessage: string | undefined;
+
 
   constructor(
     uriInput: string,
@@ -394,6 +402,8 @@ export class CheckpointNode extends BaseNode {
       Iteration: 1,
       Line: lineInput
     };
+    this.actionObjectId = undefined;
+    this.actionObjectFailureMessage = undefined;
 
     // Create the items that the user is going to be able to control (Type, Script, Iteration)
     const cpASTNode = new CheckpointInfoActionScriptTypeNode(
@@ -427,50 +437,24 @@ export class CheckpointNode extends BaseNode {
   }
 
   public getActionCommandResultId(): string | undefined {
-    // Look for an CheckpointInfoResultNode on the child nodes and
-    // return its id (which will be set or undefined) or undefined
-    // if there isn't one
-    for (const cpInfoNode of this.getChildren()) {
-      if (cpInfoNode instanceof CheckpointInfoResultNode) {
-        return cpInfoNode.getActionObjectId();
-      }
-    }
-    return undefined;
+    return this.actionObjectId;
   }
 
   public getActionCommandFailureMessage(): string | undefined {
-    // Look for an CheckpointInfoResultNode on the child nodes and
-    // return its id (which will be set or undefined) or undefined
-    // if there isn't one
-    for (const cpInfoNode of this.getChildren()) {
-      if (cpInfoNode instanceof CheckpointInfoResultNode) {
-        return cpInfoNode.getActionObjectFailureMessage();
-      }
-    }
-    return undefined;
+    return this.actionObjectFailureMessage;
   }
 
-  public setActionCommandResult(
+  public setActionCommandResultId(
     actionObjectId: string | undefined,
+  ) {
+    this.actionObjectId = actionObjectId;
+    this.actionObjectFailureMessage = undefined;
+  }
+  public setActionCommandResultFailure(
     actionObjectFailureMessage: string | undefined
-  ): CheckpointInfoResultNode {
-    // Delete the existing result node, if one exists
-    // Q) But why delete the existing result node?
-    // A) Because the node's label is created in the constructor.
-    for (const cpInfoNode of this.getChildren()) {
-      if (cpInfoNode instanceof CheckpointInfoResultNode) {
-        const index = this.children.indexOf(cpInfoNode, 0);
-        if (index > -1) {
-          this.children.splice(index, 1);
-        }
-      }
-    }
-    const resultNode = new CheckpointInfoResultNode(
-      actionObjectId,
-      actionObjectFailureMessage
-    );
-    this.children.push(resultNode);
-    return resultNode;
+  ) {
+    this.actionObjectFailureMessage = actionObjectFailureMessage;
+    this.actionObjectId = undefined;
   }
 }
 
@@ -522,35 +506,6 @@ export class CheckpointInfoIterationNode extends CheckpointInfoNode {
 }
 /* tslint:enable */
 
-export class CheckpointInfoResultNode extends CheckpointInfoNode {
-  private actionObjectId: string | undefined;
-  private actionObjectFailureMessage: string | undefined;
-  constructor(
-    actionObjectId: string | undefined,
-    actionObjectFailureMessage: string | undefined
-  ) {
-    if (actionObjectId) {
-      super(NONEDITABLE_RESULT_LABEL + actionObjectId);
-    } else {
-      super(NONEDITABLE_RESULT_LABEL + actionObjectFailureMessage);
-    }
-    this.actionObjectId = actionObjectId;
-    this.actionObjectFailureMessage = actionObjectFailureMessage;
-  }
-
-  public getActionObjectId(): string | undefined {
-    return this.actionObjectId;
-  }
-
-  public getActionObjectFailureMessage(): string | undefined {
-    return this.actionObjectFailureMessage;
-  }
-
-  public getChildren(): BaseNode[] {
-    return [];
-  }
-}
-
 export async function processBreakpointChangedForCheckpoints(
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
 ): Promise<void> {
@@ -580,26 +535,34 @@ export async function processBreakpointChangedForCheckpoints(
       if (!checkpointService.canAddCheckpointNote()) {
         overTheLimit = true;
         breakpointsToRemove.push(bp);
-        continue; // go on to the next iteration
+        continue;
       }
       if (bp instanceof vscode.SourceBreakpoint) {
         const uri = bp.location.uri.toString(false /* skipEncoding */);
-        const typeRef = breakpointUtil.getTopLevelTyperefForUri(uri);
-        const filename = uri.substring(uri.lastIndexOf('/') + 1);
-        const theNode = await checkpointService.getOrCreateCheckpointNode(
-          uri,
-          filename,
-          typeRef,
-          bp.location.range.start.line + 1 // need to add 1 since the lines are 0 based
-        );
-        const errorMessage = theNode.getActionCommandFailureMessage();
-        if (errorMessage) {
+        const lineNumber = bp.location.range.start.line + 1; // need to add 1 since the lines are 0 based
+        if (breakpointUtil.canSetLineBreakpoint(uri, lineNumber)) {
+          const typeRef = breakpointUtil.getTopLevelTyperefForUri(uri);
+          const filename = uri.substring(uri.lastIndexOf('/') + 1);
+          const theNode = await checkpointService.getOrCreateCheckpointNode(
+            uri,
+            filename,
+            typeRef,
+            lineNumber
+          );
+          const errorMessage = theNode.getActionCommandFailureMessage();
+          if (errorMessage) {
+            breakpointsToRemove.push(bp);
+            vscode.window.showErrorMessage(
+              nls.localize('unable_to_create_checkpoint') +
+                ' Error: ' +
+                errorMessage
+            );
+          }
+        } else {
+          // The user tried to set a breakpoint on line that didn't contain any Apex
           breakpointsToRemove.push(bp);
           vscode.window.showErrorMessage(
-            nls.localize('unable_to_create_checkpoint') +
-              ' Error: ' +
-              errorMessage
-          );
+            nls.localize('checkpoints_can_only_be_on_valid_apex_source'));
         }
       }
     }
