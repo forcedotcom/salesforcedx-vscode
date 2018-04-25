@@ -1,5 +1,10 @@
 ## 42.13.0 - April 26, 2018
 ### Fixed
+
+#### salesforcedx-vscode
+
+* Previously, copying and pasting Salesforce CLI output from the embedded terminal in VS Code would embed terminal escape characters in the pasted text. We have fixed this in Salesforce CLI, and the Visual Studio Code team has made a similar fix in VS Code. If you see any issues with copy and pasting, be sure to update both VS Code and Salesforce CLI.
+
 #### salesforcedx-vscode-apex
 
 * Handle missing `namespace` attribute in sfdx-project.json ([PR #391](https://github.com/forcedotcom/salesforcedx-vscode/pull/391))
