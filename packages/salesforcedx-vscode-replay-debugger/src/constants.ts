@@ -24,6 +24,7 @@ export const EVENT_VF_APEX_CALL_END = 'VF_APEX_CALL_END';
 export const EVENT_VARIABLE_SCOPE_BEGIN = 'VARIABLE_SCOPE_BEGIN';
 export const EVENT_VARIABLE_ASSIGNMENT = 'VARIABLE_ASSIGNMENT';
 export const EXEC_ANON_SIGNATURE = 'execute_anonymous_apex';
+export const FIELD_INTEGRITY_EXCEPTION = 'FIELD_INTEGRITY_EXCEPTION';
 export const GET_LINE_BREAKPOINT_INFO_EVENT = 'getLineBreakpointInfo';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
 export const MAX_ALLOWED_CHECKPOINTS = 5;
