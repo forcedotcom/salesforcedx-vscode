@@ -2,7 +2,7 @@
 ### Fixed
 #### salesforcedx-vscode-apex
 
-* Handle missing `namespace` field on sfdx-project.json ([PR #391](https://github.com/forcedotcom/salesforcedx-vscode/pull/391))
+* Handle missing `namespace` attribute in sfdx-project.json ([PR #391](https://github.com/forcedotcom/salesforcedx-vscode/pull/391))
 
 ## 42.12.0 - April 19, 2018
 ### Added
