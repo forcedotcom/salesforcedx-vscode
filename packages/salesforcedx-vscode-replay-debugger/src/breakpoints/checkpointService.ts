@@ -517,7 +517,7 @@ export async function processBreakpointChangedForCheckpoints(
     ) {
       if (bp instanceof vscode.SourceBreakpoint) {
         await checkpointService.deleteCheckpointNode(
-          bp.location.uri.toString(false /* skipEncoding */),
+          code2ProtocolConverter(bp.location.uri),
           bp.location.range.start.line + 1 // need to add 1 since the lines are 0 based
         );
       }
@@ -538,7 +538,7 @@ export async function processBreakpointChangedForCheckpoints(
         continue;
       }
       if (bp instanceof vscode.SourceBreakpoint) {
-        const uri = bp.location.uri.toString(false /* skipEncoding */);
+        const uri = code2ProtocolConverter(bp.location.uri);
         const lineNumber = bp.location.range.start.line + 1; // need to add 1 since the lines are 0 based
         if (breakpointUtil.canSetLineBreakpoint(uri, lineNumber)) {
           const typeRef = breakpointUtil.getTopLevelTyperefForUri(uri);
@@ -577,5 +577,16 @@ export async function processBreakpointChangedForCheckpoints(
       vscode.window.showErrorMessage(nls.localize('up_to_five_checkpoints'));
     }
     vscode.debug.removeBreakpoints(breakpointsToRemove);
+  }
+}
+
+// See https://github.com/Microsoft/vscode-languageserver-node/issues/105
+function code2ProtocolConverter(value: vscode.Uri) {
+  if (/^win32/.test(process.platform)) {
+    // The *first* : is also being encoded which is not the standard for URI on Windows
+    // Here we transform it back to the standard way
+    return value.toString().replace('%3A', ':');
+  } else {
+    return value.toString();
   }
 }
