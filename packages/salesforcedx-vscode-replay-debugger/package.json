@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.12.0",
+  "version": "42.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "42.12.0",
-    "@salesforce/salesforcedx-utils-vscode": "42.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.13.0",
     "request-light": "0.2.1",
     "vscode-debugadapter": "1.25.0",
     "vscode-debugprotocol": "1.25.0",
@@ -80,7 +79,8 @@
         {
           "id": "sfdx.force.view.checkpoint",
           "name": "%view_checkpoints%",
-          "when": "sfdx:project_opened"
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
         }
       ]
     },
@@ -131,7 +131,18 @@
           }
         }
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%replay-debugger_checkpoint_configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-replay-debugger-checkpoints.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%replay-debugger_checkpoints_enabled%"
+        }
+      }
+    }
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]

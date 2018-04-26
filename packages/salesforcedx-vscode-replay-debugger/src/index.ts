@@ -65,16 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
     'apex-replay',
     new DebugConfigurationProvider()
   );
-  const checkpointsView = vscode.window.registerTreeDataProvider(
-    'sfdx.force.view.checkpoint',
-    checkpointService
-  );
-  context.subscriptions.push(
-    commands,
-    debugHandlers,
-    debugConfigProvider,
-    checkpointsView
-  );
+  context.subscriptions.push(commands, debugHandlers, debugConfigProvider);
 
   console.log('in activate, getting line breakpoint info');
   if (!await retrieveLineBreakpointInfo()) {
@@ -86,21 +77,43 @@ export async function activate(context: vscode.ExtensionContext) {
   }
   console.log('in activate, successfully retrieved line breakpoint info');
 
-  console.log('in activate, activating request service');
-  if (!await checkpointService.activateRequestService()) {
-    console.log('in activate, activating request service failed, returning');
-    // the error was already reported in the function, return
-    return;
-  }
-  console.log('in activate, successfully activated request service');
+  const config = vscode.workspace.getConfiguration();
+  const checkpointsEnabled = config.get(
+    'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
+    false
+  );
 
-  const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
-    processBreakpointChangedForCheckpoints
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:replay_debugger_checkpoints_enabled',
+    checkpointsEnabled
   );
-  context.subscriptions.push(breakpointsSub);
-  console.log(
-    'in activate, added breakpointsSub to subscriptions, activation complete'
-  );
+
+  // Don't create the checkpoint service or register the breakpoints event
+  // if checkpoints aren't enabled
+  if (checkpointsEnabled) {
+    const checkpointsView = vscode.window.registerTreeDataProvider(
+      'sfdx.force.view.checkpoint',
+      checkpointService
+    );
+    context.subscriptions.push(checkpointsView);
+
+    console.log('in activate, activating request service');
+    if (!await checkpointService.activateRequestService()) {
+      console.log('in activate, activating request service failed, returning');
+      // the error was already reported in the function, return
+      return;
+    }
+    console.log('in activate, successfully activated request service');
+
+    const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
+      processBreakpointChangedForCheckpoints
+    );
+    context.subscriptions.push(breakpointsSub);
+    console.log(
+      'in activate, added breakpointsSub to subscriptions, activation complete'
+    );
+  }
 }
 
 function getDialogStartingPath(): vscode.Uri | undefined {
@@ -134,9 +147,7 @@ async function retrieveLineBreakpointInfo(): Promise<boolean> {
     } else {
       const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
       if (lineBpInfo && lineBpInfo.length > 0) {
-        vscode.window.showInformationMessage(
-          nls.localize('line_breakpoint_information_success')
-        );
+        console.log(nls.localize('line_breakpoint_information_success'));
         breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
         return true;
       } else {

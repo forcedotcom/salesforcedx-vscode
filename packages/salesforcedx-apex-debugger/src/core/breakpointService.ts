@@ -10,12 +10,12 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
   ApexBreakpointLocation,
   LineBreakpointsInTyperef
 } from '../breakpoints/lineBreakpoint';
-import { RequestService } from '../commands';
 
 export class BreakpointService {
   private lineNumberMapping: Map<

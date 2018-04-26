@@ -1,5 +1,6 @@
 import * as AdmZip from 'adm-zip';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
@@ -383,6 +384,12 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       await executor.execute(input);
       expect(executeCommandSpy.callCount).to.equal(8);
       expect(vscodeCommandSpy.callCount).to.equal(1);
+
+      // there should be a launch config
+      expect(
+        fs.existsSync(path.join(projectPath, '.vscode', 'launch.json')),
+        'there must be a launch.json file'
+      ).to.equal(true);
     });
   });
 });
