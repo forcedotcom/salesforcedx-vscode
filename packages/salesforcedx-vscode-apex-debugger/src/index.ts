@@ -22,6 +22,10 @@ import {
   WORKSPACE_SETTINGS_REQUEST,
   WorkspaceSettings
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
+import {
+  ForceConfigGet,
+  GlobalCliEnvironment
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { nls } from './messages';
@@ -256,13 +260,56 @@ function registerFileWatchers(): vscode.Disposable {
   trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
   trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
   trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
-  return vscode.Disposable.from(clsWatcher, trgWatcher);
+  const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(
+    '**/.sfdx/sfdx-config.json'
+  );
+  isvAuthWatcher.onDidChange(uri => notifyIsvAuthChanged());
+  isvAuthWatcher.onDidCreate(uri => notifyIsvAuthChanged());
+  isvAuthWatcher.onDidDelete(uri => notifyIsvAuthChanged());
+  return vscode.Disposable.from(clsWatcher, trgWatcher, isvAuthWatcher);
 }
 
 function notifyDebuggerSessionFileChanged(): void {
   if (vscode.debug.activeDebugSession) {
     vscode.debug.activeDebugSession.customRequest(HOTSWAP_REQUEST);
   }
+}
+
+async function notifyIsvAuthChanged() {
+  if (
+    vscode.workspace.workspaceFolders instanceof Array &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    const forceConfig = await new ForceConfigGet().getConfig(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      'isvDebuggerSid',
+      'isvDebuggerUrl'
+    );
+    const isvDebuggerSid = forceConfig.get('isvDebuggerSid');
+    const isvDebuggerUrl = forceConfig.get('isvDebuggerUrl');
+    if (
+      typeof isvDebuggerSid !== 'undefined' &&
+      typeof isvDebuggerUrl !== 'undefined'
+    ) {
+      // set auth context
+      GlobalCliEnvironment.environmentVariables.set(
+        'SFDX_DEFAULTUSERNAME',
+        isvDebuggerSid
+      );
+      GlobalCliEnvironment.environmentVariables.set(
+        'SFDX_INSTANCE_URL',
+        isvDebuggerUrl
+      );
+      console.log(
+        'Configured SFDX_DEFAULTUSERNAME and SFDX_INSTANCE_URL for ISV Project Authentication'
+      );
+      return;
+    }
+  }
+
+  // reset any auth
+  GlobalCliEnvironment.environmentVariables.delete('SFDX_DEFAULTUSERNAME');
+  GlobalCliEnvironment.environmentVariables.delete('SFDX_INSTANCE_URL');
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -276,6 +323,7 @@ export function activate(context: vscode.ExtensionContext) {
       new ApexDebuggerConfigurationProvider()
     )
   );
+  notifyIsvAuthChanged();
 }
 
 export function deactivate() {
