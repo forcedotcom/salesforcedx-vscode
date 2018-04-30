@@ -14,7 +14,6 @@ import {
   CheckpointInfoActionScriptNode,
   CheckpointInfoActionScriptTypeNode,
   CheckpointInfoIterationNode,
-  CheckpointInfoResultNode,
   CheckpointNode,
   checkpointService,
   CheckpointService
@@ -94,25 +93,21 @@ describe('Checkpoint Service - unit', () => {
     expect(overlayAction.ActionScript).to.be.equal('');
   });
 
-  it('Verify CheckpointNode has 4 child CheckpointInfoNodes after creation', async () => {
+  it('Verify CheckpointNode has 3 child CheckpointInfoNodes after creation', async () => {
     const cpNode = await checkpointService.getOrCreateCheckpointNode(
       uriInput,
       sourceFileInput,
       typeRefInput,
       lineInput
     );
-    // Note: Since the underlying ApexExecutionOverlayCommand is not being executed on creation,
-    // The result node needs to be created manually
-    cpNode.setActionCommandResult(actionObjectId, undefined);
 
-    expect(cpNode.getChildren().length).to.be.eq(4);
+    expect(cpNode.getChildren().length).to.be.eq(3);
 
-    // Verify that CheckpointNode as 4 child CheckpointInfo when the node was initially created and
+    // Verify that CheckpointNode as 3 child CheckpointInfo when the node was initially created and
     // only one of each type was created.
     let totalCheckpointInfoActionScriptNode = 0;
     let totalCheckpointInfoActionScriptTypeNode = 0;
     let totalCheckpointInfoIterationNode = 0;
-    let totalCheckpointInfoResultNode = 0;
     let totalUnknownNodeTypes = 0;
     for (const infoNode of cpNode.getChildren()) {
       // Can't do a switch on instance of but utilizing the constructor
@@ -130,10 +125,6 @@ describe('Checkpoint Service - unit', () => {
           totalCheckpointInfoIterationNode++;
           break;
         }
-        case CheckpointInfoResultNode: {
-          totalCheckpointInfoResultNode++;
-          break;
-        }
         default: {
           totalUnknownNodeTypes++;
         }
@@ -142,7 +133,6 @@ describe('Checkpoint Service - unit', () => {
     expect(totalCheckpointInfoActionScriptNode).to.be.eq(1);
     expect(totalCheckpointInfoActionScriptTypeNode).to.be.eq(1);
     expect(totalCheckpointInfoIterationNode).to.be.eq(1);
-    expect(totalCheckpointInfoResultNode).to.be.eq(1);
     expect(totalUnknownNodeTypes).to.be.eq(0);
   });
 
@@ -199,11 +189,7 @@ describe('Checkpoint Service - unit', () => {
     expect(checkpointService.canAddCheckpointNote()).to.be.eq(false);
   });
 
-  // There should only ever be 1 CheckpointInfoResultNode for any given CheckpointNode.
-  // setActionCommandResult will delete the exiting result node and replace it with the new one.
-  // The reason for this is that the label is set when the node is constructed so changing the
-  // result means deleting the old one and creating a new one.
-  it('CheckpointNode, CheckpointInfoResultNode child tests', async () => {
+  it('CheckpointNode, Action Command Result tests', async () => {
     const someErrorMessage = 'This is error text';
     const cpNode = await checkpointService.getOrCreateCheckpointNode(
       uriInput,
@@ -212,43 +198,15 @@ describe('Checkpoint Service - unit', () => {
       lineInput
     );
 
-    // The result node is created with either an actionObjectId or an error message. First create one
-    // with an actionObjectId and verify the settings, including the the getActionCommandResultId on
-    // the CheckpointNode
-    let resultNode = cpNode.setActionCommandResult(actionObjectId, undefined);
-    // verify that the getActionObjectId returned from the resultNode is the same as the one returned from getActionCommandResultId
-    expect(resultNode.getActionObjectId()).to.be.eq(actionObjectId);
-    expect(cpNode.getActionCommandResultId()).to.be.eq(
-      resultNode.getActionObjectId()
-    );
+    cpNode.setActionCommandResultId(actionObjectId);
     expect(cpNode.getActionCommandResultId()).to.be.eq(actionObjectId);
-    expect(resultNode.getActionObjectFailureMessage()).to.be.eq(undefined);
+    expect(cpNode.getActionCommandFailureMessage()).to.be.eq(undefined);
 
-    // Create another CheckpointInfoResultNode which should replace the existing one. Set the error
-    // message which will make the actionObjectId undefined
-    resultNode = cpNode.setActionCommandResult(undefined, someErrorMessage);
-    expect(resultNode.getActionObjectFailureMessage()).to.be.eq(
-      someErrorMessage
-    );
-    expect(resultNode.getActionObjectId()).to.be.eq(undefined);
+    cpNode.setActionCommandResultFailure(someErrorMessage);
+    expect(cpNode.getActionCommandFailureMessage()).to.be.eq(someErrorMessage);
     expect(cpNode.getActionCommandResultId()).to.be.eq(undefined);
 
-    // After setting two results, there should still only be 4 children on the CheckpointNode
-    // and only one CheckpointInfoResultNode
-    expect(cpNode.getChildren().length).to.be.eq(4);
-    // Verify only 1 CheckpointInfoResultNode
-    let totalCheckpointInfoResultNode = 0;
-    for (const infoNode of cpNode.getChildren()) {
-      // Can't do a switch on instance of but utilizing the constructor
-      // can get around this
-      switch (infoNode.constructor) {
-        case CheckpointInfoResultNode: {
-          totalCheckpointInfoResultNode++;
-          break;
-        }
-      }
-    }
-    expect(totalCheckpointInfoResultNode).to.be.eq(1);
+    expect(cpNode.getChildren().length).to.be.eq(3);
   });
 });
 
