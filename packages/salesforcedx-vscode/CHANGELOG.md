@@ -1,3 +1,10 @@
+## 42.14.0 - May 3, 2018
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+*  Code completion now respects the `global`, `public`, `protected`, and `private` modifiers when offering suggestions. ([PR #404](https://github.com/forcedotcom/salesforcedx-vscode/pull/404))
+
 ## 42.13.0 - April 26, 2018
 ### Fixed
 
