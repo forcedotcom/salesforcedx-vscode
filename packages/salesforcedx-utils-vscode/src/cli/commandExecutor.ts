@@ -66,9 +66,7 @@ export class CliCommandExecutor {
     const env = Object.create(null);
 
     // inherit current process environment
-    Object.keys(process.env).forEach(key => {
-      env[key] = process.env[key];
-    });
+    Object.assign(env, process.env);
 
     // now push anything from global environment
     baseEnvironment.forEach((value, key) => {
@@ -77,9 +75,7 @@ export class CliCommandExecutor {
 
     // then specific environment from Spawn Options
     if (typeof options.env !== 'undefined') {
-      Object.keys(options.env).forEach(key => {
-        env[key] = options.env[key];
-      });
+      Object.assign(env, options.env);
     }
 
     options.env = env;

@@ -120,9 +120,7 @@ describe('CommandExecutor tests', () => {
       expect(patchedOptions.env.key1).to.equal(testData.get('key1'));
       expect(patchedOptions.env).to.have.property('key2');
       expect(patchedOptions.env.key2).to.equal(testData.get('key2'));
-      expect(patchedOptions.env)
-        .to.have.property('PATH')
-        .to.have.any.keys('PATH', 'Path', 'path');
+      expect(patchedOptions.env).to.have.any.keys('PATH', 'Path', 'path');
     });
 
     it('patchEnv does not override exising var', async () => {
@@ -135,14 +133,15 @@ describe('CommandExecutor tests', () => {
         }
       }
 
+      const existingKey1Value = 'existing' + process.hrtime();
       const patchedOptions = TestableCliCommandExecutor.patchEnv(
-        { env: { key1: 'existing' + process.hrtime() } },
+        { env: { key1: existingKey1Value } },
         testData
       );
 
       expect(patchedOptions).to.have.property('env');
       expect(patchedOptions.env).to.have.property('key1');
-      expect(patchedOptions.env.key1).to.not.equal(testData.get('key1'));
+      expect(patchedOptions.env.key1).to.equal(existingKey1Value);
       expect(patchedOptions.env).to.have.property('key2');
       expect(patchedOptions.env.key2).to.equal(testData.get('key2'));
     });
