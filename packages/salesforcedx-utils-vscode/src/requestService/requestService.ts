@@ -6,7 +6,12 @@
  */
 
 import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
-import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS } from '../constants';
+import {
+  CLIENT_ID,
+  DEFAULT_CONNECTION_TIMEOUT_MS,
+  ENV_SFDX_DEFAULTUSERNAME,
+  ENV_SFDX_INSTANCE_URL
+} from '../constants';
 import { BaseCommand } from './baseCommand';
 
 // Right now have POST and DELETE (out of Query, GET, POST, PATCH, DELETE),
@@ -36,11 +41,11 @@ export class RequestService {
     }
     const instanceUrl = this.instanceUrl;
     if (instanceUrl) {
-      envVars['SFDX_INSTANCE_URL'] = instanceUrl;
+      envVars[ENV_SFDX_INSTANCE_URL] = instanceUrl;
     }
     const sid = this.accessToken;
     if (sid) {
-      envVars['SFDX_DEFAULTUSERNAME'] = sid;
+      envVars[ENV_SFDX_DEFAULTUSERNAME] = sid;
     }
     return envVars;
   }
