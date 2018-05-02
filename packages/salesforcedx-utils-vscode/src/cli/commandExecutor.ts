@@ -23,13 +23,26 @@ export interface CancellationToken {
   isCancellationRequested: boolean;
 }
 
+export class GlobalCliEnvironment {
+  public static readonly environmentVariables = new Map<string, string>();
+}
+
 export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  public constructor(command: Command, options: SpawnOptions) {
+  public constructor(
+    command: Command,
+    options: SpawnOptions,
+    inheritGlobalEnvironmentVariables = true
+  ) {
     this.command = command;
-    this.options = options;
+    this.options = inheritGlobalEnvironmentVariables
+      ? CliCommandExecutor.patchEnv(
+          options,
+          GlobalCliEnvironment.environmentVariables
+        )
+      : options;
   }
 
   public execute(cancellationToken?: CancellationToken): CommandExecution {
@@ -43,6 +56,30 @@ export class CliCommandExecutor {
       childProcess,
       cancellationToken
     );
+  }
+
+  protected static patchEnv(
+    options: SpawnOptions,
+    baseEnvironment: Map<string, string>
+  ): SpawnOptions {
+    // start with current process environment
+    const env = Object.create(null);
+
+    // inherit current process environment
+    Object.assign(env, process.env);
+
+    // now push anything from global environment
+    baseEnvironment.forEach((value, key) => {
+      env[key] = value;
+    });
+
+    // then specific environment from Spawn Options
+    if (typeof options.env !== 'undefined') {
+      Object.assign(env, options.env);
+    }
+
+    options.env = env;
+    return options;
   }
 }
 

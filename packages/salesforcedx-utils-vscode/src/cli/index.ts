@@ -19,7 +19,8 @@ export {
   CliCommandExecutor,
   CliCommandExecution,
   CommandExecution,
-  CompositeCliCommandExecutor
+  CompositeCliCommandExecutor,
+  GlobalCliEnvironment
 } from './commandExecutor';
 export { CommandOutput } from './commandOutput';
 export { ForceConfigGet } from './forceConfigGet';
