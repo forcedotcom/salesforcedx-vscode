@@ -37,9 +37,25 @@ export class VariableAssignmentState implements DebugLogState {
       if (logContext.getStaticVariablesClassMap().has(className)) {
         const statics = logContext.getStaticVariablesClassMap().get(className)!;
         container = statics.get(name)! as ApexVariableContainer;
+        if (container.variablesRef !== 0 && !logContext.getRefsMap().has(ref)) {
+          container = new ApexVariableContainer(
+            container.name,
+            '',
+            container.type
+          );
+          statics.set(name, container);
+        }
       } else if (frameInfo.locals.has(varName)) {
         // if name does not contain '.' (i.e. this.attr or a.Name), it should be in locals and we can update the value
         container = frameInfo.locals.get(varName) as ApexVariableContainer;
+        if (container.variablesRef !== 0 && !logContext.getRefsMap().has(ref)) {
+          container = new ApexVariableContainer(
+            container.name,
+            '',
+            container.type
+          );
+          frameInfo.locals.set(varName, container);
+        }
       }
       if (container) {
         container.value = value;
