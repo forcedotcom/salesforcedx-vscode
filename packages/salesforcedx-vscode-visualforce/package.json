@@ -20,9 +20,7 @@
   "engines": {
     "vscode": "^1.17.0"
   },
-  "categories": [
-    "Languages"
-  ],
+  "categories": ["Languages"],
   "dependencies": {
     "@salesforce/salesforcedx-visualforce-language-server": "42.14.0",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "42.14.0",
@@ -50,27 +48,20 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test",
     "test:unit": "node ./node_modules/vscode/bin/test"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src/extension",
   "contributes": {
     "languages": [
       {
         "id": "visualforce",
-        "aliases": [
-          "Visualforce",
-          "visualforce"
-        ],
-        "extensions": [
-          ".page",
-          ".component"
-        ],
+        "aliases": ["Visualforce", "visualforce"],
+        "extensions": [".page", ".component"],
         "configuration": "./syntaxes/visualforce.configuration.json"
       }
     ],
@@ -102,19 +93,13 @@
           "description": "%visualforce.format.wrapLineLength.desc%"
         },
         "visualforce.format.unformatted": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "scope": "resource",
           "default": "",
           "description": "%visualforce.format.unformatted.desc%"
         },
         "visualforce.format.contentUnformatted": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "scope": "resource",
           "default": "pre,code,textarea",
           "description": "%visualforce.format.contentUnformatted.desc%"
@@ -132,10 +117,7 @@
           "description": "%visualforce.format.preserveNewLines.desc%"
         },
         "visualforce.format.maxPreserveNewLines": {
-          "type": [
-            "number",
-            "null"
-          ],
+          "type": ["number", "null"],
           "scope": "resource",
           "default": null,
           "description": "%visualforce.format.maxPreserveNewLines.desc%"
@@ -147,10 +129,7 @@
           "description": "%visualforce.format.endWithNewline.desc%"
         },
         "visualforce.format.extraLiners": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "scope": "resource",
           "default": "head, body, /html",
           "description": "%visualforce.format.extraLiners.desc%"
@@ -159,12 +138,7 @@
           "type": "string",
           "scope": "resource",
           "default": "auto",
-          "enum": [
-            "auto",
-            "force",
-            "force-aligned",
-            "force-expand-multiline"
-          ],
+          "enum": ["auto", "force", "force-aligned", "force-expand-multiline"],
           "enumDescriptions": [
             "%visualforce.format.wrapAttributes.auto%",
             "%visualforce.format.wrapAttributes.force%",
@@ -200,11 +174,7 @@
         "visualforce.trace.server": {
           "type": "string",
           "scope": "window",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
+          "enum": ["off", "messages", "verbose"],
           "default": "off",
           "description": "%visualforce.trace.server.desc%"
         }
