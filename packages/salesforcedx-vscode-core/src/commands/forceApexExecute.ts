@@ -47,7 +47,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      fs.unlink(response.data.fileName);
+      fs.unlink(response.data.fileName, err => null);
     });
 
     notificationService.reportExecutionError(

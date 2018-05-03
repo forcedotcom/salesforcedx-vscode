@@ -126,6 +126,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         {
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
+          orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath
         }
@@ -145,6 +146,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         {
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
+          orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath
         }
@@ -163,6 +165,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         {
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
+          orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath
         }
@@ -196,6 +199,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const command = builder.buildRetrieveOrgSourceCommand({
         loginUrl: LOGIN_URL,
         sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
         projectName: PROJECT_NAME,
         projectUri: PROJECT_DIR[0].fsPath
       });
@@ -212,6 +216,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const command = builder.buildMetadataApiConvertOrgSourceCommand({
         loginUrl: LOGIN_URL,
         sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
         projectName: PROJECT_NAME,
         projectUri: PROJECT_DIR[0].fsPath
       });
@@ -231,6 +236,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       const command = builder.buildPackageInstalledListAsJsonCommand({
         loginUrl: LOGIN_URL,
         sessionId: SESSION_ID,
+        orgName: PROJECT_NAME,
         projectName: PROJECT_NAME,
         projectUri: PROJECT_DIR[0].fsPath
       });
@@ -249,6 +255,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         {
           loginUrl: LOGIN_URL,
           sessionId: SESSION_ID,
+          orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
           projectUri: PROJECT_DIR[0].fsPath
         },
