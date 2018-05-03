@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.13.0",
+  "version": "42.14.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,7 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.13.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.14.0",
     "request-light": "0.2.1",
     "vscode-debugadapter": "1.25.0",
     "vscode-debugprotocol": "1.25.0",
