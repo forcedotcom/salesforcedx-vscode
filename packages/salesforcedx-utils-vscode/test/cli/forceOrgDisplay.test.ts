@@ -14,7 +14,9 @@ describe('force:org:display', () => {
   const mockSpawn = require('mock-spawn');
   let command: ForceOrgDisplay;
   let origSpawn: any, mySpawn: any;
-  let cmdWithArgSpy: sinon.SinonSpy, cmdBuildSpy: sinon.SinonSpy;
+  let cmdWithArgSpy: sinon.SinonSpy,
+    cmdWithJsonSpy: sinon.SinonSpy,
+    cmdBuildSpy: sinon.SinonSpy;
 
   beforeEach(() => {
     command = new ForceOrgDisplay();
@@ -22,12 +24,14 @@ describe('force:org:display', () => {
     mySpawn = mockSpawn();
     childProcess.spawn = mySpawn;
     cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
+    cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
     cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
   });
 
   afterEach(() => {
     childProcess.spawn = origSpawn;
     cmdWithArgSpy.restore();
+    cmdWithJsonSpy.restore();
     cmdBuildSpy.restore();
   });
 
@@ -53,11 +57,11 @@ describe('force:org:display', () => {
     const cmdOutput: OrgInfo = await command.getOrgInfo('foo');
 
     expect(cmdOutput).to.deep.equal(orgInfo);
-    expect(cmdWithArgSpy.calledTwice).to.equal(true);
+    expect(cmdWithArgSpy.calledOnce).to.equal(true);
     expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
       'force:org:display'
     ]);
-    expect(cmdWithArgSpy.getCall(1).args).to.have.same.members(['--json']);
+    expect(cmdWithJsonSpy.calledOnce).to.equal(true);
     expect(cmdBuildSpy.calledOnce).to.equal(true);
   });
 

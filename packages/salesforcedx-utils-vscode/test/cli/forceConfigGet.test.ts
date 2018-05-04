@@ -14,7 +14,9 @@ describe('force:config:get', () => {
   const mockSpawn = require('mock-spawn');
   let command: ForceConfigGet;
   let origSpawn: any, mySpawn: any;
-  let cmdWithArgSpy: sinon.SinonSpy, cmdBuildSpy: sinon.SinonSpy;
+  let cmdWithArgSpy: sinon.SinonSpy,
+    cmdJsonSpy: sinon.SinonSpy,
+    cmdBuildSpy: sinon.SinonSpy;
 
   beforeEach(() => {
     command = new ForceConfigGet();
@@ -22,12 +24,14 @@ describe('force:config:get', () => {
     mySpawn = mockSpawn();
     childProcess.spawn = mySpawn;
     cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
+    cmdJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
     cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
   });
 
   afterEach(() => {
     childProcess.spawn = origSpawn;
     cmdWithArgSpy.restore();
+    cmdJsonSpy.restore();
     cmdBuildSpy.restore();
   });
 
@@ -43,13 +47,13 @@ describe('force:config:get', () => {
 
     expect(cmdOutput.get('key1')).to.equal('val1');
     expect(cmdOutput.get('key2')).to.equal('val2');
-    expect(cmdWithArgSpy.callCount).to.equal(4);
+    expect(cmdWithArgSpy.callCount).to.equal(3);
     expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
       'force:config:get'
     ]);
     expect(cmdWithArgSpy.getCall(1).args).to.have.same.members(['key1']);
     expect(cmdWithArgSpy.getCall(2).args).to.have.same.members(['key2']);
-    expect(cmdWithArgSpy.getCall(3).args).to.have.same.members(['--json']);
+    expect(cmdJsonSpy.calledOnce).to.equal(true);
     expect(cmdBuildSpy.calledOnce).to.equal(true);
   });
 

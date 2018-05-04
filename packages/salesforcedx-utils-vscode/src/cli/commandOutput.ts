@@ -8,14 +8,15 @@
 import { CommandExecution } from './commandExecutor';
 
 export class CommandOutput {
-  private buffer = '';
+  private stdoutBuffer = '';
+  private stderrBuffer = '';
 
   public async getCmdResult(execution: CommandExecution): Promise<string> {
     execution.stdoutSubject.subscribe(realData => {
-      this.buffer += realData.toString();
+      this.stdoutBuffer += realData.toString();
     });
     execution.stderrSubject.subscribe(realData => {
-      this.buffer += realData.toString();
+      this.stderrBuffer += realData.toString();
     });
 
     return new Promise<
@@ -23,9 +24,9 @@ export class CommandOutput {
     >((resolve: (result: string) => void, reject: (reason: string) => void) => {
       execution.processExitSubject.subscribe(data => {
         if (data != undefined && data.toString() === '0') {
-          return resolve(this.buffer);
+          return resolve(this.stdoutBuffer);
         } else {
-          reject(this.buffer);
+          reject(this.stderrBuffer);
         }
       });
     });

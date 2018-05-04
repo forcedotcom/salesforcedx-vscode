@@ -18,7 +18,7 @@ export class ForceConfigGet {
     keys.forEach(key => commandBuilder.withArg(key));
 
     const execution = new CliCommandExecutor(
-      commandBuilder.withArg('--json').build(),
+      commandBuilder.withJson().build(),
       {
         cwd: projectPath
       }
