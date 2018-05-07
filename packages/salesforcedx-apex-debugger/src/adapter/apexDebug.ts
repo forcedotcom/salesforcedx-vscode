@@ -6,10 +6,6 @@
  */
 
 import {
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
   ForceConfigGet,
   ForceOrgDisplay
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -672,11 +668,11 @@ export class ApexDebug extends LoggingDebugSession {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
         const forceConfig = await new ForceConfigGet().getConfig(
           args.sfdxProject,
-          SFDX_CONFIG_ISV_DEBUGGER_SID,
-          SFDX_CONFIG_ISV_DEBUGGER_URL
+          'isvDebuggerSid',
+          'isvDebuggerUrl'
         );
-        const isvDebuggerSid = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
-        const isvDebuggerUrl = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
+        const isvDebuggerSid = forceConfig.get('isvDebuggerSid');
+        const isvDebuggerUrl = forceConfig.get('isvDebuggerUrl');
         if (
           typeof isvDebuggerSid === 'undefined' ||
           typeof isvDebuggerUrl === 'undefined'
