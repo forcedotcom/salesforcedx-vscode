@@ -11,6 +11,5 @@ export interface LineBreakpointInfo {
   lines: number[];
 }
 export { BreakpointUtil } from './breakpointUtil';
-export { sfdxCreateCheckpoints } from './checkpointService';
 import { BreakpointUtil } from './breakpointUtil';
 export const breakpointUtil = BreakpointUtil.getInstance();
