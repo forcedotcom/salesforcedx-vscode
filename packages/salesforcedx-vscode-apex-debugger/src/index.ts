@@ -6,6 +6,16 @@
  */
 
 import {
+  ENV_SFDX_DEFAULTUSERNAME,
+  ENV_SFDX_INSTANCE_URL,
+  SFDX_CONFIG_ISV_DEBUGGER_SID,
+  SFDX_CONFIG_ISV_DEBUGGER_URL
+} from '@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  ForceConfigGet,
+  GlobalCliEnvironment
+} from '@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
@@ -22,16 +32,6 @@ import {
   WORKSPACE_SETTINGS_REQUEST,
   WorkspaceSettings
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
-import {
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  ForceConfigGet,
-  GlobalCliEnvironment
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { nls } from './messages';
