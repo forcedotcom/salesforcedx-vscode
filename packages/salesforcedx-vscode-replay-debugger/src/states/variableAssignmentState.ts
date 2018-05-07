@@ -37,7 +37,14 @@ export class VariableAssignmentState implements DebugLogState {
         ref = this.fields[5];
       }
       let container: ApexVariableContainer | undefined;
-      let map: Map<string, VariableContainer> | undefined;
+      let map: Map<String, VariableContainer> | undefined;
+
+      if (ref && !logContext.getRefsMap().has(ref)) {
+        logContext
+          .getRefsMap()
+          .set(ref, new ApexVariableContainer(name, value, '', ref));
+      }
+
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
         container = map.get(varName)! as ApexVariableContainer;
@@ -73,21 +80,30 @@ export class VariableAssignmentState implements DebugLogState {
         !container.type.startsWith('List<') &&
         !container.type.startsWith('Set<')
       ) {
-        if (!logContext.getRefsMap().has(ref)) {
-          logContext.getRefsMap().set(ref, container);
-        } else {
-          // if the ref already exists then that means we are assigning another pointer to a ref so we need to merge the info from the ref into the variable container
-          const refContainer = logContext.getRefsMap().get(ref)!;
-          container.variables = refContainer.variables;
-          container.variablesRef = refContainer.variablesRef;
-          container.name = varName;
-        }
+        // get ref container and map container's variables to the container's
+        const refContainer = logContext.getRefsMap().get(ref)!;
+        container.variables = refContainer.variables;
+        container.variablesRef = refContainer.variablesRef;
+        container.name = varName;
         if (value.indexOf('{') === 0 && value !== '{}') {
           container.value = '';
           container.variablesRef = logContext
             .getVariableHandler()
             .create(container);
-          this.parseAndPopulate(value, container);
+          this.parseAndPopulate(value, container, logContext);
+        } else if (logContext.getRefsMap().has(value)) {
+          const rc = logContext.getRefsMap().get(value)!;
+          const tmpContainer = new ApexVariableContainer(
+            varName,
+            rc.value,
+            rc.type,
+            rc.ref
+          );
+          tmpContainer.variables = rc.variables;
+          tmpContainer.variablesRef = logContext
+            .getVariableHandler()
+            .create(tmpContainer);
+          container.variables.set(varName, tmpContainer);
         }
         // assigning to variable's fields, currently only going to work for a variable in local
       } else if (name.indexOf('.') !== -1 && ref !== '0') {
@@ -105,7 +121,7 @@ export class VariableAssignmentState implements DebugLogState {
             topLevel.variablesRef = logContext
               .getVariableHandler()
               .create(topLevel);
-            this.parseAndPopulate(value, topLevel);
+            this.parseAndPopulate(value, topLevel, logContext);
           } else {
             container.variables.set(
               varName,
@@ -118,14 +134,33 @@ export class VariableAssignmentState implements DebugLogState {
     return false;
   }
 
-  private parseAndPopulate(value: string, container: ApexVariableContainer) {
+  private parseAndPopulate(
+    value: string,
+    container: ApexVariableContainer,
+    logContext: LogContext
+  ) {
     try {
       const obj = JSON.parse(value);
       Object.keys(obj).forEach(key => {
-        container.variables.set(
-          key,
-          new ApexVariableContainer(key, String(obj[key]), '')
-        );
+        if (logContext.getRefsMap().has(String(obj[key]))) {
+          const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
+          const tmpContainer = new ApexVariableContainer(
+            key,
+            refContainer.value,
+            refContainer.type,
+            refContainer.ref
+          );
+          tmpContainer.variables = refContainer.variables;
+          tmpContainer.variablesRef = logContext
+            .getVariableHandler()
+            .create(tmpContainer);
+          container.variables.set(key, tmpContainer);
+        } else {
+          container.variables.set(
+            key,
+            new ApexVariableContainer(key, String(obj[key]), '')
+          );
+        }
       });
     } catch (e) {
       container.value = value;
