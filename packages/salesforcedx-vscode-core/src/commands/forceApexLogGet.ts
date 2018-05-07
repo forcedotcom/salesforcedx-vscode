@@ -41,7 +41,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       .withDescription(nls.localize('force_apex_log_get_text'))
       .withArg('force:apex:log:get')
       .withFlag('--logid', data.id)
-      .withArg('--json')
+      .withJson()
       .build();
   }
 
@@ -159,7 +159,7 @@ export class ForceApexLogList {
       new SfdxCommandBuilder()
         .withDescription(nls.localize('force_apex_log_list_text'))
         .withArg('force:apex:log:list')
-        .withArg('--json')
+        .withJson()
         .build(),
       { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
     ).execute();

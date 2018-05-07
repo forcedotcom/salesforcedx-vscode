@@ -123,7 +123,7 @@ export class BreakpointService {
           `SessionId='${sessionId}' FileName='${typeref}' Line=${line} IsEnabled='true' Type='Line'`
         )
         .withArg('--usetoolingapi')
-        .withArg('--json')
+        .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
     ).execute();
@@ -152,7 +152,7 @@ export class BreakpointService {
         .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
         .withFlag('--sobjectid', breakpointId)
         .withArg('--usetoolingapi')
-        .withArg('--json')
+        .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
     ).execute();
@@ -239,7 +239,7 @@ export class BreakpointService {
           `SessionId='${sessionId}' FileName='${typeref}' IsEnabled='true' Type='Exception'`
         )
         .withArg('--usetoolingapi')
-        .withArg('--json')
+        .withJson()
         .build(),
       { cwd: projectPath, env: this.requestService.getEnvVars() }
     ).execute();

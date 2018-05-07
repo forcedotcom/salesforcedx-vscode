@@ -145,6 +145,7 @@ describe('Debugger breakpoint service', () => {
     let origSpawn: any, mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
+    let cmdWithJsonSpy: sinon.SinonSpy;
     let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
@@ -154,6 +155,7 @@ describe('Debugger breakpoint service', () => {
       childProcess.spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
+      cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
       cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
     });
 
@@ -161,6 +163,7 @@ describe('Debugger breakpoint service', () => {
       childProcess.spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
+      cmdWithJsonSpy.restore();
       cmdBuildSpy.restore();
     });
 
@@ -189,7 +192,7 @@ describe('Debugger breakpoint service', () => {
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
         '--usetoolingapi'
       ]);
-      expect(cmdWithArgSpy.getCall(2).args).to.have.same.members(['--json']);
+      expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
     });
 
@@ -254,6 +257,7 @@ describe('Debugger breakpoint service', () => {
     let origSpawn: any, mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
+    let cmdWithJsonSpy: sinon.SinonSpy;
     let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
@@ -263,6 +267,7 @@ describe('Debugger breakpoint service', () => {
       childProcess.spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
+      cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
       cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
     });
 
@@ -270,6 +275,7 @@ describe('Debugger breakpoint service', () => {
       childProcess.spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
+      cmdWithJsonSpy.restore();
       cmdBuildSpy.restore();
     });
 
@@ -297,7 +303,7 @@ describe('Debugger breakpoint service', () => {
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
         '--usetoolingapi'
       ]);
-      expect(cmdWithArgSpy.getCall(2).args).to.have.same.members(['--json']);
+      expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
     });
   });
@@ -306,6 +312,7 @@ describe('Debugger breakpoint service', () => {
     let origSpawn: any, mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
+    let cmdWithJsonSpy: sinon.SinonSpy;
     let cmdBuildSpy: sinon.SinonSpy;
 
     beforeEach(() => {
@@ -315,6 +322,7 @@ describe('Debugger breakpoint service', () => {
       childProcess.spawn = mySpawn;
       cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
       cmdWithFlagSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withFlag');
+      cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
       cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
     });
 
@@ -322,6 +330,7 @@ describe('Debugger breakpoint service', () => {
       childProcess.spawn = origSpawn;
       cmdWithArgSpy.restore();
       cmdWithFlagSpy.restore();
+      cmdWithJsonSpy.restore();
       cmdBuildSpy.restore();
     });
 
@@ -348,7 +357,7 @@ describe('Debugger breakpoint service', () => {
       expect(cmdWithArgSpy.getCall(1).args).to.have.same.members([
         '--usetoolingapi'
       ]);
-      expect(cmdWithArgSpy.getCall(2).args).to.have.same.members(['--json']);
+      expect(cmdWithJsonSpy.calledOnce).to.equal(true);
       expect(cmdBuildSpy.calledOnce).to.equal(true);
     });
 

@@ -5,34 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* tslint:disable:no-unused-expression */
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import {
-  ExtensionContext,
-  extensions,
-  workspace,
-  WorkspaceConfiguration
-} from 'vscode';
-import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from '../src/constants';
+import { ExtensionContext, WorkspaceConfiguration } from 'vscode';
+import { LWC_EXTENSION_NAME } from '../src/constants';
 import { populateEslintSettingIfNecessary } from '../src/index';
-
-// tslint:disable:no-unused-expression
-describe('LWC ESlint Integration Tests', () => {
-  before(async () => {
-    const extension = extensions.getExtension(
-      `salesforce.${LWC_EXTENSION_NAME}`
-    );
-    if (extension && !extension.isActive) {
-      await extension.activate();
-    }
-  });
-
-  it('Should configure eslint.nodePath on sfdx-simple', () => {
-    expect(
-      workspace.getConfiguration().get<string>(ESLINT_NODEPATH_CONFIG)
-    ).to.contain(LWC_EXTENSION_NAME);
-  });
-});
 
 describe('LWC ESlint Unit Tests', () => {
   const mContext = {

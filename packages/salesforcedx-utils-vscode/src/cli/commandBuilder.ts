@@ -42,7 +42,11 @@ export class CommandBuilder {
   }
 
   public withArg(arg: string): CommandBuilder {
-    this.args.push(arg);
+    if (arg === '--json') {
+      this.withJson();
+    } else {
+      this.args.push(arg);
+    }
     return this;
   }
 
@@ -53,6 +57,7 @@ export class CommandBuilder {
 
   public withJson(): CommandBuilder {
     this.args.push('--json');
+    this.args.push('--loglevel', 'fatal');
     return this;
   }
 

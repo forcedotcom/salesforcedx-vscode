@@ -68,7 +68,7 @@ export class SessionService {
             .entryFilter}' RequestTypeFilter='${this.requestFilter}'`
         )
         .withArg('--usetoolingapi')
-        .withArg('--json')
+        .withJson()
         .build(),
       {
         cwd: this.project,
@@ -102,7 +102,7 @@ export class SessionService {
         .withFlag('--sobjectid', this.sessionId)
         .withFlag('--values', "Status='Detach'")
         .withArg('--usetoolingapi')
-        .withArg('--json')
+        .withJson()
         .build(),
       { cwd: this.project, env: this.requestService.getEnvVars() }
     ).execute();

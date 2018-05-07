@@ -80,7 +80,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
         "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
+      .withJson()
       .build();
   }
 
