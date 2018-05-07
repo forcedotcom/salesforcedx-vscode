@@ -5,15 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* tslint:disable:no-unused-expression */
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import {
-  ExtensionContext,
-  extensions,
-  workspace,
-  WorkspaceConfiguration
-} from 'vscode';
-import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from '../src/constants';
+import { ExtensionContext, WorkspaceConfiguration } from 'vscode';
+import { LWC_EXTENSION_NAME } from '../src/constants';
 import { populateEslintSettingIfNecessary } from '../src/index';
 
 describe('LWC ESlint Unit Tests', () => {
