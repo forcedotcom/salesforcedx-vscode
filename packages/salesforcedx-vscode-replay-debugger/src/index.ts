@@ -11,7 +11,8 @@ import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider
 import { breakpointUtil } from './breakpoints';
 import {
   checkpointService,
-  processBreakpointChangedForCheckpoints
+  processBreakpointChangedForCheckpoints,
+  sfdxCreateCheckpoints
 } from './breakpoints/checkpointService';
 import {
   DEBUGGER_TYPE,
@@ -46,37 +47,44 @@ function registerDebugHandlers(): vscode.Disposable {
       if (event && event.session && event.session.type === DEBUGGER_TYPE) {
         if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
           console.log('in registerDebugHandlers, getting line breakpoint info');
-          event.session.customRequest(
-            LINE_BREAKPOINT_INFO_REQUEST,
-            breakpointUtil.getRawLineBPInfo()
+          const sfdxApex = vscode.extensions.getExtension(
+            'salesforce.salesforcedx-vscode-apex'
           );
+          if (sfdxApex && sfdxApex.exports) {
+            const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
+            event.session.customRequest(
+              LINE_BREAKPOINT_INFO_REQUEST,
+              lineBpInfo
+            );
+            console.log(
+              'in registerDebugHandlers, retrieved line breakpoint info from language server'
+            );
+          }
         }
       }
     }
   );
-  return vscode.Disposable.from(customEventHandler);
+
+  const config = vscode.workspace.getConfiguration();
+  const checkpointsEnabled = config.get(
+    'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
+    false
+  );
+  if (checkpointsEnabled) {
+    const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
+      'sfdx.create.checkpoints',
+      sfdxCreateCheckpoints
+    );
+    return vscode.Disposable.from(customEventHandler, sfdxCreateCheckpointsCmd);
+  } else {
+    return vscode.Disposable.from(customEventHandler);
+  }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
-  const commands = registerCommands();
-  const debugHandlers = registerDebugHandlers();
-  const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
-    'apex-replay',
-    new DebugConfigurationProvider()
-  );
-  context.subscriptions.push(commands, debugHandlers, debugConfigProvider);
 
-  console.log('in activate, getting line breakpoint info');
-  if (!await retrieveLineBreakpointInfo()) {
-    console.log(
-      'in activate, did not retrieve line breakpoint info, returning'
-    );
-    // the error was already reported in the function, return
-    return;
-  }
-  console.log('in activate, successfully retrieved line breakpoint info');
-
+  // registerCommands needs the checkpoint configuration
   const config = vscode.workspace.getConfiguration();
   const checkpointsEnabled = config.get(
     'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
@@ -89,6 +97,14 @@ export async function activate(context: vscode.ExtensionContext) {
     checkpointsEnabled
   );
 
+  const commands = registerCommands();
+  const debugHandlers = registerDebugHandlers();
+  const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
+    'apex-replay',
+    new DebugConfigurationProvider()
+  );
+  context.subscriptions.push(commands, debugHandlers, debugConfigProvider);
+
   // Don't create the checkpoint service or register the breakpoints event
   // if checkpoints aren't enabled
   if (checkpointsEnabled) {
@@ -98,13 +114,10 @@ export async function activate(context: vscode.ExtensionContext) {
     );
     context.subscriptions.push(checkpointsView);
 
-    console.log('in activate, activating request service');
-    if (!await checkpointService.activateRequestService()) {
-      console.log('in activate, activating request service failed, returning');
-      // the error was already reported in the function, return
-      return;
-    }
-    console.log('in activate, successfully activated request service');
+    vscode.commands.registerCommand(
+      'checkpoints.createCheckpoints',
+      sfdxCreateCheckpoints
+    );
 
     const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
       processBreakpointChangedForCheckpoints
@@ -127,7 +140,10 @@ function getDialogStartingPath(): vscode.Uri | undefined {
   }
 }
 
-async function retrieveLineBreakpointInfo(): Promise<boolean> {
+// Call to retrieve line/breakpoint information when the user decides to upload
+// their checkpoints. This ends up being done every time so we don't end up having
+// to perform any shenanigans when the user changes their code.
+export async function retrieveLineBreakpointInfo(): Promise<boolean> {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );

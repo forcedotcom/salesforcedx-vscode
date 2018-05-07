@@ -11,12 +11,11 @@ import {
 } from '../../../src/commands/queryExistingOverlayActionIdsCommand';
 import { createExpectedXHROptions } from './apexExecutionOverlayActionCommand.test';
 
-describe('ApexExecutionOverlayAction command', () => {
+describe('QueryExistingOverlayActionIdsCommand command', () => {
   let sendRequestSpy: sinon.SinonStub;
   let queryOverlayActionCommand: QueryExistingOverlayActionIdsCommand;
   const requestService = new RequestService();
   const userId = '005xx000001UcFFAKE';
-  // .execute(queryCommand, RestHttpMethodEnum.Get)
   const expectedGetUrl =
     "https://www.salesforce.com/services/data/v43.0/tooling/query?q=SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId='" +
     userId +
@@ -35,7 +34,7 @@ describe('ApexExecutionOverlayAction command', () => {
     sendRequestSpy.restore();
   });
 
-  it('ApexExecutionOverlayActionCommand GET REST call with parse-able success result, no action objects', async () => {
+  it('QueryExistingOverlayActionIdsCommand GET REST call with parse-able success result, no action objects', async () => {
     queryOverlayActionCommand = new QueryExistingOverlayActionIdsCommand(
       userId
     );
@@ -70,7 +69,7 @@ describe('ApexExecutionOverlayAction command', () => {
     expect(response.size).to.equal(0);
     expect(response.records.length).to.equal(0);
   });
-  it('ApexExecutionOverlayActionCommand GET REST call with parse-able success result, 5 action objects', async () => {
+  it('QueryExistingOverlayActionIdsCommand GET REST call with parse-able success result, 5 action objects', async () => {
     queryOverlayActionCommand = new QueryExistingOverlayActionIdsCommand(
       userId
     );
