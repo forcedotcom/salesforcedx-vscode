@@ -105,7 +105,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('force:data:soql:query')
       .withFlag('--query', 'SELECT NamespacePrefix FROM Organization LIMIT 1')
       .withFlag('--targetusername', data.sessionId)
-      .withArg(`--json`)
+      .withJson()
       .build();
   }
 
@@ -162,7 +162,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('force:package:installed:list')
       .withFlag('--targetusername', data.sessionId)
-      .withArg('--json')
+      .withJson()
       .build();
   }
 
