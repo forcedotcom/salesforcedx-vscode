@@ -236,12 +236,13 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           );
         } else {
           vscode.window.showErrorMessage(
-            '${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}'
+            `${result[0]
+              .message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`
           );
         }
       } catch (error) {
         vscode.window.showErrorMessage(
-          '${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}'
+          `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`
         );
       }
     }
