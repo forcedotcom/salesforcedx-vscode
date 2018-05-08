@@ -107,8 +107,7 @@ export async function getUserId(projectPath: string): Promise<string> {
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
       .withArg('force:user:display')
-      .withFlag('--loglevel', 'fatal')
-      .withArg('--json')
+      .withJson()
       .build(),
     { cwd: projectPath }
   ).execute();
@@ -134,7 +133,7 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
           .developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
+      .withJson()
       .build();
   }
 }
@@ -161,7 +160,7 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
           .toUTCString()}`
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
+      .withJson()
       .build();
   }
 }
@@ -177,7 +176,7 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
         `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
+      .withJson()
       .build();
   }
 }
@@ -197,7 +196,7 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
           .toUTCString()}'`
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
+      .withJson()
       .build();
   }
 }
@@ -215,7 +214,7 @@ export class ForceQueryTraceFlag extends SfdxCommandletExecutor<{}> {
         "SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
       )
       .withArg('--usetoolingapi')
-      .withArg('--json')
+      .withJson()
       .build();
   }
 }

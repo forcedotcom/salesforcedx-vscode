@@ -32,7 +32,7 @@ describe('Force Auth Web Login for Demo  Mode', () => {
     const authWebLogin = new ForceAuthWebDemoModeLoginExecutor();
     const authWebLoginCommand = authWebLogin.build({});
     expect(authWebLoginCommand.toCommand()).to.equal(
-      'sfdx force:auth:web:login --setdefaultdevhubusername --noprompt --json'
+      'sfdx force:auth:web:login --setdefaultdevhubusername --noprompt --json --loglevel fatal'
     );
     expect(authWebLoginCommand.description).to.equal(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
