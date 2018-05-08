@@ -11,7 +11,10 @@ import {
   BatchRequest,
   BatchRequests
 } from '../../../src/commands/batchDeleteExistingOverlayActionsCommand';
-import { INVALID_CROSS_REFERENCE_KEY } from '../../../src/constants';
+import {
+  INVALID_CROSS_REFERENCE_KEY,
+  OVERLAY_ACTION_DELETE_URL
+} from '../../../src/constants';
 import { createExpectedXHROptions } from './apexExecutionOverlayActionCommand.test';
 
 let sendRequestSpy: sinon.SinonStub;
@@ -92,10 +95,7 @@ it('BatchDeleteExistingOverlayActionCommand POST REST call with error result', a
   for (let i = 0; i < 5; i++) {
     const request: BatchRequest = {
       method: RestHttpMethodEnum.Delete,
-      url:
-        'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' +
-        tempApexExecutionOverlayId +
-        i
+      url: OVERLAY_ACTION_DELETE_URL + tempApexExecutionOverlayId + i
     };
     requests.push(request);
   }

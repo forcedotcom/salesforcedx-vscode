@@ -6,7 +6,6 @@
  */
 
 import { assert, expect } from 'chai';
-//import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   ActionScriptEnum,

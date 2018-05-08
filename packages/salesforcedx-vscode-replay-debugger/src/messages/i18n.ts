@@ -28,7 +28,7 @@ export const messages = {
   up_to_five_checkpoints:
     'You have %s of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
   checkpoints_can_only_be_on_valid_apex_source:
-    'Checkpoints can be set on a valid line of Apex source. URI=%s, Line=%s',
+    'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%s',
   local_source_is_out_of_sync_with_the_server:
     "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
   checkpoints_successfully_uploaded:
