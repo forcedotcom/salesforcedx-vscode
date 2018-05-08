@@ -50,7 +50,7 @@ export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}
       .withArg('force:auth:web:login')
       .withArg('--setdefaultdevhubusername')
       .withArg('--noprompt')
-      .withArg('--json')
+      .withJson()
       .build();
   }
 

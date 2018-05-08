@@ -81,12 +81,21 @@ export interface ProjectName {
 }
 
 export class SelectProjectName implements ParametersGatherer<ProjectName> {
+  private readonly prefillValueProvider?: () => string;
+
+  constructor(prefillValueProvider?: () => string) {
+    this.prefillValueProvider = prefillValueProvider;
+  }
+
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectName>
   > {
     const projectNameInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_project_name')
     } as vscode.InputBoxOptions;
+    if (this.prefillValueProvider) {
+      projectNameInputOptions.value = this.prefillValueProvider();
+    }
     const projectName = await vscode.window.showInputBox(
       projectNameInputOptions
     );
