@@ -11,8 +11,6 @@ export interface BatchRequest {
   url: string;
 }
 
-// The batch response is a bit nuts. There's an array of results which contain an status code and a result however
-// the result is actually an array of errorcode/message pairs OR null.
 export interface BatchDeleteResponse {
   hasErrors: boolean;
   results: BatchDeleteResult[];

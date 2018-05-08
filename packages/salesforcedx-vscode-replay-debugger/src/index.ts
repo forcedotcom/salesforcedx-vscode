@@ -41,7 +41,7 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(promptForLogCmd);
 }
 
-function registerDebugHandlers(): vscode.Disposable {
+function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session && event.session.type === DEBUGGER_TYPE) {
@@ -65,11 +65,6 @@ function registerDebugHandlers(): vscode.Disposable {
     }
   );
 
-  const config = vscode.workspace.getConfiguration();
-  const checkpointsEnabled = config.get(
-    'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
-    false
-  );
   if (checkpointsEnabled) {
     const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
       'sfdx.create.checkpoints',
@@ -98,7 +93,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const commands = registerCommands();
-  const debugHandlers = registerDebugHandlers();
+  const debugHandlers = registerDebugHandlers(checkpointsEnabled);
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
     new DebugConfigurationProvider()
@@ -140,9 +135,6 @@ function getDialogStartingPath(): vscode.Uri | undefined {
   }
 }
 
-// Call to retrieve line/breakpoint information when the user decides to upload
-// their checkpoints. This ends up being done every time so we don't end up having
-// to perform any shenanigans when the user changes their code.
 export async function retrieveLineBreakpointInfo(): Promise<boolean> {
   const sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'

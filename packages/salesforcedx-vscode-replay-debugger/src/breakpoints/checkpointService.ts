@@ -40,7 +40,8 @@ import {
 import {
   CHECKPOINT,
   FIELD_INTEGRITY_EXCEPTION,
-  MAX_ALLOWED_CHECKPOINTS
+  MAX_ALLOWED_CHECKPOINTS,
+  OVERLAY_ACTION_DELETE_URL
 } from '../constants';
 import { retrieveLineBreakpointInfo } from '../index';
 import { nls } from '../messages';
@@ -145,8 +146,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         numEnabledCheckpoints++;
       }
     }
-    const fiveOrLess: boolean =
-      numEnabledCheckpoints <= MAX_ALLOWED_CHECKPOINTS;
+    const fiveOrLess = numEnabledCheckpoints <= MAX_ALLOWED_CHECKPOINTS;
     if (!fiveOrLess && displayError) {
       vscode.window.showErrorMessage(
         nls.localize('up_to_five_checkpoints', numEnabledCheckpoints)
@@ -170,7 +170,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       checkpointOverlayAction
     );
     this.checkpoints.push(cpNode);
-    this._onDidChangeTreeData.fire();
+    this.fireTreeChangedEvent();
     return cpNode;
   }
 
@@ -191,7 +191,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       const index = this.checkpoints.indexOf(cpNode, 0);
       if (index > -1) {
         this.checkpoints.splice(index, 1);
-        this._onDidChangeTreeData.fire();
+        this.fireTreeChangedEvent();
       }
     }
   }
@@ -236,20 +236,12 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           );
         } else {
           vscode.window.showErrorMessage(
-            result[0].message +
-              '. URI=' +
-              theNode.getCheckpointUri() +
-              ', Line=' +
-              theNode.getCheckpointLineNumber()
+            '${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}'
           );
         }
       } catch (error) {
         vscode.window.showErrorMessage(
-          errorString +
-            '. URI=' +
-            theNode.getCheckpointUri() +
-            ', Line=' +
-            theNode.getCheckpointLineNumber()
+          '${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}'
         );
       }
     }
@@ -287,9 +279,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               for (const record of successResult.records) {
                 const request: BatchRequest = {
                   method: RestHttpMethodEnum.Delete,
-                  url:
-                    'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' +
-                    record.Id
+                  url: OVERLAY_ACTION_DELETE_URL + record.Id
                 };
                 requests.push(request);
               }
@@ -591,49 +581,27 @@ export async function processBreakpointChangedForCheckpoints(
 
   for (const bp of breakpointsChangedEvent.changed) {
     const breakpointId = (bp as any)._id;
-    if (bp.condition && bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0) {
-      if (bp instanceof vscode.SourceBreakpoint) {
-        const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
-        const uri = code2ProtocolConverter(bp.location.uri);
-        const filename = uri.substring(uri.lastIndexOf('/') + 1);
-        const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
-          breakpointId
+    if (
+      bp.condition &&
+      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp instanceof vscode.SourceBreakpoint
+    ) {
+      const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
+      const uri = code2ProtocolConverter(bp.location.uri);
+      const filename = uri.substring(uri.lastIndexOf('/') + 1);
+      const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(
+        breakpointId
+      );
+      // If the node exists then update it
+      if (theNode) {
+        theNode.updateCheckpoint(
+          bp.enabled,
+          uri,
+          filename,
+          checkpointOverlayAction
         );
-        // If the node exists then update it
-        if (theNode) {
-          theNode.updateCheckpoint(
-            bp.enabled,
-            uri,
-            filename,
-            checkpointOverlayAction
-          );
-        } else {
-          // else if the node didn't exist then create it
-          checkpointService.createCheckpointNode(
-            breakpointId,
-            bp.enabled,
-            uri,
-            filename,
-            checkpointOverlayAction
-          );
-        }
       } else {
-        // The breakpoint is no longer a SourceBreakpoint which means if it ever was a checkpoint it has to be deleted
-        checkpointService.deleteCheckpointNodeIfExists(breakpointId);
-      }
-    } else {
-      // The breakpoint is not a checkpoint any longer, call to delete it from the checkpoint list if it exists
-      checkpointService.deleteCheckpointNodeIfExists(breakpointId);
-    }
-  }
-
-  for (const bp of breakpointsChangedEvent.added) {
-    if (bp.condition && bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0) {
-      if (bp instanceof vscode.SourceBreakpoint) {
-        const breakpointId = (bp as any)._id;
-        const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
-        const uri = code2ProtocolConverter(bp.location.uri);
-        const filename = uri.substring(uri.lastIndexOf('/') + 1);
+        // else if the node didn't exist then create it
         checkpointService.createCheckpointNode(
           breakpointId,
           bp.enabled,
@@ -642,6 +610,29 @@ export async function processBreakpointChangedForCheckpoints(
           checkpointOverlayAction
         );
       }
+    } else {
+      // The breakpoint is no longer a SourceBreakpoint or is no longer a checkpoint. Call to delete it if it exists
+      checkpointService.deleteCheckpointNodeIfExists(breakpointId);
+    }
+  }
+
+  for (const bp of breakpointsChangedEvent.added) {
+    if (
+      bp.condition &&
+      bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0 &&
+      bp instanceof vscode.SourceBreakpoint
+    ) {
+      const breakpointId = (bp as any)._id;
+      const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
+      const uri = code2ProtocolConverter(bp.location.uri);
+      const filename = uri.substring(uri.lastIndexOf('/') + 1);
+      checkpointService.createCheckpointNode(
+        breakpointId,
+        bp.enabled,
+        uri,
+        filename,
+        checkpointOverlayAction
+      );
     }
   }
 }
