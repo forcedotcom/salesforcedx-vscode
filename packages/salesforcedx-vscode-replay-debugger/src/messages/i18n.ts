@@ -25,11 +25,14 @@ export const messages = {
     'The log file either is missing or does not have any log lines in it.',
   incorrect_log_levels_text:
     'The log must be generated with log categories Apex code at the FINEST level and Visualforce at the FINER level.',
-  up_to_five_checkpoints: 'You can set up to five checkpoints.',
+  up_to_five_checkpoints:
+    'You have %s of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
   checkpoints_can_only_be_on_valid_apex_source:
-    'Checkpoints can be set only on a valid line of Apex source.',
+    'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%s',
   local_source_is_out_of_sync_with_the_server:
     "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
+  checkpoints_successfully_uploaded:
+    'All checkpoints have been successfully uploaded to the server.',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',

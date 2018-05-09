@@ -55,6 +55,11 @@ export class BreakpointUtil {
   }
 
   public createMappingsFromLineBreakpointInfo(lineBpInfo: any): void {
+    // clear out any existing mapping
+    this.lineNumberMapping.clear();
+    this.typerefMapping.clear();
+
+    // set the mapping from the source line info
     this.rawLineBPInfo = lineBpInfo;
     for (const info of lineBpInfo) {
       if (!this.lineNumberMapping.has(info.uri)) {

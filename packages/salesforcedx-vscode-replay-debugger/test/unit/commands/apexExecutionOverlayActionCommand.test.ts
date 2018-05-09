@@ -14,7 +14,7 @@ import {
   ApexExecutionOverlayFailureResult,
   ApexExecutionOverlaySuccessResult
 } from '../../../src/commands/apexExecutionOverlayActionCommand';
-import { DUPLICATE_VALUE } from '../../../src/constants';
+import { FIELD_INTEGRITY_EXCEPTION } from '../../../src/constants';
 
 // These tests are going to be calling a mocked RequestService. The checkpointService utilizes the
 // ApexExecutionOverlayActionCommand under the covers. The presense or absence of an actionObjectId
@@ -62,8 +62,8 @@ describe('ApexExecutionOverlayAction command', () => {
   const requestService = new RequestService();
   const requestString =
     '{"ActionScript":"","ActionScriptType":"None","ExecutableEntityName":"MyFakeClassOrTrigger","IsDumpingHeap":true,"Iteration":1,"Line":25}';
-  const reseponseDupeError =
-    '[{"message":"duplicate value found: ScopeId duplicates value on record with id: 1doxx000000FAKE","errorCode":"DUPLICATE_VALUE","fields":[]}]';
+  const reseponseFieldIntegrityError =
+    '[{"message":"Some error message, does not really matter, only the error code matters","errorCode":"FIELD_INTEGRITY_EXCEPTION","fields":[]}]';
   const responseSuccess =
     '{"id":"1doxx000000FAKE","success":true,"errors":[],"warnings":[]}';
 
@@ -107,14 +107,14 @@ describe('ApexExecutionOverlayAction command', () => {
     expect(response.success).to.equal(true);
   });
 
-  it('ApexExecutionOverlayActionCommand POST REST call with parse-able dupe failure result', async () => {
+  it('ApexExecutionOverlayActionCommand POST REST call with parse-able FIELD_INTEGRITY_EXCEPTION result', async () => {
     overlayActionCommand = new ApexExecutionOverlayActionCommand(requestString);
     sendRequestSpy = sinon
       .stub(RequestService.prototype, 'sendRequest')
       .returns(
         Promise.resolve({
           status: 200,
-          responseText: reseponseDupeError
+          responseText: reseponseFieldIntegrityError
         } as XHRResponse)
       );
     // The expected options needs to contain the request body, url and RestHttpMethodEnum.Post
@@ -134,13 +134,8 @@ describe('ApexExecutionOverlayAction command', () => {
     const result = <ApexExecutionOverlayFailureResult[]>JSON.parse(
       returnString
     );
-    // parse the error code out
-    expect(result[0].errorCode).to.equal(DUPLICATE_VALUE);
-    // verify the ID can be parsed out of the message
-    const duplicateId = result[0].message
-      .substr(result[0].message.lastIndexOf(':') + 1)
-      .trim();
-    expect(duplicateId).to.equal(actionObjectId);
+    // Verify that the error code can be parses out
+    expect(result[0].errorCode).to.equal(FIELD_INTEGRITY_EXCEPTION);
   });
 
   it('ApexExecutionOverlayActionCommand DELETE REST call', async () => {

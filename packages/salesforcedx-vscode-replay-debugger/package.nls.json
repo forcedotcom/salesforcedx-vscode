@@ -12,5 +12,6 @@
     "Produce diagnostic output. You can set this to true, false, or one or more selectors separated with commas. Selectors include 'all' (very detailed output; the equivalent of true), 'protocol', 'logfile', 'launch', 'breakpoints'.",
   "replay-debugger_checkpoint_configuration_title":
     "Replay Debugger Checkpoint Configuration",
-  "replay-debugger_checkpoints_enabled": "Replay Debugger Checkpoints Enabled"
+  "replay-debugger_checkpoints_enabled": "Replay Debugger Checkpoints Enabled",
+  "sfdx_create_checkpoints": "SFDX: Create Checkpoints"
 }
