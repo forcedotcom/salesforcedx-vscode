@@ -253,8 +253,8 @@ describe('Variable assignment event', () => {
 
   describe('Static nested assignment', () => {
     const DUMMY_REF = '0x00000000';
-    const DUMMY_REF1 = '0x00000000';
-    const DUMMY_REF2 = '0x00000000';
+    const DUMMY_REF1 = '0x00000001';
+    const DUMMY_REF2 = '0x00000002';
     const STATIC_NESTED_VARIABLE_SCOPE_BEGIN =
       'fakeTime|VARIABLE_SCOPE_BEGIN|[6]|NestedClass.sa|Account|true|true';
     const STATIC_NESTED_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[6]|NestedClass.sa|{}|${DUMMY_REF}`;
@@ -265,6 +265,7 @@ describe('Variable assignment event', () => {
     const STATIC_NESTED_REASSIGNMENT = `04:35:37.25 (28650946)|VARIABLE_ASSIGNMENT|[10]|NestedClass.staticAcc1|{"Name":"staticacc1"}|${DUMMY_REF1}`;
     const STATIC_NESTED_REASSIGNMENT2 = `04:35:37.25 (28667298)|VARIABLE_ASSIGNMENT|[11]|NestedClass.staticAcc2|{"Name":"staticacc1"}|${DUMMY_REF1}`;
     const STATIC_NESTED_REASSIGNMENT3 = `04:35:37.25 (30077406)|VARIABLE_ASSIGNMENT|[16]|NestedClass.staticAcc1|{"Name":"changed in method1"}|${DUMMY_REF2}`;
+
     beforeEach(() => {
       // push frames on
       const state = new FrameEntryState(['signature']);
@@ -404,13 +405,16 @@ describe('Variable assignment event', () => {
         VariableContainer
       >;
       expect(classMap).to.include.keys('staticAcc1', 'staticAcc2');
-      const acc1Container = classMap.get(
-        'staticAcc1'
-      )! as ApexVariableContainer;
-      const acc2Container = classMap.get(
-        'staticAcc2'
-      )! as ApexVariableContainer;
+      let acc1Container = classMap.get('staticAcc1')! as ApexVariableContainer;
+      let acc2Container = classMap.get('staticAcc2')! as ApexVariableContainer;
       expect(acc1Container.variables).to.equal(acc2Container.variables);
+      state = new VariableAssignmentState(
+        STATIC_NESTED_REASSIGNMENT3.split('|')
+      );
+      state.handle(context);
+      acc1Container = classMap.get('staticAcc1')! as ApexVariableContainer;
+      acc2Container = classMap.get('staticAcc2')! as ApexVariableContainer;
+      expect(acc1Container.variables).to.not.equal(acc2Container.variables);
     });
   });
 });
