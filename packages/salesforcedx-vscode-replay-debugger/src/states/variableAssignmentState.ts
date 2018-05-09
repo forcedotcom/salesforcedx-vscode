@@ -41,14 +41,6 @@ export class VariableAssignmentState implements DebugLogState {
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
         container = map.get(varName)! as ApexVariableContainer;
-        if (container.variablesRef !== 0 && !logContext.getRefsMap().has(ref)) {
-          container = new ApexVariableContainer(
-            container.name,
-            '',
-            container.type
-          );
-          map.set(varName, container);
-        }
       } else if (frameInfo.locals.has(varName)) {
         // if name does not contain '.' (i.e. this.attr or a.Name), it should be in locals and we can update the value
         map = frameInfo.locals;
