@@ -65,7 +65,7 @@ describe('Variable begin scope event', () => {
       context.getStaticVariablesClassMap().get('fakeClass')!.size
     ).to.equal(1);
     expect(context.getStaticVariablesClassMap().get('fakeClass')).to.have.key(
-      'fakeClass.staticInteger'
+      'staticInteger'
     );
   });
 
@@ -120,7 +120,7 @@ describe('Variable begin scope event', () => {
       context.getStaticVariablesClassMap().get('fakeClass')!.size
     ).to.equal(1);
     expect(context.getStaticVariablesClassMap().get('fakeClass')).to.have.key(
-      'fakeClass.staticInteger'
+      'staticInteger'
     );
   });
 });

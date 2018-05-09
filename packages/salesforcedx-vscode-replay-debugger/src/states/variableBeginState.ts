@@ -40,7 +40,7 @@ export class VariableBeginState implements DebugLogState {
           varNameSplit.length > 1
             ? varNameSplit[varNameSplit.length - 1]
             : name;
-        statics.set(name, new ApexVariableContainer(varName, 'null', type));
+        statics.set(varName, new ApexVariableContainer(varName, 'null', type));
       } else {
         // had to add this check because triggers will have variable assignments show up twice and break this
         if (!frameInfo.locals.has(name)) {
