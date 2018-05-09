@@ -75,11 +75,11 @@ describe('Variable assignment event', () => {
       );
       // expect unassigned beforehand
       expect(context.getStaticVariablesClassMap().get('signature')).to.have.key(
-        'signature.staticInteger'
+        'staticInteger'
       );
       expect(
         context.getStaticVariablesClassMap().get('signature')!.get(
-          'signature.staticInteger'
+          'staticInteger'
         )
       ).to.include({
         name: 'staticInteger',
@@ -88,11 +88,11 @@ describe('Variable assignment event', () => {
       state.handle(context);
 
       expect(context.getStaticVariablesClassMap().get('signature')).to.have.key(
-        'signature.staticInteger'
+        'staticInteger'
       );
       expect(
         context.getStaticVariablesClassMap().get('signature')!.get(
-          'signature.staticInteger'
+          'staticInteger'
         )
       ).to.include({
         name: 'staticInteger',
@@ -253,11 +253,18 @@ describe('Variable assignment event', () => {
 
   describe('Static nested assignment', () => {
     const DUMMY_REF = '0x00000000';
+    const DUMMY_REF1 = '0x00000000';
+    const DUMMY_REF2 = '0x00000000';
     const STATIC_NESTED_VARIABLE_SCOPE_BEGIN =
       'fakeTime|VARIABLE_SCOPE_BEGIN|[6]|NestedClass.sa|Account|true|true';
     const STATIC_NESTED_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[6]|NestedClass.sa|{}|${DUMMY_REF}`;
     const STATIC_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|NestedClass.sa|{"Name":"testName"}|${DUMMY_REF}`;
-    const STATIC_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|this.Name|"testName2"|${DUMMY_REF}`;
+    const STATIC_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|sa.Name|"testName2"|${DUMMY_REF}`;
+    const STATIC_NESTED_REASSIGNMENT_BEGIN = `04:35:37.25 (27947754)|VARIABLE_SCOPE_BEGIN|[10]|NestedClass.staticAcc1|Account|true|true`;
+    const STATIC_NESTED_REASSIGNMENT_BEGIN1 = `04:35:37.25 (27955171)|VARIABLE_SCOPE_BEGIN|[11]|NestedClass.staticAcc2|Account|true|true`;
+    const STATIC_NESTED_REASSIGNMENT = `04:35:37.25 (28650946)|VARIABLE_ASSIGNMENT|[10]|NestedClass.staticAcc1|{"Name":"staticacc1"}|${DUMMY_REF1}`;
+    const STATIC_NESTED_REASSIGNMENT2 = `04:35:37.25 (28667298)|VARIABLE_ASSIGNMENT|[11]|NestedClass.staticAcc2|{"Name":"staticacc1"}|${DUMMY_REF1}`;
+    const STATIC_NESTED_REASSIGNMENT3 = `04:35:37.25 (30077406)|VARIABLE_ASSIGNMENT|[16]|NestedClass.staticAcc1|{"Name":"changed in method1"}|${DUMMY_REF2}`;
     beforeEach(() => {
       // push frames on
       const state = new FrameEntryState(['signature']);
@@ -293,10 +300,8 @@ describe('Variable assignment event', () => {
         String,
         VariableContainer
       >;
-      expect(classMap).to.have.key('NestedClass.sa');
-      const container = classMap.get(
-        'NestedClass.sa'
-      )! as ApexVariableContainer;
+      expect(classMap).to.have.key('sa');
+      const container = classMap.get('sa')! as ApexVariableContainer;
       expect(container.variablesRef).to.equal(0);
       expect(container.variables).to.be.empty;
       expect(container.value).to.equal('null');
@@ -320,10 +325,8 @@ describe('Variable assignment event', () => {
         String,
         VariableContainer
       >;
-      expect(classMap).to.have.key('NestedClass.sa');
-      const container = classMap.get(
-        'NestedClass.sa'
-      )! as ApexVariableContainer;
+      expect(classMap).to.have.key('sa');
+      const container = classMap.get('sa')! as ApexVariableContainer;
       expect(container.variablesRef).to.equal(0);
       expect(container.variables).to.be.empty;
       expect(container.value).to.equal('{}');
@@ -341,7 +344,7 @@ describe('Variable assignment event', () => {
       expect(innerContainer.value).to.equal('testName');
     });
 
-    it('Should update variable if reassigned', () => {
+    it('Should update variable if inner variable assigned', () => {
       let state = new VariableAssignmentState(
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
@@ -355,10 +358,8 @@ describe('Variable assignment event', () => {
         String,
         VariableContainer
       >;
-      expect(classMap).to.have.key('NestedClass.sa');
-      const container = classMap.get(
-        'NestedClass.sa'
-      )! as ApexVariableContainer;
+      expect(classMap).to.have.key('sa');
+      const container = classMap.get('sa')! as ApexVariableContainer;
       expect(container.variablesRef).to.equal(0);
       expect(container.variables).to.be.empty;
       expect(container.value).to.equal('{}');
@@ -374,6 +375,42 @@ describe('Variable assignment event', () => {
         'Name'
       ) as ApexVariableContainer;
       expect(innerContainer.value).to.equal('"testName2"');
+    });
+
+    it('Should update variable if reassigned to newly created reference', () => {
+      let beginState = new VariableBeginState(
+        STATIC_NESTED_REASSIGNMENT_BEGIN.split('|')
+      );
+      beginState.handle(context);
+      beginState = new VariableBeginState(
+        STATIC_NESTED_REASSIGNMENT_BEGIN1.split('|')
+      );
+      beginState.handle(context);
+      let state = new VariableAssignmentState(
+        STATIC_NESTED_REASSIGNMENT.split('|')
+      );
+      state.handle(context);
+      state = new VariableAssignmentState(
+        STATIC_NESTED_REASSIGNMENT2.split('|')
+      );
+      state.handle(context);
+      const staticMapping = context.getStaticVariablesClassMap() as Map<
+        String,
+        Map<String, VariableContainer>
+      >;
+      expect(staticMapping).to.include.keys('NestedClass');
+      const classMap = staticMapping.get('NestedClass') as Map<
+        String,
+        VariableContainer
+      >;
+      expect(classMap).to.include.keys('staticAcc1', 'staticAcc2');
+      const acc1Container = classMap.get(
+        'staticAcc1'
+      )! as ApexVariableContainer;
+      const acc2Container = classMap.get(
+        'staticAcc2'
+      )! as ApexVariableContainer;
+      expect(acc1Container.variables).to.equal(acc2Container.variables);
     });
   });
 });
