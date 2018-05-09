@@ -1,3 +1,10 @@
+## 42.15.0 - May 10, 2018
+### Fixed
+
+#### salesforcedx-vscode-core
+
+* Ignore warnings and CLI update messages when using --json ([PR #406](https://github.com/forcedotcom/salesforcedx-vscode/pull/406))
+
 ## 42.14.0 - May 3, 2018
 ### Fixed
 
