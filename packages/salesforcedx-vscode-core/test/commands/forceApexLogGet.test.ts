@@ -80,7 +80,7 @@ describe('Force Apex Log Get Logging', () => {
       nls.localize('force_apex_log_get_text')
     );
     expect(startLoggingCmd.toCommand()).to.equal(
-      `sfdx force:apex:log:get --logid ${LOG_ID} --json`
+      `sfdx force:apex:log:get --logid ${LOG_ID} --json --loglevel fatal`
     );
   });
 

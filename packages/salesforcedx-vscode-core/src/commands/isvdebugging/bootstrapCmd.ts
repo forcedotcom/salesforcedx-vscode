@@ -21,11 +21,11 @@ import * as AdmZip from 'adm-zip';
 import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as querystring from 'querystring';
 import { Observable } from 'rxjs/Observable';
+import * as sanitizeFilename from 'sanitize-filename';
 import * as shell from 'shelljs';
+import { URL } from 'url';
 import * as vscode from 'vscode';
-import { Uri } from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -105,7 +105,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('force:data:soql:query')
       .withFlag('--query', 'SELECT NamespacePrefix FROM Organization LIMIT 1')
       .withFlag('--targetusername', data.sessionId)
-      .withArg(`--json`)
+      .withJson()
       .build();
   }
 
@@ -162,7 +162,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('force:package:installed:list')
       .withFlag('--targetusername', data.sessionId)
-      .withArg('--json')
+      .withJson()
       .build();
   }
 
@@ -512,30 +512,55 @@ export type IsvDebugBootstrapConfig = ProjectNameAndPath & ForceIdeUri;
 export interface ForceIdeUri {
   loginUrl: string;
   sessionId: string;
+  orgName: string;
 }
 
 export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
+  public forceIdUrl?: ForceIdeUri;
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ForceIdeUri>
   > {
     const forceIdeUri = await vscode.window.showInputBox({
-      prompt: nls.localize('parameter_gatherer_paste_forceide_url')
+      prompt: nls.localize('parameter_gatherer_paste_forceide_url'),
+      placeHolder: nls.localize(
+        'parameter_gatherer_paste_forceide_url_placeholder'
+      ),
+      ignoreFocusOut: true,
+      validateInput: value => {
+        try {
+          const url = new URL(value);
+          const parameter = url.searchParams;
+          const loginUrl = parameter.get('url');
+          const sessionId = parameter.get('sessionId');
+          if (typeof loginUrl !== 'string' || typeof sessionId !== 'string') {
+            return nls.localize('parameter_gatherer_invalid_forceide_url');
+          }
+        } catch (e) {
+          return nls.localize('parameter_gatherer_invalid_forceide_url');
+        }
+
+        return null; // all good
+      }
     });
 
     if (forceIdeUri) {
-      const url = Uri.parse(forceIdeUri);
-      const parameter = querystring.parse(url.query);
-      if (parameter.url && parameter.sessionId) {
+      const url = new URL(forceIdeUri);
+      const parameter = url.searchParams;
+      const loginUrl = parameter.get('url');
+      const sessionId = parameter.get('sessionId');
+      if (loginUrl && sessionId) {
         const protocolPrefix =
-          parameter.secure === '0' ? 'http://' : 'https://';
+          parameter.get('secure') === '0' ? 'http://' : 'https://';
+        this.forceIdUrl = {
+          loginUrl: loginUrl.toLowerCase().startsWith('http')
+            ? loginUrl
+            : protocolPrefix + loginUrl,
+          sessionId: sessionId,
+          orgName: url.hostname
+        };
         return {
           type: 'CONTINUE',
-          data: {
-            loginUrl: parameter.url.toLowerCase().startsWith('http')
-              ? parameter.url
-              : protocolPrefix + parameter.url,
-            sessionId: parameter.sessionId
-          }
+          data: this.forceIdUrl
         };
       }
 
@@ -548,10 +573,19 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
   }
 }
 
+const forceIdeUrlGatherer = new EnterForceIdeUri();
 const workspaceChecker = new EmptyPreChecker();
 const parameterGatherer = new CompositeParametersGatherer(
-  new EnterForceIdeUri(),
-  new SelectProjectName(),
+  forceIdeUrlGatherer,
+  new SelectProjectName(() => {
+    if (
+      forceIdeUrlGatherer.forceIdUrl &&
+      forceIdeUrlGatherer.forceIdUrl.orgName
+    ) {
+      return sanitizeFilename(forceIdeUrlGatherer.forceIdUrl.orgName);
+    }
+    return '';
+  }),
   new SelectProjectFolder()
 );
 const pathExistsChecker = new PathExistsChecker();
