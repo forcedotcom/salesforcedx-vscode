@@ -714,20 +714,20 @@ export async function sfdxCreateCheckpoints() {
   } else {
     return;
   }
-
-  // If we're displaying the same status message, call to localize it once and
-  // use the localized string
-  const localizedProgressMessage = nls.localize(
-    'creating_checkpoints_progress_window_message'
-  );
-  vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: localizedProgressMessage,
-      cancellable: false
-    },
-    async (progress, token) => {
-      try {
+  // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
+  try {
+    // The status message isn't changing, call to localize it once and use the localized string in the
+    // progress report.
+    const localizedProgressMessage = nls.localize(
+      'creating_checkpoints_progress_window_message'
+    );
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: localizedProgressMessage,
+        cancellable: false
+      },
+      async (progress, token) => {
         console.log('sfdxCreateCheckpoints: retrieving org info');
         progress.report({ increment: 0, message: localizedProgressMessage });
         const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
@@ -776,11 +776,11 @@ export async function sfdxCreateCheckpoints() {
 
         console.log('sfdxCreateCheckpoints: finished processing checkpoints');
         progress.report({ increment: 100, message: localizedProgressMessage });
-      } finally {
-        creatingCheckpoints = false;
       }
-    }
-  );
+    );
+  } finally {
+    creatingCheckpoints = false;
+  }
 }
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
