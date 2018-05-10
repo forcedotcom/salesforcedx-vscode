@@ -1,6 +1,5 @@
 # Salesforce Extensions for VS Code 
 
-[![Build Status Linux and macOS](https://travis-ci.org/forcedotcom/salesforcedx-vscode.svg?branch=develop)](https://travis-ci.org/forcedotcom/salesforcedx-vscode)
 [![Build status](https://ci.appveyor.com/api/projects/status/ek3pftmawcabebac/branch/develop?svg=true)](https://ci.appveyor.com/project/forcedotcom/salesforcedx-vscode/branch/develop)
 [![Dev Dependencies](https://david-dm.org/forcedotcom/salesforcedx-vscode/dev-status.svg)](docs/dependencies.md)
 [![codecov](https://codecov.io/gh/forcedotcom/salesforcedx-vscode/branch/develop/graph/badge.svg)](https://codecov.io/gh/forcedotcom/salesforcedx-vscode)
