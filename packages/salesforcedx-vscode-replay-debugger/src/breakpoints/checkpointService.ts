@@ -707,48 +707,80 @@ function setTypeRefsForEnabledCheckpoints(): boolean {
 //    c. set the typeRef on each checkpoint (requires the source/line information)
 // 3. Remove any existing checkpoints
 // 4. Create the new checkpoints
+let creatingCheckpoints = false;
 export async function sfdxCreateCheckpoints() {
-  console.log('sfdxCreateCheckpoints: retrieving org info');
-  const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
-  if (!orgInfoRetrieved) {
+  if (!creatingCheckpoints) {
+    creatingCheckpoints = true;
+  } else {
     return;
   }
 
-  console.log('sfdxCreateCheckpoints: retrieving source/line info');
-  const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
-  // If we didn't get the source line information that'll be reported at that time, just return
-  if (!sourceLineInfoRetrieved) {
-    return;
-  }
+  // If we're displaying the same status message, call to localize it once and
+  // use the localized string
+  const localizedProgressMessage = nls.localize(
+    'creating_checkpoints_progress_window_message'
+  );
+  vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: localizedProgressMessage,
+      cancellable: false
+    },
+    async (progress, token) => {
+      try {
+        console.log('sfdxCreateCheckpoints: retrieving org info');
+        progress.report({ increment: 0, message: localizedProgressMessage });
+        const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
+        if (!orgInfoRetrieved) {
+          return;
+        }
 
-  // There can be a max of five active checkpoints
-  if (!checkpointService.hasFiveOrLessActiveCheckpoints(true)) {
-    return;
-  }
+        console.log('sfdxCreateCheckpoints: retrieving source/line info');
+        progress.report({ increment: 20, message: localizedProgressMessage });
+        const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
+        // If we didn't get the source line information that'll be reported at that time, just return
+        if (!sourceLineInfoRetrieved) {
+          return;
+        }
 
-  console.log('sfdxCreateCheckpoints: setting typeRefs for checkpoints');
-  // For the active checkpoints set the typeRefs using the source/line info
-  if (!setTypeRefsForEnabledCheckpoints()) {
-    return;
-  }
+        // There can be a max of five active checkpoints
+        if (!checkpointService.hasFiveOrLessActiveCheckpoints(true)) {
+          return;
+        }
 
-  console.log('sfdxCreateCheckpoints: clearing existing checkpoints');
-  // remove any existing checkpoints on the server
-  const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
-  if (!allRemoved) {
-    return;
-  }
+        console.log('sfdxCreateCheckpoints: setting typeRefs for checkpoints');
+        progress.report({ increment: 50, message: localizedProgressMessage });
+        // For the active checkpoints set the typeRefs using the source/line info
+        if (!setTypeRefsForEnabledCheckpoints()) {
+          return;
+        }
 
-  console.log('sfdxCreateCheckpoints: creating checkpoints');
-  // This should probably be batched but it makes dealing with errors kind of a pain
-  for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
-    if (cpNode.isCheckpointEnabled()) {
-      await checkpointService.executeCreateApexExecutionOverlayActionCommand(
-        cpNode
-      );
+        console.log('sfdxCreateCheckpoints: clearing existing checkpoints');
+        progress.report({ increment: 50, message: localizedProgressMessage });
+        // remove any existing checkpoints on the server
+        const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
+        if (!allRemoved) {
+          return;
+        }
+
+        console.log('sfdxCreateCheckpoints: uploading checkpoints');
+        progress.report({ increment: 70, message: localizedProgressMessage });
+        // This should probably be batched but it makes dealing with errors kind of a pain
+        for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
+          if (cpNode.isCheckpointEnabled()) {
+            await checkpointService.executeCreateApexExecutionOverlayActionCommand(
+              cpNode
+            );
+          }
+        }
+
+        console.log('sfdxCreateCheckpoints: finished processing checkpoints');
+        progress.report({ increment: 100, message: localizedProgressMessage });
+      } finally {
+        creatingCheckpoints = false;
+      }
     }
-  }
-  console.log('sfdxCreateCheckpoints: finished processing checkpoints');
+  );
 }
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
