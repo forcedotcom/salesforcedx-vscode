@@ -33,6 +33,7 @@ export const messages = {
     "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
   checkpoints_successfully_uploaded:
     'All checkpoints have been successfully uploaded to the server.',
+  creating_checkpoints_progress_window_message: 'Creating checkpoints',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
