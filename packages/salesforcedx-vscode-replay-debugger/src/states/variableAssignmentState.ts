@@ -49,13 +49,6 @@ export class VariableAssignmentState implements DebugLogState {
         container = map.get(varName) as ApexVariableContainer;
       } else if (name.indexOf('.') !== -1) {
         isNested = true;
-        map = frameInfo.locals;
-        container = map.get(
-          nameSplit[nameSplit.length - 2]
-        ) as ApexVariableContainer;
-        if (ref && container.ref !== ref) {
-          container = undefined;
-        }
       }
 
       if (ref) {
@@ -67,13 +60,25 @@ export class VariableAssignmentState implements DebugLogState {
         }
         const refContainer = refMap.get(ref)!;
         if (value !== '{}') {
-          if (isNested && value.indexOf('{') === 0) {
-            const topLevel = new ApexVariableContainer(varName, '', '');
-            refContainer.variables.set(varName, topLevel);
-            topLevel.variablesRef = logContext
-              .getVariableHandler()
-              .create(topLevel);
-            this.parseJSONAndPopulate(value, topLevel, logContext);
+          if (isNested) {
+            if (value.indexOf('{') === 0) {
+              const topLevel = new ApexVariableContainer(varName, '', '');
+              refContainer.variables.set(varName, topLevel);
+              topLevel.variablesRef = logContext
+                .getVariableHandler()
+                .create(topLevel);
+              this.parseJSONAndPopulate(value, topLevel, logContext);
+            } else {
+              if (refMap.has(value)) {
+                const pulledRef = refMap.get(value) as ApexVariableContainer;
+                refContainer.variables.set(varName, pulledRef);
+              } else {
+                refContainer.variables.set(
+                  varName,
+                  new ApexVariableContainer(varName, value, '')
+                );
+              }
+            }
           } else if (value.indexOf('{') === 0) {
             this.parseJSONAndPopulate(value, refContainer, logContext);
           } else {
@@ -95,7 +100,7 @@ export class VariableAssignmentState implements DebugLogState {
           container.value = '';
           container.variables = refContainer.variables;
           refContainer.type = container.type;
-          if (value !== '{}' && container.variablesRef === 0) {
+          if (container.variablesRef === 0) {
             container.variablesRef = logContext
               .getVariableHandler()
               .create(container);

@@ -152,7 +152,7 @@ describe('Variable assignment event', () => {
       getUriFromSignatureStub.restore();
     });
 
-    it('Should not create a nested variable for an empty object', () => {
+    it('Should create a nested variable for an empty object', () => {
       const state = new VariableAssignmentState(
         LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
@@ -165,9 +165,9 @@ describe('Variable assignment event', () => {
       expect(container.variables).to.be.empty;
       expect(container.value).to.equal('null');
       state.handle(context);
-      expect(container.variablesRef).to.equal(0);
+      expect(container.variablesRef).to.not.equal(0);
       expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('{}');
+      expect(container.value).to.equal('');
     });
 
     it('Should update variable to a nested variable if assigning to inner value', () => {
@@ -302,7 +302,7 @@ describe('Variable assignment event', () => {
       getUriFromSignatureStub.restore();
     });
 
-    it('Should not create a nested variable for an empty object', () => {
+    it('Should create a nested variable for an empty object', () => {
       const state = new VariableAssignmentState(
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
@@ -321,9 +321,9 @@ describe('Variable assignment event', () => {
       expect(container.variables).to.be.empty;
       expect(container.value).to.equal('null');
       state.handle(context);
-      expect(container.variablesRef).to.equal(0);
+      expect(container.variablesRef).to.not.equal(0);
       expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('{}');
+      expect(container.value).to.equal('');
     });
 
     it('Should update variable to a nested variable if json assignment', () => {
@@ -342,9 +342,9 @@ describe('Variable assignment event', () => {
       >;
       expect(classMap).to.have.key('sa');
       const container = classMap.get('sa')! as ApexVariableContainer;
-      expect(container.variablesRef).to.equal(0);
+      expect(container.variablesRef).to.not.equal(0);
       expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('{}');
+      expect(container.value).to.equal('');
 
       state = new VariableAssignmentState(
         STATIC_NESTED_JSON_VARIABLE_ASSIGNMENT.split('|')
@@ -375,9 +375,9 @@ describe('Variable assignment event', () => {
       >;
       expect(classMap).to.have.key('sa');
       const container = classMap.get('sa')! as ApexVariableContainer;
-      expect(container.variablesRef).to.equal(0);
+      expect(container.variablesRef).to.not.equal(0);
       expect(container.variables).to.be.empty;
-      expect(container.value).to.equal('{}');
+      expect(container.value).to.equal('');
 
       state = new VariableAssignmentState(
         STATIC_NESTED_INNER_VARIABLE_ASSIGNMENT.split('|')
