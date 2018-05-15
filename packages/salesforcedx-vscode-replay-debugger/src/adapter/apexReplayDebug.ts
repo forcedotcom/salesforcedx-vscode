@@ -121,7 +121,7 @@ export abstract class VariableContainer {
 export class ApexVariableContainer extends VariableContainer {
   public name: string;
   public value: string;
-  public readonly type: string;
+  public type: string;
   public ref: string;
   public variablesRef: number;
   public constructor(

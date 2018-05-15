@@ -14,5 +14,14 @@
   "editor.tabSize": 2,
   "editor.formatOnSave": true,
   "prettier.singleQuote": true,
-  "rewrap.wrappingColumn": 80
+  "rewrap.wrappingColumn": 80,
+  "terminal.integrated.env.osx": {
+    "SFDX_SET_CLIENT_IDS": "sfdx-vscode"
+  },
+  "terminal.integrated.env.linux": {
+    "SFDX_SET_CLIENT_IDS": "sfdx-vscode"
+  },
+  "terminal.integrated.env.windows": {
+    "SFDX_SET_CLIENT_IDS": "sfdx-vscode"
+  }
 }

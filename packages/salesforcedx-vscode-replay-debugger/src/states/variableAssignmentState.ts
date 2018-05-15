@@ -26,24 +26,19 @@ export class VariableAssignmentState implements DebugLogState {
       const name = this.fields[3];
       const nameSplit = this.fields[3].split('.');
       const className =
-        name.indexOf('.') > -1
-          ? name.substring(0, name.lastIndexOf('.'))
-          : name;
+        name.indexOf('.') > -1 ? name.substring(0, name.lastIndexOf('.')) : '';
       const varName =
         nameSplit.length > 0 ? nameSplit[nameSplit.length - 1] : name;
       const value = this.fields[4];
-      let ref = '0';
+      let ref;
       if (this.fields.length === 6) {
         ref = this.fields[5];
       }
+
+      const refMap = logContext.getRefsMap();
       let container: ApexVariableContainer | undefined;
       let map: Map<String, VariableContainer> | undefined;
 
-      if (ref && !logContext.getRefsMap().has(ref)) {
-        logContext
-          .getRefsMap()
-          .set(ref, new ApexVariableContainer('', '', '', ref));
-      }
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
         container = map.get(varName)! as ApexVariableContainer;
@@ -53,109 +48,56 @@ export class VariableAssignmentState implements DebugLogState {
         container = map.get(varName) as ApexVariableContainer;
       }
 
-      if (
-        container &&
-        map &&
-        container.variablesRef !== 0 &&
-        !logContext.getRefsMap().has(ref)
-      ) {
-        container = new ApexVariableContainer(
-          container.name,
-          '',
-          container.type
-        );
-        map.set(varName, container);
-      }
-
-      if (container) {
-        container.value = value;
-      }
-
-      // assigning to top level variable in locals
-      if (
-        ref !== '0' &&
-        container &&
-        !container.type.startsWith('Map<') &&
-        !container.type.startsWith('List<') &&
-        !container.type.startsWith('Set<')
-      ) {
-        // get ref container and map container's variables to the container's
-        const refContainer = logContext.getRefsMap().get(ref)!;
-        container.variables = refContainer.variables;
-        container.variablesRef = refContainer.variablesRef;
-        container.name = varName;
-        if (value.indexOf('{') === 0 && value !== '{}') {
-          container.value = '';
-          container.variablesRef = logContext
-            .getVariableHandler()
-            .create(container);
-          this.parseAndPopulate(value, container, logContext);
-        } else if (logContext.getRefsMap().has(value)) {
-          const rc = logContext.getRefsMap().get(value)!;
-          const tmpContainer = new ApexVariableContainer(
-            varName,
-            rc.value,
-            rc.type,
-            rc.ref
-          );
-          tmpContainer.variables = rc.variables;
-          tmpContainer.variablesRef = logContext
-            .getVariableHandler()
-            .create(tmpContainer);
-          container.variables.set(varName, tmpContainer);
+      if (ref) {
+        // update the refcontainer mapping
+        if (!refMap.has(ref)) {
+          logContext
+            .getRefsMap()
+            .set(ref, new ApexVariableContainer('', '', '', ref));
         }
-        // assigning to variable's fields, currently only going to work for a variable in local
-      } else if (name.indexOf('.') !== -1 && ref !== '0') {
-        container = frameInfo.locals.get(
-          nameSplit[nameSplit.length - 2]
-        )! as ApexVariableContainer;
-        if (container) {
-          container.value = '';
-          if (container.variablesRef === 0) {
-            container.variablesRef = logContext
-              .getVariableHandler()
-              .create(container);
-          }
-          if (value.indexOf('{') !== -1 && value !== '{}') {
-            const topLevel = new ApexVariableContainer(varName, '', '');
-            container.variables.set(varName, topLevel);
-            topLevel.variablesRef = logContext
-              .getVariableHandler()
-              .create(topLevel);
-            this.parseAndPopulate(value, topLevel, logContext);
+        const refContainer = refMap.get(ref)!;
+        if (value !== '{}') {
+          if (value.indexOf('{') === 0) {
+            this.parseJSONAndPopulate(value, refContainer, logContext);
           } else {
-            if (logContext.getRefsMap().has(value)) {
-              const refContainer = logContext.getRefsMap().get(value)!;
-              const tmpContainer = new ApexVariableContainer(
-                varName,
-                refContainer.value,
-                refContainer.type,
-                refContainer.ref
-              );
-              tmpContainer.variables = refContainer.variables;
-              tmpContainer.variablesRef = logContext
-                .getVariableHandler()
-                .create(tmpContainer);
-              container.variables.set(varName, tmpContainer);
-              if (container.variablesRef === 0) {
-                container.variablesRef = logContext
-                  .getVariableHandler()
-                  .create(container);
-              }
-            } else {
-              container.variables.set(
-                varName,
-                new ApexVariableContainer(varName, value, '')
-              );
-            }
+            refContainer.variables.set(
+              varName,
+              new ApexVariableContainer(varName, value, '')
+            );
           }
+        }
+
+        // update the correct toplevel container
+        if (
+          container &&
+          !container.type.startsWith('Map<') &&
+          !container.type.startsWith('List<') &&
+          !container.type.startsWith('Set<')
+        ) {
+          if (value !== '{}' && value.indexOf('{') === 0) {
+            container.ref = ref;
+            container.value = '';
+            container.variables = refContainer.variables;
+            if (container.variablesRef === 0) {
+              container.variablesRef = logContext
+                .getVariableHandler()
+                .create(container);
+            }
+            refContainer.type = container.type;
+          } else if (value === '{}') {
+            container.value = value;
+          }
+        }
+      } else {
+        if (container) {
+          container.value = value;
         }
       }
     }
     return false;
   }
 
-  private parseAndPopulate(
+  private parseJSONAndPopulate(
     value: string,
     container: ApexVariableContainer,
     logContext: LogContext
