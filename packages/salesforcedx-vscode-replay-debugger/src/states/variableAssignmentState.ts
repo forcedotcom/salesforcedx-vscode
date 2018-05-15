@@ -71,6 +71,10 @@ export class VariableAssignmentState implements DebugLogState {
             } else {
               if (refMap.has(value)) {
                 const pulledRef = refMap.get(value) as ApexVariableContainer;
+                pulledRef.name = varName;
+                pulledRef.variablesRef = logContext
+                  .getVariableHandler()
+                  .create(pulledRef);
                 refContainer.variables.set(varName, pulledRef);
               } else {
                 refContainer.variables.set(
