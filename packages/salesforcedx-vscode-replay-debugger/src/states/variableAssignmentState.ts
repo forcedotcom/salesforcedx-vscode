@@ -38,6 +38,7 @@ export class VariableAssignmentState implements DebugLogState {
       const refMap = logContext.getRefsMap();
       let container: ApexVariableContainer | undefined;
       let map: Map<String, VariableContainer> | undefined;
+      let isNested = false;
 
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
@@ -46,6 +47,15 @@ export class VariableAssignmentState implements DebugLogState {
         // if name does not contain '.' (i.e. this.attr or a.Name), it should be in locals and we can update the value
         map = frameInfo.locals;
         container = map.get(varName) as ApexVariableContainer;
+      } else if (name.indexOf('.') !== -1) {
+        isNested = true;
+        map = frameInfo.locals;
+        container = map.get(
+          nameSplit[nameSplit.length - 2]
+        ) as ApexVariableContainer;
+        if (ref && container.ref !== ref) {
+          container = undefined;
+        }
       }
 
       if (ref) {
@@ -57,7 +67,14 @@ export class VariableAssignmentState implements DebugLogState {
         }
         const refContainer = refMap.get(ref)!;
         if (value !== '{}') {
-          if (value.indexOf('{') === 0) {
+          if (isNested && value.indexOf('{') === 0) {
+            const topLevel = new ApexVariableContainer(varName, '', '');
+            refContainer.variables.set(varName, topLevel);
+            topLevel.variablesRef = logContext
+              .getVariableHandler()
+              .create(topLevel);
+            this.parseJSONAndPopulate(value, topLevel, logContext);
+          } else if (value.indexOf('{') === 0) {
             this.parseJSONAndPopulate(value, refContainer, logContext);
           } else {
             refContainer.variables.set(
@@ -74,16 +91,14 @@ export class VariableAssignmentState implements DebugLogState {
           !container.type.startsWith('List<') &&
           !container.type.startsWith('Set<')
         ) {
-          if (value !== '{}' && value.indexOf('{') === 0) {
-            container.ref = ref;
-            container.value = '';
-            container.variables = refContainer.variables;
-            if (container.variablesRef === 0) {
-              container.variablesRef = logContext
-                .getVariableHandler()
-                .create(container);
-            }
-            refContainer.type = container.type;
+          container.ref = ref;
+          container.value = '';
+          container.variables = refContainer.variables;
+          refContainer.type = container.type;
+          if (value !== '{}' && container.variablesRef === 0) {
+            container.variablesRef = logContext
+              .getVariableHandler()
+              .create(container);
           } else if (value === '{}') {
             container.value = value;
           }
