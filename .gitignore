@@ -90,3 +90,7 @@ package-lock.json
 
 # External extension dependencies
 packages/dbaeumer*
+
+
+# MacOS
+.DS_Store

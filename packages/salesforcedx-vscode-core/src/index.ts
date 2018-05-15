@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
+import { getSObjectsFolderPath } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/utils';
+import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -30,6 +33,7 @@ import {
   forceLightningComponentCreate,
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
+  forceOpenSObjectNode,
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
@@ -61,6 +65,7 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService } from './notifications';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { CancellableStatusBar, taskViewService } from './statuses';
+import { SObjectService } from './ui';
 
 function registerCommands(): vscode.Disposable {
   // Customer-facing commands
@@ -71,6 +76,10 @@ function registerCommands(): vscode.Disposable {
   const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.all',
     forceAuthLogoutAll
+  );
+  const forceOpenSObjectNodeCmd = vscode.commands.registerCommand(
+    'sfdx.force.internal.opensobjectnode',
+    forceOpenSObjectNode
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
@@ -269,6 +278,7 @@ function registerCommands(): vscode.Disposable {
     forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
+    forceOpenSObjectNodeCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourcePullCmd,
@@ -299,6 +309,42 @@ function registerCommands(): vscode.Disposable {
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
     internalCancelCommandExecution
+  );
+}
+
+function registerSObjectExplorer(
+  context: vscode.ExtensionContext
+): vscode.Disposable {
+  const sObjectService = new SObjectService(context);
+
+  // SObject Tree View
+  const forceSObjectExplorerTree = vscode.window.registerTreeDataProvider(
+    'sfdx.force.sobjectexplorer',
+    sObjectService
+  );
+
+  // Text Document Provider
+  const forceSOBjectTextDoc = vscode.workspace.registerTextDocumentContentProvider(
+    'sobject',
+    sObjectService
+  );
+
+  // SObject Tree View Watcher
+  const sobjectPath = getSObjectsFolderPath(
+    vscode.workspace.rootPath as string,
+    SObjectCategory.ALL
+  );
+  const sobjectWatcher = vscode.workspace.createFileSystemWatcher(
+    path.join(sobjectPath, '**/*.cls')
+  );
+  sobjectWatcher.onDidDelete(e => sObjectService.refresh());
+  sobjectWatcher.onDidCreate(e => sObjectService.refresh());
+  sobjectWatcher.onDidChange(e => sObjectService.refresh());
+
+  return vscode.Disposable.from(
+    forceSObjectExplorerTree,
+    forceSOBjectTextDoc,
+    sobjectWatcher
   );
 }
 
@@ -354,6 +400,10 @@ export async function activate(context: vscode.ExtensionContext) {
   // Commands
   const commands = registerCommands();
   context.subscriptions.push(commands);
+
+  // SObjectExplorer
+  const sObjectExplorer = registerSObjectExplorer(context);
+  context.subscriptions.push(sObjectExplorer);
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
