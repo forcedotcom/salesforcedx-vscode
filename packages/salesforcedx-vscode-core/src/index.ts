@@ -364,6 +364,9 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id
   );
   if (sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id) {
+    // register watcher for ISV authentication and setup default user for CLI
+    // this is done in core because it shares access to GlobalCliEnvironment with the commands
+    // (VS Code does not seem to allow sharing npm modules between extensions)
     context.subscriptions.push(registerIsvAuthWatcher());
     setupGlobalDefaultUserIsvAuth();
   }
