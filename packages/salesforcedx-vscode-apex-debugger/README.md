@@ -117,12 +117,12 @@ The ISV Customer Debugger is part of the `salesforcedx-vscode-apex-debugger` ext
 1. In the Using Salesforce Extensions for VS Code section, to copy the `forceide://` URL, click **Copy to Clipboard**.
 1. In VS Code, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) to open the command palette, then run **SFDX: Create and Set Up Project for ISV Debugging**.
 1. When directed to, paste the `forceide://` URL into the prompt and then press Enter.
-1. When directed to, enter a name for your debugging project and then press Enter.
+1. When directed to, either accept the default project name or enter a name for your debugging project, then press Enter.
 1. Choose a location to store the project, and then click **Create Project**.
-1. Wait for the project generation process to finish. VS Code creates a Salesforce DX project that contains your packaged metadata, your subscriber's metadata, and skeleton classes for other packages in the org. VS Code also creates a launch configuration (`launch.json` file) for the project. When the project is ready, VS Code opens it for you in a new window.
+1. Wait for the project generation process to finish. VS Code creates a Salesforce DX project that contains your packaged metadata, your subscriber's metadata, and skeleton classes for other packages in the org. VS Code also creates a launch configuration (`launch.json` file) for the project. This process can take a long time, especially for orgs that contain a lot of metadata, so feel free to leave it running and check back later. When the project is ready, VS Code opens it for you in a new window.
 1. In the new window, from the Explorer view, open an Apex class or trigger that you want to set breakpoints in.
-1. Switch to the Debug view.
 1. To set a breakpoint, click the gutter to the left of the line numbers.
+1. Switch to the Debug view.
 1. To launch the Apex Debugger, click the play icon next to the launch configuration dropdown menu.
 
 ### Debug Your Subscriber’s Org
