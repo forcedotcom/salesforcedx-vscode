@@ -21,6 +21,8 @@ import {
   LINE_BREAKPOINT_INFO_REQUEST
 } from './constants';
 import { nls } from './messages';
+import pathExists = require('path-exists');
+let lastOpenedLogFolder: string | undefined;
 
 function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
@@ -35,6 +37,7 @@ function registerCommands(): vscode.Disposable {
         defaultUri: getDialogStartingPath()
       });
       if (fileUris && fileUris.length === 1) {
+        lastOpenedLogFolder = path.dirname(fileUris[0].fsPath);
         return fileUris[0].fsPath;
       }
     }
@@ -142,6 +145,25 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
+    // If the user has already selected a document through getLogFileName then
+    // use that path if it still exists.
+    if (lastOpenedLogFolder && pathExists.sync(lastOpenedLogFolder)) {
+      return vscode.Uri.file(lastOpenedLogFolder);
+    }
+    // If lastOpenedLogFolder isn't defined or doesn't exist then use the
+    // same directory that the SFDX download logs command would download to
+    // if it exists.
+    const sfdxCommandLogDir = path.join(
+      vscode.workspace.workspaceFolders![0].uri.fsPath,
+      '.sfdx',
+      'tools',
+      'debug',
+      'logs'
+    );
+    if (pathExists.sync(sfdxCommandLogDir)) {
+      return vscode.Uri.file(sfdxCommandLogDir);
+    }
+    // If all else fails, fallback to the .sfdx directory in the workspace
     return vscode.Uri.file(
       path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx')
     );
