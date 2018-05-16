@@ -6,16 +6,6 @@
  */
 
 import {
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  ForceConfigGet,
-  GlobalCliEnvironment
-} from '@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
