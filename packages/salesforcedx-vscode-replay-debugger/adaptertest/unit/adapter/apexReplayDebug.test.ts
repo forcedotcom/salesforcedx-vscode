@@ -708,7 +708,13 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return breakpoints', () => {
-      args.source.path = 'foo.cls';
+      const expectedPath = /^win32/.test(process.platform)
+        ? 'C:\\space in path\\foo.cls'
+        : '/space in path/foo.cls';
+      const uriFromLanguageServer = /^win32/.test(process.platform)
+        ? 'file:///c:/space%20in%20path/foo.cls'
+        : 'file:///space%20in%20path/foo.cls';
+      args.source.path = expectedPath;
       args.lines = [1, 2];
       args.breakpoints = [];
       args.breakpoints.push({ line: 1 }, { line: 2 });
@@ -729,14 +735,23 @@ describe('Replay debugger adapter - unit', () => {
       expect(actualResponse.body.breakpoints).to.deep.equal([
         {
           verified: true,
-          source: { path: 'foo.cls' },
+          source: { path: expectedPath },
           line: 1
         },
         {
           verified: false,
-          source: { path: 'foo.cls' },
+          source: { path: expectedPath },
           line: 2
         }
+      ]);
+      expect(canSetLineBreakpointStub.calledTwice).to.be.true;
+      expect(canSetLineBreakpointStub.getCall(0).args).to.have.same.members([
+        uriFromLanguageServer,
+        1
+      ]);
+      expect(canSetLineBreakpointStub.getCall(1).args).to.have.same.members([
+        uriFromLanguageServer,
+        2
       ]);
     });
   });

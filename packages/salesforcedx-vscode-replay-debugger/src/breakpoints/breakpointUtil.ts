@@ -6,11 +6,11 @@
  */
 
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { LineBreakpointInfo } from '.';
 export class BreakpointUtil {
   private static instance: BreakpointUtil;
   private lineNumberMapping: Map<string, number[]> = new Map();
   private typerefMapping: Map<string, string> = new Map();
-  private rawLineBPInfo: any | undefined;
 
   public setValidLines(
     lineNumberMapping: Map<string, number[]>,
@@ -50,17 +50,14 @@ export class BreakpointUtil {
     );
   }
 
-  public getRawLineBPInfo(): any | undefined {
-    return this.rawLineBPInfo;
-  }
-
-  public createMappingsFromLineBreakpointInfo(lineBpInfo: any): void {
+  public createMappingsFromLineBreakpointInfo(
+    lineBpInfo: LineBreakpointInfo[]
+  ): void {
     // clear out any existing mapping
     this.lineNumberMapping.clear();
     this.typerefMapping.clear();
 
     // set the mapping from the source line info
-    this.rawLineBPInfo = lineBpInfo;
     for (const info of lineBpInfo) {
       if (!this.lineNumberMapping.has(info.uri)) {
         this.lineNumberMapping.set(info.uri, []);

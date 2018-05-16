@@ -404,14 +404,14 @@ export class ApexReplayDebug extends LoggingDebugSession {
   ): void {
     response.body = { breakpoints: [] };
     if (args.source.path && args.breakpoints) {
+      const uri = this.convertClientPathToDebugger(args.source.path);
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
         `setBreakPointsRequest: path=${args.source
-          .path} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
+          .path} uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
           args.breakpoints
         )}`
       );
-      const uri = this.convertClientPathToDebugger(args.source.path);
       this.breakpoints.set(uri, []);
       for (const bp of args.breakpoints) {
         const isVerified = breakpointUtil.canSetLineBreakpoint(
