@@ -78,7 +78,8 @@
       {
         "id": "apexlog",
         "aliases": ["ApexLog", "DebugLog"],
-        "extensions": [".log"]
+        "extensions": [".log"],
+        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
       }
     ],
     "grammars": [
@@ -128,7 +129,7 @@
       },
       {
         "command": "sfdx.launch.replay.debugger.logfile",
-        "title": "%launch_snippet_name%"
+        "title": "%launch_from_log_file%"
       }
     ],
     "views": {

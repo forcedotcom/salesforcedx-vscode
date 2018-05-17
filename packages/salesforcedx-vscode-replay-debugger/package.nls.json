@@ -4,6 +4,7 @@
   "launch_snippet_description_text":
     "A new configuration for launching Apex Replay Debugger",
   "launch_snippet_name": "Launch Apex Replay Debugger",
+  "launch_from_log_file": "Launch Apex Replay Debugger with current file",
   "logfile_text":
     "Path to an Apex Debug Log file (*.log) in the workspace folder.",
   "stop_on_entry_text":
