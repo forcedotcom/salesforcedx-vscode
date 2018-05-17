@@ -43,7 +43,7 @@ describe('Breakpoint utilities', () => {
 
     expect(util.canSetLineBreakpoint('file:///foo.cls', 1)).to.be.true;
     expect(util.canSetLineBreakpoint('file:///foo.cls', 2)).to.be.false;
-    expect(util.canSetLineBreakpoint('file:///bar.cls', 1));
+    expect(util.canSetLineBreakpoint('file:///bar.cls', 1)).to.be.false;
   });
 
   it('Should return top level typeRef for URI', () => {
