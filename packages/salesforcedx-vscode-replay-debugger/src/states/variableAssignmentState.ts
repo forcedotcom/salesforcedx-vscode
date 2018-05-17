@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexVariableContainer } from '../adapter/apexReplayDebug';
+import {
+  ApexVariableContainer,
+  VariableContainer
+} from '../adapter/apexReplayDebug';
 import { LogContext } from '../core/logContext';
 import { DebugLogState } from './debugLogState';
 
@@ -34,13 +37,30 @@ export class VariableAssignmentState implements DebugLogState {
         ref = this.fields[5];
       }
       let container: ApexVariableContainer | undefined;
+      let map: Map<String, VariableContainer> | undefined;
       if (logContext.getStaticVariablesClassMap().has(className)) {
-        const statics = logContext.getStaticVariablesClassMap().get(className)!;
-        container = statics.get(name)! as ApexVariableContainer;
+        map = logContext.getStaticVariablesClassMap().get(className)!;
+        container = map.get(varName)! as ApexVariableContainer;
       } else if (frameInfo.locals.has(varName)) {
         // if name does not contain '.' (i.e. this.attr or a.Name), it should be in locals and we can update the value
-        container = frameInfo.locals.get(varName) as ApexVariableContainer;
+        map = frameInfo.locals;
+        container = map.get(varName) as ApexVariableContainer;
       }
+
+      if (
+        container &&
+        map &&
+        container.variablesRef !== 0 &&
+        !logContext.getRefsMap().has(ref)
+      ) {
+        container = new ApexVariableContainer(
+          container.name,
+          '',
+          container.type
+        );
+        map.set(varName, container);
+      }
+
       if (container) {
         container.value = value;
       }

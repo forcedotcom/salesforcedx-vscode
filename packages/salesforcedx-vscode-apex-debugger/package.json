@@ -14,15 +14,15 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.15.0",
+  "version": "42.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.17.0"
+    "vscode": "^1.22.0"
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "42.15.0",
+    "@salesforce/salesforcedx-apex-debugger": "42.16.0",
     "vscode-debugprotocol": "1.28.0"
   },
   "devDependencies": {

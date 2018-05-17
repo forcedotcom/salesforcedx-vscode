@@ -14,15 +14,15 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.15.0",
+  "version": "42.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.21.0"
+    "vscode": "^1.22.0"
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.15.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.16.0",
     "request-light": "0.2.1",
     "vscode-debugadapter": "1.25.0",
     "vscode-debugprotocol": "1.25.0",
@@ -72,6 +72,39 @@
     "breakpoints": [
       {
         "language": "apex"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sfdx.create.checkpoints",
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "checkpoints.createCheckpoints",
+          "when":
+            "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
+          "group": "navigation"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdx.create.checkpoints",
+        "title": "%sfdx_create_checkpoints%"
+      },
+      {
+        "command": "checkpoints.createCheckpoints",
+        "title": "Create Checkpoints",
+        "icon": {
+          "light": "images/light/cloud-upload.svg",
+          "dark": "images/dark/cloud-upload.svg"
+        },
+        "when":
+          "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
       }
     ],
     "views": {
