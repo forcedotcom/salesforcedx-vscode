@@ -592,7 +592,9 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl &&
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
-      return sanitizeFilename(forceIdeUrlGatherer.forceIdUrl.orgName);
+      return sanitizeFilename(
+        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[\+]/g, '_')
+      );
     }
     return '';
   }),
