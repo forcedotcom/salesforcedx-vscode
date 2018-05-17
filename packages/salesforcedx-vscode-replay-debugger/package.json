@@ -20,9 +20,7 @@
   "engines": {
     "vscode": "^1.22.0"
   },
-  "categories": [
-    "Debuggers"
-  ],
+  "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.16.0",
     "request-light": "0.2.1",
@@ -56,10 +54,13 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/adaptertest --reporter mocha-multi-reporters && node ./node_modules/vscode/bin/test",
-    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/adaptertest/unit --reporter mocha-multi-reporters"
+    "test":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/adaptertest --reporter mocha-multi-reporters && node ./node_modules/vscode/bin/test",
+    "test:unit":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/adaptertest/unit --reporter mocha-multi-reporters"
   },
   "activationEvents": [
     "onDebug",
@@ -77,13 +78,15 @@
       "commandPalette": [
         {
           "command": "sfdx.create.checkpoints",
-          "when": "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
         }
       ],
       "view/title": [
         {
           "command": "checkpoints.createCheckpoints",
-          "when": "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
+          "when":
+            "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
           "group": "navigation"
         }
       ]
@@ -100,7 +103,8 @@
           "light": "images/light/cloud-upload.svg",
           "dark": "images/dark/cloud-upload.svg"
         },
-        "when": "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+        "when":
+          "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
       }
     ],
     "views": {
@@ -108,7 +112,8 @@
         {
           "id": "sfdx.force.view.checkpoint",
           "name": "%view_checkpoints%",
-          "when": "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
         }
       ]
     },
@@ -118,9 +123,7 @@
         "label": "Apex Replay Debugger",
         "program": "./out/src/adapter/apexReplayDebug.js",
         "runtime": "node",
-        "languages": [
-          "apex"
-        ],
+        "languages": ["apex"],
         "variables": {
           "AskForLogFileName": "extension.replay-debugger.getLogFileName"
         },
@@ -141,9 +144,7 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": [
-                "logFile"
-              ],
+              "required": ["logFile"],
               "logFile": {
                 "type": "string",
                 "description": "%logfile_text%",
@@ -155,10 +156,7 @@
                 "default": true
               },
               "trace": {
-                "type": [
-                  "boolean",
-                  "string"
-                ],
+                "type": ["boolean", "string"],
                 "description": "%trace_text%",
                 "default": false
               }
@@ -180,9 +178,6 @@
     }
   },
   "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
+    "reporter": ["text-summary", "lcov"]
   }
 }
