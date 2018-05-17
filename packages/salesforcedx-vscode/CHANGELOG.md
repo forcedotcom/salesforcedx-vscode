@@ -1,9 +1,25 @@
+## 42.16.0 - May 17, 2018
+### Fixed
+
+#### salesforce-vscode-apex
+
+* Apex language grammar rules properly categorize Apex syntax, improving code highlighting ([PR #415](https://github.com/forcedotcom/salesforcedx-vscode/pull/415))
+* Go To Definition and Find All References properly handle custom objects that have a namespace ([PR #413](https://github.com/forcedotcom/salesforcedx-vscode/pull/413))
+
+
+## 42.15.0 - May 10, 2018
+### Fixed
+
+#### salesforcedx-vscode-core
+
+* Make extension resilient against Salesforce CLI's STDERR messages (warnings and available updates) when parsing `--json` output ([PR #406](https://github.com/forcedotcom/salesforcedx-vscode/pull/406))
+
 ## 42.14.0 - May 3, 2018
 ### Fixed
 
 #### salesforcedx-vscode-apex
 
-*  Code completion now respects the `global`, `public`, `protected`, and `private` modifiers when offering suggestions. ([PR #404](https://github.com/forcedotcom/salesforcedx-vscode/pull/404))
+*  Code completion now respects the `global`, `public`, `protected`, and `private` modifiers when offering suggestions ([PR #404](https://github.com/forcedotcom/salesforcedx-vscode/pull/404))
 
 ## 42.13.0 - April 26, 2018
 ### Fixed

@@ -50,7 +50,10 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 import { getUserId } from './commands/forceStartApexDebugLogging';
-import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
+import {
+  isvDebugBootstrap,
+  setupGlobalDefaultUserIsvAuth
+} from './commands/isvdebugging/bootstrapCmd';
 import {
   CLIENT_ID,
   SFDX_CLIENT_ENV_VAR,
@@ -302,6 +305,16 @@ function registerCommands(): vscode.Disposable {
   );
 }
 
+function registerIsvAuthWatcher(): vscode.Disposable {
+  const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(
+    '**/.sfdx/sfdx-config.json'
+  );
+  isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
+  isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
+  isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
+  return vscode.Disposable.from(isvAuthWatcher);
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
 
@@ -350,6 +363,13 @@ export async function activate(context: vscode.ExtensionContext) {
     'sfdx:apex_debug_extension_installed',
     sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id
   );
+  if (sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id) {
+    // register watcher for ISV authentication and setup default user for CLI
+    // this is done in core because it shares access to GlobalCliEnvironment with the commands
+    // (VS Code does not seem to allow sharing npm modules between extensions)
+    context.subscriptions.push(registerIsvAuthWatcher());
+    setupGlobalDefaultUserIsvAuth();
+  }
 
   // Commands
   const commands = registerCommands();
