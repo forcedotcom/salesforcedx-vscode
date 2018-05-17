@@ -8,7 +8,7 @@ For best results, use this extension with the other extensions in the [salesforc
 ## Prerequisites
 Before you set up the Apex Debugger, make sure that you have these essentials.
 
-* At least one available Apex Debugger session in your Dev Hub org (not need for ISV customer debugging)
+* At least one available Apex Debugger session in your Dev Hub org (not needed for ISV customer debugging)
     * One Apex Debugger session is included with Performance Edition and Unlimited Edition orgs.
     * To purchase Apex Debugger sessions for Enterprise Edition orgs, or to purchase more sessions for orgs that already have allocated sessions, contact Salesforce.
 * For ISV customer debugging: a License Management Org (LMO) that has login access to a subscriber’s sandbox org
@@ -119,7 +119,8 @@ The ISV Customer Debugger is part of the `salesforcedx-vscode-apex-debugger` ext
 1. When directed to, paste the `forceide://` URL into the prompt and then press Enter.
 1. When directed to, either accept the default project name or enter a name for your debugging project, then press Enter.
 1. Choose a location to store the project, and then click **Create Project**.
-1. Wait for the project generation process to finish. VS Code creates a Salesforce DX project that contains your packaged metadata, your subscriber's metadata, and skeleton classes for other packages in the org. VS Code also creates a launch configuration (`launch.json` file) for the project. This process can take a long time, especially for orgs that contain a lot of metadata, so feel free to leave it running and check back later. When the project is ready, VS Code opens it for you in a new window.
+1. Wait for the project generation process to finish. VS Code creates a Salesforce DX project that contains your packaged metadata, your subscriber's metadata, and skeleton classes for other packages in the org. VS Code also creates a launch configuration (`launch.json` file) for the project. This process can take a long time, especially for orgs that contain a lot of metadata, so feel free to leave it running and check back later. You can monitor the progress in the output panel at the bottom of VS Code. To show the output panel, select **View** > **Output**, then select **Salesforce DX CLI** from the dropdown menu in the corner of the Output tab.  
+When the project is ready, VS Code opens it for you in a new window.
 1. In the new window, from the Explorer view, open an Apex class or trigger that you want to set breakpoints in.
 1. To set a breakpoint, click the gutter to the left of the line numbers.
 1. Switch to the Debug view.
