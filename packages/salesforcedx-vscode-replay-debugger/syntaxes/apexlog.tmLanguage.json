@@ -1,6 +1,6 @@
 {
   "version":
-    "https://github.com/Microsoft/vscode/blob/master/extensions/log/syntaxes/log.tmLanguage.json",
+    "https://github.com/Microsoft/vscode/commit/509108f986e813e87949beb03e84ba476dc098a7",
   "scopeName": "text.log",
   "fileTypes": ["log"],
   "name": "Log file",

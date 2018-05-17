@@ -42,6 +42,12 @@ function registerCommands(): vscode.Disposable {
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.logfile',
     editorUri => {
+      if (!editorUri) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          editorUri = editor.document.uri;
+        }
+      }
       return launchFromLogFile(editorUri);
     }
   );
