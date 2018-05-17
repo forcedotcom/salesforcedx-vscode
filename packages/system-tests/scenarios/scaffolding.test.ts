@@ -258,10 +258,10 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  it('Should create Lightning LWC', async () => {
+  xit('Should create Lightning LWC', async () => {
     // Invoke SFDX: Create LWC Bundle command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create LWC Bundle');
+    await common.type('>SFDX: Create Lightning Web Component');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 

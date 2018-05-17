@@ -78,8 +78,9 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_create_text'))
-      .withArg('force:lightning:lwc:create')
-      .withFlag('--lwcname', data.fileName)
+      .withArg('force:lightning:component:create')
+      .withFlag('--type', 'web')
+      .withFlag('--componentname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
       .build();
   }
