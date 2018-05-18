@@ -45,6 +45,7 @@ describe('Debugger adapter variable handling - unit', () => {
       expect(variable.type).to.equal(value.nameForMessages);
       expect(variable.declaredTypeRef).to.equal(value.declaredTypeRef);
       expect(variable.value).to.equal(ApexVariable.valueAsString(value));
+      expect(variable.evaluateName).to.equal(ApexVariable.valueAsString(value));
       expect(variable.variablesReference).to.equal(20);
       expect(variable['kind']).to.equal(ApexVariableKind.Local);
     });
@@ -70,6 +71,7 @@ describe('Debugger adapter variable handling - unit', () => {
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal('null');
+      expect(variable.evaluateName).to.equal('null');
     });
 
     it('Should correctly print empty string', async () => {
@@ -77,6 +79,7 @@ describe('Debugger adapter variable handling - unit', () => {
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal("''");
+      expect(variable.evaluateName).to.equal("''");
     });
 
     it('Should correctly print string', async () => {
@@ -84,6 +87,7 @@ describe('Debugger adapter variable handling - unit', () => {
       value.declaredTypeRef = 'java/lang/String';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal("'123'");
+      expect(variable.evaluateName).to.equal("'123'");
     });
 
     it('Should correctly print value', async () => {
@@ -92,6 +96,7 @@ describe('Debugger adapter variable handling - unit', () => {
       value.declaredTypeRef = 'a/specific/type';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal('123');
+      expect(variable.evaluateName).to.equal('123');
     });
 
     it('Should correctly print null', async () => {
@@ -100,6 +105,7 @@ describe('Debugger adapter variable handling - unit', () => {
       value.declaredTypeRef = 'a/specific/type';
       variable = new ApexVariable(value, ApexVariableKind.Local, 20);
       expect(variable.value).to.equal('null');
+      expect(variable.evaluateName).to.equal('null');
     });
 
     it('Should compare Value of different kinds', async () => {

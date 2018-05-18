@@ -148,6 +148,7 @@ export class ApexVariable extends Variable {
   public readonly declaredTypeRef: string;
   public readonly type: string;
   public readonly indexedVariables?: number;
+  public readonly evaluateName: string;
   private readonly slot: number;
   private readonly kind: ApexVariableKind;
 
@@ -166,6 +167,7 @@ export class ApexVariable extends Variable {
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
     this.type = value.nameForMessages;
+    this.evaluateName = this.value;
     if ((value as LocalValue).slot !== undefined) {
       this.slot = (value as LocalValue).slot;
     } else {
@@ -1428,6 +1430,18 @@ export class ApexDebug extends LoggingDebugSession {
       `fetchReferences: fetching references with apexIds=${apexIdsToFetch} (request ${requestId})`
     );
     await this.fetchReferences(requestId, ...apexIdsToFetch);
+  }
+
+  protected evaluateRequest(
+    response: DebugProtocol.EvaluateResponse,
+    args: DebugProtocol.EvaluateArguments
+  ): void {
+    response.body = {
+      result: args.expression,
+      variablesReference: 0
+    };
+    response.success = true;
+    this.sendResponse(response);
   }
 
   protected printToDebugConsole(
