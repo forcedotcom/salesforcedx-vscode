@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { StackFrame } from 'vscode-debugadapter';
+import { StackFrame, Variable } from 'vscode-debugadapter';
 import {
   ApexReplayDebug,
   ApexVariableContainer,
@@ -429,6 +429,117 @@ describe('Variable assignment event', () => {
       acc1Container = classMap.get('staticAcc1')! as ApexVariableContainer;
       acc2Container = classMap.get('staticAcc2')! as ApexVariableContainer;
       expect(acc1Container.variables).to.not.equal(acc2Container.variables);
+    });
+  });
+
+  describe('Find references in reference map', () => {
+    const PARENT_VARIABLE_BEGIN =
+      '17:39:36.83 (152679235)|VARIABLE_SCOPE_BEGIN|[17]|this|NestedClass|true|false';
+    const CHILD_VARIABLE_ASSIGNMENT =
+      '17:39:36.83 (150355500)|VARIABLE_ASSIGNMENT|[11]|this.Name|"MyObjectAccount"|0x114423';
+    const PARENT_JSON_VARIABLE_ASSIGNMENT =
+      '17:39:36.83 (152855711)|VARIABLE_ASSIGNMENT|[17]|this|{"a":"0x114423"}|0xf8a3b94';
+    const PARENT_VARIABLE_ASSIGNMENT =
+      '17:39:36.83 (150148801)|VARIABLE_ASSIGNMENT|[10]|this.m|0x114423|0xf8a3b94';
+    const PARENT_VARIABLE_ASSIGNMENT2 =
+      '17:39:36.83 (150148801)|VARIABLE_ASSIGNMENT|[10]|this.n|0x114423|0xf8a3b94';
+
+    beforeEach(() => {
+      // push frames on
+      const state = new FrameEntryState(['signature']);
+      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context
+        .getFrames()
+        .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+      expect(state.handle(context)).to.be.false;
+      // add begin states for a local and static variable
+      let assignState = new VariableAssignmentState(
+        CHILD_VARIABLE_ASSIGNMENT.split('|')
+      );
+      assignState.handle(context);
+      const beginState = new VariableBeginState(
+        PARENT_VARIABLE_BEGIN.split('|')
+      );
+      assignState = new VariableAssignmentState(
+        PARENT_JSON_VARIABLE_ASSIGNMENT.split('|')
+      );
+      beginState.handle(context);
+      assignState.handle(context);
+      assignState = new VariableAssignmentState(
+        PARENT_VARIABLE_ASSIGNMENT.split('|')
+      );
+      assignState.handle(context);
+      assignState = new VariableAssignmentState(
+        PARENT_VARIABLE_ASSIGNMENT2.split('|')
+      );
+      assignState.handle(context);
+      getUriFromSignatureStub = sinon
+        .stub(LogContext.prototype, 'getUriFromSignature')
+        .returns(uriFromSignature);
+    });
+
+    afterEach(() => {
+      getUriFromSignatureStub.restore();
+    });
+
+    it('Should be able to pull reference values from json in assignments', () => {
+      expect(context.getRefsMap()).to.have.keys('0x114423', '0xf8a3b94');
+      const container = context
+        .getRefsMap()
+        .get('0xf8a3b94') as ApexVariableContainer;
+      const childRefContainer = context
+        .getRefsMap()
+        .get('0x114423') as ApexVariableContainer;
+      expect(container.variables).to.include.keys('a');
+      const childParentContainer = container.variables.get('a')!;
+      expect(childParentContainer.variables).to.equal(
+        childRefContainer.variables
+      );
+    });
+
+    it('Should be able to pull reference values from json in assignments', () => {
+      expect(context.getRefsMap()).to.have.keys('0x114423', '0xf8a3b94');
+      const container = context
+        .getRefsMap()
+        .get('0xf8a3b94') as ApexVariableContainer;
+      const childRefContainer = context
+        .getRefsMap()
+        .get('0x114423') as ApexVariableContainer;
+      expect(container.variables).to.include.keys('m');
+      const childParentContainer = container.variables.get('m')!;
+      expect(childParentContainer.variables).to.equal(
+        childRefContainer.variables
+      );
+    });
+
+    it('Should change both variable containers if they share a common reference', () => {
+      expect(context.getRefsMap()).to.have.keys('0x114423', '0xf8a3b94');
+      const container = context
+        .getRefsMap()
+        .get('0xf8a3b94') as ApexVariableContainer;
+      const childRefContainer = context
+        .getRefsMap()
+        .get('0x114423') as ApexVariableContainer;
+      expect(container.variables).to.include.keys('m');
+      const mContainer = container.variables.get('m')! as ApexVariableContainer;
+      expect(container.variables).to.include.keys('n');
+      const nContainer = container.variables.get('n')! as ApexVariableContainer;
+      expect(mContainer.variables).to.equal(nContainer.variables);
+      expect(mContainer.ref).to.equal(nContainer.ref);
+      const REF_ASSIGNMENT =
+        '17:39:36.83 (150355500)|VARIABLE_ASSIGNMENT|[11]|this.Name|"both are updated"|0x114423';
+      const state = new VariableAssignmentState(REF_ASSIGNMENT.split('|'));
+      state.handle(context);
+      expect(mContainer.variables).to.include.keys('Name');
+      expect(nContainer.variables).to.include.keys('Name');
+      const nSubContainer = nContainer.variables.get(
+        'Name'
+      ) as ApexVariableContainer;
+      const mSubContainer = mContainer.variables.get(
+        'Name'
+      ) as ApexVariableContainer;
+      expect(mSubContainer.value).to.equal('"both are updated"');
+      expect(nSubContainer.value).to.equal('"both are updated"');
     });
   });
 });

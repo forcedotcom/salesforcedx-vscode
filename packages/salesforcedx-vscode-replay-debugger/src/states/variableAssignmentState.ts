@@ -71,11 +71,22 @@ export class VariableAssignmentState implements DebugLogState {
             } else {
               if (refMap.has(value)) {
                 const pulledRef = refMap.get(value) as ApexVariableContainer;
-                pulledRef.name = varName;
-                pulledRef.variablesRef = logContext
+                const tmpContainer = new ApexVariableContainer(
+                  varName,
+                  pulledRef.value,
+                  pulledRef.type,
+                  value
+                );
+                tmpContainer.variables = pulledRef.variables;
+                tmpContainer.variablesRef = logContext
                   .getVariableHandler()
-                  .create(pulledRef);
-                refContainer.variables.set(varName, pulledRef);
+                  .create(tmpContainer);
+                refContainer.variables.set(varName, tmpContainer);
+              } else if (refContainer.variables.has(varName)) {
+                const varContainer = refContainer.variables.get(
+                  varName
+                ) as ApexVariableContainer;
+                varContainer.value = value;
               } else {
                 refContainer.variables.set(
                   varName,
@@ -111,6 +122,8 @@ export class VariableAssignmentState implements DebugLogState {
           } else if (value === '{}') {
             container.value = value;
           }
+        } else if (container) {
+          container.value = value;
         }
       } else {
         if (container) {
@@ -129,8 +142,8 @@ export class VariableAssignmentState implements DebugLogState {
     try {
       const obj = JSON.parse(value);
       Object.keys(obj).forEach(key => {
-        if (logContext.getRefsMap().has(String(obj[key]))) {
-          const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
+        const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
+        if (refContainer) {
           const tmpContainer = new ApexVariableContainer(
             key,
             refContainer.value,
