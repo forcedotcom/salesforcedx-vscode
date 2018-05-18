@@ -23,6 +23,12 @@ import {
 } from './constants';
 import { nls } from './messages';
 
+export enum VSCodeWindowTypeEnum {
+  Error = 1,
+  Informational = 2,
+  Warning = 3
+}
+
 function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
@@ -173,8 +179,11 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
     }
     if (expired) {
       const errorMessage = nls.localize('language_client_not_ready');
-      writeToDebuggerOutputWindow(errorMessage);
-      vscode.window.showErrorMessage(errorMessage);
+      writeToDebuggerOutputWindow(
+        errorMessage,
+        true,
+        VSCodeWindowTypeEnum.Error
+      );
       return false;
     } else {
       const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
@@ -186,15 +195,17 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
         const errorMessage = nls.localize(
           'no_line_breakpoint_information_for_current_project'
         );
-        writeToDebuggerOutputWindow(errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+        writeToDebuggerOutputWindow(
+          errorMessage,
+          true,
+          VSCodeWindowTypeEnum.Error
+        );
         return true;
       }
     }
   } else {
     const errorMessage = nls.localize('session_language_server_error_text');
-    writeToDebuggerOutputWindow(errorMessage);
-    vscode.window.showErrorMessage(errorMessage);
+    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
     return false;
   }
 }
@@ -206,10 +217,30 @@ function imposeSlightDelay(ms = 0) {
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
-export function writeToDebuggerOutputWindow(output: string) {
+export function writeToDebuggerOutputWindow(
+  output: string,
+  showVSCodeWindow?: boolean,
+  vsCodeWindowType?: VSCodeWindowTypeEnum
+) {
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
     sfdxCoreExtension.exports.channelService.appendLine(output);
     sfdxCoreExtension.exports.channelService.showChannelOutput();
+  }
+  if (showVSCodeWindow && vsCodeWindowType) {
+    switch (vsCodeWindowType) {
+      case VSCodeWindowTypeEnum.Error: {
+        vscode.window.showErrorMessage(output);
+        break;
+      }
+      case VSCodeWindowTypeEnum.Informational: {
+        vscode.window.showInformationMessage(output);
+        break;
+      }
+      case VSCodeWindowTypeEnum.Warning: {
+        vscode.window.showWarningMessage(output);
+        break;
+      }
+    }
   }
 }
 

@@ -99,12 +99,12 @@
         {
           "command": "sfdx.toggle.checkpoint",
           "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId==apex"
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId == 'apex'"
         },
         {
           "command": "sfdx.launch.replay.debugger.logfile",
           "when": "sfdx:project_opened && editorLangId == 'apexlog'"
-        }        
+        }
       ],
       "view/title": [
         {

@@ -34,6 +34,17 @@ export const messages = {
   checkpoints_successfully_uploaded:
     'All checkpoints have been successfully uploaded to the server.',
   creating_checkpoints_progress_window_message: 'Creating checkpoints',
+  sfdx_create_checkpoints_start: 'Starting SFDX',
+  checkpoint_creation_status_org_info: 'retrieving org info',
+  checkpoint_creation_status_source_line_info: 'retrieving source/line info',
+  checkpoint_creation_status_setting_typeref:
+    'setting typeRefs for checkpoints',
+  checkpoint_creation_status_clearing_existing_checkpoints:
+    'clearing existing checkpoints',
+  checkpoint_creation_status_uploading_checkpoints: 'uploading checkpoints',
+  checkpoint_creation_status_processing_complete_success:
+    'processing checkpoints completed successfully',
+  sfdx_create_checkpoints_end: 'Ending SFDX',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',

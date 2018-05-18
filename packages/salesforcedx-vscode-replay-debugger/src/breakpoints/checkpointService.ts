@@ -45,6 +45,7 @@ import {
 } from '../constants';
 import {
   retrieveLineBreakpointInfo,
+  VSCodeWindowTypeEnum,
   writeToDebuggerOutputWindow
 } from '../index';
 import { nls } from '../messages';
@@ -110,8 +111,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         const errorMessage = `${nls.localize(
           'unable_to_retrieve_org_info'
         )} : ${result.message}`;
-        writeToDebuggerOutputWindow(errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+        writeToDebuggerOutputWindow(
+          errorMessage,
+          true,
+          VSCodeWindowTypeEnum.Error
+        );
         return false;
       }
       this.myRequestService.instanceUrl = this.orgInfo.instanceUrl;
@@ -119,8 +123,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       return true;
     } else {
       const errorMessage = nls.localize('cannot_determine_workspace');
-      writeToDebuggerOutputWindow(errorMessage);
-      vscode.window.showErrorMessage(errorMessage);
+      writeToDebuggerOutputWindow(
+        errorMessage,
+        true,
+        VSCodeWindowTypeEnum.Error
+      );
       return false;
     }
   }
@@ -157,8 +164,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         'up_to_five_checkpoints',
         numEnabledCheckpoints
       );
-      writeToDebuggerOutputWindow(errorMessage);
-      vscode.window.showErrorMessage(errorMessage);
+      writeToDebuggerOutputWindow(
+        errorMessage,
+        true,
+        VSCodeWindowTypeEnum.Error
+      );
     }
     return fiveOrLess;
   }
@@ -242,18 +252,27 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           const errorMessage = nls.localize(
             'local_source_is_out_of_sync_with_the_server'
           );
-          writeToDebuggerOutputWindow(errorMessage);
-          vscode.window.showErrorMessage(errorMessage);
+          writeToDebuggerOutputWindow(
+            errorMessage,
+            true,
+            VSCodeWindowTypeEnum.Error
+          );
         } else {
           const errorMessage = `${result[0]
             .message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
-          writeToDebuggerOutputWindow(errorMessage);
-          vscode.window.showErrorMessage(errorMessage);
+          writeToDebuggerOutputWindow(
+            errorMessage,
+            true,
+            VSCodeWindowTypeEnum.Error
+          );
         }
       } catch (error) {
         const errorMessage = `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
-        writeToDebuggerOutputWindow(errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+        writeToDebuggerOutputWindow(
+          errorMessage,
+          true,
+          VSCodeWindowTypeEnum.Error
+        );
       }
     }
   }
@@ -320,8 +339,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
                   const errorMessage = nls.localize(
                     'cannot_delete_existing_overlay_action'
                   );
-                  writeToDebuggerOutputWindow(errorMessage);
-                  vscode.window.showErrorMessage(errorMessage);
+                  writeToDebuggerOutputWindow(
+                    errorMessage,
+                    true,
+                    VSCodeWindowTypeEnum.Error
+                  );
                 } else {
                   // no errors, return true
                   return true;
@@ -334,8 +356,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
                 const errorMessage = `${nls.localize(
                   'cannot_delete_existing_overlay_action'
                 )} : ${deleteError}`;
-                writeToDebuggerOutputWindow(errorMessage);
-                vscode.window.showErrorMessage(errorMessage);
+                writeToDebuggerOutputWindow(
+                  errorMessage,
+                  true,
+                  VSCodeWindowTypeEnum.Error
+                );
                 return false;
               }
             }
@@ -345,30 +370,42 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             const errorMessage = nls.localize(
               'unable_to_parse_checkpoint_query_result'
             );
-            writeToDebuggerOutputWindow(errorMessage);
-            vscode.window.showErrorMessage(errorMessage);
+            writeToDebuggerOutputWindow(
+              errorMessage,
+              true,
+              VSCodeWindowTypeEnum.Error
+            );
             return false;
           }
         } else {
           const errorMessage = `${nls.localize(
             'unable_to_query_for_existing_checkpoints'
           )} Error: ${errorString}`;
-          writeToDebuggerOutputWindow(errorMessage);
-          vscode.window.showErrorMessage(errorMessage);
+          writeToDebuggerOutputWindow(
+            errorMessage,
+            true,
+            VSCodeWindowTypeEnum.Error
+          );
           return false;
         }
       } else {
         const errorMessage = nls.localize(
           'unable_to_retrieve_active_user_for_sfdx_project'
         );
-        writeToDebuggerOutputWindow(errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+        writeToDebuggerOutputWindow(
+          errorMessage,
+          true,
+          VSCodeWindowTypeEnum.Error
+        );
         return false;
       }
     } else {
       const errorMessage = nls.localize('unable_to_load_vscode_core_extension');
-      writeToDebuggerOutputWindow(errorMessage);
-      vscode.window.showErrorMessage(errorMessage);
+      writeToDebuggerOutputWindow(
+        errorMessage,
+        true,
+        VSCodeWindowTypeEnum.Error
+      );
       return false;
     }
   }
@@ -700,8 +737,11 @@ function setTypeRefsForEnabledCheckpoints(): boolean {
           checkpointUri,
           checkpointLine
         );
-        writeToDebuggerOutputWindow(errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+        writeToDebuggerOutputWindow(
+          errorMessage,
+          true,
+          VSCodeWindowTypeEnum.Error
+        );
         everythingSet = false;
       }
       const typeRef = breakpointUtil.getTopLevelTyperefForUri(
@@ -743,10 +783,14 @@ export async function sfdxCreateCheckpoints() {
       },
       async (progress, token) => {
         writeToDebuggerOutputWindow(
-          `Starting SFDX: ${localizedProgressMessage}`
+          `${nls.localize(
+            'sfdx_create_checkpoints_start'
+          )}: ${localizedProgressMessage}`
         );
         writeToDebuggerOutputWindow(
-          localizedProgressMessage + ': retrieving org info'
+          `${localizedProgressMessage}: ${nls.localize(
+            'checkpoint_creation_status_org_info'
+          )}`
         );
         progress.report({ increment: 0, message: localizedProgressMessage });
         const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
@@ -755,7 +799,9 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          localizedProgressMessage + ': retrieving source/line info'
+          `${localizedProgressMessage}: ${nls.localize(
+            'checkpoint_creation_status_source_line_info'
+          )}`
         );
         progress.report({ increment: 20, message: localizedProgressMessage });
         const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
@@ -770,7 +816,9 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          localizedProgressMessage + ': setting typeRefs for checkpoints'
+          `${localizedProgressMessage}: ${nls.localize(
+            'checkpoint_creation_status_source_line_info'
+          )}`
         );
         progress.report({ increment: 50, message: localizedProgressMessage });
         // For the active checkpoints set the typeRefs using the source/line info
@@ -779,7 +827,9 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          localizedProgressMessage + ': clearing existing checkpoints'
+          `${localizedProgressMessage}: ${nls.localize(
+            'checkpoint_creation_status_clearing_existing_checkpoints'
+          )}`
         );
         progress.report({ increment: 50, message: localizedProgressMessage });
         // remove any existing checkpoints on the server
@@ -789,7 +839,9 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          localizedProgressMessage + ': uploading checkpoints'
+          `${localizedProgressMessage}: ${nls.localize(
+            'checkpoint_creation_status_uploading_checkpoints'
+          )}`
         );
         progress.report({ increment: 70, message: localizedProgressMessage });
         // This should probably be batched but it makes dealing with errors kind of a pain
@@ -803,13 +855,18 @@ export async function sfdxCreateCheckpoints() {
 
         progress.report({ increment: 100, message: localizedProgressMessage });
         writeToDebuggerOutputWindow(
-          localizedProgressMessage +
-            ': processing checkpoints completed successfully'
+          `${localizedProgressMessage}: ${nls.localize(
+            'checkpoint_creation_status_processing_complete_success'
+          )}`
         );
       }
     );
   } finally {
-    writeToDebuggerOutputWindow(`Ending SFDX: ${localizedProgressMessage}`);
+    writeToDebuggerOutputWindow(
+      `${nls.localize(
+        'sfdx_create_checkpoints_end'
+      )}: ${localizedProgressMessage}`
+    );
     creatingCheckpoints = false;
   }
 }
@@ -845,8 +902,7 @@ export async function sfdxToggleCheckpoint() {
         bp.condition!.toLowerCase().indexOf(CHECKPOINT) >= 0
       ) {
         bpRemove.push(bp);
-        await vscode.debug.removeBreakpoints(bpRemove);
-        return;
+        return await vscode.debug.removeBreakpoints(bpRemove);
       } else {
         // The only thing from the old breakpoint that is applicable to keep is the hitCondition
         // which maps to iterations. Squirrel away hitCondition, remove the breakpoint and let
@@ -878,7 +934,6 @@ function fetchActiveEditorUri(): vscode.Uri | undefined {
   if (editor) {
     return editor.document.uri;
   }
-  return undefined;
 }
 exports.fetchActiveEditorUri = fetchActiveEditorUri;
 
