@@ -67,7 +67,7 @@
       {
         "id": "apex",
         "aliases": ["Apex", "apex"],
-        "extensions": [".cls", ".trigger"],
+        "extensions": [".cls", ".trigger", ".apex"],
         "configuration": "./syntaxes/apex.configuration.json"
       }
     ],
