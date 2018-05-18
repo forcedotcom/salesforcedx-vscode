@@ -122,13 +122,13 @@ export class ApexVariableContainer extends VariableContainer {
   public name: string;
   public value: string;
   public type: string;
-  public ref: string;
+  public ref: string | undefined;
   public variablesRef: number;
   public constructor(
     name: string,
     value: string,
     type: string,
-    ref: string = '0',
+    ref?: string,
     variablesRef: number = 0
   ) {
     super();
