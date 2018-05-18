@@ -433,16 +433,13 @@ describe('Variable assignment event', () => {
   });
 
   describe('Find references in reference map', () => {
-    const PARENT_VARIABLE_BEGIN =
-      '17:39:36.83 (152679235)|VARIABLE_SCOPE_BEGIN|[17]|this|NestedClass|true|false';
-    const CHILD_VARIABLE_ASSIGNMENT =
-      '17:39:36.83 (150355500)|VARIABLE_ASSIGNMENT|[11]|this.Name|"MyObjectAccount"|0x114423';
-    const PARENT_JSON_VARIABLE_ASSIGNMENT =
-      '17:39:36.83 (152855711)|VARIABLE_ASSIGNMENT|[17]|this|{"a":"0x114423"}|0xf8a3b94';
-    const PARENT_VARIABLE_ASSIGNMENT =
-      '17:39:36.83 (150148801)|VARIABLE_ASSIGNMENT|[10]|this.m|0x114423|0xf8a3b94';
-    const PARENT_VARIABLE_ASSIGNMENT2 =
-      '17:39:36.83 (150148801)|VARIABLE_ASSIGNMENT|[10]|this.n|0x114423|0xf8a3b94';
+    const PARENT_REF = '0x000000';
+    const CHILD_REF = '0x000001';
+    const PARENT_VARIABLE_BEGIN = `fakeTime|VARIABLE_SCOPE_BEGIN|[17]|this|NestedClass|true|false`;
+    const CHILD_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[11]|this.Name|"MyObjectAccount"|${CHILD_REF}`;
+    const PARENT_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[17]|this|{"a":"${CHILD_REF}"}|${PARENT_REF}`;
+    const PARENT_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.m|${CHILD_REF}|${PARENT_REF}`;
+    const PARENT_VARIABLE_ASSIGNMENT2 = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.n|${CHILD_REF}|${PARENT_REF}`;
 
     beforeEach(() => {
       // push frames on
@@ -483,13 +480,13 @@ describe('Variable assignment event', () => {
     });
 
     it('Should be able to pull reference values from json in assignments', () => {
-      expect(context.getRefsMap()).to.have.keys('0x114423', '0xf8a3b94');
+      expect(context.getRefsMap()).to.have.keys(PARENT_REF, CHILD_REF);
       const container = context
         .getRefsMap()
-        .get('0xf8a3b94') as ApexVariableContainer;
+        .get(PARENT_REF) as ApexVariableContainer;
       const childRefContainer = context
         .getRefsMap()
-        .get('0x114423') as ApexVariableContainer;
+        .get(CHILD_REF) as ApexVariableContainer;
       expect(container.variables).to.include.keys('a');
       const childParentContainer = container.variables.get('a')!;
       expect(childParentContainer.variables).to.equal(
@@ -497,14 +494,14 @@ describe('Variable assignment event', () => {
       );
     });
 
-    it('Should be able to pull reference values from json in assignments', () => {
-      expect(context.getRefsMap()).to.have.keys('0x114423', '0xf8a3b94');
+    it('Should be able to pull reference from assignment value', () => {
+      expect(context.getRefsMap()).to.have.keys(PARENT_REF, CHILD_REF);
       const container = context
         .getRefsMap()
-        .get('0xf8a3b94') as ApexVariableContainer;
+        .get(PARENT_REF) as ApexVariableContainer;
       const childRefContainer = context
         .getRefsMap()
-        .get('0x114423') as ApexVariableContainer;
+        .get(CHILD_REF) as ApexVariableContainer;
       expect(container.variables).to.include.keys('m');
       const childParentContainer = container.variables.get('m')!;
       expect(childParentContainer.variables).to.equal(
@@ -513,21 +510,20 @@ describe('Variable assignment event', () => {
     });
 
     it('Should change both variable containers if they share a common reference', () => {
-      expect(context.getRefsMap()).to.have.keys('0x114423', '0xf8a3b94');
+      expect(context.getRefsMap()).to.have.keys(PARENT_REF, CHILD_REF);
       const container = context
         .getRefsMap()
-        .get('0xf8a3b94') as ApexVariableContainer;
+        .get(PARENT_REF) as ApexVariableContainer;
       const childRefContainer = context
         .getRefsMap()
-        .get('0x114423') as ApexVariableContainer;
+        .get(CHILD_REF) as ApexVariableContainer;
       expect(container.variables).to.include.keys('m');
       const mContainer = container.variables.get('m')! as ApexVariableContainer;
       expect(container.variables).to.include.keys('n');
       const nContainer = container.variables.get('n')! as ApexVariableContainer;
       expect(mContainer.variables).to.equal(nContainer.variables);
       expect(mContainer.ref).to.equal(nContainer.ref);
-      const REF_ASSIGNMENT =
-        '17:39:36.83 (150355500)|VARIABLE_ASSIGNMENT|[11]|this.Name|"both are updated"|0x114423';
+      const REF_ASSIGNMENT = `17:39:36.83 (150355500)|VARIABLE_ASSIGNMENT|[11]|this.Name|"both are updated"|${CHILD_REF}`;
       const state = new VariableAssignmentState(REF_ASSIGNMENT.split('|'));
       state.handle(context);
       expect(mContainer.variables).to.include.keys('Name');
