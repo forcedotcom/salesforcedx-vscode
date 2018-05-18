@@ -40,19 +40,20 @@ export class VariableAssignmentState implements DebugLogState {
       let map: Map<String, VariableContainer> | undefined;
       let isNested = false;
 
+      // Grab the a top level container from statics or locals if it exists
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
         container = map.get(varName)! as ApexVariableContainer;
       } else if (frameInfo.locals.has(varName)) {
-        // if name does not contain '.' (i.e. this.attr or a.Name), it should be in locals and we can update the value
         map = frameInfo.locals;
         container = map.get(varName) as ApexVariableContainer;
+        // if the variable we're given is a child variable, then it will come in the format of this.varName
       } else if (name.indexOf('.') !== -1) {
         isNested = true;
       }
 
+      // update the ref mapping
       if (ref) {
-        // update the refcontainer mapping
         if (!refMap.has(ref)) {
           logContext
             .getRefsMap()
@@ -60,7 +61,9 @@ export class VariableAssignmentState implements DebugLogState {
         }
         const refContainer = refMap.get(ref)!;
         if (value !== '{}') {
+          // nested variable will either be given a json or a value
           if (isNested) {
+            // if its a json assignment, parse the values
             if (value.indexOf('{') === 0) {
               const topLevel = new ApexVariableContainer(varName, '', '');
               refContainer.variables.set(varName, topLevel);
@@ -69,6 +72,7 @@ export class VariableAssignmentState implements DebugLogState {
                 .create(topLevel);
               this.parseJSONAndPopulate(value, topLevel, logContext);
             } else {
+              // if it's not nested then we check if the value is a reference
               if (refMap.has(value)) {
                 const pulledRef = refMap.get(value) as ApexVariableContainer;
                 const tmpContainer = new ApexVariableContainer(
@@ -82,6 +86,7 @@ export class VariableAssignmentState implements DebugLogState {
                   .getVariableHandler()
                   .create(tmpContainer);
                 refContainer.variables.set(varName, tmpContainer);
+                // if not a reference, update the variable value, creating a container if needed
               } else if (refContainer.variables.has(varName)) {
                 const varContainer = refContainer.variables.get(
                   varName
@@ -94,6 +99,7 @@ export class VariableAssignmentState implements DebugLogState {
                 );
               }
             }
+            // if not nested then the refcontainer is the top level
           } else if (value.indexOf('{') === 0) {
             this.parseJSONAndPopulate(value, refContainer, logContext);
           } else {
@@ -104,23 +110,18 @@ export class VariableAssignmentState implements DebugLogState {
           }
         }
 
-        // update the correct toplevel container
-        if (
-          container &&
-          !container.type.startsWith('Map<') &&
-          !container.type.startsWith('List<') &&
-          !container.type.startsWith('Set<')
-        ) {
+        // update toplevel container if working with one
+        if (container && this.isNotCollection(container)) {
           container.ref = ref;
           container.value = '';
           container.variables = refContainer.variables;
           refContainer.type = container.type;
-          if (container.variablesRef === 0) {
+          if (value === '{}') {
+            container.value = value;
+          } else if (container.variablesRef === 0) {
             container.variablesRef = logContext
               .getVariableHandler()
               .create(container);
-          } else if (value === '{}') {
-            container.value = value;
           }
         } else if (container) {
           container.value = value;
@@ -132,6 +133,14 @@ export class VariableAssignmentState implements DebugLogState {
       }
     }
     return false;
+  }
+
+  private isNotCollection(container: ApexVariableContainer): boolean {
+    return (
+      !container.type.startsWith('Map<') &&
+      !container.type.startsWith('List<') &&
+      !container.type.startsWith('Set<')
+    );
   }
 
   private parseJSONAndPopulate(
