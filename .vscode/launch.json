@@ -387,29 +387,6 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Replay Debugger Adapter Tests Without Compile",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger",
-      "program":
-        "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/adaptertest/unit/"
-      ],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/packages/salesforcedx-vscode-replay-debugger/out/**/*.js"
-      ],
-      "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
-    },
-    {
       "name": "Launch Replay Debugger Extension Tests",
       "type": "extensionHost",
       "request": "launch",
