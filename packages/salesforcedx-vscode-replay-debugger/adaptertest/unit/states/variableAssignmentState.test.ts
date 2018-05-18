@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { StackFrame, Variable } from 'vscode-debugadapter';
+import { StackFrame } from 'vscode-debugadapter';
 import {
   ApexReplayDebug,
   ApexVariableContainer,
@@ -514,9 +514,6 @@ describe('Variable assignment event', () => {
       const container = context
         .getRefsMap()
         .get(PARENT_REF) as ApexVariableContainer;
-      const childRefContainer = context
-        .getRefsMap()
-        .get(CHILD_REF) as ApexVariableContainer;
       expect(container.variables).to.include.keys('m');
       const mContainer = container.variables.get('m')! as ApexVariableContainer;
       expect(container.variables).to.include.keys('n');
