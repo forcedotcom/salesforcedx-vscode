@@ -6,6 +6,7 @@
  */
 
 import * as path from 'path';
+import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { breakpointUtil } from './breakpoints';
@@ -21,7 +22,6 @@ import {
   LINE_BREAKPOINT_INFO_REQUEST
 } from './constants';
 import { nls } from './messages';
-import pathExists = require('path-exists');
 let lastOpenedLogFolder: string | undefined;
 
 function registerCommands(): vscode.Disposable {
