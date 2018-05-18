@@ -186,6 +186,13 @@ describe('Variable assignment event', () => {
       expect(container.value).to.equal('');
       expect(container.variablesRef).to.not.equal(0);
       expect(container.variables).to.have.key('s');
+      const variables = container.getAllVariables();
+      expect(variables.length).to.equal(1);
+      expect(variables[0]).to.include({
+        name: 's',
+        value: '"MyObject.s"',
+        evaluateName: '"MyObject.s"'
+      });
       const innerContainer = container.variables.get(
         's'
       ) as ApexVariableContainer;
@@ -240,6 +247,13 @@ describe('Variable assignment event', () => {
       const innerContainer = container.variables.get(
         'a'
       ) as ApexVariableContainer;
+      const variables = innerContainer.getAllVariables();
+      expect(variables.length).to.equal(1);
+      expect(variables[0]).to.include({
+        name: 'Name',
+        value: 'MyObjectAccount',
+        evaluateName: 'MyObjectAccount'
+      });
       expect(innerContainer.value).to.equal('');
       expect(innerContainer.variables).to.have.key('Name');
       expect(innerContainer.variablesRef).to.not.equal(0);
