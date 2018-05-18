@@ -74,6 +74,21 @@
         "language": "apex"
       }
     ],
+    "languages": [
+      {
+        "id": "apexlog",
+        "aliases": ["ApexLog", "DebugLog"],
+        "extensions": [".log"],
+        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "apexlog",
+        "scopeName": "text.log",
+        "path": "./syntaxes/apexlog.tmLanguage.json"
+      }
+    ],
     "menus": {
       "commandPalette": [
         {
@@ -85,7 +100,11 @@
           "command": "sfdx.toggle.checkpoint",
           "when":
             "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId==apex"
-        }
+        },
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
+        }        
       ],
       "view/title": [
         {
@@ -93,6 +112,19 @@
           "when":
             "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
           "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when":
+            "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
         }
       ]
     },
@@ -114,6 +146,10 @@
         },
         "when":
           "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+      },
+      {
+        "command": "sfdx.launch.replay.debugger.logfile",
+        "title": "%launch_from_log_file%"
       }
     ],
     "views": {

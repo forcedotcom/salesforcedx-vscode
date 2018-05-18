@@ -15,6 +15,7 @@ import {
   sfdxCreateCheckpoints,
   sfdxToggleCheckpoint
 } from './breakpoints/checkpointService';
+import { launchFromLogFile } from './commands/launchFromLogFile';
 import {
   DEBUGGER_TYPE,
   GET_LINE_BREAKPOINT_INFO_EVENT,
@@ -39,7 +40,19 @@ function registerCommands(): vscode.Disposable {
       }
     }
   );
-  return vscode.Disposable.from(promptForLogCmd);
+  const launchFromLogFileCmd = vscode.commands.registerCommand(
+    'sfdx.launch.replay.debugger.logfile',
+    editorUri => {
+      if (!editorUri) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          editorUri = editor.document.uri;
+        }
+      }
+      return launchFromLogFile(editorUri);
+    }
+  );
+  return vscode.Disposable.from(promptForLogCmd, launchFromLogFileCmd);
 }
 
 function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
