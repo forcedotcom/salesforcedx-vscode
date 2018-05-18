@@ -11,20 +11,22 @@ import { nls } from '../messages';
 
 export class DebugConfigurationProvider
   implements vscode.DebugConfigurationProvider {
+  public static getConfig(logFile?: string) {
+    return {
+      name: nls.localize('config_name_text'),
+      type: DEBUGGER_TYPE,
+      request: DEBUGGER_LAUNCH_TYPE,
+      logFile: logFile ? logFile : '${command:AskForLogFileName}',
+      stopOnEntry: true,
+      trace: true
+    } as vscode.DebugConfiguration;
+  }
+
   public provideDebugConfigurations(
     folder: vscode.WorkspaceFolder | undefined,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
-    return [
-      {
-        name: nls.localize('config_name_text'),
-        type: DEBUGGER_TYPE,
-        request: DEBUGGER_LAUNCH_TYPE,
-        logFile: '${command:AskForLogFileName}',
-        stopOnEntry: true,
-        trace: true
-      } as vscode.DebugConfiguration
-    ];
+    return [DebugConfigurationProvider.getConfig()];
   }
 
   public resolveDebugConfiguration(
