@@ -48,7 +48,7 @@ export interface FlagParameter {
   flag: string;
 }
 
-export function forceSourcePush(this: FlagParameter) {
+export async function forceSourcePush(this: FlagParameter) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
   const executor = new ForceSourcePushExecutor(flag);
@@ -57,5 +57,5 @@ export function forceSourcePush(this: FlagParameter) {
     parameterGatherer,
     executor
   );
-  commandlet.run();
+  await commandlet.run();
 }

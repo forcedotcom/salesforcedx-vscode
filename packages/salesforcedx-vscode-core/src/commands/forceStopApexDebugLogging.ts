@@ -95,6 +95,6 @@ const commandlet = new SfdxCommandlet(
   executor
 );
 
-export function forceStopApexDebugLogging() {
-  commandlet.run();
+export async function forceStopApexDebugLogging() {
+  await commandlet.run();
 }

@@ -98,5 +98,5 @@ export async function forceLightningEventCreate(explorerDir?: any) {
     new ForceLightningEventCreateExecutor(),
     lightningFilePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

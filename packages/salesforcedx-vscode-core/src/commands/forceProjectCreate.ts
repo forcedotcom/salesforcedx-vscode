@@ -162,6 +162,6 @@ const commandlet = new SfdxCommandlet(
   pathExistsChecker
 );
 
-export function forceProjectCreate() {
-  commandlet.run();
+export async function forceProjectCreate() {
+  await commandlet.run();
 }

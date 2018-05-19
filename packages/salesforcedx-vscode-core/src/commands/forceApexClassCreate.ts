@@ -100,5 +100,5 @@ export async function forceApexClassCreate(explorerDir?: any) {
     new ForceApexClassCreateExecutor(),
     filePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

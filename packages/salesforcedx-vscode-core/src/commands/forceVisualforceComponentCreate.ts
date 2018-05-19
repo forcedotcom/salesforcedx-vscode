@@ -100,5 +100,5 @@ export async function forceVisualforceComponentCreate(explorerDir?: any) {
     new ForceVisualForceComponentCreateExecutor(),
     filePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

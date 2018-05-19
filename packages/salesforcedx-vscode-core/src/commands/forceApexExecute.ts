@@ -123,5 +123,5 @@ export async function forceApexExecute(withSelection?: any) {
     fileNameGatherer,
     new ForceApexExecuteExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }

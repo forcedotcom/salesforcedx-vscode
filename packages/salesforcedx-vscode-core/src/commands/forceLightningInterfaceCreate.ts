@@ -98,5 +98,5 @@ export async function forceLightningInterfaceCreate(explorerDir?: any) {
     new ForceLightningInterfaceCreateExecutor(),
     lightningFilePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

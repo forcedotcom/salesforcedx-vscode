@@ -97,5 +97,5 @@ export async function forceVisualforcePageCreate(explorerDir?: any) {
     new ForceVisualForcePageCreateExecutor(),
     filePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

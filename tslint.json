@@ -3,9 +3,8 @@
   "rules": {
     "no-reserved-keywords": false,
     "no-any": false,
-    "quotemark": false,
+    "quotemark": [true, "single", "avoid-escape"],
     "member-ordering": false,
-    "no-string-based-set-timeout": false,
-    "no-floating-promises": false
+    "no-string-based-set-timeout": false
   }
 }

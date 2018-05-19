@@ -99,5 +99,5 @@ export async function forceApexTriggerCreate(explorerDir?: any) {
     new ForceApexTriggerCreateExecutor(),
     filePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

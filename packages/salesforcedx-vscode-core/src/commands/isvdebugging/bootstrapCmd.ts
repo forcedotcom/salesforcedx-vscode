@@ -610,8 +610,8 @@ const commandlet = new SfdxCommandlet(
   pathExistsChecker
 );
 
-export function isvDebugBootstrap() {
-  commandlet.run();
+export async function isvDebugBootstrap() {
+  await commandlet.run();
 }
 
 export async function setupGlobalDefaultUserIsvAuth() {

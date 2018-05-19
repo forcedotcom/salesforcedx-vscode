@@ -35,6 +35,6 @@ const commandlet = new SfdxCommandlet(
   executor
 );
 
-export function forceOrgOpen() {
-  commandlet.run();
+export async function forceOrgOpen() {
+  await commandlet.run();
 }

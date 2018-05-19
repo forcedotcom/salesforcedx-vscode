@@ -74,11 +74,11 @@ const parameterGatherer = new CompositeParametersGatherer<
   AliasAndFileSelection
 >(new FileSelector('config/**/*-scratch-def.json'), new AliasGatherer());
 
-export function forceOrgCreate() {
+export async function forceOrgCreate() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     new ForceOrgCreateExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }
