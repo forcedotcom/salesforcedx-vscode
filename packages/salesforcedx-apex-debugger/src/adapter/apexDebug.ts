@@ -1565,7 +1565,6 @@ export class ApexDebug extends LoggingDebugSession {
     );
   }
 
-  // tslint:disable-next-line:member-ordering
   public handleEvent(message: DebuggerMessage): void {
     const type: ApexDebuggerEventType = (ApexDebuggerEventType as any)[
       message.sobject.Type

@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-// tslint:disable:member-ordering
 
 // This file is meant to mimics the functionality of Predicate and Predicates from Google Guava.
 // Expand as necessary.
