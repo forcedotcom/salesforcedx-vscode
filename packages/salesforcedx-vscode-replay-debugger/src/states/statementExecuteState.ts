@@ -13,7 +13,7 @@ export class StatementExecuteState implements DebugLogState {
   private readonly line: number;
 
   constructor(fields: string[]) {
-    this.line = parseInt(fields[fields.length - 1]);
+    this.line = parseInt(fields[fields.length - 1], 10);
   }
 
   public handle(logContext: LogContext): boolean {

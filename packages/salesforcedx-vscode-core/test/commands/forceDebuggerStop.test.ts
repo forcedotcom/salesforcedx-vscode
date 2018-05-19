@@ -26,7 +26,8 @@ describe('Debugger stop command', () => {
   const mockSpawn = require('mock-spawn');
 
   describe('Session query', () => {
-    let origSpawn: any, mySpawn: any;
+    let origSpawn: any;
+    let mySpawn: any;
     let workspaceCheckerStub: sinon.SinonStub;
     let idGathererStub: sinon.SinonStub;
     let detachExecutorSpy: sinon.SinonSpy;

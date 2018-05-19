@@ -2,7 +2,6 @@
  * rewritten test runner for integrating code coverage;
  * https://github.com/codecov/example-typescript-vscode-extension
  */
-
 'use strict';
 
 import * as fs from 'fs';
@@ -47,7 +46,7 @@ function _mkDirIfExists(dir: string): void {
 
 function _readCoverOptions(testsRoot: string): ITestRunnerOptions | undefined {
   const coverConfigPath = paths.join(testsRoot, '..', '..', 'coverconfig.json');
-  let coverConfig: ITestRunnerOptions | undefined = undefined;
+  let coverConfig: ITestRunnerOptions | undefined;
   if (fs.existsSync(coverConfigPath)) {
     const configContent = fs.readFileSync(coverConfigPath, 'utf-8');
     coverConfig = JSON.parse(configContent);
@@ -84,8 +83,8 @@ function run(testsRoot: any, clb: any): any {
       let failureCount = 0;
 
       mocha
-        .run(function(failures: any) {
-          process.on('exit', function() {
+        .run((failures: any) => {
+          process.on('exit', () => {
             console.log(
               `Existing test process, code should be ${failureCount}`
             );

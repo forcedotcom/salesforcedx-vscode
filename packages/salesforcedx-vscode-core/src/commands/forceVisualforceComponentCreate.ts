@@ -56,7 +56,7 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       if (
-        data != undefined &&
+        data !== undefined &&
         data.toString() === '0' &&
         vscode.workspace.rootPath
       ) {
@@ -100,5 +100,5 @@ export async function forceVisualforceComponentCreate(explorerDir?: any) {
     new ForceVisualForceComponentCreateExecutor(),
     filePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

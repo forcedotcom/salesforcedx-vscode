@@ -79,13 +79,13 @@ export class ApexVariable extends Variable {
 export class ApexDebugStackFrameInfo {
   public readonly frameNumber: number;
   public readonly signature: string;
-  public statics: Map<String, VariableContainer>;
-  public locals: Map<String, VariableContainer>;
+  public statics: Map<string, VariableContainer>;
+  public locals: Map<string, VariableContainer>;
   public constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
     this.signature = signature;
-    this.statics = new Map<String, VariableContainer>();
-    this.locals = new Map<String, VariableContainer>();
+    this.statics = new Map<string, VariableContainer>();
+    this.locals = new Map<string, VariableContainer>();
   }
 }
 
@@ -95,11 +95,11 @@ export enum SCOPE_TYPES {
 }
 
 export abstract class VariableContainer {
-  public variables: Map<String, VariableContainer>;
+  public variables: Map<string, VariableContainer>;
 
   public constructor(
-    variables: Map<String, VariableContainer> = new Map<
-      String,
+    variables: Map<string, VariableContainer> = new Map<
+      string,
       VariableContainer
     >()
   ) {
@@ -142,7 +142,7 @@ export class ScopeContainer extends VariableContainer {
 
   public constructor(
     type: SCOPE_TYPES,
-    variables: Map<String, VariableContainer>
+    variables: Map<string, VariableContainer>
   ) {
     super(variables);
     this.type = type;
@@ -302,7 +302,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         false
       )
     );
-    response.body = { scopes: scopes };
+    response.body = { scopes };
     this.sendResponse(response);
   }
 
