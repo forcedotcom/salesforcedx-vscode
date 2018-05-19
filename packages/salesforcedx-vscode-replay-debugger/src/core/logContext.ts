@@ -54,10 +54,10 @@ export class LogContext {
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
   private staticVariablesClassMap = new Map<
-    String,
-    Map<String, ApexVariableContainer>
+    string,
+    Map<string, ApexVariableContainer>
   >();
-  private refsMap = new Map<String, ApexVariableContainer>();
+  private refsMap = new Map<string, ApexVariableContainer>();
   private variableHandles = new Handles<ApexVariableContainer>();
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
@@ -129,13 +129,13 @@ export class LogContext {
     }
   }
 
-  public getRefsMap(): Map<String, ApexVariableContainer> {
+  public getRefsMap(): Map<string, ApexVariableContainer> {
     return this.refsMap;
   }
 
   public getStaticVariablesClassMap(): Map<
-    String,
-    Map<String, VariableContainer>
+    string,
+    Map<string, VariableContainer>
   > {
     return this.staticVariablesClassMap;
   }

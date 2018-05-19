@@ -15,7 +15,7 @@ export class UserDebugState implements DebugLogState {
   private message: string;
 
   constructor(fields: string[]) {
-    this.line = parseInt(fields[2]);
+    this.line = parseInt(fields[2], 10);
     this.message = fields[fields.length - 1];
   }
 

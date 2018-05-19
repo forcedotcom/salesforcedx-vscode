@@ -28,6 +28,30 @@ export class GlobalCliEnvironment {
 }
 
 export class CliCommandExecutor {
+  protected static patchEnv(
+    options: SpawnOptions,
+    baseEnvironment: Map<string, string>
+  ): SpawnOptions {
+    // start with current process environment
+    const env = Object.create(null);
+
+    // inherit current process environment
+    Object.assign(env, process.env);
+
+    // now push anything from global environment
+    baseEnvironment.forEach((value, key) => {
+      env[key] = value;
+    });
+
+    // then specific environment from Spawn Options
+    if (typeof options.env !== 'undefined') {
+      Object.assign(env, options.env);
+    }
+
+    options.env = env;
+    return options;
+  }
+
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
@@ -56,30 +80,6 @@ export class CliCommandExecutor {
       childProcess,
       cancellationToken
     );
-  }
-
-  protected static patchEnv(
-    options: SpawnOptions,
-    baseEnvironment: Map<string, string>
-  ): SpawnOptions {
-    // start with current process environment
-    const env = Object.create(null);
-
-    // inherit current process environment
-    Object.assign(env, process.env);
-
-    // now push anything from global environment
-    baseEnvironment.forEach((value, key) => {
-      env[key] = value;
-    });
-
-    // then specific environment from Spawn Options
-    if (typeof options.env !== 'undefined') {
-      Object.assign(env, options.env);
-    }
-
-    options.env = env;
-    return options;
   }
 }
 
@@ -113,16 +113,16 @@ export interface CommandExecution {
 }
 
 export class CompositeCliCommandExecution implements CommandExecution {
-  private readonly exitSubject: Subject<number | undefined>;
-  private readonly errorSubject: Subject<Error | undefined>;
-  private readonly stdout: Subject<string>;
-  private readonly stderr: Subject<string>;
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
   public readonly processExitSubject: Observable<number | undefined>;
   public readonly processErrorSubject: Observable<Error | undefined>;
   public readonly stdoutSubject: Observable<string>;
   public readonly stderrSubject: Observable<string>;
+  private readonly exitSubject: Subject<number | undefined>;
+  private readonly errorSubject: Subject<Error | undefined>;
+  private readonly stdout: Subject<string>;
+  private readonly stderr: Subject<string>;
 
   constructor(command: Command, cancellationToken?: CancellationToken) {
     this.exitSubject = new Subject();
@@ -166,7 +166,7 @@ export class CompositeCliCommandExecution implements CommandExecution {
     this.exitSubject.next(0);
   }
 
-  public failureExit(e?: any) {
+  public failureExit(e?: {}) {
     if (e) {
       this.stderr.next(`${e}${os.EOL}`);
     }
@@ -239,7 +239,7 @@ export class CliCommandExecution implements CommandExecution {
  */
 async function killPromise(processId: number) {
   return new Promise((resolve, reject) => {
-    kill(processId, 'SIGKILL', (err: any) => {
+    kill(processId, 'SIGKILL', (err: {}) => {
       err ? reject(err) : resolve();
     });
   });

@@ -28,11 +28,11 @@ describe('Frame entry event', () => {
     logFile: logFilePath,
     trace: true
   };
-  let map: Map<String, Map<String, ApexVariable>>;
+  let map: Map<string, Map<string, ApexVariable>>;
 
   beforeEach(() => {
-    map = new Map<String, Map<String, ApexVariable>>();
-    map.set('previousClass', new Map<String, ApexVariable>());
+    map = new Map<string, Map<string, ApexVariable>>();
+    map.set('previousClass', new Map<string, ApexVariable>());
     map.get('previousClass')!.set(
       'var1',
       new ApexVariable('var1', '0', 'Integer')

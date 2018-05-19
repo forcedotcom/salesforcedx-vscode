@@ -6,6 +6,7 @@
 
 export function pushAll<T>(to: T[], from: T[]) {
   if (from) {
+    // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < from.length; i++) {
       to.push(from[i]);
     }

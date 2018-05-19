@@ -32,7 +32,7 @@ describe('CommandExecutor tests', () => {
       const exitCode = await new Promise<string>((resolve, reject) => {
         execution.processExitSubject.subscribe(
           data => {
-            resolve(data != undefined ? data.toString() : '');
+            resolve(data !== undefined ? data.toString() : '');
           },
           err => {
             reject(err);
@@ -61,7 +61,7 @@ describe('CommandExecutor tests', () => {
       const exitCode = await new Promise<string>((resolve, reject) => {
         execution.processExitSubject.subscribe(
           data => {
-            resolve(data != undefined ? data.toString() : '');
+            resolve(data !== undefined ? data.toString() : '');
           },
           err => {
             reject(err);
@@ -85,7 +85,7 @@ describe('CommandExecutor tests', () => {
       const errorData = await new Promise<string>((resolve, reject) => {
         execution.processErrorSubject.subscribe(
           data => {
-            resolve(data != undefined ? data.toString() : '');
+            resolve(data !== undefined ? data.toString() : '');
           },
           err => {
             reject(err);

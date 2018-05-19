@@ -13,10 +13,11 @@ import childProcess = require('child_process');
 describe('force:config:get', () => {
   const mockSpawn = require('mock-spawn');
   let command: ForceConfigGet;
-  let origSpawn: any, mySpawn: any;
-  let cmdWithArgSpy: sinon.SinonSpy,
-    cmdJsonSpy: sinon.SinonSpy,
-    cmdBuildSpy: sinon.SinonSpy;
+  let origSpawn: any;
+  let mySpawn: any;
+  let cmdWithArgSpy: sinon.SinonSpy;
+  let cmdJsonSpy: sinon.SinonSpy;
+  let cmdBuildSpy: sinon.SinonSpy;
 
   beforeEach(() => {
     command = new ForceConfigGet();

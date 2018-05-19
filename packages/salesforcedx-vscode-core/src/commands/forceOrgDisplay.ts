@@ -42,7 +42,7 @@ export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export function forceOrgDisplay(this: FlagParameter<string>) {
+export async function forceOrgDisplay(this: FlagParameter<string>) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
   const parameterGatherer = flag
@@ -54,5 +54,5 @@ export function forceOrgDisplay(this: FlagParameter<string>) {
     parameterGatherer,
     executor
   );
-  commandlet.run();
+  await commandlet.run();
 }

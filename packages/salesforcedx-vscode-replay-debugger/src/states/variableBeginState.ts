@@ -30,7 +30,7 @@ export class VariableBeginState implements DebugLogState {
       if (!logContext.getStaticVariablesClassMap().has(className)) {
         logContext
           .getStaticVariablesClassMap()
-          .set(className, new Map<String, VariableContainer>());
+          .set(className, new Map<string, VariableContainer>());
       }
       const statics = logContext.getStaticVariablesClassMap().get(className)!;
       if (isStatic) {

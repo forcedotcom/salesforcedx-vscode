@@ -67,8 +67,8 @@ export class SpectronApplication {
     this.spectron = new Application({
       port: WEBDRIVER_PORT,
       path: electronPath,
-      args: args,
-      chromeDriverArgs: chromeDriverArgs,
+      args,
+      chromeDriverArgs,
       startTimeout: 10000,
       requireName: 'nodeRequire'
       // https://github.com/electron/spectron/pull/247

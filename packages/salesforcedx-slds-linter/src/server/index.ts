@@ -70,7 +70,7 @@ connection.onDidChangeConfiguration(change => {
 let activeDiagnostics: Diagnostic[] = [];
 
 export function validateTextDocument(
-  textDocument: String,
+  textDocument: string,
   uri: string,
   conn: any
 ): void {
@@ -85,7 +85,7 @@ export function validateTextDocument(
       if (index >= 0) {
         const foundStringLength = match.length;
         const fixedString = match.replace('--', '_');
-        const diagnostic = <Diagnostic>{
+        const diagnostic = {
           code: `0${fixedString}`,
           severity: DiagnosticSeverity.Warning,
           range: {
@@ -98,7 +98,7 @@ export function validateTextDocument(
             fixedString
           ),
           source: 'slds'
-        };
+        } as Diagnostic;
         activeDiagnostics.push(diagnostic);
       }
     }
@@ -106,7 +106,7 @@ export function validateTextDocument(
 
   // Send the computed diagnostics to VSCode.
   conn.sendDiagnostics({
-    uri: uri,
+    uri,
     diagnostics: activeDiagnostics
   });
 }

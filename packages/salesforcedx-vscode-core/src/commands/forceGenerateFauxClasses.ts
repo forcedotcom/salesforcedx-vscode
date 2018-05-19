@@ -72,5 +72,5 @@ export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
     parameterGatherer,
     new ForceGenerateFauxClassesExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }

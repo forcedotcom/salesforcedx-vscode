@@ -103,8 +103,8 @@ type TempFile = {
 };
 
 export function writeFileAsync(fileName: string, inputText: string) {
-  return new Promise(function(resolve, reject) {
-    fs.writeFile(fileName, inputText, function(err) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(fileName, inputText, err => {
       if (err) {
         reject(err);
       } else {
@@ -123,5 +123,5 @@ export async function forceApexExecute(withSelection?: any) {
     fileNameGatherer,
     new ForceApexExecuteExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }

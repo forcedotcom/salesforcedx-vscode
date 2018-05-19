@@ -46,7 +46,7 @@ describe('HTML Highlighting', () => {
     }
   }
 
-  it('Single', function(): any {
+  it('Single', () => {
     assertHighlights('|<html></html>', [], null);
     assertHighlights('<|html></html>', [1, 8], 'html');
     assertHighlights('<h|tml></html>', [1, 8], 'html');
@@ -62,7 +62,7 @@ describe('HTML Highlighting', () => {
     assertHighlights('<html></html>|', [], null);
   });
 
-  it('Nested', function(): any {
+  it('Nested', () => {
     assertHighlights('<html>|<div></div></html>', [], null);
     assertHighlights('<html><|div></div></html>', [7, 13], 'div');
     assertHighlights('<html><div>|</div></html>', [], null);
@@ -75,13 +75,13 @@ describe('HTML Highlighting', () => {
     assertHighlights('<html><div></div><div></d|iv></html>', [18, 24], 'div');
   });
 
-  it('Selfclosed', function(): any {
+  it('Selfclosed', () => {
     assertHighlights('<html><|div/></html>', [7], 'div');
     assertHighlights('<html><|br></html>', [7], 'br');
     assertHighlights('<html><div><d|iv/></div></html>', [12], 'div');
   });
 
-  it('Case insensivity', function(): any {
+  it('Case insensivity', () => {
     assertHighlights('<HTML><diV><Div></dIV></dI|v></html>', [7, 24], 'div');
     assertHighlights('<HTML><diV|><Div></dIV></dIv></html>', [7, 24], 'div');
   });

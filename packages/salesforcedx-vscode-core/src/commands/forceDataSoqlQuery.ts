@@ -75,5 +75,5 @@ export async function forceDataSoqlQuery(explorerDir?: any) {
     parameterGatherer,
     new ForceDataSoqlQueryExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }

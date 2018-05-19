@@ -17,7 +17,7 @@ export function findDocumentSymbols(
   document: TextDocument,
   htmlDocument: HTMLDocument
 ): SymbolInformation[] {
-  const symbols = <SymbolInformation[]>[];
+  const symbols = [] as SymbolInformation[];
 
   htmlDocument.roots.forEach(node => {
     provideFileSymbolsInternal(document, node, '', symbols);
@@ -37,12 +37,12 @@ function provideFileSymbolsInternal(
     document.uri,
     Range.create(document.positionAt(node.start), document.positionAt(node.end))
   );
-  const symbol = <SymbolInformation>{
-    name: name,
-    location: location,
+  const symbol = {
+    name,
+    location,
     containerName: container,
-    kind: <SymbolKind>SymbolKind.Field
-  };
+    kind: SymbolKind.Field as SymbolKind
+  } as SymbolInformation;
 
   symbols.push(symbol);
 

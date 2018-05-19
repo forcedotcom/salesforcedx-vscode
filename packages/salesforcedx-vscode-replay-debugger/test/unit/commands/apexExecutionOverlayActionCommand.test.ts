@@ -131,9 +131,9 @@ describe('ApexExecutionOverlayAction command', () => {
 
     // parse the returnString and verify the ID and success boolean
     // note: the return value is an array of ApexExecutionOverlayFailureResult
-    const result = <ApexExecutionOverlayFailureResult[]>JSON.parse(
+    const result = JSON.parse(
       returnString
-    );
+    ) as ApexExecutionOverlayFailureResult[];
     // Verify that the error code can be parses out
     expect(result[0].errorCode).to.equal(FIELD_INTEGRITY_EXCEPTION);
   });

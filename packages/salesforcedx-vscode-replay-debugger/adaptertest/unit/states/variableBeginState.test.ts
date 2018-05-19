@@ -32,11 +32,11 @@ describe('Variable begin scope event', () => {
     'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|fakeClass.staticInteger|Integer|false|true';
   const LOCAL_VARIABLE_LOG_LINE =
     'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|localInteger|Integer|false|false';
-  let map: Map<String, Map<String, ApexVariable>>;
+  let map: Map<string, Map<string, ApexVariable>>;
 
   beforeEach(() => {
-    map = new Map<String, Map<String, ApexVariable>>();
-    map.set('fakeClass', new Map<String, ApexVariable>());
+    map = new Map<string, Map<string, ApexVariable>>();
+    map.set('fakeClass', new Map<string, ApexVariable>());
     getUriFromSignatureStub = sinon
       .stub(LogContext.prototype, 'getUriFromSignature')
       .returns(uriFromSignature);

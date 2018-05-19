@@ -219,13 +219,12 @@ export class ForceQueryTraceFlag extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export function forceStartApexDebugLogging() {
-  // tslint:disable-next-line:no-invalid-this
+export async function forceStartApexDebugLogging() {
   const executor = new ForceStartApexDebugLoggingExecutor();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor
   );
-  commandlet.run();
+  await commandlet.run();
 }

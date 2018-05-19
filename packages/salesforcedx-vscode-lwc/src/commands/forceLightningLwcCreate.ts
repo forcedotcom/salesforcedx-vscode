@@ -94,7 +94,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
 
     execution.processExitSubject.subscribe(async data => {
       if (
-        data != undefined &&
+        data !== undefined &&
         data.toString() === '0' &&
         vscode.workspace.rootPath
       ) {

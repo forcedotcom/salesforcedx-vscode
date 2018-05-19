@@ -146,7 +146,8 @@ export class StreamingClient {
   }
 
   public async subscribe(): Promise<void> {
-    let subscribeAccept: () => void, subscribeReject: () => void;
+    let subscribeAccept: () => void;
+    let subscribeReject: () => void;
     const returnPromise = new Promise<
       void
     >((resolve: () => void, reject: () => void) => {
@@ -213,13 +214,6 @@ export class StreamingClient {
     return returnPromise;
   }
 
-  private sendSubscribeRequest(): void {
-    this.client.subscribe(
-      this.clientInfo.channel,
-      this.clientInfo.messageHandler
-    );
-  }
-
   public disconnect(): void {
     this.shouldDisconnect = true;
     if (this.client && this.connected) {
@@ -243,5 +237,12 @@ export class StreamingClient {
 
   public getClientInfo(): StreamingClientInfo {
     return this.clientInfo;
+  }
+
+  private sendSubscribeRequest(): void {
+    this.client.subscribe(
+      this.clientInfo.channel,
+      this.clientInfo.messageHandler
+    );
   }
 }

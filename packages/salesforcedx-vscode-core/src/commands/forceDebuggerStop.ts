@@ -133,5 +133,5 @@ export async function forceDebuggerStop() {
     new EmptyParametersGatherer(),
     new StopActiveDebuggerSessionExecutor()
   );
-  sessionStopCommandlet.run();
+  await sessionStopCommandlet.run();
 }

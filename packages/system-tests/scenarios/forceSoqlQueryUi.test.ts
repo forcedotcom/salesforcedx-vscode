@@ -58,6 +58,7 @@ describe(TITLE, () => {
     await app.wait();
 
     const consoleHtml = await common.getConsoleOutput();
+    // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < consoleHtml.length; i++) {
       if (consoleHtml[i].indexOf('exit code') > 0) {
         expect(consoleHtml[i]).to.contain('exit code 0');
@@ -85,6 +86,7 @@ describe(TITLE, () => {
     await app.wait();
 
     const consoleHtml = await common.getConsoleOutput();
+    // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < consoleHtml.length; i++) {
       if (consoleHtml[i].indexOf('exit code') > 0) {
         expect(consoleHtml[i]).to.contain('exit code 0');

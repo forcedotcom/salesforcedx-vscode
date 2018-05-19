@@ -514,7 +514,7 @@ describe('Debugger adapter variable handling - unit', () => {
           JSON.stringify({
             referencesResponse: {
               references: {
-                references: references
+                references
               }
             }
           })
@@ -765,7 +765,7 @@ describe('Debugger adapter variable handling - unit', () => {
       await adapter.scopesRequest(
         {} as DebugProtocol.ScopesResponse,
         {
-          frameId: frameId
+          frameId
         } as DebugProtocol.ScopesArguments
       );
 
@@ -981,10 +981,10 @@ export function newStringValue(
   slot?: number
 ): Value {
   const result: any = {
-    name: name,
+    name,
     declaredTypeRef: 'java/lang/String',
     nameForMessages: 'String',
-    value: value
+    value
   };
   if (typeof slot !== 'undefined') {
     result.slot = slot;

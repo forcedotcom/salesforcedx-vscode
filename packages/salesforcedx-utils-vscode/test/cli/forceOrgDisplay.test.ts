@@ -13,10 +13,11 @@ import childProcess = require('child_process');
 describe('force:org:display', () => {
   const mockSpawn = require('mock-spawn');
   let command: ForceOrgDisplay;
-  let origSpawn: any, mySpawn: any;
-  let cmdWithArgSpy: sinon.SinonSpy,
-    cmdWithJsonSpy: sinon.SinonSpy,
-    cmdBuildSpy: sinon.SinonSpy;
+  let origSpawn: any;
+  let mySpawn: any;
+  let cmdWithArgSpy: sinon.SinonSpy;
+  let cmdWithJsonSpy: sinon.SinonSpy;
+  let cmdBuildSpy: sinon.SinonSpy;
 
   beforeEach(() => {
     command = new ForceOrgDisplay();

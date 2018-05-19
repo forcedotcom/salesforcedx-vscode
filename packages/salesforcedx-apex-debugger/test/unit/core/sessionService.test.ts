@@ -31,7 +31,8 @@ describe('Debugger session service', () => {
   });
 
   describe('Start', () => {
-    let origSpawn: any, mySpawn: any;
+    let origSpawn: any;
+    let mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
     let cmdWithJsonSpy: sinon.SinonSpy;
@@ -147,7 +148,8 @@ describe('Debugger session service', () => {
   });
 
   describe('Stop', () => {
-    let origSpawn: any, mySpawn: any;
+    let origSpawn: any;
+    let mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
     let cmdWithJsonSpy: sinon.SinonSpy;

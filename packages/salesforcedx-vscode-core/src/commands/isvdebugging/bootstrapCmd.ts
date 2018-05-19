@@ -565,7 +565,7 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
           loginUrl: loginUrl.toLowerCase().startsWith('http')
             ? loginUrl
             : protocolPrefix + loginUrl,
-          sessionId: sessionId,
+          sessionId,
           orgName: url.hostname
         };
         return {
@@ -610,8 +610,8 @@ const commandlet = new SfdxCommandlet(
   pathExistsChecker
 );
 
-export function isvDebugBootstrap() {
-  commandlet.run();
+export async function isvDebugBootstrap() {
+  await commandlet.run();
 }
 
 export async function setupGlobalDefaultUserIsvAuth() {

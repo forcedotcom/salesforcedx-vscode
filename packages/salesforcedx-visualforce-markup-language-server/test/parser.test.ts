@@ -8,7 +8,7 @@ import * as assert from 'assert';
 import { HTMLDocument, Node, parse } from '../src/parser/htmlParser';
 
 describe('HTML Parser', () => {
-  function toJSON(node: Node): any {
+  function toJSON(node: Node) {
     return {
       tag: node.tag,
       start: node.start,

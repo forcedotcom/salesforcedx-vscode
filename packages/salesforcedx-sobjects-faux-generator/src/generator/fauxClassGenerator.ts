@@ -31,9 +31,6 @@ const STANDARDOBJECTS_DIR = 'standardObjects';
 const CUSTOMOBJECTS_DIR = 'customObjects';
 
 export class FauxClassGenerator {
-  private emitter: EventEmitter;
-  private cancellationToken: CancellationToken | undefined;
-
   // the empty string is used to represent the need for a special case
   // usually multiple fields with specialized names
   private static typeMapping: Map<string, string> = new Map([
@@ -62,45 +59,21 @@ export class FauxClassGenerator {
     ['combobox', 'String'],
     ['time', 'Time'],
     // TBD what are these mapped to and how to create them
-    //['calculated', 'xxx'],
-    //['masterrecord', 'xxx'],
+    // ['calculated', 'xxx'],
+    // ['masterrecord', 'xxx'],
     ['complexvalue', 'Object']
   ]);
+
+  private static fieldName(decl: string): string {
+    return decl.substr(decl.indexOf(' ') + 1);
+  }
+
+  private emitter: EventEmitter;
+  private cancellationToken: CancellationToken | undefined;
 
   constructor(emitter: EventEmitter, cancellationToken?: CancellationToken) {
     this.emitter = emitter;
     this.cancellationToken = cancellationToken;
-  }
-
-  private errorExit(errorMessage: string): Promise<string> {
-    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, `${errorMessage}\n`);
-    this.emitter.emit(
-      LocalCommandExecution.ERROR_EVENT,
-      new Error(errorMessage)
-    );
-    this.emitter.emit(
-      LocalCommandExecution.EXIT_EVENT,
-      LocalCommandExecution.FAILURE_CODE
-    );
-    return Promise.reject(
-      `${LocalCommandExecution.FAILURE_CODE.toString()} - ${errorMessage}`
-    );
-  }
-
-  private successExit(): Promise<string> {
-    this.emitter.emit(
-      LocalCommandExecution.EXIT_EVENT,
-      LocalCommandExecution.SUCCESS_CODE
-    );
-    return Promise.resolve(LocalCommandExecution.SUCCESS_CODE.toString());
-  }
-
-  private cancelExit(): Promise<string> {
-    this.emitter.emit(
-      LocalCommandExecution.EXIT_EVENT,
-      LocalCommandExecution.FAILURE_CODE
-    );
-    return Promise.resolve(nls.localize('faux_generation_cancelled_text'));
   }
 
   public async generate(
@@ -164,6 +137,7 @@ export class FauxClassGenerator {
       }
     }
 
+    // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < fetchedSObjects.length; i++) {
       if (fetchedSObjects[i].custom) {
         customSObjects.push(fetchedSObjects[i]);
@@ -187,6 +161,55 @@ export class FauxClassGenerator {
     }
 
     return this.successExit();
+  }
+
+  // VisibleForTesting
+  public generateFauxClassText(sobject: SObject): string {
+    const declarations: string[] = this.generateFauxClassDecls(sobject);
+    return this.generateFauxClassTextFromDecls(sobject.name, declarations);
+  }
+
+  // VisibleForTesting
+  public generateFauxClass(folderPath: string, sobject: SObject): string {
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+    const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
+    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
+      mode: 0o444
+    });
+    return fauxClassPath;
+  }
+
+  private errorExit(errorMessage: string): Promise<string> {
+    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, `${errorMessage}\n`);
+    this.emitter.emit(
+      LocalCommandExecution.ERROR_EVENT,
+      new Error(errorMessage)
+    );
+    this.emitter.emit(
+      LocalCommandExecution.EXIT_EVENT,
+      LocalCommandExecution.FAILURE_CODE
+    );
+    return Promise.reject(
+      `${LocalCommandExecution.FAILURE_CODE.toString()} - ${errorMessage}`
+    );
+  }
+
+  private successExit(): Promise<string> {
+    this.emitter.emit(
+      LocalCommandExecution.EXIT_EVENT,
+      LocalCommandExecution.SUCCESS_CODE
+    );
+    return Promise.resolve(LocalCommandExecution.SUCCESS_CODE.toString());
+  }
+
+  private cancelExit(): Promise<string> {
+    this.emitter.emit(
+      LocalCommandExecution.EXIT_EVENT,
+      LocalCommandExecution.FAILURE_CODE
+    );
+    return Promise.resolve(nls.localize('faux_generation_cancelled_text'));
   }
 
   private stripId(name: string): string {
@@ -243,10 +266,6 @@ export class FauxClassGenerator {
     return decls;
   }
 
-  private static fieldName(decl: string): string {
-    return decl.substr(decl.indexOf(' ') + 1);
-  }
-
   private generateFauxClasses(sobjects: SObject[], targetFolder: string): void {
     if (!this.createIfNeededOutputFolder(targetFolder)) {
       throw nls.localize('no_sobject_output_folder_text', targetFolder);
@@ -256,18 +275,6 @@ export class FauxClassGenerator {
         this.generateFauxClass(targetFolder, sobject);
       }
     }
-  }
-
-  // VisibleForTesting
-  public generateFauxClass(folderPath: string, sobject: SObject): string {
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
-    }
-    const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
-    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
-      mode: 0o444
-    });
-    return fauxClassPath;
   }
 
   private generateFauxClassDecls(sobject: SObject): string[] {
@@ -338,12 +345,6 @@ export class FauxClassGenerator {
     )}${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
 
     return generatedClass;
-  }
-
-  //VisibleForTesting
-  public generateFauxClassText(sobject: SObject): string {
-    const declarations: string[] = this.generateFauxClassDecls(sobject);
-    return this.generateFauxClassTextFromDecls(sobject.name, declarations);
   }
 
   private createIfNeededOutputFolder(folderPath: string): boolean {

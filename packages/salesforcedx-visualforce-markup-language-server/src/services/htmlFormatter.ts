@@ -109,7 +109,7 @@ export function format(
   }
   return [
     {
-      range: range,
+      range,
       newText: result
     }
   ];
@@ -134,7 +134,7 @@ function getTagsFormatOption(
   key: string,
   dflt: string[]
 ): string[] {
-  const list = <string>getFormatOption(options, key, null);
+  const list = getFormatOption(options, key, null) as string;
   if (typeof list === 'string') {
     if (list.length > 0) {
       return list.split(',').map(t => t.trim().toLowerCase());

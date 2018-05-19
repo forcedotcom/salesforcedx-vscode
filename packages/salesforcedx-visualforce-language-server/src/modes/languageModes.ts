@@ -2,6 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 'use strict';
 
 import {
@@ -55,7 +56,6 @@ export interface SettingProvider {
 }
 
 export interface LanguageMode {
-  getId();
   configure?: (options: Settings) => void;
   doValidation?: (document: TextDocument, settings?: Settings) => Diagnostic[];
   doComplete?: (
@@ -92,8 +92,9 @@ export interface LanguageMode {
     colorInfo: ColorInformation
   ) => ColorPresentation[];
   doAutoClose?: (document: TextDocument, position: Position) => string;
-  onDocumentRemoved(document: TextDocument): void;
+  getId();
   dispose(): void;
+  onDocumentRemoved(document: TextDocument): void;
 }
 
 export interface LanguageModes {
@@ -119,7 +120,7 @@ export function getLanguageModes(supportedLanguages: {
     HTMLDocumentRegions
   >(10, 60, document => getDocumentRegions(htmlLanguageService, document));
 
-  let modelCaches: LanguageModelCache<any>[] = [];
+  let modelCaches: Array<LanguageModelCache<any>> = [];
   modelCaches.push(documentRegions);
 
   let modes = {};

@@ -128,7 +128,7 @@ describe('HTML Embedded Formatting', () => {
     );
   });
 
-  it('HTML & Scripts - Fixtures', function() {
+  it('HTML & Scripts - Fixtures', () => {
     assertFormatWithFixture('19813.html', '19813.html');
     assertFormatWithFixture(
       '19813.html',

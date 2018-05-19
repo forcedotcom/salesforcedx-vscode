@@ -27,12 +27,12 @@ export interface ItemDescription {
 }
 
 describe('HTML Completion', () => {
-  const assertCompletion = function(
+  const assertCompletion = (
     completions: CompletionList,
     expected: ItemDescription,
     document: TextDocument,
     offset: number
-  ) {
+  ) => {
     const matches = completions.items.filter(completion => {
       return completion.label === expected.label;
     });
@@ -64,11 +64,11 @@ describe('HTML Completion', () => {
     }
   };
 
-  const testCompletionFor = function(
+  const testCompletionFor = (
     value: string,
     expected: { count?: number; items?: ItemDescription[] },
     settings?: htmlLanguageService.CompletionConfiguration
-  ): PromiseLike<void> {
+  ): PromiseLike<void> => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -94,7 +94,7 @@ describe('HTML Completion', () => {
     return Promise.resolve();
   };
 
-  const testTagCompletion = function(value: string, expected: string): void {
+  const testTagCompletion = (value: string, expected: string): void => {
     const offset = value.indexOf('|');
     value = value.substr(0, offset) + value.substr(offset + 1);
 
@@ -112,7 +112,8 @@ describe('HTML Completion', () => {
     assert.equal(actual, expected);
   };
 
-  function run(tests: PromiseLike<void>[], testDone) {
+  function run(tests: Array<PromiseLike<void>>, testDone) {
+    // tslint:disable-next-line:no-floating-promises
     Promise.all(tests).then(
       () => {
         testDone();
@@ -123,7 +124,7 @@ describe('HTML Completion', () => {
     );
   }
 
-  it('Complete', function(testDone): any {
+  it('Complete', testDone => {
     run(
       [
         testCompletionFor('<|', {
@@ -419,7 +420,7 @@ describe('HTML Completion', () => {
     );
   });
 
-  it('Case sensitivity', function(testDone) {
+  it('Case sensitivity', testDone => {
     run(
       [
         testCompletionFor('<LI></|', {
@@ -445,7 +446,7 @@ describe('HTML Completion', () => {
     );
   });
 
-  it('Handlebar Completion', function(testDone) {
+  it('Handlebar Completion', testDone => {
     run(
       [
         testCompletionFor(
@@ -465,7 +466,7 @@ describe('HTML Completion', () => {
     );
   });
 
-  it('Complete aria', function(testDone): any {
+  it('Complete aria', testDone => {
     const expectedAriaAttributes = [
       { label: 'aria-activedescendant' },
       { label: 'aria-atomic' },
@@ -532,7 +533,7 @@ describe('HTML Completion', () => {
     );
   });
 
-  it('Settings', function(testDone): any {
+  it('Settings', testDone => {
     run(
       [
         testCompletionFor(
@@ -560,7 +561,7 @@ describe('HTML Completion', () => {
     );
   });
 
-  it('doTagComplete', function(): any {
+  it('doTagComplete', () => {
     testTagCompletion('<div>|', '$0</div>');
     testTagCompletion('<div>|</div>', null);
     testTagCompletion('<div class="">|', '$0</div>');

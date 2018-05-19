@@ -307,12 +307,12 @@ describe('Variable assignment event', () => {
         STATIC_NESTED_VARIABLE_ASSIGNMENT.split('|')
       );
       const staticMapping = context.getStaticVariablesClassMap() as Map<
-        String,
-        Map<String, VariableContainer>
+        string,
+        Map<string, VariableContainer>
       >;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
-        String,
+        string,
         VariableContainer
       >;
       expect(classMap).to.have.key('sa');
@@ -332,12 +332,12 @@ describe('Variable assignment event', () => {
       );
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap() as Map<
-        String,
-        Map<String, VariableContainer>
+        string,
+        Map<string, VariableContainer>
       >;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
-        String,
+        string,
         VariableContainer
       >;
       expect(classMap).to.have.key('sa');
@@ -365,12 +365,12 @@ describe('Variable assignment event', () => {
       );
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap() as Map<
-        String,
-        Map<String, VariableContainer>
+        string,
+        Map<string, VariableContainer>
       >;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
-        String,
+        string,
         VariableContainer
       >;
       expect(classMap).to.have.key('sa');
@@ -410,12 +410,12 @@ describe('Variable assignment event', () => {
       );
       state.handle(context);
       const staticMapping = context.getStaticVariablesClassMap() as Map<
-        String,
-        Map<String, VariableContainer>
+        string,
+        Map<string, VariableContainer>
       >;
       expect(staticMapping).to.include.keys('NestedClass');
       const classMap = staticMapping.get('NestedClass') as Map<
-        String,
+        string,
         VariableContainer
       >;
       expect(classMap).to.include.keys('staticAcc1', 'staticAcc2');

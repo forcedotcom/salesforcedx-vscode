@@ -17,17 +17,14 @@ import * as htmlLanguageService from '../src/htmlLanguageService';
 describe('HTML Symbols', () => {
   const TEST_URI = 'test://test/test.html';
 
-  const assertSymbols = function(
+  const assertSymbols = (
     symbols: SymbolInformation[],
     expected: SymbolInformation[]
-  ) {
+  ) => {
     expect(symbols).to.deep.equal(expected);
   };
 
-  const testSymbolsFor = function(
-    value: string,
-    expected: SymbolInformation[]
-  ) {
+  const testSymbolsFor = (value: string, expected: SymbolInformation[]) => {
     const ls = htmlLanguageService.getLanguageService();
     const document = TextDocument.create(TEST_URI, 'html', 0, value);
     const htmlDoc = ls.parseHTMLDocument(document);
@@ -37,30 +34,30 @@ describe('HTML Symbols', () => {
 
   it('Simple', () => {
     testSymbolsFor('<div></div>', [
-      <SymbolInformation>{
+      {
         containerName: '',
         name: 'div',
-        kind: <SymbolKind>SymbolKind.Field,
+        kind: SymbolKind.Field as SymbolKind,
         location: Location.create(TEST_URI, Range.create(0, 0, 0, 11))
-      }
+      } as SymbolInformation
     ]);
     testSymbolsFor('<div><input checked id="test" class="checkbox"></div>', [
       {
         containerName: '',
         name: 'div',
-        kind: <SymbolKind>SymbolKind.Field,
+        kind: SymbolKind.Field as SymbolKind,
         location: Location.create(TEST_URI, Range.create(0, 0, 0, 53))
       },
       {
         containerName: 'div',
         name: 'input#test.checkbox',
-        kind: <SymbolKind>SymbolKind.Field,
+        kind: SymbolKind.Field as SymbolKind,
         location: Location.create(TEST_URI, Range.create(0, 5, 0, 47))
       }
     ]);
   });
 
-  it('Id and classes', function() {
+  it('Id and classes', () => {
     const content =
       '<html id=\'root\'><body id="Foo" class="bar"><div class="a b"></div></body></html>';
 
@@ -88,7 +85,7 @@ describe('HTML Symbols', () => {
     testSymbolsFor(content, expected);
   });
 
-  it('Self closing', function() {
+  it('Self closing', () => {
     const content = '<html><br id="Foo"><br id=Bar></html>';
 
     const expected = [
@@ -115,7 +112,7 @@ describe('HTML Symbols', () => {
     testSymbolsFor(content, expected);
   });
 
-  it('No attrib', function() {
+  it('No attrib', () => {
     const content = '<html><body><div></div></body></html>';
 
     const expected = [

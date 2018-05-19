@@ -23,9 +23,9 @@ describe('LWC ESlint Unit Tests', () => {
     stub(mContext, 'asAbsolutePath').returns('with_mocked_location');
   });
 
-  it('Should update eslint.nodePath if not set', () => {
+  it('Should update eslint.nodePath if not set', async () => {
     let called = false;
-    populateEslintSettingIfNecessary(
+    await populateEslintSettingIfNecessary(
       (mContext as any) as ExtensionContext,
       ({
         get: () => {
@@ -39,9 +39,9 @@ describe('LWC ESlint Unit Tests', () => {
     expect(called).to.be.true;
   });
 
-  it('Should update eslint.nodePath if set to salesforcedx-vscode-lwc', () => {
+  it('Should update eslint.nodePath if set to salesforcedx-vscode-lwc', async () => {
     let called = false;
-    populateEslintSettingIfNecessary(
+    await populateEslintSettingIfNecessary(
       (mContext as any) as ExtensionContext,
       ({
         get: () => {
@@ -55,9 +55,9 @@ describe('LWC ESlint Unit Tests', () => {
     expect(called).to.be.true;
   });
 
-  it('Should not update eslint.nodePath if set to another path', () => {
+  it('Should not update eslint.nodePath if set to another path', async () => {
     let called = false;
-    populateEslintSettingIfNecessary(
+    await populateEslintSettingIfNecessary(
       (mContext as any) as ExtensionContext,
       ({
         get: () => {

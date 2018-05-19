@@ -44,16 +44,6 @@ export class Message implements LocalizationProvider {
     this.delegate = delegate;
   }
 
-  private getLabel(label: string): string | undefined {
-    if (this.messages[label]) {
-      return this.messages[label];
-    } else if (this.delegate) {
-      return this.delegate.messages[label];
-    } else {
-      return undefined;
-    }
-  }
-
   public localize(label: string, ...args: any[]): string {
     let possibleLabel = this.getLabel(label);
 
@@ -82,5 +72,15 @@ export class Message implements LocalizationProvider {
     }
 
     return possibleLabel;
+  }
+
+  private getLabel(label: string): string | undefined {
+    if (this.messages[label]) {
+      return this.messages[label];
+    } else if (this.delegate) {
+      return this.delegate.messages[label];
+    } else {
+      return undefined;
+    }
   }
 }

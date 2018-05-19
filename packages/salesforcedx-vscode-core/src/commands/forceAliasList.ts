@@ -35,6 +35,6 @@ const commandlet = new SfdxCommandlet(
   executor
 );
 
-export function forceAliasList() {
-  commandlet.run();
+export async function forceAliasList() {
+  await commandlet.run();
 }

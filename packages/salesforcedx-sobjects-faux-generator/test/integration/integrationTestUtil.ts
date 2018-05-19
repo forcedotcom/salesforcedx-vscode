@@ -105,6 +105,7 @@ export async function createPermissionSet(
       .withFlag('--targetusername', username)
       .withFlag(
         '--values',
+        // tslint:disable-next-line:quotemark
         'Name=' + permissionSetName + " Label='Give FLS Read'"
       )
       .withJson()

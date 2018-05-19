@@ -185,7 +185,7 @@ export class SpectronClient {
     const PANEL_SELECTOR = 'div[id="workbench.panel.terminal"]';
     const XTERM_SELECTOR = `${PANEL_SELECTOR} .terminal-wrapper`;
     return await this.spectron.client.selectorExecute(XTERM_SELECTOR, div => {
-      const xterm = (<any>(Array.isArray(div) ? div[0] : div)).xterm;
+      const xterm = ((Array.isArray(div) ? div[0] : div) as any).xterm;
       const buffer = xterm.buffer;
       const lines: string[] = [];
       for (let i = 0; i < buffer.lines.length; i++) {
