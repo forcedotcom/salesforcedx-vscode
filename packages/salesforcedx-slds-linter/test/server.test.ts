@@ -10,7 +10,6 @@ import * as sinon from 'sinon';
 import { validateTextDocument } from '../src/server/index';
 
 describe('SLDS Linter Language Server', () => {
-
   let args: any;
   const connection = {
     sendDiagnostics: (obj: any) => {
@@ -19,29 +18,28 @@ describe('SLDS Linter Language Server', () => {
   };
 
   it('Should send correct string', () => {
-
     validateTextDocument('\n class"slds-button--brand" \n', 'uri', connection);
     if (args) {
       expect(args.diagnostics[0].code.slice(1)).equals('slds-button_brand');
     } else {
       assert(args, 'Server connection arguments are null');
     }
-
   });
 
   it('Should diagnose 2 deprecated class names', () => {
-
-    validateTextDocument('\n class"slds-button--brand slds-text-color--default" \n', 'uri', connection);
+    validateTextDocument(
+      '\n class"slds-button--brand slds-text-color--default" \n',
+      'uri',
+      connection
+    );
     if (args) {
       expect(args.diagnostics.length).equals(2);
     } else {
       assert(args, 'Server connection arguments are null');
     }
-
   });
 
   it('Should send diagnostic to connection', () => {
-
     const mock = sinon.mock(connection);
     validateTextDocument('\n class"slds-button--brand"" \n', 'uri', connection);
     if (args) {
@@ -49,7 +47,5 @@ describe('SLDS Linter Language Server', () => {
     } else {
       assert(args, 'Server connection arguments are null');
     }
-
   });
-
 });

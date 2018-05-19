@@ -6,7 +6,7 @@ import { nls } from '../../src/messages';
 
 const expect = chai.expect;
 
-describe('SObject faux class generator', function() {
+describe('SObject faux class generator', () => {
   let classPath = '';
 
   function getGenerator(): FauxClassGenerator {

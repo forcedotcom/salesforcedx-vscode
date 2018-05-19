@@ -50,7 +50,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<{}> {
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      if (data != undefined && data.toString() === '0') {
+      if (data !== undefined && data.toString() === '0') {
         await vscode.commands.executeCommand(
           'vscode.openFolder',
           vscode.Uri.parse(

@@ -60,7 +60,7 @@ async function createServer(
         stdio: 'pipe'
       },
       command: javaExecutable,
-      args: args
+      args
     };
   } catch (err) {
     vscode.window.showErrorMessage(err);

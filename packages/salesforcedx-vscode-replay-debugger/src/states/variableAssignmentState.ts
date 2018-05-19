@@ -37,7 +37,7 @@ export class VariableAssignmentState implements DebugLogState {
         ref = this.fields[5];
       }
       let container: ApexVariableContainer | undefined;
-      let map: Map<String, VariableContainer> | undefined;
+      let map: Map<string, VariableContainer> | undefined;
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
         container = map.get(varName)! as ApexVariableContainer;

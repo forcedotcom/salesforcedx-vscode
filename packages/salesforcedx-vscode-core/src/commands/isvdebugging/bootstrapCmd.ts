@@ -565,7 +565,7 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
           loginUrl: loginUrl.toLowerCase().startsWith('http')
             ? loginUrl
             : protocolPrefix + loginUrl,
-          sessionId: sessionId,
+          sessionId,
           orgName: url.hostname
         };
         return {

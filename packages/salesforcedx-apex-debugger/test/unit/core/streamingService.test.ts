@@ -25,7 +25,8 @@ describe('Debugger streaming service', () => {
 
   describe('Subscribe', () => {
     let service: StreamingService;
-    let origSpawn: any, mySpawn: any;
+    let origSpawn: any;
+    let mySpawn: any;
     let clientIsConnectedSpy: sinon.SinonStub;
     let clientSubscribeSpy: sinon.SinonStub;
     const orgInfo: OrgInfo = {

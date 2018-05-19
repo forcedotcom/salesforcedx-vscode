@@ -49,7 +49,7 @@ export class ChannelService {
     execution.processExitSubject.subscribe(data => {
       this.channel.append(execution.command.toCommand());
       this.channel.append(' ');
-      if (data != undefined) {
+      if (data !== undefined) {
         this.channel.appendLine(
           nls.localize('channel_end_with_exit_code', data.toString())
         );
@@ -62,7 +62,7 @@ export class ChannelService {
     execution.processErrorSubject.subscribe(data => {
       this.channel.append(execution.command.toCommand());
       this.channel.append(' ');
-      if (data != undefined) {
+      if (data !== undefined) {
         this.channel.appendLine(
           nls.localize('channel_end_with_error', data.message)
         );

@@ -121,8 +121,8 @@ export class EmptyPreChecker implements PreconditionChecker {
 }
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: ParametersGatherer<any>[];
-  public constructor(...gatherers: ParametersGatherer<any>[]) {
+  private readonly gatherers: Array<ParametersGatherer<any>>;
+  public constructor(...gatherers: Array<ParametersGatherer<any>>) {
     this.gatherers = gatherers;
   }
   public async gather(): Promise<CancelResponse | ContinueResponse<T>> {
@@ -222,9 +222,9 @@ export abstract class SelectDirPath
         ? path.relative(rootPath, this.explorerDir)
         : await vscode.window.showQuickPick(
             this.globDirs(rootPath, this.globKeyWord),
-            <vscode.QuickPickOptions>{
+            {
               placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-            }
+            } as vscode.QuickPickOptions
           );
     }
     return outputdir

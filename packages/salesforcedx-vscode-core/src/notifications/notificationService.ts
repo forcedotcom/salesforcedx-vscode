@@ -77,7 +77,7 @@ export class NotificationService {
     cancellationToken?: vscode.CancellationToken
   ) {
     observable.subscribe(async data => {
-      if (data != undefined && data.toString() === '0') {
+      if (data !== undefined && data.toString() === '0') {
         await this.showSuccessfulExecution(executionName);
       } else {
         if (cancellationToken && cancellationToken.isCancellationRequested) {

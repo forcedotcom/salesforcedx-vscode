@@ -47,7 +47,7 @@ export function extname(path: string): string {
   return idx ? path.substring(~idx) : '';
 }
 
-export const join: (...parts: string[]) => string = function() {
+export const join: (...parts: string[]) => string = () => {
   // Not using a function with var-args because of how TS compiles
   // them to JS - it would result in 2*n runtime cost instead
   // of 1*n, where n is parts.length.
