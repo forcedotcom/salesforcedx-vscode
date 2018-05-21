@@ -33,7 +33,7 @@ describe('Fetch sObjects', function() {
   this.timeout(180000);
   let username: string;
 
-  before(async function() {
+  before(async () => {
     const customFields: util.CustomFieldInfo[] = [
       new util.CustomFieldInfo(CUSTOM_OBJECT_NAME, [
         `${CUSTOM_OBJECT_NAME}.${CUSTOM_FIELDNAME}`
@@ -53,7 +53,7 @@ describe('Fetch sObjects', function() {
     );
   });
 
-  after(async function() {
+  after(async () => {
     if (username) {
       await util.deleteScratchOrg(username);
     }
@@ -61,7 +61,7 @@ describe('Fetch sObjects', function() {
     rimraf.sync(projectPath);
   });
 
-  it('Should be able to call describeGlobal', async function() {
+  it('Should be able to call describeGlobal', async () => {
     const objs = [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2_NAME, CUSTOM_OBJECT3_NAME];
     const cmdOutput = await sobjectdescribe.describeGlobal(
       process.cwd(),
@@ -77,7 +77,7 @@ describe('Fetch sObjects', function() {
     expect(cmdOutput[1]).to.not.equal(cmdOutput[2]);
   });
 
-  it('Should be able to call describeSObject on custom object', async function() {
+  it('Should be able to call describeSObject on custom object', async () => {
     const cmdOutput = await sobjectdescribe.describeSObject(
       process.cwd(),
       CUSTOM_OBJECT_NAME,
@@ -95,7 +95,7 @@ describe('Fetch sObjects', function() {
     expect(customField.name).to.be.equal('MyCustomField__c');
   });
 
-  it('Should be able to call describeSObjectBatch on custom objects', async function() {
+  it('Should be able to call describeSObjectBatch on custom objects', async () => {
     const cmdOutput = await sobjectdescribe.describeSObjectBatch(
       process.cwd(),
       [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2_NAME, CUSTOM_OBJECT3_NAME],
@@ -115,7 +115,7 @@ describe('Fetch sObjects', function() {
     expect(cmdOutput[2].name).to.be.equal(CUSTOM_OBJECT3_NAME);
   });
 
-  it('Should be able to call describeSObject on standard object', async function() {
+  it('Should be able to call describeSObject on standard object', async () => {
     // const cmdOutput = await sobjectdescribe.describeSObject(
     //   process.cwd(),
     //   'Account',

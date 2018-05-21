@@ -122,7 +122,7 @@ export async function createPermissionSet(
       .withFlag('--targetusername', username)
       .withFlag(
         '--values',
-        'Name=' + permissionSetName + " Label='Give FLS Read'"
+        'Name=' + permissionSetName + ' Label="Give FLS Read"'
       )
       .withJson()
       .build(),

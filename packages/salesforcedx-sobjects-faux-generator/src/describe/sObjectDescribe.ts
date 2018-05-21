@@ -180,46 +180,6 @@ export class SObjectDescribe {
   private readonly sobjectsPart: string = 'sobjects';
   private readonly batchPart: string = 'composite/batch';
 
-  // get the token and url by calling the org - short term, should really be able to get it from the sfdx project
-  // also set the proper target apiVersion
-  private async setupConnection(projectPath: string, username?: string) {
-    if (!this.accessToken) {
-      let orgInfo: any;
-      const builder = new SfdxCommandBuilder().withArg('force:org:display');
-      if (username) {
-        builder.args.push('--targetusername', username);
-      }
-      const command = builder.withJson().build();
-      const execution = new CliCommandExecutor(command, {
-        cwd: projectPath
-      }).execute();
-      const cmdOutput = new CommandOutput();
-      const result = await cmdOutput.getCmdResult(execution);
-      orgInfo = JSON.parse(result).result;
-      this.accessToken = orgInfo.accessToken;
-      this.instanceUrl = orgInfo.instanceUrl;
-    }
-    if (!this.targetVersion) {
-      this.targetVersion = await this.getTargetApiVersion(projectPath);
-    }
-  }
-
-  private async getTargetApiVersion(projectPath: string): Promise<string> {
-    const builder = new SfdxCommandBuilder().withArg('force');
-    const command = builder.withJson().build();
-    const execution = new CliCommandExecutor(command, {
-      cwd: projectPath
-    }).execute();
-    const cmdOutput = new CommandOutput();
-    const result = await cmdOutput.getCmdResult(execution);
-    const apiVersion = JSON.parse(result).result.apiVersion;
-    return apiVersion;
-  }
-
-  private getVersion(): string {
-    return `${this.versionPrefix}${this.targetVersion}`;
-  }
-
   public async describeSObject(
     projectPath: string,
     type: string,
@@ -357,5 +317,45 @@ export class SObjectDescribe {
       const xhrResponse: XHRResponse = error;
       return Promise.reject(xhrResponse.responseText);
     }
+  }
+
+  // get the token and url by calling the org - short term, should really be able to get it from the sfdx project
+  // also set the proper target apiVersion
+  private async setupConnection(projectPath: string, username?: string) {
+    if (!this.accessToken) {
+      let orgInfo: any;
+      const builder = new SfdxCommandBuilder().withArg('force:org:display');
+      if (username) {
+        builder.args.push('--targetusername', username);
+      }
+      const command = builder.withJson().build();
+      const execution = new CliCommandExecutor(command, {
+        cwd: projectPath
+      }).execute();
+      const cmdOutput = new CommandOutput();
+      const result = await cmdOutput.getCmdResult(execution);
+      orgInfo = JSON.parse(result).result;
+      this.accessToken = orgInfo.accessToken;
+      this.instanceUrl = orgInfo.instanceUrl;
+    }
+    if (!this.targetVersion) {
+      this.targetVersion = await this.getTargetApiVersion(projectPath);
+    }
+  }
+
+  private async getTargetApiVersion(projectPath: string): Promise<string> {
+    const builder = new SfdxCommandBuilder().withArg('force');
+    const command = builder.withJson().build();
+    const execution = new CliCommandExecutor(command, {
+      cwd: projectPath
+    }).execute();
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    const apiVersion = JSON.parse(result).result.apiVersion;
+    return apiVersion;
+  }
+
+  private getVersion(): string {
+    return `${this.versionPrefix}${this.targetVersion}`;
   }
 }

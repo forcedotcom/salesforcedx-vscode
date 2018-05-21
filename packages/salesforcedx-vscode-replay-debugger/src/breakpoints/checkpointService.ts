@@ -151,7 +151,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     return element.getChildren();
   }
 
-  public hasFiveOrLessActiveCheckpoints(displayError: boolean): Boolean {
+  public hasFiveOrLessActiveCheckpoints(displayError: boolean): boolean {
     let numEnabledCheckpoints = 0;
     for (const cpNode of this.getChildren() as CheckpointNode[]) {
       if (cpNode.isCheckpointEnabled()) {
@@ -221,8 +221,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     const overlayActionCommand = new ApexExecutionOverlayActionCommand(
       theNode.createJSonStringForOverlayAction()
     );
-    let errorString = undefined;
-    let returnString = undefined;
+    let errorString;
+    let returnString;
     await this.myRequestService.execute(overlayActionCommand).then(
       value => {
         returnString = value;
@@ -286,8 +286,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       const userId = await sfdxCore.exports.getUserId(this.sfdxProject);
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
-        let errorString = undefined;
-        let returnString = undefined;
+        let errorString;
+        let returnString;
         await this.myRequestService
           .execute(queryCommand, RestHttpMethodEnum.Get)
           .then(
@@ -320,8 +320,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
                 batchRequests
               );
 
-              let deleteError = undefined;
-              let deleteResult = undefined;
+              let deleteError;
+              let deleteResult;
               await this.myRequestService
                 .execute(batchDeleteCommand, RestHttpMethodEnum.Post)
                 .then(

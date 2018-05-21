@@ -56,7 +56,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       if (
-        data != undefined &&
+        data !== undefined &&
         data.toString() === '0' &&
         vscode.workspace.rootPath
       ) {
@@ -100,5 +100,5 @@ export async function forceApexClassCreate(explorerDir?: any) {
     new ForceApexClassCreateExecutor(),
     filePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

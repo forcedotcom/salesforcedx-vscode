@@ -36,7 +36,7 @@ describe('HTML Hover', () => {
     );
   }
 
-  it('Single', function(): any {
+  it('Single', () => {
     assertHover('|<html></html>', void 0, void 0);
     assertHover('<|html></html>', '<html>', 1);
     assertHover('<h|tml></html>', '<html>', 1);

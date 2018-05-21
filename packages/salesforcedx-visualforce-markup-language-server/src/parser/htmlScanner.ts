@@ -174,6 +174,7 @@ const _RAN = '>'.charCodeAt(0);
 const _FSL = '/'.charCodeAt(0);
 const _EQS = '='.charCodeAt(0);
 const _DQO = '"'.charCodeAt(0);
+// tslint:disable-next-line:quotemark
 const _SQO = "'".charCodeAt(0);
 const _NWL = '\n'.charCodeAt(0);
 const _CAR = '\r'.charCodeAt(0);

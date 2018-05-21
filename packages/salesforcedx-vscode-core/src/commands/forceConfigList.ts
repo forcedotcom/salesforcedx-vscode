@@ -35,6 +35,6 @@ const commandlet = new SfdxCommandlet(
   executor
 );
 
-export function forceConfigList() {
-  commandlet.run();
+export async function forceConfigList() {
+  await commandlet.run();
 }
