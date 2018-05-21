@@ -46,7 +46,8 @@ export const messages = {
     'Step 5 of 6: Uploading checkpoints',
   checkpoint_creation_status_processing_complete_success:
     'Step 6 of 6: Confirming successful checkpoint creation',
-  sfdx_create_checkpoints_end: 'Ending SFDX: Create Checkpoints', // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
+  sfdx_create_checkpoints_end: 'Ending SFDX: Create Checkpoints',
+  // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
   cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
