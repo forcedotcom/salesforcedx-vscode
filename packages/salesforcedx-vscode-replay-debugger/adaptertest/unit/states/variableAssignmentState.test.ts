@@ -263,6 +263,27 @@ describe('Variable assignment event', () => {
       expect(innerContainerVariable.value).to.equal('MyObjectAccount');
       expect(innerContainerVariable.variablesRef).to.equal(0);
     });
+
+    it('Should not overwrite the this variable once assigned', () => {
+      const state = new VariableAssignmentState(
+        LOCAL_NESTED_VARIABLE_ASSIGNMENT.split('|')
+      );
+      state.handle(context);
+      const frameInfo = context
+        .getFrameHandler()
+        .get(context.getTopFrame()!.id);
+      expect(frameInfo.locals).to.include.keys('this');
+      const container = frameInfo.locals.get('this') as ApexVariableContainer;
+      const originalVariablesRef = container.variablesRef;
+      const originalRef = container.ref;
+      const originalVariables = container.variables;
+      const thisReassign = `09:43:08.67 (106051501)|VARIABLE_ASSIGNMENT|[EXTERNAL]|this|{"a1":"0x40dd809d","m2":"0x71c42b4c","s1":"MyObject.s2"}|0x1e2aeb71`;
+      const assign = new VariableAssignmentState(thisReassign.split('|'));
+      assign.handle(context);
+      expect(container.variables).to.equal(originalVariables);
+      expect(container.ref).to.equal(originalRef);
+      expect(container.variablesRef).to.equal(originalVariablesRef);
+    });
   });
 
   describe('Static nested assignment', () => {

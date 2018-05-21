@@ -113,8 +113,14 @@ export class VariableAssignmentState implements DebugLogState {
           );
         }
 
-        // update toplevel container if working with one
-        if (container && this.isNotCollection(container)) {
+        // update toplevel container if it's not this and not a collection
+        // or if the this variable has not been assigned a reference yet
+        if (
+          (container &&
+            this.isNotCollection(container) &&
+            container.name !== 'this') ||
+          (container && container.name === 'this' && !container.ref)
+        ) {
           container.ref = ref;
           container.value = '';
           container.variables = refContainer.variables;
@@ -128,7 +134,7 @@ export class VariableAssignmentState implements DebugLogState {
               .getVariableHandler()
               .create(container);
           }
-        } else if (container) {
+        } else if (container && container.name !== 'this') {
           container.value = value;
         }
       } else {
