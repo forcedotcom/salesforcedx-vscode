@@ -884,7 +884,7 @@ export async function sfdxToggleCheckpoint() {
     // While selection could be passed directly into the location instead of creating
     // a new range, it ends up creating a weird secondary icon on the line with the
     // breakpoint which is due to the start/end characters being non-zero.
-    let hitCondition = undefined;
+    let hitCondition;
     const bp = fetchExistingBreakpointForUriAndLineNumber(uri, lineNumber);
     // There's already a breakpoint at this line
     if (bp) {
