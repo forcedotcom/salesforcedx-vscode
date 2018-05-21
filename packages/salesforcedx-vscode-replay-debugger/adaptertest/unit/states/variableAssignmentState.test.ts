@@ -124,18 +124,12 @@ describe('Variable assignment event', () => {
 
   describe('Local nested assignment', () => {
     const DUMMY_REF = '0x00000000';
-    const DUMMY_REF2 = '0x00000001';
     const LOCAL_NESTED_VARIABLE_SCOPE_BEGIN =
       'fakeTime|VARIABLE_SCOPE_BEGIN|[8]|this|NestedClass|true|false';
     const LOCAL_NESTED_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`;
     const LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{"a":"0x37e2e22e","m":"0xff6e2ff","s":"MyObject.s"}|${DUMMY_REF}`;
     const LOCAL_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|this.s|"MyObject.s"|${DUMMY_REF}`;
     const LOCAL_NESTED_JSON_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|{"Name":"MyObjectAccount"}|${DUMMY_REF}`;
-    const COLLECTIONS_VALUE =
-      '{"1":{"a1":"0x3cc65531","m2":"0x25ba7599","s1":"MyObject.s2"},"2":{"a1":"0x603ac3f0","m2":"0x594a2142","s1":"MyObject.s2"}}';
-    const COLLECTIONS_BEGIN = `00:55:54.84 (116142294)|VARIABLE_SCOPE_BEGIN|[24]|mo|Map<String,MyObject>|true|false`;
-    const COLLECTIONS_ASSIGNMENT = `00:55:54.84 (116191871)|VARIABLE_ASSIGNMENT|[24]|mo|${COLLECTIONS_VALUE}|${DUMMY_REF2}`;
-
     beforeEach(() => {
       // push frames on
       const state = new FrameEntryState(['signature']);
@@ -268,25 +262,6 @@ describe('Variable assignment event', () => {
       ) as ApexVariableContainer;
       expect(innerContainerVariable.value).to.equal('MyObjectAccount');
       expect(innerContainerVariable.variablesRef).to.equal(0);
-    });
-
-    it('Should not parse collections', () => {
-      const begin = new VariableBeginState(COLLECTIONS_BEGIN.split('|'));
-      begin.handle(context);
-      const assign = new VariableAssignmentState(
-        COLLECTIONS_ASSIGNMENT.split('|')
-      );
-      assign.handle(context);
-      const frameInfo = context
-        .getFrameHandler()
-        .get(context.getTopFrame()!.id);
-      expect(frameInfo.locals).to.include.keys('mo');
-      const container = frameInfo.locals.get('mo') as ApexVariableContainer;
-      expect(container.value).to.equal(
-        '{"1":{"a1":"0x3cc65531","m2":"0x25ba7599","s1":"MyObject.s2"},"2":{"a1":"0x603ac3f0","m2":"0x594a2142","s1":"MyObject.s2"}}'
-      );
-      expect(container.ref).to.be.undefined;
-      expect(container.variablesRef).to.equal(0);
     });
   });
 
@@ -558,6 +533,84 @@ describe('Variable assignment event', () => {
       ) as ApexVariableContainer;
       expect(mSubContainer.value).to.equal('"both are updated"');
       expect(nSubContainer.value).to.equal('"both are updated"');
+    });
+  });
+
+  describe('Collections', () => {
+    const DUMMY_REF = '0x00000000';
+    const DUMMY_REF2 = '0x00000001';
+    const DUMMY_REF3 = '0x00000002';
+    const MAP_VALUE =
+      '{"1":{"a1":"0x3cc65531","m2":"0x25ba7599","s1":"MyObject.s2"},"2":{"a1":"0x603ac3f0","m2":"0x594a2142","s1":"MyObject.s2"}}';
+    const MAP_BEGIN = `00:55:54.84 (116142294)|VARIABLE_SCOPE_BEGIN|[24]|amap|Map<String,MyObject>|true|false`;
+    const MAP_ASSIGNMENT = `00:55:54.84 (116191871)|VARIABLE_ASSIGNMENT|[24]|amap|${MAP_VALUE}|${DUMMY_REF}`;
+    const LIST_VALUE = `[{"a1":"0x2f9c0fba","m2":"0xdc12056","s1":"MyObject.s2"},{"a1":"0xcdd88c9","m2":"0x6f90123a","s1":"MyObject.s2"}]`;
+    const LIST_BEGIN = `09:43:08.67 (106919036)|VARIABLE_SCOPE_BEGIN|[30]|alist|List<MyObject>|true|false`;
+    const LIST_ASSIGNMENT = `09:43:08.67 (107017879)|VARIABLE_ASSIGNMENT|[30]|alist|${LIST_VALUE}|${DUMMY_REF2}`;
+    const SET_VALUE = `[{"a1":"0x40dd809d","m2":"0x71c42b4c","s1":"MyObject.s2"},{"a1":"0x46867f90","m2":"0x4f675045","s1":"MyObject.s2"}]`;
+    const SET_BEGIN = `09:43:08.67 (107041268)|VARIABLE_SCOPE_BEGIN|[30]|aset|Set<MyObject>|true|false`;
+    const SET_ASSIGNMENT = `09:43:08.67 (107119928)|VARIABLE_ASSIGNMENT|[30]|aset|${SET_VALUE}|${DUMMY_REF3}`;
+
+    beforeEach(() => {
+      // push frames on
+      const state = new FrameEntryState(['signature']);
+      context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+      context
+        .getFrames()
+        .push({ id: 0, name: 'execute_anonymous_apex' } as StackFrame);
+      expect(state.handle(context)).to.be.false;
+      getUriFromSignatureStub = sinon
+        .stub(LogContext.prototype, 'getUriFromSignature')
+        .returns(uriFromSignature);
+    });
+
+    afterEach(() => {
+      getUriFromSignatureStub.restore();
+    });
+
+    it('Should not created a nested ref for maps', () => {
+      const begin = new VariableBeginState(MAP_BEGIN.split('|'));
+      begin.handle(context);
+      const assign = new VariableAssignmentState(MAP_ASSIGNMENT.split('|'));
+      assign.handle(context);
+      const frameInfo = context
+        .getFrameHandler()
+        .get(context.getTopFrame()!.id);
+      expect(frameInfo.locals).to.include.keys('amap');
+      const container = frameInfo.locals.get('amap') as ApexVariableContainer;
+      expect(container.value).to.equal(MAP_VALUE);
+      expect(container.ref).to.be.undefined;
+      expect(container.variablesRef).to.equal(0);
+    });
+
+    it('Should not created a nested ref for lists', () => {
+      const begin = new VariableBeginState(LIST_BEGIN.split('|'));
+      begin.handle(context);
+      const assign = new VariableAssignmentState(LIST_ASSIGNMENT.split('|'));
+      assign.handle(context);
+      const frameInfo = context
+        .getFrameHandler()
+        .get(context.getTopFrame()!.id);
+      expect(frameInfo.locals).to.include.keys('alist');
+      const container = frameInfo.locals.get('alist') as ApexVariableContainer;
+      expect(container.value).to.equal(LIST_VALUE);
+      expect(container.ref).to.be.undefined;
+      expect(container.variablesRef).to.equal(0);
+    });
+
+    it('Should not created a nested ref for sets', () => {
+      const begin = new VariableBeginState(SET_BEGIN.split('|'));
+      begin.handle(context);
+      const assign = new VariableAssignmentState(SET_ASSIGNMENT.split('|'));
+      assign.handle(context);
+      const frameInfo = context
+        .getFrameHandler()
+        .get(context.getTopFrame()!.id);
+      expect(frameInfo.locals).to.include.keys('aset');
+      const container = frameInfo.locals.get('aset') as ApexVariableContainer;
+      expect(container.value).to.equal(SET_VALUE);
+      expect(container.ref).to.be.undefined;
+      expect(container.variablesRef).to.equal(0);
     });
   });
 });
