@@ -142,7 +142,8 @@ describe('Debugger breakpoint service', () => {
   });
 
   describe('Create line breakpoint', () => {
-    let origSpawn: any, mySpawn: any;
+    let origSpawn: any;
+    let mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
     let cmdWithJsonSpy: sinon.SinonSpy;
@@ -254,7 +255,8 @@ describe('Debugger breakpoint service', () => {
   });
 
   describe('Create exception breakpoint', () => {
-    let origSpawn: any, mySpawn: any;
+    let origSpawn: any;
+    let mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
     let cmdWithJsonSpy: sinon.SinonSpy;
@@ -309,7 +311,8 @@ describe('Debugger breakpoint service', () => {
   });
 
   describe('Delete breakpoint', () => {
-    let origSpawn: any, mySpawn: any;
+    let origSpawn: any;
+    let mySpawn: any;
     let cmdWithArgSpy: sinon.SinonSpy;
     let cmdWithFlagSpy: sinon.SinonSpy;
     let cmdWithJsonSpy: sinon.SinonSpy;

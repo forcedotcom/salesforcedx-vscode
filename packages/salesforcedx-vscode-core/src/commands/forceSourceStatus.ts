@@ -49,7 +49,9 @@ export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export function forceSourceStatus(this: FlagParameter<SourceStatusFlags>) {
+export async function forceSourceStatus(
+  this: FlagParameter<SourceStatusFlags>
+) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
   const executor = new ForceSourceStatusExecutor(flag);
@@ -58,5 +60,5 @@ export function forceSourceStatus(this: FlagParameter<SourceStatusFlags>) {
     parameterGatherer,
     executor
   );
-  commandlet.run();
+  await commandlet.run();
 }

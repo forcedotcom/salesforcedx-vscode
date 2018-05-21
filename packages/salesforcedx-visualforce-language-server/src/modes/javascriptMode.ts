@@ -148,7 +148,7 @@ export function getJavascriptMode(
         items: completions.entries.map(entry => {
           return {
             uri: document.uri,
-            position: position,
+            position,
             label: entry.name,
             sortText: entry.sortText,
             kind: convertKind(entry.kind),
@@ -157,7 +157,7 @@ export function getJavascriptMode(
               // data used for resolving item details (see 'doResolve')
               languageId: 'javascript',
               uri: document.uri,
-              offset: offset
+              offset
             }
           };
         })
@@ -217,7 +217,7 @@ export function getJavascriptMode(
           item.parameters.forEach((p, i, a) => {
             const label = ts.displayPartsToString(p.displayParts);
             const parameter: ParameterInformation = {
-              label: label,
+              label,
               documentation: ts.displayPartsToString(p.documentation)
             };
             signature.label += label;
@@ -248,9 +248,9 @@ export function getJavascriptMode(
         return occurrences.map(entry => {
           return {
             range: convertRange(currentTextDocument, entry.textSpan),
-            kind: <DocumentHighlightKind>(entry.isWriteAccess
+            kind: (entry.isWriteAccess
               ? DocumentHighlightKind.Write
-              : DocumentHighlightKind.Text)
+              : DocumentHighlightKind.Text) as DocumentHighlightKind
           };
         });
       }

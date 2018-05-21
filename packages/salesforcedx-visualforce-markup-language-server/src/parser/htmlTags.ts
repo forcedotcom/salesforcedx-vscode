@@ -18,6 +18,8 @@ BEGIN THIRD PARTY
  *  from or derived from HTML 5.1 W3C Working Draft (http://www.w3.org/TR/2015/WD-html51-20151008/.)"
  *--------------------------------------------------------------------------------------------*/
 
+// tslint:disable:quotemark
+
 import arrays = require('../utils/arrays');
 import strings = require('../utils/strings');
 
@@ -382,8 +384,8 @@ export const HTML_TAGS: ITagSet = {
     )
   ),
   // <rtc> is not yet supported by 2+ browsers
-  //rtc: new HTMLTagSpecification(
-  //	localize('tags.rtc', 'The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn\'t represent anything itself, but its parent ruby element uses it as part of determining what it represents.')),
+  // rtc: new HTMLTagSpecification(
+  // localize('tags.rtc', 'The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn\'t represent anything itself, but its parent ruby element uses it as part of determining what it represents.')),
   rp: new TagSpecification(
     localize(
       'tags.rp',
@@ -391,8 +393,8 @@ export const HTML_TAGS: ITagSet = {
     )
   ),
   // <data> is not yet supported by 2+ browsers
-  //data: new HTMLTagSpecification(
-  //	localize('tags.data', 'The data element represents its contents, along with a machine-readable form of those contents in the value attribute.')),
+  // data: new HTMLTagSpecification(
+  // 	localize('tags.data', 'The data element represents its contents, along with a machine-readable form of those contents in the value attribute.')),
   time: new TagSpecification(
     localize(
       'tags.time',
@@ -881,11 +883,11 @@ export const HTML_TAGS: ITagSet = {
     )
   ),
   // <menu> and <menuitem> are not yet supported by 2+ browsers
-  //menu: new HTMLTagSpecification(
-  //	localize('tags.menu', 'The menu element represents a list of commands.'),
-  //	['type:mt', 'label']),
-  //menuitem: new HTMLTagSpecification(
-  //	localize('tags.menuitem', 'The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).')),
+  // menu: new HTMLTagSpecification(
+  // 	localize('tags.menu', 'The menu element represents a list of commands.'),
+  // 	['type:mt', 'label']),
+  // menuitem: new HTMLTagSpecification(
+  // 	localize('tags.menuitem', 'The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).')),
   dialog: new TagSpecification(
     localize(
       'tags.dialog',

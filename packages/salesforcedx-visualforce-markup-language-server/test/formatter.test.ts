@@ -31,7 +31,7 @@ describe('JSON Formatter', () => {
     const document = TextDocument.create(uri, 'html', 0, unformatted);
     const edits = getLanguageService().format(document, range, {
       tabSize: 2,
-      insertSpaces: insertSpaces,
+      insertSpaces,
       unformatted: ''
     });
     const formatted = applyEdits(document, edits);

@@ -208,8 +208,8 @@ export class ApexVariable extends Variable {
     n1 = ApexVariable.extractNumber(n1);
     n2 = ApexVariable.extractNumber(n2);
 
-    const i1 = parseInt(n1);
-    const i2 = parseInt(n2);
+    const i1 = parseInt(n1, 10);
+    const i2 = parseInt(n2, 10);
     const isNum1 = !isNaN(i1);
     const isNum2 = !isNaN(i2);
 
@@ -1183,7 +1183,7 @@ export class ApexDebug extends LoggingDebugSession {
       );
     });
 
-    response.body = { scopes: scopes };
+    response.body = { scopes };
     this.sendResponse(response);
   }
 
@@ -1223,7 +1223,7 @@ export class ApexDebug extends LoggingDebugSession {
         args.count
       );
       variables.sort(ApexVariable.compareVariables);
-      response.body = { variables: variables };
+      response.body = { variables };
       this.resetIdleTimer();
       this.sendResponse(response);
     } catch (error) {
@@ -1655,7 +1655,7 @@ export class ApexDebug extends LoggingDebugSession {
       const matches = message.sobject.Description.match(regExp);
       if (matches && matches.length === 3) {
         const possibleClassName = matches[1];
-        const possibleClassLine = parseInt(matches[2]);
+        const possibleClassLine = parseInt(matches[2], 10);
         const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(
           possibleClassName
         );

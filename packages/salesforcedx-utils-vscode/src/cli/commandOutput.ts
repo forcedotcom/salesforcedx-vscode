@@ -23,7 +23,7 @@ export class CommandOutput {
       string
     >((resolve: (result: string) => void, reject: (reason: string) => void) => {
       execution.processExitSubject.subscribe(data => {
-        if (data != undefined && data.toString() === '0') {
+        if (data !== undefined && data.toString() === '0') {
           return resolve(this.stdoutBuffer);
         } else {
           reject(this.stderrBuffer);

@@ -35,6 +35,7 @@ import {
   DocumentColorRequest
 } from 'vscode-languageserver-protocol/lib/protocol.colorProvider.proposed';
 
+// tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
   export const type: RequestType<
     TextDocumentPositionParams,
