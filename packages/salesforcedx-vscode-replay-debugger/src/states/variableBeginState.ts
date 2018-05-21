@@ -27,7 +27,10 @@ export class VariableBeginState implements DebugLogState {
       const type = this.fields[4];
       const isStatic = this.fields[6] === 'true';
       const className = name.substring(0, name.lastIndexOf('.'));
-      if (!logContext.getStaticVariablesClassMap().has(className)) {
+      if (
+        className &&
+        !logContext.getStaticVariablesClassMap().has(className)
+      ) {
         logContext
           .getStaticVariablesClassMap()
           .set(className, new Map<string, VariableContainer>());
