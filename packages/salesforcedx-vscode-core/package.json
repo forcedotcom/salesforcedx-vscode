@@ -48,7 +48,7 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
-    "vscode": "1.1.10"
+    "vscode": "1.1.17"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
