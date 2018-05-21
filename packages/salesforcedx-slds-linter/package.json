@@ -27,7 +27,7 @@
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
     "typescript": "2.6.2",
-    "vscode": "1.1.10"
+    "vscode": "1.1.17"
   },
   "scripts": {
     "compile": "tsc -p ./",
