@@ -368,7 +368,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
     context.subscriptions.push(registerIsvAuthWatcher());
-    setupGlobalDefaultUserIsvAuth();
+    await setupGlobalDefaultUserIsvAuth();
   }
 
   // Commands

@@ -58,8 +58,10 @@ export interface LaunchRequestArguments
 }
 
 export class ApexVariable extends Variable {
-  public type: string;
-  public apexRef: string | undefined;
+  public readonly type: string;
+  public readonly apexRef: string | undefined;
+  public readonly evaluateName: string;
+
   public constructor(
     name: string,
     value: string,
@@ -70,36 +72,34 @@ export class ApexVariable extends Variable {
     super(name, value, ref);
     this.type = type;
     this.apexRef = apexRef;
+    this.evaluateName = value;
   }
 }
 
 export class ApexDebugStackFrameInfo {
   public readonly frameNumber: number;
   public readonly signature: string;
-  public globals: Map<String, VariableContainer>;
-  public statics: Map<String, VariableContainer>;
-  public locals: Map<String, VariableContainer>;
+  public statics: Map<string, VariableContainer>;
+  public locals: Map<string, VariableContainer>;
   public constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
     this.signature = signature;
-    this.globals = new Map<String, VariableContainer>();
-    this.statics = new Map<String, VariableContainer>();
-    this.locals = new Map<String, VariableContainer>();
+    this.statics = new Map<string, VariableContainer>();
+    this.locals = new Map<string, VariableContainer>();
   }
 }
 
 export enum SCOPE_TYPES {
   LOCAL = 'local',
-  STATIC = 'static',
-  GLOBAL = 'global'
+  STATIC = 'static'
 }
 
 export abstract class VariableContainer {
-  public variables: Map<String, VariableContainer>;
+  public variables: Map<string, VariableContainer>;
 
   public constructor(
-    variables: Map<String, VariableContainer> = new Map<
-      String,
+    variables: Map<string, VariableContainer> = new Map<
+      string,
       VariableContainer
     >()
   ) {
@@ -142,7 +142,7 @@ export class ScopeContainer extends VariableContainer {
 
   public constructor(
     type: SCOPE_TYPES,
-    variables: Map<String, VariableContainer>
+    variables: Map<string, VariableContainer>
   ) {
     super(variables);
     this.type = type;
@@ -302,7 +302,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         false
       )
     );
-    response.body = { scopes: scopes };
+    response.body = { scopes };
     this.sendResponse(response);
   }
 
@@ -317,6 +317,18 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response.body = {
       variables: scopesContainer ? scopesContainer.getAllVariables() : []
     };
+    this.sendResponse(response);
+  }
+
+  protected evaluateRequest(
+    response: DebugProtocol.EvaluateResponse,
+    args: DebugProtocol.EvaluateArguments
+  ): void {
+    response.body = {
+      result: args.expression,
+      variablesReference: 0
+    };
+    response.success = true;
     this.sendResponse(response);
   }
 

@@ -74,9 +74,9 @@ export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}
     try {
       const result = await new CommandOutput().getCmdResult(execution);
       if (isProdOrg(JSON.parse(result))) {
-        promptLogOutForProdOrg();
+        await promptLogOutForProdOrg();
       } else {
-        notificationService.showSuccessfulExecution(
+        await notificationService.showSuccessfulExecution(
           execution.command.toString()
         );
       }
@@ -87,8 +87,8 @@ export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}
   }
 }
 
-export function promptLogOutForProdOrg() {
-  new SfdxCommandlet(
+export async function promptLogOutForProdOrg() {
+  await new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new DemoModePromptGatherer(),
     ForceAuthLogoutAll.withoutShowingChannel()
@@ -104,11 +104,11 @@ export function createExecutor(): SfdxCommandletExecutor<{}> {
     : new ForceAuthWebLoginExecutor();
 }
 
-export function forceAuthWebLogin() {
+export async function forceAuthWebLogin() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     createExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }

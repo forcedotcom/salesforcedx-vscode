@@ -43,6 +43,6 @@ const commandlet = new SfdxCommandlet(
   executor
 );
 
-export function forceAuthLogoutAll() {
-  commandlet.run();
+export async function forceAuthLogoutAll() {
+  await commandlet.run();
 }

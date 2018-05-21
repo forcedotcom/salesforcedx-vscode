@@ -23,6 +23,7 @@
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.16.0",
+    "path-exists": "3.0.0",
     "request-light": "0.2.1",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0",
@@ -32,6 +33,7 @@
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
+    "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "5.0.4",
@@ -74,12 +76,31 @@
         "language": "apex"
       }
     ],
+    "languages": [
+      {
+        "id": "apexlog",
+        "aliases": ["ApexLog", "DebugLog"],
+        "extensions": [".log"],
+        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "apexlog",
+        "scopeName": "text.log",
+        "path": "./syntaxes/apexlog.tmLanguage.json"
+      }
+    ],
     "menus": {
       "commandPalette": [
         {
           "command": "sfdx.create.checkpoints",
           "when":
             "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+        },
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
         }
       ],
       "view/title": [
@@ -88,6 +109,19 @@
           "when":
             "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
           "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when":
+            "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
         }
       ]
     },
@@ -105,6 +139,10 @@
         },
         "when":
           "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+      },
+      {
+        "command": "sfdx.launch.replay.debugger.logfile",
+        "title": "%launch_from_log_file%"
       }
     ],
     "views": {

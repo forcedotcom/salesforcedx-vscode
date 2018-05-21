@@ -52,6 +52,7 @@ import uri from 'vscode-uri';
 import * as nls from 'vscode-nls';
 nls.config(process.env['VSCODE_NLS_CONFIG']);
 
+// tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
   export const type: RequestType<
     TextDocumentPositionParams,
@@ -240,6 +241,7 @@ function triggerValidation(textDocument: TextDocument): void {
   cleanPendingValidation(textDocument);
   pendingValidationRequests[textDocument.uri] = setTimeout(() => {
     delete pendingValidationRequests[textDocument.uri];
+    // tslint:disable-next-line:no-floating-promises
     validateTextDocument(textDocument);
   }, validationDelayMs);
 }

@@ -5,6 +5,13 @@ import { Command } from '.';
 import { CancellationToken, CommandExecution } from './commandExecutor';
 
 export class LocalCommandExecution implements CommandExecution {
+  public static readonly EXIT_EVENT = 'exitEvent';
+  public static readonly ERROR_EVENT = 'errorEvent';
+  public static readonly STDOUT_EVENT = 'stdoutEvent';
+  public static readonly STDERR_EVENT = 'stderrEvent';
+  public static readonly SUCCESS_CODE = 0;
+  public static readonly FAILURE_CODE = 1;
+
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
   public readonly processExitSubject: Observable<number | undefined>;
@@ -15,12 +22,6 @@ export class LocalCommandExecution implements CommandExecution {
   // NOTE: ERROR_EVENT is NOT named 'error' because that causes the EventEmitter to actually
   // throw an exception IF there is no listener
   public cmdEmitter: EventEmitter = new EventEmitter();
-  public static readonly EXIT_EVENT = 'exitEvent';
-  public static readonly ERROR_EVENT = 'errorEvent';
-  public static readonly STDOUT_EVENT = 'stdoutEvent';
-  public static readonly STDERR_EVENT = 'stderrEvent';
-  public static readonly SUCCESS_CODE = 0;
-  public static readonly FAILURE_CODE = 1;
 
   constructor(command: Command) {
     this.command = command;
