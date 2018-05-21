@@ -33,19 +33,20 @@ export const messages = {
     "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
   checkpoints_successfully_uploaded:
     'All checkpoints have been successfully uploaded to the server.',
-  creating_checkpoints_progress_window_message: 'Creating checkpoints',
-  sfdx_create_checkpoints_start: 'Starting SFDX',
-  checkpoint_creation_status_org_info: 'retrieving org info',
-  checkpoint_creation_status_source_line_info: 'retrieving source/line info',
+  sfdx_create_checkpoints_start: 'Starting SFDX: Create Checkpoints',
+  checkpoint_creation_status_org_info:
+    'Step 1 of 6: Retrieving org information',
+  checkpoint_creation_status_source_line_info:
+    'Step 2 of 6: Retrieving source and line information',
   checkpoint_creation_status_setting_typeref:
-    'setting typeRefs for checkpoints',
+    'Step 3 of 6: Setting typeRefs for checkpoints',
   checkpoint_creation_status_clearing_existing_checkpoints:
-    'clearing existing checkpoints',
-  checkpoint_creation_status_uploading_checkpoints: 'uploading checkpoints',
+    'Step 4 of 6: Clearing existing checkpoints',
+  checkpoint_creation_status_uploading_checkpoints:
+    'Step 5 of 6: Uploading checkpoints',
   checkpoint_creation_status_processing_complete_success:
-    'processing checkpoints completed successfully',
-  sfdx_create_checkpoints_end: 'Ending SFDX',
-  // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
+    'Step 6 of 6: Confirming successful checkpoint creation',
+  sfdx_create_checkpoints_end: 'Ending SFDX: Create Checkpoints', // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
   cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',

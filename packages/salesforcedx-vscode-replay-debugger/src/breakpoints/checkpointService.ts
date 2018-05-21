@@ -771,7 +771,7 @@ export async function sfdxCreateCheckpoints() {
   // The status message isn't changing, call to localize it once and use the localized string in the
   // progress report.
   const localizedProgressMessage = nls.localize(
-    'creating_checkpoints_progress_window_message'
+    'sfdx_create_checkpoints_start'
   );
   // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
   try {
@@ -782,13 +782,9 @@ export async function sfdxCreateCheckpoints() {
         cancellable: false
       },
       async (progress, token) => {
+        writeToDebuggerOutputWindow(localizedProgressMessage);
         writeToDebuggerOutputWindow(
-          `${nls.localize(
-            'sfdx_create_checkpoints_start'
-          )}: ${localizedProgressMessage}`
-        );
-        writeToDebuggerOutputWindow(
-          `${localizedProgressMessage}: ${nls.localize(
+          `${localizedProgressMessage}, ${nls.localize(
             'checkpoint_creation_status_org_info'
           )}`
         );
@@ -799,7 +795,7 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          `${localizedProgressMessage}: ${nls.localize(
+          `${localizedProgressMessage}, ${nls.localize(
             'checkpoint_creation_status_source_line_info'
           )}`
         );
@@ -816,7 +812,7 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          `${localizedProgressMessage}: ${nls.localize(
+          `${localizedProgressMessage}, ${nls.localize(
             'checkpoint_creation_status_source_line_info'
           )}`
         );
@@ -827,7 +823,7 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          `${localizedProgressMessage}: ${nls.localize(
+          `${localizedProgressMessage}, ${nls.localize(
             'checkpoint_creation_status_clearing_existing_checkpoints'
           )}`
         );
@@ -839,7 +835,7 @@ export async function sfdxCreateCheckpoints() {
         }
 
         writeToDebuggerOutputWindow(
-          `${localizedProgressMessage}: ${nls.localize(
+          `${localizedProgressMessage}, ${nls.localize(
             'checkpoint_creation_status_uploading_checkpoints'
           )}`
         );
@@ -862,11 +858,7 @@ export async function sfdxCreateCheckpoints() {
       }
     );
   } finally {
-    writeToDebuggerOutputWindow(
-      `${nls.localize(
-        'sfdx_create_checkpoints_end'
-      )}: ${localizedProgressMessage}`
-    );
+    writeToDebuggerOutputWindow(nls.localize('sfdx_create_checkpoints_end'));
     creatingCheckpoints = false;
   }
 }
