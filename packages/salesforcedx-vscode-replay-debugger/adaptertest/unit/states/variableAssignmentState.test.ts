@@ -124,12 +124,18 @@ describe('Variable assignment event', () => {
 
   describe('Local nested assignment', () => {
     const DUMMY_REF = '0x00000000';
+    const DUMMY_REF2 = '0x00000001';
     const LOCAL_NESTED_VARIABLE_SCOPE_BEGIN =
       'fakeTime|VARIABLE_SCOPE_BEGIN|[8]|this|NestedClass|true|false';
     const LOCAL_NESTED_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`;
     const LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{"a":"0x37e2e22e","m":"0xff6e2ff","s":"MyObject.s"}|${DUMMY_REF}`;
     const LOCAL_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|this.s|"MyObject.s"|${DUMMY_REF}`;
     const LOCAL_NESTED_JSON_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|{"Name":"MyObjectAccount"}|${DUMMY_REF}`;
+    const COLLECTIONS_VALUE =
+      '{"1":{"a1":"0x3cc65531","m2":"0x25ba7599","s1":"MyObject.s2"},"2":{"a1":"0x603ac3f0","m2":"0x594a2142","s1":"MyObject.s2"}}';
+    const COLLECTIONS_BEGIN = `00:55:54.84 (116142294)|VARIABLE_SCOPE_BEGIN|[24]|mo|Map<String,MyObject>|true|false`;
+    const COLLECTIONS_ASSIGNMENT = `00:55:54.84 (116191871)|VARIABLE_ASSIGNMENT|[24]|mo|${COLLECTIONS_VALUE}|${DUMMY_REF2}`;
+
     beforeEach(() => {
       // push frames on
       const state = new FrameEntryState(['signature']);
@@ -262,6 +268,25 @@ describe('Variable assignment event', () => {
       ) as ApexVariableContainer;
       expect(innerContainerVariable.value).to.equal('MyObjectAccount');
       expect(innerContainerVariable.variablesRef).to.equal(0);
+    });
+
+    it('Should not parse collections', () => {
+      const begin = new VariableBeginState(COLLECTIONS_BEGIN.split('|'));
+      begin.handle(context);
+      const assign = new VariableAssignmentState(
+        COLLECTIONS_ASSIGNMENT.split('|')
+      );
+      assign.handle(context);
+      const frameInfo = context
+        .getFrameHandler()
+        .get(context.getTopFrame()!.id);
+      expect(frameInfo.locals).to.include.keys('mo');
+      const container = frameInfo.locals.get('mo') as ApexVariableContainer;
+      expect(container.value).to.equal(
+        '{"1":{"a1":"0x3cc65531","m2":"0x25ba7599","s1":"MyObject.s2"},"2":{"a1":"0x603ac3f0","m2":"0x594a2142","s1":"MyObject.s2"}}'
+      );
+      expect(container.ref).to.be.undefined;
+      expect(container.variablesRef).to.equal(0);
     });
   });
 

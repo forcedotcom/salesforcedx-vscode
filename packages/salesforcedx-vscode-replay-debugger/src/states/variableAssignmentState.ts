@@ -60,54 +60,57 @@ export class VariableAssignmentState implements DebugLogState {
             .set(ref, new ApexVariableContainer('', '', '', ref));
         }
         const refContainer = refMap.get(ref)!;
-        if (value !== '{}') {
-          // nested variable will either be given a json or a value
-          if (isNested) {
-            // if its a json assignment, parse the values
-            if (value.indexOf('{') === 0) {
-              const topLevel = new ApexVariableContainer(varName, '', '');
-              refContainer.variables.set(varName, topLevel);
-              topLevel.variablesRef = logContext
-                .getVariableHandler()
-                .create(topLevel);
-              this.parseJSONAndPopulate(value, topLevel, logContext);
-            } else {
-              // if it's not nested then we check if the value is a reference
-              if (refMap.has(value)) {
-                const pulledRef = refMap.get(value) as ApexVariableContainer;
-                const tmpContainer = new ApexVariableContainer(
-                  varName,
-                  pulledRef.value,
-                  pulledRef.type,
-                  value
-                );
-                tmpContainer.variables = pulledRef.variables;
-                tmpContainer.variablesRef = logContext
-                  .getVariableHandler()
-                  .create(tmpContainer);
-                refContainer.variables.set(varName, tmpContainer);
-                // if not a reference, update the variable value, creating a container if needed
-              } else if (refContainer.variables.has(varName)) {
-                const varContainer = refContainer.variables.get(
-                  varName
-                ) as ApexVariableContainer;
-                varContainer.value = value;
-              } else {
-                refContainer.variables.set(
-                  varName,
-                  new ApexVariableContainer(varName, value, '')
-                );
-              }
-            }
-            // if not nested then the refcontainer is the top level
-          } else if (value.indexOf('{') === 0) {
-            this.parseJSONAndPopulate(value, refContainer, logContext);
-          } else {
+        // nested variable will either be given a json or a value
+        if (isNested) {
+          if (value === '{}') {
             refContainer.variables.set(
               varName,
               new ApexVariableContainer(varName, value, '')
             );
+            // if its a json assignment, parse the values
+          } else if (value.indexOf('{') === 0) {
+            const topLevel = new ApexVariableContainer(varName, '', '');
+            refContainer.variables.set(varName, topLevel);
+            topLevel.variablesRef = logContext
+              .getVariableHandler()
+              .create(topLevel);
+            this.parseJSONAndPopulate(value, topLevel, logContext);
+          } else {
+            // if it's not nested then we check if the value is a reference
+            if (refMap.has(value)) {
+              const pulledRef = refMap.get(value) as ApexVariableContainer;
+              const tmpContainer = new ApexVariableContainer(
+                varName,
+                pulledRef.value,
+                pulledRef.type,
+                value
+              );
+              tmpContainer.variables = pulledRef.variables;
+              tmpContainer.variablesRef = logContext
+                .getVariableHandler()
+                .create(tmpContainer);
+              refContainer.variables.set(varName, tmpContainer);
+              // if not a reference, update the variable value, creating a container if needed
+            } else if (refContainer.variables.has(varName)) {
+              const varContainer = refContainer.variables.get(
+                varName
+              ) as ApexVariableContainer;
+              varContainer.value = value;
+            } else {
+              refContainer.variables.set(
+                varName,
+                new ApexVariableContainer(varName, value, '')
+              );
+            }
           }
+          // if not nested then the refcontainer is the top level
+        } else if (value.indexOf('{') === 0) {
+          this.parseJSONAndPopulate(value, refContainer, logContext);
+        } else {
+          refContainer.variables.set(
+            varName,
+            new ApexVariableContainer(varName, value, '')
+          );
         }
 
         // update toplevel container if working with one
@@ -118,7 +121,9 @@ export class VariableAssignmentState implements DebugLogState {
           refContainer.type = container.type;
           if (value === '{}') {
             container.value = value;
-          } else if (container.variablesRef === 0) {
+          }
+          if (container.variablesRef === 0) {
+            container.value = '';
             container.variablesRef = logContext
               .getVariableHandler()
               .create(container);
