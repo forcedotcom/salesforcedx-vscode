@@ -851,7 +851,7 @@ export async function sfdxCreateCheckpoints() {
 
         progress.report({ increment: 100, message: localizedProgressMessage });
         writeToDebuggerOutputWindow(
-          `${localizedProgressMessage}: ${nls.localize(
+          `${localizedProgressMessage}, ${nls.localize(
             'checkpoint_creation_status_processing_complete_success'
           )}`
         );
