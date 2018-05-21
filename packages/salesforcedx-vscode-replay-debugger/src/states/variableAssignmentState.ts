@@ -37,7 +37,7 @@ export class VariableAssignmentState implements DebugLogState {
 
       const refMap = logContext.getRefsMap();
       let container: ApexVariableContainer | undefined;
-      let map: Map<String, VariableContainer> | undefined;
+      let map: Map<string, VariableContainer> | undefined;
       let isNested = false;
 
       // Grab the a top level container from statics or locals if it exists
