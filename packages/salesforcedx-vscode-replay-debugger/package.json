@@ -1,5 +1,5 @@
 {
-  "name": "salesforcedx-vscode-replay-debugger",
+  "name": "salesforcedx-vscode-apex-replay-debugger",
   "displayName": "Apex Replay Debugger for Visual Studio Code",
   "description": "Replay Apex execution from Apex Debug Log",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -43,7 +43,7 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
-    "vscode": "1.1.10",
+    "vscode": "1.1.17",
     "vscode-debugadapter-testsupport": "1.28.0"
   },
   "extensionDependencies": [
@@ -216,7 +216,7 @@
       "type": "object",
       "title": "%replay-debugger_checkpoint_configuration_title%",
       "properties": {
-        "salesforcedx-vscode-replay-debugger-checkpoints.enabled": {
+        "salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled": {
           "type": "boolean",
           "default": false,
           "description": "%replay-debugger_checkpoints_enabled%"

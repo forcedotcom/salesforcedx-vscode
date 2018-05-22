@@ -113,7 +113,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // registerCommands needs the checkpoint configuration
   const config = vscode.workspace.getConfiguration();
   const checkpointsEnabled = config.get(
-    'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
+    'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
     false
   );
 
