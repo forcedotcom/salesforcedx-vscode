@@ -15,11 +15,14 @@ import * as path from 'path';
 // VS CODE BINARY LOCATER
 /////////////////////////
 
-const testRunFolder = '.vscode-test';
-const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
-
 const version = process.env.CODE_VERSION || '*';
 const isInsiders = version === 'insiders';
+
+const testRunFolder = path.join(
+  '.vscode-test',
+  isInsiders ? 'insiders' : 'stable'
+);
+const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
 
 let windowsExecutable;
 let darwinExecutable;
