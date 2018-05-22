@@ -29,10 +29,7 @@ export class VariableAssignmentState implements DebugLogState {
         name.indexOf('.') > -1 ? name.substring(0, name.lastIndexOf('.')) : '';
       const varName =
         nameSplit.length > 0 ? nameSplit[nameSplit.length - 1] : name;
-      let value = this.fields[4].replace('(^")|("$)', "'");
-      if (value.startsWith('"')) {
-        value = "'" + value.substring(1, value.length - 1) + "'";
-      }
+      const value = this.fields[4].replace(/^"/, "'").replace(/"$/, "'");
       let ref;
       if (this.fields.length === 6) {
         ref = this.fields[5];
