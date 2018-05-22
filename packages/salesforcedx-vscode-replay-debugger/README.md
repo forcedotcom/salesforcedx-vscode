@@ -1,4 +1,4 @@
-# salesforcedx-vscode-replay-debugger
+# salesforcedx-vscode-apex-replay-debugger
 This extension enables VS Code to use Apex Debug Logs to replay a debugging experience.
 
 ## Prerequisites
