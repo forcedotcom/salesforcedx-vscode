@@ -679,7 +679,7 @@ function clearOutCheckpoints() {
 function checkpointsEnabled(): boolean {
   const config = vscode.workspace.getConfiguration();
   const enabled = config.get(
-    'salesforcedx-vscode-replay-debugger-checkpoints.enabled',
+    'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
     false
   );
   return enabled;
