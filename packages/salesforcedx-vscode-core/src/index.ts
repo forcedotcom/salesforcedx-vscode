@@ -328,7 +328,7 @@ export async function activate(context: vscode.ExtensionContext) {
   let replayDebuggerExtensionInstalled = false;
   if (
     vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-replay-debugger'
+      'salesforce.salesforcedx-vscode-apex-replay-debugger'
     )
   ) {
     replayDebuggerExtensionInstalled = true;
