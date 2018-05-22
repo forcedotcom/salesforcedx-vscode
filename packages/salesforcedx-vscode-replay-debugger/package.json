@@ -99,6 +99,11 @@
             "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
         },
         {
+          "command": "sfdx.toggle.checkpoint",
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId == 'apex'"
+        },
+        {
           "command": "sfdx.launch.replay.debugger.logfile",
           "when": "sfdx:project_opened && editorLangId == 'apexlog'"
         }
@@ -129,6 +134,10 @@
       {
         "command": "sfdx.create.checkpoints",
         "title": "%sfdx_create_checkpoints%"
+      },
+      {
+        "command": "sfdx.toggle.checkpoint",
+        "title": "%sfdx_toggle_checkpoint%"
       },
       {
         "command": "checkpoints.createCheckpoints",

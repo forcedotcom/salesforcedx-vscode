@@ -13,7 +13,8 @@ import { breakpointUtil } from './breakpoints';
 import {
   checkpointService,
   processBreakpointChangedForCheckpoints,
-  sfdxCreateCheckpoints
+  sfdxCreateCheckpoints,
+  sfdxToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import {
@@ -23,6 +24,12 @@ import {
 } from './constants';
 import { nls } from './messages';
 let lastOpenedLogFolder: string | undefined;
+
+export enum VSCodeWindowTypeEnum {
+  Error = 1,
+  Informational = 2,
+  Warning = 3
+}
 
 function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
@@ -86,7 +93,15 @@ function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
       'sfdx.create.checkpoints',
       sfdxCreateCheckpoints
     );
-    return vscode.Disposable.from(customEventHandler, sfdxCreateCheckpointsCmd);
+    const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
+      'sfdx.toggle.checkpoint',
+      sfdxToggleCheckpoint
+    );
+    return vscode.Disposable.from(
+      customEventHandler,
+      sfdxCreateCheckpointsCmd,
+      sfdxToggleCheckpointCmd
+    );
   } else {
     return vscode.Disposable.from(customEventHandler);
   }
@@ -185,7 +200,12 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
       i++;
     }
     if (expired) {
-      vscode.window.showErrorMessage(nls.localize('language_client_not_ready'));
+      const errorMessage = nls.localize('language_client_not_ready');
+      writeToDebuggerOutputWindow(
+        errorMessage,
+        true,
+        VSCodeWindowTypeEnum.Error
+      );
       return false;
     } else {
       const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
@@ -194,16 +214,20 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
         breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
         return true;
       } else {
-        vscode.window.showErrorMessage(
-          nls.localize('no_line_breakpoint_information_for_current_project')
+        const errorMessage = nls.localize(
+          'no_line_breakpoint_information_for_current_project'
+        );
+        writeToDebuggerOutputWindow(
+          errorMessage,
+          true,
+          VSCodeWindowTypeEnum.Error
         );
         return true;
       }
     }
   } else {
-    vscode.window.showErrorMessage(
-      nls.localize('session_language_server_error_text')
-    );
+    const errorMessage = nls.localize('session_language_server_error_text');
+    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
     return false;
   }
 }
@@ -211,6 +235,37 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
 function imposeSlightDelay(ms = 0) {
   return new Promise(r => setTimeout(r, ms));
 }
+
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
+export function writeToDebuggerOutputWindow(
+  output: string,
+  showVSCodeWindow?: boolean,
+  vsCodeWindowType?: VSCodeWindowTypeEnum
+) {
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.channelService.appendLine(output);
+    sfdxCoreExtension.exports.channelService.showChannelOutput();
+  }
+  if (showVSCodeWindow && vsCodeWindowType) {
+    switch (vsCodeWindowType) {
+      case VSCodeWindowTypeEnum.Error: {
+        vscode.window.showErrorMessage(output);
+        break;
+      }
+      case VSCodeWindowTypeEnum.Informational: {
+        vscode.window.showInformationMessage(output);
+        break;
+      }
+      case VSCodeWindowTypeEnum.Warning: {
+        vscode.window.showWarningMessage(output);
+        break;
+      }
+    }
+  }
+}
+
 export function deactivate() {
   console.log('Apex Replay Debugger Extension Deactivated');
 }
