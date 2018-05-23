@@ -29,7 +29,7 @@ export class VariableAssignmentState implements DebugLogState {
         name.indexOf('.') > -1 ? name.substring(0, name.lastIndexOf('.')) : '';
       const varName =
         nameSplit.length > 0 ? nameSplit[nameSplit.length - 1] : name;
-      const value = this.fields[4];
+      const value = this.fields[4].replace(/^"/, "'").replace(/"$/, "'");
       let ref;
       if (this.fields.length === 6) {
         ref = this.fields[5];
@@ -79,16 +79,11 @@ export class VariableAssignmentState implements DebugLogState {
             // if it's not nested then we check if the value is a reference
             if (refMap.has(value)) {
               const pulledRef = refMap.get(value) as ApexVariableContainer;
-              const tmpContainer = new ApexVariableContainer(
+              const tmpContainer = this.copyReferenceContainer(
+                pulledRef,
                 varName,
-                pulledRef.value,
-                pulledRef.type,
-                value
+                logContext
               );
-              tmpContainer.variables = pulledRef.variables;
-              tmpContainer.variablesRef = logContext
-                .getVariableHandler()
-                .create(tmpContainer);
               refContainer.variables.set(varName, tmpContainer);
               // if not a reference, update the variable value, creating a container if needed
             } else if (refContainer.variables.has(varName)) {
@@ -164,21 +159,20 @@ export class VariableAssignmentState implements DebugLogState {
       Object.keys(obj).forEach(key => {
         const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
         if (refContainer) {
-          const tmpContainer = new ApexVariableContainer(
+          const tmpContainer = this.copyReferenceContainer(
+            refContainer,
             key,
-            refContainer.value,
-            refContainer.type,
-            refContainer.ref
+            logContext
           );
-          tmpContainer.variables = refContainer.variables;
-          tmpContainer.variablesRef = logContext
-            .getVariableHandler()
-            .create(tmpContainer);
           container.variables.set(key, tmpContainer);
         } else {
+          let varValue = obj[key];
+          if (typeof varValue === 'string') {
+            varValue = "'" + varValue + "'";
+          }
           container.variables.set(
             key,
-            new ApexVariableContainer(key, String(obj[key]), '')
+            new ApexVariableContainer(key, varValue, '')
           );
         }
       });
@@ -187,5 +181,22 @@ export class VariableAssignmentState implements DebugLogState {
       container.variablesRef = 0;
       container.variables.clear();
     }
+  }
+  private copyReferenceContainer(
+    refContainer: ApexVariableContainer,
+    varName: string,
+    logContext: LogContext
+  ) {
+    const tmpContainer = new ApexVariableContainer(
+      varName,
+      refContainer.value,
+      refContainer.type,
+      refContainer.ref
+    );
+    tmpContainer.variables = refContainer.variables;
+    tmpContainer.variablesRef = logContext
+      .getVariableHandler()
+      .create(tmpContainer);
+    return tmpContainer;
   }
 }
