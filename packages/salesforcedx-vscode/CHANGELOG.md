@@ -3,7 +3,7 @@
 
 #### salesforcedx-vscode-apex-debugger
 
-* Clarify current Apex Debugger limitations with the Visual Studio Live Share extension extension ([PR #425](https://github.com/forcedotcom/salesforcedx-vscode/pull/425))
+* Clarify current Apex Debugger limitations with the Visual Studio Live Share extension ([PR #425](https://github.com/forcedotcom/salesforcedx-vscode/pull/425))
 
 ## 42.16.0 - May 17, 2018
 ### Fixed
