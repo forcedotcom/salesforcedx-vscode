@@ -434,6 +434,20 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       }
     }
 
+    // 7c: cleanup temp files
+    try {
+      shell.rm('-rf', projectMetadataTempPath);
+    } catch (error) {
+      console.error(error);
+      channelService.appendLine(
+        nls.localize('error_cleanup_temp_files', error.toString())
+      );
+      notificationService.showErrorMessage(
+        nls.localize('error_cleanup_temp_files', error.toString())
+      );
+      return;
+    }
+
     // 8: generate launch configuration
     channelService.appendLine(
       nls.localize('isv_debug_bootstrap_generate_launchjson')
