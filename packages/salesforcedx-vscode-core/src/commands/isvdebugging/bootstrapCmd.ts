@@ -504,7 +504,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): Promise<string> {
-    const execution = new CliCommandExecutor(command, options).execute(
+    // do not inherit global env because we are setting our own auth
+    const execution = new CliCommandExecutor(command, options, false).execute(
       cancellationToken
     );
 
