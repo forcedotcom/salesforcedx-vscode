@@ -190,13 +190,13 @@ describe('Variable assignment event', () => {
       expect(variables.length).to.equal(1);
       expect(variables[0]).to.include({
         name: 's',
-        value: '"MyObject.s"',
-        evaluateName: '"MyObject.s"'
+        value: "'MyObject.s'",
+        evaluateName: "'MyObject.s'"
       });
       const innerContainer = container.variables.get(
         's'
       ) as ApexVariableContainer;
-      expect(innerContainer.value).to.equal('"MyObject.s"');
+      expect(innerContainer.value).to.equal("'MyObject.s'");
       expect(innerContainer.variables).to.be.empty;
       expect(innerContainer.variablesRef).to.equal(0);
     });
@@ -222,7 +222,7 @@ describe('Variable assignment event', () => {
         const innerContainer = container.variables.get(
           element
         ) as ApexVariableContainer;
-        expect(innerContainer.value).to.equal(VAR_VALUES[index]);
+        expect(innerContainer.value).to.equal(`'${VAR_VALUES[index]}'`);
         expect(innerContainer.variables).to.be.empty;
         expect(innerContainer.variablesRef).to.equal(0);
       });
@@ -251,8 +251,8 @@ describe('Variable assignment event', () => {
       expect(variables.length).to.equal(1);
       expect(variables[0]).to.include({
         name: 'Name',
-        value: 'MyObjectAccount',
-        evaluateName: 'MyObjectAccount'
+        value: "'MyObjectAccount'",
+        evaluateName: "'MyObjectAccount'"
       });
       expect(innerContainer.value).to.equal('');
       expect(innerContainer.variables).to.have.key('Name');
@@ -260,7 +260,7 @@ describe('Variable assignment event', () => {
       const innerContainerVariable = innerContainer.variables.get(
         'Name'
       ) as ApexVariableContainer;
-      expect(innerContainerVariable.value).to.equal('MyObjectAccount');
+      expect(innerContainerVariable.value).to.equal("'MyObjectAccount'");
       expect(innerContainerVariable.variablesRef).to.equal(0);
     });
 
@@ -377,7 +377,7 @@ describe('Variable assignment event', () => {
       const innerContainer = container.variables.get(
         'Name'
       ) as ApexVariableContainer;
-      expect(innerContainer.value).to.equal('testName');
+      expect(innerContainer.value).to.equal("'testName'");
     });
 
     it('Should update variable if inner variable assigned', () => {
@@ -410,7 +410,7 @@ describe('Variable assignment event', () => {
       const innerContainer = container.variables.get(
         'Name'
       ) as ApexVariableContainer;
-      expect(innerContainer.value).to.equal('"testName2"');
+      expect(innerContainer.value).to.equal("'testName2'");
     });
 
     it('Should update variable if reassigned to newly created reference', () => {
@@ -552,8 +552,8 @@ describe('Variable assignment event', () => {
       const mSubContainer = mContainer.variables.get(
         'Name'
       ) as ApexVariableContainer;
-      expect(mSubContainer.value).to.equal('"both are updated"');
-      expect(nSubContainer.value).to.equal('"both are updated"');
+      expect(mSubContainer.value).to.equal("'both are updated'");
+      expect(nSubContainer.value).to.equal("'both are updated'");
     });
   });
 
