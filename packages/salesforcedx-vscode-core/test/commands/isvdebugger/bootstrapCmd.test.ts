@@ -397,6 +397,12 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         fs.existsSync(path.join(projectPath, '.vscode', 'launch.json')),
         'there must be a launch.json file'
       ).to.equal(true);
+
+      // any temp files should be gone
+      expect(
+        fs.existsSync(projectMetadataTempPath),
+        `folder ${projectMetadataTempPath} must be deleted`
+      ).to.equal(false);
     });
   });
 });

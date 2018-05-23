@@ -163,6 +163,7 @@ export const messages = {
   error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
   error_writing_installed_package_info:
     'Error writing installed-package.json: %s',
+  error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
 
   demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
   demo_mode_status_tooltip:
