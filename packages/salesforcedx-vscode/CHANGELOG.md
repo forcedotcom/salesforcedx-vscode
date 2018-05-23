@@ -1,7 +1,14 @@
+## 42.17.0 - May 28, 2018
+### Added
+
+#### salesforcedx-vscode-apex-debugger
+
+* Clarify current Apex Debugger limitations with the Visual Studio Live Share extension extension ([PR #425](https://github.com/forcedotcom/salesforcedx-vscode/pull/425))
+
 ## 42.16.0 - May 17, 2018
 ### Fixed
 
-#### salesforce-vscode-apex
+#### salesforcedx-vscode-apex
 
 * Apex language grammar rules properly categorize Apex syntax, improving code highlighting ([PR #415](https://github.com/forcedotcom/salesforcedx-vscode/pull/415))
 * Go To Definition and Find All References properly handle custom objects that have a namespace ([PR #413](https://github.com/forcedotcom/salesforcedx-vscode/pull/413))
