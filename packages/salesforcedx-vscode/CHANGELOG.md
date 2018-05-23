@@ -1,4 +1,4 @@
-## 42.17.0 - May 28, 2018
+## 42.17.0 - May 24, 2018
 ### Added
 
 #### salesforcedx-vscode-apex-debugger
