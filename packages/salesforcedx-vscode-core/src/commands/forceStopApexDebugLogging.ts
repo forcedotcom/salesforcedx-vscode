@@ -70,7 +70,7 @@ function deleteTraceFlag(): Command {
     .withDescription(nls.localize('force_stop_apex_debug_logging'))
     .withArg('force:data:record:delete')
     .withFlag('--sobjecttype', 'TraceFlag')
-    .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId())
+    .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId()!)
     .withArg('--usetoolingapi')
     .build();
 }

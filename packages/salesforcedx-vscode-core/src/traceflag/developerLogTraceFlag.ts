@@ -10,16 +10,18 @@ import { showTraceFlagExpiration } from '../decorators';
 export class DeveloperLogTraceFlag {
   private static instance: DeveloperLogTraceFlag;
   private active: boolean;
-  private traceflagId: string;
+  private traceflagId: string | undefined;
+  private debugLevelId: string | undefined;
   private startDate: Date;
   private expirationDate: Date;
-  private debugLevelId: string;
 
   public MILLISECONDS_PER_SECOND = 60000;
   public LOG_TIMER_LENGTH_MINUTES = 30;
 
   private constructor() {
     this.active = false;
+    this.startDate = new Date();
+    this.expirationDate = new Date();
   }
 
   public static getInstance() {
@@ -27,13 +29,6 @@ export class DeveloperLogTraceFlag {
       DeveloperLogTraceFlag.instance = new DeveloperLogTraceFlag();
     }
     return DeveloperLogTraceFlag.instance;
-  }
-
-  public createTraceFlagInfo() {
-    this.startDate = new Date();
-    this.expirationDate = new Date(
-      Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND
-    );
   }
 
   public setTraceFlagDebugLevelInfo(
@@ -81,8 +76,8 @@ export class DeveloperLogTraceFlag {
   }
 
   public turnOffLogging() {
-    this.debugLevelId = '';
-    this.traceflagId = '';
+    this.debugLevelId = undefined;
+    this.traceflagId = undefined;
     this.active = false;
   }
 

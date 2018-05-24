@@ -77,7 +77,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
         const userId = await getUserId(
           vscode.workspace.workspaceFolders![0].uri.fsPath
         );
-        developerLogTraceFlag.createTraceFlagInfo();
+        developerLogTraceFlag.validateDates();
         resultJson = await this.subExecute(new CreateTraceFlag(userId).build());
         developerLogTraceFlag.setTraceFlagId(resultJson.result.id);
       }
@@ -168,7 +168,7 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'DebugLevel')
-      .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId())
+      .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId()!)
       .withFlag(
         '--values',
         `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`
@@ -184,7 +184,7 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'TraceFlag')
-      .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId())
+      .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId()!)
       .withFlag(
         '--values',
         `StartDate='${developerLogTraceFlag

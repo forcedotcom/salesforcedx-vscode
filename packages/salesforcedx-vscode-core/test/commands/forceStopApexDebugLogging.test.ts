@@ -14,14 +14,14 @@ import { nls } from '../../src/messages';
 // tslint:disable:no-unused-expression
 describe('Force Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
-  const fakeDebugLevelId = 'fakeDebugLevelId';
+  const fakeTraceFlagId = 'fakeDebugLevelId';
   const apexCodeLevel = 'INFO';
   const vfCodeLevel = 'NONE';
 
   before(() => {
     getDebugLevelIdStub = sinon
-      .stub(developerLogTraceFlag, 'getDebugLevelId')
-      .returns(fakeDebugLevelId);
+      .stub(developerLogTraceFlag, 'getTraceFlagId')
+      .returns(fakeTraceFlagId);
   });
 
   after(() => {
@@ -32,7 +32,7 @@ describe('Force Source Status', () => {
     const forceStopLogging = new ForceStopApexDebugLoggingExecutor();
     const forceStopLoggingCmd = forceStopLogging.build();
     expect(forceStopLoggingCmd.toCommand()).to.equal(
-      `sfdx force:data:record:update --sobjecttype DebugLevel --sobjectid ${fakeDebugLevelId} --values ApexCode=${apexCodeLevel} Visualforce=${vfCodeLevel} --usetoolingapi`
+      `sfdx force:data:record:delete --sobjecttype TraceFlag --sobjectid ${fakeTraceFlagId} --usetoolingapi`
     );
     expect(forceStopLoggingCmd.description).to.equal(
       nls.localize('force_stop_apex_debug_logging')

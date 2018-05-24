@@ -35,16 +35,5 @@ describe('Force Start Apex Debug Logging', () => {
           developerLogTraceFlag.MILLISECONDS_PER_SECOND
       );
     });
-
-    it('Should create dates with a 30 minute window when creating a new traceflag', () => {
-      developerLogTraceFlag.createTraceFlagInfo();
-      expect(
-        developerLogTraceFlag.getExpirationDate().getTime() -
-          developerLogTraceFlag.getStartDate().getTime()
-      ).to.equal(
-        developerLogTraceFlag.LOG_TIMER_LENGTH_MINUTES *
-          developerLogTraceFlag.MILLISECONDS_PER_SECOND
-      );
-    });
   });
 });
