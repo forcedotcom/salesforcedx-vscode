@@ -61,9 +61,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
           traceflag.Id,
           traceflag.StartDate,
           traceflag.ExpirationDate,
-          traceflag.DebugLevelId,
-          traceflag.DebugLevel.ApexCode,
-          traceflag.DebugLevel.Visualforce
+          traceflag.DebugLevelId
         );
         await this.subExecute(new UpdateDebugLevelsExecutor().build());
 
@@ -74,7 +72,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       } else {
         resultJson = await this.subExecute(new CreateDebugLevel().build());
         const debugLevelId = resultJson.result.id;
-        developerLogTraceFlag.setDebugLevelInfo(debugLevelId);
+        developerLogTraceFlag.setDebugLevelId(debugLevelId);
 
         const userId = await getUserId(
           vscode.workspace.workspaceFolders![0].uri.fsPath

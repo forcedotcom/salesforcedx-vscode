@@ -16,9 +16,7 @@ describe('Force Start Apex Debug Logging', () => {
         'fakeTraceFlagId',
         new Date().toUTCString(),
         new Date().toUTCString(),
-        'fakeDebugLevelId',
-        'NONE',
-        'INFO'
+        'fakeDebugLevelId'
       );
     });
 
