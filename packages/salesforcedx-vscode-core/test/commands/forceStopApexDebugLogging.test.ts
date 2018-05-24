@@ -15,8 +15,6 @@ import { nls } from '../../src/messages';
 describe('Force Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
   const fakeTraceFlagId = 'fakeDebugLevelId';
-  const apexCodeLevel = 'INFO';
-  const vfCodeLevel = 'NONE';
 
   before(() => {
     getDebugLevelIdStub = sinon
