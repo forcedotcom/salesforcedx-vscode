@@ -148,6 +148,7 @@ export class ApexVariable extends Variable {
   public readonly declaredTypeRef: string;
   public readonly type: string;
   public readonly indexedVariables?: number;
+  public readonly evaluateName: string;
   private readonly slot: number;
   private readonly kind: ApexVariableKind;
 
@@ -166,6 +167,7 @@ export class ApexVariable extends Variable {
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
     this.type = value.nameForMessages;
+    this.evaluateName = this.value;
     if ((value as LocalValue).slot !== undefined) {
       this.slot = (value as LocalValue).slot;
     } else {
@@ -206,8 +208,8 @@ export class ApexVariable extends Variable {
     n1 = ApexVariable.extractNumber(n1);
     n2 = ApexVariable.extractNumber(n2);
 
-    const i1 = parseInt(n1);
-    const i2 = parseInt(n2);
+    const i1 = parseInt(n1, 10);
+    const i2 = parseInt(n2, 10);
     const isNum1 = !isNaN(i1);
     const isNum2 = !isNaN(i2);
 
@@ -1181,7 +1183,7 @@ export class ApexDebug extends LoggingDebugSession {
       );
     });
 
-    response.body = { scopes: scopes };
+    response.body = { scopes };
     this.sendResponse(response);
   }
 
@@ -1221,7 +1223,7 @@ export class ApexDebug extends LoggingDebugSession {
         args.count
       );
       variables.sort(ApexVariable.compareVariables);
-      response.body = { variables: variables };
+      response.body = { variables };
       this.resetIdleTimer();
       this.sendResponse(response);
     } catch (error) {
@@ -1428,6 +1430,18 @@ export class ApexDebug extends LoggingDebugSession {
       `fetchReferences: fetching references with apexIds=${apexIdsToFetch} (request ${requestId})`
     );
     await this.fetchReferences(requestId, ...apexIdsToFetch);
+  }
+
+  protected evaluateRequest(
+    response: DebugProtocol.EvaluateResponse,
+    args: DebugProtocol.EvaluateArguments
+  ): void {
+    response.body = {
+      result: args.expression,
+      variablesReference: 0
+    };
+    response.success = true;
+    this.sendResponse(response);
   }
 
   protected printToDebugConsole(
@@ -1641,7 +1655,7 @@ export class ApexDebug extends LoggingDebugSession {
       const matches = message.sobject.Description.match(regExp);
       if (matches && matches.length === 3) {
         const possibleClassName = matches[1];
-        const possibleClassLine = parseInt(matches[2]);
+        const possibleClassLine = parseInt(matches[2], 10);
         const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(
           possibleClassName
         );

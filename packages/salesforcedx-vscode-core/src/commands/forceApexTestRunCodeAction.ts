@@ -80,13 +80,13 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
   }
 }
 
-function forceApexTestRunCodeAction(test: string) {
+async function forceApexTestRunCodeAction(test: string) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
     new ForceApexTestRunCodeActionExecutor(test)
   );
-  commandlet.run();
+  await commandlet.run();
 }
 
 //   T E S T   C L A S S
@@ -123,7 +123,7 @@ export function resolveTestClassParam(testClass: string): string {
 }
 
 // invokes apex test run on all tests in a class
-export function forceApexTestClassRunCodeAction(testClass: string) {
+export async function forceApexTestClassRunCodeAction(testClass: string) {
   testClass = resolveTestClassParam(testClass);
   if (isEmpty(testClass)) {
     // test param not provided: show error and terminate
@@ -133,7 +133,7 @@ export function forceApexTestClassRunCodeAction(testClass: string) {
     return;
   }
 
-  forceApexTestRunCodeAction(testClass);
+  await forceApexTestRunCodeAction(testClass);
 }
 
 //   T E S T   M E T H O D
@@ -170,7 +170,7 @@ export function resolveTestMethodParam(testMethod: string): string {
 }
 
 // invokes apex test run on a test method
-export function forceApexTestMethodRunCodeAction(testMethod: string) {
+export async function forceApexTestMethodRunCodeAction(testMethod: string) {
   testMethod = resolveTestMethodParam(testMethod);
   if (isEmpty(testMethod)) {
     // test param not provided: show error and terminate
@@ -180,5 +180,5 @@ export function forceApexTestMethodRunCodeAction(testMethod: string) {
     return;
   }
 
-  forceApexTestRunCodeAction(testMethod);
+  await forceApexTestRunCodeAction(testMethod);
 }

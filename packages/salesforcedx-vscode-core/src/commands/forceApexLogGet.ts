@@ -195,5 +195,5 @@ export async function forceApexLogGet(explorerDir?: any) {
     parameterGatherer,
     new ForceApexLogGetExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }

@@ -55,7 +55,7 @@ class ForceLightningAppCreateExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       if (
-        data != undefined &&
+        data !== undefined &&
         data.toString() === '0' &&
         vscode.workspace.rootPath
       ) {
@@ -98,5 +98,5 @@ export async function forceLightningAppCreate(explorerDir?: any) {
     new ForceLightningAppCreateExecutor(),
     lightningFilePathExistsChecker
   );
-  commandlet.run();
+  await commandlet.run();
 }

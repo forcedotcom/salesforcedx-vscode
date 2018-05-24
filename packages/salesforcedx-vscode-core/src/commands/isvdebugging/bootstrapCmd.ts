@@ -6,11 +6,21 @@
  */
 
 import {
+  ENV_SFDX_DEFAULTUSERNAME,
+  ENV_SFDX_INSTANCE_URL,
+  SFDX_CONFIG_ISV_DEBUGGER_SID,
+  SFDX_CONFIG_ISV_DEBUGGER_URL
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
   CliCommandExecutor,
   Command,
   CommandExecution,
   CommandOutput,
   SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  ForceConfigGet,
+  GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
@@ -555,7 +565,7 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
           loginUrl: loginUrl.toLowerCase().startsWith('http')
             ? loginUrl
             : protocolPrefix + loginUrl,
-          sessionId: sessionId,
+          sessionId,
           orgName: url.hostname
         };
         return {
@@ -582,7 +592,9 @@ const parameterGatherer = new CompositeParametersGatherer(
       forceIdeUrlGatherer.forceIdUrl &&
       forceIdeUrlGatherer.forceIdUrl.orgName
     ) {
-      return sanitizeFilename(forceIdeUrlGatherer.forceIdUrl.orgName);
+      return sanitizeFilename(
+        forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[\+]/g, '_')
+      );
     }
     return '';
   }),
@@ -598,6 +610,43 @@ const commandlet = new SfdxCommandlet(
   pathExistsChecker
 );
 
-export function isvDebugBootstrap() {
-  commandlet.run();
+export async function isvDebugBootstrap() {
+  await commandlet.run();
+}
+
+export async function setupGlobalDefaultUserIsvAuth() {
+  if (
+    vscode.workspace.workspaceFolders instanceof Array &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    const forceConfig = await new ForceConfigGet().getConfig(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      SFDX_CONFIG_ISV_DEBUGGER_SID,
+      SFDX_CONFIG_ISV_DEBUGGER_URL
+    );
+    const isvDebuggerSid = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
+    const isvDebuggerUrl = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
+    if (
+      typeof isvDebuggerSid !== 'undefined' &&
+      typeof isvDebuggerUrl !== 'undefined'
+    ) {
+      // set auth context
+      GlobalCliEnvironment.environmentVariables.set(
+        ENV_SFDX_DEFAULTUSERNAME,
+        isvDebuggerSid
+      );
+      GlobalCliEnvironment.environmentVariables.set(
+        ENV_SFDX_INSTANCE_URL,
+        isvDebuggerUrl
+      );
+      console.log(
+        'Configured SFDX_DEFAULTUSERNAME and SFDX_INSTANCE_URL for ISV Project Authentication'
+      );
+      return;
+    }
+  }
+
+  // reset any auth
+  GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_DEFAULTUSERNAME);
+  GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_INSTANCE_URL);
 }

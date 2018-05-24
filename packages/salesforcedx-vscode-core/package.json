@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.16.0",
+  "version": "42.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "42.16.0",
-    "@salesforce/salesforcedx-utils-vscode": "42.16.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "42.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.17.0",
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -48,7 +48,7 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
-    "vscode": "1.1.10"
+    "vscode": "1.1.17"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",

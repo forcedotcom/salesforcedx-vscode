@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.16.0",
+  "version": "42.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -33,7 +33,7 @@
     "nyc": "^11.0.2",
     "shelljs": "^0.7.8",
     "typescript": "2.6.2",
-    "vscode": "1.1.10"
+    "vscode": "1.1.17"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -67,7 +67,7 @@
       {
         "id": "apex",
         "aliases": ["Apex", "apex"],
-        "extensions": [".cls", ".trigger"],
+        "extensions": [".cls", ".trigger", ".apex"],
         "configuration": "./syntaxes/apex.configuration.json"
       }
     ],
@@ -80,7 +80,7 @@
     ]
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.17.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

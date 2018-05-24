@@ -116,11 +116,11 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new TestsSelector();
 
-export function forceApexTestRun() {
+export async function forceApexTestRun() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     new ForceApexTestRunExecutor()
   );
-  commandlet.run();
+  await commandlet.run();
 }
