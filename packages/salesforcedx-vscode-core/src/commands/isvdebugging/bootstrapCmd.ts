@@ -65,8 +65,8 @@ export interface InstalledPackageInfo {
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
     '.sfdx',
-    'isvdebugger',
-    'mdapitmp'
+    'tools',
+    'isvdebuggermdapitmp'
   );
   public readonly relativeApexPackageXmlPath = path.join(
     this.relativeMetdataTempPath,
