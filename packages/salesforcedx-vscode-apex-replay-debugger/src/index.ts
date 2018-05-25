@@ -20,12 +20,12 @@ import { launchFromLogFile } from './commands/launchFromLogFile';
 import {
   DEBUGGER_TYPE,
   GET_LINE_BREAKPOINT_INFO_EVENT,
+  LAST_OPENED_LOG_FOLDER_KEY,
+  LAST_OPENED_LOG_KEY,
   LINE_BREAKPOINT_INFO_REQUEST
 } from './constants';
 import { nls } from './messages';
 let extContext: vscode.ExtensionContext;
-const LAST_OPENED_LOG_KEY = 'LAST_OPENED_LOG_KEY';
-const LAST_OPENED_LOG_FOLDER_KEY = 'LAST_OPENED_LOG_FOLDER_KEY';
 
 export enum VSCodeWindowTypeEnum {
   Error = 1,
@@ -46,14 +46,7 @@ function registerCommands(): vscode.Disposable {
         defaultUri: getDialogStartingPath()
       });
       if (fileUris && fileUris.length === 1) {
-        extContext.workspaceState.update(
-          LAST_OPENED_LOG_KEY,
-          fileUris[0].fsPath
-        );
-        extContext.workspaceState.update(
-          LAST_OPENED_LOG_FOLDER_KEY,
-          path.dirname(fileUris[0].fsPath)
-        );
+        updateLastOpened(extContext, fileUris[0].fsPath);
         return fileUris[0].fsPath;
       }
     }
@@ -70,11 +63,7 @@ function registerCommands(): vscode.Disposable {
       }
       if (editorUri) {
         logFile = editorUri.fsPath;
-        extContext.workspaceState.update(LAST_OPENED_LOG_KEY, editorUri.fsPath);
-        extContext.workspaceState.update(
-          LAST_OPENED_LOG_FOLDER_KEY,
-          path.dirname(editorUri.fsPath)
-        );
+        updateLastOpened(extContext, editorUri.fsPath);
       }
       return launchFromLogFile(logFile);
     }
@@ -92,6 +81,17 @@ function registerCommands(): vscode.Disposable {
     promptForLogCmd,
     launchFromLogFileCmd,
     launchFromLastLogFileCmd
+  );
+}
+
+export function updateLastOpened(
+  extensionContext: vscode.ExtensionContext,
+  logPath: string
+) {
+  extensionContext.workspaceState.update(LAST_OPENED_LOG_KEY, logPath);
+  extensionContext.workspaceState.update(
+    LAST_OPENED_LOG_FOLDER_KEY,
+    path.dirname(logPath)
   );
 }
 
