@@ -6,7 +6,6 @@
  */
 
 import { expect } from 'chai';
-import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { DEBUGGER_TYPE, LIVESHARE_DEBUGGER_TYPE } from '../src/constants';
 import { getDebuggerType } from '../src/index';
