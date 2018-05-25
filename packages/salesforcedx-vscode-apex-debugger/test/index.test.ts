@@ -6,10 +6,10 @@
  */
 
 import {
+  DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
-  LIVESHARE_DEBUGGER_TYPE,
-  DEBUGGER_TYPE
+  LIVESHARE_DEBUGGER_TYPE
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import { expect } from 'chai';
 import * as vscode from 'vscode';
