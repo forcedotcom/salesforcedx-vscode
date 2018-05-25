@@ -106,6 +106,10 @@
         {
           "command": "sfdx.launch.replay.debugger.logfile",
           "when": "sfdx:project_opened && editorLangId == 'apexlog'"
+        },
+        {
+          "command": "sfdx.launch.replay.debugger.last.logfile",
+          "when": "sfdx:project_opened && !inDebugMode"
         }
       ],
       "view/title": [
@@ -152,6 +156,10 @@
       {
         "command": "sfdx.launch.replay.debugger.logfile",
         "title": "%launch_from_log_file%"
+      },
+      {
+        "command": "sfdx.launch.replay.debugger.last.logfile",
+        "title": "%launch_from_last_log_file%"
       }
     ],
     "views": {

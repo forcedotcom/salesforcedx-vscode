@@ -26,6 +26,8 @@ export const EXEC_ANON_SIGNATURE = 'execute_anonymous_apex';
 export const FIELD_INTEGRITY_EXCEPTION = 'FIELD_INTEGRITY_EXCEPTION';
 export const INVALID_CROSS_REFERENCE_KEY = 'INVALID_CROSS_REFERENCE_KEY';
 export const GET_LINE_BREAKPOINT_INFO_EVENT = 'getLineBreakpointInfo';
+export const LAST_OPENED_LOG_FOLDER_KEY = 'LAST_OPENED_LOG_FOLDER_KEY';
+export const LAST_OPENED_LOG_KEY = 'LAST_OPENED_LOG_KEY';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
 export const OVERLAY_ACTION_DELETE_URL =
   'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/';

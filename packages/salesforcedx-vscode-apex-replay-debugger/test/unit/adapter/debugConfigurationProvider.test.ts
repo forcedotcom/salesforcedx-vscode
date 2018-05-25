@@ -9,7 +9,13 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
-import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../../../src/constants';
+import {
+  DEBUGGER_LAUNCH_TYPE,
+  DEBUGGER_TYPE,
+  LAST_OPENED_LOG_FOLDER_KEY,
+  LAST_OPENED_LOG_KEY
+} from '../../../src/constants';
+import { updateLastOpened } from '../../../src/index';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
@@ -102,5 +108,32 @@ describe('Configuration provider', () => {
     });
 
     expect(config).to.deep.equal(expectedConfig);
+  });
+});
+
+describe('extension context log path tests', () => {
+  const mementoKeys: string[] = [];
+  const mementoValues: string[] = [];
+  const mContext = {
+    workspaceState: {
+      update: (key: string, value: any) => {
+        mementoKeys.push(key);
+        mementoValues.push(value as string);
+      }
+    }
+  };
+  it('Should update the extension context', () => {
+    updateLastOpened(
+      (mContext as any) as vscode.ExtensionContext,
+      '/foo/bar/logfilename.log'
+    );
+    expect(mementoKeys).to.have.same.members([
+      `${LAST_OPENED_LOG_KEY}`,
+      `${LAST_OPENED_LOG_FOLDER_KEY}`
+    ]);
+    expect(mementoValues).to.have.same.members([
+      '/foo/bar/logfilename.log',
+      '/foo/bar'
+    ]);
   });
 });
