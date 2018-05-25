@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../adapter/debugConfigurationProvider';
 
-export function launchFromLogFile(editorUri: vscode.Uri) {
+export function launchFromLogFile(logFile?: string) {
   if (
     !vscode.debug.activeDebugSession &&
     vscode.workspace.workspaceFolders &&
@@ -16,7 +16,7 @@ export function launchFromLogFile(editorUri: vscode.Uri) {
   ) {
     vscode.debug.startDebugging(
       vscode.workspace.workspaceFolders[0],
-      DebugConfigurationProvider.getConfig(editorUri.fsPath)
+      DebugConfigurationProvider.getConfig(logFile)
     );
   }
 }

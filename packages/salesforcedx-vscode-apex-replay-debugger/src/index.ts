@@ -23,7 +23,9 @@ import {
   LINE_BREAKPOINT_INFO_REQUEST
 } from './constants';
 import { nls } from './messages';
-let lastOpenedLogFolder: string | undefined;
+let extContext: vscode.ExtensionContext;
+const LAST_OPENED_LOG_KEY = 'LAST_OPENED_LOG_KEY';
+const LAST_OPENED_LOG_FOLDER_KEY = 'LAST_OPENED_LOG_FOLDER_KEY';
 
 export enum VSCodeWindowTypeEnum {
   Error = 1,
@@ -44,7 +46,14 @@ function registerCommands(): vscode.Disposable {
         defaultUri: getDialogStartingPath()
       });
       if (fileUris && fileUris.length === 1) {
-        lastOpenedLogFolder = path.dirname(fileUris[0].fsPath);
+        extContext.workspaceState.update(
+          LAST_OPENED_LOG_KEY,
+          fileUris[0].fsPath
+        );
+        extContext.workspaceState.update(
+          LAST_OPENED_LOG_FOLDER_KEY,
+          path.dirname(fileUris[0].fsPath)
+        );
         return fileUris[0].fsPath;
       }
     }
@@ -52,16 +61,38 @@ function registerCommands(): vscode.Disposable {
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.logfile',
     editorUri => {
+      let logFile: string | undefined;
       if (!editorUri) {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
           editorUri = editor.document.uri;
         }
       }
-      return launchFromLogFile(editorUri);
+      if (editorUri) {
+        logFile = editorUri.fsPath;
+        extContext.workspaceState.update(LAST_OPENED_LOG_KEY, editorUri.fsPath);
+        extContext.workspaceState.update(
+          LAST_OPENED_LOG_FOLDER_KEY,
+          path.dirname(editorUri.fsPath)
+        );
+      }
+      return launchFromLogFile(logFile);
     }
   );
-  return vscode.Disposable.from(promptForLogCmd, launchFromLogFileCmd);
+  const launchFromLastLogFileCmd = vscode.commands.registerCommand(
+    'sfdx.launch.replay.debugger.last.logfile',
+    lastLogFileUri => {
+      const lastOpenedLog = extContext.workspaceState.get<string>(
+        LAST_OPENED_LOG_KEY
+      );
+      return launchFromLogFile(lastOpenedLog);
+    }
+  );
+  return vscode.Disposable.from(
+    promptForLogCmd,
+    launchFromLogFileCmd,
+    launchFromLastLogFileCmd
+  );
 }
 
 function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
@@ -109,6 +140,8 @@ function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
+
+  extContext = context;
 
   // registerCommands needs the checkpoint configuration
   const config = vscode.workspace.getConfiguration();
@@ -162,6 +195,9 @@ function getDialogStartingPath(): vscode.Uri | undefined {
   ) {
     // If the user has already selected a document through getLogFileName then
     // use that path if it still exists.
+    const lastOpenedLogFolder = extContext.workspaceState.get<string>(
+      LAST_OPENED_LOG_FOLDER_KEY
+    );
     if (lastOpenedLogFolder && pathExists.sync(lastOpenedLogFolder)) {
       return vscode.Uri.file(lastOpenedLogFolder);
     }

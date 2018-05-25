@@ -5,6 +5,8 @@
     "A new configuration for launching Apex Replay Debugger",
   "launch_snippet_name": "Launch Apex Replay Debugger",
   "launch_from_log_file": "SFDX: Launch Apex Replay Debugger with Current File",
+  "launch_from_last_log_file":
+    "SFDX: Launch Apex Replay Debugger with Last Log File",
   "logfile_text":
     "Path to an Apex Debug Log file (*.log) in the workspace folder.",
   "stop_on_entry_text":
