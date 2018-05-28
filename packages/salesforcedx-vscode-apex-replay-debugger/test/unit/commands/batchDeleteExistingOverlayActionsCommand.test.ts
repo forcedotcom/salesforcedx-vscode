@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,7 +8,11 @@
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import {
+  INVALID_CROSS_REFERENCE_KEY,
+  OVERLAY_ACTION_DELETE_URL
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -18,10 +22,6 @@ import {
   BatchRequest,
   BatchRequests
 } from '../../../src/commands/batchDeleteExistingOverlayActionsCommand';
-import {
-  INVALID_CROSS_REFERENCE_KEY,
-  OVERLAY_ACTION_DELETE_URL
-} from '../../../src/constants';
 import { createExpectedXHROptions } from './apexExecutionOverlayActionCommand.test';
 
 let sendRequestSpy: sinon.SinonStub;

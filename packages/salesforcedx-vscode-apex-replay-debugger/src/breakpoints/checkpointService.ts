@@ -7,11 +7,18 @@
 import {
   ForceOrgDisplay,
   OrgInfo
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
+import {
+  CHECKPOINT,
+  FIELD_INTEGRITY_EXCEPTION,
+  MAX_ALLOWED_CHECKPOINTS,
+  OVERLAY_ACTION_DELETE_URL
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import {
   Event,
   EventEmitter,
@@ -20,7 +27,6 @@ import {
   TreeItemCollapsibleState
 } from 'vscode';
 import * as vscode from 'vscode';
-import { breakpointUtil } from '../breakpoints';
 import {
   ApexExecutionOverlayActionCommand,
   ApexExecutionOverlayFailureResult,
@@ -37,12 +43,6 @@ import {
   QueryExistingOverlayActionIdsCommand,
   QueryOverlayActionIdsSuccessResult
 } from '../commands/queryExistingOverlayActionIdsCommand';
-import {
-  CHECKPOINT,
-  FIELD_INTEGRITY_EXCEPTION,
-  MAX_ALLOWED_CHECKPOINTS,
-  OVERLAY_ACTION_DELETE_URL
-} from '../constants';
 import {
   retrieveLineBreakpointInfo,
   VSCodeWindowTypeEnum,

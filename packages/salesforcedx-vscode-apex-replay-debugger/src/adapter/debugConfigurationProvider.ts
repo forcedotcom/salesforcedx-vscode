@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  DEBUGGER_LAUNCH_TYPE,
+  DEBUGGER_TYPE
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import * as vscode from 'vscode';
-import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../constants';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider

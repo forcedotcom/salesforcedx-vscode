@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
-import { RestHttpMethodEnum } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import {
+  BaseCommand,
+  RestHttpMethodEnum
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 
-// The batch requests is pretty straightforward, it's an array of single requests
 export interface BatchRequests {
   batchRequests: BatchRequest[];
 }
@@ -44,12 +45,11 @@ export class BatchDeleteExistingOverlayActionCommand extends BaseCommand {
   public getCommandUrl(): string {
     return this.url;
   }
-  // For this particular message the query string should be undefined
+
   public getQueryString(): string | undefined {
     return this.queryString;
   }
 
-  // The requestBody is going to contain the JSON string of all arguments
   public getRequest(): string | undefined {
     return JSON.stringify(this.requests);
   }

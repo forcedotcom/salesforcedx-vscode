@@ -12,7 +12,7 @@ import {
   DEFAULT_LOCALE,
   Localization,
   Message
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/i18n';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
 
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
