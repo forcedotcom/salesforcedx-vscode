@@ -117,6 +117,30 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         expect.fail('Response should be of type ContinueResponse');
       }
     });
+
+    it('Should accept valid URI', async () => {
+      const response = EnterForceIdeUri.uriValidator(
+        `forceide://abc?url=${LOGIN_URL}&sessionId=${SESSION_ID}`
+      );
+      expect(response).to.be.null;
+    });
+
+    it('Should complain about invalid URI', async () => {
+      expect(
+        EnterForceIdeUri.uriValidator(
+          `forceide://abc?url=${LOGIN_URL}&missingSessionId`
+        )
+      ).to.not.be.null;
+      expect(
+        EnterForceIdeUri.uriValidator(
+          `forceide://abc?sessionId=${SESSION_ID}&missingUrl`
+        )
+      ).to.not.be.null;
+      expect(
+        EnterForceIdeUri.uriValidator(`forceide://abc?url=&missingSessionId`)
+      ).to.not.be.null;
+      expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.not.be.null;
+    });
   });
 
   describe('CLI Builder', () => {
@@ -291,6 +315,11 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           packageName
         )
       );
+    });
+
+    it('Verify build does nothing', async () => {
+      const builder = new IsvDebugBootstrapExecutor();
+      expect(builder.build.bind(builder, {})).to.throw('not in use');
     });
   });
 
