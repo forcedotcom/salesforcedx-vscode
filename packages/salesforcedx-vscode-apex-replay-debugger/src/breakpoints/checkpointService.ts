@@ -336,6 +336,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               if (deleteResult) {
                 const result = JSON.parse(deleteResult) as BatchDeleteResponse;
                 if (result.hasErrors) {
+                  // What is this message?
                   const errorMessage = nls.localize(
                     'cannot_delete_existing_overlay_action'
                   );
@@ -353,6 +354,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               // server. Actual failures from an individual command other issues are batched
               // up in the result.
               if (deleteError) {
+                // What is this message?
                 const errorMessage = `${nls.localize(
                   'cannot_delete_existing_overlay_action'
                 )} : ${deleteError}`;
