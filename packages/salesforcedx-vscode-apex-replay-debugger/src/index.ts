@@ -127,7 +127,7 @@ export async function getDebuggerType(
   return type;
 }
 
-function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
+function registerDebugHandlers(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
       if (event && event.session) {
@@ -177,7 +177,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const commands = registerCommands(checkpointsEnabled);
-  const debugHandlers = registerDebugHandlers(checkpointsEnabled);
+  const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
     new DebugConfigurationProvider()
