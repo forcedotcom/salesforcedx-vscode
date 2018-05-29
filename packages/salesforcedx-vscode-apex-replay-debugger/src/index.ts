@@ -22,7 +22,9 @@ import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY,
-  LINE_BREAKPOINT_INFO_REQUEST
+  LINE_BREAKPOINT_INFO_REQUEST,
+  LIVESHARE_DEBUG_TYPE_REQUEST,
+  LIVESHARE_DEBUGGER_TYPE
 } from './constants';
 import { nls } from './messages';
 let extContext: vscode.ExtensionContext;
@@ -95,11 +97,25 @@ export function updateLastOpened(
   );
 }
 
+export async function getDebuggerType(
+  session: vscode.DebugSession
+): Promise<string> {
+  let type = session.type;
+  if (type === LIVESHARE_DEBUGGER_TYPE) {
+    type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
+  }
+  return type;
+}
+
 function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
-      if (event && event.session && event.session.type === DEBUGGER_TYPE) {
-        if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
+      if (event && event.session) {
+        const type = await getDebuggerType(event.session);
+        if (
+          type === DEBUGGER_TYPE &&
+          event.event === GET_LINE_BREAKPOINT_INFO_EVENT
+        ) {
           console.log('in registerDebugHandlers, getting line breakpoint info');
           const sfdxApex = vscode.extensions.getExtension(
             'salesforce.salesforcedx-vscode-apex'

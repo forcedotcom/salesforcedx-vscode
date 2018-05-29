@@ -6,14 +6,17 @@
  */
 
 import {
+  DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
+  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+  LIVESHARE_DEBUGGER_TYPE
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import {
   ApexDebuggerConfigurationProvider,
   ExceptionBreakpointItem,
+  getDebuggerType,
   getExceptionBreakpointCache,
   mergeExceptionBreakpointInfos,
   updateExceptionBreakpointCache
@@ -218,6 +221,23 @@ describe('Extension Setup', () => {
 
         expect(getExceptionBreakpointCache().size).to.equal(1);
       });
+    });
+  });
+
+  describe('Custom request', () => {
+    it('Should extract underlying debugger type', async () => {
+      const session = {
+        type: LIVESHARE_DEBUGGER_TYPE,
+        customRequest: async (command: string) => {
+          return Promise.resolve(DEBUGGER_TYPE);
+        }
+      };
+
+      const realType = await getDebuggerType(
+        (session as any) as vscode.DebugSession
+      );
+
+      expect(realType).to.be.equal(DEBUGGER_TYPE);
     });
   });
 });

@@ -462,9 +462,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response.success = true;
     switch (command) {
       case LINE_BREAKPOINT_INFO_REQUEST:
-        const lineBpInfo = args;
-        if (lineBpInfo) {
-          breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
+        if (args) {
+          breakpointUtil.createMappingsFromLineBreakpointInfo(args);
         } else {
           this.initializedResponse.success = false;
           this.initializedResponse.message = nls.localize(
