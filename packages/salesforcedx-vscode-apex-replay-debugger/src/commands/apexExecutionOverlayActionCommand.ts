@@ -6,6 +6,7 @@
  */
 
 import { BaseCommand } from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { SOBJECTS_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 
 export interface ApexExecutionOverlayFailureResult {
   message: string;
@@ -21,7 +22,6 @@ export interface ApexExecutionOverlaySuccessResult {
 }
 
 export class ApexExecutionOverlayActionCommand extends BaseCommand {
-  private readonly apiPath = 'services/data/v43.0/tooling/sobjects';
   private readonly commandName = 'ApexExecutionOverlayAction';
   private readonly requestString: string | undefined;
   private readonly actionObjectId: string | undefined;
@@ -38,16 +38,12 @@ export class ApexExecutionOverlayActionCommand extends BaseCommand {
 
   public getCommandUrl(): string {
     if (this.actionObjectId) {
-      const urlElements = [this.apiPath, this.commandName, this.actionObjectId];
+      const urlElements = [SOBJECTS_URL, this.commandName, this.actionObjectId];
       return urlElements.join('/');
     } else {
-      const urlElements = [this.apiPath, this.commandName];
+      const urlElements = [SOBJECTS_URL, this.commandName];
       return urlElements.join('/');
     }
-  }
-
-  public getQueryString(): string | undefined {
-    return this.queryString;
   }
 
   public getRequest(): string | undefined {

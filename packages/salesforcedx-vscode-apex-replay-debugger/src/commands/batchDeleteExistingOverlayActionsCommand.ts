@@ -9,6 +9,7 @@ import {
   BaseCommand,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { COMPOSITE_BATCH_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 
 export interface BatchRequests {
   batchRequests: BatchRequest[];
@@ -35,7 +36,6 @@ export interface SingleResult {
 }
 
 export class BatchDeleteExistingOverlayActionCommand extends BaseCommand {
-  private readonly url = 'services/data/v43.0/tooling/composite/batch';
   private readonly requests: BatchRequests;
   public constructor(requests: BatchRequests) {
     super(undefined);
@@ -43,11 +43,7 @@ export class BatchDeleteExistingOverlayActionCommand extends BaseCommand {
   }
 
   public getCommandUrl(): string {
-    return this.url;
-  }
-
-  public getQueryString(): string | undefined {
-    return this.queryString;
+    return COMPOSITE_BATCH_URL;
   }
 
   public getRequest(): string | undefined {

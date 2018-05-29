@@ -6,6 +6,7 @@
  */
 
 import { BaseCommand } from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { QUERY_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 
 export interface QueryOverlayActionIdsSuccessResult {
   size: number;
@@ -26,7 +27,6 @@ export interface ApexExecutionOverlayActionRecordAttribute {
 }
 
 export class QueryExistingOverlayActionIdsCommand extends BaseCommand {
-  private readonly apiPath = 'services/data/v43.0/tooling/query';
   private readonly userId: string;
   public constructor(userId: string) {
     super('q=SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId=');
@@ -34,7 +34,7 @@ export class QueryExistingOverlayActionIdsCommand extends BaseCommand {
   }
 
   public getCommandUrl(): string {
-    return this.apiPath;
+    return QUERY_URL;
   }
 
   public getQueryString(): string | undefined {

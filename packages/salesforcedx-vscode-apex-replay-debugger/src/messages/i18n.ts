@@ -42,6 +42,7 @@ export const messages = {
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
+  cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
   unable_to_parse_checkpoint_query_result:
     'Unable to parse checkpoint query result',
   unable_to_retrieve_active_user_for_sfdx_project:
