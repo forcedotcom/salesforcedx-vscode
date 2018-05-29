@@ -5,9 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  DEBUGGER_TYPE,
+  LIVESHARE_DEBUGGER_TYPE
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { expect } from 'chai';
 import * as vscode from 'vscode';
-import { DEBUGGER_TYPE, LIVESHARE_DEBUGGER_TYPE } from '../src/constants';
 import { getDebuggerType } from '../src/index';
 
 describe('Extension Setup', () => {

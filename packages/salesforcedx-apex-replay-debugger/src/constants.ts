@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export const CHECKPOINT = 'checkpoint';
-export const CHECKPOINT_INFO_EVENT = 'checkpointInfo';
 export const DEBUGGER_LAUNCH_TYPE = 'launch';
 export const DEBUGGER_TYPE = 'apex-replay';
 export const LIVESHARE_DEBUGGER_TYPE = 'vslsShare';
@@ -31,7 +30,11 @@ export const LAST_OPENED_LOG_FOLDER_KEY = 'LAST_OPENED_LOG_FOLDER_KEY';
 export const LAST_OPENED_LOG_KEY = 'LAST_OPENED_LOG_KEY';
 export const LINE_BREAKPOINT_INFO_REQUEST = 'lineBreakpointInfo';
 export const LIVESHARE_DEBUG_TYPE_REQUEST = 'debugType';
+export const SOBJECTS_URL = 'services/data/v43.0/tooling/sobjects';
+export const COMPOSITE_BATCH_URL =
+  'services/data/v43.0/tooling/composite/batch';
 export const OVERLAY_ACTION_DELETE_URL =
   'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/';
+export const QUERY_URL = 'services/data/v43.0/tooling/query';
 export const MAX_ALLOWED_CHECKPOINTS = 5;
 export const SFDC_TRIGGER = '__sfdc_trigger/';

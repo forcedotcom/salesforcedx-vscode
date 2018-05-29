@@ -1,0 +1,49 @@
+{
+  "name": "@salesforce/salesforcedx-apex-replay-debugger",
+  "displayName": "Apex Replay Debug Adapter",
+  "description":
+    "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
+  "version": "42.17.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.22.0"
+  },
+  "categories": ["Debuggers"],
+  "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "42.17.0",
+    "vscode-debugadapter": "1.28.0",
+    "vscode-debugprotocol": "1.28.0",
+    "vscode-uri": "1.0.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "cross-env": "5.0.4",
+    "mocha": "3.2.0",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
+    "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
+    "typescript": "2.6.2",
+    "vscode": "1.1.17",
+    "vscode-debugadapter-testsupport": "1.28.0"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters",
+    "test:unit":
+      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters"
+  },
+  "nyc": {
+    "reporter": ["text-summary", "lcov"]
+  }
+}

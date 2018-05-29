@@ -5,18 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
-import * as pathExists from 'path-exists';
-import * as vscode from 'vscode';
-import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { breakpointUtil } from './breakpoints';
-import {
-  checkpointService,
-  processBreakpointChangedForCheckpoints,
-  sfdxCreateCheckpoints,
-  sfdxToggleCheckpoint
-} from './breakpoints/checkpointService';
-import { launchFromLogFile } from './commands/launchFromLogFile';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   DEBUGGER_TYPE,
   GET_LINE_BREAKPOINT_INFO_EVENT,
@@ -25,7 +14,18 @@ import {
   LINE_BREAKPOINT_INFO_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE
-} from './constants';
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import * as path from 'path';
+import * as pathExists from 'path-exists';
+import * as vscode from 'vscode';
+import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
+import {
+  checkpointService,
+  processBreakpointChangedForCheckpoints,
+  sfdxCreateCheckpoints,
+  sfdxToggleCheckpoint
+} from './breakpoints/checkpointService';
+import { launchFromLogFile } from './commands/launchFromLogFile';
 import { nls } from './messages';
 let extContext: vscode.ExtensionContext;
 
