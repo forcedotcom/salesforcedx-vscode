@@ -217,7 +217,7 @@
       "properties": {
         "salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "%replay-debugger_checkpoints_enabled%"
         }
       }
