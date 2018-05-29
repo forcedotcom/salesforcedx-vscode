@@ -140,7 +140,7 @@ from Atlassian on the flow. These steps are manual because you might encounter m
    their `url` attributes set. 
    For `bugs` the url is `https://github.com/forcedotcom/salesforcedx-vscode/issues`
    For `repository` the url is `https://github.com/forcedotcom/salesforcedx-vscode`
-   3. In the extension's package.json, under `scrips` the following attributes need 
+   3. In the extension's package.json, under `scripts` the following attributes need 
    to be defined:
     `"vscode:prepublish": "npm prune --production"`
     `"vscode:package": "vsce package"`
