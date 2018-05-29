@@ -657,7 +657,20 @@ export async function setupGlobalDefaultUserIsvAuth() {
       console.log(
         'Configured SFDX_DEFAULTUSERNAME and SFDX_INSTANCE_URL for ISV Project Authentication'
       );
+      // enable ISV project
+      vscode.commands.executeCommand(
+        'setContext',
+        'sfdx:isv_debug_project',
+        true
+      );
       return;
+    } else {
+      // disable ISV project
+      vscode.commands.executeCommand(
+        'setContext',
+        'sfdx:isv_debug_project',
+        false
+      );
     }
   }
 
