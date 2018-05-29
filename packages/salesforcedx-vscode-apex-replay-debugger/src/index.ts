@@ -33,7 +33,7 @@ export enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
-function registerCommands(): vscode.Disposable {
+function registerCommands(checkpointsEnabled: boolean): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
     async config => {
@@ -77,11 +77,31 @@ function registerCommands(): vscode.Disposable {
       return launchFromLogFile(lastOpenedLog);
     }
   );
-  return vscode.Disposable.from(
-    promptForLogCmd,
-    launchFromLogFileCmd,
-    launchFromLastLogFileCmd
-  );
+
+  if (checkpointsEnabled) {
+    const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
+      'sfdx.create.checkpoints',
+      sfdxCreateCheckpoints
+    );
+    const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
+      'sfdx.toggle.checkpoint',
+      sfdxToggleCheckpoint
+    );
+
+    return vscode.Disposable.from(
+      promptForLogCmd,
+      launchFromLogFileCmd,
+      launchFromLastLogFileCmd,
+      sfdxCreateCheckpointsCmd,
+      sfdxToggleCheckpointCmd
+    );
+  } else {
+    return vscode.Disposable.from(
+      promptForLogCmd,
+      launchFromLogFileCmd,
+      launchFromLastLogFileCmd
+    );
+  }
 }
 
 export function updateLastOpened(
@@ -119,23 +139,7 @@ function registerDebugHandlers(checkpointsEnabled: boolean): vscode.Disposable {
     }
   );
 
-  if (checkpointsEnabled) {
-    const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
-      'sfdx.create.checkpoints',
-      sfdxCreateCheckpoints
-    );
-    const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
-      'sfdx.toggle.checkpoint',
-      sfdxToggleCheckpoint
-    );
-    return vscode.Disposable.from(
-      customEventHandler,
-      sfdxCreateCheckpointsCmd,
-      sfdxToggleCheckpointCmd
-    );
-  } else {
-    return vscode.Disposable.from(customEventHandler);
-  }
+  return vscode.Disposable.from(customEventHandler);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -156,7 +160,7 @@ export async function activate(context: vscode.ExtensionContext) {
     checkpointsEnabled
   );
 
-  const commands = registerCommands();
+  const commands = registerCommands(checkpointsEnabled);
   const debugHandlers = registerDebugHandlers(checkpointsEnabled);
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
@@ -172,11 +176,6 @@ export async function activate(context: vscode.ExtensionContext) {
       checkpointService
     );
     context.subscriptions.push(checkpointsView);
-
-    vscode.commands.registerCommand(
-      'checkpoints.createCheckpoints',
-      sfdxCreateCheckpoints
-    );
 
     const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
       processBreakpointChangedForCheckpoints

@@ -94,11 +94,6 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.create.checkpoints",
-          "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
-        },
-        {
           "command": "sfdx.toggle.checkpoint",
           "when":
             "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId == 'apex'"
@@ -114,7 +109,7 @@
       ],
       "view/title": [
         {
-          "command": "checkpoints.createCheckpoints",
+          "command": "sfdx.create.checkpoints",
           "when":
             "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
           "group": "navigation"
@@ -136,16 +131,12 @@
     },
     "commands": [
       {
-        "command": "sfdx.create.checkpoints",
-        "title": "%sfdx_create_checkpoints%"
-      },
-      {
         "command": "sfdx.toggle.checkpoint",
         "title": "%sfdx_toggle_checkpoint%"
       },
       {
-        "command": "checkpoints.createCheckpoints",
-        "title": "Create Checkpoints",
+        "command": "sfdx.create.checkpoints",
+        "title": "%sfdx_create_checkpoints%",
         "icon": {
           "light": "images/light/cloud-upload.svg",
           "dark": "images/dark/cloud-upload.svg"
@@ -226,7 +217,7 @@
       "properties": {
         "salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%replay-debugger_checkpoints_enabled%"
         }
       }

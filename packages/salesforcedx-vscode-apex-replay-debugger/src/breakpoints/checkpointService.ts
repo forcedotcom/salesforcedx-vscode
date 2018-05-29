@@ -813,7 +813,7 @@ export async function sfdxCreateCheckpoints() {
 
         writeToDebuggerOutputWindow(
           `${localizedProgressMessage}, ${nls.localize(
-            'checkpoint_creation_status_source_line_info'
+            'checkpoint_creation_status_setting_typeref'
           )}`
         );
         progress.report({ increment: 50, message: localizedProgressMessage });
