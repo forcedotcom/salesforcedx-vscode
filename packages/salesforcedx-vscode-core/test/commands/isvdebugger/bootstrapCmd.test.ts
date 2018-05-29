@@ -130,16 +130,18 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         EnterForceIdeUri.uriValidator(
           `forceide://abc?url=${LOGIN_URL}&missingSessionId`
         )
-      ).to.not.be.null;
+      ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(
         EnterForceIdeUri.uriValidator(
           `forceide://abc?sessionId=${SESSION_ID}&missingUrl`
         )
-      ).to.not.be.null;
+      ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
       expect(
         EnterForceIdeUri.uriValidator(`forceide://abc?url=&missingSessionId`)
-      ).to.not.be.null;
-      expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.not.be.null;
+      ).to.equal(nls.localize('parameter_gatherer_invalid_forceide_url'));
+      expect(EnterForceIdeUri.uriValidator('totaly-bogus')).to.equal(
+        nls.localize('parameter_gatherer_invalid_forceide_url')
+      );
     });
   });
 
