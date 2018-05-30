@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.16.0",
+  "version": "42.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -31,6 +31,7 @@
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-debugger",
+    "salesforce.salesforcedx-vscode-apex-replay-debugger",
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-lightning",
     "salesforce.salesforcedx-vscode-visualforce"

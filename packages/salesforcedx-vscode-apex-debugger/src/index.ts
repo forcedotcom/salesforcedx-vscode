@@ -15,6 +15,8 @@ import {
   HOTSWAP_REQUEST,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
+  LIVESHARE_DEBUG_TYPE_REQUEST,
+  LIVESHARE_DEBUGGER_TYPE,
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
@@ -52,11 +54,25 @@ export class ApexDebuggerConfigurationProvider
   }
 }
 
+export async function getDebuggerType(
+  session: vscode.DebugSession
+): Promise<string> {
+  let type = session.type;
+  if (type === LIVESHARE_DEBUGGER_TYPE) {
+    type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
+  }
+  return type;
+}
+
 function registerCommands(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
-      if (event && event.session && event.session.type === DEBUGGER_TYPE) {
-        if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
+      if (event && event.session) {
+        const type = await getDebuggerType(event.session);
+        if (
+          type === DEBUGGER_TYPE &&
+          event.event === GET_LINE_BREAKPOINT_INFO_EVENT
+        ) {
           const sfdxApex = vscode.extensions.getExtension(
             'salesforce.salesforcedx-vscode-apex'
           );
@@ -68,7 +84,10 @@ function registerCommands(): vscode.Disposable {
             );
             console.log('Retrieved line breakpoint info from language server');
           }
-        } else if (event.event === SHOW_MESSAGE_EVENT) {
+        } else if (
+          type === DEBUGGER_TYPE &&
+          event.event === SHOW_MESSAGE_EVENT
+        ) {
           const eventBody = event.body as VscodeDebuggerMessage;
           if (eventBody && eventBody.type && eventBody.message) {
             switch (eventBody.type as VscodeDebuggerMessageType) {
@@ -86,7 +105,10 @@ function registerCommands(): vscode.Disposable {
               }
             }
           }
-        } else if (event.event === GET_WORKSPACE_SETTINGS_EVENT) {
+        } else if (
+          type === DEBUGGER_TYPE &&
+          event.event === GET_WORKSPACE_SETTINGS_EVENT
+        ) {
           const config = vscode.workspace.getConfiguration();
           event.session.customRequest(WORKSPACE_SETTINGS_REQUEST, {
             proxyUrl: config.get('http.proxy', '') as string,

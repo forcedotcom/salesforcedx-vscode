@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.16.0",
+  "version": "42.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "42.16.0",
-    "@salesforce/salesforcedx-utils-vscode": "42.16.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "42.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.17.0",
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -149,31 +149,31 @@
         },
         {
           "command": "sfdx.force.source.pull",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
         },
         {
           "command": "sfdx.force.source.pull.force",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
         },
         {
           "command": "sfdx.force.source.push",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
         },
         {
           "command": "sfdx.force.source.push.force",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
         },
         {
           "command": "sfdx.force.source.status",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
         },
         {
           "command": "sfdx.force.source.status.local",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
         },
         {
           "command": "sfdx.force.source.status.remote",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
         },
         {
           "command": "sfdx.force.apex.test.run",

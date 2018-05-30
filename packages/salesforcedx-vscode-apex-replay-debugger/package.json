@@ -1,0 +1,227 @@
+{
+  "name": "salesforcedx-vscode-apex-replay-debugger",
+  "displayName": "Apex Replay Debugger for Visual Studio Code",
+  "description": "Replay Apex execution from Apex Debug Log",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeApexReplayDebugger.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "42.17.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.22.0"
+  },
+  "categories": ["Debuggers"],
+  "dependencies": {
+    "@salesforce/salesforcedx-apex-replay-debugger": "42.17.0",
+    "path-exists": "3.0.0",
+    "request-light": "0.2.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/mocha": "2.2.38",
+    "@types/node": "^6.0.40",
+    "@types/path-exists": "^1.0.29",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "mocha": "3.2.0",
+    "sinon": "^2.3.6",
+    "vscode": "1.1.17"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-core"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test",
+    "test:unit": "node ./node_modules/vscode/bin/test"
+  },
+  "activationEvents": [
+    "onDebug",
+    "onCommand:extension.replay-debugger.getLogFileName",
+    "workspaceContains:sfdx-project.json"
+  ],
+  "main": "./out/src",
+  "contributes": {
+    "breakpoints": [
+      {
+        "language": "apex"
+      }
+    ],
+    "languages": [
+      {
+        "id": "apexlog",
+        "aliases": ["ApexLog", "DebugLog"],
+        "extensions": [".log"],
+        "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "apexlog",
+        "scopeName": "text.log",
+        "path": "./syntaxes/apexlog.tmLanguage.json"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sfdx.create.checkpoints",
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+        },
+        {
+          "command": "sfdx.toggle.checkpoint",
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId == 'apex'"
+        },
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
+        },
+        {
+          "command": "sfdx.launch.replay.debugger.last.logfile",
+          "when": "sfdx:project_opened && !inDebugMode"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "checkpoints.createCheckpoints",
+          "when":
+            "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sfdx.launch.replay.debugger.logfile",
+          "when":
+            "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdx.create.checkpoints",
+        "title": "%sfdx_create_checkpoints%"
+      },
+      {
+        "command": "sfdx.toggle.checkpoint",
+        "title": "%sfdx_toggle_checkpoint%"
+      },
+      {
+        "command": "checkpoints.createCheckpoints",
+        "title": "Create Checkpoints",
+        "icon": {
+          "light": "images/light/cloud-upload.svg",
+          "dark": "images/dark/cloud-upload.svg"
+        },
+        "when":
+          "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+      },
+      {
+        "command": "sfdx.launch.replay.debugger.logfile",
+        "title": "%launch_from_log_file%"
+      },
+      {
+        "command": "sfdx.launch.replay.debugger.last.logfile",
+        "title": "%launch_from_last_log_file%"
+      }
+    ],
+    "views": {
+      "debug": [
+        {
+          "id": "sfdx.force.view.checkpoint",
+          "name": "%view_checkpoints%",
+          "when":
+            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+        }
+      ]
+    },
+    "debuggers": [
+      {
+        "type": "apex-replay",
+        "label": "Apex Replay Debugger",
+        "program":
+          "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "runtime": "node",
+        "languages": ["apex"],
+        "variables": {
+          "AskForLogFileName": "extension.replay-debugger.getLogFileName"
+        },
+        "configurationSnippets": [
+          {
+            "label": "%launch_snippet_label_text%",
+            "description": "%launch_snippet_description_text%",
+            "body": {
+              "name": "%launch_snippet_name%",
+              "type": "apex-replay",
+              "request": "launch",
+              "logFile": "^\"\\${command:AskForLogFileName}\"",
+              "stopOnEntry": true,
+              "trace": true
+            }
+          }
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "required": ["logFile"],
+              "logFile": {
+                "type": "string",
+                "description": "%logfile_text%",
+                "default": "${command:AskForLogFileName}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "%stop_on_entry_text%",
+                "default": true
+              },
+              "trace": {
+                "type": ["boolean", "string"],
+                "description": "%trace_text%",
+                "default": false
+              }
+            }
+          }
+        }
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%replay-debugger_checkpoint_configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%replay-debugger_checkpoints_enabled%"
+        }
+      }
+    }
+  }
+}
