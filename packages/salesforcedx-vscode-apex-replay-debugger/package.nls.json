@@ -16,6 +16,6 @@
   "replay-debugger_checkpoint_configuration_title":
     "Replay Debugger Checkpoint Configuration",
   "replay-debugger_checkpoints_enabled": "Replay Debugger Checkpoints Enabled",
-  "sfdx_create_checkpoints": "SFDX: Create Checkpoints",
+  "sfdx_update_checkpoints_in_org": "SFDX: Update Checkpoints in Org",
   "sfdx_toggle_checkpoint": "SFDX: Toggle Checkpoint"
 }

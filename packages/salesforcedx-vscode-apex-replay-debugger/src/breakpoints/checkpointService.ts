@@ -771,10 +771,13 @@ export async function sfdxCreateCheckpoints() {
   // The status message isn't changing, call to localize it once and use the localized string in the
   // progress report.
   const localizedProgressMessage = nls.localize(
-    'sfdx_create_checkpoints_start'
+    'sfdx_update_checkpoints_in_org'
   );
   // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
   try {
+    writeToDebuggerOutputWindow(
+      `${nls.localize('long_command_start')} ${localizedProgressMessage}`
+    );
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -782,7 +785,6 @@ export async function sfdxCreateCheckpoints() {
         cancellable: false
       },
       async (progress, token) => {
-        writeToDebuggerOutputWindow(localizedProgressMessage);
         writeToDebuggerOutputWindow(
           `${localizedProgressMessage}, ${nls.localize(
             'checkpoint_creation_status_org_info'
@@ -813,7 +815,7 @@ export async function sfdxCreateCheckpoints() {
 
         writeToDebuggerOutputWindow(
           `${localizedProgressMessage}, ${nls.localize(
-            'checkpoint_creation_status_source_line_info'
+            'checkpoint_creation_status_setting_typeref'
           )}`
         );
         progress.report({ increment: 50, message: localizedProgressMessage });
@@ -858,7 +860,9 @@ export async function sfdxCreateCheckpoints() {
       }
     );
   } finally {
-    writeToDebuggerOutputWindow(nls.localize('sfdx_create_checkpoints_end'));
+    writeToDebuggerOutputWindow(
+      `${nls.localize('long_command_end')} ${localizedProgressMessage}`
+    );
     creatingCheckpoints = false;
   }
 }
