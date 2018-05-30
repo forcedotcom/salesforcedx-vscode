@@ -132,7 +132,7 @@
       },
       {
         "command": "sfdx.create.checkpoints",
-        "title": "%sfdx_create_checkpoints%",
+        "title": "%sfdx_update_checkpoints_in_org%",
         "icon": {
           "light": "images/light/cloud-upload.svg",
           "dark": "images/dark/cloud-upload.svg"
