@@ -16,7 +16,7 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
-  channel_name: 'Salesforce DX CLI',
+  channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:

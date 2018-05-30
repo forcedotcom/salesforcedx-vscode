@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CHECKPOINT } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -20,7 +21,6 @@ import {
   processBreakpointChangedForCheckpoints,
   sfdxToggleCheckpoint
 } from '../../../src/breakpoints/checkpointService';
-import { CHECKPOINT } from '../../../src/constants';
 
 describe('Checkpoint Service - unit', () => {
   if (!checkpointsEnabled()) {

@@ -356,7 +356,7 @@
       "request": "launch",
       "cwd": "${workspaceRoot}",
       "program":
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "${workspaceRoot}/packages/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
       "args": ["--server=4712"],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
@@ -366,10 +366,9 @@
       "name": "Launch Replay Debugger Adapter Tests",
       "type": "node",
       "request": "launch",
-      "cwd":
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-replay-debugger",
+      "cwd": "${workspaceRoot}/packages/salesforcedx-apex-replay-debugger",
       "program":
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-replay-debugger/node_modules/mocha/bin/_mocha",
+        "${workspaceRoot}/packages/salesforcedx-apex-replay-debugger/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
         "tdd",
@@ -377,11 +376,11 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-replay-debugger/out/adaptertest/unit/"
+        "${workspaceRoot}/packages/salesforcedx-apex-replay-debugger/out/test/unit/"
       ],
       "sourceMaps": true,
       "outFiles": [
-        "${workspaceRoot}/packages/salesforcedx-vscode-apex-replay-debugger/out/**/*.js"
+        "${workspaceRoot}/packages/salesforcedx-apex-replay-debugger/out/**/*.js"
       ],
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
