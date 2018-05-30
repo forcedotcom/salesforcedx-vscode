@@ -132,4 +132,19 @@ from Atlassian on the flow. These steps are manual because you might encounter m
    See [vscode-vsce#52](https://github.com/Microsoft/vscode-vsce/issues/52) for
    more information.
 
+1. In order to make a previously unpublished extension publishable there are a 
+   few things that need to get updated: 
+   1. In packages/salesforcedx-vscode/package.json the extension needs to get added
+   to the list of `extensionDependencies`
+   2. In the extension's package.json ensure that `bugs` and `repository` both have 
+   their `url` attributes set. 
+   For `bugs` the url is `https://github.com/forcedotcom/salesforcedx-vscode/issues`
+   For `repository` the url is `https://github.com/forcedotcom/salesforcedx-vscode`
+   3. In the extension's package.json, under `scripts` the following attributes need 
+   to be defined:
+    `"vscode:prepublish": "npm prune --production"`
+    `"vscode:package": "vsce package"`
+    `"vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"`
+    `"vscode:publish": "node ../../scripts/publish-vsix.js"`
+
 [publish_vscode_ext]: https://code.visualstudio.com/docs/extensions/publish-extension
