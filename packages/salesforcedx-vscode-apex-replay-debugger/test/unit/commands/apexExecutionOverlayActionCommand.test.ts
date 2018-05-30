@@ -1,11 +1,19 @@
+/*
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-utils-vscode/out/src/constants';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/constants';
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -14,7 +22,6 @@ import {
   ApexExecutionOverlayFailureResult,
   ApexExecutionOverlaySuccessResult
 } from '../../../src/commands/apexExecutionOverlayActionCommand';
-import { FIELD_INTEGRITY_EXCEPTION } from '../../../src/constants';
 
 // These tests are going to be calling a mocked RequestService. The checkpointService utilizes the
 // ApexExecutionOverlayActionCommand under the covers. The presense or absence of an actionObjectId
