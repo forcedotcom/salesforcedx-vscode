@@ -1,3 +1,10 @@
+## 42.18.0 - May 31, 2018
+### Fixed
+
+#### salesforcedx-vscode-core
+
+* Rename the output channel from Salesforce DX CLI to Salesforce CLI ([PR #446](https://github.com/forcedotcom/salesforcedx-vscode/pull/446))
+
 ## 42.17.0 - May 24, 2018
 ### Added
 
