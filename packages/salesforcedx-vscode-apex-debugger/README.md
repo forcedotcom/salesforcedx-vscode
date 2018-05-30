@@ -16,9 +16,9 @@ Before you set up the Apex Debugger, make sure that you have these essentials.
 * The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions (we suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack)
 
 ---
-**NOTE:** Having an active Visual Studio Live Share session stops the Apex Debugger from working. Before you use the Apex Debugger, set the `liveshare.excludedDebugTypes` setting to `["apex-replay", "apex"]`. For instructions, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code docs.
+**NOTE:** Having an active installation of the Visual Studio Live Share extension stops the Apex Debugger from working. Before you use the Apex Debugger, set the `liveshare.excludedDebugTypes` setting to `["apex-replay", "apex"]`. For instructions, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code docs.
 
-Microsoft is aware of this issue. For details, see [Debugger extension receives different order of requests with an active Live Share session #480](https://github.com/MicrosoftDocs/live-share/issues/480).
+Microsoft is aware of this issue, and is working on a fix. For details, see [Error with salesforce.salesforcedx-vscode-replay-debugger debugger extension #396](https://github.com/MicrosoftDocs/live-share/issues/396).
 
 ---
 
