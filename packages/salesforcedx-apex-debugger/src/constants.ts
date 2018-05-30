@@ -6,6 +6,7 @@
  */
 
 export const DEBUGGER_TYPE = 'apex';
+export const LIVESHARE_DEBUGGER_TYPE = 'vslsShare';
 export const DEFAULT_INITIALIZE_TIMEOUT_MS = 10000;
 export const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
 export const DEFAULT_LOCK_TIMEOUT_MS = 10000;
@@ -21,6 +22,7 @@ export const HOTSWAP_REQUEST = 'hotswap';
 export const WORKSPACE_SETTINGS_REQUEST = 'workspaceSettings';
 export const EXCEPTION_BREAKPOINT_REQUEST = 'exceptionBreakpoint';
 export const LIST_EXCEPTION_BREAKPOINTS_REQUEST = 'listExceptionBreakpoints';
+export const LIVESHARE_DEBUG_TYPE_REQUEST = 'debugType';
 export const EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS = 'always';
 export const EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER = 'never';
 export const SALESFORCE_EXCEPTION_PREFIX = 'com/salesforce/api/exception/';

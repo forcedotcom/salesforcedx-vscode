@@ -5,16 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
-import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import {
   DEBUGGER_LAUNCH_TYPE,
   DEBUGGER_TYPE,
   LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY
-} from '../../../src/constants';
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { expect } from 'chai';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
+import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { updateLastOpened } from '../../../src/index';
 import { nls } from '../../../src/messages';
 
@@ -122,6 +122,7 @@ describe('extension context log path tests', () => {
       }
     }
   };
+
   it('Should update the extension context', () => {
     updateLastOpened(
       (mContext as any) as vscode.ExtensionContext,
