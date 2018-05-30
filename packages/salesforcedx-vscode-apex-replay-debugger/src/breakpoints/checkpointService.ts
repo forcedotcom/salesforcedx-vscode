@@ -775,7 +775,9 @@ export async function sfdxCreateCheckpoints() {
   );
   // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
   try {
-    writeToDebuggerOutputWindow(`Starting ${localizedProgressMessage}`);
+    writeToDebuggerOutputWindow(
+      `${nls.localize('long_command_start')} ${localizedProgressMessage}`
+    );
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -858,7 +860,9 @@ export async function sfdxCreateCheckpoints() {
       }
     );
   } finally {
-    writeToDebuggerOutputWindow(`Ending ${localizedProgressMessage}`);
+    writeToDebuggerOutputWindow(
+      `${nls.localize('long_command_end')} ${localizedProgressMessage}`
+    );
     creatingCheckpoints = false;
   }
 }
