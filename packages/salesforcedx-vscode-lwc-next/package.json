@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.17.0",
+  "version": "42.18.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,7 +23,7 @@
   },
   "categories": ["Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.18.0",
     "ajv": "^6.1.1",
     "eslint": "4.16.0",
     "eslint-plugin-lwc": "0.3.2",
