@@ -1,14 +1,14 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-language-server",
   "description": "Visualforce language server",
-  "version": "42.17.0",
+  "version": "42.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.22.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "42.17.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "42.18.0",
     "vscode-css-languageservice": "2.1.9",
     "vscode-languageserver": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
@@ -33,14 +33,14 @@
     "compile": "tsc -p ./ && shx cp -R test/fixtures out/test",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
-    "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
+    "test:unit": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
