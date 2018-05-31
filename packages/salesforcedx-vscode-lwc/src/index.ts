@@ -143,7 +143,9 @@ function startLWCLanguageServer(
         ),
         vscode.workspace.createFileSystemWatcher(
           '**/lightningcomponents/*/*.js'
-        )
+        ),
+        // need to watch for directory deletions as no events are created for contents or deleted directories
+        vscode.workspace.createFileSystemWatcher('**/', true, true, false)
       ]
     },
     uriConverters: {
