@@ -65,8 +65,8 @@ export interface InstalledPackageInfo {
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
     '.sfdx',
-    'isvdebugger',
-    'mdapitmp'
+    'tools',
+    'isvdebuggermdapitmp'
   );
   public readonly relativeApexPackageXmlPath = path.join(
     this.relativeMetdataTempPath,
@@ -434,6 +434,20 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       }
     }
 
+    // 7c: cleanup temp files
+    try {
+      shell.rm('-rf', projectMetadataTempPath);
+    } catch (error) {
+      console.error(error);
+      channelService.appendLine(
+        nls.localize('error_cleanup_temp_files', error.toString())
+      );
+      notificationService.showErrorMessage(
+        nls.localize('error_cleanup_temp_files', error.toString())
+      );
+      return;
+    }
+
     // 8: generate launch configuration
     channelService.appendLine(
       nls.localize('isv_debug_bootstrap_generate_launchjson')
@@ -490,7 +504,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): Promise<string> {
-    const execution = new CliCommandExecutor(command, options).execute(
+    // do not inherit global env because we are setting our own auth
+    const execution = new CliCommandExecutor(command, options, false).execute(
       cancellationToken
     );
 
@@ -642,7 +657,20 @@ export async function setupGlobalDefaultUserIsvAuth() {
       console.log(
         'Configured SFDX_DEFAULTUSERNAME and SFDX_INSTANCE_URL for ISV Project Authentication'
       );
+      // enable ISV project
+      vscode.commands.executeCommand(
+        'setContext',
+        'sfdx:isv_debug_project',
+        true
+      );
       return;
+    } else {
+      // disable ISV project
+      vscode.commands.executeCommand(
+        'setContext',
+        'sfdx:isv_debug_project',
+        false
+      );
     }
   }
 

@@ -4,11 +4,14 @@ const path = require('path');
 const shell = require('shelljs');
 
 // Installs a list of extensions passed on the command line
+var version = process.env.CODE_VERSION || '*';
+var isInsiders = version === 'insiders';
 
-const testRunFolder = '.vscode-test';
+const testRunFolder = path.join(
+  '.vscode-test',
+  isInsiders ? 'insiders' : 'stable'
+);
 const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
-
-const version = process.env.CODE_VERSION || '*';
 
 const downloadPlatform =
   process.platform === 'darwin'

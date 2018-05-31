@@ -16,7 +16,7 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
-  channel_name: 'Salesforce DX CLI',
+  channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
   channel_end_with_sfdx_not_found:
@@ -163,6 +163,7 @@ export const messages = {
   error_updating_sfdx_project: 'Error updating sfdx-project.json: %s',
   error_writing_installed_package_info:
     'Error writing installed-package.json: %s',
+  error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
 
   demo_mode_status_text: `$(gist-secret) SFDX DEMO`,
   demo_mode_status_tooltip:
