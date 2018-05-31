@@ -44,7 +44,8 @@
     "whatwg-fetch": "2.0.3"
   },
   "scripts": {
-    "compile": "node scripts/build.js",
+    "compile":
+      "./node_modules/.bin/cross-env PUBLIC_URL='__salesforcedx-vscode-core-prefix__' node scripts/build.js",
     "lint": "tslint --project .",
     "start": "node scripts/start.js",
     "clean":

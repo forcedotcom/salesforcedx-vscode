@@ -73,6 +73,13 @@
       "isShellCommand": true,
       "args": ["run", "start-webview"],
       "problemMatcher": "$tsc-watch"
+    },
+    {
+      "taskName": "Bundle salesforcedx-webview-ui artifacts",
+      "command": "npm",
+      "isShellCommand": true,
+      "args": ["run", "bundle-webview"],
+      "problemMatcher": "$tsc-watch"
     }
   ]
 }
