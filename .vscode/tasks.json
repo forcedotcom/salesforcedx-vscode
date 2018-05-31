@@ -30,7 +30,8 @@
         "owner": "typescript",
         "fileLocation": "relative",
         "pattern": {
-          "regexp": "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "regexp":
+            "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
           "file": 2,
           "line": 3,
           "severity": 5,
@@ -63,6 +64,14 @@
       "showOutput": "silent",
       "args": ["run", "watch"],
       "isBackground": true,
+      "problemMatcher": "$tsc-watch"
+    },
+    {
+      "taskName": "Start salesforcedx-webview-ui server",
+      "command": "npm",
+      "isBackground": true,
+      "isShellCommand": true,
+      "args": ["run", "start-webview"],
       "problemMatcher": "$tsc-watch"
     }
   ]

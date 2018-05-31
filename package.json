@@ -40,7 +40,8 @@
     "watch": "lerna run --parallel watch",
     "eslint-check":
       "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
-    "reformat": "node scripts/reformat-with-prettier.js"
+    "reformat": "node scripts/reformat-with-prettier.js",
+    "start-webview": "npm start --prefix=packages/salesforcedx-webview-ui"
   },
   "repository": {
     "type": "git",
