@@ -8,12 +8,14 @@ For best results, use this extension with the other extensions in the [salesforc
 ## Prerequisites
 Before you set up the Apex Debugger, make sure that you have these essentials.
 
-* At least one available Apex Debugger session in your Dev Hub org
+* At least one available Apex Debugger session in your Dev Hub org (not needed for ISV customer debugging)
     * One Apex Debugger session is included with Performance Edition and Unlimited Edition orgs.
     * To purchase Apex Debugger sessions for Enterprise Edition orgs, or to purchase more sessions for orgs that already have allocated sessions, contact Salesforce.
+    * If your production org has access to the Apex Debugger, you can check how many sessions are available on the Apex Debugger page in Setup.
+* For ISV customer debugging: a License Management Org (LMO) that has login access to a subscriber’s sandbox org
 * [Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) v41.1.0 or later
 * [Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later
-* The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions (we suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack)
+* The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions (We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.)
 
 ---
 **NOTE:** Having an active Visual Studio Live Share session stops the Apex Debugger from working. Before you use the Apex Debugger, set the `liveshare.excludedDebugTypes` setting to `["apex-replay", "apex"]`. For instructions, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code docs.
@@ -25,29 +27,30 @@ Microsoft is aware of this issue. For details, see [Debugger extension receives 
 ## Set Up the Apex Debugger
 The first time that you use the Apex Debugger in VS Code, complete these setup steps.
 
-1. Add the `DebugApex` feature to a scratch org definition file:  
+1. Add the `DebugApex` feature to the scratch org definition files for all the types of scratch orgs that you plan to debug:  
   `"features": "DebugApex"`
 1. In VS Code, run **SFDX: Create a Default Scratch Org**. 
-1. Choose the scratch org definition file that includes the `DebugApex` feature.
+1. Choose a scratch org definition file that includes the `DebugApex` feature.
 1. When your scratch org is ready, assign permissions for the Apex Debugger to the org’s admin user.  
     1. In VS Code, run **SFDX: Open Default Scratch Org**.
     1. In your browser, from Setup, enter `Permission Sets` in the Quick Find box, then select **Permission Sets**.
-    1. Create a permission set.
+    1. Click **New**.
     1. Give the permission set a name that you can remember, such as `Debug Apex`.
     1. In the “Select the type of users who will use this permission set” section, choose **None** from the User License dropdown list. Choosing None lets you assign the permission set to more than one type of user.
     1. Save your changes.
     1. Click **System Permissions**.
     1. Click **Edit**.
-    1. Enable **Debug Apex**. 
+    1. Enable **Debug Apex**. The other permissions that Debug Apex requires are added automatically.
     1. Save your changes.
     1. Click **Manage Assignments**.
     1. Click **Add Assignments**.
     1. Select the users to whom you want to assign the permission set, and then click **Assign**.
+    1. Click **Done**.
 1. **Optional**: In VS Code, run **SFDX: Pull Source from Default Scratch Org**. Then, add your new permission set to your source control repository. If you have a copy of the permission set in your Salesforce DX project, you can assign permissions to scratch org users by running `sfdx force:user:permset:assign -n Your_Perm_Set_Name`.
 1. In VS Code, create a launch configuration for the Apex Debugger.
     1. To open the Debug view, in the VS Code Activity Bar, click the bug icon (hover text: Debug).
-    1. To create a `launch.json` file, click the gear icon (hover text: Configure or fix launch.json) and then select **Apex Debugger**. (If you’ve already created this file, clicking the gear icon opens the file.)
-    1. Within the `"configurations"` array, add a `"Launch Apex Debugger"` configuration:
+    1. To create a `launch.json` file, click the gear icon (hover text: Configure or Fix launch.json) and then select **Apex Debugger**. (If you’ve already created this file, clicking the gear icon opens the file.)
+    1. Within the `"configurations"` array, add a `"Launch Apex Debugger"` configuration. The minimum information it should contain:
         ```
         "configurations": [
             {
@@ -58,7 +61,7 @@ The first time that you use the Apex Debugger in VS Code, complete these setup s
             }
         ]
         ```
-    1. Save your `launch.json` file.
+    1. Save your `launch.json` file. Each project needs only one `launch.json` file, even if you work with multiple scratch orgs. This file lives in the project’s `.vscode` directory.
 
 ## Debug Your Code
 Nice job! You’ve set up the Apex Debugger. Now, set breakpoints and start a debugging session. Then, debug your code.
@@ -79,7 +82,7 @@ To see your exception breakpoints, run **Apex Debug: Configure Exceptions**. The
 When you close VS Code, all your exception breakpoints are removed. (Your line breakpoints, however, remain.)
 
 ## Whitelist Users and Request Types
-To filter which requests are debugged, edit your `launch.json` file to set up whitelisting. If you don’t use whitelisting, all events in your org trigger debugging during a debugging session. Whitelist users or request types to focus only on the events that are relevant to the problem you’re debugging.
+To filter which requests are debugged, edit your `launch.json` file to set up whitelisting. (The `launch.json` file lives in your project’s `.vscode` directory.) If you don’t use whitelisting, all events in your org trigger debugging during a debugging session. Whitelist users or request types to focus only on the events that are relevant to the problem you’re debugging.
 
 Add filters to the `"Launch Apex Debugger"` configuration:  
 ```
@@ -100,6 +103,45 @@ To auto-complete potential request type values for `"requestTypeFilter"`, press 
 
 To filter by entry point, enter a regular expression as the value for `"entryPointFilter"`. For example, to whitelist requests made by the Visualforce page `MyPage`, enter `".*/apex/MyPage.apexp"`.
 
+## ISV Customer Debugger
+
+The ISV Customer Debugger covers a gap in what you can do with the Apex Debugger. As an ISV, you can debug your own code. As a subscriber, you can debug your own code. However, because of the protections against seeing managed code, subscribers can’t debug ISV code in their orgs. With the ISV Customer Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org. 
+
+An ISV can reproduce issues in the specific environment, so problems can be diagnosed more quickly. You can debug only sandbox orgs.
+
+### Configure the ISV Customer Debugger
+
+The ISV Customer Debugger is part of the `salesforcedx-vscode-apex-debugger` extension, so you don’t need to install anything other than this extension and its prerequisites. You can debug only sandbox orgs.
+
+1. Log in to your subscriber’s sandbox via your License Management Org (LMO). If you’re not familiar with this process, see the _ISVforce Guide_. For information on how to obtain login access to your subscriber’s org, see [Request Login Access from a Customer](https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/lma_requesting_login_access.htm). For information on how to log in via the Subscriber Support Console, see [Logging In to Subscriber Orgs](https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/lma_logging_in_to_sub_org.htm).
+1. In your subscriber’s org, from Setup, enter **Apex Debugger** in the Quick Find box, then click **Apex Debugger**.
+1. Click **Start Partner Debugging Session**.
+1. In the Using Salesforce Extensions for VS Code section, to copy the `forceide://` URL, click **Copy to Clipboard**.
+1. In VS Code, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) to open the command palette, then run **SFDX: Create and Set Up Project for ISV Debugging**.
+1. When directed, paste the `forceide://` URL into the prompt, and press Enter.
+1. When directed, either accept the default project name or enter a name for your debugging project, and press Enter.
+1. Choose a location to store the project, and click **Create Project**.
+1. Wait for the project generation process to finish. VS Code creates a Salesforce DX project that contains your packaged metadata, your subscriber's metadata, and skeleton classes for other packages in the org. VS Code also creates a launch configuration (`launch.json` file) for the project. This process can take a long time, especially for orgs that contain lots of metadata, so feel free to leave it running and check back later. You can monitor the progress in the output panel at the bottom of VS Code. To show the output panel, select **View** > **Output**, then select **Salesforce DX CLI** from the dropdown menu in the corner of the Output tab.  
+When the project is ready, VS Code opens it for you in a new window.
+1. In the new window, from the Explorer view, open an Apex class or trigger that you want to set breakpoints in.
+1. To set a breakpoint, click the gutter to the left of the line numbers.
+1. Switch to the Debug view.
+1. To launch the Apex Debugger, click the play icon next to the launch configuration dropdown menu.
+
+### Debug Your Subscriber’s Org
+
+With one noteworthy exception, debugging a subscriber’s org works the same way that debugging other orgs does. The exception: You can’t break on Apex events triggered by other users in the org. Only the Login As user can trigger Apex breakpoint hit events. 
+
+See the rest of this README for information about the Apex Debugger. For general information about debugging in VS Code, see [Debugging](https://code.visualstudio.com/docs/editor/debugging) in the Visual Studio Code docs.
+
+### Renew a Debugging Session
+
+If your session expires, start a new session from Setup using all the same steps that you followed when you started the original session.
+
+### Protect Your Subscriber’s Intellectual Property
+
+The code from your subscriber’s org is your subscriber’s intellectual property. We advise against keeping it around after you’re done debugging. Delete the entire project from the location where you stored it during the setup process. Never store your subscriber’s metadata in your version control system. When you start a new debugging session later, VS Code downloads the metadata for you again.
+
 ## Considerations
 Keep these limitations and known issues in mind when working with the Apex Debugger.
 
@@ -110,7 +152,7 @@ Keep these limitations and known issues in mind when working with the Apex Debug
 
 * Eval functionality isn’t available.  
 
-* Hot swapping isn’t permitted. These actions kill your debugging session.
+* Hot swapping isn’t permitted. These actions kill your debugging session:
     * Installing or uninstalling a package
     * Saving changes that cause your org’s metadata to recompile  
         ___
@@ -126,7 +168,7 @@ Keep these limitations and known issues in mind when working with the Apex Debug
 These entry points aren’t supported:
 * Asynchronously executed code, including asynchronous tests  
     ___
-    **Tip**: Test code between a pair of `startTest` and `stopTest` methods can run synchronously. To debug your asynchronous functionality, use these methods within your tests.  
+    **Tip**: Code that’s between a pair of `startTest` and `stopTest` methods can run synchronously. To debug your asynchronous functionality, use these methods within your tests.  
     ___
 * Batch, Queueable, and Scheduled Apex
 * Inbound email
@@ -152,6 +194,11 @@ These entry points aren’t supported:
     --------> ownerId
     ```
 * When you perform a SOQL query for variables from the EntityDefinition table, your results include the `durableId` even if you don’t explicitly `SELECT` that variable.
+
+### ISV Customer Debugger Considerations
+* You can debug only sandbox orgs.
+* You can debug only one customer at a time. However, if you purchase Apex Debugger licenses, you can debug multiple customers at once. An Apex Debugger license also lets you debug in your sandboxes and scratch orgs.
+* When you click Return to subscriber overview, your debugging session terminates. Stay logged in to your subscriber’s org while you debug, and return to your LMO only when you’re done debugging.
 
 ## Resources
 * Visual Studio Code Docs: [Debugging](https://code.visualstudio.com/docs/editor/debugging)
