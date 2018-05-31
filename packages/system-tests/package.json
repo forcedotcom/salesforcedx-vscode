@@ -1,7 +1,7 @@
 {
   "name": "system-tests",
   "description": "System tests for Salesforce DX Extensions for VS Code",
-  "version": "42.17.0",
+  "version": "42.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "./out/src",
@@ -9,7 +9,7 @@
     "vscode": "^1.17.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "42.18.0",
     "@types/chai": "^4.0.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "2.2.38",
