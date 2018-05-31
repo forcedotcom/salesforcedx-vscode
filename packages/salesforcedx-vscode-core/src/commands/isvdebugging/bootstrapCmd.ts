@@ -541,6 +541,22 @@ export interface ForceIdeUri {
 }
 
 export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
+  public static readonly uriValidator = (value: string) => {
+    try {
+      const url = new URL(value);
+      const parameter = url.searchParams;
+      const loginUrl = parameter.get('url');
+      const sessionId = parameter.get('sessionId');
+      if (typeof loginUrl !== 'string' || typeof sessionId !== 'string') {
+        return nls.localize('parameter_gatherer_invalid_forceide_url');
+      }
+    } catch (e) {
+      return nls.localize('parameter_gatherer_invalid_forceide_url');
+    }
+
+    return null; // all good
+  }
+
   public forceIdUrl?: ForceIdeUri;
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ForceIdeUri>
@@ -551,21 +567,7 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
         'parameter_gatherer_paste_forceide_url_placeholder'
       ),
       ignoreFocusOut: true,
-      validateInput: value => {
-        try {
-          const url = new URL(value);
-          const parameter = url.searchParams;
-          const loginUrl = parameter.get('url');
-          const sessionId = parameter.get('sessionId');
-          if (typeof loginUrl !== 'string' || typeof sessionId !== 'string') {
-            return nls.localize('parameter_gatherer_invalid_forceide_url');
-          }
-        } catch (e) {
-          return nls.localize('parameter_gatherer_invalid_forceide_url');
-        }
-
-        return null; // all good
-      }
+      validateInput: EnterForceIdeUri.uriValidator
     });
 
     if (forceIdeUri) {
