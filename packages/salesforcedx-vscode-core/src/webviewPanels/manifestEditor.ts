@@ -63,14 +63,14 @@ export class ManifestEditor {
     this.panel.onDidChangeViewState(
       event => {
         if (this.panel.visible) {
-          this.update();
+          void this.update();
         }
       },
       null,
       this.disposables
     );
 
-    this.show();
+    void this.show();
   }
 
   public dispose() {
@@ -87,7 +87,7 @@ export class ManifestEditor {
   }
 
   private async update() {
-    this.show();
+    void this.show();
   }
 
   private async show() {
