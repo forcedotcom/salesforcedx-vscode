@@ -16,12 +16,12 @@
   },
   "scripts": {
     "postinstall":
-      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+      "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
     "bootstrap":
-      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+      "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",
     "compile":
-      "lerna run --stream compile --ignore salesforcedx-webview-ui && node run bundle-webview",
+      "lerna run --stream --parallel --ignore @salesforce/salesforcedx-webview-ui compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
     "prepush": "npm run lint",
@@ -45,7 +45,7 @@
     "start-webview": "npm run start --prefix=packages/salesforcedx-webview-ui",
     "build-webview": "npm run build --prefix=packages/salesforcedx-webview-ui",
     "bundle-webview":
-      "npm run compile --prefix=packages/salesforcedx-webview-ui && shx cp -R packages/salesforcedx-webview-ui/build packages/salesforcedx-vscode-core/webviews"
+      "lerna run --scope @salesforce/salesforcedx-webview-ui compile && shx cp -R packages/salesforcedx-webview-ui/build packages/salesforcedx-vscode-core/webviews"
   },
   "repository": {
     "type": "git",

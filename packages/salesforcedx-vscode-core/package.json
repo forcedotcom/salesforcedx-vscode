@@ -288,6 +288,10 @@
         {
           "command": "sfdx.force.apex.log.get",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.manifest.editor.show",
+          "when": "config.salesforcedx-vscode-core.show_experimental_webviews"
         }
       ]
     },
@@ -451,6 +455,10 @@
       {
         "command": "sfdx.force.apex.log.get",
         "title": "%force_apex_log_get_text%"
+      },
+      {
+        "command": "sfdx.force.manifest.editor.show",
+        "title": "%force_manifest_editor_show_text%"
       }
     ],
     "configuration": {
@@ -461,6 +469,11 @@
           "type": ["boolean"],
           "default": true,
           "description": "%show_cli_success_msg_description%"
+        },
+        "salesforcedx-vscode-core.show_experimental_webviews": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%show_experimental_webviews_description%"
         }
       }
     }
