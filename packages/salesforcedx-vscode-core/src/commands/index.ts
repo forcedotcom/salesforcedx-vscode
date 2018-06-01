@@ -48,7 +48,7 @@ export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
 export {
   forceStopApexDebugLogging,
-  restoreDebugLevels
+  turnOffLogging
 } from './forceStopApexDebugLogging';
 export { forceApexLogGet } from './forceApexLogGet';
 export { forceAuthLogoutAll } from './forceAuthLogout';

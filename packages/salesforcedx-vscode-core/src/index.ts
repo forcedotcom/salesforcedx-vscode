@@ -42,12 +42,12 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
-  restoreDebugLevels,
   SelectFileName,
   SelectStrictDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  turnOffLogging
 } from './commands';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import {
@@ -414,5 +414,5 @@ export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
 
   decorators.disposeTraceFlagExpiration();
-  return restoreDebugLevels();
+  return turnOffLogging();
 }

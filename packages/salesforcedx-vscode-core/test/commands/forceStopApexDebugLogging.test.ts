@@ -14,35 +14,23 @@ import { nls } from '../../src/messages';
 // tslint:disable:no-unused-expression
 describe('Force Source Status', () => {
   let getDebugLevelIdStub: sinon.SinonStub;
-  let prevApexCodeDebugLevelStub: sinon.SinonStub;
-  let prevVisualForceDebugLevelStub: sinon.SinonStub;
-  const fakeDebugLevelId = 'fakeDebugLevelId';
-  const apexCodeLevel = 'INFO';
-  const vfCodeLevel = 'NONE';
+  const fakeTraceFlagId = 'fakeDebugLevelId';
 
   before(() => {
     getDebugLevelIdStub = sinon
-      .stub(developerLogTraceFlag, 'getDebugLevelId')
-      .returns(fakeDebugLevelId);
-    prevApexCodeDebugLevelStub = sinon
-      .stub(developerLogTraceFlag, 'getPrevApexCodeDebugLevel')
-      .returns(apexCodeLevel);
-    prevVisualForceDebugLevelStub = sinon
-      .stub(developerLogTraceFlag, 'getPrevVFCodeDebugLevel')
-      .returns(vfCodeLevel);
+      .stub(developerLogTraceFlag, 'getTraceFlagId')
+      .returns(fakeTraceFlagId);
   });
 
   after(() => {
     getDebugLevelIdStub.restore();
-    prevApexCodeDebugLevelStub.restore();
-    prevVisualForceDebugLevelStub.restore();
   });
 
   it('Should build the source command no flag', async () => {
     const forceStopLogging = new ForceStopApexDebugLoggingExecutor();
     const forceStopLoggingCmd = forceStopLogging.build();
     expect(forceStopLoggingCmd.toCommand()).to.equal(
-      `sfdx force:data:record:update --sobjecttype DebugLevel --sobjectid ${fakeDebugLevelId} --values ApexCode=${apexCodeLevel} Visualforce=${vfCodeLevel} --usetoolingapi`
+      `sfdx force:data:record:delete --sobjecttype TraceFlag --sobjectid ${fakeTraceFlagId} --usetoolingapi`
     );
     expect(forceStopLoggingCmd.description).to.equal(
       nls.localize('force_stop_apex_debug_logging')
