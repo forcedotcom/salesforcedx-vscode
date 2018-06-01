@@ -28,7 +28,7 @@ import {
 
 export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
-    return getRestoreLevelsCommand();
+    return deleteTraceFlag();
   }
 
   public execute(response: ContinueResponse<{}>): void {
@@ -49,9 +49,9 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
   }
 }
 
-export async function restoreDebugLevels(): Promise<void> {
+export async function turnOffLogging(): Promise<void> {
   if (developerLogTraceFlag.isActive()) {
-    const execution = new CliCommandExecutor(getRestoreLevelsCommand(), {
+    const execution = new CliCommandExecutor(deleteTraceFlag(), {
       cwd: vscode.workspace.rootPath
     }).execute();
     const resultPromise = new CommandOutput().getCmdResult(execution);
@@ -65,16 +65,13 @@ export async function restoreDebugLevels(): Promise<void> {
   }
 }
 
-function getRestoreLevelsCommand(): Command {
+function deleteTraceFlag(): Command {
+  const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
   return new SfdxCommandBuilder()
     .withDescription(nls.localize('force_stop_apex_debug_logging'))
-    .withArg('force:data:record:update')
-    .withFlag('--sobjecttype', 'DebugLevel')
-    .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId())
-    .withFlag(
-      '--values',
-      `ApexCode=${developerLogTraceFlag.getPrevApexCodeDebugLevel()} Visualforce=${developerLogTraceFlag.getPrevVFCodeDebugLevel()}`
-    )
+    .withArg('force:data:record:delete')
+    .withFlag('--sobjecttype', 'TraceFlag')
+    .withFlag('--sobjectid', nonNullTraceFlag)
     .withArg('--usetoolingapi')
     .build();
 }
