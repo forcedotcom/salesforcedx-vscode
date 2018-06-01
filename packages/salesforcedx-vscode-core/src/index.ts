@@ -64,8 +64,11 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService } from './notifications';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { CancellableStatusBar, taskViewService } from './statuses';
+import { ManifestEditor } from './webviewPanels/manifestEditor';
 
-function registerCommands(): vscode.Disposable {
+function registerCommands(
+  extensionContext: vscode.ExtensionContext
+): vscode.Disposable {
   // Customer-facing commands
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
@@ -252,6 +255,11 @@ function registerCommands(): vscode.Disposable {
     forceApexLogGet
   );
 
+  const showManifestEditorCmd = vscode.commands.registerCommand(
+    'sfdx.force.manifest.editor.show',
+    () => ManifestEditor.createOrShow(extensionContext)
+  );
+
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -301,6 +309,7 @@ function registerCommands(): vscode.Disposable {
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
+    showManifestEditorCmd,
     internalCancelCommandExecution
   );
 }
@@ -372,7 +381,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Commands
-  const commands = registerCommands();
+  const commands = registerCommands(context);
   context.subscriptions.push(commands);
 
   // Task View

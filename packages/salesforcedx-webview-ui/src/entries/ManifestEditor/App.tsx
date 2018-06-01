@@ -3,9 +3,7 @@ import {
   Button,
   Classes,
   Navbar,
-  NavbarDivider,
-  NavbarGroup,
-  NavbarHeading
+  NavbarGroup
 } from '@blueprintjs/core';
 import * as React from 'react';
 import '../../../node_modules/@blueprintjs/core/lib/css/blueprint.css';
@@ -21,10 +19,12 @@ class App extends React.Component {
         </header>
         <Navbar>
           <NavbarGroup align={Alignment.LEFT}>
-            <NavbarHeading>Blueprint</NavbarHeading>
-            <NavbarDivider />
-            <Button className={Classes.MINIMAL} icon="home" text="Home" />
-            <Button className={Classes.MINIMAL} icon="document" text="Files" />
+            <Button className={Classes.MINIMAL} icon="list" text="Basic" />
+            <Button
+              className={Classes.MINIMAL}
+              icon="list-detail-view"
+              text="Advanced"
+            />
           </NavbarGroup>
         </Navbar>
       </div>
