@@ -103,6 +103,7 @@ describe('Replay debugger adapter - unit', () => {
 
   describe('Launch', () => {
     let sendResponseSpy: sinon.SinonSpy;
+    let sendEventSpy: sinon.SinonSpy;
     let response: DebugProtocol.LaunchResponse;
     let args: LaunchRequestArguments;
     let hasLogLinesStub: sinon.SinonStub;
@@ -119,6 +120,7 @@ describe('Replay debugger adapter - unit', () => {
         trace: false
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
+      sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
       readLogFileStub = sinon
         .stub(LogContextUtil.prototype, 'readLogFile')
         .returns(['line1', 'line2']);
@@ -130,6 +132,7 @@ describe('Replay debugger adapter - unit', () => {
 
     afterEach(() => {
       sendResponseSpy.restore();
+      sendEventSpy.restore();
       hasLogLinesStub.restore();
       meetsLogLevelRequirementsStub.restore();
       readLogFileStub.restore();
@@ -169,6 +172,10 @@ describe('Replay debugger adapter - unit', () => {
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
       expect(sendResponseSpy.calledOnce).to.be.true;
+      expect(sendEventSpy.calledOnce).to.be.true;
+      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+        InitializedEvent
+      );
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(
         0
       ).args[0];
@@ -759,7 +766,6 @@ describe('Replay debugger adapter - unit', () => {
   describe('Custom request', () => {
     describe('Line breakpoint info', () => {
       let sendResponseSpy: sinon.SinonSpy;
-      let sendEventSpy: sinon.SinonSpy;
       let createMappingsFromLineBreakpointInfo: sinon.SinonSpy;
       const initializedResponse = {
         success: true,
@@ -788,7 +794,6 @@ describe('Replay debugger adapter - unit', () => {
           {} as DebugProtocol.InitializeRequestArguments
         );
         sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-        sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
         createMappingsFromLineBreakpointInfo = sinon.spy(
           BreakpointUtil.prototype,
           'createMappingsFromLineBreakpointInfo'
@@ -797,7 +802,6 @@ describe('Replay debugger adapter - unit', () => {
 
       afterEach(() => {
         sendResponseSpy.restore();
-        sendEventSpy.restore();
         createMappingsFromLineBreakpointInfo.restore();
       });
 
@@ -815,10 +819,6 @@ describe('Replay debugger adapter - unit', () => {
         ).args[0];
         expect(actualResponse.success).to.be.true;
         expect(actualResponse).to.deep.equal(initializedResponse);
-        expect(sendEventSpy.calledOnce).to.be.true;
-        expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
-          InitializedEvent
-        );
       });
 
       it('Should handle empty line breakpoint info', () => {
@@ -835,10 +835,6 @@ describe('Replay debugger adapter - unit', () => {
         ).args[0];
         expect(actualResponse.success).to.be.true;
         expect(actualResponse).to.deep.equal(initializedResponse);
-        expect(sendEventSpy.calledOnce).to.be.true;
-        expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
-          InitializedEvent
-        );
       });
 
       it('Should save line number mapping', () => {
@@ -868,10 +864,6 @@ describe('Replay debugger adapter - unit', () => {
         ).args[0];
         expect(actualResponse.success).to.be.true;
         expect(actualResponse).to.deep.equal(initializedResponse);
-        expect(sendEventSpy.calledOnce).to.be.true;
-        expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
-          InitializedEvent
-        );
         // Verify that the line number mapping is the expected line number mapping
         expect(breakpointUtil.getLineNumberMapping()).to.deep.eq(
           expectedLineNumberMapping
