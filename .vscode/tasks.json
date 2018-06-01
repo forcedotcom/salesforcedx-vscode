@@ -1,29 +1,38 @@
 {
-  "version": "0.1.0",
+  "version": "2.0.0",
   "problemMatcher": "$tsc-watch",
   "tasks": [
     {
-      "taskName": "Bootstrap",
+      "label": "Bootstrap",
       "command": "npm",
-      "isShellCommand": true,
-      "showOutput": "silent",
+      "type": "shell",
+      "presentation": { "focus": false, "panel": "shared" },
       "args": ["run", "bootstrap"],
       "isBackground": false
     },
     {
-      "taskName": "Clean",
+      "label": "Clean",
       "command": "npm",
-      "isShellCommand": true,
-      "showOutput": "silent",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "shared"
+      },
       "args": ["run", "clean"],
       "isBackground": false
     },
     {
-      "isBuildCommand": true,
-      "taskName": "Compile",
+      "label": "Compile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "command": "npm",
-      "isShellCommand": true,
-      "showOutput": "silent",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated"
+      },
       "args": ["run", "compile"],
       "isBackground": false,
       "problemMatcher": {
@@ -41,43 +50,53 @@
       }
     },
     {
-      "taskName": "Lint",
+      "label": "Lint",
       "command": "npm",
-      "isShellCommand": true,
-      "showOutput": "silent",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated"
+      },
       "args": ["run", "lint"],
       "isBackground": false
     },
     {
-      "isTestCommand": true,
-      "taskName": "Test",
+      "label": "Watch",
       "command": "npm",
-      "isShellCommand": true,
-      "showOutput": "silent",
-      "args": ["run", "test"],
-      "isBackground": false
-    },
-    {
-      "taskName": "Watch",
-      "command": "npm",
-      "isShellCommand": true,
-      "showOutput": "silent",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent",
+        "focus": false,
+        "panel": "dedicated"
+      },
       "args": ["run", "watch"],
       "isBackground": true,
       "problemMatcher": "$tsc-watch"
     },
     {
-      "taskName": "Start salesforcedx-webview-ui server",
+      "label": "Start salesforcedx-webview-ui server",
       "command": "npm",
+      "type": "shell",
       "isBackground": true,
-      "isShellCommand": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
       "args": ["run", "start-webview"],
       "problemMatcher": "$tsc-watch"
     },
     {
-      "taskName": "Bundle salesforcedx-webview-ui artifacts",
+      "label": "Bundle salesforcedx-webview-ui artifacts",
       "command": "npm",
-      "isShellCommand": true,
+      "type": "shell",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
       "args": ["run", "bundle-webview"],
       "problemMatcher": "$tsc-watch"
     }
