@@ -21,7 +21,7 @@
       "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",
     "compile":
-      "lerna run --stream --parallel --ignore @salesforce/salesforcedx-webview-ui compile",
+      "lerna run --stream --ignore @salesforce/salesforcedx-webview-ui compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
     "prepush": "npm run lint",
