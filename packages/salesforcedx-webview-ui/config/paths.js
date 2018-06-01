@@ -41,7 +41,7 @@ function getServedPath(appPackageJson) {
 ///////////////////////////////////////
 // Add the different entry points here
 ///////////////////////////////////////
-const entries = ['ManifestEditor', 'Sample'];
+const entries = ['ManifestEditor'];
 
 // config after eject: we're in ./config/
 module.exports = {
