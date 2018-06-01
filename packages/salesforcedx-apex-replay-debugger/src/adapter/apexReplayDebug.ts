@@ -191,12 +191,14 @@ export class ApexReplayDebug extends LoggingDebugSession {
   ): void {
     response.success = false;
     this.setupLogger(args);
-
     this.log(
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: args=${JSON.stringify(args)}`
     );
+
     this.logContext = new LogContext(args, this);
+    this.sendEvent(new InitializedEvent());
+
     if (!this.logContext.hasLogLines()) {
       response.message = nls.localize('no_log_file_text');
       this.sendResponse(response);
@@ -490,7 +492,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
           };
           this.initializedResponse.success = true;
           this.sendResponse(this.initializedResponse);
-          this.sendEvent(new InitializedEvent());
           break;
         }
     }
