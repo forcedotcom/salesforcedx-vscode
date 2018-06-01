@@ -45,7 +45,7 @@
     "start-webview": "npm run start --prefix=packages/salesforcedx-webview-ui",
     "build-webview": "npm run build --prefix=packages/salesforcedx-webview-ui",
     "bundle-webview":
-      "lerna run --scope @salesforce/salesforcedx-webview-ui compile && shx cp -R packages/salesforcedx-webview-ui/build packages/salesforcedx-vscode-core/webviews"
+      "lerna run --scope @salesforce/salesforcedx-webview-ui compile"
   },
   "repository": {
     "type": "git",

@@ -45,7 +45,7 @@
   },
   "scripts": {
     "compile":
-      "./node_modules/.bin/cross-env PUBLIC_URL='__salesforcedx-vscode-core-prefix__' node scripts/build.js &&shx cp -R build ../../packages/salesforcedx-vscode-core/webviews",
+      "./node_modules/.bin/cross-env PUBLIC_URL='__salesforcedx-vscode-core-prefix__' node scripts/build.js && shx rm -rf ../../salesforcedx-vscode-core/webview && shx cp -R build ../../packages/salesforcedx-vscode-core/webviews",
     "lint": "tslint --project .",
     "start": "node scripts/start.js",
     "clean":
