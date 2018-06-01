@@ -165,10 +165,11 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
 
 export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
+    const nonNullDebugLevel = developerLogTraceFlag.getDebugLevelId()!;
     return new SfdxCommandBuilder()
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'DebugLevel')
-      .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId()!)
+      .withFlag('--sobjectid', nonNullDebugLevel)
       .withFlag(
         '--values',
         `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`
@@ -181,10 +182,11 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
 
 export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
+    const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
     return new SfdxCommandBuilder()
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'TraceFlag')
-      .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId()!)
+      .withFlag('--sobjectid', nonNullTraceFlag)
       .withFlag(
         '--values',
         `StartDate='${developerLogTraceFlag

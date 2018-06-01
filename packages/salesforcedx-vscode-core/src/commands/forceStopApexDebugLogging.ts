@@ -66,11 +66,12 @@ export async function turnOffLogging(): Promise<void> {
 }
 
 function deleteTraceFlag(): Command {
+  const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
   return new SfdxCommandBuilder()
     .withDescription(nls.localize('force_stop_apex_debug_logging'))
     .withArg('force:data:record:delete')
     .withFlag('--sobjecttype', 'TraceFlag')
-    .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId()!)
+    .withFlag('--sobjectid', nonNullTraceFlag)
     .withArg('--usetoolingapi')
     .build();
 }
