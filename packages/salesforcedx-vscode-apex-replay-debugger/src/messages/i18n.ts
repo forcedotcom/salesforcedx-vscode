@@ -25,8 +25,8 @@ export const messages = {
     'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%s',
   local_source_is_out_of_sync_with_the_server:
     "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
-  long_command_start: 'Start',
-  long_command_end: 'End',
+  long_command_start: 'Starting',
+  long_command_end: 'Ending',
   sfdx_update_checkpoints_in_org: 'SFDX: Update Checkpoints in Org',
   checkpoint_creation_status_org_info:
     'Step 1 of 6: Retrieving org information',
