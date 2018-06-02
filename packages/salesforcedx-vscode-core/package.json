@@ -291,7 +291,8 @@
         },
         {
           "command": "sfdx.force.manifest.editor.show",
-          "when": "config.salesforcedx-vscode-core.show_experimental_webviews"
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.show_experimental_webviews"
         }
       ]
     },
