@@ -74,6 +74,20 @@
       "problemMatcher": "$tsc-watch"
     },
     {
+      "label": "Test salesforcedx-webview-ui",
+      "command": "npm",
+      "type": "shell",
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "args": ["run", "test-webview"],
+      "problemMatcher": "$tsc-watch"
+    },
+    {
       "label": "Start salesforcedx-webview-ui server",
       "command": "npm",
       "type": "shell",

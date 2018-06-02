@@ -44,8 +44,9 @@
     "reformat": "node scripts/reformat-with-prettier.js",
     "start-webview": "npm run start --prefix=packages/salesforcedx-webview-ui",
     "build-webview": "npm run build --prefix=packages/salesforcedx-webview-ui",
+    "test-webview": "npm run test --prefix=packages/salesforcedx-webview-ui",
     "bundle-webview":
-      "lerna run --scope @salesforce/salesforcedx-webview-ui compile"
+      "npm run compile --prefix=packages/salesforcedx-webview-ui"
   },
   "repository": {
     "type": "git",

@@ -5,6 +5,9 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "private": true,
+  "engines": {
+    "vscode": "^1.17.0"
+  },
   "dependencies": {
     "@blueprintjs/core": "2.3.1",
     "autoprefixer": "7.1.6",
