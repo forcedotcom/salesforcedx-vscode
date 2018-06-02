@@ -4,12 +4,13 @@ This package contains React web components that we use in our Webview panels for
 VS Code. 
 
 In general, VS Code doesn't support arbitrary manipulations to its UI via the
-DOM. This is documented at their [Extensibility Principles and
-Patterns](https://code.visualstudio.com/docs/extensionAPI/patterns-and-principles#_extensibility-api).
+DOM. This is documented at its [Extensibility Principles and
+Patterns](https://code.visualstudio.com/docs/extensionAPI/patterns-and-principles#_extensibility-api)
+page.
 
 However, there are times when we do need to provide our own custom UI within VS
-Code. Fortunately, VS Code 1.23 provide for this via the [VS Code WebView
-API](https://code.visualstudio.com/docs/extensions/webview)
+Code. Fortunately, VS Code 1.23 and above provide for this via the [VS Code
+WebView API](https://code.visualstudio.com/docs/extensions/webview)
 
 The gist of this approach is that we create HTML pages that contain React
 components, and we expose them as panels inside VS Code.
@@ -17,25 +18,77 @@ components, and we expose them as panels inside VS Code.
 # Architecture
 
 ```
-+--------------------------------+                 +-------------------------------+
-|                                |                 |                               |
-|  +-----------+  +-----------+  |                 |                               |
-|  |           |  |           |  |   postMessage   |                               |
-|  |   Cmp1    |  |   Cmp2    | +------------------->                              |
-|  |           |  |           |  |                 |                               |
-|  +-----------+  +-----------+  |                 |                               |
-|  +--------------------------+  |                 |                               |
-|  |                          |  |                 |                               |
-|  |                          |  |                 |                               |
-|  |           Cmp3           |  |                 |                               |
-|  |                          |  |                 |                               |
-|  |                          |  |                 |                               |
-|  |                          |  |   postMessage   |                               |
-|  +--------------------------+ <-------------------+                              |
-|                                |                 |                               |
-+--------------------------------+                 +-------------------------------+
+┌────────────────────────────────────────────────────┐
+│                                                    │
+│   ┌───────────────────────────────────────────┐    │
+│   │                                           │    │
+│   │ ┌──────────────────┐ ┌──────────────────┐ │    │
+│   │ │                  │ │                  │ │    │
+│   │ │   Component #A   │ │   Component #B   │ │    │
+│   │ │                  │ │                  │ │    │
+│   │ │                  │ │                  │ │    │
+│   │ └──────────────────┘ └──────────────────┘ │    │
+│   │ ┌───────────────────────────────────────┐ │    │
+│   │ │                                       │ │    │
+│   │ │             Component #E              │ │    │
+│   │ │                                       │ │    │
+│   │ │                                       │ │    │
+│   │ └───────────────────────────────────────┘ │    │
+│   │                                           │    │
+│   │                                           │    │
+│   │                                           │    │                          ┌─────────────────────────┐
+│   │                      ┌─────────────────┐  │    │      ┌───────────┐       │                         │
+│   │                      │                 │  │    │      │postMessage│       │  ┌─────────────────┐    │
+│   │                      │                 │  │  ──┼──────┴───────────┴───────┼▶ │                 │    │
+│   │                      │ ┌─────────────┐ │  │    │                          │  │                 │    │
+│   │                      │ │EventListener│ │  │    │                          │  │ ┌─────────────┐ │    │
+│   │                      │ └─────────────┘ │  │    │                          │  │ │EventListener│ │    │
+│   │                      │                 │  │    │                          │  │ └─────────────┘ │    │
+│   │                      │                 │  │  ◀─┼──────┬───────────┬───────┼─ │                 │    │
+│   │                             ◀──────────┘  │    │      │postMessage│       │  │                 │    │
+│   │                                           │    │      └───────────┘       │         ◀──────────┘    │
+│   └───────────────────────────────────────────┘    │                          │                         │
+│                    HTML Page #1                    │                          │                         │
+│                                                    │                          │                         │
+└────────────────────────────────────────────────────┘                          │                         │
+                   WebviewPanel #1                                              │                         │
+                                                                                │                         │             ─
+┌────────────────────────────────────────────────────┐                          │                         │
+│                                                    │                          │                         │
+│   ┌───────────────────────────────────────────┐    │                          │                         │     ┌────────────────┐
+│   │                                           │    │                          │                        ◀┼─────▶      F/S       │
+│   │ ┌──────────────────┐ ┌──────────────────┐ │    │                          │                         │     └────────────────┘
+│   │ │                  │ │                  │ │    │                          │                         │     ┌────────────────┐
+│   │ │   Component #B   │ │   Component #A   │ │    │                          │                        ◀┼─────▶      Web       │
+│   │ │                  │ │                  │ │    │                          │                         │     └────────────────┘
+│   │ │                  │ │                  │ │    │                          │                         │     ┌────────────────┐
+│   │ └──────────────────┘ └──────────────────┘ │    │                          │                        ◀┼─────▶ Salesforce CLI │
+│   │ ┌───────────────────────────────────────┐ │    │                          │                         │     └────────────────┘
+│   │ │                                       │ │    │                          │                         │
+│   │ │             Component #C              │ │    │                          │                         │
+│   │ │                                       │ │    │                          │                         │
+│   │ │                                       │ │    │                          │                         │
+│   │ └───────────────────────────────────────┘ │    │                          │                         │
+│   │                                           │    │                          │                         │
+│   │                                           │    │                          │                         │
+│   │                                           │    │                          │                         │
+│   │                      ┌─────────────────┐  │    │                          │   ┌─────────────────┐   │
+│   │                      │                 │  │    │      ┌───────────┐       │   │                 │   │
+│   │                      │                 │  │    │      │postMessage│       │   │                 │   │
+│   │                      │ ┌─────────────┐ │  │  ──┼──────┴───────────┴───────┼▶  │ ┌─────────────┐ │   │
+│   │                      │ │EventListener│ │  │    │                          │   │ │EventListener│ │   │
+│   │                      │ └─────────────┘ │  │    │                          │   │ └─────────────┘ │   │
+│   │                      │                 │  │    │                          │   │                 │   │
+│   │                      │                 │  │    │                          │   │                 │   │
+│   │                             ◀──────────┘  │  ◀─┼──────┬───────────┬───────┼─         ◀──────────┘   │
+│   │                                           │    │      │postMessage│       │                         │
+│   └───────────────────────────────────────────┘    │      └───────────┘       │                         │
+│                    HTML Page #2                    │                          └─────────────────────────┘
+│                                                    │
+└────────────────────────────────────────────────────┘                               VS Code Extension
+                   WebviewPanel #2
 
-          WebviewPanel                                    VS Code Extension
+Created with Monodraw
 ```
 
 We can embed an HTML page that contains our components into a WebviewPanel.
@@ -43,12 +96,22 @@ Those components can communicate with the VS Code Extension via message passing.
 Similarly, the VS Code Extension can communicate with the WebviewPanel via
 message passing. The communication protocol is up to the implementor. 
 
+There is no limit on the number of WebviewPanels that we can embed. However,
+since each one WebviewPanel is backed by an Electron WebView, which runs in its
+own process, there could be performance penalties.
+
 # Third-party Libraries
 
 * [react-script-ts](https://github.com/wmonk/create-react-app-typescript) - Provides the template for the project structure
 * [create-react-app](https://github.com/facebook/create-react-app) - The basis for the project structure. Read this to understand how things work underneath.
 * [Blueprint](http://blueprintjs.com/docs/v2/) - For UI components
 * [Jest](https://facebook.github.io/jest/) - For testing
+
+# Useful Reading
+
+* [`<webview>` Tag](https://electronjs.org/docs/api/webview-tag)
+* [Interop’s Labyrinth: Sharing Code Between Web & Electron Apps](https://slack.engineering/interops-labyrinth-sharing-code-between-web-electron-apps-f9474d62eccc)
+* [Growing Pains: Migrating Slack’s Desktop App to BrowserView](https://slack.engineering/growing-pains-migrating-slacks-desktop-app-to-browserview-2759690d9c7b)
 
 # Developer Flow
 
@@ -64,12 +127,14 @@ accomplish this via an in-memory web server that watches for changes to files
 1. This should open your default web browser to the main page.
 1. Navigate to an entry point of your choice.
 
-As you make edits, the web page should also refresh.
+As you make edits, the web page should also refresh automatically. If there are
+errors, you can see them in the Output panel in VS Code.
 
 ### Debugging
 
-You can use the Chrome Developer with React Developer Tools to debug.
-The in-memory web server automatically includes the necessary source maps.
+You can use the Chrome Developer with [React Developer
+Tools](https://github.com/facebook/react-devtools) to debug. The in-memory web
+server automatically includes the necessary source maps.
 
 ## Bundling the UI into VS Code
 
