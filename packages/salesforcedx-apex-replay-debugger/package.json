@@ -5,6 +5,7 @@
     "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
   "version": "42.18.0",
   "publisher": "salesforce",
+  "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.23.0"
