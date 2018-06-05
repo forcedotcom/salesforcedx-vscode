@@ -20,7 +20,7 @@
   "engines": {
     "vscode": "^1.23.0"
   },
-  "categories": ["Languages"],
+  "categories": ["Programming Languages"],
   "dependencies": {
     "@salesforce/salesforcedx-slds-linter": "42.18.0"
   },

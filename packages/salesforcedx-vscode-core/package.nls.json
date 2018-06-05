@@ -61,5 +61,10 @@
 
   "isv_bootstrap_command_text":
     "SFDX: Create and Set Up Project for ISV Debugging",
-  "force_apex_log_get_text": "SFDX: Get Apex Debug Logs..."
+  "force_apex_log_get_text": "SFDX: Get Apex Debug Logs...",
+
+  "force_manifest_editor_show_text":
+    "SFDX: Show Package Manifest Editor (Experimental)",
+  "show_experimental_webviews_description":
+    "Specifies whether the commands for the experimental webviews are available to the user."
 }

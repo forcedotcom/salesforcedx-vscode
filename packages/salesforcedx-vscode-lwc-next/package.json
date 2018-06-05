@@ -21,7 +21,7 @@
   "engines": {
     "vscode": "^1.23.0"
   },
-  "categories": ["Languages"],
+  "categories": ["Programming Languages"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "42.18.0",
     "ajv": "^6.1.1",

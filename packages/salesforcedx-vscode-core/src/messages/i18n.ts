@@ -170,6 +170,7 @@ export const messages = {
     'You are running Salesforce Extensions for VS Code in demo mode. You will be prompted for confirmation when connecting to production orgs.',
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
+  force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
 
-  force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs'
+  manifest_editor_title_message: 'Manifest Editor'
 };

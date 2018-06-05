@@ -1,0 +1,10 @@
+{
+  "extends": "@salesforce/dev-config/tslint",
+  "rules": {
+    "no-reserved-keywords": false,
+    "no-any": false,
+    "quotemark": [true, "single", "avoid-escape", "jsx-double"],
+    "member-ordering": false,
+    "no-string-based-set-timeout": false
+  }
+}
