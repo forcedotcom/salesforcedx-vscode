@@ -274,14 +274,10 @@ module.exports = {
     new UglifyJsPlugin({
       uglifyOptions: {
         parse: {
-          // we want uglify-js to parse ecma 8 code. However we want it to output
-          // ecma 5 compliant code, to avoid issues with older browsers, this is
-          // whey we put `ecma: 5` to the compress and output section
-          // https://github.com/facebook/create-react-app/pull/4234
           ecma: 8
         },
         compress: {
-          ecma: 5,
+          ecma: 6,
           warnings: false,
           // Disabled because of an issue with Uglify breaking seemingly valid code:
           // https://github.com/facebook/create-react-app/issues/2376
@@ -293,7 +289,7 @@ module.exports = {
           safari10: true
         },
         output: {
-          ecma: 5,
+          ecma: 6,
           comments: false,
           // Turned on because emoji and regex is not minified properly using default
           // https://github.com/facebook/create-react-app/issues/2488
