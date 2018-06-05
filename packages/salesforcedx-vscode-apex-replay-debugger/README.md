@@ -1,13 +1,55 @@
-# salesforcedx-vscode-apex-replay-debugger
-This extension enables VS Code to use Apex Debug Logs to replay a debugging experience.
+# salesforcedx-vscode-apex-replay-debugger (Beta)
+Apex Replay Debugger simulates a live debugging session using a debug log, which is a recording of all interactions in a transaction. You no longer need to parse through thousands of log lines manually. Instead, Apex Replay Debugger presents the logged information similarly to an interactive debugger, so you can debug your Apex code.
+
+---
+As a beta feature, Apex Replay Debugger is a preview and isn’t part of the “Services” under your master subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this feature within any particular time frame or at all, and we can discontinue it at any time. This feature is for evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally to your use of this feature. You can provide feedback and suggestions for Apex Replay Debugger in the [Issues section](https://github.com/forcedotcom/salesforcedx-vscode/issues) of the salesforcedx-vscode repository on GitHub.
+
+---
 
 ## Prerequisites
+Before you set up Apex Replay Debugger, make sure that you have these essentials.
 
-## Set Up the Apex Replay Debugger
+* **Salesforce CLI and a Salesforce DX project**  
+  * Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup) and [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm).  
+  * Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.  
+* **An active default scratch org _OR_ a local copy of a debug log from the org whose up-to-date source is in your Salesforce DX project**
+  * To create a scratch org, you need a Dev Hub. For information on setting up your production org as a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_.  
+  * To authorize your Dev Hub, open VS Code’s command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Authorize a Dev Hub**.  
+  * To create a default scratch org, run **SFDX: Create a Default Scratch Org**. Then, run **SFDX: Push Source to Default Scratch Org**. For information about scratch orgs, see [Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs.htm) in the _Salesforce DX Developer Guide_.
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later** 
+* **The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions**  
+We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
+
+## Set Up Apex Replay Debugger
+Apex Replay Debugger helps you debug issues in an after-the-fact manner. Your debugging process is a repetition of changing and pushing Apex source to your org, reproducing the scenario, downloading the debug log, and launching Apex Replay Debugger with that debug log.
+
+1. To enable logging from VS Code, open the command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
+1. Reproduce the scenario you want to debug. You can do this by running **SFDX: Invoke Apex Tests**, by running **SFDX: Execute Anonymous Apex with Currently Selected Text** or **SFDX: Execute Anonymous Apex with Editor Contents**, or by executing manual steps in your org in a web browser. 
+1. To get a list of debug logs in your org, run **SFDX: Get Apex Debug Logs**. This command displays a list of logs so you can select which ones to download.
+1. Create a VS Code launch configuration for that debug log.
+1. To launch Replay Debugger, select a launch configuration and then click the play icon next to the launch configuration drop-down menu.
 
 ## Debug Your Code
 
+## Considerations
+Keep these limitations and known issues in mind when working with Apex Replay Debugger.
+
+* You can replay only one debug log at a time. This can make it difficult to debug asynchronous Apex, which produces multiple debug logs.
+* You can’t replay a debug log generated by scheduled Apex.
+* Long string variable values are truncated.
+* Viewing a standard or custom object, you can drill down only to its immediate child variables (one level deep).
+* You can’t expand a collection (a list, set, or map), because its members are shown in their string form.
+* Modifying a collection does not update the collection variable in Variables view.
+* You can’t set method or conditional breakpoints.
+* You can’t evaluate or watch variables or expressions in the Debug view’s WATCH section.
+* While debugging, right-clicking a variable in the VARIABLES section of the Debug view and selecting **Copy Value** works properly, but **Copy as Expression** and **Add to Watch** don’t work as expected. 
+  * **Copy as Expression** functions like Copy Value: It copies the variable’s value instead of copying the full variable name.
+  * **Add to Watch** copies the variable’s value into the WATCH section, but because we don’t evaluate variables in this section you see only `<VariableValue>:<VariableValue>`.
+
 ## Resources
+
+* YouTube: Salesforce Releases: [Platform Services: Apex Replay Debugger](https://www.youtube.com/watch?v=8GVuMT4MHWc)
+* TrailheaDX ’18 session video: [Banish the Bugs: Apex Debuggers to the Rescue!](https://www.salesforce.com/video/2520334/)
 
 ---
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.  
