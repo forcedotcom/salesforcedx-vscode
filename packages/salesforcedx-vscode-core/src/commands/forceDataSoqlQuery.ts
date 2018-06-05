@@ -17,59 +17,98 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
+  CompositeParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 
 class ForceDataSoqlQueryExecutor extends SfdxCommandletExecutor<{}> {
-  public build(data: QueryInput): Command {
-    return new SfdxCommandBuilder()
+  public build(data: QueryAndApi): Command {
+    let command = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_data_soql_query_input_text'))
       .withArg('force:data:soql:query')
-      .withFlag('--query', `${data.input}`)
-      .build();
+      .withFlag('--query', `${data.query}`);
+    if (data.api === ApiType.Tooling) {
+      command = command.withArg('--usetoolingapi');
+    }
+    return command.build();
   }
 }
 
-export type QueryInput = {
-  input: string;
-};
-
-export class GetQueryInput implements ParametersGatherer<{ input: string }> {
+export class GetQueryInput implements ParametersGatherer<QueryInput> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ input: string }>
+    CancelResponse | ContinueResponse<QueryInput>
   > {
     const editor = await vscode.window.activeTextEditor;
 
-    let input;
+    let query;
 
     if (!editor) {
       const userInputOptions = {
         prompt: nls.localize('parameter_gatherer_enter_soql_query')
       } as vscode.InputBoxOptions;
-      input = await vscode.window.showInputBox(userInputOptions);
+      query = await vscode.window.showInputBox(userInputOptions);
     } else {
       const document = editor.document;
       if (editor.selection.isEmpty) {
         const userInputOptions = {
           prompt: nls.localize('parameter_gatherer_enter_soql_query')
         } as vscode.InputBoxOptions;
-        input = await vscode.window.showInputBox(userInputOptions);
+        query = await vscode.window.showInputBox(userInputOptions);
       } else {
-        input = document.getText(editor.selection);
+        query = document.getText(editor.selection);
       }
     }
 
-    input = input!.replace('[', '').replace(']', '');
-    return input ? { type: 'CONTINUE', data: { input } } : { type: 'CANCEL' };
+    query = query!.replace('[', '').replace(']', '');
+    return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
   }
 }
+
+export enum ApiType {
+  REST,
+  Tooling
+}
+
+export interface QueryInput {
+  query: string;
+}
+export interface ApiInput {
+  api: ApiType;
+}
+
+export class SelectApi implements ParametersGatherer<ApiInput> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<ApiInput>> {
+    const restApi = {
+      api: ApiType.REST,
+      label: nls.localize('REST_API'),
+      description: nls.localize('REST_API_description')
+    };
+
+    const toolingApi = {
+      api: ApiType.Tooling,
+      label: nls.localize('tooling_API'),
+      description: nls.localize('tooling_API_description')
+    };
+
+    const apiItems = [restApi, toolingApi];
+    const selection = await vscode.window.showQuickPick(apiItems);
+    return selection
+      ? { type: 'CONTINUE', data: { api: selection.api } }
+      : { type: 'CANCEL' };
+  }
+}
+
+export type QueryAndApi = QueryInput & ApiInput;
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
 export async function forceDataSoqlQuery(explorerDir?: any) {
-  const parameterGatherer = new GetQueryInput();
+  const parameterGatherer = new CompositeParametersGatherer<QueryAndApi>(
+    new GetQueryInput(),
+    new SelectApi()
+  );
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
