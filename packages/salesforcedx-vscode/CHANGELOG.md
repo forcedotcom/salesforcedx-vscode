@@ -2,7 +2,7 @@
 ### Added
 #### salesforcedx-vscode-apex-replay-debugger
 
-* Apex Replay Debugger extension for VS Code ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-replay-debugger))
+* Apex Replay Debugger extension for VS Code ([Read more](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger))
 * SFDX: Turn On Apex Debug Log for Replay Debugger ([PR #264](https://github.com/forcedotcom/salesforcedx-vscode/pull/264))
 * SFDX: Turn Off Apex Debug Log for Replay Debugger ([PR #264](https://github.com/forcedotcom/salesforcedx-vscode/pull/264))
 * SFDX: Launch Apex Replay Debugger with Current File ([PR #423](https://github.com/forcedotcom/salesforcedx-vscode/pull/423))
@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-apex-debugger
 
-* ISV Customer Debugger to debug subscribers of managed packages ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger#isv-customer-debugger))
+* Use ISV Customer Debugger to debug subscribers of managed packages ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger#isv-customer-debugger))
 * SFDX: Create and Set Up Project for ISV Debugging ([PR #282](https://github.com/forcedotcom/salesforcedx-vscode/pull/282))
 
 ### Fixed

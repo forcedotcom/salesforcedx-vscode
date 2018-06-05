@@ -19,7 +19,7 @@ Currently, we have the following extensions:
 * [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)  
    This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs.
 * [salesforcedx-vscode-apex-replay-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)
-   This extension enables VS Code to replay Apex execution from Apex Debug Log.
+   This extension enables VS Code to replay Apex execution from Apex debug logs.
 * [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
    This extension supports Lightning component bundles. It uses the HTML language server from VS Code.
 * [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
