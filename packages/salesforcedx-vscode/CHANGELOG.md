@@ -1,3 +1,18 @@
+## 43.2.0 - June 9, 2018
+### Added
+#### salesforcedx-vscode-apex-replay-debugger
+
+* Apex Replay Debugger extension for VS Code ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-replay-debugger))
+
+#### salesforcedx-vscode-apex-debugger
+
+* ISV Customer Debugger to debug subscribers of managed packages ([Read more](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger#isv-customer-debugger))
+
+### Fixed
+#### salesforcedx-vscode-apex-debugger
+
+* Launch Apex Debugger session with an active Visual Studio Live Share session ([PR #442](https://github.com/forcedotcom/salesforcedx-vscode/pull/442))
+
 ## 42.18.0 - May 31, 2018
 ### Fixed
 
