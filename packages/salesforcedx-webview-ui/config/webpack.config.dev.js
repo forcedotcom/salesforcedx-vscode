@@ -42,7 +42,7 @@ module.exports = {
   // You may want 'eval' instead if you prefer to see the compiled output in DevTools.
   // See the discussion in https://github.com/facebookincubator/create-react-app/issues/343.
   devtool: 'cheap-module-source-map',
-  entry: paths.webpackEntriesDevFn ,
+  entry: paths.webpackEntriesDevFn,
   output: {
     // Add /* filename */ comments to generated require()s in the output.
     pathinfo: true,
@@ -122,10 +122,18 @@ module.exports = {
           // smaller than specified limit in bytes as data URLs to avoid requests.
           // A missing `test` is equivalent to a match.
           {
-            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+            test: [
+              /\.bmp$/,
+              /\.gif$/,
+              /\.jpe?g$/,
+              /\.png$/,
+              /\.eot$/,
+              /\.ttf$/,
+              /\.woff$/
+            ],
             loader: require.resolve('url-loader'),
             options: {
-              limit: 10000,
+              limit: 100000,
               name: 'media/[name].[ext]'
             }
           },
