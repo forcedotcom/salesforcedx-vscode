@@ -78,6 +78,12 @@
         "path":
           "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
       }
+    ],
+    "snippets": [
+      {
+        "language": "apex",
+        "path": "./snippets/apex.json"
+      }
     ]
   },
   "dependencies": {
