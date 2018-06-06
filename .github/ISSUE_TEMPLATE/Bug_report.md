@@ -1,3 +1,9 @@
+---
+name: Bug report
+about: Create a report to help us improve
+
+---
+
 ### Summary
 _Short summary of what is going on or to provide context_.
 
