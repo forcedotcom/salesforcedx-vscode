@@ -1,12 +1,9 @@
-# salesforcedx-vscode
-
-## Salesforce Extensions for VS Code  
-
+# Salesforce Extensions for Visual Studio Code  
 This extension bundle includes tools for developing on the Salesforce platform using the Salesforce DX development flow in the lightweight, extensible VS Code editor. These tools provide features for working with scratch orgs, Apex, Lightning components, and Visualforce.
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)  
 
-###  Prerequisites
+##  Prerequisites
 Before you set up Salesforce Extensions for VS Code, make sure that you have these essentials.
 
 * **Salesforce CLI and a Salesforce DX project**  
@@ -17,7 +14,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
 * **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later**  
 
-### Documentation for Included Extensions  
+## Documentation for Included Extensions  
 To use Salesforce Extensions for VS Code, install all the extensions in this extension pack. Each extension has its own documentation.
 * [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)  
    This extension interacts with the Salesforce CLI to provide basic Salesforce DX functionality.
@@ -32,10 +29,10 @@ To use Salesforce Extensions for VS Code, install all the extensions in this ext
 
 For tips and tricks for working with Salesforce Extensions for VS Code, visit our [GitHub wiki](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Tips-and-Tricks).  
    
-### Report Issues on GitHub
-To report issues with Salesforce Extensions for VS Code, visit us on [GitHub](https://github.com/forcedotcom/salesforcedx-vscode).  
+## Bugs and Feedback
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a new [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
-### Resources
+## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 * _[Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)_
 * _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_

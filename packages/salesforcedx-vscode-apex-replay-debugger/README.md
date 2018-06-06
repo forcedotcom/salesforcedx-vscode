@@ -1,4 +1,4 @@
-# salesforcedx-vscode-apex-replay-debugger
+# Apex Replay Debugger for Visual Studio Code
 This extension enables VS Code to use Apex Debug Logs to replay a debugging experience.
 
 ## Prerequisites
@@ -6,6 +6,9 @@ This extension enables VS Code to use Apex Debug Logs to replay a debugging expe
 ## Set Up the Apex Replay Debugger
 
 ## Debug Your Code
+
+## Bugs and Feedback
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a new [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
 ## Resources
 
