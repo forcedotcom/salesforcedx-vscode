@@ -17,7 +17,6 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
-  CompositeParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
