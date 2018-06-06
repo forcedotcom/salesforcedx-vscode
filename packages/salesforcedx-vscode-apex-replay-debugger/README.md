@@ -19,7 +19,7 @@ Before you set up Apex Replay Debugger, make sure that you have these essentials
   1. To create a scratch org, you need a Dev Hub. For information on setting up your production org as a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_.  
   1. To authorize your Dev Hub, open VS Code’s command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Authorize a Dev Hub**.  
   1. To create a default scratch org, run **SFDX: Create a Default Scratch Org**. Then, run **SFDX: Push Source to Default Scratch Org**. For information about scratch orgs, see [Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs.htm) in the _Salesforce DX Developer Guide_.
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later** 
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later** 
 * **The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions**  
 We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
 
@@ -27,6 +27,7 @@ We suggest that you install all extensions in the [salesforcedx-vscode](https://
 The first time that you use Apex Replay Debugger, create a launch configuration. Each time that you debug an issue, set up an Apex Replay Debugger session.
 
 ### Create a Launch Configuration
+To create a launch configuration for Apex Replay Debugger, create or update your project’s `.vscode/launch.json` file.
 
 1. Open your Salesforce DX project in VS Code.
 1. If your Salesforce DX project doesn’t already contain a JSON file with the file path `.vscode/launch.json`, create the file (and, if necessary, the folder).
