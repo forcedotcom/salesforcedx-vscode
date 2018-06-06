@@ -174,6 +174,6 @@ export const messages = {
   manifest_editor_title_message: 'Manifest Editor',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
-  REST_API_description: 'The Salesforce REST API',
-  tooling_API_description: 'The Salesforce Tooling API'
+  REST_API_description: 'Execute the query with REST API',
+  tooling_API_description: 'Execute the query with Tooling API'
 };
