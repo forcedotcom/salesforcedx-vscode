@@ -1,4 +1,4 @@
-# Apex Replay Debugger (Beta)
+# Apex Replay Debugger for Visual Studio Code (Beta)
 Apex Replay Debugger simulates a live debugging session using a debug log, which is a recording of all interactions in a transaction. You no longer need to parse through thousands of log lines manually. Instead, Apex Replay Debugger presents the logged information similarly to an interactive debugger, so you can debug your Apex code. 
 
 ---
