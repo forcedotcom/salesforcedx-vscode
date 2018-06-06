@@ -24,7 +24,7 @@ import {
 } from './commands';
 
 class ForceDataSoqlQueryExecutor extends SfdxCommandletExecutor<{}> {
-  public build(data: QueryAndApi): Command {
+  public build(data: QueryAndApiInputs): Command {
     let command = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_data_soql_query_input_text'))
       .withArg('force:data:soql:query')
@@ -36,9 +36,10 @@ class ForceDataSoqlQueryExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export class GetQueryInput implements ParametersGatherer<QueryInput> {
+export class GetQueryAndApiInputs
+  implements ParametersGatherer<QueryAndApiInputs> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<QueryInput>
+    CancelResponse | ContinueResponse<QueryAndApiInputs>
   > {
     const editor = await vscode.window.activeTextEditor;
 
@@ -60,26 +61,12 @@ export class GetQueryInput implements ParametersGatherer<QueryInput> {
         query = document.getText(editor.selection);
       }
     }
-
     query = query!.replace('[', '').replace(']', '');
-    return query ? { type: 'CONTINUE', data: { query } } : { type: 'CANCEL' };
-  }
-}
 
-export enum ApiType {
-  REST,
-  Tooling
-}
+    if (!query) {
+      return { type: 'CANCEL' };
+    }
 
-export interface QueryInput {
-  query: string;
-}
-export interface ApiInput {
-  api: ApiType;
-}
-
-export class SelectApi implements ParametersGatherer<ApiInput> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<ApiInput>> {
     const restApi = {
       api: ApiType.REST,
       label: nls.localize('REST_API'),
@@ -94,21 +81,27 @@ export class SelectApi implements ParametersGatherer<ApiInput> {
 
     const apiItems = [restApi, toolingApi];
     const selection = await vscode.window.showQuickPick(apiItems);
+
     return selection
-      ? { type: 'CONTINUE', data: { api: selection.api } }
+      ? { type: 'CONTINUE', data: { query, api: selection.api } }
       : { type: 'CANCEL' };
   }
 }
 
-export type QueryAndApi = QueryInput & ApiInput;
+export interface QueryAndApiInputs {
+  query: string;
+  api: ApiType;
+}
+
+export enum ApiType {
+  REST,
+  Tooling
+}
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
 export async function forceDataSoqlQuery(explorerDir?: any) {
-  const parameterGatherer = new CompositeParametersGatherer<QueryAndApi>(
-    new GetQueryInput(),
-    new SelectApi()
-  );
+  const parameterGatherer = new GetQueryAndApiInputs();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
