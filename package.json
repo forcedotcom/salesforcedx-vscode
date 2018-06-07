@@ -28,7 +28,7 @@
     "prepush": "npm run lint",
     "test": "lerna run test --concurrency 1 --stream",
     "test:unit":
-      "lerna exec --concurrency 1 --stream --bail=false --scope salesforcedx-vscode-core --scope salesforcedx-vscode-apex-replay-debugger -- npm run test:unit",
+      "lerna exec --concurrency 1 --stream --bail=false --scope @salesforce/salesforcedx-visualforce-markup-language-server -- npm run test:unit",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
     "test:without-system-tests":
       "lerna run test --ignore system-tests --concurrency 1 --stream",

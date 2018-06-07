@@ -39,7 +39,7 @@
     "test":
       "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
     "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=test/config.json"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]
