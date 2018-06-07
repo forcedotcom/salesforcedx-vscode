@@ -14,7 +14,7 @@ Before you set up the Apex Debugger, make sure that you have these essentials.
     * If your production org has access to the Apex Debugger, you can check how many sessions are available on the Apex Debugger page in Setup.
 * For ISV customer debugging: a License Management Org (LMO) that has login access to a subscriber’s sandbox org
 * [Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) v41.1.0 or later
-* [Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later
+* [Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later
 * The latest versions of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions (We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.)
 
 ## Set Up the Apex Debugger
