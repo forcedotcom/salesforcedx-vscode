@@ -17,11 +17,10 @@ jobs:
        - run: npm run compile
        - run: npm run test:unit
        - run: npm run aggregateJUnit
-       - run: junit-merge -d junit-aggregate -o junit-results/junit.xml
        - store_test_results:
-          path: junit-results/
+          path: junit-aggregate/
        - store_artifacts:
-          path: junit-results/
+          path: junit-aggregate/
 workflows:
   version: 2
   commit-workflow:
