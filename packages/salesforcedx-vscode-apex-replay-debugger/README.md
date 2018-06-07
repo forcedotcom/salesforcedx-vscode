@@ -92,7 +92,7 @@ Keep these limitations and known issues in mind when working with Apex Replay De
 * Long string variable values are truncated.
 * Viewing a standard or custom object, you can drill down only to its immediate child variables (one level deep).
 * You can’t expand a collection (a list, set, or map), because its members are shown in their string form.
-* Modifying a collection does not update the collection variable in Variables view.
+* Modifying a collection does not update the collection variable in the VARIABLES section of the Debug view.
 * You can’t set method or conditional breakpoints.
 * You can’t evaluate or watch variables or expressions in the Debug view’s WATCH section.
 * While debugging, right-clicking a variable in the VARIABLES section of the Debug view and selecting **Copy Value** works properly, but **Copy as Expression** and **Add to Watch** don’t work as expected. 
