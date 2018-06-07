@@ -52,7 +52,7 @@ To create a launch configuration for Apex Replay Debugger, create or update your
 
 ### Set Up an Apex Replay Debugger Session for a Scratch Org
 
-If you’re debugging an issue in a scratch org, we provide tools to generate a debug log to replay. Enable logging, reproduce your issue, get your debug log from the scratch org, then start a debugging session.
+If you’re debugging an issue in a scratch org, we provide tools to generate a debug log to replay. Enable logging, reproduce your issue, get your debug log from the scratch org, and then start a debugging session.
 
 1. To enable logging, from VS Code, open the command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
 1. Reproduce the scenario you want to debug. You can do this by:
@@ -71,7 +71,7 @@ If you’re not using a scratch org, download a debug log from your org before y
 1. In VS Code, open the debug log that you want to analyze.
 1. Run **SFDX: Launch Apex Replay Debugger with Current File**.  
 
-TIP: If your log file is part of your Salesforce DX project, you don’t need to open the log file and then run a separate command. Instead, you can find a log file in the Explorer view, right-click it, and then select **Launch Apex Replay Debugger with Current File**.
+TIP: If your log file is part of your Salesforce DX project, you don’t need to open the log file and then run a separate command. Instead, you can find a log file in the Explorer view, right-click it, and select **Launch Apex Replay Debugger with Current File**.
 
 ## Debug Your Code
 
