@@ -12,21 +12,16 @@ jobs:
 
      steps:
        - checkout
-       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
        - run: npm install
+       - run: sudo npm install -g junit-merge
        - run: npm run compile
-       - run: npm run vscode:package
-       - run:
-          command: |
-            mkdir extensions
-            find . -name "*.vsix" -type f -exec cp {} ./extensions \;
+       - run: npm run test:unit
+       - run: npm run aggregateJUnit
+       - run: junit-merge -d junit-aggregate -o junit-results/junit.xml
+       - store_test_results:
+          path: junit-results/
        - store_artifacts:
-          path: ./extensions
-       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
-          paths:
-            - node_modules
+          path: junit-results/
 workflows:
   version: 2
   commit-workflow:
