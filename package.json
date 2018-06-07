@@ -46,7 +46,7 @@
     "synk:test":
       "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
     "synk:monitor":
-      "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false",
+      "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=salesforce",
     "start-webview": "npm run start --prefix=packages/salesforcedx-webview-ui",
     "build-webview": "npm run build --prefix=packages/salesforcedx-webview-ui",
     "test-webview": "npm run test --prefix=packages/salesforcedx-webview-ui",
