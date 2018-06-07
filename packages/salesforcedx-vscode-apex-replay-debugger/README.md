@@ -22,7 +22,7 @@ Before you set up Apex Replay Debugger, make sure that you have these essentials
 We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
 
 ## Set Up Apex Replay Debugger
-The first time that you use Apex Replay Debugger, create a launch configuration. Each time that you debug an issue, set up an Apex Replay Debugger session.
+The first time that you use Apex Replay Debugger, create a launch configuration. Then, each time that you debug an issue, set up an Apex Replay Debugger session.
 
 ### Create a Launch Configuration
 To create a launch configuration for Apex Replay Debugger, create or update your project’s `.vscode/launch.json` file.
