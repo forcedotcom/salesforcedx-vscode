@@ -15,7 +15,6 @@ jobs:
        - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
        - run: npm install
-       - run: npm run synk:monitor
        - run: npm run compile
        - run: npm run vscode:package
        - run:
