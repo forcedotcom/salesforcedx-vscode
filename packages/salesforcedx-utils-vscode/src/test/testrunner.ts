@@ -34,6 +34,14 @@ function configure(mochaOpts: any): void {
     // default to 'mocha-multi-reporters' (to get xunit.xml result)
     mochaOpts.reporter = 'mocha-multi-reporters';
   }
+  if (!mochaOpts.reporterOptions) {
+    mochaOpts.reporterOptions = {
+      reporterEnabled: 'mocha-junit-reporter, spec',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: 'junit-custom.xml'
+      }
+    };
+  }
   mocha = new Mocha(mochaOpts);
 }
 exports.configure = configure;
