@@ -10,6 +10,7 @@
     "prettier": "1.6.0",
     "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
+    "snyk": "^1.82.1",
     "tslint": "5.5.0",
     "typescript": "2.6.2",
     "vsce": "^1.36.3"
@@ -42,6 +43,10 @@
     "eslint-check":
       "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
     "reformat": "node scripts/reformat-with-prettier.js",
+    "synk:test":
+      "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
+    "synk:monitor":
+      "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
     "start-webview": "npm run start --prefix=packages/salesforcedx-webview-ui",
     "build-webview": "npm run build --prefix=packages/salesforcedx-webview-ui",
     "test-webview": "npm run test --prefix=packages/salesforcedx-webview-ui",
