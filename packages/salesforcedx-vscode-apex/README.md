@@ -9,7 +9,7 @@ Before you set up this extension, make sure that you have these essentials.
 * **Java 8 Platform, Standard Edition Development Kit**  
   Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later**  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later**  
 * **[Salesforce Extensions for VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)**  
   Code smartness for sObjects in Apex code is powered by the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) extension. We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
 
