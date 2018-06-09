@@ -15,7 +15,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 * **Java 8 Platform, Standard Edition Development Kit**  
   Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later**  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later**  
 
 ### Documentation for Included Extensions  
 To use Salesforce Extensions for VS Code, install all the extensions in this extension pack. Each extension has its own documentation.
@@ -25,6 +25,8 @@ To use Salesforce Extensions for VS Code, install all the extensions in this ext
    This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
 * [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)  
    This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs.
+* [salesforcedx-vscode-apex-replay-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)  
+   This extension enables VS Code to replay Apex execution from Apex debug logs.
 * [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
    This extension supports Lightning component bundles. It uses the HTML language server from VS Code.
 * [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  

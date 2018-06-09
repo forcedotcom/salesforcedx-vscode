@@ -4,7 +4,7 @@ This extension uses the default HTML language server from VS Code to provide syn
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
 
 ##  Prerequisites
-Before you set up this extension, make sure that you have [Visual Studio Code](https://code.visualstudio.com/download) v1.17 or later.  
+Before you set up this extension, make sure that you have [Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later.  
 
 ## Features Provided by This Extension
 * Syntax highlighting in some sections of various files (`.page`, `.component`, `.app`, and so on)
