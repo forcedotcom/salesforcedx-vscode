@@ -5,24 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { showTraceFlagExpiration } from '../decorators';
 
 export class DeveloperLogTraceFlag {
   private static instance: DeveloperLogTraceFlag;
   private active: boolean;
-  private traceflagId: string;
+  private traceflagId: string | undefined;
+  private debugLevelId: string | undefined;
   private startDate: Date;
   private expirationDate: Date;
-  private debugLevelId: string;
-  private prevApexCodeDebugLevel: string;
-  private prevVFDebugLevel: string;
 
   public MILLISECONDS_PER_SECOND = 60000;
   public LOG_TIMER_LENGTH_MINUTES = 30;
 
   private constructor() {
     this.active = false;
+    this.startDate = new Date();
+    this.expirationDate = new Date();
   }
 
   public static getInstance() {
@@ -32,38 +31,21 @@ export class DeveloperLogTraceFlag {
     return DeveloperLogTraceFlag.instance;
   }
 
-  public createTraceFlagInfo() {
-    this.startDate = new Date();
-    this.expirationDate = new Date(
-      Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_SECOND
-    );
-  }
-
   public setTraceFlagDebugLevelInfo(
     id: string,
     startDate: string,
     expirationDate: string,
-    debugLevelId: string,
-    oldApexCodeDebugLevel: string,
-    oldVFDebugLevel: string
+    debugLevelId: string
   ) {
     this.traceflagId = id;
     this.startDate = new Date(startDate);
     this.expirationDate = new Date(expirationDate);
     this.debugLevelId = debugLevelId;
-    this.prevApexCodeDebugLevel = oldApexCodeDebugLevel;
-    this.prevVFDebugLevel = oldVFDebugLevel;
     this.active = true;
   }
 
-  public setDebugLevelInfo(
-    debugLevelId: string,
-    oldApexCodeDebugLevel = APEX_CODE_DEBUG_LEVEL,
-    oldVFDebugLevel = VISUALFORCE_DEBUG_LEVEL
-  ) {
+  public setDebugLevelId(debugLevelId: string) {
     this.debugLevelId = debugLevelId;
-    this.prevApexCodeDebugLevel = oldApexCodeDebugLevel;
-    this.prevVFDebugLevel = oldVFDebugLevel;
   }
 
   public setTraceFlagId(id: string) {
@@ -94,19 +76,13 @@ export class DeveloperLogTraceFlag {
   }
 
   public turnOffLogging() {
+    this.debugLevelId = undefined;
+    this.traceflagId = undefined;
     this.active = false;
   }
 
   public isActive() {
     return this.active;
-  }
-
-  public getPrevApexCodeDebugLevel() {
-    return this.prevApexCodeDebugLevel;
-  }
-
-  public getPrevVFCodeDebugLevel() {
-    return this.prevVFDebugLevel;
   }
 
   public getDebugLevelId() {

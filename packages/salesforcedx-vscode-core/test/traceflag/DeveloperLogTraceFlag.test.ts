@@ -16,9 +16,7 @@ describe('Force Start Apex Debug Logging', () => {
         'fakeTraceFlagId',
         new Date().toUTCString(),
         new Date().toUTCString(),
-        'fakeDebugLevelId',
-        'NONE',
-        'INFO'
+        'fakeDebugLevelId'
       );
     });
 
@@ -29,17 +27,6 @@ describe('Force Start Apex Debug Logging', () => {
     it('Should update dates to a 30 minute window if date length is invalid', () => {
       expect(developerLogTraceFlag.isValidDateLength()).to.be.false;
       developerLogTraceFlag.validateDates();
-      expect(
-        developerLogTraceFlag.getExpirationDate().getTime() -
-          developerLogTraceFlag.getStartDate().getTime()
-      ).to.equal(
-        developerLogTraceFlag.LOG_TIMER_LENGTH_MINUTES *
-          developerLogTraceFlag.MILLISECONDS_PER_SECOND
-      );
-    });
-
-    it('Should create dates with a 30 minute window when creating a new traceflag', () => {
-      developerLogTraceFlag.createTraceFlagInfo();
       expect(
         developerLogTraceFlag.getExpirationDate().getTime() -
           developerLogTraceFlag.getStartDate().getTime()

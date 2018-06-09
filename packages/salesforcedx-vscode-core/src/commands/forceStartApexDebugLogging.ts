@@ -61,9 +61,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
           traceflag.Id,
           traceflag.StartDate,
           traceflag.ExpirationDate,
-          traceflag.DebugLevelId,
-          traceflag.DebugLevel.ApexCode,
-          traceflag.DebugLevel.Visualforce
+          traceflag.DebugLevelId
         );
         await this.subExecute(new UpdateDebugLevelsExecutor().build());
 
@@ -74,12 +72,12 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       } else {
         resultJson = await this.subExecute(new CreateDebugLevel().build());
         const debugLevelId = resultJson.result.id;
-        developerLogTraceFlag.setDebugLevelInfo(debugLevelId);
+        developerLogTraceFlag.setDebugLevelId(debugLevelId);
 
         const userId = await getUserId(
           vscode.workspace.workspaceFolders![0].uri.fsPath
         );
-        developerLogTraceFlag.createTraceFlagInfo();
+        developerLogTraceFlag.validateDates();
         resultJson = await this.subExecute(new CreateTraceFlag(userId).build());
         developerLogTraceFlag.setTraceFlagId(resultJson.result.id);
       }
@@ -167,10 +165,11 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
 
 export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
+    const nonNullDebugLevel = developerLogTraceFlag.getDebugLevelId()!;
     return new SfdxCommandBuilder()
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'DebugLevel')
-      .withFlag('--sobjectid', developerLogTraceFlag.getDebugLevelId())
+      .withFlag('--sobjectid', nonNullDebugLevel)
       .withFlag(
         '--values',
         `ApexCode=${APEX_CODE_DEBUG_LEVEL} Visualforce=${VISUALFORCE_DEBUG_LEVEL}`
@@ -183,10 +182,11 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
 
 export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
+    const nonNullTraceFlag = developerLogTraceFlag.getTraceFlagId()!;
     return new SfdxCommandBuilder()
       .withArg('force:data:record:update')
       .withFlag('--sobjecttype', 'TraceFlag')
-      .withFlag('--sobjectid', developerLogTraceFlag.getTraceFlagId())
+      .withFlag('--sobjectid', nonNullTraceFlag)
       .withFlag(
         '--values',
         `StartDate='${developerLogTraceFlag
