@@ -21,9 +21,7 @@
   "engines": {
     "vscode": "^1.23.0"
   },
-  "categories": [
-    "Languages"
-  ],
+  "categories": ["Languages"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "43.2.0",
     "ajv": "^6.1.1",
@@ -57,22 +55,24 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "pretest": "node ../../scripts/download-vscode-for-system-tests",
-    "test": "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit": "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
+    "test":
+      "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit":
+      "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "menus": {
       "explorer/context": [
         {
           "command": "sfdx.force.lightning.lwc.create",
-          "when": "explorerResourceIsFolder && resourceFilename == lightningcomponents && sfdx:project_opened"
+          "when":
+            "explorerResourceIsFolder && resourceFilename == lightningcomponents && sfdx:project_opened"
         }
       ],
       "commandPalette": [
