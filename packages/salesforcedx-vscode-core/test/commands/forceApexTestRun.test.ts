@@ -70,7 +70,6 @@ describe('Force Apex Test Run', () => {
 
   describe('Tests selector', () => {
     let quickPickStub: sinon.SinonStub;
-
     beforeEach(() => {
       quickPickStub = sinon.stub(vscode.window, 'showQuickPick').returns({
         label: nls.localize('force_apex_test_run_all_test_label'),
