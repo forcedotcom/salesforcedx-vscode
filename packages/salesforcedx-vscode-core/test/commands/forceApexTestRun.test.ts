@@ -43,7 +43,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --classnames MyTestClass --resultformat human --synchronous --loglevel error'
+        'sfdx force:apex:test:run --classnames MyTestClass --synchronous --resultformat human --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
