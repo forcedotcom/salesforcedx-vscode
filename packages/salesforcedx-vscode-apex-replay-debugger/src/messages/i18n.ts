@@ -43,7 +43,7 @@ export const messages = {
   checkpoint_upload_in_progress:
     'A checkpoint update is currently in progress for your org. Wait for the update to complete before you add or remove checkpoints.',
   checkpoint_upload_error_wrap_up_message:
-    'Your checkpoints have errors. Fix the errors listed in the output, then run SFDX: Update Checkpoints in Org again.',
+    'Your checkpoints have errors. Fix the errors listed in the output, then run %s again.',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',

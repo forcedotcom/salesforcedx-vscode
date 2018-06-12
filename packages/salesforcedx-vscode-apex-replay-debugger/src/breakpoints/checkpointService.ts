@@ -675,7 +675,9 @@ export async function processBreakpointChangedForCheckpoints(
       });
     } else {
       // The breakpoint is no longer a SourceBreakpoint or is no longer a checkpoint. Call to delete it if it exists
-      checkpointService.deleteCheckpointNodeIfExists(breakpointId);
+      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
+        checkpointService.deleteCheckpointNodeIfExists(breakpointId);
+      });
     }
   }
 
@@ -897,7 +899,10 @@ export async function sfdxCreateCheckpoints() {
     );
     if (updateError) {
       writeToDebuggerOutputWindow(
-        nls.localize('checkpoint_upload_error_wrap_up_message'),
+        nls.localize(
+          'checkpoint_upload_error_wrap_up_message',
+          nls.localize('sfdx_update_checkpoints_in_org')
+        ),
         true,
         VSCodeWindowTypeEnum.Error
       );
