@@ -57,6 +57,11 @@ describe(TITLE, () => {
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
+    // Select REST API
+    await common.type('REST API');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < consoleHtml.length; i++) {
@@ -82,6 +87,39 @@ describe(TITLE, () => {
     // Invoke SFDX: Execute SOQL Query command by name
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute SOQL Query with Currently Selected Text');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Select REST API
+    await common.type('REST API');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    const consoleHtml = await common.getConsoleOutput();
+    // tslint:disable-next-line:prefer-for-of
+    for (let i = 0; i < consoleHtml.length; i++) {
+      if (consoleHtml[i].indexOf('exit code') > 0) {
+        expect(consoleHtml[i]).to.contain('exit code 0');
+      }
+    }
+  });
+
+  it('Should execute SOQL query against the Tooling API', async () => {
+    // Invoke SFDX: Execute SOQL Query command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Execute SOQL Query...');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    const query = `SELECT Id FROM ApexClassMember`;
+
+    // Enter SOQL query
+    await common.type(query);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
+
+    // Select Tooling API
+    await common.type('Tooling API');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
