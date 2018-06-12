@@ -475,7 +475,7 @@
             "boolean"
           ],
           "default": false,
-          "description": "%retrieve_test_code_coverage_text"
+          "description": "%retrieve_test_code_coverage_text%"
         }
       }
     }
