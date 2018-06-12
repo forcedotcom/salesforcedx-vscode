@@ -24,8 +24,11 @@ describe('SLDS Deprecated Class Name', () => {
   });
 
   it('Should create SFDX fix deprecated class command', async () => {
+    await new Promise(resolve => setTimeout(resolve, 3000));
     const commandList = await vscode.commands.getCommands(true);
-    expect(commandList).to.include('sfdx.force.lightning.slds.fix.deprecated.class');
+    expect(commandList).to.include(
+      'sfdx.force.lightning.slds.fix.deprecated.class'
+    );
   });
 
   after(async () => {
