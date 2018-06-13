@@ -81,7 +81,7 @@
     ]
   },
   "dependencies": {
-    "@salesforce/apex-tmlanguage": "1.0.1",
+    "@salesforce/apex-tmlanguage": "1.0.2",
     "@salesforce/salesforcedx-utils-vscode": "43.2.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
