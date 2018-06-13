@@ -16,6 +16,5 @@ environment:
 
 install:
   - echo 'hello world'
-  - echo $SFDX_CI_DEVHUB_USERNAME
-  - echo $env:SFDX_CI_DEVHUB_USERNAME
+  - echo %SFDX_CI_DEVHUB_USERNAME%
  
