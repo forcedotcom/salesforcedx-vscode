@@ -18,6 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { SfdxCoreSettings } from '../settings/sfdxCoreSettings';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -38,7 +39,7 @@ export class TestsSelector
   implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexTestQuickPickItem>
-  > {
+    > {
     const testSuites = await vscode.workspace.findFiles(
       '**/*.testSuite-meta.xml'
     );
@@ -81,35 +82,59 @@ export class TestsSelector
   }
 }
 
+export class ForceApexTestRunCommandFactory {
+  private _data: ApexTestQuickPickItem;
+  private _getCodeCoverage: boolean;
+  private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
+  private testRunExecutorCommand: Command;
+
+  constructor(data: ApexTestQuickPickItem, getCodeCoverage: boolean) {
+    this._data = data;
+    this._getCodeCoverage = getCodeCoverage;
+  }
+
+  public constructExecutorCommand(): Command {
+    this.builder = this.builder
+      .withDescription(nls.localize('force_apex_test_run_text'))
+      .withArg('force:apex:test:run');
+
+    switch (this._data.type) {
+      case TestType.Suite:
+        this.builder = this.builder
+          .withFlag('--suitenames', `${this._data.label}`);
+        break;
+      case TestType.Class:
+        this.builder = this.builder
+          .withFlag('--classnames', `${this._data.label}`)
+          .withArg('--synchronous');
+        break;
+      default:
+        break;
+    }
+
+    if (this._getCodeCoverage) {
+      this.builder = this.builder
+        .withArg('--codecoverage');
+    }
+
+    this.builder = this.builder
+      .withFlag('--resultformat', 'human')
+      .withFlag('--loglevel', 'error');
+
+    this.testRunExecutorCommand = this.builder.build();
+    return this.testRunExecutorCommand;
+  }
+
+}
+
 export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
   ApexTestQuickPickItem
-> {
+  > {
   public build(data: ApexTestQuickPickItem): Command {
-    if (data.type === TestType.Suite) {
-      return new SfdxCommandBuilder()
-        .withDescription(nls.localize('force_apex_test_run_text'))
-        .withArg('force:apex:test:run')
-        .withFlag('--suitenames', `${data.label}`)
-        .withFlag('--resultformat', 'human')
-        .withFlag('--loglevel', 'error')
-        .build();
-    } else if (data.type === TestType.Class) {
-      return new SfdxCommandBuilder()
-        .withDescription(nls.localize('force_apex_test_run_text'))
-        .withArg('force:apex:test:run')
-        .withFlag('--classnames', `${data.label}`)
-        .withFlag('--resultformat', 'human')
-        .withArg('--synchronous')
-        .withFlag('--loglevel', 'error')
-        .build();
-    } else {
-      return new SfdxCommandBuilder()
-        .withDescription(nls.localize('force_apex_test_run_text'))
-        .withArg('force:apex:test:run')
-        .withFlag('--resultformat', 'human')
-        .withFlag('--loglevel', 'error')
-        .build();
-    }
+    const getCodeCoverage: boolean = SfdxCoreSettings.getInstance()
+      .getConfiguration().get('retrieve-test-code-coverage') as boolean;
+    const factory: ForceApexTestRunCommandFactory = new ForceApexTestRunCommandFactory(data, getCodeCoverage);
+    return factory.constructExecutorCommand();
   }
 }
 
