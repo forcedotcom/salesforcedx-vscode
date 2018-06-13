@@ -15,7 +15,7 @@ import { SpectronClient } from './client';
 
 const WEBDRIVER_PORT = 7777;
 const SALESFORCEDX_EXTENSIONS = path.join(process.cwd(), '..');
-export const VSCODE_BINARY_PATH = process.env.VSCODE_BINARY_PATH;
+export const VSCODE_BINARY_PATH = process.env.VSCODE_BINARY_PATH as string;
 
 /**
  * Wraps Spectron's Application instance with its used methods.
@@ -177,8 +177,8 @@ export class SpectronApplication {
           await this.screenshot.capture();
           rej(
             `Could not retrieve the element in ${this.testRetry *
-              this.pollTrials *
-              this.pollTimeout} seconds. (${JSON.stringify(args)})`
+            this.pollTrials *
+            this.pollTimeout} seconds. (${JSON.stringify(args)})`
           );
           break;
         }
