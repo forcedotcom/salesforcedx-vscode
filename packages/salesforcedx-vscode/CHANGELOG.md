@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Improve syntax highlighting for built-in Apex classes, methods, and types ([PR #474](https://github.com/forcedotcom/salesforcedx-vscode/pull/474), [PR #483](https://github.com/forcedotcom/salesforcedx-vscode/pull/483))
+- Improve syntax highlighting for built-in Apex classes, methods, and types ([PR #474](https://github.com/forcedotcom/salesforcedx-vscode/pull/474), [PR #484](https://github.com/forcedotcom/salesforcedx-vscode/pull/484))
 
 ## 43.2.0 - June 9, 2018
 
