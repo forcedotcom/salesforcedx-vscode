@@ -46,7 +46,7 @@ function isLwcNextInstalled(): boolean {
 }
 
 function shouldForceLoadCurrentLwc(): boolean {
-  return process.env.FORCE_LOAD_CURRENT_LWC;
+  return process.env.FORCE_LOAD_CURRENT_LWC ? true : false;
 }
 
 export async function activate(context: vscode.ExtensionContext) {

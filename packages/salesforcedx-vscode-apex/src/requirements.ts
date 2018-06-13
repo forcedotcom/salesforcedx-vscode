@@ -38,7 +38,7 @@ export async function resolveRequirements(): Promise<RequirementsData> {
 function checkJavaRuntime(): Promise<string> {
   return new Promise((resolve, reject) => {
     let source: string;
-    let javaHome: string = readJavaConfig();
+    let javaHome: string | undefined = readJavaConfig();
 
     if (javaHome) {
       source = nls.localize('source_java_home_setting_text');
@@ -54,7 +54,7 @@ function checkJavaRuntime(): Promise<string> {
     }
 
     if (javaHome) {
-      javaHome = expandHomeDir(javaHome);
+      javaHome = expandHomeDir(javaHome) as string;
       if (!pathExists.sync(javaHome)) {
         return reject(nls.localize('source_missing_text', source));
       }
