@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export const CHECKPOINT = 'checkpoint';
+export const CHECKPOINTS_LOCK_STRING = 'checkpoints_lock';
 export const DEBUGGER_LAUNCH_TYPE = 'launch';
 export const DEBUGGER_TYPE = 'apex-replay';
 export const LIVESHARE_DEBUGGER_TYPE = 'vslsShare';
