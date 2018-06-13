@@ -105,7 +105,8 @@ export class ForceApexTestRunCommandFactory {
         break;
       case TestType.Class:
         this.builder = this.builder
-          .withFlag('--classnames', `${this._data.label}`);
+          .withFlag('--classnames', `${this._data.label}`)
+          .withArg('--synchronous');
         break;
       default:
         break;
@@ -118,7 +119,6 @@ export class ForceApexTestRunCommandFactory {
 
     this.builder = this.builder
       .withFlag('--resultformat', 'human')
-      .withArg('--synchronous')
       .withFlag('--loglevel', 'error');
 
     this.testRunExecutorCommand = this.builder.build();
