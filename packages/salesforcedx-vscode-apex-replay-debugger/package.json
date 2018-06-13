@@ -23,10 +23,12 @@
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-apex-replay-debugger": "43.2.0",
+    "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.1"
   },
   "devDependencies": {
+    "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
