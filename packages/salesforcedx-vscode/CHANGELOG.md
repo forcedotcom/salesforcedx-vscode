@@ -1,3 +1,9 @@
+## 43.3.0 - June 14, 2018
+### Fixed
+#### salesforcedx-vscode-apex
+
+* Improve syntax highlighting for built-in Apex classes, methods, and types ([PR #474](https://github.com/forcedotcom/salesforcedx-vscode/pull/474))
+
 ## 43.2.0 - June 9, 2018
 ### Added
 #### salesforcedx-vscode-apex-replay-debugger
