@@ -2,11 +2,29 @@
     "Class": {
         "prefix": "class",
         "body": [
-            "public class ${1:Name} {",
-            "    $0",
+            "${1|global,public,private|} class ${2:Name} {",
+            "   $0",
             "}"
         ],
         "description": "Class"
+    },
+    "Interface": {
+        "prefix": "interface",
+        "body": [
+            "${1|global,public,private|} interface ${2:Name} {",
+            "   $0",
+            "}"
+        ],
+        "description": "Interface"
+    },
+    "Enum": {
+        "prefix": "enum",
+        "body": [
+            "${1|global,public,private|} enum ${2:Name} {",
+            "   $0",
+            "}"
+        ],
+        "description": "Enum"
     },
     "DescribeFieldResult": {
         "prefix": "dfr",
@@ -33,7 +51,7 @@
         "prefix": "do",
         "body": [
             "do {",
-            "    $0",
+            "   $0",
             "} while (${1:true});"
         ],
         "description": "do...while loop"
@@ -42,7 +60,7 @@
         "prefix": "while",
         "body": [
             "while (${1:true}) {",
-            "    $0",
+            "   $0",
             "}"
         ],
         "description": "do...while loop"
@@ -51,7 +69,7 @@
         "prefix": "for",
         "body": [
             "for (${1:variable} : ${2:list_or_set}) {",
-            "    $0",
+            "   $0",
             "}"
         ],
         "description": "for loop"
@@ -60,7 +78,7 @@
         "prefix": "fors",
         "body": [
             "for (${1:variable} : [${2:SOQL}]) {",
-            "    $0",
+            "   $0",
             "}"
         ],
         "description": "for loop"
@@ -69,7 +87,7 @@
         "prefix": "forr",
         "body": [
             "for (Integer ${1:i} = ${2:length} - 1; ${1:i} >= 0 ; ${1:i}--) {",
-            "    $0",
+            "   $0",
             "}"
         ],
         "description": "Reverse for loop"
@@ -78,7 +96,7 @@
         "prefix": "fori",
         "body": [
             "for (Integer ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {",
-            "    $0",
+            "   $0",
             "}"
         ],
         "description": "indexed for loop"
@@ -87,7 +105,7 @@
         "prefix": "if",
         "body": [
             "if (${1:true}) {",
-            "    $0",
+            "   $0",
             "}"
         ],
         "description": "if statement"
@@ -96,7 +114,7 @@
         "prefix": "else",
         "body": [
             "else {",
-            "    $0",
+            "   $0",
             "}"
         ],
         "description": "Else statement"
@@ -105,10 +123,9 @@
         "prefix": "tryf",
         "body": [
             "try {",
-            "    $1",
-            "}",
-            "finally {",
-            "    $0",
+            "   $1",
+            "} finally {",
+            "   $0",
             "}"
         ],
         "description": "Try finally"
@@ -117,10 +134,9 @@
         "prefix": "try",
         "body": [
             "try {",
-            "    $1",
-            "}",
-            "catch (${2:Exception}) {",
-            "    $0",
+            "   $1",
+            "} catch (${2:Exception}) {",
+            "   $0",
             "}"
         ],
         "description": "Try catch"
@@ -129,13 +145,11 @@
         "prefix": "trycf",
         "body": [
             "try {",
-            "    $1",
-            "}",
-            "catch (${2:Exception}) {",
-            "    $3",
-            "}",
-            "finally {",
-            "    $0",
+            "   $1",
+            "} catch (${2:Exception}) {",
+            "   $3",
+            "} finally {",
+            "   $0",
             "}"
         ],
         "description": "Try catch finally"
@@ -144,9 +158,12 @@
         "prefix": "switch",
         "body": [
             "switch on ${1:switch_on} {",
-            "    $0",
-            "    when else {",
-            "    }",
+            "   when $2 {",
+            "       $3",
+            "   }",
+            "   when else {",
+            "       $0",
+            "   }",
             "}"
         ],
         "description": "Switch statement"
