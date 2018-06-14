@@ -12,7 +12,7 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { SfdxCoreSettings } from '../settings/sfdxCoreSettings';
+import { sfdxCoreSettings } from '../settings';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -90,8 +90,9 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
 }
 
 async function forceApexTestRunCodeAction(test: string) {
-  const getCodeCoverage: boolean = SfdxCoreSettings.getInstance()
-    .getConfiguration().get('retrieve-test-code-coverage') as boolean;
+  const getCodeCoverage: boolean = sfdxCoreSettings
+    .getConfiguration()
+    .get('retrieve-test-code-coverage') as boolean;
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
