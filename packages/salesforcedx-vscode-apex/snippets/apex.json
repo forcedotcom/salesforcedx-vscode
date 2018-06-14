@@ -2,7 +2,7 @@
     "Class": {
         "prefix": "class",
         "body": [
-            "${1|global,public,private|} class ${2:Name} {",
+            "${1|global,public,private|} with sharing class ${2:Name} {",
             "   $0",
             "}"
         ],
