@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.2.0",
+  "version": "43.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,7 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-replay-debugger": "43.2.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "43.3.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.1"
