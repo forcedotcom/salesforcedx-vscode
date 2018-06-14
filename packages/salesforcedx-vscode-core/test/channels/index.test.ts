@@ -76,7 +76,9 @@ describe('Channel', () => {
           resolve();
         });
       });
-      expect(mChannel.value).to.contain('Usage: sfdx force');
+      expect(mChannel.value).to.contain(
+        'sfdx force: [-v] [--json] [--loglevel <string>]'
+      );
       expect(mChannel.value).to.contain('ended with exit code 0');
     });
 

@@ -475,6 +475,11 @@
           "type": ["boolean"],
           "default": false,
           "description": "%show_experimental_webviews_description%"
+        },
+        "salesforcedx-vscode-core.retrieve-test-code-coverage": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%retrieve_test_code_coverage_text%"
         }
       }
     }

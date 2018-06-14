@@ -12,6 +12,7 @@ import {
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -60,14 +61,17 @@ const forceApexTestRunCacheService = ForceApexTestRunCacheService.getInstance();
 // build force:apex:test:run w/ given test class or test method
 export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
   private test: string;
+  private shouldGetCodeCoverage: boolean = false;
+  private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
 
-  public constructor(test: string) {
+  public constructor(test: string, shouldGetCodeCoverage: boolean) {
     super();
     this.test = test || '';
+    this.shouldGetCodeCoverage = shouldGetCodeCoverage;
   }
 
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    this.builder = this.builder
       .withDescription(
         nls.localize('force_apex_test_run_codeAction_description_text')
       )
@@ -75,16 +79,24 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
       .withFlag('--tests', this.test)
       .withFlag('--resultformat', 'human')
       .withArg('--synchronous')
-      .withFlag('--loglevel', 'error')
-      .build();
+      .withFlag('--loglevel', 'error');
+
+    if (this.shouldGetCodeCoverage) {
+      this.builder = this.builder.withArg('--codecoverage');
+    }
+
+    return this.builder.build();
   }
 }
 
 async function forceApexTestRunCodeAction(test: string) {
+  const getCodeCoverage: boolean = sfdxCoreSettings
+    .getConfiguration()
+    .get('retrieve-test-code-coverage') as boolean;
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
-    new ForceApexTestRunCodeActionExecutor(test)
+    new ForceApexTestRunCodeActionExecutor(test, getCodeCoverage)
   );
   await commandlet.run();
 }
