@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-core",
-  "displayName": "Salesforce CLI integration for Visual Studio Code",
+  "displayName": "Salesforce CLI Integration for Visual Studio Code",
   "description": "Provides integration with the Salesforce CLI",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.2.0",
+  "version": "43.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "43.2.0",
-    "@salesforce/salesforcedx-utils-vscode": "43.2.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "43.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.3.0",
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -288,6 +288,11 @@
         {
           "command": "sfdx.force.apex.log.get",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.manifest.editor.show",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.show_experimental_webviews"
         }
       ]
     },
@@ -451,6 +456,10 @@
       {
         "command": "sfdx.force.apex.log.get",
         "title": "%force_apex_log_get_text%"
+      },
+      {
+        "command": "sfdx.force.manifest.editor.show",
+        "title": "%force_manifest_editor_show_text%"
       }
     ],
     "configuration": {
@@ -461,6 +470,11 @@
           "type": ["boolean"],
           "default": true,
           "description": "%show_cli_success_msg_description%"
+        },
+        "salesforcedx-vscode-core.show_experimental_webviews": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%show_experimental_webviews_description%"
         }
       }
     }

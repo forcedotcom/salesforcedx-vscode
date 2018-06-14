@@ -30,6 +30,9 @@ export function monitorOrgConfigChanges() {
   watcher.onDidChange(uri => {
     displayDefaultUserName(uri.fsPath);
   });
+  watcher.onDidCreate(uri => {
+    displayDefaultUserName(uri.fsPath);
+  });
 }
 
 function displayDefaultUserName(configPath: string) {

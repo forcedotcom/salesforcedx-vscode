@@ -49,7 +49,9 @@ You would only do this once after you cloned the repository.
 1. We develop on the `develop` branch and release from the `master` branch. At
    this point, you should do initiate a `git checkout -t origin/develop` unless
    you are working on releasing.
-1. `npm install` to bring in all the top-level dependencies
+1. `npm install` to bring in all the top-level dependencies. Because of the
+   `postinstall` script, this also runs `npm run bootstrap` for you
+   automatically the first time.
 1. Open the project in VS Code.
 
 You would usually do the following each time you close/reopen VS Code:
@@ -61,10 +63,23 @@ You would usually do the following each time you close/reopen VS Code:
    (Ctrl+Shift+B or Cmd+Shift+B on Mac). The errors will show in the Problems
    panel. There is a known issue with the mapping so clicking on the error won't
    open the file.
-1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac) and from
-   the launch configuration dropdown, pick "Launch Extensions".
-1. In VS Code, open the debug view (Ctrl+Shift+D or Cmd+Shift+D on Mac) and from
-   the launch configuration dropdown, pick "Launch * Tests".
+1. If you are manipulating the webviews in salesforcedx-webviews-ui, you will
+   also invoke the Command Palette. The type in "task " (there is a space after)
+   and from the list of tasks. Choose from the following.
+   * Select "Start salesforcedx-webview-ui artifacts" to start an interactive
+     watcher to serve up webviews in your browser. This is the `start` script
+     from create-react-app and serves the same purpose.
+   * Select "Bundle salesforcedx-webview-ui artifacts" to copy the artifacts
+     over into the extensions so that they are optimized for our use.
+1. In VS Code, you can invoke Command Palette. Then type in "debug " (there is
+   space after) and from the launch configuration dropdown, pick "Launch
+   Extensions". This launch extension will actually do a build for you as well.
+1. In VS Code, you can invoke Command Palette. Then type in "debug " (there is
+   space after) and from the launch configuration dropdown, pick "Launch
+   Extensions without compile" if you had already build locally before.
+1. In VS Code, you can invoke Command Palette. Then type in "debug " (there is
+   space after) and from the launch configuration dropdown, pick any of  "Launch
+   * Tests".
 
 For more information, consult the VS Code
 [doc](https://code.visualstudio.com/docs/extensions/debugging-extensions) on how
@@ -144,6 +159,16 @@ this command.
 ### `npm run compile`
 
 This runs `npm run compile` on each of the package in packages.
+
+### `npm run start-webview`
+
+This starts a local server that allows you to interactively work on the UI. This
+is similar to the `start` command from create-react-app.
+
+### `npm run bundle-webview`
+
+This prepares (optimizes and minimizes) the webviews for inclusion into
+salesforcedx-vscode-core.
 
 ### `npm run clean`
 
