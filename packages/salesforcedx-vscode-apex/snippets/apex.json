@@ -26,6 +26,13 @@
         ],
         "description": "Enum"
     },
+    "System Debug": {
+        "prefix": "debug",
+        "body": [
+            "System.debug($0)"
+        ],
+        "description": "System.debug"
+    },
     "DescribeFieldResult": {
         "prefix": "dfr",
         "body": [
