@@ -25,7 +25,6 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-
 export enum TestType {
   All,
   Suite,
