@@ -43,7 +43,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --classnames MyTestClass --resultformat human --synchronous --loglevel error'
+        'sfdx force:apex:test:run --classnames MyTestClass --synchronous --resultformat human --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -70,7 +70,6 @@ describe('Force Apex Test Run', () => {
 
   describe('Tests selector', () => {
     let quickPickStub: sinon.SinonStub;
-
     beforeEach(() => {
       quickPickStub = sinon.stub(vscode.window, 'showQuickPick').returns({
         label: nls.localize('force_apex_test_run_all_test_label'),
