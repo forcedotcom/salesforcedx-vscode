@@ -67,7 +67,7 @@
     "SFDX: Show Package Manifest Editor (Experimental)",
   "show_experimental_webviews_description":
     "Specifies whether the commands for the experimental webviews are available to the user.",
-    
+
   "retrieve_test_code_coverage_text":
-    "Determines whether code coverage should be retrieved/calculated when running Apex test classes/suites."
+    "Specifies whether code coverage results are calculated and retrieved when you run Apex tests."
 }
