@@ -1,0 +1,185 @@
+{
+    "Class": {
+        "prefix": "class",
+        "body": [
+            "${1|global,public,private|} class ${2:Name} {",
+            "   $0",
+            "}"
+        ],
+        "description": "Class"
+    },
+    "Interface": {
+        "prefix": "interface",
+        "body": [
+            "${1|global,public,private|} interface ${2:Name} {",
+            "   $0",
+            "}"
+        ],
+        "description": "Interface"
+    },
+    "Enum": {
+        "prefix": "enum",
+        "body": [
+            "${1|global,public,private|} enum ${2:Name} {",
+            "   $0",
+            "}"
+        ],
+        "description": "Enum"
+    },
+    "System Debug": {
+        "prefix": "debug",
+        "body": [
+            "System.debug($0)"
+        ],
+        "description": "System.debug"
+    },
+    "DescribeFieldResult": {
+        "prefix": "dfr",
+        "body": [
+            "${1:SObjectType}.SObjectType.fields.${2:SObjectField}.getDescribe()"
+        ],
+        "description": "Get DescribeFieldResult"
+    },
+    "DescribeSObjectResult": {
+        "prefix": "dsr",
+        "body": [
+            "${1:SObjectType}.SObjectType.getDescribe()"
+        ],
+        "description": "Get DescribeSObjectResult"
+    },
+    "Assert Fail": {
+        "prefix": "fail",
+        "body": [
+            "System.assert(false, $0)"
+        ],
+        "description": "False assertion"
+    },
+    "do...while loop": {
+        "prefix": "do",
+        "body": [
+            "do {",
+            "   $0",
+            "} while (${1:true});"
+        ],
+        "description": "do...while loop"
+    },
+    "while loop": {
+        "prefix": "while",
+        "body": [
+            "while (${1:true}) {",
+            "   $0",
+            "}"
+        ],
+        "description": "do...while loop"
+    },
+    "for": {
+        "prefix": "for",
+        "body": [
+            "for (${1:variable} : ${2:list_or_set}) {",
+            "   $0",
+            "}"
+        ],
+        "description": "for loop"
+    },
+    "for soql": {
+        "prefix": "fors",
+        "body": [
+            "for (${1:variable} : [${2:SOQL}]) {",
+            "   $0",
+            "}"
+        ],
+        "description": "for loop"
+    },
+    "Reverse for loop": {
+        "prefix": "forr",
+        "body": [
+            "for (Integer ${1:i} = ${2:length} - 1; ${1:i} >= 0 ; ${1:i}--) {",
+            "   $0",
+            "}"
+        ],
+        "description": "Reverse for loop"
+    },
+    "for loop": {
+        "prefix": "fori",
+        "body": [
+            "for (Integer ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {",
+            "   $0",
+            "}"
+        ],
+        "description": "indexed for loop"
+    },
+    "if statement": {
+        "prefix": "if",
+        "body": [
+            "if (${1:true}) {",
+            "   $0",
+            "}"
+        ],
+        "description": "if statement"
+    },
+    "Else statement": {
+        "prefix": "else",
+        "body": [
+            "else {",
+            "   $0",
+            "}"
+        ],
+        "description": "Else statement"
+    },
+    "Try finally": {
+        "prefix": "tryf",
+        "body": [
+            "try {",
+            "   $1",
+            "} finally {",
+            "   $0",
+            "}"
+        ],
+        "description": "Try finally"
+    },
+    "Try catch": {
+        "prefix": "try",
+        "body": [
+            "try {",
+            "   $1",
+            "} catch (${2:Exception}) {",
+            "   $0",
+            "}"
+        ],
+        "description": "Try catch"
+    },
+    "Try catch finally": {
+        "prefix": "trycf",
+        "body": [
+            "try {",
+            "   $1",
+            "} catch (${2:Exception}) {",
+            "   $3",
+            "} finally {",
+            "   $0",
+            "}"
+        ],
+        "description": "Try catch finally"
+    },
+    "Switch statement": {
+        "prefix": "switch",
+        "body": [
+            "switch on ${1:switch_on} {",
+            "   when $2 {",
+            "       $3",
+            "   }",
+            "   when else {",
+            "       $0",
+            "   }",
+            "}"
+        ],
+        "description": "Switch statement"
+    },
+    "Throw Exception": {
+        "prefix": "throw",
+        "body": [
+            "throw new ${1:Exception}($0)"
+        ],
+        "description": "Throw a new exception"
+    }
+}
