@@ -181,5 +181,119 @@
             "throw new ${1:Exception}($0)"
         ],
         "description": "Throw a new exception"
+    },
+    "list": {
+        "prefix": "list<",
+        "body": [
+            "list<${1:object}> ${2:listName} = new list<$1>();"
+        ],
+        "description": "list constructor"
+    },
+    "map": {
+        "prefix": "map<",
+        "body": [
+            "map<${1:object}, ${2:object}> ${3:mapName} = new map<$1, $2>();"
+        ],
+        "description": "map constructor"
+    },
+    "set": {
+        "prefix": "set<",
+        "body": [
+            "set<${1:object}> ${2:setName} = new set<$1>();"
+        ],
+        "description": "set constructor"
+    },
+    "@AuraEnabled": {
+        "prefix": "@AuraEnabled",
+        "body": [
+            "@AuraEnabled",
+            "${1|public,global|} static ${2:string} ${3:methodName}(){",
+            "\t$4",
+            "}"
+        ],
+        "description": "Aura Enabled Apex Method"
+    },
+    "userCreation": {
+        "prefix": "createUsers",
+        "body": [
+            "public static list<user> createUsers(integer numberOfUsers){",
+            "\tlist<user> users = new list<user>();",
+            "\tProfile p = [SELECT Id FROM Profile WHERE Name='${1:Standard User}'];",
+            "\tfor (integer i=0; i<numberOfUsers; i++){",
+            "\t\tstring x = string.valueOf(i);",
+            "\t\tUser u = new User(Alias = 't'+x, Email='standarduser'+x+'@${2:someDomain.test}',",
+            "\t\t\tEmailEncodingKey='UTF-8', LastName='Testing' + x, LanguageLocaleKey='en_US',LocaleSidKey='en_US', ProfileId = p.Id,",
+            "\t\t\tTimeZoneSidKey='America/Los_Angeles', UserName='standarduser'+x+'@${2:someDomain.test}');",
+            "\tusers.add(u);",
+            "\t}",
+            "",
+            "\tinsert users;",
+            "\treturn users;",
+            "}"
+        ],
+        "description": "creates some amount of test users for a test method or @TestSetup"
+    },
+    "AuraHandledException": {
+        "prefix": "auraHandledException",
+        "body": [
+            "throw new AuraHandledException('${1:exceptionText}');"
+        ],
+        "description": "throw an exception for a lightning component to display"
+    },
+    "TestMethod": {
+        "prefix": "testMethod",
+        "body": [
+            "static testMethod void ${1:methodName}(){",
+            "\t",
+            "\ttest.startTest();",
+            "\tsystem.RunAs(${2:contextuser}){",
+            "\t\t",
+            "\ttest.stopTest();",
+            "\t",
+            "}"
+        ],
+        "description": "test method with runAs and stop/start"
+    },
+    "TestSetup": {
+        "prefix": "@TestSetup",
+        "body": [
+            "@testSetup static void ${1:makeData}(){",
+            "\t",
+            "}"
+        ],
+        "description": "Test setup for creating data before test methods run"
+    },
+    "createAdmin": {
+        "prefix": "createAdmin",
+        "body": [
+            "public static user createAdmin(){",
+            "\tProfile p = [SELECT Id FROM Profile WHERE Name='System Administrator'];",
+            "\t//create User",
+            "\tUser u = new User();",
+            "\tu.FirstName = 'A';",
+            "\tu.LastName = 'S';",
+            "\tu.Email = 'test@${1:domainPeopleWontGuess}';",
+            "\tu.Username = 'test@${1}';",
+            "\tu.Alias = 'astest';",
+            "\tu.ProfileId = p.Id;",
+            "\tu.TimeZoneSidKey    = 'America/Denver';",
+            "\tu.LocaleSidKey      = 'en_US';",
+            "\tu.EmailEncodingKey  = 'UTF-8';",
+            "\tu.LanguageLocaleKey = 'en_US';",
+            "\tinsert u;",
+            "\tsystem.debug('u contains ' + u);",
+            "\treturn u;",
+            "}"
+        ],
+        "description": "for tests to make an admin user that you can runAs"
+    },
+    "CustomException": {
+        "prefix": "customException",
+        "body": [
+            "${1|global,public,private|} class ${2:Name} extends Exception {",
+            "   $0",
+            "}"
+        ],
+        "description": "Class"
     }
 }
