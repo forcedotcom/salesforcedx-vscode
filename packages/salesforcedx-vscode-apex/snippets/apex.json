@@ -231,7 +231,7 @@
             "\treturn users;",
             "}"
         ],
-        "description": "creates some amount of test users for a test method or @TestSetup"
+        "description": "creates some amount of test users for a test method or for @TestSetup"
     },
     "AuraHandledException": {
         "prefix": "auraHandledException",
