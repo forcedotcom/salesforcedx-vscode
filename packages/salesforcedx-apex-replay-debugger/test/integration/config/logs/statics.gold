@@ -1,0 +1,81 @@
+[
+  {
+    "id": 1005,
+    "source": {
+      "name": "StaticVarsA.cls",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 9,
+    "column": 0,
+    "name": "StaticVarsA.method2()"
+  },
+  {
+    "id": 1004,
+    "line": 5,
+    "column": 0,
+    "name": "StaticVarsB.method1()"
+  },
+  {
+    "id": 1002,
+    "source": {
+      "name": "StaticVarsA.cls",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 5,
+    "column": 0,
+    "name": "StaticVarsA.method1()"
+  },
+  {
+    "id": 1000,
+    "source": {
+      "name": "statics.log",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 2,
+    "column": 0,
+    "name": "execute_anonymous_apex"
+  }
+]
+====================
+[]
+====================
+[
+  {
+    "name": "className",
+    "value": "'StaticVarsA'",
+    "variablesReference": 0,
+    "type": "String",
+    "evaluateName": "'StaticVarsA'"
+  }
+]
+====================
+[]
+====================
+[
+  {
+    "name": "className",
+    "value": "'StaticVarsB'",
+    "variablesReference": 0,
+    "type": "String",
+    "evaluateName": "'StaticVarsB'"
+  }
+]
+====================
+[]
+====================
+[
+  {
+    "name": "className",
+    "value": "'StaticVarsA'",
+    "variablesReference": 0,
+    "type": "String",
+    "evaluateName": "'StaticVarsA'"
+  }
+]
+====================
+[]
+====================
+[]

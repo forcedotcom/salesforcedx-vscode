@@ -29,7 +29,6 @@ const CONFIG_DIR = path.join(
   'config'
 );
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
-const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
 
 // tslint:disable:no-unused-expression
 describe('Replay debugger adapter - integration', function() {
@@ -38,51 +37,13 @@ describe('Replay debugger adapter - integration', function() {
   let goldFileUtil: GoldFileUtil;
   let dc: DebugClient;
   let projectPath: string;
-  let classA: string;
-  let classB: string;
-  let classRecursive: string;
-  const classAValidLines = [42];
-  const classBValidLines = [42];
-  const classRecursiveValidLines = [7];
+  let lineBreakpointInfo: LineBreakpointInfo[];
 
   before(async () => {
     projectPath = path.join(process.cwd(), PROJECT_NAME);
+    lineBreakpointInfo = [];
     console.log(`projectPath: ${projectPath}`);
 
-    classA = Uri.file(
-      `${projectPath}/force-app/main/default/classes/A.cls`
-    ).toString();
-    classB = Uri.file(
-      `${projectPath}/force-app/main/default/classes/B.cls`
-    ).toString();
-    classRecursive = Uri.file(
-      `${projectPath}/force-app/main/default/classes/RecursiveTest.cls`
-    ).toString();
-    if (process.platform === 'win32') {
-      classA = classA.replace('%3A', ':');
-      classB = classB.replace('%3A', ':');
-      classRecursive = classRecursive.replace('%3A', ':');
-    }
-    console.log(
-      `classA: ${classA}. classB: ${classB}. classRecursive: ${classRecursive}`
-    );
-    LINE_BREAKPOINT_INFO.push(
-      {
-        uri: classA,
-        typeref: 'A',
-        lines: classAValidLines
-      },
-      {
-        uri: classB,
-        typeref: 'B',
-        lines: classBValidLines
-      },
-      {
-        uri: classRecursive,
-        typeref: 'RecursiveTest',
-        lines: classRecursiveValidLines
-      }
-    );
     // Use dc.start(4712) to debug the adapter during
     // tests (adapter needs to be launched in debug mode separately).
     dc = new DebugClient(
@@ -109,6 +70,43 @@ describe('Replay debugger adapter - integration', function() {
   });
 
   it('Recursive stack', async () => {
+    let classA = Uri.file(
+      `${projectPath}/force-app/main/default/classes/A.cls`
+    ).toString();
+    let classB = Uri.file(
+      `${projectPath}/force-app/main/default/classes/B.cls`
+    ).toString();
+    let classRecursive = Uri.file(
+      `${projectPath}/force-app/main/default/classes/RecursiveTest.cls`
+    ).toString();
+    const classAValidLines = [42];
+    const classBValidLines = [42];
+    const classRecursiveValidLines = [7];
+    if (process.platform === 'win32') {
+      classA = classA.replace('%3A', ':');
+      classB = classB.replace('%3A', ':');
+      classRecursive = classRecursive.replace('%3A', ':');
+    }
+    console.log(
+      `classA: ${classA}. classB: ${classB}. classRecursive: ${classRecursive}`
+    );
+    lineBreakpointInfo.push(
+      {
+        uri: classA,
+        typeref: 'A',
+        lines: classAValidLines
+      },
+      {
+        uri: classB,
+        typeref: 'B',
+        lines: classBValidLines
+      },
+      {
+        uri: classRecursive,
+        typeref: 'RecursiveTest',
+        lines: classRecursiveValidLines
+      }
+    );
     const testName = 'recursive';
     const logFilePath = path.join(LOG_FOLDER, `${testName}.log`);
     goldFileUtil = new GoldFileUtil(
@@ -116,7 +114,7 @@ describe('Replay debugger adapter - integration', function() {
       path.join(LOG_FOLDER, `${testName}.gold`)
     );
 
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, LINE_BREAKPOINT_INFO);
+    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, lineBreakpointInfo);
 
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath,
@@ -131,7 +129,7 @@ describe('Replay debugger adapter - integration', function() {
       const classBPath = Uri.parse(classB).fsPath;
       const classRecursivePath = Uri.parse(classRecursive).fsPath;
       console.log(
-        `classBPath: ${classAPath}. classBPath: ${classBPath}. classRecursivePath: ${classRecursivePath}`
+        `classAPath: ${classAPath}. classBPath: ${classBPath}. classRecursivePath: ${classRecursivePath}`
       );
       let addBreakpointsResponse = await dc.setBreakpointsRequest(
         createBreakpointsArgs(classAPath, classAValidLines)
@@ -186,6 +184,73 @@ describe('Replay debugger adapter - integration', function() {
         'step',
         classRecursivePath,
         classRecursiveValidLines[0]
+      );
+    } finally {
+      const disconnectResponse = await dc.disconnectRequest({});
+      expect(disconnectResponse.success).to.equal(true);
+    }
+  });
+
+  it('Static variable of one class in different frames', async () => {
+    let classStaticVarsA = Uri.file(
+      `${projectPath}/force-app/main/default/classes/StaticVarsA.cls`
+    ).toString();
+    const classStaticVarsAValidLines = [9];
+    if (process.platform === 'win32') {
+      classStaticVarsA = classStaticVarsA.replace('%3A', ':');
+    }
+    console.log(`classStaticVarsA: ${classStaticVarsA}`);
+    lineBreakpointInfo.push({
+      uri: classStaticVarsA,
+      typeref: 'StaticVarsA',
+      lines: classStaticVarsAValidLines
+    });
+    const testName = 'statics';
+    const logFilePath = path.join(LOG_FOLDER, `${testName}.log`);
+    goldFileUtil = new GoldFileUtil(
+      dc,
+      path.join(LOG_FOLDER, `${testName}.gold`)
+    );
+
+    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, lineBreakpointInfo);
+
+    const launchResponse = await dc.launchRequest({
+      sfdxProject: projectPath,
+      logFile: logFilePath,
+      stopOnEntry: true,
+      trace: true
+    } as LaunchRequestArguments);
+    expect(launchResponse.success).to.equal(true);
+
+    try {
+      const classStaticVarsAPath = Uri.parse(classStaticVarsA).fsPath;
+      console.log(`classStaticVarsAPath: ${classStaticVarsAPath}`);
+      const addBreakpointsResponse = await dc.setBreakpointsRequest(
+        createBreakpointsArgs(classStaticVarsAPath, classStaticVarsAValidLines)
+      );
+      assertBreakpointsCreated(
+        addBreakpointsResponse,
+        1,
+        classStaticVarsAPath,
+        classStaticVarsAValidLines
+      );
+
+      dc.configurationDoneRequest({});
+
+      // Verify stopped on the first line of debug log
+      const stackTraceResponse = await dc.assertStoppedLocation('entry', {
+        path: logFilePath,
+        line: 1
+      });
+      expect(stackTraceResponse.body.stackFrames.length).to.equal(1);
+      // Verify stopped on first breakpoint
+      await dc.continueRequest({
+        threadId: ApexReplayDebug.THREAD_ID
+      });
+      await goldFileUtil.assertEntireState(
+        'breakpoint',
+        classStaticVarsAPath,
+        classStaticVarsAValidLines[0]
       );
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});

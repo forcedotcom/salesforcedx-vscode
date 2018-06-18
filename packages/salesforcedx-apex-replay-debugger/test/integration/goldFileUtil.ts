@@ -37,6 +37,58 @@ export class GoldFileUtil {
     stoppedFilePath: string,
     stoppedLine: number
   ): Promise<void> {
+    const stackTraceResponse = await this.assertStackTrace(
+      stoppedReason,
+      stoppedFilePath,
+      stoppedLine
+    );
+
+    const scopesResponse = await this.dc.scopesRequest({
+      frameId: stackTraceResponse.body.stackFrames[0].id
+    });
+    expect(scopesResponse.body.scopes.length).to.equal(2);
+    expect(scopesResponse.body.scopes[0].name).to.equal('Local');
+    expect(scopesResponse.body.scopes[1].name).to.equal('Static');
+
+    const localScope = scopesResponse.body.scopes[0];
+    await this.assertVariables(localScope);
+
+    const staticScope = scopesResponse.body.scopes[1];
+    await this.assertVariables(staticScope);
+  }
+
+  public async assertEntireState(
+    stoppedReason: string,
+    stoppedFilePath: string,
+    stoppedLine: number
+  ): Promise<void> {
+    const stackTraceResponse = await this.assertStackTrace(
+      stoppedReason,
+      stoppedFilePath,
+      stoppedLine
+    );
+
+    for (const frame of stackTraceResponse.body.stackFrames) {
+      const scopesResponse = await this.dc.scopesRequest({
+        frameId: frame.id
+      });
+      expect(scopesResponse.body.scopes.length).to.equal(2);
+      expect(scopesResponse.body.scopes[0].name).to.equal('Local');
+      expect(scopesResponse.body.scopes[1].name).to.equal('Static');
+
+      const localScope = scopesResponse.body.scopes[0];
+      await this.assertVariables(localScope);
+
+      const staticScope = scopesResponse.body.scopes[1];
+      await this.assertVariables(staticScope);
+    }
+  }
+
+  private async assertStackTrace(
+    stoppedReason: string,
+    stoppedFilePath: string,
+    stoppedLine: number
+  ): Promise<DebugProtocol.StackTraceResponse> {
     const stackTraceResponse = await this.dc.assertStoppedLocation(
       stoppedReason,
       {
@@ -55,19 +107,7 @@ export class GoldFileUtil {
       2
     );
     this.compareGoldValue(actualStack);
-
-    const scopesResponse = await this.dc.scopesRequest({
-      frameId: stackTraceResponse.body.stackFrames[0].id
-    });
-    expect(scopesResponse.body.scopes.length).to.equal(2);
-    expect(scopesResponse.body.scopes[0].name).to.equal('Local');
-    expect(scopesResponse.body.scopes[1].name).to.equal('Static');
-
-    const localScope = scopesResponse.body.scopes[0];
-    await this.assertVariables(localScope);
-
-    const staticScope = scopesResponse.body.scopes[1];
-    await this.assertVariables(staticScope);
+    return stackTraceResponse;
   }
 
   private async assertVariables(scope: DebugProtocol.Scope) {
