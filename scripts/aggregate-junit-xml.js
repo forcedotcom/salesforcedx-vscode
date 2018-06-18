@@ -12,16 +12,16 @@ const junitDirs = dirs.filter(dir => {
   return fs.existsSync(path.join(packagesDir, dir, 'junit-custom.xml'));
 });
 
-const actualDirs = junitDirs.map(dir => {
-  return path.join(process.cwd(), 'packages', dir, 'junit-custom.xml');
-});
-
 shell.mkdir(path.join(process.cwd(), 'junit-aggregate'));
-let i = 0;
-actualDirs.map(junitPath => {
-  shell.cp(
-    junitPath,
-    path.join(process.cwd(), `junit-aggregate/junit-custom${i}.xml`)
+const actualDirs = junitDirs.map(dir => {
+  const currPackagePath = path.join(
+    process.cwd(),
+    'packages',
+    dir,
+    'junit-custom.xml'
   );
-  i++;
+  shell.cp(
+    currPackagePath,
+    path.join(process.cwd(), `junit-aggregate/${dir}-junit-custom.xml`)
+  );
 });

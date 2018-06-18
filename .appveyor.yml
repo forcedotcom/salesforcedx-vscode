@@ -31,37 +31,8 @@ build_script:
 test_script:
   - node --version
   - npm --version
-  - ps: |
-      #Initialize some variables, move to the project root
-      $ProjectRoot = $ENV:APPVEYOR_BUILD_FOLDER
-      Set-Location $ProjectRoot
-      # Run tests
-      "`n`n`n`n"
-      "--------------------------------------------"
-      "Running npm run test:without-system-tests..."
-      "--------------------------------------------"
-      npm run test:unit
-      npm run aggregateJUnit
-      $NpmTestsExitCode = $LastExitCode
-      # Show status
-      "`n`n"
-      "Finalizing results`n"
-      $AllFiles = Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Select -ExpandProperty FullName
-      "Test Results:`n$($AllFiles | Out-String)"
-      # Upload results for AppVeyor test tab
-      "Uploading Test Results:`n"
-      Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Foreach-Object {
-        $Address = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
-        $Source = $_.FullName
-        "$Address $Source"
-        (New-Object 'System.Net.WebClient').UploadFile( $Address, $Source )
-      }
-      # Fail script in case of test failures
-      if($NpmTestsExitCode -ne 0) {
-        #$Error | Format-List * -Force
-        exit $NpmTestsExitCode
-      }
-  # - npm run coverage:system-tests
+  - npm run test:unit
+  - npm run aggregateJUnit
 
 artifacts:
   - path: '**\*.vsix'
