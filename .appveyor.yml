@@ -40,7 +40,8 @@ test_script:
       "--------------------------------------------"
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
-      npm run test:without-system-tests
+      npm run test:unit
+      npm run aggregateJUnit
       $NpmTestsExitCode = $LastExitCode
       # Show status
       "`n`n"
@@ -60,10 +61,13 @@ test_script:
         #$Error | Format-List * -Force
         exit $NpmTestsExitCode
       }
-  - npm run coverage:system-tests
+  # - npm run coverage:system-tests
 
 artifacts:
   - path: '**\*.vsix'
+  - path: junit-aggregate/
+    name: test-results
+    type: zip
 
 on_finish:
   - del C:\projects\devhub.key
