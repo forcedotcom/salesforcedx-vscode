@@ -117,7 +117,6 @@ export class LogFileSelector
   > {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = await ForceApexLogList.getLogs(cancellationTokenSource);
-    console.log('loginfos: ' + logInfos);
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
