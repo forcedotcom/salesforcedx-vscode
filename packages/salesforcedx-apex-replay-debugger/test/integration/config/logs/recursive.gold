@@ -1,0 +1,395 @@
+[
+  {
+    "id": 1004,
+    "source": {
+      "name": "B.cls",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 42,
+    "column": 0,
+    "name": "B.B"
+  },
+  {
+    "id": 1000,
+    "source": {
+      "name": "RecursiveTest.cls",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 5,
+    "column": 0,
+    "name": "RecursiveTest.testMain()"
+  }
+]
+====================
+[
+  {
+    "name": "this",
+    "value": "",
+    "variablesReference": 1001,
+    "type": "B",
+    "evaluateName": ""
+  },
+  {
+    "name": "myClass",
+    "value": "",
+    "variablesReference": 1005,
+    "type": "B.MyInnerClassB",
+    "evaluateName": ""
+  },
+  {
+    "name": "mySimpleList",
+    "value": "[1,2]",
+    "variablesReference": 0,
+    "type": "List<Integer>",
+    "evaluateName": "[1,2]"
+  },
+  {
+    "name": "myComplexList",
+    "value": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]",
+    "variablesReference": 0,
+    "type": "List<B.MyInnerClassB>",
+    "evaluateName": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]"
+  },
+  {
+    "name": "myNestedList",
+    "value": "[]",
+    "variablesReference": 0,
+    "type": "List<List<String>>",
+    "evaluateName": "[]"
+  },
+  {
+    "name": "mySimpleMap",
+    "value": "{\"1\":\"One\",\"2\":\"Two\"}",
+    "variablesReference": 0,
+    "type": "Map<Integer,String>",
+    "evaluateName": "{\"1\":\"One\",\"2\":\"Two\"}"
+  },
+  {
+    "name": "myComplexMap",
+    "value": "{\"1\":{\"myInteger\":1,\"myString\":\"One\"},\"2\":{\"myInteger\":2,\"myString\":\"Two\"}}",
+    "variablesReference": 0,
+    "type": "Map<Integer,B.MyInnerClassB>",
+    "evaluateName": "{\"1\":{\"myInteger\":1,\"myString\":\"One\"},\"2\":{\"myInteger\":2,\"myString\":\"Two\"}}"
+  },
+  {
+    "name": "mySimpleSet",
+    "value": "[1,2]",
+    "variablesReference": 0,
+    "type": "Set<Integer>",
+    "evaluateName": "[1,2]"
+  },
+  {
+    "name": "myComplexSet",
+    "value": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]",
+    "variablesReference": 0,
+    "type": "Set<B.MyInnerClassB>",
+    "evaluateName": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]"
+  }
+]
+====================
+[
+  {
+    "name": "blobVar",
+    "value": "BLOB(4 bytes)",
+    "variablesReference": 0,
+    "type": "Blob",
+    "evaluateName": "BLOB(4 bytes)"
+  },
+  {
+    "name": "booleanVar",
+    "value": "true",
+    "variablesReference": 0,
+    "type": "Boolean",
+    "evaluateName": "true"
+  },
+  {
+    "name": "dateVar",
+    "value": "'1990-01-03T00:00:00.000Z'",
+    "variablesReference": 0,
+    "type": "Date",
+    "evaluateName": "'1990-01-03T00:00:00.000Z'"
+  },
+  {
+    "name": "datetimeVar",
+    "value": "'1980-10-01T07:00:00.000Z'",
+    "variablesReference": 0,
+    "type": "Datetime",
+    "evaluateName": "'1980-10-01T07:00:00.000Z'"
+  },
+  {
+    "name": "decimalVar",
+    "value": "0.002",
+    "variablesReference": 0,
+    "type": "Decimal",
+    "evaluateName": "0.002"
+  },
+  {
+    "name": "doubleVar",
+    "value": "3.14159",
+    "variablesReference": 0,
+    "type": "Double",
+    "evaluateName": "3.14159"
+  },
+  {
+    "name": "enumVar",
+    "value": "",
+    "variablesReference": 1000,
+    "type": "B.Season",
+    "evaluateName": ""
+  },
+  {
+    "name": "idVar",
+    "value": "'0050S0000014rYkQAI'",
+    "variablesReference": 0,
+    "type": "Id",
+    "evaluateName": "'0050S0000014rYkQAI'"
+  },
+  {
+    "name": "integerVar",
+    "value": "42",
+    "variablesReference": 0,
+    "type": "Integer",
+    "evaluateName": "42"
+  },
+  {
+    "name": "longVar",
+    "value": "123456789",
+    "variablesReference": 0,
+    "type": "Long",
+    "evaluateName": "123456789"
+  },
+  {
+    "name": "stringVar",
+    "value": "'Lorem ipsum dolor si (61 more) ...'",
+    "variablesReference": 0,
+    "type": "String",
+    "evaluateName": "'Lorem ipsum dolor si (61 more) ...'"
+  },
+  {
+    "name": "timeVar",
+    "value": "3723004",
+    "variablesReference": 0,
+    "type": "Time",
+    "evaluateName": "3723004"
+  }
+]
+====================
+[
+  {
+    "id": 1020,
+    "source": {
+      "name": "A.cls",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 42,
+    "column": 0,
+    "name": "A.A"
+  },
+  {
+    "id": 1000,
+    "source": {
+      "name": "RecursiveTest.cls",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 6,
+    "column": 0,
+    "name": "RecursiveTest.testMain()"
+  }
+]
+====================
+[
+  {
+    "name": "this",
+    "value": "",
+    "variablesReference": 1049,
+    "type": "A",
+    "evaluateName": ""
+  },
+  {
+    "name": "myB",
+    "value": "",
+    "variablesReference": 1050,
+    "type": "B",
+    "evaluateName": ""
+  },
+  {
+    "name": "blobVar",
+    "value": "BLOB(4 bytes)",
+    "variablesReference": 0,
+    "type": "Blob",
+    "evaluateName": "BLOB(4 bytes)"
+  },
+  {
+    "name": "booleanVar",
+    "value": "true",
+    "variablesReference": 0,
+    "type": "Boolean",
+    "evaluateName": "true"
+  },
+  {
+    "name": "dateVar",
+    "value": "'1990-01-03T00:00:00.000Z'",
+    "variablesReference": 0,
+    "type": "Date",
+    "evaluateName": "'1990-01-03T00:00:00.000Z'"
+  },
+  {
+    "name": "datetimeVar",
+    "value": "'1980-10-01T07:00:00.000Z'",
+    "variablesReference": 0,
+    "type": "Datetime",
+    "evaluateName": "'1980-10-01T07:00:00.000Z'"
+  },
+  {
+    "name": "decimalVar",
+    "value": "0.002",
+    "variablesReference": 0,
+    "type": "Decimal",
+    "evaluateName": "0.002"
+  },
+  {
+    "name": "doubleVar",
+    "value": "3.14159",
+    "variablesReference": 0,
+    "type": "Double",
+    "evaluateName": "3.14159"
+  },
+  {
+    "name": "enumVar",
+    "value": "",
+    "variablesReference": 1053,
+    "type": "A.Season",
+    "evaluateName": ""
+  },
+  {
+    "name": "idVar",
+    "value": "'0050S0000014rYkQAI'",
+    "variablesReference": 0,
+    "type": "Id",
+    "evaluateName": "'0050S0000014rYkQAI'"
+  },
+  {
+    "name": "integerVar",
+    "value": "42",
+    "variablesReference": 0,
+    "type": "Integer",
+    "evaluateName": "42"
+  },
+  {
+    "name": "longVar",
+    "value": "123456789",
+    "variablesReference": 0,
+    "type": "Long",
+    "evaluateName": "123456789"
+  },
+  {
+    "name": "stringVar",
+    "value": "'Lorem ipsum dolor si (61 more) ...'",
+    "variablesReference": 0,
+    "type": "String",
+    "evaluateName": "'Lorem ipsum dolor si (61 more) ...'"
+  },
+  {
+    "name": "timeVar",
+    "value": "3723004",
+    "variablesReference": 0,
+    "type": "Time",
+    "evaluateName": "3723004"
+  }
+]
+====================
+[
+  {
+    "name": "myClass",
+    "value": "",
+    "variablesReference": 1030,
+    "type": "A.MyInnerClassA",
+    "evaluateName": ""
+  },
+  {
+    "name": "myComplexList",
+    "value": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]",
+    "variablesReference": 0,
+    "type": "List<A.MyInnerClassA>",
+    "evaluateName": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]"
+  },
+  {
+    "name": "myComplexMap",
+    "value": "{\"1\":{\"myInteger\":1,\"myString\":\"One\"},\"2\":{\"myInteger\":2,\"myString\":\"Two\"}}",
+    "variablesReference": 0,
+    "type": "Map<Integer,A.MyInnerClassA>",
+    "evaluateName": "{\"1\":{\"myInteger\":1,\"myString\":\"One\"},\"2\":{\"myInteger\":2,\"myString\":\"Two\"}}"
+  },
+  {
+    "name": "myComplexSet",
+    "value": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]",
+    "variablesReference": 0,
+    "type": "Set<A.MyInnerClassA>",
+    "evaluateName": "[{\"myInteger\":1,\"myString\":\"One\"},{\"myInteger\":2,\"myString\":\"Two\"}]"
+  },
+  {
+    "name": "myNestedList",
+    "value": "[]",
+    "variablesReference": 0,
+    "type": "List<List<String>>",
+    "evaluateName": "[]"
+  },
+  {
+    "name": "mySimpleList",
+    "value": "[1,2]",
+    "variablesReference": 0,
+    "type": "List<Integer>",
+    "evaluateName": "[1,2]"
+  },
+  {
+    "name": "mySimpleMap",
+    "value": "{\"1\":\"One\",\"2\":\"Two\"}",
+    "variablesReference": 0,
+    "type": "Map<Integer,String>",
+    "evaluateName": "{\"1\":\"One\",\"2\":\"Two\"}"
+  },
+  {
+    "name": "mySimpleSet",
+    "value": "[1,2]",
+    "variablesReference": 0,
+    "type": "Set<Integer>",
+    "evaluateName": "[1,2]"
+  }
+]
+====================
+[
+  {
+    "id": 1000,
+    "source": {
+      "name": "RecursiveTest.cls",
+      "path": "<redacted>",
+      "sourceReference": 0
+    },
+    "line": 7,
+    "column": 0,
+    "name": "RecursiveTest.testMain()"
+  }
+]
+====================
+[
+  {
+    "name": "myB",
+    "value": "",
+    "variablesReference": 1026,
+    "type": "B",
+    "evaluateName": ""
+  },
+  {
+    "name": "myA",
+    "value": "",
+    "variablesReference": 1057,
+    "type": "A",
+    "evaluateName": ""
+  }
+]
+====================
+[]
