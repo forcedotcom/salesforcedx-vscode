@@ -12,11 +12,11 @@
   "typings": "./out/src/htmlLanguageService",
   "devDependencies": {
     "@types/chai": "^4.0.0",
-    "@types/mocha": "^2.2.38",
+    "@types/mocha": "5.2.2",
     "@types/node": "^6.0.40",
     "chai": "^4.0.2",
     "istanbul": "^0.4.5",
-    "mocha": "^3.2.0",
+    "mocha": "5.2.0",
     "mocha-junit-reporter": "^1.13.0",
     "mocha-multi-reporters": "^1.1.4",
     "nyc": "^11.0.2",
