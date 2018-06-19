@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigurationTarget } from 'vscode';
 import * as vscode from 'vscode';
+import { ConfigurationTarget } from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
