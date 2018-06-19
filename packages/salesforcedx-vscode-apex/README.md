@@ -17,6 +17,9 @@ Before you set up this extension, make sure that you have these essentials.
 To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.  
 ![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
 
+## Insert Code Snippets
+To see available Apex code snippets when you’re working in a `.cls` or `.trigger` file, run **Insert Snippet**. Snippets are available for class and interface definitions, a variety of statements, and much more. These code snippets are also available as code-completion suggestions.
+
 ## View or Jump to Definitions
 You can preview, view, or go to definitions of:  
 * User-defined Apex  
