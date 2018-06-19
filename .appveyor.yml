@@ -15,6 +15,9 @@ environment:
   SFDX_DOMAIN_RETRY: 300
 
 install:
+  - echo 'hello world'
+  - echo %SFDX_CI_DEVHUB_USERNAME%
+  - echo %NOT_ENCRYPTED%
   - ps: Install-Product node 8 x64
   - appveyor-retry npm install
   - npm install -g sfdx-cli
