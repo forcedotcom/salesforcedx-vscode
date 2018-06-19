@@ -33,6 +33,7 @@ function configure(mochaOpts: any): void {
   if (mochaOpts.reporter == null) {
     // default to 'mocha-multi-reporters' (to get xunit.xml result)
     mochaOpts.reporter = 'mocha-multi-reporters';
+    console.log('setting reporter to mocha multi reporter');
   }
   if (!mochaOpts.reporterOptions) {
     mochaOpts.reporterOptions = {
@@ -41,6 +42,7 @@ function configure(mochaOpts: any): void {
         mochaFile: 'junit-custom.xml'
       }
     };
+    console.log('setting mocha file location');
   }
   mocha = new Mocha(mochaOpts);
 }
