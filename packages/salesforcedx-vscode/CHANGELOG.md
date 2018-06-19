@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Apex code snippets ([PR #464](https://github.com/forcedotcom/salesforcedx-vscode/pull/464)), ([PR #487](https://github.com/forcedotcom/salesforcedx-vscode/pull/487))
+- Apex code snippets for use in autocompletion and when running **Insert Snippet** ([PR #464](https://github.com/forcedotcom/salesforcedx-vscode/pull/464)), ([PR #487](https://github.com/forcedotcom/salesforcedx-vscode/pull/487))
 
 #### salesforcedx-vscode-core
 
-- Setting flag to enable retrieving code coverage when running Apex unit tests ([PR #482](https://github.com/forcedotcom/salesforcedx-vscode/pull/482)). Contribution by [@dylanribb](https://github.com/dylanribb)
+- `salesforcedx-vscode-core.retrieve-test-code-coverage` setting to enable code coverage calculation and retrieval when running Apex tests ([PR #482](https://github.com/forcedotcom/salesforcedx-vscode/pull/482)). Contribution by [@dylanribb](https://github.com/dylanribb)
 - Quick pick to select which API (REST API or Tooling API) to use when running SOQL query commands ([PR #461](https://github.com/forcedotcom/salesforcedx-vscode/pull/461))
 
 ## 43.3.0 - June 14, 2018
