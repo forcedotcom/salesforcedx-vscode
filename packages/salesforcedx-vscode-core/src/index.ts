@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -60,6 +60,7 @@ import {
   TERMINAL_INTEGRATED_ENVS
 } from './constants';
 import * as decorators from './decorators';
+import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService } from './notifications';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
@@ -376,8 +377,15 @@ export async function activate(context: vscode.ExtensionContext) {
     // register watcher for ISV authentication and setup default user for CLI
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
-    context.subscriptions.push(registerIsvAuthWatcher());
-    await setupGlobalDefaultUserIsvAuth();
+    try {
+      context.subscriptions.push(registerIsvAuthWatcher());
+      await setupGlobalDefaultUserIsvAuth();
+    } catch (e) {
+      console.error(e);
+      vscode.window.showWarningMessage(
+        nls.localize('isv_debug_config_environment_error')
+      );
+    }
   }
 
   // Commands

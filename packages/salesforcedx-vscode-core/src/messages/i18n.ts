@@ -151,6 +151,8 @@ export const messages = {
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project:
     'Opening project in new Visual Studio Code window',
+  isv_debug_config_environment_error:
+    'There was a problem configuring the environment for ISV Customer Debugger. Some features may not work. See VS Code Developer Tools and Salesforce CLI logs for details.',
 
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
