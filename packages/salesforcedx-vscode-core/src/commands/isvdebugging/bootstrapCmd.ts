@@ -656,14 +656,14 @@ export async function setupGlobalDefaultUserIsvAuth() {
         ENV_SFDX_INSTANCE_URL,
         isvDebuggerUrl
       );
-      console.log(
-        'Configured SFDX_DEFAULTUSERNAME and SFDX_INSTANCE_URL for ISV Project Authentication'
-      );
       // enable ISV project
       vscode.commands.executeCommand(
         'setContext',
         'sfdx:isv_debug_project',
         true
+      );
+      console.log(
+        `Configured ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL} for ISV Project Authentication`
       );
       return;
     } else {
@@ -673,10 +673,14 @@ export async function setupGlobalDefaultUserIsvAuth() {
         'sfdx:isv_debug_project',
         false
       );
+      console.log('Project is not for ISV Debugger');
     }
   }
 
   // reset any auth
   GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_DEFAULTUSERNAME);
   GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_INSTANCE_URL);
+  console.log(
+    `Deleted environment variables ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL}`
+  );
 }
