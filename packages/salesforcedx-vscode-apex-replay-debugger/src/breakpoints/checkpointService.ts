@@ -14,6 +14,10 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
+  ActionScriptEnum,
+  OrgInfoError
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/commands';
+import {
   CHECKPOINT,
   CHECKPOINTS_LOCK_STRING,
   FIELD_INTEGRITY_EXCEPTION,
@@ -57,11 +61,6 @@ const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
 
 // These are the action script types for the ApexExecutionOverlayAction.
-export enum ActionScriptEnum {
-  None = 'None',
-  Apex = 'Apex',
-  SOQL = 'SOQL'
-}
 export interface ApexExecutionOverlayAction {
   ActionScript: string;
   ActionScriptType: ActionScriptEnum;
@@ -69,13 +68,6 @@ export interface ApexExecutionOverlayAction {
   IsDumpingHeap: boolean;
   Iteration: number;
   Line: number;
-}
-
-interface OrgInfoError {
-  message: string;
-  status: number;
-  name: string;
-  warnings: string[];
 }
 
 export class CheckpointService implements TreeDataProvider<BaseNode> {

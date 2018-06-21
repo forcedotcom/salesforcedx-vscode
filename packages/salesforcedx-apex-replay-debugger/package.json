@@ -13,6 +13,7 @@
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "43.4.0",
+    "request-light": "0.2.1",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-uri": "1.0.1"

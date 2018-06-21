@@ -5,16 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ForceOrgDisplay } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  RequestService,
+  RestHttpMethodEnum
+} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as path from 'path';
 import { Handles, StackFrame } from 'vscode-debugadapter';
 import {
   ApexDebugStackFrameInfo,
+  ApexHeapDump,
   ApexReplayDebug,
   ApexVariableContainer,
   LaunchRequestArguments,
   VariableContainer
 } from '../adapter/apexReplayDebug';
 import { breakpointUtil } from '../breakpoints';
+import {
+  ApexExecutionOverlayResultCommand,
+  ApexExecutionOverlayResultCommandFailure,
+  ApexExecutionOverlayResultCommandSuccess,
+  OrgInfoError
+} from '../commands';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -32,6 +44,7 @@ import {
   EXEC_ANON_SIGNATURE,
   SFDC_TRIGGER
 } from '../constants';
+import { nls } from '../messages';
 import {
   DebugLogState,
   FrameEntryState,
@@ -62,6 +75,7 @@ export class LogContext {
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
+  private apexHeapDumps: ApexHeapDump[] = [];
 
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
@@ -97,6 +111,88 @@ export class LogContext {
         /(\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINER;.*|\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,FINEST;.*)/
       ) !== null
     );
+  }
+
+  public getHeapDumps(): ApexHeapDump[] {
+    return this.apexHeapDumps;
+  }
+
+  public scanLogForHeapDumpLines(): boolean {
+    const heapDumpRegex = RegExp(/\|HEAP_DUMP\|/);
+    for (const line of this.logLines) {
+      if (heapDumpRegex.test(line)) {
+        const splitLine = line.split('|');
+        const heapDump = new ApexHeapDump(
+          splitLine[3] /* heapDumpId */,
+          splitLine[4] /* className */,
+          splitLine[5] /* namespace */,
+          Number(splitLine[6]) /* line */
+        );
+        this.apexHeapDumps.push(heapDump);
+      }
+    }
+    return this.apexHeapDumps.length > 0;
+  }
+
+  public async fetchOverlayResultsForApexHeapDumps(
+    projectPath: string
+  ): Promise<boolean> {
+    let success = true;
+    try {
+      const orgInfo = await new ForceOrgDisplay().getOrgInfo(projectPath);
+      const requestService = new RequestService();
+      requestService.instanceUrl = orgInfo.instanceUrl;
+      requestService.accessToken = orgInfo.accessToken;
+
+      for (const heapDump of this.apexHeapDumps) {
+        this.session.printToDebugConsole(`fetching: ${heapDump.toString()}`);
+        const overlayActionCommand = new ApexExecutionOverlayResultCommand(
+          heapDump.getHeapDumpId()
+        );
+        let errorString;
+        let returnString;
+        await requestService
+          .execute(overlayActionCommand, RestHttpMethodEnum.Get)
+          .then(
+            value => {
+              returnString = value;
+            },
+            reason => {
+              errorString = reason;
+            }
+          );
+        if (returnString) {
+          heapDump.setOverlaySuccessResult(JSON.parse(
+            returnString
+          ) as ApexExecutionOverlayResultCommandSuccess);
+        } else if (errorString) {
+          try {
+            success = false;
+            const error = JSON.parse(
+              errorString
+            ) as ApexExecutionOverlayResultCommandFailure[];
+            const errorMessage = nls.localize(
+              'heap_dump_error',
+              error[0].message,
+              error[0].errorCode,
+              heapDump.toString()
+            );
+            this.session.errorToDebugConsole(errorMessage);
+          } catch (error) {
+            const errorMessage = `${error}. ${errorString}. ${heapDump.toString()}`;
+            this.session.errorToDebugConsole(errorMessage);
+          }
+        }
+      }
+    } catch (error) {
+      success = false;
+      const result = JSON.parse(error) as OrgInfoError;
+      const errorMessage = `${nls.localize(
+        'unable_to_retrieve_org_info'
+      )} : ${result.message}`;
+      this.session.errorToDebugConsole(errorMessage);
+    }
+    return success;
   }
 
   public getLogFileName(): string {

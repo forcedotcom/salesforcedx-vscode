@@ -22,7 +22,8 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { breakpointUtil } from '../breakpoints';
+import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
+import { ApexExecutionOverlayResultCommandSuccess } from '../commands';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
@@ -163,6 +164,55 @@ export class ScopeContainer extends VariableContainer {
   }
 }
 
+export class ApexHeapDump {
+  private readonly heapDumpId: string;
+  private readonly className: string;
+  private readonly namespace: string;
+  private readonly line: number;
+  private overlaySuccessResut:
+    | ApexExecutionOverlayResultCommandSuccess
+    | undefined;
+  public constructor(
+    heapDumpId: string,
+    className: string,
+    namespace: string,
+    line: number
+  ) {
+    this.heapDumpId = heapDumpId;
+    this.className = className;
+    this.namespace = namespace;
+    this.line = line;
+  }
+  public getHeapDumpId(): string {
+    return this.heapDumpId;
+  }
+  public getClassName(): string {
+    return this.className;
+  }
+  public getNamespace(): string {
+    return this.namespace;
+  }
+  public getLine(): number {
+    return this.line;
+  }
+  public getOverlaySuccessResult():
+    | ApexExecutionOverlayResultCommandSuccess
+    | undefined {
+    return this.overlaySuccessResut;
+  }
+  public setOverlaySuccessResult(
+    overlaySuccessResult: ApexExecutionOverlayResultCommandSuccess
+  ): void {
+    this.overlaySuccessResut = overlaySuccessResult;
+  }
+  /* tslint:disable */
+  public toString = (): string => {
+    return `HeapDumpId: ${this.heapDumpId}, ClassName: ${this
+      .className}, Namespace: ${this.namespace}, Line: ${this.line}`;
+  }; /* This semi-colon is the reason for the tslint, formatting keeps adding it */
+  /* tslint:enable */
+}
+
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext: LogContext;
@@ -170,6 +220,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
   protected traceAll = false;
   private initializedResponse: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
+  protected projectPath: string | undefined;
 
   constructor() {
     super('apex-replay-debug-adapter.log');
@@ -185,10 +236,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
-  public launchRequest(
+  public async launchRequest(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
-  ): void {
+  ): Promise<void> {
     response.success = false;
     this.setupLogger(args);
     this.log(
@@ -211,6 +262,20 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.printToDebugConsole(
       nls.localize('session_started_text', this.logContext.getLogFileName())
     );
+    // If the projectPath isn't set then don't bother with heap dump processing
+    if (this.projectPath) {
+      if (this.logContext.scanLogForHeapDumpLines()) {
+        if (
+          !await this.logContext.fetchOverlayResultsForApexHeapDumps(
+            this.projectPath
+          )
+        ) {
+          this.errorToDebugConsole(
+            nls.localize('heap_dump_error_wrap_up_text')
+          );
+        }
+      }
+    }
     response.success = true;
     this.sendResponse(response);
   }
@@ -465,7 +530,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
     switch (command) {
       case LINE_BREAKPOINT_INFO_REQUEST:
         if (args) {
-          breakpointUtil.createMappingsFromLineBreakpointInfo(args);
+          const lineBreakpointEventArgs = args as LineBreakpointEventArgs;
+          breakpointUtil.createMappingsFromLineBreakpointInfo(
+            lineBreakpointEventArgs.lineBreakpointInfo
+          );
+          this.projectPath = lineBreakpointEventArgs.projectPath;
         } else {
           this.initializedResponse.success = false;
           this.initializedResponse.message = nls.localize(

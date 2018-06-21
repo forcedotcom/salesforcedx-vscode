@@ -183,6 +183,29 @@ describe('LogContext', () => {
     expect(printToDebugConsoleStub.calledTwice).to.be.true;
   });
 
+  it('Should detect and parse HEAP_DUMP log entries', () => {
+    readLogFileStub.restore();
+    readLogFileStub = sinon
+      .stub(LogContextUtil.prototype, 'readLogFile')
+      .returns([
+        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
+        '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|<ClassName1>|<Namespace1>|11',
+        '<TimeInfo>|HEAP_DUMP|[22]|<HeapDumpId2>|<ClassName2>|<Namespace2>|22'
+      ]);
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+    expect(context.scanLogForHeapDumpLines()).to.be.true;
+    const apexHeapDumps = context.getHeapDumps();
+    expect(apexHeapDumps.length).to.equal(2);
+    expect(apexHeapDumps[0].getHeapDumpId()).to.equal('<HeapDumpId1>');
+    expect(apexHeapDumps[1].getHeapDumpId()).to.equal('<HeapDumpId2>');
+    expect(apexHeapDumps[0].getClassName()).to.equal('<ClassName1>');
+    expect(apexHeapDumps[1].getClassName()).to.equal('<ClassName2>');
+    expect(apexHeapDumps[0].getNamespace()).to.equal('<Namespace1>');
+    expect(apexHeapDumps[1].getNamespace()).to.equal('<Namespace2>');
+    expect(apexHeapDumps[0].getLine()).to.equal(11);
+    expect(apexHeapDumps[1].getLine()).to.equal(22);
+  });
+
   describe('Log event parser', () => {
     beforeEach(() => {
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
