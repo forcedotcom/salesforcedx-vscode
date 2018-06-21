@@ -36,8 +36,15 @@ function configure(mochaOpts: any): void {
     console.log('setting reporter to mocha multi reporter');
   }
   if (!mochaOpts.reporterOptions) {
+    let mochaFile = 'junit-custom.xml';
+    if (process.platform === 'win32') {
+      mochaFile = paths.normalize(
+        paths.join(process.cwd(), '..', '..', 'junit-custom.xml')
+      );
+    }
+    console.log('mocha file is being stored: ', mochaFile);
     mochaOpts.reporterOptions = {
-      mochaFile: 'junit-custom.xml'
+      mochaFile
       //   reporterEnabled: 'mocha-junit-reporter, spec',
       //   mochaJunitReporterReporterOptions: {
       //     mochaFile: 'junit-custom.xml'
