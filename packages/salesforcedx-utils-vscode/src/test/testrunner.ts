@@ -32,8 +32,7 @@ let mocha = new Mocha({
 function configure(mochaOpts: any): void {
   if (mochaOpts.reporter == null) {
     // default to 'mocha-multi-reporters' (to get xunit.xml result)
-    mochaOpts.reporter = 'mocha-junit-reporter';
-    console.log('setting reporter to mocha multi reporter');
+    mochaOpts.reporter = 'mocha-multi-reporters';
   }
   if (!mochaOpts.reporterOptions) {
     let mochaFile = 'junit-custom.xml';
@@ -44,13 +43,11 @@ function configure(mochaOpts: any): void {
     }
     console.log('mocha file is being stored: ', mochaFile);
     mochaOpts.reporterOptions = {
-      mochaFile
-      //   reporterEnabled: 'mocha-junit-reporter, spec',
-      //   mochaJunitReporterReporterOptions: {
-      //     mochaFile: 'junit-custom.xml'
-      //   }
+      reporterEnabled: 'mocha-junit-reporter, spec',
+      mochaJunitReporterReporterOptions: {
+        mochaFile
+      }
     };
-    // console.log('setting mocha file location');
   }
   mocha = new Mocha(mochaOpts);
 }

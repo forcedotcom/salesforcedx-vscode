@@ -16,43 +16,31 @@
     "vsce": "^1.36.3"
   },
   "scripts": {
-    "postinstall":
-      "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
-    "bootstrap":
-      "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
+    "postinstall": "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
+    "bootstrap": "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",
-    "compile":
-      "lerna run --stream --ignore @salesforce/salesforcedx-webview-ui compile",
+    "compile": "lerna run --stream --ignore @salesforce/salesforcedx-webview-ui compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
     "prepush": "npm run lint",
     "test": "lerna run test --concurrency 1 --stream",
-    "test:unit":
-      "lerna exec --concurrency 1 --stream --scope salesforcedx-vscode-apex-debugger --bail=false -- npm run test:unit",
+    "test:unit": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
-    "test:without-system-tests":
-      "lerna run test --ignore system-tests --concurrency 1 --stream",
-    "test:system-tests":
-      "lerna run test --scope system-tests --concurrency 1 --stream",
-    "coverage:system-tests":
-      "lerna run coverage --scope system-tests --concurrency 1 --stream",
-    "vscode:package":
-      "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
+    "test:without-system-tests": "lerna run test --ignore system-tests --concurrency 1 --stream",
+    "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream",
+    "coverage:system-tests": "lerna run coverage --scope system-tests --concurrency 1 --stream",
+    "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
-    "eslint-check":
-      "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
+    "eslint-check": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
     "reformat": "node scripts/reformat-with-prettier.js",
-    "synk:test":
-      "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
-    "synk:monitor":
-      "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
+    "synk:test": "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
+    "synk:monitor": "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
     "start-webview": "npm run start --prefix=packages/salesforcedx-webview-ui",
     "build-webview": "npm run build --prefix=packages/salesforcedx-webview-ui",
     "test-webview": "npm run test --prefix=packages/salesforcedx-webview-ui",
-    "bundle-webview":
-      "npm run compile --prefix=packages/salesforcedx-webview-ui",
+    "bundle-webview": "npm run compile --prefix=packages/salesforcedx-webview-ui",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js"
   },
   "repository": {
