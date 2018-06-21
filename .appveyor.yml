@@ -31,7 +31,7 @@ build_script:
 test_script:
   - node --version
   - npm --version
-  ps: |
+  - ps: |
       #Initialize some variables, move to the project root
       $ProjectRoot = $ENV:APPVEYOR_BUILD_FOLDER
       Set-Location $ProjectRoot
