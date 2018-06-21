@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.3.0",
+  "version": "43.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,8 +22,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "43.3.0",
-    "@salesforce/salesforcedx-utils-vscode": "43.3.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "43.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.4.0",
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -475,6 +475,11 @@
           "type": ["boolean"],
           "default": false,
           "description": "%show_experimental_webviews_description%"
+        },
+        "salesforcedx-vscode-core.retrieve-test-code-coverage": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%retrieve_test_code_coverage_text%"
         }
       }
     }
