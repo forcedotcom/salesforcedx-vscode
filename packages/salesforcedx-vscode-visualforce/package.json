@@ -32,11 +32,11 @@
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "43.4.0",
     "@types/chai": "^4.0.0",
-    "@types/mocha": "2.2.38",
+    "@types/mocha": "5.2.2",
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
-    "mocha": "3.2.0",
+    "mocha": "5.2.0",
     "sinon": "^2.3.6",
     "vscode": "1.1.17"
   },

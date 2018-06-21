@@ -25,17 +25,17 @@
     "@salesforce/salesforcedx-apex-replay-debugger": "43.4.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
-    "request-light": "0.2.1"
+    "request-light": "0.2.3"
   },
   "devDependencies": {
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
-    "@types/mocha": "2.2.38",
+    "@types/mocha": "5.2.2",
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
-    "mocha": "3.2.0",
+    "mocha": "5.2.0",
     "sinon": "^2.3.6",
     "vscode": "1.1.17"
   },
