@@ -73,7 +73,12 @@ export function activate(context: ExtensionContext) {
     }
   };
 
-  const documentSelector = ['visualforce'];
+  const documentSelector = [
+    {
+      language: 'visualforce',
+      scheme: 'file'
+    }
+  ];
   const embeddedLanguages = { css: true, javascript: true };
 
   // Options to control the language client
