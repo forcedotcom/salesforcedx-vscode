@@ -35,20 +35,20 @@ function configure(mochaOpts: any): void {
     mochaOpts.reporter = 'mocha-multi-reporters';
   }
   if (!mochaOpts.reporterOptions) {
-    let xmlPath = 'junit-custom.xml';
+    let xmlPath = '';
     if (process.platform === 'win32') {
-      xmlPath = paths.normalize(
-        paths.join(process.cwd(), '..', '..')
-      );
+      xmlPath = paths.normalize(paths.join(process.cwd(), '..', '..'));
     }
     console.log('xml file is being stored: ', xmlPath);
     mochaOpts.reporterOptions = {
       reporterEnabled: 'mocha-junit-reporter, xunit, spec',
       mochaJunitReporterReporterOptions: {
-        mochaFile: paths.join(xmlPath, 'junit-custom.xml')
+        mochaFile: xmlPath
+          ? paths.join(xmlPath, 'junit-custom.xml')
+          : 'junit-custom.xml'
       },
       xunitReporterOptions: {
-        output: paths.join(xmlPath, 'xunit.xml')
+        output: xmlPath ? paths.join(xmlPath, 'xunit.xml') : 'xunit.xml'
       }
     };
   }
