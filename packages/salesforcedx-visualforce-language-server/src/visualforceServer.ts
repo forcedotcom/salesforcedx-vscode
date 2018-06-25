@@ -200,7 +200,7 @@ connection.onDidChangeConfiguration(change => {
     if (enableFormatter) {
       if (!formatterRegistration) {
         const documentSelector: DocumentSelector = [
-          { language: 'visualforce' }
+          { language: 'visualforce', scheme: 'file' }
         ];
         formatterRegistration = connection.client.register(
           DocumentRangeFormattingRequest.type,
