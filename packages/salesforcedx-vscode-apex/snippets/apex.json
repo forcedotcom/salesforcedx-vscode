@@ -194,14 +194,14 @@
         "body": [
             "map<${1:object}, ${2:object}> ${3:mapName} = new map<$1, $2>();"
         ],
-        "description": "map constructor"
+        "description": "Map constructor"
     },
     "set": {
         "prefix": "set<",
         "body": [
             "set<${1:object}> ${2:setName} = new set<$1>();"
         ],
-        "description": "set constructor"
+        "description": "Set constructor"
     },
     "@AuraEnabled": {
         "prefix": "@AuraEnabled",
@@ -231,14 +231,14 @@
             "  return users;",
             "}"
         ],
-        "description": "creates some amount of test users for a test method or for @TestSetup"
+        "description": "Creates some amount of test users for a test method or for @TestSetup"
     },
     "AuraHandledException": {
         "prefix": "auraHandledException",
         "body": [
             "throw new AuraHandledException('${1:exceptionText}');"
         ],
-        "description": "throw an exception for a lightning component to display"
+        "description": "Throw an exception for a lightning component to display"
     },
     "TestMethod": {
         "prefix": "testMethod",
@@ -252,7 +252,7 @@
             "  ",
             "}"
         ],
-        "description": "test method with runAs and stop/start"
+        "description": "Test method with runAs and stop/start"
     },
     "TestSetup": {
         "prefix": "@TestSetup",
@@ -285,7 +285,7 @@
             "  return u;",
             "}"
         ],
-        "description": "for tests to make an admin user that you can runAs"
+        "description": "Create an admin user that you can use in Tests with runAs"
     },
     "CustomException": {
         "prefix": "customException",
