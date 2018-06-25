@@ -75,7 +75,7 @@
     "for": {
         "prefix": "for",
         "body": [
-            "for (${1:variable} : ${2:list_or_set}) {",
+            "for (${1:variable} : ${2:List_or_set}) {",
             "   $0",
             "}"
         ],
@@ -182,12 +182,12 @@
         ],
         "description": "Throw a new exception"
     },
-    "list": {
-        "prefix": "list<",
+    "List": {
+        "prefix": "List<",
         "body": [
-            "list<${1:object}> ${2:listName} = new list<$1>();"
+            "List<${1:object}> ${2:listName} = new List<$1>();"
         ],
-        "description": "list constructor"
+        "description": "List constructor"
     },
     "map": {
         "prefix": "map<",
@@ -208,7 +208,7 @@
         "body": [
             "@AuraEnabled",
             "${1|public,global|} static ${2:string} ${3:methodName}(){",
-            "\t$4",
+            "  $4",
             "}"
         ],
         "description": "Aura Enabled Apex Method"
@@ -216,19 +216,19 @@
     "userCreation": {
         "prefix": "createUsers",
         "body": [
-            "public static list<user> createUsers(integer numberOfUsers){",
-            "\tlist<user> users = new list<user>();",
-            "\tProfile p = [SELECT Id FROM Profile WHERE Name='${1:Standard User}'];",
-            "\tfor (integer i=0; i<numberOfUsers; i++){",
-            "\t\tstring x = string.valueOf(i);",
-            "\t\tUser u = new User(Alias = 't'+x, Email='standarduser'+x+'@${2:someDomain.test}',",
-            "\t\t\tEmailEncodingKey='UTF-8', LastName='Testing' + x, LanguageLocaleKey='en_US',LocaleSidKey='en_US', ProfileId = p.Id,",
-            "\t\t\tTimeZoneSidKey='America/Los_Angeles', UserName='standarduser'+x+'@${2:someDomain.test}');",
-            "\tusers.add(u);",
-            "\t}",
+            "public static List<user> createUsers(integer numberOfUsers){",
+            "  List<user> users = new List<user>();",
+            "  Profile p = [SELECT Id FROM Profile WHERE Name='${1:Standard User}'];",
+            "  for (integer i=0; i<numberOfUsers; i++){",
+            "    string x = string.valueOf(i);",
+            "    User u = new User(Alias = 't'+x, Email='standarduser'+x+'@${2:someDomain.test}',",
+            "      EmailEncodingKey='UTF-8', LastName='Testing' + x, LanguageLocaleKey='en_US',LocaleSidKey='en_US', ProfileId = p.Id,",
+            "      TimeZoneSidKey='America/Los_Angeles', UserName='standarduser'+x+'@${2:someDomain.test}');",
+            "  users.add(u);",
+            "  }",
             "",
-            "\tinsert users;",
-            "\treturn users;",
+            "  insert users;",
+            "  return users;",
             "}"
         ],
         "description": "creates some amount of test users for a test method or for @TestSetup"
@@ -244,12 +244,12 @@
         "prefix": "testMethod",
         "body": [
             "static testMethod void ${1:methodName}(){",
-            "\t",
-            "\ttest.startTest();",
-            "\tsystem.RunAs(${2:contextuser}){",
-            "\t\t",
-            "\ttest.stopTest();",
-            "\t",
+            "  ",
+            "  test.startTest();",
+            "  system.RunAs(${2:contextuser}){",
+            "    ",
+            "  test.stopTest();",
+            "  ",
             "}"
         ],
         "description": "test method with runAs and stop/start"
@@ -258,7 +258,7 @@
         "prefix": "@TestSetup",
         "body": [
             "@testSetup static void ${1:makeData}(){",
-            "\t",
+            "  ",
             "}"
         ],
         "description": "Test setup for creating data before test methods run"
@@ -267,22 +267,22 @@
         "prefix": "createAdmin",
         "body": [
             "public static user createAdmin(){",
-            "\tProfile p = [SELECT Id FROM Profile WHERE Name='System Administrator'];",
-            "\t//create User",
-            "\tUser u = new User();",
-            "\tu.FirstName = 'A';",
-            "\tu.LastName = 'S';",
-            "\tu.Email = 'test@${1:domainPeopleWontGuess}';",
-            "\tu.Username = 'test@${1}';",
-            "\tu.Alias = 'astest';",
-            "\tu.ProfileId = p.Id;",
-            "\tu.TimeZoneSidKey    = 'America/Denver';",
-            "\tu.LocaleSidKey      = 'en_US';",
-            "\tu.EmailEncodingKey  = 'UTF-8';",
-            "\tu.LanguageLocaleKey = 'en_US';",
-            "\tinsert u;",
-            "\tsystem.debug('u contains ' + u);",
-            "\treturn u;",
+            "  Profile p = [SELECT Id FROM Profile WHERE Name='System Administrator'];",
+            "  //create User",
+            "  User u = new User();",
+            "  u.FirstName = 'A';",
+            "  u.LastName = 'S';",
+            "  u.Email = 'test@${1:domainPeopleWontGuess}';",
+            "  u.Username = 'test@${1}';",
+            "  u.Alias = 'astest';",
+            "  u.ProfileId = p.Id;",
+            "  u.TimeZoneSidKey    = 'America/Denver';",
+            "  u.LocaleSidKey      = 'en_US';",
+            "  u.EmailEncodingKey  = 'UTF-8';",
+            "  u.LanguageLocaleKey = 'en_US';",
+            "  insert u;",
+            "  system.debug('u contains ' + u);",
+            "  return u;",
             "}"
         ],
         "description": "for tests to make an admin user that you can runAs"
