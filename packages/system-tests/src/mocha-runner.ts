@@ -10,11 +10,28 @@ import * as glob from 'glob';
 import * as path from 'path';
 import Mocha = require('mocha');
 
-const mocha = new Mocha({ ui: 'bdd', timeout: 360000, slow: 5000 });
+let xmlPath = '';
+if (process.platform === 'win32') {
+  xmlPath = path.normalize(path.join(process.cwd(), '..', '..'));
+}
+const mocha = new Mocha({
+  ui: 'bdd',
+  timeout: 360000,
+  slow: 5000,
+  reporter: 'mocha-multi-reporters',
+  reporterOptions: {
+    reporterEnabled: 'mocha-junit-reporter, xunit, spec',
+    mochaJunitReporterReporterOptions: {
+      mochaFile: 'junit-custom.xml'
+    },
+    xunitReporterOptions: {
+      output: 'xunit-custom.xml'
+    }
+  }
+});
 mocha.useColors(true);
 
 const files = glob.sync('out/**/*.test.js', { cwd: process.cwd() });
-
 files.forEach(f => mocha.addFile(path.join(process.cwd(), f)));
 
 mocha.run(failures => {
