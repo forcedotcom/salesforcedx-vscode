@@ -295,5 +295,21 @@
             "}"
         ],
         "description": "Class"
+    },
+    "MockCallout": {
+        "prefix": "mockCallout",
+        "body": [
+            "global HTTPResponse respond(HTTPRequest req) {",
+            "",
+            "  HttpResponse res = new HttpResponse();",
+            "  res.setHeader('Content-Type', '${1:application/json}');",
+            "  res.setBody('{",
+            "    \"example\": \"test\"",
+            "  }');",
+            "  res.setStatusCode(${2:200});",
+            "  return res;",
+            "}"
+        ],
+        "description": "Create a mock for an http callout for apex testing"
     }
 }
