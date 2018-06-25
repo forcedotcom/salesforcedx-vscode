@@ -183,23 +183,23 @@
         "description": "Throw a new exception"
     },
     "List": {
-        "prefix": "List<",
+        "prefix": "List",
         "body": [
             "List<${1:object}> ${2:listName} = new List<$1>();"
         ],
         "description": "List constructor"
     },
     "map": {
-        "prefix": "map<",
+        "prefix": "Map",
         "body": [
-            "map<${1:object}, ${2:object}> ${3:mapName} = new map<$1, $2>();"
+            "Map<${1:object}, ${2:object}> ${3:mapName} = new Map<$1, $2>();"
         ],
         "description": "Map constructor"
     },
     "set": {
-        "prefix": "set<",
+        "prefix": "Set",
         "body": [
-            "set<${1:object}> ${2:setName} = new set<$1>();"
+            "Set<${1:object}> ${2:setName} = new Set<$1>();"
         ],
         "description": "Set constructor"
     },
@@ -216,9 +216,9 @@
     "userCreation": {
         "prefix": "createUsers",
         "body": [
-            "public static List<user> createUsers(integer numberOfUsers){",
+            "public static List<user> createUsers(integer numberOfUsers, string profileName){",
             "  List<user> users = new List<user>();",
-            "  Profile p = [SELECT Id FROM Profile WHERE Name='${1:Standard User}'];",
+            "  Profile p = [SELECT Id FROM Profile WHERE Name=:profileName];",
             "  for (integer i=0; i<numberOfUsers; i++){",
             "    string x = string.valueOf(i);",
             "    User u = new User(Alias = 't'+x, Email='standarduser'+x+'@${2:someDomain.test}',",
