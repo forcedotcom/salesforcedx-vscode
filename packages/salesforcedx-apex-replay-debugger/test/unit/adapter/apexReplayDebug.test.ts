@@ -69,8 +69,7 @@ export class MockApexReplayDebug extends ApexReplayDebug {
   }
 
   public getProjectPath(): string | undefined {
-    const foo = this.projectPath;
-    return foo;
+    return this.projectPath;
   }
 }
 
@@ -325,7 +324,6 @@ describe('Replay debugger adapter - unit', () => {
       expect(errorMessage).to.equal(
         nls.localize('heap_dump_error_wrap_up_text')
       );
-      errorToDebugConsoleStub.restore();
     });
   });
 

@@ -66,7 +66,8 @@ export interface HeadpDumpExtent {
   value: HeadpDumpExtentValue;
 }
 
-// The Extent value has to be any. The value
+// The Extent value has to be an any. The value can be a single value of varying
+// types or an array of values of varying types from a collection.
 export interface HeadpDumpExtentValue {
   value?: any;
   entry?: HeadpDumpExtentValueEntry[];

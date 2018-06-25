@@ -159,11 +159,10 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
         extent[i].value.entry![0].value.value!.startsWith('okToDelete')
       ).to.equal(true);
 
-      // Verity the AccountNumber keyDisplayValue and the value is xxx
+      // Verity the AccountNumber keyDisplayValue
       expect(extent[i].value.entry![1].keyDisplayValue).to.equal(
         'AccountNumber'
       );
-      // JRS expect(extent[i].value.entry![1].value.value).to.equal('xxx');
 
       // Verify the Id keyDisplayValue and the value starts with 001xx000003Dt1
       expect(extent[i].value.entry![2].keyDisplayValue).to.equal('Id');
@@ -753,7 +752,7 @@ if (Trigger.isBefore) {
             a.accountNumber = 'yyy';
         }
 
-// If the trigger is not a before trigger, it must be an after trigger. JRS
+// If the trigger is not a before trigger, it must be an after trigger.
 } else {
     if (Trigger.isInsert) {
         List<Contact> contacts = new List<Contact>();

@@ -14,7 +14,6 @@ import * as path from 'path';
 import { Handles, StackFrame } from 'vscode-debugadapter';
 import {
   ApexDebugStackFrameInfo,
-  ApexHeapDump,
   ApexReplayDebug,
   ApexVariableContainer,
   LaunchRequestArguments,
@@ -57,6 +56,7 @@ import {
   VariableAssignmentState,
   VariableBeginState
 } from '../states';
+import { ApexHeapDump } from './heapDump';
 import { LogContextUtil } from './logContextUtil';
 
 export class LogContext {
@@ -119,18 +119,26 @@ export class LogContext {
 
   public scanLogForHeapDumpLines(): boolean {
     const heapDumpRegex = RegExp(/\|HEAP_DUMP\|/);
-    for (const line of this.logLines) {
+    this.logLines.forEach((line, index) => {
       if (heapDumpRegex.test(line)) {
         const splitLine = line.split('|');
-        const heapDump = new ApexHeapDump(
-          splitLine[3] /* heapDumpId */,
-          splitLine[4] /* className */,
-          splitLine[5] /* namespace */,
-          Number(splitLine[6]) /* line */
-        );
-        this.apexHeapDumps.push(heapDump);
+        if (splitLine.length >= 7) {
+          const heapDump = new ApexHeapDump(
+            splitLine[3] /* heapDumpId */,
+            splitLine[4] /* className */,
+            splitLine[5] /* namespace */,
+            Number(splitLine[6]) /* line */
+          );
+          this.apexHeapDumps.push(heapDump);
+        } else {
+          // With the way log lines are, this would only happen
+          // if the user manually edited the log file.
+          this.session.printToDebugConsole(
+            nls.localize(`malformed_log_line', ${index + 1}, ${line}`)
+          );
+        }
       }
-    }
+    });
     return this.apexHeapDumps.length > 0;
   }
 
@@ -145,7 +153,9 @@ export class LogContext {
       requestService.accessToken = orgInfo.accessToken;
 
       for (const heapDump of this.apexHeapDumps) {
-        this.session.printToDebugConsole(`fetching: ${heapDump.toString()}`);
+        this.session.printToDebugConsole(
+          nls.localize(`fetching_heap_dump', ${heapDump.toString()}`)
+        );
         const overlayActionCommand = new ApexExecutionOverlayResultCommand(
           heapDump.getHeapDumpId()
         );
