@@ -22,10 +22,12 @@ const mocha = new Mocha({
   reporterOptions: {
     reporterEnabled: 'mocha-junit-reporter, xunit, spec',
     mochaJunitReporterReporterOptions: {
-      mochaFile: 'junit-custom.xml'
+      mochaFile: xmlPath
+        ? path.join(xmlPath, 'junit-custom.xml')
+        : 'junit-custom.xml'
     },
     xunitReporterOptions: {
-      output: 'xunit-custom.xml'
+      output: xmlPath ? path.join(xmlPath, 'xunit.xml') : 'xunit.xml'
     }
   }
 });
