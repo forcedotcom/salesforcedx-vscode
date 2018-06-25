@@ -31,6 +31,9 @@ const mocha = new Mocha({
     }
   }
 });
+console.log(
+  `\n\n\n\nSYSTEM TESTS ARE RAN IN THIS DIRECTORY: ${process.cwd()}\n\n\n\n`
+);
 mocha.useColors(true);
 
 const files = glob.sync('out/**/*.test.js', { cwd: process.cwd() });
