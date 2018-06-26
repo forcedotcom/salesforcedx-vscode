@@ -25,7 +25,7 @@ Here's a summary:
   had in the PRs.
 - Because we use squash and merge, ensure that the final squashed commit message
   makes sense.
-  - No WIP markers in the subjec
+  - No WIP markers in the subject
   - No DO-NOT-MERGE markers in the subject
   - No MyName/branchname in the subject
 
