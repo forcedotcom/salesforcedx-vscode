@@ -41,6 +41,7 @@ test_script:
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
       npm run test:without-system-tests
+      npm run coverage:system-tests
       $NpmTestsExitCode = $LastExitCode
       # Show status
       "`n`n"
@@ -60,7 +61,6 @@ test_script:
         #$Error | Format-List * -Force
         exit $NpmTestsExitCode
       }
-  - npm run coverage:system-tests
   - npm run aggregateJUnit
 
 artifacts:
