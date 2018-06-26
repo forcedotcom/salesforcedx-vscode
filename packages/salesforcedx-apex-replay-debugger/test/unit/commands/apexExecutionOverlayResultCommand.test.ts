@@ -31,15 +31,11 @@ describe('ApexExecutionOverlayResult basic class tests', () => {
   const heapdumpKey = '07nxx00000000ALAAY';
   const urlElements = [SOBJECTS_URL, apexExecutionOverlayResult, heapdumpKey];
   const expectedGetUrl = urlElements.join('/');
-  const queryStringRegex = new RegExp('^_=\\d{13}$'); // milliseconds are 13 digits
 
-  it('Should have an undefined requestString and pattern with milliseconds in the queryString', async () => {
+  it('Should have an undefined requestString', async () => {
     overlayResultCommand = new ApexExecutionOverlayResultCommand(heapdumpKey);
     expect(overlayResultCommand.getCommandUrl()).to.equal(expectedGetUrl);
     expect(overlayResultCommand.getRequest()).to.equal(requestString);
-    expect(
-      queryStringRegex.test(overlayResultCommand.getQueryString()!)
-    ).to.equal(true);
   });
 });
 
@@ -88,7 +84,7 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
     // milliseconds
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
-      `${requestServiceInstanceUrl}${expectedGettUrl}?${overlayResultCommand.getQueryString()}`,
+      `${requestServiceInstanceUrl}${expectedGettUrl}`,
       RestHttpMethodEnum.Get
     );
 
@@ -245,7 +241,7 @@ describe('ApexExecutionOverlayResult basic heapdump response parsing, no actionS
 
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
-      `${requestServiceInstanceUrl}${expectedGettUrl}?${overlayResultCommand.getQueryString()}`,
+      `${requestServiceInstanceUrl}${expectedGettUrl}`,
       RestHttpMethodEnum.Get
     );
 
@@ -322,7 +318,7 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
     // milliseconds
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
-      `${requestServiceInstanceUrl}${expectedGettUrl}?${overlayResultCommand.getQueryString()}`,
+      `${requestServiceInstanceUrl}${expectedGettUrl}`,
       RestHttpMethodEnum.Get
     );
 
@@ -450,7 +446,7 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
     // milliseconds
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
-      `${requestServiceInstanceUrl}${expectedGettUrl}?${overlayResultCommand.getQueryString()}`,
+      `${requestServiceInstanceUrl}${expectedGettUrl}`,
       RestHttpMethodEnum.Get
     );
 
@@ -526,7 +522,7 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
     // milliseconds
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
-      `${requestServiceInstanceUrl}${expectedGettUrl}?${overlayResultCommand.getQueryString()}`,
+      `${requestServiceInstanceUrl}${expectedGettUrl}`,
       RestHttpMethodEnum.Get
     );
 
@@ -574,7 +570,7 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
     // milliseconds
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
-      `${requestServiceInstanceUrl}${expectedGettUrl}?${overlayResultCommand.getQueryString()}`,
+      `${requestServiceInstanceUrl}${expectedGettUrl}`,
       RestHttpMethodEnum.Get
     );
 
@@ -628,7 +624,7 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
     // milliseconds
     const expectedOptions: XHROptions = createExpectedXHROptions(
       undefined,
-      `${requestServiceInstanceUrl}${expectedGettUrl}?${overlayResultCommand.getQueryString()}`,
+      `${requestServiceInstanceUrl}${expectedGettUrl}`,
       RestHttpMethodEnum.Get
     );
 
