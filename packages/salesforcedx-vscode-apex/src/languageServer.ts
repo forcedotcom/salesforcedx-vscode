@@ -116,7 +116,7 @@ export async function createLanguageServer(
 ): Promise<LanguageClient> {
   const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
-    documentSelector: ['apex'],
+    documentSelector: [{ language: 'apex', scheme: 'file' }],
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [
