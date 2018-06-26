@@ -10,10 +10,6 @@ import * as glob from 'glob';
 import * as path from 'path';
 import Mocha = require('mocha');
 
-let xmlPath = '';
-if (process.platform === 'win32') {
-  xmlPath = path.normalize(path.join(process.cwd(), '..', '..'));
-}
 const mocha = new Mocha({
   ui: 'bdd',
   timeout: 360000,
@@ -22,12 +18,10 @@ const mocha = new Mocha({
   reporterOptions: {
     reporterEnabled: 'mocha-junit-reporter, xunit, spec',
     mochaJunitReporterReporterOptions: {
-      mochaFile: xmlPath
-        ? path.join(xmlPath, 'junit-custom.xml')
-        : 'junit-custom.xml'
+      mochaFile: 'junit-custom.xml'
     },
     xunitReporterOptions: {
-      output: xmlPath ? path.join(xmlPath, 'xunit.xml') : 'xunit.xml'
+      output: 'xunit.xml'
     }
   }
 });
