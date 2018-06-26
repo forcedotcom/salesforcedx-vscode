@@ -139,16 +139,12 @@ export interface Attributes {
   url: string;
 }
 
-// There's nothing remarkable in the request body or the query string. This
-// particular command is simply the URL with a query string that is
-// _<CurrentTimeInMilliseconds>
 export class ApexExecutionOverlayResultCommand extends BaseCommand {
   private readonly commandName = 'ApexExecutionOverlayResult';
   private readonly heapdumpKey: string;
 
   public constructor(heapdumpKey: string) {
-    // The query string is '_<milliseconds>'
-    super('_=' + Date.now());
+    super(undefined);
     this.heapdumpKey = heapdumpKey;
   }
 

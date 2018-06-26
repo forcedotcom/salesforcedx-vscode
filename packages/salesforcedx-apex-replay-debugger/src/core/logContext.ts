@@ -134,7 +134,7 @@ export class LogContext {
           // With the way log lines are, this would only happen
           // if the user manually edited the log file.
           this.session.printToDebugConsole(
-            nls.localize(`malformed_log_line', ${index + 1}, ${line}`)
+            nls.localize('malformed_log_line', index + 1, line)
           );
         }
       }
@@ -154,7 +154,7 @@ export class LogContext {
 
       for (const heapDump of this.apexHeapDumps) {
         this.session.printToDebugConsole(
-          nls.localize(`fetching_heap_dump', ${heapDump.toString()}`)
+          nls.localize('fetching_heap_dump', heapDump.toString())
         );
         const overlayActionCommand = new ApexExecutionOverlayResultCommand(
           heapDump.getHeapDumpId()
