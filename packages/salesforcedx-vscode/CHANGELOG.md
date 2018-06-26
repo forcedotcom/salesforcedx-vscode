@@ -1,3 +1,21 @@
+## 43.5.0 - June 28, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Extensions failing to activate after an exception happens during setup ([PR #497](https://github.com/forcedotcom/salesforcedx-vscode/pull/497))
+
+#### salesforcedx-vscode-apex, salesforcedx-vscode-visualforce, salesforcedx-vscode-lwc
+
+- Specify a document selector for Apex, Visualforce, and LWC ([PR #502](https://github.com/forcedotcom/salesforcedx-vscode/pull/502))
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- Syntax highlighting for merge function and Apex switch statements ([PR #503](https://github.com/forcedotcom/salesforcedx-vscode/pull/503))
+
 ## 43.4.0 - June 21, 2018
 
 ### Added
