@@ -4,11 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Extensions failing to activate after an exception happens during setup ([PR #497](https://github.com/forcedotcom/salesforcedx-vscode/pull/497))
-
-#### salesforcedx-vscode-apex, salesforcedx-vscode-visualforce, salesforcedx-vscode-lwc
-
-- Specify a document selector for Apex, Visualforce, and LWC ([PR #502](https://github.com/forcedotcom/salesforcedx-vscode/pull/502))
+- Guard against salesforcedx-vscode-core failing to launch if there is an issue with configuring the ISV Debugger ([PR #497](https://github.com/forcedotcom/salesforcedx-vscode/pull/497))
 
 ### Added
 
