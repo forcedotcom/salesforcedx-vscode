@@ -72,4 +72,3 @@ artifacts:
 on_finish:
   - del C:\projects\devhub.key
   - codecov --disable=gcov
- 
