@@ -7,3 +7,4 @@
 
 export { LogContext } from './logContext';
 export { LogContextUtil } from './logContextUtil';
+export { ApexHeapDump } from './heapDump';

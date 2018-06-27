@@ -28,6 +28,7 @@
     "mocha-junit-reporter": "^1.13.0",
     "mocha-multi-reporters": "^1.1.4",
     "nyc": "^11.0.2",
+    "request-light": "0.2.1",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
     "vscode": "1.1.17",

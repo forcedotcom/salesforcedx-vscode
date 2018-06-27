@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ActionScriptEnum } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/commands';
 import {
   CHECKPOINT,
   CHECKPOINTS_LOCK_STRING
@@ -14,7 +15,6 @@ import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  ActionScriptEnum,
   ApexExecutionOverlayAction,
   CheckpointInfoActionScriptNode,
   CheckpointInfoActionScriptTypeNode,
