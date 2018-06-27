@@ -14,7 +14,10 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../src/adapter/apexReplayDebug';
-import { LineBreakpointInfo } from '../../src/breakpoints';
+import {
+  LineBreakpointEventArgs,
+  LineBreakpointInfo
+} from '../../src/breakpoints';
 import { LINE_BREAKPOINT_INFO_REQUEST } from '../../src/constants';
 import { GoldFileUtil } from './goldFileUtil';
 
@@ -37,11 +40,11 @@ describe('Replay debugger adapter - integration', function() {
   let goldFileUtil: GoldFileUtil;
   let dc: DebugClient;
   let projectPath: string;
-  let lineBreakpointInfo: LineBreakpointInfo[];
+  let lineBpInfo: LineBreakpointInfo[];
 
   before(async () => {
     projectPath = path.join(process.cwd(), PROJECT_NAME);
-    lineBreakpointInfo = [];
+    lineBpInfo = [];
     console.log(`projectPath: ${projectPath}`);
 
     // Use dc.start(4712) to debug the adapter during
@@ -90,7 +93,7 @@ describe('Replay debugger adapter - integration', function() {
     console.log(
       `classA: ${classA}. classB: ${classB}. classRecursive: ${classRecursive}`
     );
-    lineBreakpointInfo.push(
+    lineBpInfo.push(
       {
         uri: classA,
         typeref: 'A',
@@ -113,8 +116,12 @@ describe('Replay debugger adapter - integration', function() {
       dc,
       path.join(LOG_FOLDER, `${testName}.gold`)
     );
+    const returnArgs: LineBreakpointEventArgs = {
+      lineBreakpointInfo: lineBpInfo,
+      projectPath: undefined
+    };
 
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, lineBreakpointInfo);
+    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, returnArgs);
 
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath,
@@ -200,7 +207,7 @@ describe('Replay debugger adapter - integration', function() {
       classStaticVarsA = classStaticVarsA.replace('%3A', ':');
     }
     console.log(`classStaticVarsA: ${classStaticVarsA}`);
-    lineBreakpointInfo.push({
+    lineBpInfo.push({
       uri: classStaticVarsA,
       typeref: 'StaticVarsA',
       lines: classStaticVarsAValidLines
@@ -212,7 +219,12 @@ describe('Replay debugger adapter - integration', function() {
       path.join(LOG_FOLDER, `${testName}.gold`)
     );
 
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, lineBreakpointInfo);
+    const returnArgs: LineBreakpointEventArgs = {
+      lineBreakpointInfo: lineBpInfo,
+      projectPath: undefined
+    };
+
+    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, returnArgs);
 
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath,

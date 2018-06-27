@@ -23,6 +23,7 @@ import {
 import {
   breakpointUtil,
   BreakpointUtil,
+  LineBreakpointEventArgs,
   LineBreakpointInfo
 } from '../../../src/breakpoints';
 import {
@@ -61,6 +62,14 @@ export class MockApexReplayDebug extends ApexReplayDebug {
 
   public shouldStopForBreakpoint(): boolean {
     return super.shouldStopForBreakpoint();
+  }
+
+  public setProjectPath(projectPath: string | undefined): void {
+    this.projectPath = projectPath;
+  }
+
+  public getProjectPath(): string | undefined {
+    return this.projectPath;
   }
 }
 
@@ -110,6 +119,9 @@ describe('Replay debugger adapter - unit', () => {
     let meetsLogLevelRequirementsStub: sinon.SinonStub;
     let readLogFileStub: sinon.SinonStub;
     let printToDebugConsoleStub: sinon.SinonStub;
+    let errorToDebugConsoleStub: sinon.SinonStub;
+    let scanLogForHeapDumpLinesStub: sinon.SinonStub;
+    let fetchOverlayResultsForApexHeapDumpsStub: sinon.SinonStub;
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -128,6 +140,10 @@ describe('Replay debugger adapter - unit', () => {
         ApexReplayDebug.prototype,
         'printToDebugConsole'
       );
+      errorToDebugConsoleStub = sinon.stub(
+        ApexReplayDebug.prototype,
+        'errorToDebugConsole'
+      );
     });
 
     afterEach(() => {
@@ -137,9 +153,16 @@ describe('Replay debugger adapter - unit', () => {
       meetsLogLevelRequirementsStub.restore();
       readLogFileStub.restore();
       printToDebugConsoleStub.restore();
+      errorToDebugConsoleStub.restore();
+      if (scanLogForHeapDumpLinesStub) {
+        scanLogForHeapDumpLinesStub.restore();
+      }
+      if (fetchOverlayResultsForApexHeapDumpsStub) {
+        fetchOverlayResultsForApexHeapDumpsStub.restore();
+      }
     });
 
-    it('Should return error when there are no log lines', () => {
+    it('Should return error when there are no log lines', async () => {
       hasLogLinesStub = sinon
         .stub(LogContext.prototype, 'hasLogLines')
         .returns(false);
@@ -147,7 +170,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'meetsLogLevelRequirements')
         .returns(false);
 
-      adapter.launchRequest(response, args);
+      await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.false;
@@ -159,7 +182,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(actualResponse.message).to.equal(nls.localize('no_log_file_text'));
     });
 
-    it('Should return error when log levels are incorrect', () => {
+    it('Should return error when log levels are incorrect', async () => {
       hasLogLinesStub = sinon
         .stub(LogContext.prototype, 'hasLogLines')
         .returns(true);
@@ -167,7 +190,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'meetsLogLevelRequirements')
         .returns(false);
 
-      adapter.launchRequest(response, args);
+      await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
@@ -185,7 +208,7 @@ describe('Replay debugger adapter - unit', () => {
       );
     });
 
-    it('Should send response', () => {
+    it('Should send response', async () => {
       hasLogLinesStub = sinon
         .stub(LogContext.prototype, 'hasLogLines')
         .returns(true);
@@ -193,7 +216,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'meetsLogLevelRequirements')
         .returns(true);
 
-      adapter.launchRequest(response, args);
+      await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
@@ -207,6 +230,100 @@ describe('Replay debugger adapter - unit', () => {
         0
       ).args[0];
       expect(actualResponse.success).to.be.true;
+    });
+
+    it('Should not scan for log lines if projectPath is undefined', async () => {
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .returns(true);
+      meetsLogLevelRequirementsStub = sinon
+        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
+        .returns(true);
+      scanLogForHeapDumpLinesStub = sinon
+        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
+        .returns(false);
+
+      adapter.setProjectPath(undefined);
+      await adapter.launchRequest(response, args);
+
+      expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
+      expect(scanLogForHeapDumpLinesStub.called).to.be.false;
+    });
+
+    it('Should scan log lines for heap dumps if projectPath is set', async () => {
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .returns(true);
+      meetsLogLevelRequirementsStub = sinon
+        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
+        .returns(true);
+      scanLogForHeapDumpLinesStub = sinon
+        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
+        .returns(false);
+      fetchOverlayResultsForApexHeapDumpsStub = sinon
+        .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
+        .returns(true);
+
+      adapter.setProjectPath('someProjectPath');
+      await adapter.launchRequest(response, args);
+
+      expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
+      expect(scanLogForHeapDumpLinesStub.calledOnce).to.be.true;
+      // fetchOverlayResultsForApexHeapDumps should not be called if scanLogForHeapDumpLines returns false
+      expect(fetchOverlayResultsForApexHeapDumpsStub.calledOnce).to.be.false;
+    });
+
+    it('Should call to fetch overlay results if heap dumps are found in the logs', async () => {
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .returns(true);
+      meetsLogLevelRequirementsStub = sinon
+        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
+        .returns(true);
+      scanLogForHeapDumpLinesStub = sinon
+        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
+        .returns(true);
+      fetchOverlayResultsForApexHeapDumpsStub = sinon
+        .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
+        .returns(true);
+
+      adapter.setProjectPath('someProjectPath');
+      await adapter.launchRequest(response, args);
+
+      expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
+      expect(scanLogForHeapDumpLinesStub.calledOnce).to.be.true;
+      expect(fetchOverlayResultsForApexHeapDumpsStub.calledOnce).to.be.true;
+    });
+
+    it('Should report a wrap up error if fetching heap dumps has a failure', async () => {
+      hasLogLinesStub = sinon
+        .stub(LogContext.prototype, 'hasLogLines')
+        .returns(true);
+      meetsLogLevelRequirementsStub = sinon
+        .stub(LogContext.prototype, 'meetsLogLevelRequirements')
+        .returns(true);
+      scanLogForHeapDumpLinesStub = sinon
+        .stub(LogContext.prototype, 'scanLogForHeapDumpLines')
+        .returns(true);
+      fetchOverlayResultsForApexHeapDumpsStub = sinon
+        .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
+        .returns(false);
+
+      adapter.setProjectPath('someProjectPath');
+      await adapter.launchRequest(response, args);
+
+      expect(hasLogLinesStub.calledOnce).to.be.true;
+      expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
+      expect(scanLogForHeapDumpLinesStub.calledOnce).to.be.true;
+      expect(fetchOverlayResultsForApexHeapDumpsStub.calledOnce).to.be.true;
+      expect(errorToDebugConsoleStub.calledOnce).to.be.true;
+      const errorMessage = errorToDebugConsoleStub.getCall(0).args[0];
+      expect(errorMessage).to.equal(
+        nls.localize('heap_dump_error_wrap_up_text')
+      );
     });
   });
 
@@ -822,10 +939,14 @@ describe('Replay debugger adapter - unit', () => {
       });
 
       it('Should handle empty line breakpoint info', () => {
+        const returnArgs: LineBreakpointEventArgs = {
+          lineBreakpointInfo: [],
+          projectPath: undefined
+        };
         adapter.customRequest(
           LINE_BREAKPOINT_INFO_REQUEST,
           {} as DebugProtocol.Response,
-          []
+          returnArgs
         );
 
         expect(createMappingsFromLineBreakpointInfo.called).to.be.true;
@@ -835,6 +956,7 @@ describe('Replay debugger adapter - unit', () => {
         ).args[0];
         expect(actualResponse.success).to.be.true;
         expect(actualResponse).to.deep.equal(initializedResponse);
+        expect(adapter.getProjectPath()).to.equal(undefined);
       });
 
       it('Should save line number mapping', () => {
@@ -847,11 +969,16 @@ describe('Replay debugger adapter - unit', () => {
         const expectedLineNumberMapping: Map<string, number[]> = new Map();
         expectedLineNumberMapping.set('file:///foo.cls', [1, 2, 3, 4, 5, 6]);
         expectedLineNumberMapping.set('file:///bar.cls', [1, 2, 3, 4, 5, 6]);
+        const projectPathArg = 'some path';
 
+        const returnArgs: LineBreakpointEventArgs = {
+          lineBreakpointInfo: info,
+          projectPath: projectPathArg
+        };
         adapter.customRequest(
           LINE_BREAKPOINT_INFO_REQUEST,
           {} as DebugProtocol.Response,
-          info
+          returnArgs
         );
 
         expect(createMappingsFromLineBreakpointInfo.calledOnce).to.be.true;
@@ -868,6 +995,7 @@ describe('Replay debugger adapter - unit', () => {
         expect(breakpointUtil.getLineNumberMapping()).to.deep.eq(
           expectedLineNumberMapping
         );
+        expect(adapter.getProjectPath()).to.equal(projectPathArg);
       });
     });
   });
