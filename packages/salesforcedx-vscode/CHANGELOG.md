@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Guard against salesforcedx-vscode-core failing to launch if there is an issue with configuring the ISV Debugger ([PR #497](https://github.com/forcedotcom/salesforcedx-vscode/pull/497))
+- Guard against salesforcedx-vscode-core failing to launch if there’s an issue with configuring ISV Customer Debugger ([PR #497](https://github.com/forcedotcom/salesforcedx-vscode/pull/497))
 
 ### Added
 
