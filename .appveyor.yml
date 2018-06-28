@@ -42,6 +42,7 @@ test_script:
       "--------------------------------------------"
       npm run test:without-system-tests
       npm run coverage:system-tests
+      npm run aggregateJUnit
       $NpmTestsExitCode = $LastExitCode
       # Show status
       "`n`n"
@@ -56,12 +57,14 @@ test_script:
         "$Address $Source"
         (New-Object 'System.Net.WebClient').UploadFile( $Address, $Source )
       }
-      # Fail script in case of test failures
-      if($NpmTestsExitCode -ne 0) {
-        #$Error | Format-List * -Force
-        exit $NpmTestsExitCode
+      (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)" , (Resolve-Path .\junit-aggregate.xml) )
+      [xml]$results = Get-Content junit-aggregate.xml
+      $failure = $results.SelectSingleNode("//failure")
+      if ($failure -ne $null) 
+      { 
+          $host.SetShouldExit(1)
+          Write-Host "Forcing build failure due to test failure(s) :'("
       }
-  - npm run aggregateJUnit
 
 artifacts:
   - path: '**\*.vsix'

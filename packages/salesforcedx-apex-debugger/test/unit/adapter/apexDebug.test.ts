@@ -119,6 +119,10 @@ describe('Interactive debugger adapter - unit', () => {
       clock.restore();
     });
 
+    it('Should fail', () => {
+      // tslint:disable-next-line:no-unused-expression
+      expect(true).to.be.false;
+    });
     it('Should send successful initialized response', async () => {
       breakpointHasLineNumberMappingSpy = sinon
         .stub(BreakpointService.prototype, 'hasLineNumberMapping')
