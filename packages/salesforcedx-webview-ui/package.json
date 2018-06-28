@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-webview-ui",
   "description": "UI components for Salesforce Extensions for VS Code",
-  "version": "43.4.0",
+  "version": "43.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "private": true,
