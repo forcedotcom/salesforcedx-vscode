@@ -1,13 +1,15 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "43.4.0",
+  "version": "43.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.23.0"
   },
-  "activationEvents": ["onView:never"],
+  "activationEvents": [
+    "onView:never"
+  ],
   "main": "./out/src/htmlLanguageService.js",
   "typings": "./out/src/htmlLanguageService",
   "devDependencies": {
@@ -34,14 +36,14 @@
     "compile": "tsc -p ./ && shx cp src/beautify/beautify-* out/src/beautify",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
-    "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test",
+    "test:unit": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
