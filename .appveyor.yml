@@ -53,12 +53,6 @@ test_script:
       "Test Results:`n$($AllFiles | Out-String)"
       # Upload results for AppVeyor test tab
       "Uploading Test Results:`n"
-      Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Foreach-Object {
-        $Address = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
-        $Source = $_.FullName
-        "$Address $Source"
-        (New-Object 'System.Net.WebClient').UploadFile( $Address, $Source )
-      }
       (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)" , (Resolve-Path .\junit-aggregate.xml) )
       [xml]$results = Get-Content junit-aggregate.xml
       $failure = $results.SelectSingleNode("//failure")
