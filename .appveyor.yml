@@ -18,7 +18,8 @@ install:
   - ps: Install-Product node 8 x64
   - appveyor-retry npm install
   - npm install -g sfdx-cli
-  - npm install -g codecov 
+  - npm install -g codecov
+  - npm install -g junit-merge
   # the JWT key should be stored base 64 encoded in AppVeyor settings
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
   - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile C:\projects\devhub.key --setdefaultdevhubusername --setalias devhub
@@ -43,6 +44,7 @@ test_script:
       npm run test:without-system-tests
       npm run coverage:system-tests
       npm run aggregateJUnit
+      junit-merge -d junit-aggregate -o junit-aggregate.xml
       $NpmTestsExitCode = $LastExitCode
       # Show status
       "`n`n"
