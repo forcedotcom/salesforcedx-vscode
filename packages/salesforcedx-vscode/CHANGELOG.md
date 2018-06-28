@@ -1,3 +1,17 @@
+## 43.5.0 - June 28, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Guard against salesforcedx-vscode-core failing to launch if there’s an issue with configuring ISV Customer Debugger ([PR #497](https://github.com/forcedotcom/salesforcedx-vscode/pull/497))
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- Syntax highlighting for merge function and Apex switch statements ([PR #503](https://github.com/forcedotcom/salesforcedx-vscode/pull/503))
+
 ## 43.4.0 - June 21, 2018
 
 ### Added

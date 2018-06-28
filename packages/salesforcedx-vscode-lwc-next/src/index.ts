@@ -127,7 +127,10 @@ function startLWCLanguageServer(
     }
   };
   const clientOptions: LanguageClientOptions = {
-    documentSelector: ['html', 'javascript'],
+    documentSelector: [
+      { language: 'html', scheme: 'file' },
+      { language: 'javascript', scheme: 'file' }
+    ],
     synchronize: {
       fileEvents: [
         vscode.workspace.createFileSystemWatcher('**/*.resource'),
