@@ -5,5 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { createReporter } from './telemetry';
-export const reporterMessage = '******  Fire fire *******';
+import { TelemetryService } from './telemetry';
+
+export const telemetryService = TelemetryService.getInstance();

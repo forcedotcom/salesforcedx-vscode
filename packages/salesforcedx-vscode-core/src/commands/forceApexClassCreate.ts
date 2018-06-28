@@ -19,6 +19,7 @@ import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import {
@@ -30,7 +31,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-
 const APEX_FILE_EXTENSION = '.cls';
 
 class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
@@ -76,6 +76,14 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
+    const reporter = telemetryService.getReporter();
+    if (reporter !== null) {
+      // should I send metric ?
+      reporter.sendTelemetryEvent('commandExecution', {
+        commandName: 'force_apex_class_create',
+        context: 'command dialog'
+      });
+    }
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
