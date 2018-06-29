@@ -47,5 +47,8 @@
     "type": "git",
     "url": "git+https://github.com/forcedotcom/salesforcedx-vscode.git"
   },
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "junit-xml-parser": "0.0.3"
+  }
 }
