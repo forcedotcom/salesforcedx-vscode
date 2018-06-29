@@ -76,14 +76,8 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    const reporter = telemetryService.getReporter();
-    if (reporter !== null) {
-      // should I send metric ?
-      reporter.sendTelemetryEvent('commandExecution', {
-        commandName: 'force_apex_class_create',
-        context: 'command dialog'
-      });
-    }
+
+    telemetryService.sendCommandEvent('force_apex_class_create');
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);

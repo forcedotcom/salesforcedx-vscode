@@ -181,6 +181,18 @@ function registerDebugHandlers(): vscode.Disposable {
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
 
+  const sfdxCoreExt = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-core'
+  );
+
+  if (sfdxCoreExt && sfdxCoreExt.exports) {
+    // Should I also check if core is active ?
+    console.log('---------------------------------------');
+    console.log('Show telemetry message, triggered from apx debugger');
+    console.log('---------------------------------------');
+    sfdxCoreExt.exports.telemetryService.showTelemetryMessage();
+  }
+
   extContext = context;
 
   // registerCommands needs the checkpoint configuration

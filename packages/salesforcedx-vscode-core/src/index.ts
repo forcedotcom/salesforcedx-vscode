@@ -349,26 +349,10 @@ function registerIsvAuthWatcher(): vscode.Disposable {
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
 
-  telemetryService.setContext(context);
-  const reporter = telemetryService.getReporter();
-  if (reporter !== null) {
-    const showTelemetryMessage = telemetryService.getTelemetryMessageShowed();
-    console.log('showTelemetryMessage, ', showTelemetryMessage);
-
-    if (showTelemetryMessage) {
-      // this means we need to show the message and set telemetry to true;
-      const optOutBtn = 'Opt Out Button';
-      const selection = await vscode.window.showInformationMessage(
-        'This is the error message',
-        optOutBtn
-      );
-
-      telemetryService.setTelemetryMessageShowed();
-    }
-
-    // should I send metric ?
-    reporter.sendTelemetryEvent('activationEvent', { core: 'some string' });
-  }
+  // Telemetry
+  telemetryService.initializeService(context);
+  telemetryService.showTelemetryMessage();
+  telemetryService.sendExtensionActivationEvent();
 
   // Context
   let sfdxProjectOpened = false;
@@ -469,6 +453,7 @@ export async function activate(context: vscode.ExtensionContext) {
     channelService,
     notificationService,
     taskViewService,
+    telemetryService,
     getUserId
   };
 
@@ -479,12 +464,12 @@ export function deactivate(): Promise<void> {
   console.log('SFDX CLI Extension Deactivated');
 
   // Send metric data.
-  const reporter = telemetryService.getReporter();
+  /* const reporter = telemetryService.getReporter();
   if (reporter !== null) {
     reporter.sendTelemetryEvent('deactivateEvent', {
       core: 'Extension being deactivated'
     });
-  }
+  } */
   decorators.disposeTraceFlagExpiration();
   return turnOffLogging();
 }
