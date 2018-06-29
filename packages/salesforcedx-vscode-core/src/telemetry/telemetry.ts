@@ -1,5 +1,9 @@
 import vscode = require('vscode');
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { nls } from '../messages';
+import { sfdxCoreSettings } from '../settings';
+
+const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage13'; // TODO: this will change until dev process of the feature is done.
 
 export class TelemetryService {
   private static instance: TelemetryService;
@@ -16,13 +20,12 @@ export class TelemetryService {
   public initializeService(context: vscode.ExtensionContext) {
     this.context = context;
 
-    if (this.reporter === undefined) {
+    // TelemetryReporter is not initialized if user has disabled telemetry setting.
+    if (this.reporter === undefined && sfdxCoreSettings.getTelemetryEnabled()) {
       const extensionPackage = require(this.context.asAbsolutePath(
         './package.json'
       ));
-      console.log('---------------------------------------');
-      console.log('createReporter, getting extension info');
-      console.log('---------------------------------------');
+
       this.reporter = new TelemetryReporter(
         extensionPackage.name,
         extensionPackage.version,
@@ -40,7 +43,7 @@ export class TelemetryService {
     }
 
     const sfdxTelemetryState = this.context.globalState.get(
-      'sfdxTelemetryMessage11'
+      TELEMETRY_GLOBAL_VALUE
     );
 
     return typeof sfdxTelemetryState === 'undefined';
@@ -48,42 +51,49 @@ export class TelemetryService {
 
   private setTelemetryMessageShowed() {
     if (this.context === undefined) {
-      return null;
+      return;
     }
 
-    // Make sure this is in sync with getTelemetryMessageShowed
-    this.context.globalState.update('sfdxTelemetryMessage', true);
+    this.context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
   }
 
   public showTelemetryMessage() {
-    // check if we've ever shown Telemetry message to user ?
+    // check if we've ever shown Telemetry message to user
     const showTelemetryMessage = this.getTelemetryMessageShowed();
-    console.log('---------------------------------------');
-    console.log('showTelemetryMessage function, ', showTelemetryMessage);
-    console.log('---------------------------------------');
 
     if (showTelemetryMessage) {
       // this means we need to show the message and set telemetry to true;
-      const optOutBtn = 'Opt Out Button';
+      const readMoreBtn = 'Read More';
       vscode.window.showInformationMessage(
-        'This is the error message triggered from telemetryService :)',
-        optOutBtn
+        nls.localize('telemetry_legal_dialog_message'),
+        readMoreBtn
       );
 
       this.setTelemetryMessageShowed();
     }
   }
 
-  // TODO: check for telemetry enabled setting (TBD)
   public sendExtensionActivationEvent() {
     if (this.reporter !== undefined) {
+      console.log('************** sendExtensionActivationEvent **************');
       this.reporter.sendTelemetryEvent('activationEvent');
     }
   }
 
-  // TODO: check for telemetry enabled setting (TBD)
+  public sendExtensionDeactivationEvent() {
+    if (this.reporter !== undefined) {
+      console.log(
+        '************** sendExtensionDeactivationEvent **************'
+      );
+      this.reporter.sendTelemetryEvent('deactivationEvent');
+    }
+  }
+
   public sendCommandEvent(commandName: string) {
     if (this.reporter !== undefined) {
+      console.log(
+        '************** sendCommandEvent ' + commandName + ' **************'
+      );
       this.reporter.sendTelemetryEvent('commandExecution', { commandName });
     }
   }

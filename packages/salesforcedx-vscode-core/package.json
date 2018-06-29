@@ -545,6 +545,11 @@
           "type": ["boolean"],
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
+        },
+        "salesforcedx-vscode-core.telemetry.enabled": {
+          "type": ["boolean"],
+          "default": true,
+          "description": "%telemetry_enabled_description%"
         }
       }
     }
