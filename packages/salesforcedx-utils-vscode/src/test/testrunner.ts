@@ -39,7 +39,6 @@ function configure(mochaOpts: any): void {
     if (process.platform === 'win32') {
       xmlPath = paths.normalize(paths.join(process.cwd(), '..', '..'));
     }
-    console.log('xml file is being stored: ', xmlPath);
     mochaOpts.reporterOptions = {
       reporterEnabled: 'mocha-junit-reporter, xunit, spec',
       mochaJunitReporterReporterOptions: {
