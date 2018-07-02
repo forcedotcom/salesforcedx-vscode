@@ -9,8 +9,11 @@ const path = require('path');
 const extensionsToInstrument = [
   'packages/salesforcedx-vscode-apex',
   'packages/salesforcedx-vscode-apex-debugger',
+  'packages/salesforcedx-vscode-apex-replay-debugger',
   'packages/salesforcedx-vscode-core',
   'packages/salesforcedx-vscode-lightning',
+  'packages/salesforcedx-vscode-lwc',
+  'packages/salesforcedx-vscode-lwc-next',
   'packages/salesforcedx-vscode-visualforce'
 ];
 
