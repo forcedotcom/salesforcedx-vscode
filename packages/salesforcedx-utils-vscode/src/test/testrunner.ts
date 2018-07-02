@@ -36,6 +36,8 @@ function configure(mochaOpts: any): void {
   }
   if (!mochaOpts.reporterOptions) {
     let xmlPath = '';
+    // There were some oddities on Windows where the mocha execution would be inside the downloaded version of vscode and store the test result file there
+    // This will fix the pathing for windows. This behavior is not seen in the system-tests, appears to be only when we use vscode's test bin to run tests
     if (process.platform === 'win32') {
       xmlPath = paths.normalize(paths.join(process.cwd(), '..', '..'));
     }
