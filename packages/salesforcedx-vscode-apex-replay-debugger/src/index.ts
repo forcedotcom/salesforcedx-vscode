@@ -30,6 +30,7 @@ import {
 } from './breakpoints/checkpointService';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { nls } from './messages';
+import { telemetryService } from './telemetry';
 let extContext: vscode.ExtensionContext;
 
 export enum VSCodeWindowTypeEnum {
@@ -184,14 +185,14 @@ export async function activate(context: vscode.ExtensionContext) {
   const sfdxCoreExt = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-core'
   );
-
+  let isTelemetryEnabled = false;
   if (sfdxCoreExt && sfdxCoreExt.exports) {
-    // Should I also check if core is active ?
-    console.log('---------------------------------------');
-    console.log('Show telemetry message, triggered from apx debugger');
-    console.log('---------------------------------------');
     sfdxCoreExt.exports.telemetryService.showTelemetryMessage();
+    isTelemetryEnabled = sfdxCoreExt.exports.telemetryService.isTelemetryEnabled();
   }
+
+  telemetryService.initializeService(context, isTelemetryEnabled);
+  telemetryService.sendExtensionActivationEvent();
 
   extContext = context;
 
@@ -351,4 +352,5 @@ export function writeToDebuggerOutputWindow(
 
 export function deactivate() {
   console.log('Apex Replay Debugger Extension Deactivated');
+  telemetryService.sendExtensionDeactivationEvent();
 }

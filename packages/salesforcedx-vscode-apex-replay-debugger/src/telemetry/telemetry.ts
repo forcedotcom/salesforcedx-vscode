@@ -1,9 +1,5 @@
 import vscode = require('vscode');
 import TelemetryReporter from 'vscode-extension-telemetry';
-import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
-
-const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage14'; // TODO: this will change until dev process of the feature is done.
 
 export class TelemetryService {
   private static instance: TelemetryService;
@@ -18,12 +14,13 @@ export class TelemetryService {
   }
 
   public initializeService(
-    context: vscode.ExtensionContext
+    context: vscode.ExtensionContext,
+    isTelemetryEnabled: boolean
   ): TelemetryReporter | undefined {
     this.context = context;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (this.reporter === undefined && this.isTelemetryEnabled()) {
+    if (this.reporter === undefined && isTelemetryEnabled) {
       const extensionPackage = require(this.context.asAbsolutePath(
         './package.json'
       ));
@@ -37,46 +34,6 @@ export class TelemetryService {
     }
 
     return this.reporter;
-  }
-
-  public isTelemetryEnabled(): boolean {
-    return sfdxCoreSettings.getTelemetryEnabled();
-  }
-
-  private getHasTelemetryMessageBeenShown(): boolean {
-    if (this.context === undefined) {
-      return true;
-    }
-
-    const sfdxTelemetryState = this.context.globalState.get(
-      TELEMETRY_GLOBAL_VALUE
-    );
-
-    return typeof sfdxTelemetryState === 'undefined';
-  }
-
-  private setTelemetryMessageShowed(): void {
-    if (this.context === undefined) {
-      return;
-    }
-
-    this.context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
-  }
-
-  public showTelemetryMessage(): void {
-    // check if we've ever shown Telemetry message to user
-    const showTelemetryMessage = this.getHasTelemetryMessageBeenShown();
-
-    if (showTelemetryMessage) {
-      // this means we need to show the message and set telemetry to true;
-      const readMoreBtn = 'Read More';
-      vscode.window.showInformationMessage(
-        nls.localize('telemetry_legal_dialog_message'),
-        readMoreBtn
-      );
-
-      this.setTelemetryMessageShowed();
-    }
   }
 
   public sendExtensionActivationEvent(): void {

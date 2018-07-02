@@ -20,7 +20,9 @@
   "engines": {
     "vscode": "^1.23.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
     "@salesforce/salesforcedx-apex-replay-debugger": "43.10.0",
     "async-lock": "1.0.0",
@@ -37,7 +39,8 @@
     "chai": "^4.0.2",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -51,8 +54,7 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ./node_modules/vscode/bin/test",
     "test:unit": "node ./node_modules/vscode/bin/test"
@@ -72,8 +74,13 @@
     "languages": [
       {
         "id": "apexlog",
-        "aliases": ["ApexLog", "DebugLog"],
-        "extensions": [".log"],
+        "aliases": [
+          "ApexLog",
+          "DebugLog"
+        ],
+        "extensions": [
+          ".log"
+        ],
         "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
       }
     ],
@@ -88,13 +95,11 @@
       "commandPalette": [
         {
           "command": "sfdx.create.checkpoints",
-          "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+          "when": "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
         },
         {
           "command": "sfdx.toggle.checkpoint",
-          "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId == 'apex'"
+          "when": "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId == 'apex'"
         },
         {
           "command": "sfdx.launch.replay.debugger.logfile",
@@ -108,8 +113,7 @@
       "view/title": [
         {
           "command": "sfdx.create.checkpoints",
-          "when":
-            "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
+          "when": "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
           "group": "navigation"
         }
       ],
@@ -122,8 +126,7 @@
       "explorer/context": [
         {
           "command": "sfdx.launch.replay.debugger.logfile",
-          "when":
-            "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
+          "when": "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
         }
       ]
     },
@@ -139,8 +142,7 @@
           "light": "images/light/cloud-upload.svg",
           "dark": "images/dark/cloud-upload.svg"
         },
-        "when":
-          "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+        "when": "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
       },
       {
         "command": "sfdx.launch.replay.debugger.logfile",
@@ -156,8 +158,7 @@
         {
           "id": "sfdx.force.view.checkpoint",
           "name": "%view_checkpoints%",
-          "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+          "when": "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
         }
       ]
     },
@@ -165,10 +166,11 @@
       {
         "type": "apex-replay",
         "label": "Apex Replay Debugger",
-        "program":
-          "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "program": "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
         "runtime": "node",
-        "languages": ["apex"],
+        "languages": [
+          "apex"
+        ],
         "variables": {
           "AskForLogFileName": "extension.replay-debugger.getLogFileName"
         },
@@ -189,7 +191,9 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": ["logFile"],
+              "required": [
+                "logFile"
+              ],
               "logFile": {
                 "type": "string",
                 "description": "%logfile_text%",
@@ -201,7 +205,10 @@
                 "default": true
               },
               "trace": {
-                "type": ["boolean", "string"],
+                "type": [
+                  "boolean",
+                  "string"
+                ],
                 "description": "%trace_text%",
                 "default": false
               }
