@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
 import { channelService } from './channels';
@@ -317,7 +318,7 @@ function registerCommands(
 
 function registerIsvAuthWatcher(): vscode.Disposable {
   const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(
-    '**/.sfdx/sfdx-config.json'
+    path.join('.sfdx', 'sfdx-config.json')
   );
   isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
   isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
@@ -373,14 +374,18 @@ export async function activate(context: vscode.ExtensionContext) {
     'sfdx:apex_debug_extension_installed',
     sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id
   );
-  if (sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id) {
+  if (
+    sfdxProjectOpened &&
+    sfdxApexDebuggerExtension &&
+    sfdxApexDebuggerExtension.id
+  ) {
     console.log('Setting up ISV Debugger environment variables');
     // register watcher for ISV authentication and setup default user for CLI
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
     try {
       context.subscriptions.push(registerIsvAuthWatcher());
-      console.log('Configured file watcher for **/.sfdx/sfdx-config.json');
+      console.log('Configured file watcher for .sfdx/sfdx-config.json');
       await setupGlobalDefaultUserIsvAuth();
     } catch (e) {
       console.error(e);
