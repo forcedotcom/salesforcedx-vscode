@@ -80,19 +80,19 @@ export class TelemetryService {
   }
 
   public sendExtensionActivationEvent(): void {
-    if (this.reporter !== undefined) {
+    if (this.reporter !== undefined && this.isTelemetryEnabled()) {
       this.reporter.sendTelemetryEvent('activationEvent');
     }
   }
 
   public sendExtensionDeactivationEvent(): void {
-    if (this.reporter !== undefined) {
+    if (this.reporter !== undefined && this.isTelemetryEnabled()) {
       this.reporter.sendTelemetryEvent('deactivationEvent');
     }
   }
 
   public sendCommandEvent(commandName: string): void {
-    if (this.reporter !== undefined) {
+    if (this.reporter !== undefined && this.isTelemetryEnabled()) {
       this.reporter.sendTelemetryEvent('commandExecution', { commandName });
     }
   }
