@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- ISV Debugger filewatcher to act exclusively on `.sfdx/sfdx-config.json` changes ([PR #509](https://github.com/forcedotcom/salesforcedx-vscode/pull/509))
+- ISV Debugger file watcher looks only for `.sfdx/sfdx-config.json` changes ([PR #509](https://github.com/forcedotcom/salesforcedx-vscode/pull/509))
 
 ## 43.5.0 - June 28, 2018
 
