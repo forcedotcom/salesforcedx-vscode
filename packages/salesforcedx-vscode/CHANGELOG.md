@@ -1,3 +1,11 @@
+## 43.6.0 - July 5, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- ISV Debugger filewatcher to act exclusively on `.sfdx/sfdx-config.json` changes ([PR #509](https://github.com/forcedotcom/salesforcedx-vscode/pull/509))
+
 ## 43.5.0 - June 28, 2018
 
 ### Fixed
