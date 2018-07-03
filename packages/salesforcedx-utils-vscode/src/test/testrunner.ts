@@ -34,6 +34,25 @@ function configure(mochaOpts: any): void {
     // default to 'mocha-multi-reporters' (to get xunit.xml result)
     mochaOpts.reporter = 'mocha-multi-reporters';
   }
+  if (!mochaOpts.reporterOptions) {
+    let xmlPath = '';
+    // There were some oddities on Windows where the mocha execution would be inside the downloaded version of vscode and store the test result file there
+    // This will fix the pathing for windows. This behavior is not seen in the system-tests, appears to be only when we use vscode's test bin to run tests
+    if (process.platform === 'win32') {
+      xmlPath = paths.normalize(paths.join(process.cwd(), '..', '..'));
+    }
+    mochaOpts.reporterOptions = {
+      reporterEnabled: 'mocha-junit-reporter, xunit, spec',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: xmlPath
+          ? paths.join(xmlPath, 'junit-custom.xml')
+          : 'junit-custom.xml'
+      },
+      xunitReporterOptions: {
+        output: xmlPath ? paths.join(xmlPath, 'xunit.xml') : 'xunit.xml'
+      }
+    };
+  }
   mocha = new Mocha(mochaOpts);
 }
 exports.configure = configure;
