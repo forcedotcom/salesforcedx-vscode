@@ -25,6 +25,10 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
 
 import {
+  HeadpDumpExtentValue,
+  HeadpDumpExtentValueEntry
+} from '../commands/apexExecutionOverlayResultCommand';
+import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../constants';
@@ -82,11 +86,23 @@ export class ApexDebugStackFrameInfo {
   public readonly signature: string;
   public statics: Map<string, VariableContainer>;
   public locals: Map<string, VariableContainer>;
+
   public constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
     this.signature = signature;
     this.statics = new Map<string, VariableContainer>();
     this.locals = new Map<string, VariableContainer>();
+  }
+
+  public copy(): ApexDebugStackFrameInfo {
+    const me = new ApexDebugStackFrameInfo(this.frameNumber, this.signature);
+    this.statics.forEach((value, key) => {
+      me.statics.set(key, value.copy());
+    });
+    this.locals.forEach((value, key) => {
+      me.locals.set(key, value.copy());
+    });
+    return me;
   }
 }
 
@@ -117,6 +133,15 @@ export abstract class VariableContainer {
     });
     return result;
   }
+
+  public copy(): VariableContainer {
+    const me = Object.assign(Object.create(Object.getPrototypeOf(this)));
+    me.variables = new Map<string, VariableContainer>();
+    this.variables.forEach((value, key) => {
+      me.variables.set(key, value.copy());
+    });
+    return me;
+  }
 }
 
 export class ApexVariableContainer extends VariableContainer {
@@ -138,6 +163,16 @@ export class ApexVariableContainer extends VariableContainer {
     this.type = type;
     this.ref = ref;
     this.variablesRef = variablesRef;
+  }
+
+  public copy(): ApexVariableContainer {
+    const me = super.copy() as ApexVariableContainer;
+    me.name = this.name;
+    me.value = this.value;
+    me.type = this.type;
+    me.ref = this.ref;
+    me.variablesRef = this.variablesRef;
+    return me;
   }
 }
 
@@ -289,10 +324,19 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected async scopesRequest(
+  public async scopesRequest(
     response: DebugProtocol.ScopesResponse,
     args: DebugProtocol.ScopesArguments
   ): Promise<void> {
+    try {
+      if (this.logContext.hasHeapDumpForTopFrame()) {
+        this.logContext.copyStateForHeapDump();
+        this.replaceVariablesWithHeapDump();
+      }
+    } catch (error) {
+      this.warnToDebugConsole(nls.localize('reconcile_heapdump_error', error));
+    }
+
     response.success = true;
     const frameInfo = this.logContext.getFrameHandler().get(args.frameId);
     if (!frameInfo) {
@@ -323,7 +367,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected async variablesRequest(
+  public async variablesRequest(
     response: DebugProtocol.VariablesResponse,
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
@@ -512,6 +556,159 @@ export class ApexReplayDebug extends LoggingDebugSession {
         }
     }
     this.sendResponse(response);
+  }
+
+  public replaceVariablesWithHeapDump(): void {
+    const topFrame = this.logContext.getTopFrame();
+    if (topFrame) {
+      const heapdump = this.logContext.getHeapDumpForThisLocation(
+        topFrame.name,
+        topFrame.line
+      );
+      if (heapdump && heapdump.getOverlaySuccessResult()) {
+        const frameInfo = this.logContext.getFrameHandler().get(topFrame.id);
+        const refVariableToRevisit = new Map<string, ApexVariableContainer>();
+        const valueVariableToRevisit = new Map<string, HeadpDumpExtentValue>();
+        for (const outerExtent of heapdump.getOverlaySuccessResult()!.HeapDump
+          .extents) {
+          if (topFrame.name.includes(outerExtent.typeName)) {
+            for (const innerExtent of outerExtent.extent) {
+              if (!innerExtent.address || !innerExtent.value.entry) {
+                continue;
+              }
+              const refContainer = this.logContext
+                .getRefsMap()
+                .get(innerExtent.address);
+              if (!refContainer) {
+                continue;
+              }
+              for (const variableEntry of innerExtent.value.entry) {
+                refContainer.variables.forEach((value, key) => {
+                  if (
+                    variableEntry.keyDisplayValue ===
+                    (value as ApexVariableContainer).name
+                  ) {
+                    if (
+                      typeof variableEntry.value.value === 'string' &&
+                      (variableEntry.value.value as string).startsWith('0x')
+                    ) {
+                      if (
+                        valueVariableToRevisit.has(variableEntry.value.value)
+                      ) {
+                        const extentValue = valueVariableToRevisit.get(
+                          variableEntry.value.value
+                        );
+                        if (extentValue) {
+                          this.updateVariableContainerWithExtentValue(
+                            value as ApexVariableContainer,
+                            extentValue.value,
+                            extentValue.entry
+                          );
+                        }
+                      } else {
+                        refVariableToRevisit.set(
+                          variableEntry.value.value,
+                          value as ApexVariableContainer
+                        );
+                      }
+                    } else {
+                      this.updateVariableContainerWithExtentValue(
+                        value as ApexVariableContainer,
+                        variableEntry.value.value,
+                        undefined
+                      );
+                    }
+                  }
+                });
+              }
+            }
+          } else {
+            for (const innerExtent of outerExtent.extent) {
+              const symbolName =
+                innerExtent.symbols && innerExtent.symbols.length > 0
+                  ? innerExtent.symbols[0]
+                  : undefined;
+              if (symbolName && frameInfo.locals.has(symbolName)) {
+                const localVar = frameInfo.locals.get(
+                  symbolName
+                ) as ApexVariableContainer;
+                this.updateVariableContainer(localVar, innerExtent.value);
+              } else if (innerExtent.address) {
+                if (refVariableToRevisit.has(innerExtent.address)) {
+                  this.updateVariableContainer(
+                    refVariableToRevisit.get(innerExtent.address)!,
+                    innerExtent.value
+                  );
+                } else {
+                  valueVariableToRevisit.set(
+                    innerExtent.address,
+                    innerExtent.value
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public updateVariableContainer(
+    varContainer: ApexVariableContainer,
+    heapDumpExtentValue: HeadpDumpExtentValue
+  ): void {
+    if (heapDumpExtentValue.value) {
+      if (typeof heapDumpExtentValue.value === 'string') {
+        varContainer.value = `'${heapDumpExtentValue.value}'`;
+      } else if (Array.isArray(heapDumpExtentValue.value)) {
+        const values = heapDumpExtentValue.value as any[];
+        for (let i = 0; i < values.length; i++) {
+          varContainer.variables.set(
+            i.toString(),
+            new ApexVariableContainer(i.toString(), `'${values[i].value}'`, '')
+          );
+        }
+      } else {
+        varContainer.value = `${heapDumpExtentValue.value}`;
+      }
+    } else if (heapDumpExtentValue.entry) {
+      varContainer.variables.forEach((value, key) => {
+        for (const variableEntry of heapDumpExtentValue.entry!) {
+          this.updateVariableContainerWithExtentValue(
+            value as ApexVariableContainer,
+            variableEntry.value.value,
+            variableEntry.value.entry
+          );
+        }
+      });
+    }
+  }
+
+  public updateVariableContainerWithExtentValue(
+    varContainer: ApexVariableContainer,
+    extentValue: any,
+    extentEntry: HeadpDumpExtentValueEntry[] | undefined
+  ): void {
+    if (extentValue) {
+      varContainer.value = `${extentValue}`;
+    } else if (extentEntry) {
+      for (const extentValueEntry of extentEntry) {
+        if (extentValueEntry.keyDisplayValue === varContainer.name) {
+          return this.updateVariableContainerWithExtentValue(
+            varContainer,
+            extentValueEntry.value.value,
+            extentValueEntry.value.entry
+          );
+        }
+        varContainer.variables.forEach((value, key) => {
+          this.updateVariableContainerWithExtentValue(
+            value as ApexVariableContainer,
+            extentValue,
+            extentEntry
+          );
+        });
+      }
+    }
   }
 
   public log(traceCategory: TraceCategory, message: string) {

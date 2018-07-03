@@ -11,7 +11,7 @@ import {
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as path from 'path';
-import { Handles, StackFrame } from 'vscode-debugadapter';
+import { StackFrame } from 'vscode-debugadapter';
 import {
   ApexDebugStackFrameInfo,
   ApexReplayDebug,
@@ -56,6 +56,7 @@ import {
   VariableAssignmentState,
   VariableBeginState
 } from '../states';
+import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';
 import { LogContextUtil } from './logContextUtil';
 
@@ -75,7 +76,11 @@ export class LogContext {
   private stackFrameInfos: StackFrame[] = [];
   private logLinePosition = -1;
   private execAnonMapping: Map<number, number> = new Map();
+
   private apexHeapDumps: ApexHeapDump[] = [];
+  private backupStackFrameInfos = this.stackFrameInfos;
+  private backupFrameHandles = this.frameHandles;
+  private backupRefsMap = this.refsMap;
 
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
@@ -115,6 +120,49 @@ export class LogContext {
 
   public getHeapDumps(): ApexHeapDump[] {
     return this.apexHeapDumps;
+  }
+
+  public hasHeapDump(): boolean {
+    return this.apexHeapDumps.length > 0;
+  }
+
+  public getHeapDumpForThisLocation(
+    frameName: string,
+    lineNumber: number
+  ): ApexHeapDump | undefined {
+    for (const heapdump of this.apexHeapDumps) {
+      if (
+        frameName.includes(heapdump.getClassName()) &&
+        lineNumber === heapdump.getLine()
+      ) {
+        return heapdump;
+      }
+    }
+  }
+
+  public hasHeapDumpForTopFrame(): boolean {
+    const topFrame = this.getTopFrame();
+    return (
+      typeof topFrame !== 'undefined' &&
+      typeof this.getHeapDumpForThisLocation(topFrame.name, topFrame.line) !==
+        'undefined'
+    );
+  }
+
+  public copyStateForHeapDump(): void {
+    this.backupStackFrameInfos = JSON.parse(
+      JSON.stringify(this.stackFrameInfos)
+    );
+    this.backupFrameHandles = this.frameHandles.copy();
+    this.refsMap.forEach((value, key) => {
+      this.backupRefsMap.set(key, value.copy());
+    });
+  }
+
+  public revertStateAfterHeapDump(): void {
+    this.stackFrameInfos = this.backupStackFrameInfos;
+    this.frameHandles = this.backupFrameHandles;
+    this.refsMap = this.backupRefsMap;
   }
 
   public scanLogForHeapDumpLines(): boolean {
@@ -303,6 +351,9 @@ export class LogContext {
   }
 
   public updateFrames(): void {
+    if (this.hasHeapDump()) {
+      this.revertStateAfterHeapDump();
+    }
     if (this.state instanceof LogEntryState) {
       this.stackFrameInfos.pop();
     }

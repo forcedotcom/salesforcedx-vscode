@@ -32,5 +32,7 @@ export const messages = {
   fetching_heap_dump:
     'Retrieving heap dump from server. Heap dump information=%s',
   malformed_log_line:
-    "Encountered a malformed HEAP_DUMP log line, skipping. Log line number=%d, log line='%s'."
+    "Encountered a malformed HEAP_DUMP log line, skipping. Log line number=%d, log line='%s'.",
+  reconcile_heapdump_error:
+    'Problems were encountered while using heapdump: %s.'
 };
