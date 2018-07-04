@@ -23,15 +23,11 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
-
-import {
-  HeadpDumpExtentValue,
-  HeadpDumpExtentValueEntry
-} from '../commands/apexExecutionOverlayResultCommand';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../constants';
+import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
 
@@ -202,6 +198,7 @@ export class ScopeContainer extends VariableContainer {
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext: LogContext;
+  protected heapDumpService: HeapDumpService;
   protected trace: string[] = [];
   protected traceAll = false;
   private initializedResponse: DebugProtocol.InitializeResponse;
@@ -234,6 +231,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
 
     this.logContext = new LogContext(args, this);
+    this.heapDumpService = new HeapDumpService(this.logContext);
     this.sendEvent(new InitializedEvent());
 
     if (!this.logContext.hasLogLines()) {
@@ -328,13 +326,22 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response: DebugProtocol.ScopesResponse,
     args: DebugProtocol.ScopesArguments
   ): Promise<void> {
-    try {
-      if (this.logContext.hasHeapDumpForTopFrame()) {
+    const heapDumpId = this.logContext.hasHeapDumpForTopFrame();
+    if (heapDumpId) {
+      try {
         this.logContext.copyStateForHeapDump();
-        this.replaceVariablesWithHeapDump();
+        this.heapDumpService.replaceVariablesWithHeapDump();
+      } catch (error) {
+        this.logContext.revertStateAfterHeapDump();
+        this.warnToDebugConsole(
+          nls.localize(
+            'reconcile_heapdump_error',
+            error,
+            heapDumpId,
+            heapDumpId
+          )
+        );
       }
-    } catch (error) {
-      this.warnToDebugConsole(nls.localize('reconcile_heapdump_error', error));
     }
 
     response.success = true;
@@ -556,159 +563,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
         }
     }
     this.sendResponse(response);
-  }
-
-  public replaceVariablesWithHeapDump(): void {
-    const topFrame = this.logContext.getTopFrame();
-    if (topFrame) {
-      const heapdump = this.logContext.getHeapDumpForThisLocation(
-        topFrame.name,
-        topFrame.line
-      );
-      if (heapdump && heapdump.getOverlaySuccessResult()) {
-        const frameInfo = this.logContext.getFrameHandler().get(topFrame.id);
-        const refVariableToRevisit = new Map<string, ApexVariableContainer>();
-        const valueVariableToRevisit = new Map<string, HeadpDumpExtentValue>();
-        for (const outerExtent of heapdump.getOverlaySuccessResult()!.HeapDump
-          .extents) {
-          if (topFrame.name.includes(outerExtent.typeName)) {
-            for (const innerExtent of outerExtent.extent) {
-              if (!innerExtent.address || !innerExtent.value.entry) {
-                continue;
-              }
-              const refContainer = this.logContext
-                .getRefsMap()
-                .get(innerExtent.address);
-              if (!refContainer) {
-                continue;
-              }
-              for (const variableEntry of innerExtent.value.entry) {
-                refContainer.variables.forEach((value, key) => {
-                  if (
-                    variableEntry.keyDisplayValue ===
-                    (value as ApexVariableContainer).name
-                  ) {
-                    if (
-                      typeof variableEntry.value.value === 'string' &&
-                      (variableEntry.value.value as string).startsWith('0x')
-                    ) {
-                      if (
-                        valueVariableToRevisit.has(variableEntry.value.value)
-                      ) {
-                        const extentValue = valueVariableToRevisit.get(
-                          variableEntry.value.value
-                        );
-                        if (extentValue) {
-                          this.updateVariableContainerWithExtentValue(
-                            value as ApexVariableContainer,
-                            extentValue.value,
-                            extentValue.entry
-                          );
-                        }
-                      } else {
-                        refVariableToRevisit.set(
-                          variableEntry.value.value,
-                          value as ApexVariableContainer
-                        );
-                      }
-                    } else {
-                      this.updateVariableContainerWithExtentValue(
-                        value as ApexVariableContainer,
-                        variableEntry.value.value,
-                        undefined
-                      );
-                    }
-                  }
-                });
-              }
-            }
-          } else {
-            for (const innerExtent of outerExtent.extent) {
-              const symbolName =
-                innerExtent.symbols && innerExtent.symbols.length > 0
-                  ? innerExtent.symbols[0]
-                  : undefined;
-              if (symbolName && frameInfo.locals.has(symbolName)) {
-                const localVar = frameInfo.locals.get(
-                  symbolName
-                ) as ApexVariableContainer;
-                this.updateVariableContainer(localVar, innerExtent.value);
-              } else if (innerExtent.address) {
-                if (refVariableToRevisit.has(innerExtent.address)) {
-                  this.updateVariableContainer(
-                    refVariableToRevisit.get(innerExtent.address)!,
-                    innerExtent.value
-                  );
-                } else {
-                  valueVariableToRevisit.set(
-                    innerExtent.address,
-                    innerExtent.value
-                  );
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  public updateVariableContainer(
-    varContainer: ApexVariableContainer,
-    heapDumpExtentValue: HeadpDumpExtentValue
-  ): void {
-    if (heapDumpExtentValue.value) {
-      if (typeof heapDumpExtentValue.value === 'string') {
-        varContainer.value = `'${heapDumpExtentValue.value}'`;
-      } else if (Array.isArray(heapDumpExtentValue.value)) {
-        const values = heapDumpExtentValue.value as any[];
-        for (let i = 0; i < values.length; i++) {
-          varContainer.variables.set(
-            i.toString(),
-            new ApexVariableContainer(i.toString(), `'${values[i].value}'`, '')
-          );
-        }
-      } else {
-        varContainer.value = `${heapDumpExtentValue.value}`;
-      }
-    } else if (heapDumpExtentValue.entry) {
-      varContainer.variables.forEach((value, key) => {
-        for (const variableEntry of heapDumpExtentValue.entry!) {
-          this.updateVariableContainerWithExtentValue(
-            value as ApexVariableContainer,
-            variableEntry.value.value,
-            variableEntry.value.entry
-          );
-        }
-      });
-    }
-  }
-
-  public updateVariableContainerWithExtentValue(
-    varContainer: ApexVariableContainer,
-    extentValue: any,
-    extentEntry: HeadpDumpExtentValueEntry[] | undefined
-  ): void {
-    if (extentValue) {
-      varContainer.value = `${extentValue}`;
-    } else if (extentEntry) {
-      for (const extentValueEntry of extentEntry) {
-        if (extentValueEntry.keyDisplayValue === varContainer.name) {
-          return this.updateVariableContainerWithExtentValue(
-            varContainer,
-            extentValueEntry.value.value,
-            extentValueEntry.value.entry
-          );
-        }
-        varContainer.variables.forEach((value, key) => {
-          this.updateVariableContainerWithExtentValue(
-            value as ApexVariableContainer,
-            extentValue,
-            extentEntry
-          );
-        });
-      }
-    }
   }
 
   public log(traceCategory: TraceCategory, message: string) {

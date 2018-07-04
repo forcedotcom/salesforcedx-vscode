@@ -291,7 +291,7 @@ describe('LogContext', () => {
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     expect(context.scanLogForHeapDumpLines()).to.be.true;
-    expect(context.hasHeapDumpForTopFrame()).to.be.true;
+    expect(context.hasHeapDumpForTopFrame()).to.equal('<HeapDumpId1>');
   });
 
   it('Should not have heapdump for top frame', () => {
@@ -310,7 +310,7 @@ describe('LogContext', () => {
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     expect(context.scanLogForHeapDumpLines()).to.be.true;
-    expect(context.hasHeapDumpForTopFrame()).to.be.false;
+    expect(context.hasHeapDumpForTopFrame()).to.be.undefined;
   });
 
   describe('Log event parser', () => {

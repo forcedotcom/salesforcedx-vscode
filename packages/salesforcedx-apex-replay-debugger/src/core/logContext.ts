@@ -81,6 +81,7 @@ export class LogContext {
   private backupStackFrameInfos = this.stackFrameInfos;
   private backupFrameHandles = this.frameHandles;
   private backupRefsMap = this.refsMap;
+  private backupVariableHandles = this.variableHandles;
 
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
@@ -140,13 +141,17 @@ export class LogContext {
     }
   }
 
-  public hasHeapDumpForTopFrame(): boolean {
+  public hasHeapDumpForTopFrame(): string | undefined {
     const topFrame = this.getTopFrame();
-    return (
-      typeof topFrame !== 'undefined' &&
-      typeof this.getHeapDumpForThisLocation(topFrame.name, topFrame.line) !==
-        'undefined'
-    );
+    if (topFrame) {
+      const heapDump = this.getHeapDumpForThisLocation(
+        topFrame.name,
+        topFrame.line
+      );
+      if (heapDump) {
+        return heapDump.getHeapDumpId();
+      }
+    }
   }
 
   public copyStateForHeapDump(): void {
@@ -154,8 +159,21 @@ export class LogContext {
       JSON.stringify(this.stackFrameInfos)
     );
     this.backupFrameHandles = this.frameHandles.copy();
-    this.refsMap.forEach((value, key) => {
-      this.backupRefsMap.set(key, value.copy());
+    this.backupRefsMap = new Map<string, ApexVariableContainer>();
+    for (const backupFrame of this.backupStackFrameInfos) {
+      const frameInfo = this.backupFrameHandles.get(backupFrame.id);
+      this.copyFrameScope(frameInfo.locals);
+    }
+  }
+
+  private copyFrameScope(scope: Map<string, VariableContainer>) {
+    scope.forEach((value, key) => {
+      const variableContainer = value as ApexVariableContainer;
+      if (variableContainer.ref) {
+        this.backupRefsMap.set(variableContainer.ref, variableContainer);
+        const newRef = this.backupVariableHandles.create(variableContainer);
+        variableContainer.variablesRef = newRef;
+      }
     });
   }
 
