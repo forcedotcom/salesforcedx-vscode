@@ -173,7 +173,7 @@ export class HeapDumpService {
     }
   }
 
-  public isAddress(value: any) {
+  public isAddress(value: any): boolean {
     return (
       typeof value === 'string' && (value as string).startsWith(ADDRESS_PREFIX)
     );
