@@ -23,11 +23,11 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
-
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../constants';
+import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
 
@@ -82,11 +82,23 @@ export class ApexDebugStackFrameInfo {
   public readonly signature: string;
   public statics: Map<string, VariableContainer>;
   public locals: Map<string, VariableContainer>;
+
   public constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
     this.signature = signature;
     this.statics = new Map<string, VariableContainer>();
     this.locals = new Map<string, VariableContainer>();
+  }
+
+  public copy(): ApexDebugStackFrameInfo {
+    const me = new ApexDebugStackFrameInfo(this.frameNumber, this.signature);
+    this.statics.forEach((value, key) => {
+      me.statics.set(key, value.copy());
+    });
+    this.locals.forEach((value, key) => {
+      me.locals.set(key, value.copy());
+    });
+    return me;
   }
 }
 
@@ -117,6 +129,15 @@ export abstract class VariableContainer {
     });
     return result;
   }
+
+  public copy(): VariableContainer {
+    const me = Object.assign(Object.create(Object.getPrototypeOf(this)));
+    me.variables = new Map<string, VariableContainer>();
+    this.variables.forEach((value, key) => {
+      me.variables.set(key, value.copy());
+    });
+    return me;
+  }
 }
 
 export class ApexVariableContainer extends VariableContainer {
@@ -138,6 +159,16 @@ export class ApexVariableContainer extends VariableContainer {
     this.type = type;
     this.ref = ref;
     this.variablesRef = variablesRef;
+  }
+
+  public copy(): ApexVariableContainer {
+    const me = super.copy() as ApexVariableContainer;
+    me.name = this.name;
+    me.value = this.value;
+    me.type = this.type;
+    me.ref = this.ref;
+    me.variablesRef = this.variablesRef;
+    return me;
   }
 }
 
@@ -167,6 +198,7 @@ export class ScopeContainer extends VariableContainer {
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
   protected logContext: LogContext;
+  protected heapDumpService: HeapDumpService;
   protected trace: string[] = [];
   protected traceAll = false;
   private initializedResponse: DebugProtocol.InitializeResponse;
@@ -199,6 +231,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     );
 
     this.logContext = new LogContext(args, this);
+    this.heapDumpService = new HeapDumpService(this.logContext);
     this.sendEvent(new InitializedEvent());
 
     if (!this.logContext.hasLogLines()) {
@@ -289,10 +322,28 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected async scopesRequest(
+  public async scopesRequest(
     response: DebugProtocol.ScopesResponse,
     args: DebugProtocol.ScopesArguments
   ): Promise<void> {
+    const heapDumpId = this.logContext.hasHeapDumpForTopFrame();
+    if (heapDumpId) {
+      try {
+        this.logContext.copyStateForHeapDump();
+        this.heapDumpService.replaceVariablesWithHeapDump();
+      } catch (error) {
+        this.logContext.revertStateAfterHeapDump();
+        this.warnToDebugConsole(
+          nls.localize(
+            'reconcile_heapdump_error',
+            error,
+            heapDumpId,
+            heapDumpId
+          )
+        );
+      }
+    }
+
     response.success = true;
     const frameInfo = this.logContext.getFrameHandler().get(args.frameId);
     if (!frameInfo) {
@@ -323,7 +374,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  protected async variablesRequest(
+  public async variablesRequest(
     response: DebugProtocol.VariablesResponse,
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
