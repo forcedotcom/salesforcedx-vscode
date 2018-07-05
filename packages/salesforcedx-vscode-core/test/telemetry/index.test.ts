@@ -1,43 +1,10 @@
 import { expect } from 'chai';
-import * as path from 'path';
 import { assert, SinonStub, stub } from 'sinon';
-import { ExtensionContext, Memento, window } from 'vscode';
+import { window } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SfdxCoreSettings } from '../../src/settings/sfdxCoreSettings';
 import { TelemetryService } from '../../src/telemetry/telemetry';
-
-class MockMemento implements Memento {
-  private telemetryGS: boolean;
-
-  constructor(setGlobalState: boolean) {
-    this.telemetryGS = setGlobalState;
-  }
-
-  public get(key: string): any {
-    if (this.telemetryGS === true) {
-      return true;
-    }
-    return undefined;
-  }
-
-  public update(key: string, value: any): Promise<void> {
-    return Promise.resolve();
-  }
-}
-
-class MockContext implements ExtensionContext {
-  constructor(mm: boolean) {
-    this.globalState = new MockMemento(mm);
-  }
-  public subscriptions: Array<{ dispose(): any }> = [];
-  public workspaceState: Memento;
-  public globalState: Memento;
-  public extensionPath: string = 'myExtensionPath';
-  public asAbsolutePath(relativePath: string): string {
-    return path.join('../../../package.json'); // this should point to the src/package.json
-  }
-  public storagePath: string = 'myStoragePath';
-}
+import { MockContext } from './MockContext';
 
 describe('Telemetry', () => {
   let mShowInformation: SinonStub;
@@ -52,9 +19,7 @@ describe('Telemetry', () => {
     settings = stub(SfdxCoreSettings.prototype, 'getTelemetryEnabled').returns(
       true
     );
-    reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent').returns(
-      Promise.resolve(null)
-    );
+    reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
   });
 
   afterEach(() => {
@@ -91,7 +56,7 @@ describe('Telemetry', () => {
     assert.notCalled(mShowInformation);
   });
 
-  it('reporter is sending event data', async () => {
+  it('Should send telemetry data', async () => {
     // create vscode extensionContext in which telemetry msg has been previously shown
     mockContext = new MockContext(true);
 
@@ -102,7 +67,7 @@ describe('Telemetry', () => {
     assert.calledOnce(reporter);
   });
 
-  it('reporter should not send data', async () => {
+  it('Should not send telemetry data', async () => {
     // create vscode extensionContext
     mockContext = new MockContext(true);
     // user has updated settings for not sending telemetry data.
@@ -119,5 +84,43 @@ describe('Telemetry', () => {
 
     telemetryService.sendCommandEvent('create_apex_class_command');
     assert.notCalled(reporter);
+  });
+
+  it('Check telemetry sendExtensionActivationEvent data format', async () => {
+    // create vscode extensionContext
+    mockContext = new MockContext(true);
+
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(mockContext);
+
+    telemetryService.sendExtensionActivationEvent();
+    assert.calledOnce(reporter);
+    assert.calledWith(reporter, 'activationEvent');
+  });
+
+  it('Check telemetry sendExtensionDeactivationEvent data format', async () => {
+    // create vscode extensionContext
+    mockContext = new MockContext(true);
+
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(mockContext);
+
+    telemetryService.sendExtensionDeactivationEvent();
+    assert.calledOnce(reporter);
+    assert.calledWith(reporter, 'deactivationEvent');
+  });
+
+  it('Check telemetry sendCommandEvent data format', async () => {
+    // create vscode extensionContext
+    mockContext = new MockContext(true);
+
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(mockContext);
+
+    telemetryService.sendCommandEvent('create_apex_class_command');
+    assert.calledOnce(reporter);
+
+    const expectedData = { commandName: 'create_apex_class_command' };
+    assert.calledWith(reporter, 'commandExecution', expectedData);
   });
 });

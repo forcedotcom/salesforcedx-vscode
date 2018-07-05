@@ -5,6 +5,11 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private context: vscode.ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
+  private isTelemetryEnabled: boolean;
+
+  constructor() {
+    this.isTelemetryEnabled = false;
+  }
 
   public static getInstance() {
     if (!TelemetryService.instance) {
@@ -18,9 +23,10 @@ export class TelemetryService {
     isTelemetryEnabled: boolean
   ): TelemetryReporter | undefined {
     this.context = context;
+    this.isTelemetryEnabled = isTelemetryEnabled;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (this.reporter === undefined && isTelemetryEnabled) {
+    if (this.reporter === undefined && this.isTelemetryEnabled) {
       const extensionPackage = require(this.context.asAbsolutePath(
         './package.json'
       ));
@@ -37,19 +43,19 @@ export class TelemetryService {
   }
 
   public sendExtensionActivationEvent(): void {
-    if (this.reporter !== undefined) {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent('activationEvent');
     }
   }
 
   public sendExtensionDeactivationEvent(): void {
-    if (this.reporter !== undefined) {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent('deactivationEvent');
     }
   }
 
   public sendCommandEvent(commandName: string): void {
-    if (this.reporter !== undefined) {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent('commandExecution', { commandName });
     }
   }
