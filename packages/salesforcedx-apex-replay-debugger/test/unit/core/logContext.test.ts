@@ -45,6 +45,9 @@ describe('LogContext', () => {
   let noOpHandleStub: sinon.SinonStub;
   let shouldTraceLogFileStub: sinon.SinonStub;
   let printToDebugConsoleStub: sinon.SinonStub;
+  let getTopFrameStub: sinon.SinonStub;
+  let hasHeapDumpStub: sinon.SinonStub;
+  let revertStateAfterHeapDumpSpy: sinon.SinonSpy;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: '/path/foo.log',
     trace: true
@@ -65,6 +68,10 @@ describe('LogContext', () => {
       ApexReplayDebug.prototype,
       'printToDebugConsole'
     );
+    revertStateAfterHeapDumpSpy = sinon.spy(
+      LogContext.prototype,
+      'revertStateAfterHeapDump'
+    );
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
   });
 
@@ -78,6 +85,13 @@ describe('LogContext', () => {
     }
     shouldTraceLogFileStub.restore();
     printToDebugConsoleStub.restore();
+    if (getTopFrameStub) {
+      getTopFrameStub.restore();
+    }
+    if (hasHeapDumpStub) {
+      hasHeapDumpStub.restore();
+    }
+    revertStateAfterHeapDumpSpy.restore();
   });
 
   it('Should return array of log lines', () => {
@@ -183,6 +197,28 @@ describe('LogContext', () => {
     expect(printToDebugConsoleStub.calledTwice).to.be.true;
   });
 
+  it('Should revert state if there is a heapdump', () => {
+    hasHeapDumpStub = sinon
+      .stub(LogContext.prototype, 'hasHeapDump')
+      .returns(true);
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    context.updateFrames();
+
+    expect(revertStateAfterHeapDumpSpy.calledOnce).to.be.true;
+  });
+
+  it('Should not revert state if there is no heapdump', () => {
+    hasHeapDumpStub = sinon
+      .stub(LogContext.prototype, 'hasHeapDump')
+      .returns(false);
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    context.updateFrames();
+
+    expect(revertStateAfterHeapDumpSpy.called).to.be.false;
+  });
+
   it('Should detect and parse HEAP_DUMP log entries', () => {
     readLogFileStub.restore();
     readLogFileStub = sinon
@@ -194,6 +230,7 @@ describe('LogContext', () => {
       ]);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     expect(context.scanLogForHeapDumpLines()).to.be.true;
+    expect(context.hasHeapDump()).to.be.true;
     const apexHeapDumps = context.getHeapDumps();
     expect(apexHeapDumps.length).to.equal(2);
     expect(apexHeapDumps[0].getHeapDumpId()).to.equal('<HeapDumpId1>');
@@ -204,6 +241,76 @@ describe('LogContext', () => {
     expect(apexHeapDumps[1].getNamespace()).to.equal('<Namespace2>');
     expect(apexHeapDumps[0].getLine()).to.equal(11);
     expect(apexHeapDumps[1].getLine()).to.equal(22);
+  });
+
+  it('Should not find heapdump with incorrect line', () => {
+    readLogFileStub.restore();
+    readLogFileStub = sinon
+      .stub(LogContextUtil.prototype, 'readLogFile')
+      .returns([
+        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
+        '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
+      ]);
+
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    expect(context.scanLogForHeapDumpLines()).to.be.true;
+    const heapdump = context.getHeapDumpForThisLocation('ClassName1', 22);
+    expect(heapdump).to.be.undefined;
+  });
+
+  it('Should not find heapdump with incorrect class name', () => {
+    readLogFileStub.restore();
+    readLogFileStub = sinon
+      .stub(LogContextUtil.prototype, 'readLogFile')
+      .returns([
+        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
+        '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
+      ]);
+
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    expect(context.scanLogForHeapDumpLines()).to.be.true;
+    const heapdump = context.getHeapDumpForThisLocation('ClassName2', 11);
+    expect(heapdump).to.be.undefined;
+  });
+
+  it('Should have heapdump for top frame', () => {
+    readLogFileStub.restore();
+    readLogFileStub = sinon
+      .stub(LogContextUtil.prototype, 'readLogFile')
+      .returns([
+        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
+        '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
+      ]);
+    getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns({
+      name: 'ClassName1',
+      line: 11
+    } as StackFrame);
+
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    expect(context.scanLogForHeapDumpLines()).to.be.true;
+    expect(context.hasHeapDumpForTopFrame()).to.equal('<HeapDumpId1>');
+  });
+
+  it('Should not have heapdump for top frame', () => {
+    readLogFileStub.restore();
+    readLogFileStub = sinon
+      .stub(LogContextUtil.prototype, 'readLogFile')
+      .returns([
+        '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
+        '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
+      ]);
+    getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns({
+      name: 'ClassName1',
+      line: 22
+    } as StackFrame);
+
+    context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+
+    expect(context.scanLogForHeapDumpLines()).to.be.true;
+    expect(context.hasHeapDumpForTopFrame()).to.be.undefined;
   });
 
   describe('Log event parser', () => {

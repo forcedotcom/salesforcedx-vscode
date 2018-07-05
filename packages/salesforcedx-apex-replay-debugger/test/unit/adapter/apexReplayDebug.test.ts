@@ -31,11 +31,13 @@ import {
   LINE_BREAKPOINT_INFO_REQUEST
 } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
+import { HeapDumpService } from '../../../src/core/heapDumpService';
 import { nls } from '../../../src/messages';
 
 export class MockApexReplayDebug extends ApexReplayDebug {
   public setLogFile(args: LaunchRequestArguments) {
     this.logContext = new LogContext(args, this);
+    this.heapDumpService = new HeapDumpService(this.logContext);
   }
 
   public getDefaultResponse(): DebugProtocol.Response {
