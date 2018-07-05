@@ -22,7 +22,8 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { breakpointUtil } from '../breakpoints';
+import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
+
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
   LINE_BREAKPOINT_INFO_REQUEST
@@ -170,6 +171,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
   protected traceAll = false;
   private initializedResponse: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
+  protected projectPath: string | undefined;
 
   constructor() {
     super('apex-replay-debug-adapter.log');
@@ -185,10 +187,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
-  public launchRequest(
+  public async launchRequest(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
-  ): void {
+  ): Promise<void> {
     response.success = false;
     this.setupLogger(args);
     this.log(
@@ -211,6 +213,16 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.printToDebugConsole(
       nls.localize('session_started_text', this.logContext.getLogFileName())
     );
+    // If the projectPath isn't set then don't bother with heap dump processing
+    if (this.projectPath && this.logContext.scanLogForHeapDumpLines()) {
+      if (
+        !await this.logContext.fetchOverlayResultsForApexHeapDumps(
+          this.projectPath
+        )
+      ) {
+        this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
+      }
+    }
     response.success = true;
     this.sendResponse(response);
   }
@@ -465,7 +477,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
     switch (command) {
       case LINE_BREAKPOINT_INFO_REQUEST:
         if (args) {
-          breakpointUtil.createMappingsFromLineBreakpointInfo(args);
+          const lineBreakpointEventArgs = args as LineBreakpointEventArgs;
+          breakpointUtil.createMappingsFromLineBreakpointInfo(
+            lineBreakpointEventArgs.lineBreakpointInfo
+          );
+          this.projectPath = lineBreakpointEventArgs.projectPath;
         } else {
           this.initializedResponse.success = false;
           this.initializedResponse.message = nls.localize(
