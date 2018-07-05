@@ -39,7 +39,9 @@
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "^5.0.5",
+    "istanbul": "^0.4.5",
     "mocha": "3.2.0",
+    "remap-istanbul": "^0.9.5",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
     "vscode": "1.1.17"
