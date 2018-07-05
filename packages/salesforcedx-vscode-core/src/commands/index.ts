@@ -43,7 +43,10 @@ export { forceDebuggerStop } from './forceDebuggerStop';
 export { forceConfigList } from './forceConfigList';
 export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
-export { forceProjectCreate } from './forceProjectCreate';
+export {
+  forceSfdxProjectCreate,
+  forceChangeSetProjectCreate
+} from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
 export {
