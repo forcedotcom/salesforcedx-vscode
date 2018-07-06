@@ -172,5 +172,22 @@ describe('Force Project Create', () => {
         nls.localize('force_project_create_text')
       );
     });
+
+    it('Should build the project create command for change-set-based projects', async () => {
+      const forceProjectCreateBuilder = new ForceProjectCreateExecutor({
+        isChangeSetBasedProject: true
+      });
+      const createCommand = forceProjectCreateBuilder.build({
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath
+      });
+      expect(createCommand.toCommand()).to.equal(
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0]
+          .fsPath} --manifest`
+      );
+      expect(createCommand.description).to.equal(
+        nls.localize('force_project_create_text')
+      );
+    });
   });
 });
