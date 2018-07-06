@@ -520,7 +520,7 @@ describe('Command Utilities', () => {
     });
 
     after(() => {
-      sinon.restore(vscode.window);
+      showInformationMessageStub.restore();
     });
 
     it('Should return CONTINUE if message is Cancel', async () => {

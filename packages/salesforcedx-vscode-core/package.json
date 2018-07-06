@@ -255,6 +255,11 @@
           "command": "sfdx.force.project.create"
         },
         {
+          "command": "sfdx.force.create.change.set.based",
+          "when":
+            "config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+        },
+        {
           "command": "sfdx.force.apex.trigger.create",
           "when": "sfdx:project_opened"
         },
@@ -292,7 +297,7 @@
         {
           "command": "sfdx.force.manifest.editor.show",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.show_experimental_webviews"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
       ]
     },
@@ -438,6 +443,10 @@
         "title": "%force_project_create_text%"
       },
       {
+        "command": "sfdx.force.create.change.set.based",
+        "title": "%force_project_create_change_set_based_text%"
+      },
+      {
         "command": "sfdx.force.apex.trigger.create",
         "title": "%force_apex_trigger_create_text%"
       },
@@ -471,10 +480,10 @@
           "default": true,
           "description": "%show_cli_success_msg_description%"
         },
-        "salesforcedx-vscode-core.show_experimental_webviews": {
+        "salesforcedx-vscode-core.change_set_based_tools.enabled": {
           "type": ["boolean"],
           "default": false,
-          "description": "%show_experimental_webviews_description%"
+          "description": "%change_set_based_tools.enabled_description%"
         },
         "salesforcedx-vscode-core.retrieve-test-code-coverage": {
           "type": ["boolean"],

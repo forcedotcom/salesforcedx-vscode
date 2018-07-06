@@ -6,8 +6,8 @@
  */
 
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -23,6 +23,7 @@ import {
   forceApexTriggerCreate,
   forceAuthLogoutAll,
   forceAuthWebLogin,
+  forceChangeSetProjectCreate,
   forceConfigList,
   forceDataSoqlQuery,
   forceDebuggerStop,
@@ -34,7 +35,7 @@ import {
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
-  forceProjectCreate,
+  forceSfdxProjectCreate,
   forceSourcePull,
   forceSourcePush,
   forceSourceStatus,
@@ -229,7 +230,12 @@ function registerCommands(
 
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
-    forceProjectCreate
+    forceSfdxProjectCreate
+  );
+
+  const forceChangeSetBasedProjectCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.create.change.set.based',
+    forceChangeSetProjectCreate
   );
 
   const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
@@ -306,6 +312,7 @@ function registerCommands(
     forceOrgDisplayUsernameCmd,
     forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
+    forceChangeSetBasedProjectCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,

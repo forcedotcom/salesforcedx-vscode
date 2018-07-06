@@ -555,7 +555,7 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
     }
 
     return null; // all good
-  }
+  };
 
   public forceIdUrl?: ForceIdeUri;
   public async gather(): Promise<
