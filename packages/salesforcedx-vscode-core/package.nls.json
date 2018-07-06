@@ -52,7 +52,7 @@
   "feature_previews_title": "Salesforce Feature Previews",
   "force_project_create_text": "SFDX: Create Project",
   "force_project_create_change_set_based_text":
-    "SFDX: Create Change-set-based Project",
+    "SFDX: Create Change-Set-Based Project",
   "force_apex_trigger_create_text": "SFDX: Create Apex Trigger",
   "show_cli_success_msg_description":
     "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
