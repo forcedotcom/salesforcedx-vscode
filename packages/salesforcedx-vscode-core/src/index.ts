@@ -67,7 +67,6 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService } from './notifications';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { CancellableStatusBar, taskViewService } from './statuses';
-import { ManifestEditor } from './webviewPanels/manifestEditor';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -263,11 +262,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  const showManifestEditorCmd = vscode.commands.registerCommand(
-    'sfdx.force.manifest.editor.show',
-    () => ManifestEditor.createOrShow(extensionContext)
-  );
-
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -318,7 +312,6 @@ function registerCommands(
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
-    showManifestEditorCmd,
     internalCancelCommandExecution
   );
 }
