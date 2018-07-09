@@ -293,11 +293,6 @@
         {
           "command": "sfdx.force.apex.log.get",
           "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.manifest.editor.show",
-          "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
       ]
     },
@@ -465,10 +460,6 @@
       {
         "command": "sfdx.force.apex.log.get",
         "title": "%force_apex_log_get_text%"
-      },
-      {
-        "command": "sfdx.force.manifest.editor.show",
-        "title": "%force_manifest_editor_show_text%"
       }
     ],
     "configuration": {

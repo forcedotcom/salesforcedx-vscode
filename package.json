@@ -17,12 +17,11 @@
   },
   "scripts": {
     "postinstall":
-      "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
+      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
     "bootstrap":
-      "lerna bootstrap -- --no-package-lock && npm run bundle-webview && node scripts/reformat-with-prettier",
+      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",
-    "compile":
-      "lerna run --stream --ignore @salesforce/salesforcedx-webview-ui compile",
+    "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
     "prepush": "npm run lint",
@@ -48,11 +47,6 @@
       "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
     "synk:monitor":
       "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
-    "start-webview": "npm run start --prefix=packages/salesforcedx-webview-ui",
-    "build-webview": "npm run build --prefix=packages/salesforcedx-webview-ui",
-    "test-webview": "npm run test --prefix=packages/salesforcedx-webview-ui",
-    "bundle-webview":
-      "npm run compile --prefix=packages/salesforcedx-webview-ui",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js"
   },
   "repository": {
