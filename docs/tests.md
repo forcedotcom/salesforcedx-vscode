@@ -132,6 +132,24 @@ Modules that have separate unit & integration tests can provide top level launch
 configurations for running those tests as well. See the examples in launch.json
 for Apex Debugger configurations.
 
+## Test Results
+
+Since some modules have a dependency on VSCode and others do not, the way the tests
+are ran for them are different. The ones without a dependency on VSCode will run mocha
+directly while the VSCode packages runs the tests programmatically. In order to produce
+the junit and xunit files, we have to configure mocha to use mocha-multi-reporters
+and the mocha-junit-reporter packages. For the packages running mocha directly,
+they are configured by pointing the config file option to the top level mocha config file.
+For the VSCode packages, the `testrunner.ts` file will set the reporters if they have not
+already been set.
+
+### Uploading Test Results
+
+In order to upload and store them into Appveyor, the `junit-custom.xml` files
+in each package are aggregated into a single folder and renamed to include the
+relevant package with `aggregate-junit-xml.js`. The appveyor config file is
+set to point to that directory to upload a zip with all the junit files.
+
 # System Tests with Spectron
 
 We have several system (end-to-end) tests written using
