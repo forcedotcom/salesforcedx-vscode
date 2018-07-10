@@ -2,6 +2,9 @@
 # https://github.com/github/gitignore/blob/master/Node.gitignore
 #
 
+# System generated files
+.DS_Store
+
 # TypeScript generated files
 dist/
 out/
@@ -30,6 +33,9 @@ coverage
 test-results.xml
 xunit.xml
 junit-custom.xml
+
+# JUnit test results aggregate
+junit-aggregate
 
 # nyc test coverage
 .nyc_output
