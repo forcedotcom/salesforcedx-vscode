@@ -5,13 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as vscode from 'vscode';
+
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandOutput';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import { Observable } from 'rxjs/Observable';
 import { CancellationTokenSource, workspace } from 'vscode';
 import { channelService } from '../channels/index';
@@ -22,43 +28,33 @@ import { taskViewService } from '../statuses/index';
 import { CancellableStatusBar } from '../statuses/statusBar';
 import {
   DemoModePromptGatherer,
-  EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 import { ForceAuthLogoutAll } from './forceAuthLogout';
 
-export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<{}> {
-  public build(data: {}): Command {
+export const DEFAULT_ALIAS = 'vscodeOrg';
+
+export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<Alias> {
+  public build(data: Alias): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('force_auth_web_login_authorize_dev_hub_text')
+        nls.localize('force_auth_web_login_authorize_org_text')
       )
       .withArg('force:auth:web:login')
-      .withArg('--setdefaultdevhubusername')
+      .withFlag('--setalias', data.alias)
+      .withArg('--setdefaultusername')
       .build();
   }
 }
 
-export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}> {
-  public build(data: {}): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('force_auth_web_login_authorize_dev_hub_text')
-      )
-      .withArg('force:auth:web:login')
-      .withArg('--setdefaultdevhubusername')
-      .withArg('--noprompt')
-      .withJson()
-      .build();
-  }
-
-  public async execute(response: ContinueResponse<{}>): Promise<void> {
+export abstract class ForceAuthDemoModeExecutor<T> extends SfdxCommandletExecutor<T> {
+  public async execute(response: ContinueResponse<T>): Promise<void> {
     const cancellationTokenSource = new CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
-    const execution = new CliCommandExecutor(this.build({}), {
+    const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspace.rootPath
     }).execute(cancellationToken);
 
@@ -87,6 +83,42 @@ export class ForceAuthWebDemoModeLoginExecutor extends SfdxCommandletExecutor<{}
   }
 }
 
+export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor<Alias> {
+  public build(data: Alias): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(
+        nls.localize('force_auth_web_login_authorize_org_text')
+      )
+      .withArg('force:auth:web:login')
+      .withFlag('--setalias', data.alias)
+      .withArg('--setdefaultusername')
+      .withArg('--noprompt')
+      .withJson()
+      .build();
+  }
+}
+
+export class AliasGatherer implements ParametersGatherer<Alias> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
+    const aliasInputOptions = {
+      prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+      placeHolder: DEFAULT_ALIAS
+    } as vscode.InputBoxOptions;
+    const alias = await vscode.window.showInputBox(aliasInputOptions);
+    // Hitting enter with no alias will default the alias to 'vscodeOrg'
+    if (alias === undefined) {
+      return { type: 'CANCEL' };
+    }
+    return alias === ''
+      ? { type: 'CONTINUE', data: { alias: DEFAULT_ALIAS } }
+      : { type: 'CONTINUE', data: { alias } };
+  }
+}
+
+export interface Alias {
+  alias: string;
+}
+
 export async function promptLogOutForProdOrg() {
   await new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
@@ -96,11 +128,11 @@ export async function promptLogOutForProdOrg() {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
+const parameterGatherer = new AliasGatherer();
 
 export function createExecutor(): SfdxCommandletExecutor<{}> {
   return isDemoMode()
-    ? new ForceAuthWebDemoModeLoginExecutor()
+    ? new ForceAuthWebLoginDemoModeExecutor()
     : new ForceAuthWebLoginExecutor();
 }
 
