@@ -138,7 +138,7 @@
         {
           "command": "sfdx.force.auth.web.login",
           "when":
-            "config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         },
         {
           "command": "sfdx.force.auth.logout.all",
