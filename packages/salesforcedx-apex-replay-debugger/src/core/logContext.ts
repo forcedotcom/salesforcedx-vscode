@@ -89,6 +89,10 @@ export class LogContext {
     this.logLines = this.util.readLogFile(launchArgs.logFile);
   }
 
+  public getUtil(): LogContextUtil {
+    return this.util;
+  }
+
   public getLaunchArgs(): LaunchRequestArguments {
     return this.launchArgs;
   }
