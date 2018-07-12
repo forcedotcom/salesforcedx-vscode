@@ -132,8 +132,13 @@
       ],
       "commandPalette": [
         {
-          "command": "sfdx.force.auth.web.login",
+          "command": "sfdx.force.auth.dev.hub",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.auth.web.login",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         },
         {
           "command": "sfdx.force.auth.logout.all",
@@ -298,8 +303,12 @@
     },
     "commands": [
       {
-        "command": "sfdx.force.auth.web.login",
+        "command": "sfdx.force.auth.dev.hub",
         "title": "%force_auth_web_login_authorize_dev_hub_text%"
+      },
+      {
+        "command": "sfdx.force.auth.web.login",
+        "title": "%force_auth_web_login_authorize_org_text%"
       },
       {
         "command": "sfdx.force.auth.logout.all",

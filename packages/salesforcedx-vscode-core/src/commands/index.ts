@@ -15,6 +15,7 @@ export {
 } from './commands';
 export { forceApexExecute } from './forceApexExecute';
 export { forceAuthWebLogin } from './forceAuthWebLogin';
+export { forceAuthDevHub } from './forceAuthDevHub';
 export { forceApexTestRun } from './forceApexTestRun';
 export {
   forceApexTestClassRunCodeAction,

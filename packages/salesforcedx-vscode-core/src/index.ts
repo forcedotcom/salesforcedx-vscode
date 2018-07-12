@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -21,6 +22,7 @@ import {
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
   forceApexTriggerCreate,
+  forceAuthDevHub,
   forceAuthLogoutAll,
   forceAuthWebLogin,
   forceChangeSetProjectCreate,
@@ -75,6 +77,10 @@ function registerCommands(
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
+  );
+  const forceAuthDevHubCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.dev.hub',
+    forceAuthDevHub
   );
   const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.all',
@@ -279,6 +285,7 @@ function registerCommands(
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
+    forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
