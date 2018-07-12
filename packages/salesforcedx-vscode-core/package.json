@@ -88,6 +88,13 @@
           "when": "view == sfdx.force.tasks.view"
         }
       ],
+      "editor/context": [
+        {
+          "command": "sfdx.force.source.retrieve",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+        }
+      ],
       "explorer/context": [
         {
           "command": "sfdx.force.apex.class.create",
@@ -128,6 +135,11 @@
           "command": "sfdx.force.apex.trigger.create",
           "when":
             "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.retrieve",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
       ],
       "commandPalette": [
@@ -298,6 +310,11 @@
         {
           "command": "sfdx.force.apex.log.get",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.source.retrieve",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
       ]
     },
@@ -469,6 +486,10 @@
       {
         "command": "sfdx.force.apex.log.get",
         "title": "%force_apex_log_get_text%"
+      },
+      {
+        "command": "sfdx.force.source.retrieve",
+        "title": "%force_source_retrieve_text%"
       }
     ],
     "configuration": {

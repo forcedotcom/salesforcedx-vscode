@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -40,6 +39,7 @@ import {
   forceSfdxProjectCreate,
   forceSourcePull,
   forceSourcePush,
+  forceSourceRetrieve,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -111,6 +111,10 @@ function registerCommands(
     'sfdx.force.source.push.force',
     forceSourcePush,
     { flag: '--forceoverwrite' }
+  );
+  const forceSourceRetrieveCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve',
+    forceSourceRetrieve
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -295,6 +299,7 @@ function registerCommands(
     forceSourcePullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceRetrieveCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,

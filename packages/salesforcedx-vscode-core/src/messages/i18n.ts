@@ -55,7 +55,8 @@ export const messages = {
     'forceide:// URL from Setup',
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
-
+  parameter_gatherer_enter_metadata_component_names:
+    'Enter a comma-separated list of metadata names \n',
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
 
@@ -71,6 +72,7 @@ export const messages = {
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
 
+  force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
 
