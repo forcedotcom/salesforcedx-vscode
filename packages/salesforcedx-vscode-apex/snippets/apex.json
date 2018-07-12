@@ -263,30 +263,6 @@
         ],
         "description": "Test setup for creating data before test methods run"
     },
-    "createAdmin": {
-        "prefix": "createAdmin",
-        "body": [
-            "public static user createAdmin(){",
-            "  Profile p = [SELECT Id FROM Profile WHERE Name='System Administrator'];",
-            "  //create User",
-            "  User u = new User();",
-            "  u.FirstName = 'A';",
-            "  u.LastName = 'S';",
-            "  u.Email = 'test@${1:domainPeopleWontGuess}';",
-            "  u.Username = 'test@${1}';",
-            "  u.Alias = 'astest';",
-            "  u.ProfileId = p.Id;",
-            "  u.TimeZoneSidKey    = 'America/Denver';",
-            "  u.LocaleSidKey      = 'en_US';",
-            "  u.EmailEncodingKey  = 'UTF-8';",
-            "  u.LanguageLocaleKey = 'en_US';",
-            "  insert u;",
-            "  system.debug('u contains ' + u);",
-            "  return u;",
-            "}"
-        ],
-        "description": "Create an admin user that you can use in Tests with runAs"
-    },
     "CustomException": {
         "prefix": "customException",
         "body": [
