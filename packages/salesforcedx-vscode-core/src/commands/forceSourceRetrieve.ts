@@ -24,28 +24,13 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-
-export class ForceSourceRetrieveMetadataExecutor extends SfdxCommandletExecutor<
-  Metadata
+export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
+  SelectedPath
 > {
-  public build(data: Metadata): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_retrieve_text'))
-      .withArg('force:source:retrieve')
-      .withFlag('--metadata', data.metadata)
-      .build();
-  }
-}
-
-export class ForceSourceRetrieveFilePathExecutor extends SfdxCommandletExecutor<
-  SelectedFile
-> {
-  public build(data: SelectedFile): Command {
+  public build(data: SelectedPath): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_retrieve_text'))
       .withArg('force:source:retrieve');
-
     if (data.type === FileType.Manifest) {
       commandBuilder.withFlag('--manifest', data.filePath);
     } else {
@@ -55,29 +40,14 @@ export class ForceSourceRetrieveFilePathExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class MetadataGatherer implements ParametersGatherer<Metadata> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<Metadata>> {
-    const metadataInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_metadata_component_names')
-    } as vscode.InputBoxOptions;
-
-    const metadata = await vscode.window.showInputBox(metadataInputOptions);
-
-    if (!metadata) {
-      return { type: 'CANCEL' };
-    }
-    return { type: 'CONTINUE', data: { metadata } };
-  }
-}
-
 export class ManifestOrSourcePathGatherer
-  implements ParametersGatherer<SelectedFile> {
+  implements ParametersGatherer<SelectedPath> {
   private explorerPath: string;
   public constructor(explorerPath: any) {
     this.explorerPath = explorerPath.fsPath;
   }
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<SelectedFile>
+    CancelResponse | ContinueResponse<SelectedPath>
   > {
     const rootPath = vscode.workspace.rootPath;
     if (rootPath) {
@@ -90,11 +60,7 @@ export class ManifestOrSourcePathGatherer
   }
 }
 
-export interface Metadata {
-  metadata: string;
-}
-
-export interface SelectedFile {
+export interface SelectedPath {
   filePath: string;
   type: FileType;
 }
@@ -104,29 +70,13 @@ export enum FileType {
   Source
 }
 
-export function createParameterGatherer(
-  explorerPath?: any
-): ParametersGatherer<SelectedFile | Metadata> {
-  if (explorerPath) {
-    return new ManifestOrSourcePathGatherer(explorerPath);
-  }
-  return new MetadataGatherer();
-}
+const workspaceChecker = new SfdxWorkspaceChecker();
 
-export function createExecutor(
-  explorerPath?: any
-): SfdxCommandletExecutor<Metadata | SelectedFile> {
-  if (explorerPath) {
-    return new ForceSourceRetrieveFilePathExecutor();
-  }
-  return new ForceSourceRetrieveMetadataExecutor();
-}
-
-export async function forceSourceRetrieve(explorerPath?: any) {
+export async function forceSourceRetrieve(explorerPath: any) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
-    createParameterGatherer(explorerPath),
-    createExecutor(explorerPath)
+    new ManifestOrSourcePathGatherer(explorerPath),
+    new ForceSourceRetrieveExecutor()
   );
   await commandlet.run();
 }

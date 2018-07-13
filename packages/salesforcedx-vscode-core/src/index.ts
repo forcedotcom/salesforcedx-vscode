@@ -116,6 +116,10 @@ function registerCommands(
     'sfdx.force.source.retrieve',
     forceSourceRetrieve
   );
+  const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.this.file',
+    forceSourceRetrieve
+  );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
     forceSourceStatus
@@ -300,6 +304,7 @@ function registerCommands(
     forceSourcePushCmd,
     forceSourcePushForceCmd,
     forceSourceRetrieveCmd,
+    forceSourceRetrieveCurrentFileCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
