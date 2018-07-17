@@ -3,17 +3,11 @@ import fs = require('fs');
 import ospath = require('path');
 import {
   CliCommandExecutor,
-  Command,
-  CommandExecution
+  Command
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandOutput';
 import {
-  CancelResponse,
-  ContinueResponse,
-  DirFileNameSelection,
-  ParametersGatherer,
-  PostconditionChecker,
-  PreconditionChecker
+  ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { SfdxCommandlet, SfdxWorkspaceChecker } from '../commands';
 import { EmptyParametersGatherer } from '../commands/commands';
