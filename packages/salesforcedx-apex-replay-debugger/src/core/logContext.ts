@@ -164,6 +164,7 @@ export class LogContext {
     );
     this.backupFrameHandles = this.frameHandles.copy();
     this.backupRefsMap = new Map<string, ApexVariableContainer>();
+    this.backupVariableHandles = new Handles<ApexVariableContainer>();
     for (const backupFrame of this.backupStackFrameInfos) {
       const frameInfo = this.backupFrameHandles.get(backupFrame.id);
       this.copyVariableContainers(frameInfo.locals);
