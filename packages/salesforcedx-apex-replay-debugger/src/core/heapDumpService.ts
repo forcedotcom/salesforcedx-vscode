@@ -62,7 +62,7 @@ export class HeapDumpService {
                         variableEntry.value.value
                       );
                       if (extentValue) {
-                        this.updateVariableContainerWithExtentValue(
+                        this.updateVariableContainerWithExtentValueOrEntry(
                           value as ApexVariableContainer,
                           extentValue.value,
                           extentValue.entry
@@ -75,7 +75,7 @@ export class HeapDumpService {
                       );
                     }
                   } else {
-                    this.updateVariableContainerWithExtentValue(
+                    this.updateVariableContainerWithExtentValueOrEntry(
                       value as ApexVariableContainer,
                       variableEntry.value.value,
                       undefined
@@ -91,16 +91,37 @@ export class HeapDumpService {
               innerExtent.symbols && innerExtent.symbols.length > 0
                 ? innerExtent.symbols[0]
                 : undefined;
+            const className = symbolName
+              ? this.logContext.getUtil().substringUpToLastPeriod(symbolName)
+              : undefined;
             if (symbolName && frameInfo.locals.has(symbolName)) {
               const localVar = frameInfo.locals.get(
                 symbolName
               ) as ApexVariableContainer;
               this.updateVariableContainer(localVar, innerExtent.value);
+            } else if (
+              symbolName &&
+              className &&
+              this.logContext.getStaticVariablesClassMap().has(className)
+            ) {
+              const statics = this.logContext
+                .getStaticVariablesClassMap()
+                .get(className);
+              const staticVarName = this.logContext
+                .getUtil()
+                .substringFromLastPeriod(symbolName);
+              if (statics && statics.has(staticVarName)) {
+                this.updateVariableContainer(
+                  statics.get(staticVarName) as ApexVariableContainer,
+                  innerExtent.value
+                );
+              }
             } else if (innerExtent.address) {
               if (refVariableToRevisit.has(innerExtent.address)) {
                 this.updateVariableContainer(
                   refVariableToRevisit.get(innerExtent.address)!,
-                  innerExtent.value
+                  innerExtent.value,
+                  outerExtent.typeName
                 );
               } else {
                 valueVariableToRevisit.set(
@@ -117,27 +138,21 @@ export class HeapDumpService {
 
   public updateVariableContainer(
     varContainer: ApexVariableContainer,
-    heapDumpExtentValue: HeadpDumpExtentValue
+    heapDumpExtentValue: HeadpDumpExtentValue,
+    type?: string
   ): void {
     if (heapDumpExtentValue.value) {
-      if (typeof heapDumpExtentValue.value === 'string') {
-        varContainer.value = `'${heapDumpExtentValue.value}'`;
-      } else if (Array.isArray(heapDumpExtentValue.value)) {
-        const values = heapDumpExtentValue.value as any[];
-        for (let i = 0; i < values.length; i++) {
-          varContainer.variables.set(
-            i.toString(),
-            new ApexVariableContainer(i.toString(), `'${values[i].value}'`, '')
-          );
-        }
-      } else {
-        varContainer.value = `${heapDumpExtentValue.value}`;
-      }
+      this.updateVariableContainerWithExtentValue(
+        varContainer,
+        heapDumpExtentValue.value,
+        type
+      );
     } else if (heapDumpExtentValue.entry) {
       varContainer.variables.forEach((value, key) => {
         for (const variableEntry of heapDumpExtentValue.entry!) {
-          this.updateVariableContainerWithExtentValue(
-            value as ApexVariableContainer,
+          const valueAsApexVar = value as ApexVariableContainer;
+          this.updateVariableContainerWithExtentValueOrEntry(
+            valueAsApexVar,
             variableEntry.value.value,
             variableEntry.value.entry
           );
@@ -146,30 +161,53 @@ export class HeapDumpService {
     }
   }
 
-  public updateVariableContainerWithExtentValue(
+  public updateVariableContainerWithExtentValueOrEntry(
     varContainer: ApexVariableContainer,
     extentValue: any,
     extentEntry: HeadpDumpExtentValueEntry[] | undefined
   ): void {
     if (extentValue) {
-      varContainer.value = `${extentValue}`;
+      this.updateVariableContainerWithExtentValue(varContainer, extentValue);
     } else if (extentEntry) {
       for (const extentValueEntry of extentEntry) {
         if (extentValueEntry.keyDisplayValue === varContainer.name) {
-          return this.updateVariableContainerWithExtentValue(
+          return this.updateVariableContainerWithExtentValueOrEntry(
             varContainer,
             extentValueEntry.value.value,
             extentValueEntry.value.entry
           );
         }
         varContainer.variables.forEach((value, key) => {
-          this.updateVariableContainerWithExtentValue(
+          this.updateVariableContainerWithExtentValueOrEntry(
             value as ApexVariableContainer,
             extentValue,
             extentEntry
           );
         });
       }
+    }
+  }
+
+  public updateVariableContainerWithExtentValue(
+    varContainer: ApexVariableContainer,
+    extentValue: any,
+    type?: string
+  ): void {
+    if (type && varContainer.type.length === 0) {
+      varContainer.type = type;
+    }
+    if (typeof extentValue === 'string' && varContainer.type === 'String') {
+      varContainer.value = `'${extentValue}'`;
+    } else if (Array.isArray(extentValue)) {
+      const values = extentValue as any[];
+      for (let i = 0; i < values.length; i++) {
+        varContainer.variables.set(
+          i.toString(),
+          new ApexVariableContainer(i.toString(), `'${values[i].value}'`, '')
+        );
+      }
+    } else {
+      varContainer.value = `${extentValue}`;
     }
   }
 

@@ -26,7 +26,7 @@ export class VariableBeginState implements DebugLogState {
       const name = this.fields[3];
       const type = this.fields[4];
       const isStatic = this.fields[6] === 'true';
-      const className = name.substring(0, name.lastIndexOf('.'));
+      const className = logContext.getUtil().substringUpToLastPeriod(name);
       if (
         className &&
         !logContext.getStaticVariablesClassMap().has(className)
@@ -38,11 +38,7 @@ export class VariableBeginState implements DebugLogState {
       const statics = logContext.getStaticVariablesClassMap().get(className)!;
       if (isStatic) {
         // will need to use the last index in case of something like OuterClass.InnerClass.method()
-        const varNameSplit = name.split('.');
-        const varName =
-          varNameSplit.length > 1
-            ? varNameSplit[varNameSplit.length - 1]
-            : name;
+        const varName = logContext.getUtil().substringFromLastPeriod(name);
         statics.set(varName, new ApexVariableContainer(varName, 'null', type));
       } else {
         // had to add this check because triggers will have variable assignments show up twice and break this
