@@ -166,17 +166,19 @@ export class LogContext {
     this.backupRefsMap = new Map<string, ApexVariableContainer>();
     for (const backupFrame of this.backupStackFrameInfos) {
       const frameInfo = this.backupFrameHandles.get(backupFrame.id);
-      this.copyFrameScope(frameInfo.locals);
+      this.copyVariableContainers(frameInfo.locals);
+      this.copyVariableContainers(frameInfo.statics);
     }
   }
 
-  private copyFrameScope(scope: Map<string, VariableContainer>) {
-    scope.forEach((value, key) => {
+  private copyVariableContainers(variables: Map<string, VariableContainer>) {
+    variables.forEach((value, key) => {
       const variableContainer = value as ApexVariableContainer;
       if (variableContainer.ref) {
         this.backupRefsMap.set(variableContainer.ref, variableContainer);
         const newRef = this.backupVariableHandles.create(variableContainer);
         variableContainer.variablesRef = newRef;
+        this.copyVariableContainers(variableContainer.variables);
       }
     });
   }
@@ -185,6 +187,7 @@ export class LogContext {
     this.stackFrameInfos = this.backupStackFrameInfos;
     this.frameHandles = this.backupFrameHandles;
     this.refsMap = this.backupRefsMap;
+    this.variableHandles = this.backupVariableHandles;
   }
 
   public scanLogForHeapDumpLines(): boolean {
