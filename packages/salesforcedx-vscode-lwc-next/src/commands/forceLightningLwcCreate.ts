@@ -120,7 +120,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
+    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove when ProgressNotification is stable
     await ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }

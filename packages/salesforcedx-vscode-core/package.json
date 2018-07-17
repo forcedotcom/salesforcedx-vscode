@@ -90,7 +90,7 @@
       ],
       "editor/context": [
         {
-          "command": "sfdx.force.source.retrieve.this.file",
+          "command": "sfdx.force.source.retrieve.current.file",
           "when":
             "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
@@ -316,7 +316,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.retrieve.this.file",
+          "command": "sfdx.force.source.retrieve.current.file",
           "when": "false"
         }
       ]
@@ -495,7 +495,7 @@
         "title": "%force_source_retrieve_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve.this.file",
+        "command": "sfdx.force.source.retrieve.current.file",
         "title": "%force_source_retrieve_this_source_file_text%"
       }
     ],
