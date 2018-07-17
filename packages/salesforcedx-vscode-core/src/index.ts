@@ -1,10 +1,10 @@
 
 /*
- * Copyright (c) 2017, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
+* Copyright (c) 2017, salesforce.com, inc.
+* All rights reserved.
+* Licensed under the BSD 3-Clause license.
+* For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+*/
 
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
@@ -69,6 +69,7 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService } from './notifications';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { CancellableStatusBar, taskViewService } from './statuses';
+import { ApexTestOutlineProvider } from './views/testOutline';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -405,6 +406,16 @@ export async function activate(context: vscode.ExtensionContext) {
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
+
+  // Test View
+  const rootPath = vscode.workspace.rootPath || '';
+  const apexClasses = await vscode.workspace.findFiles('**/*.cls');
+  const testOutlineProvider = new ApexTestOutlineProvider(rootPath, apexClasses);
+  const testProvider = vscode.window.registerTreeDataProvider('sfdx.force.test.view', testOutlineProvider);
+  context.subscriptions.push(testProvider);
+
+  // Run Test Button on Test View
+  vscode.commands.registerCommand('sfdx.force.test.view.run', () => testOutlineProvider.runApexTests());
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
