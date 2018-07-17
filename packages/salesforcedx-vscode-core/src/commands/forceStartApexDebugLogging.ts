@@ -46,7 +46,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
     const executionWrapper = new CompositeCliCommandExecutor(
       this.build()
     ).execute(this.cancellationToken);
-    this.attachExecution(
+    await this.attachExecution(
       executionWrapper,
       this.cancellationTokenSource,
       this.cancellationToken

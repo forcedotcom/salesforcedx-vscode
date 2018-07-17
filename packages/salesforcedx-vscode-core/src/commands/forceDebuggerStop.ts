@@ -18,8 +18,8 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -95,7 +95,8 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     const resultPromise = new CommandOutput().getCmdResult(execution);
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
+    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove this line when ProgressNotification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {

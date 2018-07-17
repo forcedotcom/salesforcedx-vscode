@@ -25,8 +25,8 @@ import * as vscode from 'vscode';
 import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -45,7 +45,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       .build();
   }
 
-  protected attachExecution(
+  protected async attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
@@ -55,7 +55,8 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       execution,
       cancellationToken
     );
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
+    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove when ProgressNotification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
@@ -67,7 +68,11 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    await this.attachExecution(
+      execution,
+      cancellationTokenSource,
+      cancellationToken
+    );
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0) {
@@ -162,7 +167,8 @@ export class ForceApexLogList {
         .build(),
       { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
     ).execute();
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
+    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove when ProgressNotification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
     notificationService.reportExecutionError(
       execution.command.toString(),

@@ -38,8 +38,8 @@ import { URL } from 'url';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
-import { CancellableStatusBar, taskViewService } from '../../statuses';
+import { notificationService, ProgressNotification } from '../../notifications';
+import { taskViewService } from '../../statuses';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
@@ -511,12 +511,16 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     const result = new CommandOutput().getCmdResult(execution);
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    await this.attachExecution(
+      execution,
+      cancellationTokenSource,
+      cancellationToken
+    );
 
     return result;
   }
 
-  protected attachExecution(
+  protected async attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
@@ -527,7 +531,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
+    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove when Progress Notification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

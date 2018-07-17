@@ -24,6 +24,8 @@ export const messages = {
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
+  progress_notification_text: 'Running %s',
+
   notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',
   notification_unsuccessful_execution_text: '%s failed to run',

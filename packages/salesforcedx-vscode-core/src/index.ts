@@ -66,9 +66,9 @@ import {
 import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
-import { notificationService } from './notifications';
+import { notificationService, ProgressNotification } from './notifications';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
-import { CancellableStatusBar, taskViewService } from './statuses';
+import { taskViewService } from './statuses';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -435,7 +435,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   const api: any = {
-    CancellableStatusBar,
+    ProgressNotification,
     CompositeParametersGatherer,
     SelectFileName,
     SelectStrictDirPath,

@@ -23,9 +23,11 @@ import { CancellationTokenSource, workspace } from 'vscode';
 import { channelService } from '../channels/index';
 import { nls } from '../messages';
 import { isDemoMode, isProdOrg } from '../modes/demo-mode';
-import { notificationService } from '../notifications/index';
+import {
+  notificationService,
+  ProgressNotification
+} from '../notifications/index';
 import { taskViewService } from '../statuses/index';
-import { CancellableStatusBar } from '../statuses/statusBar';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -64,7 +66,8 @@ export abstract class ForceAuthDemoModeExecutor<
     );
 
     channelService.streamCommandOutput(execution);
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
+    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove this line when ProgressNotification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
