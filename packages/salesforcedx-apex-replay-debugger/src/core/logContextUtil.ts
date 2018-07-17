@@ -22,4 +22,13 @@ export class LogContextUtil {
   public stripBrackets(value: string): string {
     return value.replace('[', '').replace(']', '');
   }
+
+  public substringUpToLastPeriod(value: string): string {
+    return value.substring(0, value.lastIndexOf('.'));
+  }
+
+  public substringFromLastPeriod(value: string): string {
+    const valueSplit = value.split('.');
+    return valueSplit.length > 1 ? valueSplit[valueSplit.length - 1] : value;
+  }
 }
