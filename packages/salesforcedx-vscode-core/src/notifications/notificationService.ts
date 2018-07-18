@@ -80,13 +80,15 @@ export class NotificationService {
       if (data !== undefined && data.toString() === '0') {
         await this.showSuccessfulExecution(executionName);
       } else {
-        if (cancellationToken && cancellationToken.isCancellationRequested) {
-          this.showCanceledExecution(executionName);
-        } else {
-          this.showFailedExecution(executionName);
-        }
+        this.showFailedExecution(executionName);
       }
     });
+
+    if (cancellationToken) {
+      cancellationToken.onCancellationRequested(() => {
+        this.showCanceledExecution(executionName);
+      });
+    }
   }
 
   private showFailedExecution(executionName: string) {
