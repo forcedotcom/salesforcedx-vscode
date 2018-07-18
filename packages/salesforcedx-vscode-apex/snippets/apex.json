@@ -213,26 +213,6 @@
         ],
         "description": "Aura Enabled Apex Method"
     },
-    "userCreation": {
-        "prefix": "createUsers",
-        "body": [
-            "public static List<user> createUsers(integer numberOfUsers, string profileName){",
-            "  List<user> users = new List<user>();",
-            "  Profile p = [SELECT Id FROM Profile WHERE Name=:profileName];",
-            "  for (integer i=0; i<numberOfUsers; i++){",
-            "    string x = string.valueOf(i);",
-            "    User u = new User(Alias = 't'+x, Email='standarduser'+x+'@${2:someDomain.test}',",
-            "      EmailEncodingKey='UTF-8', LastName='Testing' + x, LanguageLocaleKey='en_US',LocaleSidKey='en_US', ProfileId = p.Id,",
-            "      TimeZoneSidKey='America/Los_Angeles', UserName='standarduser'+x+'@${2:someDomain.test}');",
-            "  users.add(u);",
-            "  }",
-            "",
-            "  insert users;",
-            "  return users;",
-            "}"
-        ],
-        "description": "Creates some amount of test users for a test method or for @TestSetup"
-    },
     "AuraHandledException": {
         "prefix": "auraHandledException",
         "body": [
