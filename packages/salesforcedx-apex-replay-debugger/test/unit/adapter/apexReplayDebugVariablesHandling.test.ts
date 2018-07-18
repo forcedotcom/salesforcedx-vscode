@@ -19,7 +19,9 @@ import {
 } from '../../../src/adapter/apexReplayDebug';
 import {
   ApexExecutionOverlayResultCommandSuccess,
-  HeadpDumpExtentValue
+  HeapDumpCollectionTypeDefinition,
+  HeapDumpExtentValue,
+  HeapDumpExtentValueEntry
 } from '../../../src/commands/apexExecutionOverlayResultCommand';
 import { ApexHeapDump, LogContext } from '../../../src/core';
 import { Handles } from '../../../src/core/handles';
@@ -203,47 +205,66 @@ describe('Replay debugger adapter variable handling - unit', () => {
       heapDumpService = new HeapDumpService(logContext);
     });
 
-    describe('updateVariableContainer', () => {
-      let updateVariableContainerWithExtentValueStubOrEntry: sinon.SinonSpy;
+    describe('updateContainer', () => {
+      let updateContainerWithExtentValueSpy: sinon.SinonSpy;
+      let updateContainerChildrenWithEntriesSpy: sinon.SinonSpy;
 
       beforeEach(() => {
-        updateVariableContainerWithExtentValueStubOrEntry = sinon.spy(
+        updateContainerWithExtentValueSpy = sinon.spy(
           HeapDumpService.prototype,
-          'updateVariableContainerWithExtentValueOrEntry'
+          'updateContainerWithExtentValue'
+        );
+        updateContainerChildrenWithEntriesSpy = sinon.spy(
+          HeapDumpService.prototype,
+          'updateContainerChildrenWithEntries'
         );
       });
 
       afterEach(() => {
-        updateVariableContainerWithExtentValueStubOrEntry.restore();
+        updateContainerWithExtentValueSpy.restore();
+        updateContainerChildrenWithEntriesSpy.restore();
       });
 
       it('Should update variable if extent has a string value', () => {
-        const varContainer = new ApexVariableContainer('foo', 'bar', 'String');
-        const extentValue: HeadpDumpExtentValue = {
+        const varContainer = new ApexVariableContainer('foo', 'bar', '');
+        const extentValue: HeapDumpExtentValue = {
           value: 'new bar'
         };
 
-        heapDumpService.updateVariableContainer(varContainer, extentValue);
+        heapDumpService.updateContainer(
+          varContainer,
+          extentValue,
+          new Map(),
+          new Map(),
+          new Map([['foo', 'String']])
+        );
 
         expect(varContainer.value).to.equal(`'new bar'`);
-        expect(updateVariableContainerWithExtentValueStubOrEntry.called).to.be
-          .false;
+        expect(varContainer.type).to.equal('String');
+        expect(updateContainerWithExtentValueSpy.calledOnce).to.be.true;
+        expect(updateContainerChildrenWithEntriesSpy.called).to.be.false;
       });
 
       it('Should update variable if extent has a non string value', () => {
         const varContainer = new ApexVariableContainer('foo', '5', 'Integer');
-        const extentValue: HeadpDumpExtentValue = {
+        const extentValue: HeapDumpExtentValue = {
           value: 10
         };
 
-        heapDumpService.updateVariableContainer(varContainer, extentValue);
+        heapDumpService.updateContainer(
+          varContainer,
+          extentValue,
+          new Map(),
+          new Map(),
+          new Map()
+        );
 
         expect(varContainer.value).to.equal('10');
-        expect(updateVariableContainerWithExtentValueStubOrEntry.called).to.be
-          .false;
+        expect(updateContainerWithExtentValueSpy.calledOnce).to.be.true;
+        expect(updateContainerChildrenWithEntriesSpy.called).to.be.false;
       });
 
-      it('Should try to update a child variable with extent entry', () => {
+      it('Should update a child variable with extent entry', () => {
         const varContainer = new ApexVariableContainer('parentfoo', '', 'type');
         varContainer.variables.set(
           'foo1',
@@ -253,38 +274,79 @@ describe('Replay debugger adapter variable handling - unit', () => {
           'foo2',
           new ApexVariableContainer('foo2', 'bar', 'String')
         );
-        const extentValue: HeadpDumpExtentValue = {
+        const extentValue: HeapDumpExtentValue = {
           entry: [
             {
-              keyDisplayValue: 'parent foo1',
+              keyDisplayValue: 'foo1',
               value: {
-                entry: [
-                  {
-                    keyDisplayValue: 'foo1',
-                    value: {
-                      value: 'new bar'
-                    }
-                  }
-                ]
+                value: 'new bar'
+              }
+            },
+            {
+              keyDisplayValue: 'foo2',
+              value: {
+                value: 'bar'
               }
             }
           ]
         };
 
-        heapDumpService.updateVariableContainer(varContainer, extentValue);
+        heapDumpService.updateContainer(
+          varContainer,
+          extentValue,
+          new Map(),
+          new Map(),
+          new Map()
+        );
 
-        expect(updateVariableContainerWithExtentValueStubOrEntry.calledThrice)
-          .to.be.true;
+        expect(updateContainerWithExtentValueSpy.calledTwice).to.be.true;
+        expect(updateContainerChildrenWithEntriesSpy.calledOnce).to.be.true;
         expect(
           (varContainer.variables.get('foo1') as ApexVariableContainer).value
         ).to.equal(`'new bar'`);
         expect(
           (varContainer.variables.get('foo2') as ApexVariableContainer).value
-        ).to.equal('bar');
+        ).to.equal(`'bar'`);
       });
     });
 
-    describe('updateVariableContainerWithExtentValueOrEntry', () => {
+    describe('updateContainerChildrenWithEntries', () => {
+      it('Should add to container child variables', () => {
+        const varContainer = new ApexVariableContainer(
+          'MyAccount',
+          '',
+          'Account'
+        );
+        const extentValueEntries = [
+          {
+            keyDisplayValue: 'Name',
+            value: {
+              value: 'MyAccountName'
+            }
+          },
+          {
+            keyDisplayValue: 'Id',
+            value: {
+              value: '001x'
+            }
+          }
+        ] as HeapDumpExtentValueEntry[];
+
+        heapDumpService.updateContainerChildrenWithEntries(
+          varContainer,
+          extentValueEntries,
+          new Map(),
+          new Map(),
+          new Map([['Name', 'String'], ['Id', 'ID']])
+        );
+
+        expect(varContainer.variables.size).to.equal(2);
+        expect(varContainer.variables.has('Name')).to.be.true;
+        expect(varContainer.variables.has('Id')).to.be.true;
+      });
+    });
+
+    describe('updateContainerWithExtentValueOrEntry', () => {
       beforeEach(() => {
         adapter = new MockApexReplayDebug();
         adapter.setLogFile(launchRequestArgs);
@@ -293,7 +355,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
       it('Should use extent value', () => {
         const varContainer = new ApexVariableContainer('foo', 'bar', 'String');
 
-        heapDumpService.updateVariableContainerWithExtentValueOrEntry(
+        heapDumpService.updateContainerWithExtentValueOrEntry(
           varContainer,
           'new bar',
           undefined
@@ -305,7 +367,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
       it('Should use extent entry', () => {
         const varContainer = new ApexVariableContainer('foo', 'bar', 'String');
 
-        heapDumpService.updateVariableContainerWithExtentValueOrEntry(
+        heapDumpService.updateContainerWithExtentValueOrEntry(
           varContainer,
           undefined,
           [
@@ -334,7 +396,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
           new ApexVariableContainer('foo', 'bar', 'String')
         );
 
-        heapDumpService.updateVariableContainerWithExtentValueOrEntry(
+        heapDumpService.updateContainerWithExtentValueOrEntry(
           varContainer,
           undefined,
           [
@@ -357,8 +419,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
     describe('replaceVariablesWithHeapDump', () => {
       let getTopFrameStub: sinon.SinonStub;
       let getHeapDumpForThisLocationStub: sinon.SinonStub;
-      let updateVariableContainerStub: sinon.SinonStub;
-      let updateVariableContainerWithExtentValueOrEntryStub: sinon.SinonStub;
+      let updateContainerStub: sinon.SinonStub;
+      let updateContainerWithExtentValueOrEntryStub: sinon.SinonStub;
       let getFrameHandlerStub: sinon.SinonStub;
       let getRefsMapStub: sinon.SinonStub;
       let getStaticVariablesClassMapStub: sinon.SinonStub;
@@ -385,13 +447,13 @@ describe('Replay debugger adapter variable handling - unit', () => {
         getTopFrameStub = sinon
           .stub(LogContext.prototype, 'getTopFrame')
           .returns(topFrame);
-        updateVariableContainerStub = sinon.stub(
+        updateContainerStub = sinon.stub(
           HeapDumpService.prototype,
-          'updateVariableContainer'
+          'updateContainer'
         );
-        updateVariableContainerWithExtentValueOrEntryStub = sinon.stub(
+        updateContainerWithExtentValueOrEntryStub = sinon.stub(
           HeapDumpService.prototype,
-          'updateVariableContainerWithExtentValueOrEntry'
+          'updateContainerWithExtentValueOrEntry'
         );
         getFrameHandlerStub = sinon
           .stub(LogContext.prototype, 'getFrameHandler')
@@ -407,8 +469,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
       afterEach(() => {
         getTopFrameStub.restore();
         getHeapDumpForThisLocationStub.restore();
-        updateVariableContainerStub.restore();
-        updateVariableContainerWithExtentValueOrEntryStub.restore();
+        updateContainerStub.restore();
+        updateContainerWithExtentValueOrEntryStub.restore();
         getFrameHandlerStub.restore();
         getRefsMapStub.restore();
         getStaticVariablesClassMapStub.restore();
@@ -421,9 +483,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateVariableContainerStub.called).to.be.false;
-        expect(updateVariableContainerWithExtentValueOrEntryStub.called).to.be
-          .false;
+        expect(updateContainerStub.called).to.be.false;
+        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
       });
 
       it('Should not switch variables without a successful heapdump for current location', () => {
@@ -434,9 +495,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateVariableContainerStub.called).to.be.false;
-        expect(updateVariableContainerWithExtentValueOrEntryStub.called).to.be
-          .false;
+        expect(updateContainerStub.called).to.be.false;
+        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
       });
 
       it('Should update instance variable', () => {
@@ -446,6 +506,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
             extents: [
               {
                 typeName: 'Foo',
+                definition: [{}],
                 extent: [
                   {
                     address: '0xfoo',
@@ -479,11 +540,10 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateVariableContainerStub.called).to.be.false;
-        expect(updateVariableContainerWithExtentValueOrEntryStub.calledOnce).to
-          .be.true;
+        expect(updateContainerStub.called).to.be.false;
+        expect(updateContainerWithExtentValueOrEntryStub.calledOnce).to.be.true;
         expect(
-          updateVariableContainerWithExtentValueOrEntryStub.getCall(0).args[1]
+          updateContainerWithExtentValueOrEntryStub.getCall(0).args[1]
         ).to.equal(2);
       });
 
@@ -494,6 +554,12 @@ describe('Replay debugger adapter variable handling - unit', () => {
             extents: [
               {
                 typeName: 'String',
+                definition: [
+                  {
+                    name: 'localStr',
+                    type: 'String'
+                  }
+                ],
                 extent: [
                   {
                     address: '0xString',
@@ -518,14 +584,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateVariableContainerWithExtentValueOrEntryStub.called).to.be
-          .false;
-        expect(updateVariableContainerStub.calledOnce).to.be.true;
-        expect(updateVariableContainerStub.getCall(0).args[0]).to.equal(
-          localVar
-        );
-        const extentValue = updateVariableContainerStub.getCall(0)
-          .args[1] as HeadpDumpExtentValue;
+        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
+        expect(updateContainerStub.calledOnce).to.be.true;
+        expect(updateContainerStub.getCall(0).args[0]).to.equal(localVar);
+        const extentValue = updateContainerStub.getCall(0)
+          .args[1] as HeapDumpExtentValue;
         expect(extentValue.value).to.equal('new');
       });
 
@@ -536,6 +599,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
             extents: [
               {
                 typeName: 'String',
+                definition: [{}],
                 extent: [
                   {
                     address: '0xString',
@@ -565,14 +629,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateVariableContainerWithExtentValueOrEntryStub.called).to.be
-          .false;
-        expect(updateVariableContainerStub.calledOnce).to.be.true;
-        expect(updateVariableContainerStub.getCall(0).args[0]).to.equal(
-          staticVar
-        );
-        const extentValue = updateVariableContainerStub.getCall(0)
-          .args[1] as HeadpDumpExtentValue;
+        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
+        expect(updateContainerStub.calledOnce).to.be.true;
+        expect(updateContainerStub.getCall(0).args[0]).to.equal(staticVar);
+        const extentValue = updateContainerStub.getCall(0)
+          .args[1] as HeapDumpExtentValue;
         expect(extentValue.value).to.equal('new');
       });
 
@@ -583,6 +644,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
             extents: [
               {
                 typeName: 'Foo',
+                definition: [{}],
                 extent: [
                   {
                     address: '0xfoo',
@@ -601,6 +663,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
               },
               {
                 typeName: 'String',
+                definition: [{}],
                 extent: [
                   {
                     address: '0xRememberMe',
@@ -629,15 +692,118 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateVariableContainerWithExtentValueOrEntryStub.called).to.be
-          .false;
-        expect(updateVariableContainerStub.calledOnce).to.be.true;
-        expect(updateVariableContainerStub.getCall(0).args[0]).to.equal(
-          instanceVar
-        );
-        const extentValue = updateVariableContainerStub.getCall(0)
-          .args[1] as HeadpDumpExtentValue;
+        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
+        expect(updateContainerStub.calledOnce).to.be.true;
+        expect(updateContainerStub.getCall(0).args[0]).to.equal(instanceVar);
+        const extentValue = updateContainerStub.getCall(0)
+          .args[1] as HeapDumpExtentValue;
         expect(extentValue.value).to.equal('new');
+      });
+    });
+
+    describe('getStringVariableNamesAndValues', () => {
+      it('Should get a list of strings', () => {
+        const heapdump = {
+          HeapDump: {
+            extents: [
+              {
+                typeName: 'Account',
+                extent: [
+                  {
+                    value: {
+                      entry: [
+                        {
+                          keyDisplayValue: 'Name',
+                          value: {
+                            value: 'MyAccount'
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                typeName: 'String',
+                extent: [
+                  {
+                    value: {
+                      value: 'Name'
+                    }
+                  },
+                  {
+                    value: {
+                      value: 'MyAccount'
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        } as ApexExecutionOverlayResultCommandSuccess;
+
+        const strings = heapDumpService.getStringVariableNamesAndValues(
+          heapdump
+        );
+        expect(strings.size).to.equal(2);
+        expect(strings.get('Name')).to.equal('String');
+        expect(strings.get('MyAccount')).to.equal('String');
+      });
+    });
+
+    describe('addVariableTypesFromExtentDefinition', () => {
+      it('Should add definitions to map of types', () => {
+        let variableTypes = new Map([['foo', 'String']]);
+        const definitions = [
+          {
+            name: 'MyAccount',
+            type: 'Account'
+          },
+          {
+            name: 'MyInteger',
+            type: 'Integer'
+          }
+        ] as HeapDumpCollectionTypeDefinition[];
+
+        variableTypes = heapDumpService.addVariableTypesFromExtentDefinition(
+          variableTypes,
+          definitions
+        );
+
+        expect(variableTypes.size).to.equal(3);
+        expect(variableTypes.get('foo')).to.equal('String');
+        expect(variableTypes.get('MyAccount')).to.equal('Account');
+        expect(variableTypes.get('MyInteger')).to.equal('Integer');
+      });
+    });
+
+    describe('isContainerForExtentEntry', () => {
+      it('Should match container name with extent keyDisplayValue', () => {
+        const varContainer = new ApexVariableContainer('foo', '', 'type');
+        const extentValueEntry = {
+          keyDisplayValue: 'foo'
+        } as HeapDumpExtentValueEntry;
+
+        expect(
+          heapDumpService.isContainerForExtentEntry(
+            varContainer,
+            extentValueEntry
+          )
+        ).to.be.true;
+      });
+
+      it('Should not match container name with extent keyDisplayValue', () => {
+        const varContainer = new ApexVariableContainer('foo', '', 'type');
+        const extentValueEntry = {
+          keyDisplayValue: 'bar'
+        } as HeapDumpExtentValueEntry;
+
+        expect(
+          heapDumpService.isContainerForExtentEntry(
+            varContainer,
+            extentValueEntry
+          )
+        ).to.be.false;
       });
     });
   });
