@@ -24,7 +24,7 @@ import { nls } from '../messages';
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const CancellableStatusBar = sfdxCoreExports.CancellableStatusBar;
+const ProgressNotification = sfdxCoreExports.ProgressNotification;
 const CompositeParametersGatherer = sfdxCoreExports.CompositeParametersGatherer;
 const SelectFileName = sfdxCoreExports.SelectFileName;
 const SelectStrictDirPath = sfdxCoreExports.SelectStrictDirPath;
@@ -85,7 +85,9 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       .build();
   }
 
-  public execute(response: ContinueResponse<DirFileNameSelection>): void {
+  public async execute(
+    response: ContinueResponse<DirFileNameSelection>
+  ): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -118,7 +120,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
