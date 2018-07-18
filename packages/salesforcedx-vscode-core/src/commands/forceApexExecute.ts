@@ -21,8 +21,8 @@ import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -38,7 +38,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  public execute(response: ContinueResponse<TempFile>): void {
+  public async execute(response: ContinueResponse<TempFile>): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -56,7 +56,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
     );
     channelService.showChannelOutput();
     channelService.streamCommandOutput(execution);
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

@@ -71,5 +71,8 @@
 
   "change_set_based_tools.enabled_description":
     "Specifies whether the commands for change-set-based development are available to the user.",
-  "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor"
+  "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",
+  "force_source_retrieve_text": "SFDX: Retrieve Source from Org",
+  "force_source_retrieve_this_source_file_text":
+    "SFDX: Retrieve This Source File from Org"
 }

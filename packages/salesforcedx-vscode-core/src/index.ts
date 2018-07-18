@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -40,6 +39,7 @@ import {
   forceSfdxProjectCreate,
   forceSourcePull,
   forceSourcePush,
+  forceSourceRetrieve,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -66,9 +66,8 @@ import {
 import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
-import { notificationService } from './notifications';
-import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
-import { CancellableStatusBar, taskViewService } from './statuses';
+import { notificationService, ProgressNotification } from './notifications';
+import { taskViewService } from './statuses';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -111,6 +110,14 @@ function registerCommands(
     'sfdx.force.source.push.force',
     forceSourcePush,
     { flag: '--forceoverwrite' }
+  );
+  const forceSourceRetrieveCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve',
+    forceSourceRetrieve
+  );
+  const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.current.file',
+    forceSourceRetrieve
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -268,12 +275,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  // Internal commands
-  const internalCancelCommandExecution = vscode.commands.registerCommand(
-    CANCEL_EXECUTION_COMMAND,
-    cancelCommandExecution
-  );
-
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -295,6 +296,8 @@ function registerCommands(
     forceSourcePullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceRetrieveCmd,
+    forceSourceRetrieveCurrentFileCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
@@ -318,8 +321,7 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd,
-    internalCancelCommandExecution
+    forceApexLogGetCmd
   );
 }
 
@@ -425,7 +427,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   const api: any = {
-    CancellableStatusBar,
+    ProgressNotification,
     CompositeParametersGatherer,
     SelectFileName,
     SelectStrictDirPath,

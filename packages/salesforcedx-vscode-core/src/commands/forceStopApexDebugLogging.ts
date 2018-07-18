@@ -31,7 +31,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
     return deleteTraceFlag();
   }
 
-  public execute(response: ContinueResponse<{}>): void {
+  public async execute(response: ContinueResponse<{}>): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -39,7 +39,11 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    await this.attachExecution(
+      execution,
+      cancellationTokenSource,
+      cancellationToken
+    );
     execution.processExitSubject.subscribe(async data => {
       if (data !== undefined && data.toString() === '0') {
         developerLogTraceFlag.turnOffLogging();

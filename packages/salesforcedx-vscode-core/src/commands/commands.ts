@@ -23,9 +23,9 @@ import * as vscode from 'vscode';
 import glob = require('glob');
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
+import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import { taskViewService } from '../statuses';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -319,7 +319,7 @@ export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected showChannelOutput = true;
 
-  protected attachExecution(
+  protected async attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
@@ -334,18 +334,22 @@ export abstract class SfdxCommandletExecutor<T>
       execution,
       cancellationToken
     );
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    await ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public execute(response: ContinueResponse<T>): void {
+  public async execute(response: ContinueResponse<T>): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    await this.attachExecution(
+      execution,
+      cancellationTokenSource,
+      cancellationToken
+    );
   }
 
   public abstract build(data: T): Command;
@@ -375,7 +379,7 @@ export class SfdxCommandlet<T> {
       inputs = await this.postchecker.check(inputs);
       switch (inputs.type) {
         case 'CONTINUE':
-          return this.executor.execute(inputs);
+          return await this.executor.execute(inputs);
         case 'CANCEL':
           if (inputs.msg) {
             notificationService.showErrorMessage(inputs.msg);

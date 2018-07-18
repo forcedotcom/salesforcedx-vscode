@@ -149,9 +149,7 @@ describe('Notifications', () => {
 
   it('Should notify cancellation', async () => {
     const observable = new ReplaySubject<number | undefined>();
-    observable.next(undefined);
     const cancellationTokenSource = new CancellationTokenSource();
-    cancellationTokenSource.cancel();
 
     const notificationService = NotificationService.getInstance();
     await notificationService.reportExecutionStatus(
@@ -159,6 +157,8 @@ describe('Notifications', () => {
       observable,
       cancellationTokenSource.token
     );
+
+    cancellationTokenSource.cancel();
 
     assert.calledOnce(mShow);
     assert.notCalled(mShowInformation);

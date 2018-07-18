@@ -44,7 +44,11 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
 
     const execution = new LocalCommandExecution(this.build(response.data));
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    await this.attachExecution(
+      execution,
+      cancellationTokenSource,
+      cancellationToken
+    );
 
     const projectPath: string = vscode.workspace.rootPath as string;
     const gen: FauxClassGenerator = new FauxClassGenerator(
