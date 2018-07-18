@@ -1,9 +1,16 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import vscode = require('vscode');
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 
-const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage14'; // TODO: this will change until dev process of the feature is done.
+const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage20'; // TODO: this will change until dev process of the feature is done.
+const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 export class TelemetryService {
   private static instance: TelemetryService;
@@ -17,9 +24,7 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
-  public initializeService(
-    context: vscode.ExtensionContext
-  ): TelemetryReporter | undefined {
+  public initializeService(context: vscode.ExtensionContext): void {
     this.context = context;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
@@ -29,13 +34,15 @@ export class TelemetryService {
       ));
 
       this.reporter = new TelemetryReporter(
-        extensionPackage.name,
+        'salesforcedx-vscode',
         extensionPackage.version,
         extensionPackage.aiKey
       );
       this.context.subscriptions.push(this.reporter);
     }
+  }
 
+  public getReporter(): TelemetryReporter | undefined {
     return this.reporter;
   }
 
@@ -69,10 +76,9 @@ export class TelemetryService {
 
     if (showTelemetryMessage) {
       // this means we need to show the message and set telemetry to true;
-      const readMoreBtn = 'Read More';
       vscode.window.showInformationMessage(
         nls.localize('telemetry_legal_dialog_message'),
-        readMoreBtn
+        nls.localize('telemetry_legal_dialog_button_text')
       );
 
       this.setTelemetryMessageShowed();
@@ -81,19 +87,32 @@ export class TelemetryService {
 
   public sendExtensionActivationEvent(): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled()) {
-      this.reporter.sendTelemetryEvent('activationEvent');
+      this.reporter.sendTelemetryEvent('activationEvent', {
+        extensionName: EXTENSION_NAME
+      });
     }
   }
 
   public sendExtensionDeactivationEvent(): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled()) {
-      this.reporter.sendTelemetryEvent('deactivationEvent');
+      this.reporter.sendTelemetryEvent('deactivationEvent', {
+        extensionName: EXTENSION_NAME
+      });
     }
   }
 
   public sendCommandEvent(commandName: string): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled()) {
-      this.reporter.sendTelemetryEvent('commandExecution', { commandName });
+      this.reporter.sendTelemetryEvent('commandExecution', {
+        extensionName: EXTENSION_NAME,
+        commandName
+      });
+    }
+  }
+
+  public dispose(): void {
+    if (this.reporter !== undefined) {
+      this.reporter.dispose();
     }
   }
 }

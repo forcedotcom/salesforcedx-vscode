@@ -19,9 +19,9 @@ import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { telemetryService } from '../telemetry';
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,

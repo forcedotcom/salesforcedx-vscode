@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { expect } from 'chai';
 import { assert, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
@@ -95,7 +101,11 @@ describe('Telemetry', () => {
 
     telemetryService.sendExtensionActivationEvent();
     assert.calledOnce(reporter);
-    assert.calledWith(reporter, 'activationEvent');
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-core'
+    };
+    assert.calledWith(reporter, 'activationEvent', expectedData);
   });
 
   it('Check telemetry sendExtensionDeactivationEvent data format', async () => {
@@ -107,7 +117,11 @@ describe('Telemetry', () => {
 
     telemetryService.sendExtensionDeactivationEvent();
     assert.calledOnce(reporter);
-    assert.calledWith(reporter, 'deactivationEvent');
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-core'
+    };
+    assert.calledWith(reporter, 'deactivationEvent', expectedData);
   });
 
   it('Check telemetry sendCommandEvent data format', async () => {
@@ -120,7 +134,10 @@ describe('Telemetry', () => {
     telemetryService.sendCommandEvent('create_apex_class_command');
     assert.calledOnce(reporter);
 
-    const expectedData = { commandName: 'create_apex_class_command' };
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-core',
+      commandName: 'create_apex_class_command'
+    };
     assert.calledWith(reporter, 'commandExecution', expectedData);
   });
 });

@@ -1,89 +1,80 @@
-import * as path from 'path';
+/*
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { assert, SinonStub, stub } from 'sinon';
-import { ExtensionContext, Memento } from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 
-class MockContext implements ExtensionContext {
-  public subscriptions: Array<{ dispose(): any }> = [];
-  public workspaceState: Memento;
-  public globalState: Memento;
-  public extensionPath: string = 'myExtensionPath';
-  public asAbsolutePath(relativePath: string): string {
-    return path.join('../../../package.json'); // this should point to the src/package.json
-  }
-  public storagePath: string = 'myStoragePath';
-}
-
 describe('Telemetry', () => {
-  let mockContext: MockContext;
-  let reporter: SinonStub;
+  let reporter: TelemetryReporter;
+  let sendEvent: SinonStub;
 
   beforeEach(() => {
-    reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
+    reporter = new TelemetryReporter('salesforcedx-vscode', 'v1', 'test567890');
+    sendEvent = stub(reporter, 'sendTelemetryEvent');
   });
 
   afterEach(() => {
-    reporter.restore();
+    sendEvent.restore();
+    reporter.dispose();
   });
 
   it('Should send telemetry data', async () => {
-    // create vscode extensionContext in which telemetry msg has been previously shown
-    mockContext = new MockContext();
-
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext, true);
+    telemetryService.initializeService(reporter, true);
 
     telemetryService.sendExtensionActivationEvent();
-    assert.calledOnce(reporter);
+    assert.calledOnce(sendEvent);
   });
 
   it('Should not send telemetry data', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext();
-
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext, false);
+    telemetryService.initializeService(reporter, false);
 
     telemetryService.sendCommandEvent('create_apex_class_command');
-    assert.notCalled(reporter);
+    assert.notCalled(sendEvent);
   });
 
   it('Check telemetry sendCommandEvent data format', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext();
-
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext, true);
+    telemetryService.initializeService(reporter, true);
 
     telemetryService.sendCommandEvent('create_apex_class_command');
-    assert.calledOnce(reporter);
+    assert.calledOnce(sendEvent);
 
-    const expectedData = { commandName: 'create_apex_class_command' };
-    assert.calledWith(reporter, 'commandExecution', expectedData);
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-apex-replay-debugger',
+      commandName: 'create_apex_class_command'
+    };
+    assert.calledWith(sendEvent, 'commandExecution', expectedData);
   });
 
   it('Check telemetry sendExtensionActivationEvent data format', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext();
-
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext, true);
+    telemetryService.initializeService(reporter, true);
 
     telemetryService.sendExtensionActivationEvent();
-    assert.calledOnce(reporter);
-    assert.calledWith(reporter, 'activationEvent');
+    assert.calledOnce(sendEvent);
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-apex-replay-debugger'
+    };
+    assert.calledWith(sendEvent, 'activationEvent', expectedData);
   });
 
   it('Check telemetry sendExtensionDeactivationEvent data format', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext();
-
     const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext, true);
+    telemetryService.initializeService(reporter, true);
 
     telemetryService.sendExtensionDeactivationEvent();
-    assert.calledOnce(reporter);
-    assert.calledWith(reporter, 'deactivationEvent');
+    assert.calledOnce(sendEvent);
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-apex-replay-debugger'
+    };
+    assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
   });
 });

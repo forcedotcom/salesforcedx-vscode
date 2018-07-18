@@ -1,9 +1,15 @@
-import vscode = require('vscode');
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import TelemetryReporter from 'vscode-extension-telemetry';
+
+const EXTENSION_NAME = 'salesforcedx-vscode-apex-replay-debugger';
 
 export class TelemetryService {
   private static instance: TelemetryService;
-  private context: vscode.ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
   private isTelemetryEnabled: boolean;
 
@@ -19,44 +25,35 @@ export class TelemetryService {
   }
 
   public initializeService(
-    context: vscode.ExtensionContext,
+    reporter: TelemetryReporter,
     isTelemetryEnabled: boolean
-  ): TelemetryReporter | undefined {
-    this.context = context;
+  ): void {
     this.isTelemetryEnabled = isTelemetryEnabled;
-
-    // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (this.reporter === undefined && this.isTelemetryEnabled) {
-      const extensionPackage = require(this.context.asAbsolutePath(
-        './package.json'
-      ));
-
-      this.reporter = new TelemetryReporter(
-        extensionPackage.name,
-        extensionPackage.version,
-        extensionPackage.aiKey
-      );
-      this.context.subscriptions.push(this.reporter);
-    }
-
-    return this.reporter;
+    this.reporter = reporter;
   }
 
   public sendExtensionActivationEvent(): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('activationEvent');
+      this.reporter.sendTelemetryEvent('activationEvent', {
+        extensionName: EXTENSION_NAME
+      });
     }
   }
 
   public sendExtensionDeactivationEvent(): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('deactivationEvent');
+      this.reporter.sendTelemetryEvent('deactivationEvent', {
+        extensionName: EXTENSION_NAME
+      });
     }
   }
 
   public sendCommandEvent(commandName: string): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('commandExecution', { commandName });
+      this.reporter.sendTelemetryEvent('commandExecution', {
+        extensionName: EXTENSION_NAME,
+        commandName
+      });
     }
   }
 }

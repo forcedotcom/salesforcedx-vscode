@@ -39,6 +39,10 @@ export enum VSCodeWindowTypeEnum {
   Warning = 3
 }
 
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
+
 function registerCommands(checkpointsEnabled: boolean): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
@@ -182,16 +186,16 @@ function registerDebugHandlers(): vscode.Disposable {
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
 
-  const sfdxCoreExt = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-core'
-  );
-  let isTelemetryEnabled = false;
-  if (sfdxCoreExt && sfdxCoreExt.exports) {
-    sfdxCoreExt.exports.telemetryService.showTelemetryMessage();
-    isTelemetryEnabled = sfdxCoreExt.exports.telemetryService.isTelemetryEnabled();
+  // Telemetry
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
   }
 
-  telemetryService.initializeService(context, isTelemetryEnabled);
   telemetryService.sendExtensionActivationEvent();
 
   extContext = context;
@@ -320,9 +324,6 @@ function imposeSlightDelay(ms = 0) {
   return new Promise(r => setTimeout(r, ms));
 }
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
 export function writeToDebuggerOutputWindow(
   output: string,
   showVSCodeWindow?: boolean,

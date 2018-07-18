@@ -68,11 +68,8 @@
 
   "retrieve_test_code_coverage_text":
     "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
-
-  "retrieve_test_code_coverage_text":
-    "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
   "telemetry_enabled_description":
-    "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting."
+    "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting.",
   "change_set_based_tools.enabled_description":
     "Specifies whether the commands for change-set-based development are available to the user.",
   "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",
