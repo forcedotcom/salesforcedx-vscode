@@ -49,9 +49,11 @@ export class ManifestOrSourcePathGatherer
   public async gather(): Promise<
     CancelResponse | ContinueResponse<SelectedPath>
   > {
-    const rootPath = vscode.workspace.rootPath;
-    if (rootPath) {
-      const manifestPath = path.join(rootPath, 'manifest');
+    if (vscode.workspace && vscode.workspace.workspaceFolders) {
+      // TODO: Replace the hardcoded workspaceFolders[0] with logic to find the workspaceFolder
+      // corresponding to the explorer path when we begin supporting multiple workspace folders
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       const type = isManifestFile ? FileType.Manifest : FileType.Source;
       return { type: 'CONTINUE', data: { filePath: this.explorerPath, type } };

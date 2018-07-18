@@ -56,7 +56,6 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       cancellationToken
     );
     await ProgressNotification.show(execution, cancellationTokenSource);
-    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove when ProgressNotification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
@@ -168,7 +167,6 @@ export class ForceApexLogList {
       { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
     ).execute();
     await ProgressNotification.show(execution, cancellationTokenSource);
-    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove when ProgressNotification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
     notificationService.reportExecutionError(
       execution.command.toString(),

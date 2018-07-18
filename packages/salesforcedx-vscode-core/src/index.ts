@@ -67,7 +67,6 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { taskViewService } from './statuses';
 
 function registerCommands(
@@ -276,12 +275,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  // Internal commands
-  const internalCancelCommandExecution = vscode.commands.registerCommand(
-    CANCEL_EXECUTION_COMMAND,
-    cancelCommandExecution
-  );
-
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -328,8 +321,7 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd,
-    internalCancelCommandExecution
+    forceApexLogGetCmd
   );
 }
 

@@ -532,7 +532,6 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     await ProgressNotification.show(execution, cancellationTokenSource);
-    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove when Progress Notification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

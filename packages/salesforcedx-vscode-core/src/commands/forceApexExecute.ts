@@ -57,7 +57,6 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
     channelService.showChannelOutput();
     channelService.streamCommandOutput(execution);
     await ProgressNotification.show(execution, cancellationTokenSource);
-    // CancellableStatusBar.show(execution, cancellationTokenSource); TODO: Remove this line when ProgressNotification is stable
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
