@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
 import * as vscode from 'vscode';
@@ -37,6 +37,7 @@ import {
   forceOrgDisplay,
   forceOrgOpen,
   forceSfdxProjectCreate,
+  forceSourceDeploy,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieve,
@@ -92,6 +93,10 @@ function registerCommands(
   const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
     forceOrgOpen
+  );
+  const forceSourceDeployCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy',
+    forceSourceDeploy
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -292,6 +297,7 @@ function registerCommands(
     forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceSourceDeployCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
@@ -345,6 +351,14 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened = files && files.length > 0;
   }
 
+  let isChangeSetWorkspace = false;
+  if (vscode.workspace.workspaceFolders) {
+    const manifestDirExists = fs.existsSync(
+      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, 'manifest')
+    );
+    isChangeSetWorkspace = manifestDirExists;
+  }
+
   let replayDebuggerExtensionInstalled = false;
   if (
     vscode.extensions.getExtension(
@@ -373,6 +387,12 @@ export async function activate(context: vscode.ExtensionContext) {
     'setContext',
     'sfdx:project_opened',
     sfdxProjectOpened
+  );
+
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:is_change_set_workspace',
+    isChangeSetWorkspace
   );
 
   const sfdxApexDebuggerExtension = vscode.extensions.getExtension(

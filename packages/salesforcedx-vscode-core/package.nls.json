@@ -74,5 +74,8 @@
   "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",
   "force_source_retrieve_text": "SFDX: Retrieve Source from Org",
   "force_source_retrieve_this_source_file_text":
-    "SFDX: Retrieve This Source File from Org"
+    "SFDX: Retrieve This Source File from Org",
+  "force_source_deploy_text": "SFDX: Deploy Source to Org",
+  "force_source_deploy_this_source_file_text":
+    "SFDX: Deploy This Source File to Org"
 }
