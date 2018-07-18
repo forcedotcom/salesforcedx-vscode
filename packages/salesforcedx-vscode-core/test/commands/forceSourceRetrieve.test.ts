@@ -53,7 +53,10 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
 
 describe('Manifest or Sourcepath Gatherer', () => {
   it("Should return an object of type 'Source'", async () => {
-    if (vscode.workspace.rootPath) {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
       const sourcePath = { fsPath: path.join('path', 'to', 'sourceFile') };
       const gatherer = new ManifestOrSourcePathGatherer(sourcePath);
       const response = await gatherer.gather();
@@ -69,9 +72,13 @@ describe('Manifest or Sourcepath Gatherer', () => {
   });
 
   it("Should return an object of type 'Manifest'", async () => {
-    if (vscode.workspace.rootPath) {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
       const manifestPath = {
-        fsPath: path.join(vscode.workspace.rootPath, 'manifest', 'file')
+        fsPath: path.join(workspaceRootPath, 'manifest', 'file')
       };
       const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
       const response = await gatherer.gather();
