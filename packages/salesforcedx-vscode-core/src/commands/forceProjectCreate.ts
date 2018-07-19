@@ -31,14 +31,32 @@ import {
   SfdxCommandletExecutor
 } from './commands';
 
-export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<{}> {
+type forceProjectCreateOptions = {
+  isChangeSetBasedProject: boolean;
+};
+
+export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
+  ProjectNameAndPath
+> {
+  private readonly options: forceProjectCreateOptions;
+
+  public constructor(options = { isChangeSetBasedProject: false }) {
+    super();
+    this.options = options;
+  }
+
   public build(data: ProjectNameAndPath): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_project_create_text'))
       .withArg('force:project:create')
       .withFlag('--projectname', data.projectName)
-      .withFlag('--outputdir', data.projectUri)
-      .build();
+      .withFlag('--outputdir', data.projectUri);
+
+    if (this.options.isChangeSetBasedProject) {
+      builder.withArg('--manifest');
+    }
+
+    return builder.build();
   }
 
   public execute(response: ContinueResponse<ProjectNameAndPath>): void {
@@ -154,14 +172,22 @@ const parameterGatherer = new CompositeParametersGatherer(
 );
 const pathExistsChecker = new PathExistsChecker();
 
-const executor = new ForceProjectCreateExecutor();
-const commandlet = new SfdxCommandlet(
+const sfdxProjectCreateCommandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
-  executor,
+  new ForceProjectCreateExecutor(),
   pathExistsChecker
 );
+export async function forceSfdxProjectCreate() {
+  await sfdxProjectCreateCommandlet.run();
+}
 
-export async function forceProjectCreate() {
-  await commandlet.run();
+const changeSetProjectCreateCommandlet = new SfdxCommandlet(
+  workspaceChecker,
+  parameterGatherer,
+  new ForceProjectCreateExecutor({ isChangeSetBasedProject: true }),
+  pathExistsChecker
+);
+export async function forceChangeSetProjectCreate() {
+  await changeSetProjectCreateCommandlet.run();
 }

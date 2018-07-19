@@ -1,3 +1,11 @@
+## 43.8.0 - July 19, 2018
+
+### Fixed
+
+#### salesforcedx-vscode
+
+- We fixed some minor under-the-hood bugs.
+
 ## 43.6.0 - July 5, 2018
 
 ### Fixed

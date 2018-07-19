@@ -18,8 +18,9 @@ install:
   - ps: Install-Product node 8 x64
   - appveyor-retry npm install
   - npm install -g sfdx-cli
-  - npm install -g codecov 
-  # the JWT key should be stored base 64 encoded in AppVeyor settings
+  - npm install -g codecov
+  - npm install -g junit-merge
+  # the JWT key should be stored base 64 encoded in AppVeyor settings. If you change this, it will take a few builds to propogate
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
   - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile C:\projects\devhub.key --setdefaultdevhubusername --setalias devhub
 
@@ -41,6 +42,9 @@ test_script:
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
       npm run test:without-system-tests
+      npm run coverage:system-tests
+      npm run aggregateJUnit
+      junit-merge -d junit-aggregate -o junit-aggregate.xml
       $NpmTestsExitCode = $LastExitCode
       # Show status
       "`n`n"
@@ -49,23 +53,22 @@ test_script:
       "Test Results:`n$($AllFiles | Out-String)"
       # Upload results for AppVeyor test tab
       "Uploading Test Results:`n"
-      Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Foreach-Object {
-        $Address = "https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)"
-        $Source = $_.FullName
-        "$Address $Source"
-        (New-Object 'System.Net.WebClient').UploadFile( $Address, $Source )
-      }
-      # Fail script in case of test failures
-      if($NpmTestsExitCode -ne 0) {
-        #$Error | Format-List * -Force
-        exit $NpmTestsExitCode
-      }
-  - npm run coverage:system-tests
+      (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)" , (Resolve-Path .\junit-aggregate.xml) )
 
 artifacts:
   - path: '**\*.vsix'
+  - path: junit-aggregate/
+    name: test-results
+    type: zip
 
 on_finish:
   - del C:\projects\devhub.key
   - codecov --disable=gcov
- 
+  - ps: |
+      [xml]$results = Get-Content junit-aggregate.xml
+        $failure = $results.SelectSingleNode("//failure")
+        if ($failure -ne $null) 
+        { 
+            $host.SetShouldExit(1)
+            Write-Host "Forcing build failure due to test failure(s) :'("
+        }

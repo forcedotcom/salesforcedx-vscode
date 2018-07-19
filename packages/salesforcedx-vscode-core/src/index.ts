@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -6,8 +7,8 @@
  */
 
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -21,8 +22,10 @@ import {
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
   forceApexTriggerCreate,
+  forceAuthDevHub,
   forceAuthLogoutAll,
   forceAuthWebLogin,
+  forceChangeSetProjectCreate,
   forceConfigList,
   forceDataSoqlQuery,
   forceDebuggerStop,
@@ -34,7 +37,7 @@ import {
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
-  forceProjectCreate,
+  forceSfdxProjectCreate,
   forceSourcePull,
   forceSourcePush,
   forceSourceStatus,
@@ -66,7 +69,6 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService } from './notifications';
 import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
 import { CancellableStatusBar, taskViewService } from './statuses';
-import { ManifestEditor } from './webviewPanels/manifestEditor';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -75,6 +77,10 @@ function registerCommands(
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
+  );
+  const forceAuthDevHubCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.dev.hub',
+    forceAuthDevHub
   );
   const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.all',
@@ -229,7 +235,12 @@ function registerCommands(
 
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
-    forceProjectCreate
+    forceSfdxProjectCreate
+  );
+
+  const forceChangeSetBasedProjectCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.create.change.set.based',
+    forceChangeSetProjectCreate
   );
 
   const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
@@ -257,11 +268,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  const showManifestEditorCmd = vscode.commands.registerCommand(
-    'sfdx.force.manifest.editor.show',
-    () => ManifestEditor.createOrShow(extensionContext)
-  );
-
   // Internal commands
   const internalCancelCommandExecution = vscode.commands.registerCommand(
     CANCEL_EXECUTION_COMMAND,
@@ -279,6 +285,7 @@ function registerCommands(
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
+    forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
@@ -306,12 +313,12 @@ function registerCommands(
     forceOrgDisplayUsernameCmd,
     forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
+    forceChangeSetBasedProjectCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
-    showManifestEditorCmd,
     internalCancelCommandExecution
   );
 }
