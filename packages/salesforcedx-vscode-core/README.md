@@ -69,6 +69,8 @@ Results from your test run display in the Output panel. The Failures section of 
 
 After you run Apex tests, two new commands are available in the command palette: **SFDX: Re-Run Last Invoked Apex Test Class** and **SFDX: Re-Run Last Invoked Apex Test Method**.  
 
+To retrieve code coverage results when you run Apex tests, edit your workspace settings and set `salesforcedx-vscode-core.retrieve-test-code-coverage` to `true`.  
+
 ## Edit Your Workspace Settings
 To edit your workspace settings, select **Code** > **Preferences** > **Settings** (macOS) or **File** > **Preferences** > **Settings** (Windows and Linux).  
 
