@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
 import * as vscode from 'vscode';
@@ -37,6 +36,7 @@ import {
   forceOrgDisplay,
   forceOrgOpen,
   forceSfdxProjectCreate,
+  forceSourceDeploy,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieve,
@@ -92,6 +92,10 @@ function registerCommands(
   const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
     forceOrgOpen
+  );
+  const forceSourceDeployCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy',
+    forceSourceDeploy
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -292,6 +296,7 @@ function registerCommands(
     forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceSourceDeployCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
