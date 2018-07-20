@@ -93,6 +93,11 @@
           "command": "sfdx.force.source.retrieve.current.file",
           "when":
             "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+        },
+        {
+          "command": "sfdx.force.source.deploy.current.file",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
       ],
       "explorer/context": [
@@ -138,6 +143,11 @@
         },
         {
           "command": "sfdx.force.source.retrieve",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+        },
+        {
+          "command": "sfdx.force.source.deploy",
           "when":
             "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
@@ -316,7 +326,15 @@
           "when": "false"
         },
         {
+          "command": "sfdx.force.source.deploy",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.source.retrieve.current.file",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.source.deploy.current.file",
           "when": "false"
         }
       ]
@@ -497,6 +515,14 @@
       {
         "command": "sfdx.force.source.retrieve.current.file",
         "title": "%force_source_retrieve_this_source_file_text%"
+      },
+      {
+        "command": "sfdx.force.source.deploy",
+        "title": "%force_source_deploy_text%"
+      },
+      {
+        "command": "sfdx.force.source.deploy.current.file",
+        "title": "%force_source_deploy_this_source_file_text%"
       }
     ],
     "configuration": {
