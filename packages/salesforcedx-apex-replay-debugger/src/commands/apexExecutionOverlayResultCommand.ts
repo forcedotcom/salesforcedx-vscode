@@ -40,42 +40,42 @@ export interface ApexExecutionOverlayResultCommandSuccess {
 
 export interface HeapDump {
   className: string;
-  extents: HeadpDumpExtents[];
+  extents: HeapDumpExtents[];
   heapDumpDate: Date;
   namespace: string;
 }
 
-export interface HeadpDumpExtents {
+export interface HeapDumpExtents {
   collectionType: string | null;
   count: number;
-  definition: HeadpDumpCollectionTypeDefinition[];
-  extent: HeadpDumpExtent[];
+  definition: HeapDumpCollectionTypeDefinition[];
+  extent: HeapDumpExtent[];
   totalSize: number;
   typeName: string;
 }
 
-export interface HeadpDumpCollectionTypeDefinition {
+export interface HeapDumpCollectionTypeDefinition {
   name: string;
   type: string;
 }
 
-export interface HeadpDumpExtent {
+export interface HeapDumpExtent {
   address: string;
   size: number;
   symbols: string[] | null;
-  value: HeadpDumpExtentValue;
+  value: HeapDumpExtentValue;
 }
 
 // The Extent value has to be an any. The value can be a single value of varying
 // types or an array of values of varying types from a collection.
-export interface HeadpDumpExtentValue {
+export interface HeapDumpExtentValue {
   value?: any;
-  entry?: HeadpDumpExtentValueEntry[];
+  entry?: HeapDumpExtentValueEntry[];
 }
 
-export interface HeadpDumpExtentValueEntry {
+export interface HeapDumpExtentValueEntry {
   keyDisplayValue: string;
-  value: HeadpDumpExtentValue;
+  value: HeapDumpExtentValue;
 }
 
 export interface HeapDumpApexResult {
