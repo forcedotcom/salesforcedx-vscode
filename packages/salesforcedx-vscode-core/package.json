@@ -92,12 +92,12 @@
         {
           "command": "sfdx.force.source.retrieve.current.file",
           "when":
-            "sfdx:project_opened && sfdx:is_change_set_workspace && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         },
         {
           "command": "sfdx.force.source.deploy.current.file",
           "when":
-            "sfdx:project_opened && sfdx:is_change_set_workspace && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
       ],
       "explorer/context": [
@@ -144,12 +144,12 @@
         {
           "command": "sfdx.force.source.retrieve",
           "when":
-            "sfdx:project_opened && sfdx:is_change_set_workspace && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         },
         {
           "command": "sfdx.force.source.deploy",
           "when":
-            "sfdx:project_opened && sfdx:is_change_set_workspace && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         }
       ],
       "commandPalette": [

@@ -341,29 +341,6 @@ function registerIsvAuthWatcher(): vscode.Disposable {
   return vscode.Disposable.from(isvAuthWatcher);
 }
 
-function setIsChangeSetWorkspace(isChangeSetWorkspace: boolean) {
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:is_change_set_workspace',
-    isChangeSetWorkspace
-  );
-}
-
-function registerManifestWatcher(
-  workspaceFolder: vscode.WorkspaceFolder
-): vscode.Disposable {
-  const watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(workspaceFolder, 'manifest')
-  );
-  watcher.onDidCreate(() => {
-    setIsChangeSetWorkspace(true);
-  });
-  watcher.onDidDelete(() => {
-    setIsChangeSetWorkspace(false);
-  });
-  return vscode.Disposable.from(watcher);
-}
-
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
 
@@ -373,18 +350,6 @@ export async function activate(context: vscode.ExtensionContext) {
     const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
   }
-
-  let isChangeSetWorkspace = false;
-  if (vscode.workspace.workspaceFolders) {
-    const workspaceFolder = vscode.workspace.workspaceFolders[0];
-    const manifestDirExists = fs.existsSync(
-      path.join(workspaceFolder.uri.fsPath, 'manifest')
-    );
-    isChangeSetWorkspace = manifestDirExists;
-
-    context.subscriptions.push(registerManifestWatcher(workspaceFolder));
-  }
-  setIsChangeSetWorkspace(isChangeSetWorkspace);
 
   let replayDebuggerExtensionInstalled = false;
   if (
