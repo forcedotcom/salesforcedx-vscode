@@ -27,11 +27,14 @@ import {
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { nls } from './messages';
-
+import { telemetryService } from './telemetry';
 const cachedExceptionBreakpoints: Map<
   string,
   ExceptionBreakpointItem
 > = new Map();
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
 
 export class ApexDebuggerConfigurationProvider
   implements vscode.DebugConfigurationProvider {
@@ -298,8 +301,21 @@ export function activate(context: vscode.ExtensionContext) {
       new ApexDebuggerConfigurationProvider()
     )
   );
+
+  // Telemetry
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
+  }
+
+  telemetryService.sendExtensionActivationEvent();
 }
 
 export function deactivate() {
   console.log('Apex Debugger Extension Deactivated');
+  telemetryService.sendExtensionDeactivationEvent();
 }
