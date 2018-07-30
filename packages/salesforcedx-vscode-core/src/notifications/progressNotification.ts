@@ -10,7 +10,7 @@ import { nls } from '../../src/messages';
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 export class ProgressNotification {
-  public static async show(
+  public static show(
     execution: CommandExecution,
     token: vscode.CancellationTokenSource
   ) {
