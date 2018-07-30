@@ -11,6 +11,7 @@ import {
   ColorInformation,
   ColorPresentation,
   ExtensionContext,
+  extensions,
   IndentAction,
   languages,
   Position,
@@ -34,6 +35,7 @@ import {
   DocumentColorParams,
   DocumentColorRequest
 } from 'vscode-languageserver-protocol/lib/protocol.colorProvider.proposed';
+import { telemetryService } from './telemetry';
 
 // tslint:disable-next-line:no-namespace
 namespace TagCloseRequest {
@@ -46,6 +48,22 @@ namespace TagCloseRequest {
 }
 
 export function activate(context: ExtensionContext) {
+  // Telemetry
+  const sfdxCoreExtension = extensions.getExtension(
+    'salesforce.salesforcedx-vscode-core'
+  );
+
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
+  }
+
+  telemetryService.sendExtensionActivationEvent();
+
   const toDispose = context.subscriptions;
 
   // The server is implemented in node
@@ -254,4 +272,9 @@ export function activate(context: ExtensionContext) {
       }
     ]
   });
+}
+
+export function deactivate() {
+  console.log('SFDX Visualforce Extension Deactivated');
+  telemetryService.sendExtensionDeactivationEvent();
 }
