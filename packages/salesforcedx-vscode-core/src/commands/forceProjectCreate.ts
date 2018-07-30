@@ -59,9 +59,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
     return builder.build();
   }
 
-  public async execute(
-    response: ContinueResponse<ProjectNameAndPath>
-  ): Promise<void> {
+  public execute(response: ContinueResponse<ProjectNameAndPath>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 

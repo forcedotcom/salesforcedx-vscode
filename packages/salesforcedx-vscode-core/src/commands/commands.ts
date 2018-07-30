@@ -319,7 +319,7 @@ export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected showChannelOutput = true;
 
-  protected async attachExecution(
+  protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
@@ -338,18 +338,14 @@ export abstract class SfdxCommandletExecutor<T>
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public async execute(response: ContinueResponse<T>): Promise<void> {
+  public execute(response: ContinueResponse<T>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
 
-    await this.attachExecution(
-      execution,
-      cancellationTokenSource,
-      cancellationToken
-    );
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
   public abstract build(data: T): Command;
@@ -379,7 +375,7 @@ export class SfdxCommandlet<T> {
       inputs = await this.postchecker.check(inputs);
       switch (inputs.type) {
         case 'CONTINUE':
-          return await this.executor.execute(inputs);
+          return this.executor.execute(inputs);
         case 'CANCEL':
           if (inputs.msg) {
             notificationService.showErrorMessage(inputs.msg);

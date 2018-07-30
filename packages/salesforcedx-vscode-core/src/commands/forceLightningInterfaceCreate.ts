@@ -45,9 +45,7 @@ class ForceLightningInterfaceCreateExecutor extends SfdxCommandletExecutor<
       .build();
   }
 
-  public async execute(
-    response: ContinueResponse<DirFileNameSelection>
-  ): Promise<void> {
+  public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
