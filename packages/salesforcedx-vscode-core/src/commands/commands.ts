@@ -334,7 +334,7 @@ export abstract class SfdxCommandletExecutor<T>
       execution,
       cancellationToken
     );
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 

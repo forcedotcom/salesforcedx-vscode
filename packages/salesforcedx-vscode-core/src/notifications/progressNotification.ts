@@ -14,16 +14,17 @@ export class ProgressNotification {
     execution: CommandExecution,
     token: vscode.CancellationTokenSource
   ) {
-    await vscode.window.withProgress(
+    return vscode.window.withProgress(
       {
         title: nls.localize('progress_notification_text', execution.command),
         location: vscode.ProgressLocation.Notification,
         cancellable: true
       },
-      async (progress, cancellationToken) => {
+      (progress, cancellationToken) => {
         return new Promise(resolve => {
           cancellationToken.onCancellationRequested(() => {
             token.cancel();
+            return resolve();
           });
 
           execution.processExitSubject.subscribe(data => {

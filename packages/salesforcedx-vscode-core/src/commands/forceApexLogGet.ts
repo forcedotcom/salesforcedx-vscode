@@ -55,7 +55,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       execution,
       cancellationToken
     );
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
@@ -166,7 +166,7 @@ export class ForceApexLogList {
         .build(),
       { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
     ).execute();
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
     notificationService.reportExecutionError(
       execution.command.toString(),

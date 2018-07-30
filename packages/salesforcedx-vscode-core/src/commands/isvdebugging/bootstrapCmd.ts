@@ -531,7 +531,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

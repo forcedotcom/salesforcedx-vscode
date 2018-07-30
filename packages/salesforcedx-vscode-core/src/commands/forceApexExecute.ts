@@ -56,7 +56,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
     );
     channelService.showChannelOutput();
     channelService.streamCommandOutput(execution);
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
