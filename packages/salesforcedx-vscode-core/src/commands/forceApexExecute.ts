@@ -38,7 +38,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  public async execute(response: ContinueResponse<TempFile>): Promise<void> {
+  public execute(response: ContinueResponse<TempFile>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -56,7 +56,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
     );
     channelService.showChannelOutput();
     channelService.streamCommandOutput(execution);
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
