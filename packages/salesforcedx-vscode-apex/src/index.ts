@@ -24,7 +24,7 @@ let languageClientReady = false;
 export async function activate(context: vscode.ExtensionContext) {
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+    await sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
 
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),

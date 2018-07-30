@@ -9,7 +9,7 @@ import * as languageServer from '@salesforce/salesforcedx-slds-linter/out/src/cl
 import * as vscode from 'vscode';
 import { telemetryService } from './telemetry';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX SLDS Linter Extension Activated');
   vscode.workspace.findFiles('**/staticresources/*.resource').then(
     // all good
@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+    await sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
 
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),

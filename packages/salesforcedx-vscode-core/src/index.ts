@@ -351,7 +351,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Telemetry
   telemetryService.initializeService(context);
-  telemetryService.showTelemetryMessage();
+  await telemetryService.showTelemetryMessage();
   telemetryService.sendExtensionActivationEvent();
 
   // Context

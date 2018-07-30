@@ -47,14 +47,14 @@ namespace TagCloseRequest {
   > = new RequestType('html/tag');
 }
 
-export function activate(context: ExtensionContext) {
+export async function activate(context: ExtensionContext) {
   // Telemetry
   const sfdxCoreExtension = extensions.getExtension(
     'salesforce.salesforcedx-vscode-core'
   );
 
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+    await sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
 
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),

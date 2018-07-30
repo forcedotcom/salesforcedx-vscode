@@ -290,7 +290,7 @@ function notifyDebuggerSessionFileChanged(): void {
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Debugger Extension Activated');
   const commands = registerCommands();
   const fileWatchers = registerFileWatchers();
@@ -304,7 +304,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+    await sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
 
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),

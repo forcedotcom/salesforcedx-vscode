@@ -56,7 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   if (coreDependency && coreDependency.exports) {
-    coreDependency.exports.telemetryService.showTelemetryMessage();
+    await coreDependency.exports.telemetryService.showTelemetryMessage();
 
     telemetryService.initializeService(
       coreDependency.exports.telemetryService.getReporter(),

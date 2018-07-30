@@ -44,7 +44,7 @@ describe('Telemetry', () => {
     const telemetryEnabled = telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(true);
 
-    telemetryService.showTelemetryMessage();
+    await telemetryService.showTelemetryMessage();
     assert.calledOnce(mShowInformation);
   });
 
@@ -58,7 +58,7 @@ describe('Telemetry', () => {
     const telemetryEnabled = telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(true);
 
-    telemetryService.showTelemetryMessage();
+    await telemetryService.showTelemetryMessage();
     assert.notCalled(mShowInformation);
   });
 

@@ -6,10 +6,11 @@
  */
 import vscode = require('vscode');
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 
-const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage20'; // TODO: this will change until dev process of the feature is done.
+const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage34';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 export class TelemetryService {
@@ -70,17 +71,24 @@ export class TelemetryService {
     this.context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
   }
 
-  public showTelemetryMessage(): void {
+  public async showTelemetryMessage() {
     // check if we've ever shown Telemetry message to user
     const showTelemetryMessage = this.getHasTelemetryMessageBeenShown();
 
     if (showTelemetryMessage) {
-      // this means we need to show the message and set telemetry to true;
-      vscode.window.showInformationMessage(
+      // Show the message and set telemetry to true;
+      const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
+      const selection = await vscode.window.showInformationMessage(
         nls.localize('telemetry_legal_dialog_message'),
-        nls.localize('telemetry_legal_dialog_button_text')
+        showButtonText
       );
-
+      // Open disable telemetry link
+      if (selection && selection === showButtonText) {
+        vscode.commands.executeCommand(
+          'vscode.open',
+          vscode.Uri.parse(TELEMETRY_OPT_OUT_LINK)
+        );
+      }
       this.setTelemetryMessageShowed();
     }
   }
