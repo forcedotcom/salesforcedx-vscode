@@ -66,7 +66,7 @@ export abstract class ForceAuthDemoModeExecutor<
     );
 
     channelService.streamCommandOutput(execution);
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {

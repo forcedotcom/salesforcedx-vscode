@@ -511,16 +511,12 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
 
     const result = new CommandOutput().getCmdResult(execution);
 
-    await this.attachExecution(
-      execution,
-      cancellationTokenSource,
-      cancellationToken
-    );
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
 
     return result;
   }
 
-  protected async attachExecution(
+  protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
@@ -531,7 +527,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

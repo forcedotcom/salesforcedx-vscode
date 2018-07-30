@@ -95,7 +95,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     const resultPromise = new CommandOutput().getCmdResult(execution);
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {

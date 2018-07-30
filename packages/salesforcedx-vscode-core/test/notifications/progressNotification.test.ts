@@ -37,7 +37,7 @@ describe('Progress Notification', () => {
       .stub(vscode.window, 'withProgress')
       .returns(Promise.resolve());
 
-    await ProgressNotification.show(execution, tokenSource);
+    ProgressNotification.show(execution, tokenSource);
 
     expect(withProgressStub.called).to.be.true;
     expect(withProgressStub.getCall(0).args[0]).to.eql({

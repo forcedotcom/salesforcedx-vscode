@@ -59,9 +59,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
     return builder.build();
   }
 
-  public async execute(
-    response: ContinueResponse<ProjectNameAndPath>
-  ): Promise<void> {
+  public execute(response: ContinueResponse<ProjectNameAndPath>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -85,7 +83,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

@@ -85,9 +85,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       .build();
   }
 
-  public async execute(
-    response: ContinueResponse<DirFileNameSelection>
-  ): Promise<void> {
+  public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -120,7 +118,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
-    await ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
