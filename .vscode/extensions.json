@@ -11,7 +11,13 @@
 		// Formatting
 		"esbenp.prettier-vscode",
 		"stkb.rewrap",
+		"eriklynd.json-tools",
+		"DotJoshJohnson.xml",
 		// Testing
-		"spoonscen.es6-mocha-snippets"
+		"spoonscen.es6-mocha-snippets",
+		// Documentation
+		"ms-devlabs.extension-manifest-editor",
+		"streetsidesoftware.code-spell-checker",
+		"hnw.vscode-auto-open-markdown-preview"
 	]
 }
