@@ -97,6 +97,10 @@ function registerCommands(
     'sfdx.force.source.deploy',
     forceSourceDeploy
   );
+  const forceSourceDeployCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.current.file',
+    forceSourceDeploy
+  );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
     forceSourcePull
@@ -297,6 +301,7 @@ function registerCommands(
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourceDeployCmd,
+    forceSourceDeployCurrentFileCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
