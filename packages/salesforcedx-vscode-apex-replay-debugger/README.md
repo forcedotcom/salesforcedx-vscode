@@ -1,5 +1,5 @@
 # Apex Replay Debugger for Visual Studio Code
-This extension enables VS Code to use Apex Debug Logs to replay a debugging experience.
+Apex Replay Debugger simulates a live debugging session using a debug log that is a recording of all interactions in a transaction. You no longer need to parse through thousands of log lines manually. Instead, Apex Replay Debugger presents the logged information similarly to an interactive debugger, so you can debug your Apex code. The debugging process is a repetition of editing your Apex code, pushing or deploying the code to your org, reproducing the buggy scenario, downloading the resulting debug log, and launching Apex Replay Debugger with that debug log.
 
 ## Prerequisites
 Before you set up Apex Replay Debugger, make sure that you have these essentials.
