@@ -1,5 +1,9 @@
-# Apex Replay Debugger for Visual Studio Code
+# Apex Replay Debugger for Visual Studio Code (Beta)
 Apex Replay Debugger simulates a live debugging session using a debug log that is a recording of all interactions in a transaction. You no longer need to parse through thousands of log lines manually. Instead, Apex Replay Debugger presents the logged information similarly to an interactive debugger, so you can debug your Apex code. The debugging process is a repetition of editing your Apex code, pushing or deploying the code to your org, reproducing the buggy scenario, downloading the resulting debug log, and launching Apex Replay Debugger with that debug log.
+
+---	
+NOTE: As a beta feature, Apex Replay Debugger is a preview and isn’t part of the “Services” under your master subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this feature within any particular time frame or at all, and we can discontinue it at any time. This feature is for evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally to your use of this feature. You can provide feedback and suggestions for Apex Replay Debugger in the [Issues section](https://github.com/forcedotcom/salesforcedx-vscode/issues) of the salesforcedx-vscode repository on GitHub.	
+---
 
 ## Prerequisites
 Before you set up Apex Replay Debugger, make sure that you have these essentials.
