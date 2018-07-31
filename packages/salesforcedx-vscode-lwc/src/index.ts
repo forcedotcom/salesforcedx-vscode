@@ -46,7 +46,7 @@ function isLwcNextInstalled(): boolean {
 }
 
 function shouldForceLoadCurrentLwc(): boolean {
-  return process.env.FORCE_LOAD_CURRENT_LWC;
+  return process.env.FORCE_LOAD_CURRENT_LWC ? true : false;
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -134,7 +134,10 @@ function startLWCLanguageServer(
     }
   };
   const clientOptions: LanguageClientOptions = {
-    documentSelector: ['html', 'javascript'],
+    documentSelector: [
+      { language: 'html', scheme: 'file' },
+      { language: 'javascript', scheme: 'file' }
+    ],
     synchronize: {
       fileEvents: [
         vscode.workspace.createFileSystemWatcher('**/*.resource'),

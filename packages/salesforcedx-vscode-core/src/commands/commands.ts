@@ -23,9 +23,9 @@ import * as vscode from 'vscode';
 import glob = require('glob');
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
+import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import { taskViewService } from '../statuses';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -334,7 +334,7 @@ export abstract class SfdxCommandletExecutor<T>
       execution,
       cancellationToken
     );
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 

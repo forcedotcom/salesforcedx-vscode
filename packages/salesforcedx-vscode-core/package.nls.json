@@ -2,6 +2,7 @@
   "running_tasks_title_text": "Running Tasks",
 
   "force_auth_web_login_authorize_dev_hub_text": "SFDX: Authorize a Dev Hub",
+  "force_auth_web_login_authorize_org_text": "SFDX: Authorize an Org",
   "force_auth_logout_all_text": "SFDX: Log Out from All Authorized Orgs",
   "force_org_create_default_scratch_org_text":
     "SFDX: Create a Default Scratch Org...",
@@ -51,6 +52,8 @@
     "SFDX: Execute Anonymous Apex with Currently Selected Text",
   "feature_previews_title": "Salesforce Feature Previews",
   "force_project_create_text": "SFDX: Create Project",
+  "force_project_create_change_set_based_text":
+    "SFDX: Create Change-Set-Based Project",
   "force_apex_trigger_create_text": "SFDX: Create Apex Trigger",
   "show_cli_success_msg_description":
     "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
@@ -63,8 +66,16 @@
     "SFDX: Create and Set Up Project for ISV Debugging",
   "force_apex_log_get_text": "SFDX: Get Apex Debug Logs...",
 
-  "force_manifest_editor_show_text":
-    "SFDX: Show Package Manifest Editor (Experimental)",
-  "show_experimental_webviews_description":
-    "Specifies whether the commands for the experimental webviews are available to the user."
+  "retrieve_test_code_coverage_text":
+    "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
+
+  "change_set_based_tools.enabled_description":
+    "Specifies whether the commands for change-set-based development are available to the user.",
+  "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",
+  "force_source_retrieve_text": "SFDX: Retrieve Source from Org",
+  "force_source_retrieve_this_source_file_text":
+    "SFDX: Retrieve This Source File from Org",
+  "force_source_deploy_text": "SFDX: Deploy Source to Org",
+  "force_source_deploy_this_source_file_text":
+    "SFDX: Deploy This Source File to Org"
 }

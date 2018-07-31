@@ -15,6 +15,7 @@ export {
 } from './commands';
 export { forceApexExecute } from './forceApexExecute';
 export { forceAuthWebLogin } from './forceAuthWebLogin';
+export { forceAuthDevHub } from './forceAuthDevHub';
 export { forceApexTestRun } from './forceApexTestRun';
 export {
   forceApexTestClassRunCodeAction,
@@ -25,8 +26,10 @@ export {
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
+export { forceSourceDeploy } from './forceSourceDeploy';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
+export { forceSourceRetrieve } from './forceSourceRetrieve';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './forceApexClassCreate';
@@ -43,7 +46,10 @@ export { forceDebuggerStop } from './forceDebuggerStop';
 export { forceConfigList } from './forceConfigList';
 export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
-export { forceProjectCreate } from './forceProjectCreate';
+export {
+  forceSfdxProjectCreate,
+  forceChangeSetProjectCreate
+} from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
 export {

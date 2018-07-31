@@ -24,6 +24,8 @@ export const messages = {
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
+  progress_notification_text: 'Running %s',
+
   notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',
   notification_unsuccessful_execution_text: '%s failed to run',
@@ -41,6 +43,7 @@ export const messages = {
   status_bar_tooltip: 'Click to cancel the command',
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
+  force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
 
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
@@ -69,6 +72,9 @@ export const messages = {
     'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+
+  force_source_deploy_text: 'SFDX: Deploy Source to Org',
+  force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
@@ -151,6 +157,8 @@ export const messages = {
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project:
     'Opening project in new Visual Studio Code window',
+  isv_debug_config_environment_error:
+    'Salesforce Extensions for VS Code encountered a problem while configuring your environment. Some features might not work. For details, click Help > Toggle Developer Tools or check the Salesforce CLI logs in ~/.sfdx/sfdx.log.',
 
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
@@ -171,6 +179,9 @@ export const messages = {
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
-
-  manifest_editor_title_message: 'Manifest Editor'
+  manifest_editor_title_message: 'Manifest Editor',
+  REST_API: 'REST API',
+  tooling_API: 'Tooling API',
+  REST_API_description: 'Execute the query with REST API',
+  tooling_API_description: 'Execute the query with Tooling API'
 };

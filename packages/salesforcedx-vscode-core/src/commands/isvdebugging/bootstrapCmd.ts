@@ -38,8 +38,8 @@ import { URL } from 'url';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
-import { CancellableStatusBar, taskViewService } from '../../statuses';
+import { notificationService, ProgressNotification } from '../../notifications';
+import { taskViewService } from '../../statuses';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
@@ -527,7 +527,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
@@ -555,7 +555,7 @@ export class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
     }
 
     return null; // all good
-  }
+  };
 
   public forceIdUrl?: ForceIdeUri;
   public async gather(): Promise<
@@ -656,14 +656,14 @@ export async function setupGlobalDefaultUserIsvAuth() {
         ENV_SFDX_INSTANCE_URL,
         isvDebuggerUrl
       );
-      console.log(
-        'Configured SFDX_DEFAULTUSERNAME and SFDX_INSTANCE_URL for ISV Project Authentication'
-      );
       // enable ISV project
       vscode.commands.executeCommand(
         'setContext',
         'sfdx:isv_debug_project',
         true
+      );
+      console.log(
+        `Configured ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL} for ISV Project Authentication`
       );
       return;
     } else {
@@ -673,10 +673,14 @@ export async function setupGlobalDefaultUserIsvAuth() {
         'sfdx:isv_debug_project',
         false
       );
+      console.log('Project is not for ISV Debugger');
     }
   }
 
   // reset any auth
   GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_DEFAULTUSERNAME);
   GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_INSTANCE_URL);
+  console.log(
+    `Deleted environment variables ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL}`
+  );
 }

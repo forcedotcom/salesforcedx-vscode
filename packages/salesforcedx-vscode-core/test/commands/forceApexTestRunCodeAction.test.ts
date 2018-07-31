@@ -20,7 +20,7 @@ function getUndefined(): any {
 describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Class', () => {
     const testClass = 'MyTests';
-    const builder = new ForceApexTestRunCodeActionExecutor(testClass);
+    const builder = new ForceApexTestRunCodeActionExecutor(testClass, false);
 
     it('Should build command for single test class', () => {
       const command = builder.build({});
@@ -31,15 +31,41 @@ describe('Force Apex Test Run - Code Action', () => {
     });
   });
 
+  describe('Command builder - Test Class with Coverage', () => {
+    const testClass = 'MyTests';
+    const builder = new ForceApexTestRunCodeActionExecutor(testClass, true);
+
+    it('Should build command for single test class with code coverage', () => {
+      const command = builder.build({});
+
+      expect(command.toCommand()).to.equal(
+        `sfdx force:apex:test:run --tests ${testClass} --resultformat human --synchronous --loglevel error --codecoverage`
+      );
+    });
+  });
+
   describe('Command builder - Test Method', () => {
     const testMethod = 'MyTests.testMe';
-    const builder = new ForceApexTestRunCodeActionExecutor(testMethod);
+    const builder = new ForceApexTestRunCodeActionExecutor(testMethod, false);
 
     it('Should build command for single test method', () => {
       const command = builder.build({});
 
       expect(command.toCommand()).to.equal(
         `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --synchronous --loglevel error`
+      );
+    });
+  });
+
+  describe('Command builder - Test Method with Coverage', () => {
+    const testMethod = 'MyTests.testMe';
+    const builder = new ForceApexTestRunCodeActionExecutor(testMethod, true);
+
+    it('Should build command for single test method with code coverage', () => {
+      const command = builder.build({});
+
+      expect(command.toCommand()).to.equal(
+        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --synchronous --loglevel error --codecoverage`
       );
     });
   });

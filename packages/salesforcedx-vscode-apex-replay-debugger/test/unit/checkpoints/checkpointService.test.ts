@@ -5,12 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CHECKPOINT } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { ActionScriptEnum } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/commands';
+import {
+  CHECKPOINT,
+  CHECKPOINTS_LOCK_STRING
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import * as AsyncLock from 'async-lock';
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  ActionScriptEnum,
   ApexExecutionOverlayAction,
   CheckpointInfoActionScriptNode,
   CheckpointInfoActionScriptTypeNode,
@@ -184,12 +188,18 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
   // as a base and append a number onto it.
   const breakpointId = '6c1d848c-fake-4c2c-8b90-5fabe1740da4';
 
+  let lockSpy: sinon.SinonSpy;
+  beforeEach(() => {
+    lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
+  });
+
   afterEach(() => {
     clearOutCheckpoints();
     // empty any arrays used for testing
     bpAdd = [];
     bpRemove = [];
     bpChange = [];
+    lockSpy.restore();
   });
 
   it('adds a single checkpoint', async () => {
@@ -219,6 +229,8 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
         'Should have created a single node in the checkpointService and did not.'
       );
     }
+    expect(lockSpy.calledOnce).to.equal(true);
+    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
   });
 
   it('adds multiple checkpoints', async () => {
@@ -272,6 +284,9 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
           breakpointId2
       );
     }
+    expect(lockSpy.calledTwice).to.equal(true);
+    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
+    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
   });
 
   it('add then remove checkpoint', async () => {
@@ -317,6 +332,10 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     if (deletedNote) {
       assert.fail('Should have removed the checkpoint node and did not.');
     }
+    // Expect one lock call for add and one for delete
+    expect(lockSpy.calledTwice).to.equal(true);
+    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
+    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
   });
 
   it('add and then change checkpoint', async () => {
@@ -378,6 +397,11 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
       expect(theNode.isCheckpointEnabled()).to.be.equal(false);
       expect(theNode.getIteration()).to.be.equal(4);
     }
+
+    // Expect one lock call for add and one for change
+    expect(lockSpy.calledTwice).to.equal(true);
+    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
+    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
   });
 
   it('changing a checkpoint by removing the checkpoint condition removes the checkpoint', async () => {
@@ -432,6 +456,10 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
         'Removing the checkpoint condition should have caused the checkpoint to be removed and did not'
       );
     }
+    // Expect one lock call for add and one for change
+    expect(lockSpy.calledTwice).to.equal(true);
+    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
+    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
   });
 
   it('changing a checkpoint by changing the breakpoint type removes the checkpoint', async () => {
@@ -486,6 +514,10 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
         'Changing the breakpoint type from SourceBreakpoint to another breakpoint type should have caused the checkpoint to be removed and did not'
       );
     }
+    // Expect one lock call for add and one for change
+    expect(lockSpy.calledTwice).to.equal(true);
+    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
+    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
   });
 
   it('changing the logMessage can change the ActionScriptType', async () => {
@@ -557,6 +589,12 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
     } else {
       assert.fail('Unable to get node after SOQL logMessage update');
     }
+
+    // Expect one lock call for add and two for change
+    expect(lockSpy.calledThrice).to.equal(true);
+    expect(lockSpy.getCall(0).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
+    expect(lockSpy.getCall(1).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
+    expect(lockSpy.getCall(2).args[0]).to.equal(CHECKPOINTS_LOCK_STRING);
   });
 });
 

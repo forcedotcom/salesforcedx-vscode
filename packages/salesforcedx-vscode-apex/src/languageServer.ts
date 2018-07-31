@@ -35,23 +35,31 @@ async function createServer(
     );
     let args: string[];
     if (DEBUG) {
-      args = [
-        '-cp',
-        uberJar,
+      args = ['-cp', uberJar];
+
+      if (!shouldUseNewLwcFeatures()) {
+        args.push('-Dlwc.scoped.apex=false');
+      }
+
+      args.push(
         '-Ddebug.internal.errors=true',
         '-Ddebug.semantic.errors=false',
         '-Dtrace.protocol=false',
         `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`,
         APEX_LANGUAGE_SERVER_MAIN
-      ];
+      );
     } else {
-      args = [
-        '-cp',
-        uberJar,
+      args = ['-cp', uberJar];
+
+      if (!shouldUseNewLwcFeatures()) {
+        args.push('-Dlwc.scoped.use=false');
+      }
+
+      args.push(
         '-Ddebug.internal.errors=true',
         '-Ddebug.semantic.errors=false',
         APEX_LANGUAGE_SERVER_MAIN
-      ];
+      );
     }
 
     return {
@@ -96,6 +104,17 @@ function startedInDebugMode(): boolean {
   return false;
 }
 
+/**
+ * This is a temporary function that is just used to gate LWC features.
+ * This is to be removed when LWC goes GA.
+ */
+function shouldUseNewLwcFeatures(): boolean {
+  const isLwcNext = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-lwc-next'
+  );
+  return isLwcNext ? true : false;
+}
+
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: vscode.Uri) {
   if (/^win32/.test(process.platform)) {
@@ -116,7 +135,7 @@ export async function createLanguageServer(
 ): Promise<LanguageClient> {
   const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
-    documentSelector: ['apex'],
+    documentSelector: [{ language: 'apex', scheme: 'file' }],
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [

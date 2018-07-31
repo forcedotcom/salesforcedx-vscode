@@ -23,5 +23,16 @@ export const messages = {
   no_log_file_text:
     'The log file either is missing or does not have any log lines in it.',
   incorrect_log_levels_text:
-    'The log must be generated with log categories Apex code at the FINEST level and Visualforce at the FINER level.'
+    'The log must be generated with log categories Apex code at the FINEST level and Visualforce at the FINER level.',
+  unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
+  heap_dump_error:
+    'Problems were encountered while retrieving heap dump information. Message=%s, Error code=%s, Heap dump information=%s',
+  heap_dump_error_wrap_up_text:
+    'Problems were encountered while retrieving heap dump information. See the messages above this one for details. Detailed heap dump variable information is unavailable for the specified line or lines.',
+  fetching_heap_dump:
+    'Retrieving heap dump from server. Heap dump information=%s',
+  malformed_log_line:
+    "Encountered a malformed HEAP_DUMP log line, skipping. Log line number=%d, log line='%s'.",
+  reconcile_heapdump_error:
+    'Problems were encountered while using a heap dump: %s. Use Tooling API to delete the ApexExecutionOverlayResult record with the ID %s: From a terminal, run "sfdx force:data:record:delete -t -s ApexExecutionOverlayResult -i %s".'
 };

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "42.18.0",
+  "version": "43.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -75,12 +75,20 @@
       {
         "language": "apex",
         "scopeName": "source.apex",
-        "path": "./syntaxes/apex.tmLanguage"
+        "path":
+          "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "apex",
+        "path": "./snippets/apex.json"
       }
     ]
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "42.18.0",
+    "@salesforce/apex-tmlanguage": "1.1.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.8.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

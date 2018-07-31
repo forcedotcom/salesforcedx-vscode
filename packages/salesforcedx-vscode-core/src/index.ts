@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import * as vscode from 'vscode';
+import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -20,8 +20,10 @@ import {
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
   forceApexTriggerCreate,
+  forceAuthDevHub,
   forceAuthLogoutAll,
   forceAuthWebLogin,
+  forceChangeSetProjectCreate,
   forceConfigList,
   forceDataSoqlQuery,
   forceDebuggerStop,
@@ -33,9 +35,11 @@ import {
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
-  forceProjectCreate,
+  forceSfdxProjectCreate,
+  forceSourceDeploy,
   forceSourcePull,
   forceSourcePush,
+  forceSourceRetrieve,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -60,11 +64,10 @@ import {
   TERMINAL_INTEGRATED_ENVS
 } from './constants';
 import * as decorators from './decorators';
+import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
-import { notificationService } from './notifications';
-import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
-import { CancellableStatusBar, taskViewService } from './statuses';
-import { ManifestEditor } from './webviewPanels/manifestEditor';
+import { notificationService, ProgressNotification } from './notifications';
+import { taskViewService } from './statuses';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -73,6 +76,10 @@ function registerCommands(
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
+  );
+  const forceAuthDevHubCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.dev.hub',
+    forceAuthDevHub
   );
   const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.all',
@@ -85,6 +92,10 @@ function registerCommands(
   const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
     forceOrgOpen
+  );
+  const forceSourceDeployCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy',
+    forceSourceDeploy
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -103,6 +114,14 @@ function registerCommands(
     'sfdx.force.source.push.force',
     forceSourcePush,
     { flag: '--forceoverwrite' }
+  );
+  const forceSourceRetrieveCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve',
+    forceSourceRetrieve
+  );
+  const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.current.file',
+    forceSourceRetrieve
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -227,7 +246,12 @@ function registerCommands(
 
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
-    forceProjectCreate
+    forceSfdxProjectCreate
+  );
+
+  const forceChangeSetBasedProjectCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.create.change.set.based',
+    forceChangeSetProjectCreate
   );
 
   const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
@@ -255,17 +279,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  const showManifestEditorCmd = vscode.commands.registerCommand(
-    'sfdx.force.manifest.editor.show',
-    () => ManifestEditor.createOrShow(extensionContext)
-  );
-
-  // Internal commands
-  const internalCancelCommandExecution = vscode.commands.registerCommand(
-    CANCEL_EXECUTION_COMMAND,
-    cancelCommandExecution
-  );
-
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -277,15 +290,19 @@ function registerCommands(
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
+    forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceSourceDeployCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceRetrieveCmd,
+    forceSourceRetrieveCurrentFileCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
@@ -304,19 +321,18 @@ function registerCommands(
     forceOrgDisplayUsernameCmd,
     forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
+    forceChangeSetBasedProjectCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd,
-    showManifestEditorCmd,
-    internalCancelCommandExecution
+    forceApexLogGetCmd
   );
 }
 
 function registerIsvAuthWatcher(): vscode.Disposable {
   const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(
-    '**/.sfdx/sfdx-config.json'
+    path.join('.sfdx', 'sfdx-config.json')
   );
   isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
   isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
@@ -372,12 +388,25 @@ export async function activate(context: vscode.ExtensionContext) {
     'sfdx:apex_debug_extension_installed',
     sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id
   );
-  if (sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id) {
+  if (
+    sfdxProjectOpened &&
+    sfdxApexDebuggerExtension &&
+    sfdxApexDebuggerExtension.id
+  ) {
+    console.log('Setting up ISV Debugger environment variables');
     // register watcher for ISV authentication and setup default user for CLI
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
-    context.subscriptions.push(registerIsvAuthWatcher());
-    await setupGlobalDefaultUserIsvAuth();
+    try {
+      context.subscriptions.push(registerIsvAuthWatcher());
+      console.log('Configured file watcher for .sfdx/sfdx-config.json');
+      await setupGlobalDefaultUserIsvAuth();
+    } catch (e) {
+      console.error(e);
+      vscode.window.showWarningMessage(
+        nls.localize('isv_debug_config_environment_error')
+      );
+    }
   }
 
   // Commands
@@ -403,7 +432,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   const api: any = {
-    CancellableStatusBar,
+    ProgressNotification,
     CompositeParametersGatherer,
     SelectFileName,
     SelectStrictDirPath,
