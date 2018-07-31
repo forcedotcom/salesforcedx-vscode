@@ -2,7 +2,7 @@
     "Class": {
         "prefix": "class",
         "body": [
-            "${1|global,public,private|} with sharing class ${2:Name} {",
+            "${1|global,public,private|} with sharing class ${2:MyClass} {",
             "   $0",
             "}"
         ],
@@ -11,7 +11,7 @@
     "Interface": {
         "prefix": "interface",
         "body": [
-            "${1|global,public,private|} interface ${2:Name} {",
+            "${1|global,public,private|} interface ${2:MyInterface} {",
             "   $0",
             "}"
         ],
@@ -20,7 +20,7 @@
     "Enum": {
         "prefix": "enum",
         "body": [
-            "${1|global,public,private|} enum ${2:Name} {",
+            "${1|global,public,private|} enum ${2:MyEnum} {",
             "   $0",
             "}"
         ],
@@ -185,21 +185,21 @@
     "List": {
         "prefix": "List",
         "body": [
-            "List<${1:object}> ${2:listName} = new List<$1>();"
+            "List<${1:Object}> ${2:listName} = new List<$1>();"
         ],
         "description": "List constructor"
     },
     "map": {
         "prefix": "Map",
         "body": [
-            "Map<${1:object}, ${2:object}> ${3:mapName} = new Map<$1, $2>();"
+            "Map<${1:Object}, ${2:Object}> ${3:mapName} = new Map<$1, $2>();"
         ],
         "description": "Map constructor"
     },
     "set": {
         "prefix": "Set",
         "body": [
-            "Set<${1:object}> ${2:setName} = new Set<$1>();"
+            "Set<${1:Object}> ${2:setName} = new Set<$1>();"
         ],
         "description": "Set constructor"
     },
@@ -223,7 +223,8 @@
     "TestMethod": {
         "prefix": "testMethod",
         "body": [
-            "static testMethod void ${1:methodName}(){",
+            "@IsTest",
+            "static void ${1:methodName}(){",
             "  ",
             "  test.startTest();",
             "  system.RunAs(${2:contextuser}){",
@@ -237,7 +238,8 @@
     "TestSetup": {
         "prefix": "@TestSetup",
         "body": [
-            "@testSetup static void ${1:makeData}(){",
+            "@TestSetup",
+            "static void ${1:makeData}(){",
             "  ",
             "}"
         ],
@@ -246,7 +248,7 @@
     "CustomException": {
         "prefix": "customException",
         "body": [
-            "${1|global,public,private|} class ${2:Name} extends Exception {",
+            "${1|global,public,private|} class ${2:MyException} extends Exception {",
             "   $0",
             "}"
         ],
