@@ -1,4 +1,4 @@
-# salesforcedx-vscode-apex-debugger
+# Apex Debugger for Visual Studio Code
 This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs.
 
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
@@ -192,6 +192,9 @@ These entry points aren’t supported:
 * You can debug only sandbox orgs.
 * You can debug only one customer at a time. However, if you purchase Apex Debugger licenses, you can debug multiple customers at once. An Apex Debugger license also lets you debug in your sandboxes and scratch orgs.
 * When you click Return to subscriber overview, your debugging session terminates. Stay logged in to your subscriber’s org while you debug, and return to your LMO only when you’re done debugging.
+
+## Bugs and Feedback
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
 ## Resources
 * Visual Studio Code Docs: [Debugging](https://code.visualstudio.com/docs/editor/debugging)

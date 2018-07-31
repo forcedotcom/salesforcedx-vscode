@@ -98,6 +98,9 @@ Keep these considerations and known issues in mind when working with Apex Replay
   * **Copy as Expression** functions like Copy Value: It copies the variable’s value instead of copying the full variable name.
   * **Add to Watch** copies the variable’s value into the WATCH section, but because we don’t evaluate variables in this section you see only `<VariableValue>:<VariableValue>`.
 
+## Bugs and Feedback
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
+
 ## Resources
 
 * YouTube—Salesforce Releases: [Platform Services: Apex Replay Debugger](https://www.youtube.com/watch?v=8GVuMT4MHWc)
