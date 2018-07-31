@@ -381,8 +381,8 @@ export class HeapDumpService {
   public isTriggerExtent(outerExtent: HeapDumpExtents) {
     if (
       (outerExtent.typeName === 'Boolean' ||
-        outerExtent.typeName.startsWith('List') ||
-        outerExtent.typeName.startsWith('Map')) &&
+        outerExtent.typeName.startsWith('List<') ||
+        outerExtent.typeName.startsWith('Map<')) &&
       (outerExtent.count > 0 &&
         outerExtent.extent[0].symbols !== null &&
         outerExtent.extent[0].symbols!.length > 0 &&
