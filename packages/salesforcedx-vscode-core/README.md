@@ -1,4 +1,4 @@
-# Salesforce CLI integration for Visual Studio Code
+# Salesforce CLI Integration for Visual Studio Code
 This extension enables VS Code to use the Salesforce CLI to interact with your scratch orgs.  
 
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
@@ -82,7 +82,7 @@ To activate demo mode, add an environment variable called `SFDX_ENV` and set its
 When you’re done with your event, run **SFDX: Log Out from All Authorized Orgs**.  
 
 ## Bugs and Feedback
-To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a new [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
