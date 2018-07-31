@@ -2,7 +2,7 @@
     "Class": {
         "prefix": "class",
         "body": [
-            "${1|global,public,private|} with sharing class ${2:Name} {",
+            "${1|global,public,private|} with sharing class ${2:MyClass} {",
             "   $0",
             "}"
         ],
@@ -11,7 +11,7 @@
     "Interface": {
         "prefix": "interface",
         "body": [
-            "${1|global,public,private|} interface ${2:Name} {",
+            "${1|global,public,private|} interface ${2:MyInterface} {",
             "   $0",
             "}"
         ],
@@ -20,7 +20,7 @@
     "Enum": {
         "prefix": "enum",
         "body": [
-            "${1|global,public,private|} enum ${2:Name} {",
+            "${1|global,public,private|} enum ${2:MyEnum} {",
             "   $0",
             "}"
         ],
@@ -75,7 +75,7 @@
     "for": {
         "prefix": "for",
         "body": [
-            "for (${1:variable} : ${2:list_or_set}) {",
+            "for (${1:variable} : ${2:List_or_set}) {",
             "   $0",
             "}"
         ],
@@ -181,5 +181,93 @@
             "throw new ${1:Exception}($0)"
         ],
         "description": "Throw a new exception"
+    },
+    "List": {
+        "prefix": "List",
+        "body": [
+            "List<${1:Object}> ${2:listName} = new List<$1>();"
+        ],
+        "description": "List constructor"
+    },
+    "map": {
+        "prefix": "Map",
+        "body": [
+            "Map<${1:Object}, ${2:Object}> ${3:mapName} = new Map<$1, $2>();"
+        ],
+        "description": "Map constructor"
+    },
+    "set": {
+        "prefix": "Set",
+        "body": [
+            "Set<${1:Object}> ${2:setName} = new Set<$1>();"
+        ],
+        "description": "Set constructor"
+    },
+    "@AuraEnabled": {
+        "prefix": "@AuraEnabled",
+        "body": [
+            "@AuraEnabled",
+            "${1|public,global|} static ${2:string} ${3:methodName}(){",
+            "  $4",
+            "}"
+        ],
+        "description": "Aura Enabled Apex Method"
+    },
+    "AuraHandledException": {
+        "prefix": "auraHandledException",
+        "body": [
+            "throw new AuraHandledException('${1:exceptionText}');"
+        ],
+        "description": "Throw an exception for a lightning component to display"
+    },
+    "TestMethod": {
+        "prefix": "testMethod",
+        "body": [
+            "@IsTest",
+            "static void ${1:methodName}(){",
+            "  ",
+            "  test.startTest();",
+            "  system.RunAs(${2:contextuser}){",
+            "    ",
+            "  test.stopTest();",
+            "  ",
+            "}"
+        ],
+        "description": "Test method with runAs and stop/start"
+    },
+    "TestSetup": {
+        "prefix": "@TestSetup",
+        "body": [
+            "@TestSetup",
+            "static void ${1:makeData}(){",
+            "  ",
+            "}"
+        ],
+        "description": "Test setup for creating data before test methods run"
+    },
+    "CustomException": {
+        "prefix": "customException",
+        "body": [
+            "${1|global,public,private|} class ${2:MyException} extends Exception {",
+            "   $0",
+            "}"
+        ],
+        "description": "Class"
+    },
+    "MockCallout": {
+        "prefix": "mockCallout",
+        "body": [
+            "global HTTPResponse respond(HTTPRequest req) {",
+            "",
+            "  HttpResponse res = new HttpResponse();",
+            "  res.setHeader('Content-Type', '${1:application/json}');",
+            "  res.setBody('{",
+            "    \"example\": \"test\"",
+            "  }');",
+            "  res.setStatusCode(${2:200});",
+            "  return res;",
+            "}"
+        ],
+        "description": "Create a mock for an http callout for apex testing"
     }
 }
