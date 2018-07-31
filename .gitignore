@@ -91,3 +91,6 @@ package-lock.json
 
 # External extension dependencies
 packages/dbaeumer*
+
+# MacOS folder atttribute tracking
+**/.DS_Store
