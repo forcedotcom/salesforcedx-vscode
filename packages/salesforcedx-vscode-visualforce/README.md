@@ -1,4 +1,4 @@
-# salesforcedx-vscode-visualforce
+# Visualforce Code Editor for Visual Studio Code
 This extension uses the Visualforce Language Server and VS Code’s default HTML language server to provide syntax highlighting, code completion, and an outline view of your files.
 
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
@@ -24,6 +24,9 @@ Before you set up this extension, make sure that you have [Visual Studio Code](h
 * Outline view (invoke using Cmd+Shift+O on macOS, or Ctrl+Shift+O on Windows and Linux)
 
    ![List of symbols in a .page file](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_outline.png)
+
+## Bugs and Feedback
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
