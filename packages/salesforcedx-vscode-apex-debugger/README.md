@@ -194,7 +194,7 @@ These entry points aren’t supported:
 * When you click Return to subscriber overview, your debugging session terminates. Stay logged in to your subscriber’s org while you debug, and return to your LMO only when you’re done debugging.
 
 ## Bugs and Feedback
-To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a new [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
 ## Resources
 * Visual Studio Code Docs: [Debugging](https://code.visualstudio.com/docs/editor/debugging)
