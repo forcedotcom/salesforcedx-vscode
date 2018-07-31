@@ -373,10 +373,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
         false
       )
     );
-    // JRS
     // Right now, globals are only going to exist if there's a heapdump and the frame
-    // source is a trigger. Not sure if this is the correct way to do this but we'll
-    // see
+    // source is a trigger.
     if (heapDumpId && this.logContext.isRunningApexTrigger()) {
       scopes.push(
         new Scope(
