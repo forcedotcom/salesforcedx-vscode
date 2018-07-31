@@ -79,7 +79,7 @@ Salesforce Extensions for VS Code functions properly only if the root directory 
 If you’re not seeing the Apex completion suggestions that you expect, your Apex database might need to be rebuilt. Quit VS Code, and then delete the `.sfdx/tools/apex.db` file from your project. Then relaunch VS Code, and open an Apex class or trigger. The Apex database rebuilds within about 5 seconds (up to 30 seconds for very large code bases).
 
 ## Bugs and Feedback
-To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a new [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
+To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
 ## Resources
 * Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
