@@ -41,3 +41,4 @@ export const OVERLAY_ACTION_DELETE_URL =
 export const QUERY_URL = 'services/data/v43.0/tooling/query';
 export const MAX_ALLOWED_CHECKPOINTS = 5;
 export const SFDC_TRIGGER = '__sfdc_trigger/';
+export const EXTENT_TRIGGER_PREFIX = 'Trigger.';

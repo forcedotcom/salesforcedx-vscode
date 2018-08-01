@@ -82,12 +82,14 @@ export class ApexDebugStackFrameInfo {
   public readonly signature: string;
   public statics: Map<string, VariableContainer>;
   public locals: Map<string, VariableContainer>;
+  public globals: Map<string, VariableContainer>;
 
   public constructor(frameNumber: number, signature: string) {
     this.frameNumber = frameNumber;
     this.signature = signature;
     this.statics = new Map<string, VariableContainer>();
     this.locals = new Map<string, VariableContainer>();
+    this.globals = new Map<string, VariableContainer>();
   }
 
   public copy(): ApexDebugStackFrameInfo {
@@ -104,7 +106,8 @@ export class ApexDebugStackFrameInfo {
 
 export enum SCOPE_TYPES {
   LOCAL = 'local',
-  STATIC = 'static'
+  STATIC = 'static',
+  GLOBAL = 'global'
 }
 
 export abstract class VariableContainer {
@@ -370,6 +373,19 @@ export class ApexReplayDebug extends LoggingDebugSession {
         false
       )
     );
+    // Right now, globals are only going to exist if there's a heapdump and the frame
+    // source is a trigger.
+    if (heapDumpId && this.logContext.isRunningApexTrigger()) {
+      scopes.push(
+        new Scope(
+          'Global',
+          this.logContext
+            .getVariableHandler()
+            .create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
+          false
+        )
+      );
+    }
     response.body = { scopes };
     this.sendResponse(response);
   }

@@ -10,10 +10,11 @@ import { ApexVariableContainer } from '../adapter/apexReplayDebug';
 import {
   ApexExecutionOverlayResultCommandSuccess,
   HeapDumpCollectionTypeDefinition,
+  HeapDumpExtents,
   HeapDumpExtentValue,
   HeapDumpExtentValueEntry
 } from '../commands/apexExecutionOverlayResultCommand';
-import { ADDRESS_PREFIX } from '../constants';
+import { ADDRESS_PREFIX, EXTENT_TRIGGER_PREFIX } from '../constants';
 import { LogContext } from './logContext';
 
 export class HeapDumpService {
@@ -124,6 +125,59 @@ export class HeapDumpService {
           }
         }
       }
+      // Create the trigger context variables in the global context. Unlike locals or statics
+      // the global variable container should be empty and these variables are created from
+      // scratch instead of updating existing variables.
+      if (this.logContext.isRunningApexTrigger()) {
+        for (const outerExtent of heapdumpResult.HeapDump.extents) {
+          if (this.isTriggerExtent(outerExtent)) {
+            // The trigger context variables are going to be immediate children of the outerExtent.
+            for (const innerExtent of outerExtent.extent) {
+              // All of the symbols are going to start with the trigger prefix and will be exclusive
+              // to trigger context varables. It's worth noting that any local variables or statics
+              // within the triggger will be under "this" and won't get picked up there.
+              if (innerExtent.symbols && innerExtent.symbols.length > 0) {
+                for (const symName of innerExtent.symbols) {
+                  if (symName && symName.startsWith(EXTENT_TRIGGER_PREFIX)) {
+                    // Update the type mapping if necessary
+                    if (!variableTypes.has(symName)) {
+                      variableTypes.set(symName, outerExtent.typeName);
+                    }
+                    // Create the variable container
+                    frameInfo.globals.set(
+                      symName,
+                      new ApexVariableContainer(
+                        symName,
+                        '',
+                        outerExtent.typeName
+                      )
+                    );
+                    const globalVar = frameInfo.globals.get(
+                      symName
+                    ) as ApexVariableContainer;
+                    // Setting the variableref needs to get done in order for VS Code to be able to
+                    // expand list/map variables. The reason this isn't done for booleans is that it
+                    // would end up creating a collapsible variable with no value, just the arrow to
+                    // expand or collapse which is incorrect.
+                    if (outerExtent.typeName !== 'Boolean') {
+                      globalVar.variablesRef = this.logContext
+                        .getVariableHandler()
+                        .create(globalVar);
+                    }
+                    this.updateContainer(
+                      globalVar,
+                      innerExtent.value,
+                      extentToRevisit,
+                      referenceToRevisit,
+                      variableTypes
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -170,7 +224,7 @@ export class HeapDumpService {
     referenceToRevisit: Map<string, ApexVariableContainer>,
     variableTypes: Map<string, string>
   ): void {
-    if (heapDumpExtentValue.value) {
+    if (typeof heapDumpExtentValue.value !== 'undefined') {
       this.updateContainerWithExtentValue(
         varContainer,
         heapDumpExtentValue.value,
@@ -231,7 +285,7 @@ export class HeapDumpService {
     extentEntry: HeapDumpExtentValueEntry[] | undefined,
     type?: string
   ): void {
-    if (extentValue) {
+    if (typeof extentValue !== 'undefined') {
       this.updateContainerWithExtentValue(varContainer, extentValue, type);
     } else if (extentEntry) {
       for (const extentValueEntry of extentEntry) {
@@ -242,13 +296,16 @@ export class HeapDumpService {
             extentValueEntry.value.entry
           );
         }
-        varContainer.variables.forEach((value, key) => {
+        if (varContainer.variables.has(extentValueEntry.keyDisplayValue)) {
+          const value = varContainer.variables.get(
+            extentValueEntry.keyDisplayValue
+          ) as ApexVariableContainer;
           this.updateContainerWithExtentValueOrEntry(
             value as ApexVariableContainer,
             extentValue,
             extentEntry
           );
-        });
+        }
       }
     }
   }
@@ -319,5 +376,20 @@ export class HeapDumpService {
     extentValueEntry: HeapDumpExtentValueEntry
   ) {
     return varContainer.name === extentValueEntry.keyDisplayValue;
+  }
+
+  public isTriggerExtent(outerExtent: HeapDumpExtents) {
+    if (
+      (outerExtent.typeName === 'Boolean' ||
+        outerExtent.typeName.startsWith('List<') ||
+        outerExtent.typeName.startsWith('Map<')) &&
+      (outerExtent.count > 0 &&
+        outerExtent.extent[0].symbols !== null &&
+        outerExtent.extent[0].symbols!.length > 0 &&
+        outerExtent.extent[0].symbols![0].startsWith(EXTENT_TRIGGER_PREFIX))
+    ) {
+      return true;
+    }
+    return false;
   }
 }
