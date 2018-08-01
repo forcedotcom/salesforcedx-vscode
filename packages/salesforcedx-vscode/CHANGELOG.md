@@ -5,7 +5,7 @@
 #### salesforcedx-vscode
 
 - Document how to retrieve code coverage results ([PR #533](https://github.com/forcedotcom/salesforcedx-vscode/pull/533))
-- Update SFDX commands to use ProgressNotification for showing execution progress ([PR #536](https://github.com/forcedotcom/salesforcedx-vscode/pull/536))
+- Use ProgressNotification to show SFDX command execution progress in a message box instead of in the footer ([PR #536](https://github.com/forcedotcom/salesforcedx-vscode/pull/536))
 
 ## 43.8.0 - July 19, 2018
 
