@@ -1,3 +1,12 @@
+## 43.10.0 - August 2, 2018
+
+### Fixed
+
+#### salesforcedx-vscode
+
+- Document how to retrieve code coverage results ([PR #533](https://github.com/forcedotcom/salesforcedx-vscode/pull/533))
+- Update SFDX commands to use ProgressNotification for showing execution progress ([PR #536](https://github.com/forcedotcom/salesforcedx-vscode/pull/536))
+
 ## 43.8.0 - July 19, 2018
 
 ### Fixed
