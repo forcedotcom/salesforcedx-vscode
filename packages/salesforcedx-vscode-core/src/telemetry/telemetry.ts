@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,7 +10,7 @@ import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 
-const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage34';
+const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage3465';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 export class TelemetryService {
@@ -71,24 +71,27 @@ export class TelemetryService {
     this.context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
   }
 
-  public async showTelemetryMessage() {
+  public showTelemetryMessage() {
     // check if we've ever shown Telemetry message to user
     const showTelemetryMessage = this.getHasTelemetryMessageBeenShown();
 
     if (showTelemetryMessage) {
       // Show the message and set telemetry to true;
       const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
-      const selection = await vscode.window.showInformationMessage(
-        nls.localize('telemetry_legal_dialog_message'),
-        showButtonText
-      );
-      // Open disable telemetry link
-      if (selection && selection === showButtonText) {
-        vscode.commands.executeCommand(
-          'vscode.open',
-          vscode.Uri.parse(TELEMETRY_OPT_OUT_LINK)
-        );
-      }
+      vscode.window
+        .showInformationMessage(
+          nls.localize('telemetry_legal_dialog_message'),
+          showButtonText
+        )
+        .then(selection => {
+          // Open disable telemetry link
+          if (selection && selection === showButtonText) {
+            vscode.commands.executeCommand(
+              'vscode.open',
+              vscode.Uri.parse(TELEMETRY_OPT_OUT_LINK)
+            );
+          }
+        });
       this.setTelemetryMessageShowed();
     }
   }

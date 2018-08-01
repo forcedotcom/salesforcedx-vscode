@@ -42,7 +42,7 @@ describe('Telemetry', () => {
     assert.notCalled(sendEvent);
   });
 
-  it('Check telemetry sendExtensionActivationEvent data format', async () => {
+  it('Should send correct data format on sendExtensionActivationEvent', async () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
@@ -55,7 +55,7 @@ describe('Telemetry', () => {
     assert.calledWith(sendEvent, 'activationEvent', expectedData);
   });
 
-  it('Check telemetry sendExtensionDeactivationEvent data format', async () => {
+  it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 

@@ -54,7 +54,7 @@ export async function activate(context: ExtensionContext) {
   );
 
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    await sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
 
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),

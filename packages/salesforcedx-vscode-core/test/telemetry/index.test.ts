@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -44,7 +44,7 @@ describe('Telemetry', () => {
     const telemetryEnabled = telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(true);
 
-    await telemetryService.showTelemetryMessage();
+    telemetryService.showTelemetryMessage();
     assert.calledOnce(mShowInformation);
   });
 
@@ -58,7 +58,7 @@ describe('Telemetry', () => {
     const telemetryEnabled = telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(true);
 
-    await telemetryService.showTelemetryMessage();
+    telemetryService.showTelemetryMessage();
     assert.notCalled(mShowInformation);
   });
 
@@ -92,7 +92,7 @@ describe('Telemetry', () => {
     assert.notCalled(reporter);
   });
 
-  it('Check telemetry sendExtensionActivationEvent data format', async () => {
+  it('Should send correct data format on sendExtensionActivationEvent', async () => {
     // create vscode extensionContext
     mockContext = new MockContext(true);
 
@@ -108,7 +108,7 @@ describe('Telemetry', () => {
     assert.calledWith(reporter, 'activationEvent', expectedData);
   });
 
-  it('Check telemetry sendExtensionDeactivationEvent data format', async () => {
+  it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
     // create vscode extensionContext
     mockContext = new MockContext(true);
 
@@ -124,7 +124,7 @@ describe('Telemetry', () => {
     assert.calledWith(reporter, 'deactivationEvent', expectedData);
   });
 
-  it('Check telemetry sendCommandEvent data format', async () => {
+  it('Should send correct data format on sendCommandEvent', async () => {
     // create vscode extensionContext
     mockContext = new MockContext(true);
 
