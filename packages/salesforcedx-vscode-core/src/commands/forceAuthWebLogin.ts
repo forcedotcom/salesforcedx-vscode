@@ -23,9 +23,11 @@ import { CancellationTokenSource, workspace } from 'vscode';
 import { channelService } from '../channels/index';
 import { nls } from '../messages';
 import { isDemoMode, isProdOrg } from '../modes/demo-mode';
-import { notificationService } from '../notifications/index';
+import {
+  notificationService,
+  ProgressNotification
+} from '../notifications/index';
 import { taskViewService } from '../statuses/index';
-import { CancellableStatusBar } from '../statuses/statusBar';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -39,9 +41,7 @@ export const DEFAULT_ALIAS = 'vscodeOrg';
 export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<Alias> {
   public build(data: Alias): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('force_auth_web_login_authorize_org_text')
-      )
+      .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
       .withArg('--setdefaultusername')
@@ -49,7 +49,9 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<Alias> {
   }
 }
 
-export abstract class ForceAuthDemoModeExecutor<T> extends SfdxCommandletExecutor<T> {
+export abstract class ForceAuthDemoModeExecutor<
+  T
+> extends SfdxCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const cancellationTokenSource = new CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -64,7 +66,7 @@ export abstract class ForceAuthDemoModeExecutor<T> extends SfdxCommandletExecuto
     );
 
     channelService.streamCommandOutput(execution);
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     try {
@@ -83,12 +85,12 @@ export abstract class ForceAuthDemoModeExecutor<T> extends SfdxCommandletExecuto
   }
 }
 
-export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor<Alias> {
+export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor<
+  Alias
+> {
   public build(data: Alias): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('force_auth_web_login_authorize_org_text')
-      )
+      .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
       .withArg('--setdefaultusername')

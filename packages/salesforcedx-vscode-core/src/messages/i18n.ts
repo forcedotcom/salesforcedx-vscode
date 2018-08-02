@@ -24,6 +24,8 @@ export const messages = {
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
+  progress_notification_text: 'Running %s',
+
   notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',
   notification_unsuccessful_execution_text: '%s failed to run',
@@ -70,6 +72,9 @@ export const messages = {
     'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+
+  force_source_deploy_text: 'SFDX: Deploy Source to Org',
+  force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',

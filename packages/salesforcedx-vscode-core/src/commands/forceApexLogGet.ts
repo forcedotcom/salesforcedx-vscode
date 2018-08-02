@@ -25,8 +25,8 @@ import * as vscode from 'vscode';
 import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -55,7 +55,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       execution,
       cancellationToken
     );
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
@@ -162,7 +162,7 @@ export class ForceApexLogList {
         .build(),
       { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
     ).execute();
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
     notificationService.reportExecutionError(
       execution.command.toString(),

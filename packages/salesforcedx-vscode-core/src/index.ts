@@ -1,11 +1,9 @@
-
 /*
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
 import * as vscode from 'vscode';
@@ -38,8 +36,10 @@ import {
   forceOrgDisplay,
   forceOrgOpen,
   forceSfdxProjectCreate,
+  forceSourceDeploy,
   forceSourcePull,
   forceSourcePush,
+  forceSourceRetrieve,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -66,9 +66,8 @@ import {
 import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
-import { notificationService } from './notifications';
-import { CANCEL_EXECUTION_COMMAND, cancelCommandExecution } from './statuses';
-import { CancellableStatusBar, taskViewService } from './statuses';
+import { notificationService, ProgressNotification } from './notifications';
+import { taskViewService } from './statuses';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -94,6 +93,10 @@ function registerCommands(
     'sfdx.force.org.open',
     forceOrgOpen
   );
+  const forceSourceDeployCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy',
+    forceSourceDeploy
+  );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
     forceSourcePull
@@ -111,6 +114,14 @@ function registerCommands(
     'sfdx.force.source.push.force',
     forceSourcePush,
     { flag: '--forceoverwrite' }
+  );
+  const forceSourceRetrieveCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve',
+    forceSourceRetrieve
+  );
+  const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.current.file',
+    forceSourceRetrieve
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -268,12 +279,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  // Internal commands
-  const internalCancelCommandExecution = vscode.commands.registerCommand(
-    CANCEL_EXECUTION_COMMAND,
-    cancelCommandExecution
-  );
-
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -291,10 +296,13 @@ function registerCommands(
     forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceSourceDeployCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceRetrieveCmd,
+    forceSourceRetrieveCurrentFileCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
@@ -318,8 +326,7 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd,
-    internalCancelCommandExecution
+    forceApexLogGetCmd
   );
 }
 
@@ -425,7 +432,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   const api: any = {
-    CancellableStatusBar,
+    ProgressNotification,
     CompositeParametersGatherer,
     SelectFileName,
     SelectStrictDirPath,
