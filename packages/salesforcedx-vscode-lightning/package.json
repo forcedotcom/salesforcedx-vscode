@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.8.0",
+  "version": "43.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,10 +22,10 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "43.8.0"
+    "@salesforce/salesforcedx-slds-linter": "43.10.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "43.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.10.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
