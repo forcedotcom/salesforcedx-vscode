@@ -20,4 +20,4 @@ export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const TELEMETRY_OPT_OUT_LINK =
-  'https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting';
+  'https://github.com/forcedotcom/salesforcedx-vscode/wiki/Telemetry';
