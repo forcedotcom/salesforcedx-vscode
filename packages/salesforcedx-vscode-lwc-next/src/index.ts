@@ -16,6 +16,11 @@ import {
 } from 'vscode-languageclient';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { nls } from './messages';
+import { telemetryService } from './telemetry';
+
+const coreDependency = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
 
 function registerCommands(): vscode.Disposable {
   const {
@@ -31,13 +36,6 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(forceLightningLwcCreateCmd);
 }
 
-function isDependencyInstalled(): boolean {
-  const coreDependency = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-core'
-  );
-  return coreDependency && coreDependency.exports;
-}
-
 function shouldForceLoadCurrentLwc(): boolean {
   return process.env.FORCE_LOAD_CURRENT_LWC ? true : false;
 }
@@ -50,7 +48,14 @@ export async function activate(context: vscode.ExtensionContext) {
     return;
   }
 
-  if (!isDependencyInstalled()) {
+  if (coreDependency && coreDependency.exports) {
+    coreDependency.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      coreDependency.exports.telemetryService.getReporter(),
+      coreDependency.exports.telemetryService.isTelemetryEnabled()
+    );
+  } else {
     vscode.window.showErrorMessage(
       nls.localize('salesforcedx_vscode_core_not_installed_text')
     );
@@ -59,6 +64,8 @@ export async function activate(context: vscode.ExtensionContext) {
     );
     return;
   }
+
+  telemetryService.sendExtensionActivationEvent();
 
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
@@ -179,4 +186,9 @@ export async function populateEslintSettingIfNecessary(
       vscode.ConfigurationTarget.Workspace
     );
   }
+}
+
+export function deactivate() {
+  console.log('SFDX LWC Next Extension Deactivated');
+  telemetryService.sendExtensionDeactivationEvent();
 }
