@@ -14,6 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
+  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
   "version": "43.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
@@ -48,7 +49,8 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -543,6 +545,11 @@
           "type": ["boolean"],
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
+        },
+        "salesforcedx-vscode-core.telemetry.enabled": {
+          "type": ["boolean"],
+          "default": true,
+          "description": "%telemetry_enabled_description%"
         }
       }
     }

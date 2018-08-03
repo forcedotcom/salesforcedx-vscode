@@ -35,9 +35,11 @@
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -54,8 +56,8 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "test:unit": "node ./node_modules/vscode/bin/test"
+    "test": "node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": [
     "onDebug",
