@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.8.0",
+  "version": "43.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,13 +28,18 @@
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
     "@types/shelljs": "^0.7.4",
+    "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
+    "sinon": "^2.3.6",
     "shelljs": "^0.7.8",
     "typescript": "2.6.2",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "vscode-extension-telemetry": "0.0.17"
   },
+  "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -46,8 +51,8 @@
     "clean":
       "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "test:unit": "node ./node_modules/vscode/bin/test"
+    "test": "node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
@@ -88,7 +93,7 @@
   },
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "43.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.10.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

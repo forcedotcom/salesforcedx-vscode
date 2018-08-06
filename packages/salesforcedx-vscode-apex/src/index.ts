@@ -12,11 +12,28 @@ import {
   DEBUGGER_LINE_BREAKPOINTS
 } from './constants';
 import * as languageServer from './languageServer';
+import { telemetryService } from './telemetry';
+
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
 
 let languageClient: LanguageClient | undefined;
 let languageClientReady = false;
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Telemetry
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
+  }
+
+  telemetryService.sendExtensionActivationEvent();
+
   languageClient = await languageServer.createLanguageServer(context);
   const handle = languageClient.start();
   context.subscriptions.push(handle);
@@ -54,4 +71,6 @@ function isLanguageClientReady(): boolean {
 }
 
 // tslint:disable-next-line:no-empty
-export function deactivate() {}
+export function deactivate() {
+  telemetryService.sendExtensionDeactivationEvent();
+}
