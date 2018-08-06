@@ -494,7 +494,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     channelService.appendLine(nls.localize('isv_debug_bootstrap_open_project'));
     await vscode.commands.executeCommand(
       'vscode.openFolder',
-      vscode.Uri.parse(projectPath)
+      vscode.Uri.file(projectPath)
     );
   }
 
