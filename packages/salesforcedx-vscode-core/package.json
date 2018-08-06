@@ -69,6 +69,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "onCommand:sfdx.force.project.create",
+    "onCommand:sfdx.force.create.change.set.based",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
