@@ -43,6 +43,7 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--componentname', data.fileName)
       .withFlag('--label', data.fileName)
       .withFlag('--outputdir', data.outputdir)
+      .withLogName('force_visualforce_component_create')
       .build();
   }
 
@@ -76,6 +77,7 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
+    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);

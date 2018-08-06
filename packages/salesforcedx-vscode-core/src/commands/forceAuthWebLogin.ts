@@ -45,6 +45,7 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<Alias> {
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
       .withArg('--setdefaultusername')
+      .withLogName('force_auth_web_login')
       .build();
   }
 }
@@ -96,6 +97,7 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
       .withArg('--setdefaultusername')
       .withArg('--noprompt')
       .withJson()
+      .withLogName('force_auth_web_login_demo_mode')
       .build();
   }
 }

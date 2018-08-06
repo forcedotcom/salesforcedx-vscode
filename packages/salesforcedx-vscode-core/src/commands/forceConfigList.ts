@@ -22,6 +22,7 @@ export class ForceConfigList extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_config_list_text'))
       .withArg('force:config:list')
+      .withLogName('force_config_list')
       .build();
   }
 }

@@ -26,6 +26,7 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { taskViewService } from '../statuses';
+import { telemetryService } from '../telemetry';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -338,6 +339,15 @@ export abstract class SfdxCommandletExecutor<T>
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
+  public logMetric(logName?: string) {
+    if (logName) {
+      telemetryService.sendCommandEvent(logName);
+      console.log('------------------------');
+      console.log(logName);
+      console.log('------------------------');
+    }
+  }
+
   public execute(response: ContinueResponse<T>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -346,6 +356,7 @@ export abstract class SfdxCommandletExecutor<T>
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    this.logMetric(execution.command.logName);
   }
 
   public abstract build(data: T): Command;

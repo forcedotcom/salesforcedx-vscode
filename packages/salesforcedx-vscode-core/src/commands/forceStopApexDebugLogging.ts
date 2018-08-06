@@ -40,6 +40,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    this.logMetric(execution.command.logName);
     execution.processExitSubject.subscribe(async data => {
       if (data !== undefined && data.toString() === '0') {
         developerLogTraceFlag.turnOffLogging();
@@ -73,6 +74,7 @@ function deleteTraceFlag(): Command {
     .withFlag('--sobjecttype', 'TraceFlag')
     .withFlag('--sobjectid', nonNullTraceFlag)
     .withArg('--usetoolingapi')
+    .withLogName('force_stop_apex_debug_logging')
     .build();
 }
 class ActiveLogging implements ParametersGatherer<{}> {

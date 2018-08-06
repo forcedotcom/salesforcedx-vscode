@@ -28,6 +28,7 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))
       .withArg('sobject definitions refresh')
+      .withLogName('force_generate_faux_classes_create')
       .build();
   }
 
@@ -59,6 +60,7 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
       console.log('Generate error ' + e);
     }
     ForceGenerateFauxClassesExecutor.isActive = false;
+    this.logMetric(execution.command.logName);
     return;
   }
 }

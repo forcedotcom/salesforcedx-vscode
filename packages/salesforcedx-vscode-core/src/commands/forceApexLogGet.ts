@@ -42,6 +42,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       .withArg('force:apex:log:get')
       .withFlag('--logid', data.id)
       .withJson()
+      .withLogName('force_apex_log_get')
       .build();
   }
 
@@ -68,6 +69,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    this.logMetric(execution.command.logName);
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0) {
@@ -159,6 +161,7 @@ export class ForceApexLogList {
         .withDescription(nls.localize('force_apex_log_list_text'))
         .withArg('force:apex:log:list')
         .withJson()
+        .withLogName('force_apex_log_list')
         .build(),
       { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
     ).execute();

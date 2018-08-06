@@ -30,7 +30,8 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('force_source_pull_default_scratch_org_text')
       )
-      .withArg('force:source:pull');
+      .withArg('force:source:pull')
+      .withLogName('force_source_pull_default_scratch_org');
     if (this.flag === '--forceoverwrite') {
       builder
         .withArg(this.flag)

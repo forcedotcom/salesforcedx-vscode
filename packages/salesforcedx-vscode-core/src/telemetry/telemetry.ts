@@ -10,7 +10,7 @@ import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 
-const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
+const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage2345678';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 export class TelemetryService {
