@@ -4,14 +4,13 @@
 
 #### salesforcedx-vscode-core
 
-- Update how the extension opens folders ([PR #545](https://github.com/forcedotcom/salesforcedx-vscode/pull/545))
+- Prevent `Path does not exist` errors by changing the way that the extension opens folders ([PR #545](https://github.com/forcedotcom/salesforcedx-vscode/pull/545))
 
 ### Added
 
 #### salesforcedx-vscode
 
 - Support telemetry in activation/deactivation of Salesforce extensions ([PR #511](https://github.com/forcedotcom/salesforcedx-vscode/pull/511))
-
 
 ## 43.10.0 - August 2, 2018
 
