@@ -22,7 +22,8 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "43.10.0"
+    "@salesforce/salesforcedx-slds-linter": "43.10.0",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "43.10.0",
@@ -35,8 +36,7 @@
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
-    "vscode": "1.1.17",
-    "vscode-extension-telemetry": "0.0.17"
+    "vscode": "1.1.17"
   },
   "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
