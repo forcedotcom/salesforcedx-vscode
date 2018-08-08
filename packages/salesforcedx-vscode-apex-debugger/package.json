@@ -23,7 +23,8 @@
   "categories": ["Debuggers"],
   "dependencies": {
     "@salesforce/salesforcedx-apex-debugger": "43.10.0",
-    "vscode-debugprotocol": "1.28.0"
+    "vscode-debugprotocol": "1.28.0",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -34,8 +35,7 @@
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "vscode": "1.1.17",
-    "vscode-extension-telemetry": "0.0.17"
+    "vscode": "1.1.17"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
