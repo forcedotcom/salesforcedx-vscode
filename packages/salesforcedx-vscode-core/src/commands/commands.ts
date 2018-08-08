@@ -340,12 +340,7 @@ export abstract class SfdxCommandletExecutor<T>
   }
 
   public logMetric(logName?: string) {
-    if (logName) {
-      telemetryService.sendCommandEvent(logName);
-      console.log('------------------------');
-      console.log(logName);
-      console.log('------------------------');
-    }
+    telemetryService.sendCommandEvent(logName);
   }
 
   public execute(response: ContinueResponse<T>): void {

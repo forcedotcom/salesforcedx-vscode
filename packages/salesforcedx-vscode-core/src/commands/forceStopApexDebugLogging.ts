@@ -20,6 +20,7 @@ import * as vscode from 'vscode';
 import { developerLogTraceFlag } from '.';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -55,6 +56,7 @@ export async function turnOffLogging(): Promise<void> {
     const execution = new CliCommandExecutor(deleteTraceFlag(), {
       cwd: vscode.workspace.rootPath
     }).execute();
+    telemetryService.sendCommandEvent(execution.command.logName);
     const resultPromise = new CommandOutput().getCmdResult(execution);
     const result = await resultPromise;
     const resultJson = JSON.parse(result);

@@ -119,8 +119,12 @@ export class TelemetryService {
     }
   }
 
-  public sendCommandEvent(commandName: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled()) {
+  public sendCommandEvent(commandName?: string): void {
+    if (
+      this.reporter !== undefined &&
+      this.isTelemetryEnabled() &&
+      commandName
+    ) {
       this.reporter.sendTelemetryEvent('commandExecution', {
         extensionName: EXTENSION_NAME,
         commandName

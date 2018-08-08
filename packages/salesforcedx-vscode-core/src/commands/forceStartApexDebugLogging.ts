@@ -26,6 +26,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
+import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
 export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
@@ -107,9 +108,11 @@ export async function getUserId(projectPath: string): Promise<string> {
     new SfdxCommandBuilder()
       .withArg('force:user:display')
       .withJson()
+      .withLogName('force_user_display')
       .build(),
     { cwd: projectPath }
   ).execute();
+  telemetryService.sendCommandEvent(execution.command.logName);
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   try {
