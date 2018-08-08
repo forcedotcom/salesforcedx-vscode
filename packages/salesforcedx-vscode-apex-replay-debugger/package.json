@@ -25,7 +25,8 @@
     "@salesforce/salesforcedx-apex-replay-debugger": "43.10.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
-    "request-light": "0.2.1"
+    "request-light": "0.2.1",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
     "@types/async-lock": "0.0.20",
@@ -38,8 +39,7 @@
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "vscode": "1.1.17",
-    "vscode-extension-telemetry": "0.0.17"
+    "vscode": "1.1.17"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
