@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.10.0",
+  "version": "43.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,24 +22,27 @@
   },
   "categories": ["Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "43.10.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "43.10.0",
+    "@salesforce/salesforcedx-visualforce-language-server": "43.11.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "43.11.0",
     "typescript": "2.6.2",
+    "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
     "vscode-languageserver-types": "3.4.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "43.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.11.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "^6.0.40",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
     "vscode": "1.1.17"
   },
+  "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -51,8 +54,8 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "test:unit": "node ./node_modules/vscode/bin/test"
+    "test": "node ../../scripts/run-test-with-top-level-extensionst",
+    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src/extension",

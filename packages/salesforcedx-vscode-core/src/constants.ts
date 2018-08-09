@@ -18,3 +18,6 @@ export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
+export const TELEMETRY_ENABLED = 'telemetry.enabled';
+export const TELEMETRY_OPT_OUT_LINK =
+  'https://github.com/forcedotcom/salesforcedx-vscode/wiki/Telemetry';

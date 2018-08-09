@@ -71,7 +71,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
       if (data !== undefined && data.toString() === '0') {
         await vscode.commands.executeCommand(
           'vscode.openFolder',
-          vscode.Uri.parse(
+          vscode.Uri.file(
             path.join(response.data.projectUri, response.data.projectName)
           )
         );

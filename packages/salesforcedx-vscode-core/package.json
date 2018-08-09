@@ -14,7 +14,8 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.10.0",
+  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
+  "version": "43.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,14 +23,15 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "43.10.0",
-    "@salesforce/salesforcedx-utils-vscode": "43.10.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "43.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.11.0",
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "^0.8.1"
+    "shelljs": "^0.8.1",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.31",
@@ -69,6 +71,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "onCommand:sfdx.force.project.create",
+    "onCommand:sfdx.force.create.change.set.based",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
@@ -543,6 +546,11 @@
           "type": ["boolean"],
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
+        },
+        "salesforcedx-vscode-core.telemetry.enabled": {
+          "type": ["boolean"],
+          "default": true,
+          "description": "%telemetry_enabled_description%"
         }
       }
     }
