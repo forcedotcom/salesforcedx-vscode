@@ -64,6 +64,5 @@ export async function forceAuthDevHub() {
     parameterGatherer,
     createExecutor()
   );
-
   await commandlet.run();
 }
