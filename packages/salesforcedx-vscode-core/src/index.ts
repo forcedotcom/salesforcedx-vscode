@@ -23,7 +23,7 @@ import {
   forceAuthDevHub,
   forceAuthLogoutAll,
   forceAuthWebLogin,
-  forceChangeSetProjectCreate,
+  forceProjectWithManifestCreate,
   forceConfigList,
   forceDataSoqlQuery,
   forceDebuggerStop,
@@ -254,9 +254,9 @@ function registerCommands(
     forceSfdxProjectCreate
   );
 
-  const forceChangeSetBasedProjectCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.create.change.set.based',
-    forceChangeSetProjectCreate
+  const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.project.with.manifest.create',
+    forceProjectWithManifestCreate
   );
 
   const forceApexTriggerCreateCmd = vscode.commands.registerCommand(
@@ -327,7 +327,7 @@ function registerCommands(
     forceOrgDisplayUsernameCmd,
     forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
-    forceChangeSetBasedProjectCreateCmd,
+    forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
