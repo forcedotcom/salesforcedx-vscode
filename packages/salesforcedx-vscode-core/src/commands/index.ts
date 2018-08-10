@@ -50,7 +50,7 @@ export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
 export {
   forceSfdxProjectCreate,
-  forceChangeSetProjectCreate
+  forceProjectWithManifestCreate
 } from './forceProjectCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
