@@ -173,9 +173,9 @@ describe('Force Project Create', () => {
       );
     });
 
-    it('Should build the project create command for change-set-based projects', async () => {
+    it('Should build the project with manifest create command', async () => {
       const forceProjectCreateBuilder = new ForceProjectCreateExecutor({
-        isChangeSetBasedProject: true
+        isProjectWithManifest: true
       });
       const createCommand = forceProjectCreateBuilder.build({
         projectName: PROJECT_NAME,
