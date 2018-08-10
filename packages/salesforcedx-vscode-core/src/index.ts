@@ -7,6 +7,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+
+import {
+  ForceConfigGet,
+  ForceOrgList
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -336,15 +341,91 @@ function registerCommands(
   );
 }
 
-function registerIsvAuthWatcher(): vscode.Disposable {
-  const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(
-    path.join('.sfdx', 'sfdx-config.json')
-  );
-  isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
-  isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
-  isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
-  return vscode.Disposable.from(isvAuthWatcher);
+async function setupDefaultUsername() {
+  if (
+    vscode.workspace.workspaceFolders instanceof Array &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    const forceConfig = await new ForceConfigGet().getConfig(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      'defaultusername'
+    );
+    const defaultusername = forceConfig.get('defaultusername');
+    const defaultUsernameIsSet = defaultusername !== undefined;
+    vscode.commands.executeCommand(
+      'setContext',
+      'sfdx:default_username_set',
+      defaultUsernameIsSet
+    );
+
+    if (defaultUsernameIsSet) {
+      const forceOrgList = new ForceOrgList();
+      const isScratchOrg = await forceOrgList.isScratchOrg(defaultusername!);
+      vscode.commands.executeCommand(
+        'setContext',
+        'sfdx:default_username_is_scratch_org',
+        isScratchOrg
+      );
+    }
+  }
 }
+
+function registerSfdxConfigWatcher(
+  callbackMethods: Array<() => void>
+): vscode.Disposable | undefined {
+  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+    const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
+      new vscode.RelativePattern(
+        vscode.workspace.workspaceFolders[0],
+        path.join('.sfdx', 'sfdx-config.json')
+      )
+    );
+    sfdxConfigWatcher.onDidChange(uri => {
+      callbackMethods.forEach(callbackMethod => {
+        return callbackMethod();
+      });
+    });
+    sfdxConfigWatcher.onDidCreate(uri => {
+      callbackMethods.forEach(callbackMethod => {
+        return callbackMethod();
+      });
+    });
+    sfdxConfigWatcher.onDidDelete(uri => {
+      callbackMethods.forEach(callbackMethod => {
+        return callbackMethod();
+      });
+    });
+  }
+  return;
+}
+
+// function registerIsvAuthWatcher(): vscode.Disposable {
+
+//   let workspacePath = vscode.workspace && vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] :
+//   let filePath = path.join('.sfdx', 'sfdx-config.json');
+//   if (vscode.workspace && vscode.workspace.workspaceFolders) {
+//     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(
+//       new vscode.RelativePattern(
+//         vscode.workspace.workspaceFolders[0],
+//         path.join('.sfdx', 'sfdx-config.json')
+//       )
+//     );
+//     // path.join('.sfdx', 'sfdx-config.json')
+//     isvAuthWatcher.onDidChange(uri => {
+//       setupGlobalDefaultUserIsvAuth();
+//       setupDefaultUsername();
+//     });
+//     isvAuthWatcher.onDidCreate(uri => {
+//       setupGlobalDefaultUserIsvAuth();
+//       setupDefaultUsername();
+//     });
+//     isvAuthWatcher.onDidDelete(uri => {
+//       setupGlobalDefaultUserIsvAuth();
+//       setupDefaultUsername();
+//     });
+//     return vscode.Disposable.from(isvAuthWatcher);
+//   }
+// }
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
@@ -391,6 +472,8 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
+  const callbackFunctions = [];
+
   const sfdxApexDebuggerExtension = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex-debugger'
   );
@@ -409,8 +492,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
     try {
-      context.subscriptions.push(registerIsvAuthWatcher());
-      console.log('Configured file watcher for .sfdx/sfdx-config.json');
+      callbackFunctions.push(setupGlobalDefaultUserIsvAuth);
       await setupGlobalDefaultUserIsvAuth();
     } catch (e) {
       console.error(e);
@@ -419,6 +501,13 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
   }
+
+  callbackFunctions.push(setupDefaultUsername);
+  const sfdxConfigWatcher = registerSfdxConfigWatcher(callbackFunctions);
+  if (sfdxConfigWatcher) {
+    context.subscriptions.push();
+  }
+  console.log('Configured file watcher for .sfdx/sfdx-config.json');
 
   // Commands
   const commands = registerCommands(context);

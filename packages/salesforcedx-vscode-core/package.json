@@ -187,7 +187,8 @@
         },
         {
           "command": "sfdx.force.source.push",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_set && sfdx:default_username_is_scratch_org"
         },
         {
           "command": "sfdx.force.source.push.force",
