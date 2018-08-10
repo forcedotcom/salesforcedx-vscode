@@ -71,7 +71,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "onCommand:sfdx.force.project.create",
-    "onCommand:sfdx.force.create.change.set.based",
+    "onCommand:sfdx.force.project.with.manifest.create",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
@@ -285,7 +285,7 @@
           "command": "sfdx.force.project.create"
         },
         {
-          "command": "sfdx.force.create.change.set.based",
+          "command": "sfdx.force.project.with.manifest.create",
           "when":
             "config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         },
@@ -488,8 +488,8 @@
         "title": "%force_project_create_text%"
       },
       {
-        "command": "sfdx.force.create.change.set.based",
-        "title": "%force_project_create_change_set_based_text%"
+        "command": "sfdx.force.project.with.manifest.create",
+        "title": "%force_project_with_manifest_create_text%"
       },
       {
         "command": "sfdx.force.apex.trigger.create",
