@@ -20,11 +20,12 @@ import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const CancellableStatusBar = sfdxCoreExports.CancellableStatusBar;
+const ProgressNotification = sfdxCoreExports.ProgressNotification;
 const CompositeParametersGatherer = sfdxCoreExports.CompositeParametersGatherer;
 const SelectFileName = sfdxCoreExports.SelectFileName;
 const SelectStrictDirPath = sfdxCoreExports.SelectStrictDirPath;
@@ -79,7 +80,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_create_text'))
       .withArg('force:lightning:component:create')
-      .withFlag('--type', 'web')
+      .withFlag('--type', 'lwc')
       .withFlag('--componentname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
       .build();
@@ -117,8 +118,11 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
+    telemetryService.sendCommandEvent(
+      'force_lightning_lwc_next_component_create'
+    );
     channelService.streamCommandOutput(execution);
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

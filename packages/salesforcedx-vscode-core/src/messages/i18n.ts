@@ -24,6 +24,8 @@ export const messages = {
   channel_end_with_error: 'ended with error %s',
   channel_end: 'ended',
 
+  progress_notification_text: 'Running %s',
+
   notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',
   notification_unsuccessful_execution_text: '%s failed to run',
@@ -70,6 +72,9 @@ export const messages = {
     'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+
+  force_source_deploy_text: 'SFDX: Deploy Source to Org',
+  force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
@@ -178,5 +183,8 @@ export const messages = {
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
-  tooling_API_description: 'Execute the query with Tooling API'
+  tooling_API_description: 'Execute the query with Tooling API',
+  telemetry_legal_dialog_message:
+    'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to opt out.',
+  telemetry_legal_dialog_button_text: 'Read more'
 };

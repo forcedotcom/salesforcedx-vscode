@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.6.0",
+  "version": "43.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,13 +28,18 @@
     "@types/node": "^6.0.40",
     "@types/path-exists": "^1.0.29",
     "@types/shelljs": "^0.7.4",
+    "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
     "shelljs": "^0.7.8",
+    "sinon": "^2.3.6",
     "typescript": "2.6.2",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "vscode-extension-telemetry": "0.0.17"
   },
+  "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -46,12 +51,88 @@
     "clean":
       "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "test:unit": "node ./node_modules/vscode/bin/test"
+    "test": "node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "test",
+          "title": "%test_view_container_title%",
+          "icon": "media/dep.svg"
+        }
+      ]
+    },
+    "views": {
+      "test": [
+        {
+          "id": "sfdx.force.test.view",
+          "name": "%test_view_name%"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "sfdx.force.test.view.run",
+          "when": "view == sfdx.force.test.view",
+          "group": "navigation"
+        },
+        {
+          "command": "sfdx.force.test.view.refresh",
+          "when": "view == sfdx.force.test.view",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "sfdx.force.test.view.showError",
+          "when": "view == sfdx.force.test.view"
+        },
+        {
+          "command": "sfdx.force.test.view.runSingleTest",
+          "when": "view == sfdx.force.test.view",
+          "group": "inline"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdx.force.test.view.run",
+        "title": "%run_tests_title%",
+        "icon": {
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.refresh",
+        "title": "%refresh_test_title%",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.showError",
+        "title": "%show_error_title%",
+        "icon": {
+          "light": "resources/light/document/notRun.svg",
+          "dark": "resources/dark/document/notRun.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.runSingleTest",
+        "title": "%run_single_test_title%",
+        "icon": {
+          "light": "resources/light/play-side.svg",
+          "dark": "resources/dark/play-side.svg"
+        }
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "%configuration_title%",
@@ -88,7 +169,7 @@
   },
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "43.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.10.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

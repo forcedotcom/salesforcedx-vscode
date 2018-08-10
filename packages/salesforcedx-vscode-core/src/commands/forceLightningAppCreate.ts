@@ -19,8 +19,8 @@ import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { CancellableStatusBar, taskViewService } from '../statuses';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import {
   CompositeParametersGatherer,
   LightningFilePathExistsChecker,
@@ -78,7 +78,7 @@ class ForceLightningAppCreateExecutor extends SfdxCommandletExecutor<
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
-    CancellableStatusBar.show(execution, cancellationTokenSource);
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }

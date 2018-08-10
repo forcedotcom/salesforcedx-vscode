@@ -8,7 +8,8 @@
 import * as vscode from 'vscode';
 import {
   SFDX_CORE_CONFIGURATION_NAME,
-  SHOW_CLI_SUCCESS_INFO_MSG
+  SHOW_CLI_SUCCESS_INFO_MSG,
+  TELEMETRY_ENABLED
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -32,6 +33,16 @@ export class SfdxCoreSettings {
 
   public getShowCLISuccessMsg(): boolean {
     return this.getConfigValue<boolean>(SHOW_CLI_SUCCESS_INFO_MSG, true);
+  }
+
+  // checks for Microsoft's telemetry setting as well as Salesforce's telemetry setting.
+  public getTelemetryEnabled(): boolean {
+    return (
+      vscode.workspace
+        .getConfiguration('telemetry')
+        .get<boolean>('enableTelemetry', true) &&
+      this.getConfigValue<boolean>(TELEMETRY_ENABLED, true)
+    );
   }
 
   public async updateShowCLISuccessMsg(value: boolean) {
