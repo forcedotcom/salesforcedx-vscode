@@ -2,7 +2,7 @@ import { SfdxCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
 
-interface ScratchOrgInfo {
+interface OrgInfo {
   accessToken: string;
   connectedStatus: string;
   created: number;
@@ -18,22 +18,29 @@ interface ScratchOrgInfo {
   alias: string;
 }
 
+interface OrgList {
+  devHubs: OrgInfo[];
+  nonScratchOrgs: OrgInfo[];
+  scratchOrgs: OrgInfo[];
+}
+
 export class ForceOrgList {
   public async isScratchOrg(username: string): Promise<boolean> {
     const orgList = await this.getOrgList();
-    const scratchOrgs: ScratchOrgInfo[] = orgList.scratchOrgs; // array of scratchOrgs
+    const scratchOrgs = orgList.scratchOrgs; // array of scratchOrgs
     if (scratchOrgs.length > 0) {
-      const foundOrgWithUsername = scratchOrgs.some(
+      const foundOrgForName = scratchOrgs.some(
         scratchOrg =>
           scratchOrg.alias === username || scratchOrg.username === username
       );
-      if (foundOrgWithUsername) {
+      if (foundOrgForName) {
         return Promise.resolve(true);
       }
     }
     return Promise.resolve(false);
   }
-  private async getOrgList(): Promise<any> {
+
+  private async getOrgList(): Promise<OrgList> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force:org:list')
