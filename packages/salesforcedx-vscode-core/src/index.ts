@@ -376,7 +376,8 @@ async function getDefaultUsername(): Promise<string | undefined> {
 }
 
 function registerSfdxConfigWatcher(
-  callbacks: Array<() => void>
+  callbacks: Array<() => void>,
+  context: vscode.ExtensionContext
 ): vscode.Disposable | undefined {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
@@ -397,6 +398,7 @@ function registerSfdxConfigWatcher(
     sfdxConfigWatcher.onDidDelete(uri => {
       callbacks.forEach(fn => fn());
     });
+    context.subscriptions.push(sfdxConfigWatcher);
   }
   return;
 }
@@ -461,11 +463,11 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxApexDebuggerExtension &&
     sfdxApexDebuggerExtension.id
   ) {
-    console.log('Setting up ISV Debugger environment variables');
     // Setup default user for CLI this is done in core because it shares access
     // to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
     try {
+      console.log('Setting up ISV Debugger environment variables');
       contextSettingFunctions.push(setupGlobalDefaultUserIsvAuth);
       await setupGlobalDefaultUserIsvAuth();
     } catch (e) {
@@ -476,12 +478,11 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   }
 
+  // Setup default workspace org type
   contextSettingFunctions.push(setupWorkspaceOrgType);
   await setupWorkspaceOrgType();
-  const sfdxConfigWatcher = registerSfdxConfigWatcher(contextSettingFunctions);
-  if (sfdxConfigWatcher) {
-    context.subscriptions.push(sfdxConfigWatcher);
-  }
+
+  registerSfdxConfigWatcher(contextSettingFunctions, context);
   console.log('Configured file watcher for .sfdx/sfdx-config.json');
 
   // Commands
