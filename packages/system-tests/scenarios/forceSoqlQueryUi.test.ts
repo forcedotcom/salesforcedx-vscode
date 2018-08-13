@@ -19,7 +19,7 @@ import {
 const TITLE = 'force:soql:query UI commands Tests';
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 
-describe(TITLE, () => {
+xdescribe(TITLE, () => {
   let app: SpectronApplication;
   let common: CommonActions;
 
