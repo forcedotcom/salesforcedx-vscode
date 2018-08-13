@@ -25,4 +25,5 @@ export {
 export { CommandOutput } from './commandOutput';
 export { ForceConfigGet } from './forceConfigGet';
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
+export { ForceOrgList } from './forceOrgList';
 export { LocalCommandExecution } from './localCommandExecutor';
