@@ -1,29 +1,29 @@
 #
 version: 2
 jobs:
-   build:
-     docker:
-       - image: circleci/node:8.9.4
-     environment:
-        - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
-        - SFDX_AUTOUPDATE_DISABLE=true
-        - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
-        - SFDX_DOMAIN_RETRY=300
+  build:
+    docker:
+      - image: circleci/node:8.9.4
+    environment:
+      - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+      - SFDX_AUTOUPDATE_DISABLE=true
+      - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
+      - SFDX_DOMAIN_RETRY=300
 
-     steps:
-       - checkout
-       - restore_cache:
+    steps:
+      - checkout
+      - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
-       - run: npm install
-       - run: npm run compile
-       - run: npm run vscode:package
-       - run:
+      - run: npm install
+      - run: npm run compile
+      - run: npm run vscode:package
+      - run:
           command: |
             mkdir extensions
             find . -name "*.vsix" -type f -exec cp {} ./extensions \;
-       - store_artifacts:
+      - store_artifacts:
           path: ./extensions
-       - save_cache:
+      - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - node_modules
@@ -35,7 +35,7 @@ workflows:
   scheduled-workflow:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: '0 0 * * *'
           filters:
             branches:
               only:
