@@ -20,7 +20,7 @@ const TITLE = 'force:apex:execute UI commands Tests';
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const ANONYMOUS_APEX_CODE = `List<Account> acc = [SELECT Id, Name FROM Account Limit 2]; System.debug(acc);`;
 
-describe(TITLE, () => {
+xdescribe(TITLE, () => {
   let app: SpectronApplication;
   let common: CommonActions;
 
