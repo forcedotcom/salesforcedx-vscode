@@ -78,10 +78,9 @@ describe('Variable assignment event', () => {
         'staticInteger'
       );
       expect(
-        context
-          .getStaticVariablesClassMap()
-          .get('signature')!
-          .get('staticInteger')
+        context.getStaticVariablesClassMap().get('signature')!.get(
+          'staticInteger'
+        )
       ).to.include({
         name: 'staticInteger',
         value: 'null'
@@ -92,10 +91,9 @@ describe('Variable assignment event', () => {
         'staticInteger'
       );
       expect(
-        context
-          .getStaticVariablesClassMap()
-          .get('signature')!
-          .get('staticInteger')
+        context.getStaticVariablesClassMap().get('signature')!.get(
+          'staticInteger'
+        )
       ).to.include({
         name: 'staticInteger',
         value: '5'
@@ -129,7 +127,7 @@ describe('Variable assignment event', () => {
     const LOCAL_NESTED_VARIABLE_SCOPE_BEGIN =
       'fakeTime|VARIABLE_SCOPE_BEGIN|[8]|this|NestedClass|true|false';
     const LOCAL_NESTED_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{}|${DUMMY_REF}`;
-    const LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{"a":"0x37e2e22e","b1":BLOB(5 bytes),"b2":BLOB(50 bytes),"d":3.14,"m":"0xff6e2ff","s":"MyObject.s"}|${DUMMY_REF}`;
+    const LOCAL_NESTED_JSON_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[8]|this|{"a":"0x37e2e22e","m":"0xff6e2ff","s":"MyObject.s"}|${DUMMY_REF}`;
     const LOCAL_NESTED_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[12]|this.s|"MyObject.s"|${DUMMY_REF}`;
     const LOCAL_NESTED_JSON_INNER_VARIABLE_ASSIGNMENT = `fakeTime|VARIABLE_ASSIGNMENT|[10]|this.a|{"Name":"MyObjectAccount"}|${DUMMY_REF}`;
     beforeEach(() => {
@@ -218,27 +216,13 @@ describe('Variable assignment event', () => {
       state.handle(context);
       expect(container.value).to.equal('');
       expect(container.variablesRef).to.not.equal(0);
-      expect(container.variables).to.have.keys([
-        'a',
-        'b1',
-        'b2',
-        'd',
-        'm',
-        's'
-      ]);
-      const VAR_VALUES = [
-        "'0x37e2e22e'",
-        'BLOB(5 bytes)',
-        'BLOB(50 bytes)',
-        '3.14',
-        "'0xff6e2ff'",
-        "'MyObject.s'"
-      ];
-      ['a', 'b1', 'b2', 'd', 'm', 's'].forEach((element, index) => {
+      expect(container.variables).to.have.keys(['a', 'm', 's']);
+      const VAR_VALUES = ['0x37e2e22e', '0xff6e2ff', 'MyObject.s'];
+      ['a', 'm', 's'].forEach((element, index) => {
         const innerContainer = container.variables.get(
           element
         ) as ApexVariableContainer;
-        expect(innerContainer.value).to.equal(`${VAR_VALUES[index]}`);
+        expect(innerContainer.value).to.equal(`'${VAR_VALUES[index]}'`);
         expect(innerContainer.variables).to.be.empty;
         expect(innerContainer.variablesRef).to.equal(0);
       });

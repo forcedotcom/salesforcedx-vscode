@@ -2,12 +2,12 @@ coverage:
   # See http://docs.codecov.io/docs/ignoring-paths
   ignore:
     # compiled output
-    - '**/out'
+    - "**/out"
     # dependencies
-    - '**/node_modules'
+    - "**/node_modules"
     # IDEs and editors
-    - '.vscode'
+    - ".vscode"
     # other (more specific)
-    - 'packages/salesforcedx-visualforce-markup-language-server/src/beautify' # This folder contains generated files that we have embedded
-    - 'packages/salesforcedx-visualforce-markup-language-server/src/parser/htmlTags.ts' # This file is a collection of all HTML tags
-    - 'packages/salesforcedx-visualforce-markup-language-server/src/parser/visualforceTags.ts' # This file is a collection of all Visualforce tags
+    - "packages/salesforcedx-visualforce-markup-language-server/src/beautify"  # This folder contains generated files that we have embedded
+    - "packages/salesforcedx-visualforce-markup-language-server/src/parser/htmlTags.ts"  # This file is a collection of all HTML tags
+    - "packages/salesforcedx-visualforce-markup-language-server/src/parser/visualforceTags.ts"  # This file is a collection of all Visualforce tags

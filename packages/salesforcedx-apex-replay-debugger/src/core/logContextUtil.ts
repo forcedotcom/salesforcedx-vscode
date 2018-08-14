@@ -31,12 +31,4 @@ export class LogContextUtil {
     const valueSplit = value.split('.');
     return valueSplit.length > 1 ? valueSplit[valueSplit.length - 1] : value;
   }
-
-  public surroundBlobsWithQuotes(value: string): string {
-    return value.replace(/(BLOB\(\d+ bytes\))/g, '"$1"');
-  }
-
-  public removeQuotesFromBlob(value: string): string {
-    return value.replace(/'(BLOB\(\d+ bytes\))'/g, '$1');
-  }
 }

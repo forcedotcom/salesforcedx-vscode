@@ -1,0 +1,97 @@
+language: node_js
+
+sudo: required
+
+node_js:
+  - "8"
+
+cache:
+  directories:
+    - $HOME/.npm
+
+notifications:
+  email: false
+
+matrix:
+  allow_failures:
+    - os: osx
+  fast_finish: true
+
+env:
+  global:
+    - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+    - SFDX_URL_OSX=https://developer.salesforce.com/media/salesforce-cli/sfdx-osx.pkg
+    - SFDX_AUTOUPDATE_DISABLE=true
+    - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
+    - SFDX_DOMAIN_RETRY=300
+
+os:
+  - linux
+  - osx
+
+osx_image: xcode9.1
+dist: trusty
+
+addons:
+  apt:
+    packages:
+      - libsecret-1-dev
+
+before_install:
+  - |
+    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0
+      sh -e /etc/init.d/xvfb start
+      sleep 3
+      # install CLI
+      echo Installing SFDX CLI Linux
+      mkdir sfdx
+      travis_retry wget -qO- https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz | tar xJf - -C sfdx --strip-components=1
+      "./sfdx/install"
+      export PATH=./sfdx/$(pwd):$PATH
+      travis_retry sfdx update
+      export SFDX_CI_KEY_LOCATION=/home/travis/devhub.key
+    fi
+  - |
+    if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+      # https://github.com/travis-ci/travis-ci/issues/6307
+      rvm get stable
+      # install CLI
+      echo Installing SFDX CLI macOS
+      travis_retry wget -q $SFDX_URL_OSX
+      sudo installer -pkg sfdx-osx.pkg -target /
+      travis_retry sfdx update
+      export SFDX_CI_KEY_LOCATION=/Users/travis/devhub.key
+    fi
+  - |
+    # the key should be stored in Travis Repository Setting, wrapped in quotes and newlines replaced with \n
+    echo -e $SFDX_CI_DEVHUB_JWTKEY > $SFDX_CI_KEY_LOCATION
+    sfdx force:auth:jwt:grant --clientid $SFDX_CI_DEVHUB_CLIENTID --username $SFDX_CI_DEVHUB_USERNAME --jwtkeyfile $SFDX_CI_KEY_LOCATION --setdefaultdevhubusername --setalias devhub
+    curl -sL https://raw.githubusercontent.com/travis-ci/artifacts/master/install | bash
+
+install:
+  - travis_retry npm install
+  - travis_retry npm install -g codecov 
+
+script:
+  - npm run compile
+  - npm run lint
+  - |
+    if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+      travis_wait 30 npm run test:without-system-tests
+      travis_wait 30 npm run coverage:system-tests
+    fi
+  - |
+    if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+      # Due to slowness of OS X on Travis
+      # https://github.com/travis-ci/travis-ci/issues/6095
+      travis_wait 30 npm run test:without-system-tests
+    fi
+  - codecov
+
+after_script:
+  - rm $SFDX_CI_KEY_LOCATION
+
+after_failure:
+  - find ./ -iname '*.log' -type f -print -exec cat '{}' \;
+  - find /home/travis/.npm/_logs/ -iname '*.log' -type f -print -exec cat '{}' \;
