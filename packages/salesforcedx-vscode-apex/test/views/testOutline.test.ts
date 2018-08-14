@@ -34,7 +34,7 @@ describe('TestView', () => {
   for (let i = 0; i < 8; i++) {
     const methodName = 'test' + i;
     const definingType = 'file' + Math.floor(i / 2); // Parent is either file1, file2, file3, or file4
-    const line = i / 2 * 4 + 3;
+    const line = (i / 2) * 4 + 3;
     const startPos = new vscode.Position(line, 0);
     const endPos = new vscode.Position(line, 5);
     const file = '/bogus/path/to/' + definingType + '.cls';
@@ -52,7 +52,7 @@ describe('TestView', () => {
   }
 
   describe('Get Tests and Create Tree', () => {
-    it('No tests in file', () => {
+    it('Should add no tests', () => {
       testOutline = new ApexTestOutlineProvider('/bogus/path', null);
       const expected = new ApexTestGroupNode('ApexTests', null);
       expected.description = NO_TESTS_DESCRIPTION;
@@ -61,7 +61,7 @@ describe('TestView', () => {
       );
     });
 
-    it('One test in file', () => {
+    it('Should create one test and one class', () => {
       testOutline = new ApexTestOutlineProvider(
         '/bogus/path/',
         apexTestInfo.slice(0, 1)
@@ -86,7 +86,7 @@ describe('TestView', () => {
       }
     });
 
-    it('8 tests in 4 files', () => {
+    it('Should update tests with 8 tests and 4 classes', () => {
       testOutline = new ApexTestOutlineProvider('/bogus/path/', apexTestInfo);
       if (testOutline.getHead()) {
         expect(testOutline.getHead().children.length).to.equal(4);
@@ -141,7 +141,7 @@ describe('TestView', () => {
       parseJSONStub.restore();
     });
 
-    it('Results from one passed test', () => {
+    it('Should update single test with Pass result', () => {
       parseJSONStub.callsFake(() => {
         return jsonSummaryOneFilePass;
       });
@@ -157,7 +157,7 @@ describe('TestView', () => {
       expect(testNode.outcome).to.equal('Pass');
     });
 
-    it('Results from 8 tests, 2 failing', () => {
+    it('Should update tests and test groups with 8 results, 6 passing and 2 failing', () => {
       parseJSONStub.callsFake(() => {
         return jsonSummaryMultipleFiles;
       });
@@ -166,7 +166,6 @@ describe('TestView', () => {
       let classNum = 0;
       expect(testOutline.getHead().children.length).to.equal(4);
       for (const testGroupNode of testOutline.getHead().children) {
-        console.log(classNum);
         let outcome = 'Pass';
         if (classNum === 0 || classNum === 3) {
           // Failing Class
@@ -176,7 +175,6 @@ describe('TestView', () => {
             // Tests 1 and 6 fail
             outcome = 'Fail';
           }
-          console.log(classNum + ':' + 0 + ':' + testNode.outcome);
           expect(testNode.outcome).to.equal(outcome);
           outcome = 'Pass';
           testNode = testGroupNode.children[1] as ApexTestNode;
@@ -184,16 +182,13 @@ describe('TestView', () => {
             // Tests 1 and 6 fail
             outcome = 'Fail';
           }
-          console.log(classNum + ':' + 1 + ':' + testNode.outcome);
           expect(testNode.outcome).to.equal(outcome);
         } else {
           // Passing class
           expect((testGroupNode as ApexTestGroupNode).passing).to.equal(2);
           let testNode = testGroupNode.children[0] as ApexTestNode;
-          console.log(classNum + ':' + 0 + ':' + testNode.outcome);
           expect(testNode.outcome).to.equal(outcome);
           testNode = testGroupNode.children[1] as ApexTestNode;
-          console.log(classNum + ':' + 1 + ':' + testNode.outcome);
           expect(testNode.outcome).to.equal(outcome);
         }
         classNum++;
