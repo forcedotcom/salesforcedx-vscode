@@ -155,7 +155,6 @@ export class VariableAssignmentState implements DebugLogState {
     logContext: LogContext
   ) {
     try {
-      value = logContext.getUtil().surroundBlobsWithQuotes(value);
       const obj = JSON.parse(value);
       Object.keys(obj).forEach(key => {
         const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
@@ -170,9 +169,6 @@ export class VariableAssignmentState implements DebugLogState {
           let varValue = obj[key];
           if (typeof varValue === 'string') {
             varValue = "'" + varValue + "'";
-            varValue = logContext.getUtil().removeQuotesFromBlob(varValue);
-          } else {
-            varValue = `${varValue}`;
           }
           container.variables.set(
             key,
