@@ -19,6 +19,7 @@ import {
   EVENT_CONSTRUCTOR_ENTRY,
   EVENT_CONSTRUCTOR_EXIT,
   EVENT_EXECUTE_ANONYMOUS,
+  EVENT_HEAP_DUMP,
   EVENT_METHOD_ENTRY,
   EVENT_METHOD_EXIT,
   EVENT_STATEMENT_EXECUTE,
@@ -281,7 +282,7 @@ describe('LogContext', () => {
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns([
         '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
-        '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
+        `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
       ]);
     getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns({
       name: 'ClassName1',
@@ -289,6 +290,10 @@ describe('LogContext', () => {
     } as StackFrame);
 
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+    context.setState(new LogEntryState());
+    context.parseLogEvent(
+      `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
+    );
 
     expect(context.scanLogForHeapDumpLines()).to.be.true;
     expect(context.hasHeapDumpForTopFrame()).to.equal('<HeapDumpId1>');
@@ -300,7 +305,7 @@ describe('LogContext', () => {
       .stub(LogContextUtil.prototype, 'readLogFile')
       .returns([
         '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
-        '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
+        `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
       ]);
     getTopFrameStub = sinon.stub(LogContext.prototype, 'getTopFrame').returns({
       name: 'ClassName1',
@@ -308,6 +313,10 @@ describe('LogContext', () => {
     } as StackFrame);
 
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
+    context.setState(new LogEntryState());
+    context.parseLogEvent(
+      `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
+    );
 
     expect(context.scanLogForHeapDumpLines()).to.be.true;
     expect(context.hasHeapDumpForTopFrame()).to.be.undefined;
