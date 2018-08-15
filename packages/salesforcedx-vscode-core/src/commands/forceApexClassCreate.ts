@@ -77,7 +77,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
 
-    telemetryService.sendCommandEvent('TEST_force_apex_class_create');
+    telemetryService.sendCommandEvent('force_apex_class_create');
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
