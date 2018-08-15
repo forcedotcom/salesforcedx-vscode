@@ -25,16 +25,12 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
-  public initializeService(context: vscode.ExtensionContext): void {
+  public initializeService(
+    context: vscode.ExtensionContext,
+    machineId: string
+  ): void {
     this.context = context;
-    const isDevMode =
-      vscode &&
-      vscode.env &&
-      vscode.env.machineId &&
-      vscode.env.machineId === 'someValue.machineId';
-    console.log('---------------------');
-    console.log('telemetryService initializeService, isDevMode = ' + isDevMode);
-    console.log('---------------------');
+    const isDevMode = machineId === 'someValue.machineId';
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
