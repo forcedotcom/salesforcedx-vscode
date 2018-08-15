@@ -95,12 +95,12 @@
         {
           "command": "sfdx.force.source.retrieve.current.file",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_org_is_non_scratch_org"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && (sfdx:default_org_is_non_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.deploy.current.file",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_org_is_non_scratch_org"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && (sfdx:default_org_is_non_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         }
       ],
       "explorer/context": [
@@ -147,12 +147,12 @@
         {
           "command": "sfdx.force.source.retrieve",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_org_is_non_scratch_org"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && (sfdx:default_org_is_non_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.deploy",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_org_is_non_scratch_org"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && (sfdx:default_org_is_non_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         }
       ],
       "commandPalette": [
@@ -180,37 +180,37 @@
         {
           "command": "sfdx.force.source.pull",
           "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_org_is_scratch_org"
+            "sfdx:project_opened && !sfdx:isv_debug_project && (sfdx:default_org_is_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.pull.force",
           "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_org_is_scratch_org"
+            "sfdx:project_opened && !sfdx:isv_debug_project && (sfdx:default_org_is_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.push",
           "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_org_is_scratch_org"
+            "sfdx:project_opened && !sfdx:isv_debug_project && (sfdx:default_org_is_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.push.force",
           "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_org_is_scratch_org"
+            "sfdx:project_opened && !sfdx:isv_debug_project && (sfdx:default_org_is_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.status",
           "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_org_is_scratch_org"
+            "sfdx:project_opened && !sfdx:isv_debug_project && (sfdx:default_org_is_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.status.local",
           "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_org_is_scratch_org"
+            "sfdx:project_opened && !sfdx:isv_debug_project && (sfdx:default_org_is_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.source.status.remote",
           "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_org_is_scratch_org"
+            "sfdx:project_opened && !sfdx:isv_debug_project && (sfdx:default_org_is_scratch_org || (sfdx:default_username_is_set && !sfdx:default_org_type_is_known))"
         },
         {
           "command": "sfdx.force.apex.test.run",
