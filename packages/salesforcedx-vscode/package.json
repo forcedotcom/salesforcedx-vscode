@@ -28,7 +28,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
   "categories": ["Extension Packs"],
-  "extensionDependencies": [
+  "extensionPack": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-debugger",
     "salesforce.salesforcedx-vscode-apex-replay-debugger",
