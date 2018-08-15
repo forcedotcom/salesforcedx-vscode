@@ -6,51 +6,38 @@ import {
   ForceOrgList
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
-export function setDefaultOrgTypeIsKnown(isKnown: boolean) {
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:default_org_type_is_known',
-    isKnown
-  );
-}
-
-export async function setDefaultUsernameIsSet() {
+export async function setupWorkspaceOrgType(isActivation?: boolean) {
   const defaultUsername = await getDefaultUsername();
   const defaultUsernameIsSet = typeof defaultUsername !== 'undefined';
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:default_username_is_set',
-    defaultUsernameIsSet
-  );
-}
 
-export async function setupWorkspaceOrgType() {
-  setTimeout(async () => {
-    const defaultUsername = await getDefaultUsername();
-    const defaultUsernameIsSet = typeof defaultUsername !== 'undefined';
-    vscode.commands.executeCommand(
-      'setContext',
-      'sfdx:default_username_is_set',
-      defaultUsernameIsSet
-    );
-
+  if (isActivation) {
+    setDefaultOrgIsScratchOrg(defaultUsernameIsSet);
+    setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet);
+  } else {
     let isScratchOrg = false;
     if (defaultUsernameIsSet) {
       const forceOrgList = new ForceOrgList();
       isScratchOrg = await forceOrgList.isScratchOrg(defaultUsername!);
     }
-    vscode.commands.executeCommand(
-      'setContext',
-      'sfdx:default_org_is_scratch_org',
-      defaultUsernameIsSet && isScratchOrg
-    );
-    vscode.commands.executeCommand(
-      'setContext',
-      'sfdx:default_org_is_non_scratch_org',
-      defaultUsernameIsSet && !isScratchOrg
-    );
-    setDefaultOrgTypeIsKnown(true);
-  }, 120000);
+    setDefaultOrgIsScratchOrg(defaultUsernameIsSet && isScratchOrg);
+    setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet && !isScratchOrg);
+  }
+}
+
+function setDefaultOrgIsScratchOrg(val: boolean) {
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:default_org_is_scratch_org',
+    val
+  );
+}
+
+function setDefaultOrgIsNonScratchOrg(val: boolean) {
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:default_org_is_non_scratch_org',
+    val
+  );
 }
 
 async function getDefaultUsername(): Promise<string | undefined> {

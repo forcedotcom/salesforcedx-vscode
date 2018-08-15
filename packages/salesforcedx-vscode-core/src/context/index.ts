@@ -1,6 +1,4 @@
 export {
-  setDefaultOrgTypeIsKnown,
-  setDefaultUsernameIsSet,
-  setupWorkspaceOrgType,
-  registerDefaultOrgWatcher
+  registerDefaultOrgWatcher,
+  setupWorkspaceOrgType
 } from './workspaceOrgType';
