@@ -27,7 +27,7 @@ export class ApexTestRunner {
   private eventsEmitter = new events.EventEmitter();
   constructor(testOutline: ApexTestOutlineProvider) {
     this.testOutline = testOutline;
-    this.eventsEmitter.on('sfdx:upate:selection', this.updateSelection);
+    this.eventsEmitter.on('sfdx:update_selection', this.updateSelection);
   }
 
   public async showErrorMessage(test: TestNode) {
@@ -53,7 +53,7 @@ export class ApexTestRunner {
     }
     if (test.location) {
       vscode.window.showTextDocument(test.location.uri).then(() => {
-        this.eventsEmitter.emit('sfdx:upate:selection', position);
+        this.eventsEmitter.emit('sfdx:update_selection', position);
       });
     }
   }
