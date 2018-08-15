@@ -36,7 +36,8 @@
     "shelljs": "^0.7.8",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "vscode-extension-telemetry": "0.0.17"
   },
   "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
@@ -56,6 +57,82 @@
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "test",
+          "title": "%test_view_container_title%",
+          "icon": "media/dep.svg"
+        }
+      ]
+    },
+    "views": {
+      "test": [
+        {
+          "id": "sfdx.force.test.view",
+          "name": "%test_view_name%"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "sfdx.force.test.view.run",
+          "when": "view == sfdx.force.test.view",
+          "group": "navigation"
+        },
+        {
+          "command": "sfdx.force.test.view.refresh",
+          "when": "view == sfdx.force.test.view",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "sfdx.force.test.view.showError",
+          "when": "view == sfdx.force.test.view"
+        },
+        {
+          "command": "sfdx.force.test.view.runSingleTest",
+          "when": "view == sfdx.force.test.view",
+          "group": "inline"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdx.force.test.view.run",
+        "title": "%run_tests_title%",
+        "icon": {
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.refresh",
+        "title": "%refresh_test_title%",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.showError",
+        "title": "%show_error_title%",
+        "icon": {
+          "light": "resources/light/document/notRun.svg",
+          "dark": "resources/dark/document/notRun.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.runSingleTest",
+        "title": "%run_single_test_title%",
+        "icon": {
+          "light": "resources/light/play-side.svg",
+          "dark": "resources/dark/play-side.svg"
+        }
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "%configuration_title%",
