@@ -1,5 +1,5 @@
 # version format
-version: "{branch}-{build}"
+version: '{branch}-{build}'
 
 # Do not build on tags (GitHub and BitBucket)
 skip_tags: true
@@ -24,7 +24,6 @@ install:
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
   - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile C:\projects\devhub.key --setdefaultdevhubusername --setalias devhub
 
-
 build_script:
   - npm run compile
   - npm run lint
@@ -42,7 +41,7 @@ test_script:
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
       npm run test:without-system-tests
-      npm run coverage:system-tests
+      #npm run coverage:system-tests
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
       $NpmTestsExitCode = $LastExitCode
