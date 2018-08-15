@@ -1,3 +1,4 @@
+import { AuthInfo } from '@salesforce/core';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -16,6 +17,8 @@ export async function setupWorkspaceOrgType(isActivation?: boolean) {
   } else {
     let isScratchOrg = false;
     if (defaultUsernameIsSet) {
+      const authInfo = await AuthInfo.create(defaultUsername);
+      console.log(authInfo);
       const forceOrgList = new ForceOrgList();
       isScratchOrg = await forceOrgList.isScratchOrg(defaultUsername!);
     }

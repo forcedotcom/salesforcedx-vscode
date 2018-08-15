@@ -23,6 +23,7 @@
   },
   "categories": ["Other"],
   "dependencies": {
+    "@salesforce/core": "^0.18.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "43.11.0",
     "@salesforce/salesforcedx-utils-vscode": "43.11.0",
     "adm-zip": "0.4.7",
@@ -38,7 +39,7 @@
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
     "@types/mocha": "2.2.38",
-    "@types/node": "^7.0.0",
+    "@types/node": "^8.0.0",
     "@types/path-exists": "^1.0.29",
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
