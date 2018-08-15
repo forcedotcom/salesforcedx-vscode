@@ -1,3 +1,1 @@
-describe('Setup workspace org type', () => {
-  
-});
+describe('Setup workspace org type', () => {});
