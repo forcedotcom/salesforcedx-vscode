@@ -32,6 +32,7 @@ import {
   EVENT_CONSTRUCTOR_ENTRY,
   EVENT_CONSTRUCTOR_EXIT,
   EVENT_EXECUTE_ANONYMOUS,
+  EVENT_HEAP_DUMP,
   EVENT_METHOD_ENTRY,
   EVENT_METHOD_EXIT,
   EVENT_STATEMENT_EXECUTE,
@@ -78,6 +79,8 @@ export class LogContext {
   private execAnonMapping: Map<number, number> = new Map();
 
   private apexHeapDumps: ApexHeapDump[] = [];
+  private lastSeenHeapDumpClass = '';
+  private lastSeenHeapDumpLine = -1;
   private backupStackFrameInfos = this.stackFrameInfos;
   private backupFrameHandles = this.frameHandles;
   private backupRefsMap = this.refsMap;
@@ -152,10 +155,19 @@ export class LogContext {
         topFrame.name,
         topFrame.line
       );
-      if (heapDump) {
+      if (
+        heapDump &&
+        topFrame.name.includes(this.lastSeenHeapDumpClass) &&
+        topFrame.line === this.lastSeenHeapDumpLine
+      ) {
         return heapDump.getHeapDumpId();
       }
     }
+  }
+
+  public resetLastSeenHeapDumpLogLine(): void {
+    this.lastSeenHeapDumpClass = '';
+    this.lastSeenHeapDumpLine = -1;
   }
 
   public isRunningApexTrigger(): boolean {
@@ -283,9 +295,9 @@ export class LogContext {
     } catch (error) {
       success = false;
       const result = JSON.parse(error) as OrgInfoError;
-      const errorMessage = `${nls.localize(
-        'unable_to_retrieve_org_info'
-      )} : ${result.message}`;
+      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
+        result.message
+      }`;
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;
@@ -467,6 +479,13 @@ export class LogContext {
           if (logLine.match(/.*\|.*\|\[\d{1,}\]\|.*\|.*/)) {
             fields[2] = this.util.stripBrackets(fields[2]);
             return new UserDebugState(fields);
+          }
+          break;
+        case EVENT_HEAP_DUMP:
+          if (logLine.match(/.+\|HEAP_DUMP|\[\d+\]|.+\|.+\|\d+/)) {
+            const splitLine = logLine.split('|');
+            this.lastSeenHeapDumpClass = splitLine[4];
+            this.lastSeenHeapDumpLine = Number(splitLine[6]);
           }
           break;
         default:

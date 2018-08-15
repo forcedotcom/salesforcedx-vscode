@@ -46,6 +46,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
     let getFrameHandlerStub: sinon.SinonStub;
     let copyStateForHeapDumpStub: sinon.SinonStub;
     let replaceVariablesWithHeapDumpStub: sinon.SinonStub;
+    let resetLastSeenHeapDumpLogLineStub: sinon.SinonStub;
     let response: DebugProtocol.ScopesResponse;
     let args: DebugProtocol.ScopesArguments;
     let frameHandler: Handles<ApexDebugStackFrameInfo>;
@@ -75,6 +76,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
       }
       if (replaceVariablesWithHeapDumpStub) {
         replaceVariablesWithHeapDumpStub.restore();
+      }
+      if (resetLastSeenHeapDumpLogLineStub) {
+        resetLastSeenHeapDumpLogLineStub.restore();
       }
     });
 
@@ -123,11 +127,16 @@ describe('Replay debugger adapter variable handling - unit', () => {
         HeapDumpService.prototype,
         'replaceVariablesWithHeapDump'
       );
+      resetLastSeenHeapDumpLogLineStub = sinon.stub(
+        LogContext.prototype,
+        'resetLastSeenHeapDumpLogLine'
+      );
 
       await adapter.scopesRequest(response, args);
 
       expect(copyStateForHeapDumpStub.calledOnce).to.be.true;
       expect(replaceVariablesWithHeapDumpStub.calledOnce).to.be.true;
+      expect(resetLastSeenHeapDumpLogLineStub.calledOnce).to.be.true;
     });
   });
 
