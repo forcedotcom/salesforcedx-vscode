@@ -5,23 +5,31 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
+import { LanguageClient } from 'vscode-languageclient/lib/main';
 import {
-  DEBUGGER_EXCEPTION_BREAKPOINTS,
-  DEBUGGER_LINE_BREAKPOINTS
-} from './constants';
+  getApexTests,
+  getExceptionBreakpointInfo,
+  getLineBreakpointInfo,
+  isLanguageClientReady,
+  LanguageClientUtils
+} from './languageClientUtils';
 import * as languageServer from './languageServer';
 import { telemetryService } from './telemetry';
+import { ApexTestOutlineProvider } from './views/testOutlineProvider';
+import { ApexTestRunner } from './views/testRunner';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
 let languageClient: LanguageClient | undefined;
-let languageClientReady = false;
 
 export async function activate(context: vscode.ExtensionContext) {
+  const rootPath = vscode.workspace.workspaceFolders![0].name;
+  const testOutlineProvider = new ApexTestOutlineProvider(rootPath, null);
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
     sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
@@ -35,39 +43,90 @@ export async function activate(context: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent();
 
   languageClient = await languageServer.createLanguageServer(context);
+  LanguageClientUtils.setClientInstance(languageClient);
   const handle = languageClient.start();
   context.subscriptions.push(handle);
 
-  languageClient.onReady().then(() => {
-    languageClientReady = true;
-  });
+  languageClient
+    .onReady()
+    .then(async () => {
+      LanguageClientUtils.languageClientReady = true;
+      await testOutlineProvider.refresh();
+    })
+    .catch(err => {
+      // Handled by clients
+    });
+
+  context.subscriptions.push(await registerTestView(testOutlineProvider));
 
   const exportedApi = {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
-    isLanguageClientReady
+    isLanguageClientReady,
+    getApexTests
   };
   return exportedApi;
 }
 
-async function getLineBreakpointInfo(): Promise<{}> {
-  let response = {};
-  if (languageClient) {
-    response = await languageClient.sendRequest(DEBUGGER_LINE_BREAKPOINTS);
-  }
-  return Promise.resolve(response);
+async function registerTestView(
+  testOutlineProvider: ApexTestOutlineProvider
+): Promise<vscode.Disposable> {
+  // Create TestRunner
+  const testRunner = new ApexTestRunner(testOutlineProvider);
+
+  // Test View
+  const testViewItems = new Array<vscode.Disposable>();
+
+  const testProvider = vscode.window.registerTreeDataProvider(
+    'sfdx.force.test.view',
+    testOutlineProvider
+  );
+  testViewItems.push(testProvider);
+
+  // Run Test Button on Test View command
+  testViewItems.push(
+    vscode.commands.registerCommand('sfdx.force.test.view.run', () =>
+      testRunner.runApexTests()
+    )
+  );
+  // Show Error Message command
+  testViewItems.push(
+    vscode.commands.registerCommand('sfdx.force.test.view.showError', test =>
+      testRunner.showErrorMessage(test)
+    )
+  );
+  // Run Single Test command
+  testViewItems.push(
+    vscode.commands.registerCommand(
+      'sfdx.force.test.view.runSingleTest',
+      test => testRunner.runSingleTest(test)
+    )
+  );
+  // Refresh Test View command
+  testViewItems.push(
+    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () =>
+      testOutlineProvider.refresh()
+    )
+  );
+
+  return vscode.Disposable.from(...testViewItems);
 }
 
-async function getExceptionBreakpointInfo(): Promise<{}> {
-  let response = {};
-  if (languageClient) {
-    response = await languageClient.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS);
+export async function getApexClassFiles(): Promise<vscode.Uri[]> {
+  const jsonProject = (await vscode.workspace.findFiles(
+    '**/sfdx-project.json'
+  ))[0];
+  const innerText = fs.readFileSync(jsonProject.path);
+  const jsonObject = JSON.parse(innerText.toString());
+  const packageDirectories =
+    jsonObject.packageDirectories || jsonObject.PackageDirectories;
+  const allClasses = new Array<vscode.Uri>();
+  for (const packageDirectory of packageDirectories) {
+    const pattern = path.join(packageDirectory.path, '**/*.cls');
+    const apexClassFiles = await vscode.workspace.findFiles(pattern);
+    allClasses.push(...apexClassFiles);
   }
-  return Promise.resolve(response);
-}
-
-function isLanguageClientReady(): boolean {
-  return languageClientReady;
+  return allClasses;
 }
 
 // tslint:disable-next-line:no-empty
