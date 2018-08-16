@@ -13,131 +13,192 @@ import { TelemetryService } from '../../src/telemetry/telemetry';
 import { MockContext } from './MockContext';
 
 describe('Telemetry', () => {
+  const machineId = '45678903';
   let mShowInformation: SinonStub;
   let settings: SinonStub;
   let mockContext: MockContext;
   let reporter: SinonStub;
 
-  beforeEach(() => {
-    mShowInformation = stub(window, 'showInformationMessage').returns(
-      Promise.resolve(null)
-    );
-    settings = stub(SfdxCoreSettings.prototype, 'getTelemetryEnabled').returns(
-      true
-    );
-    reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
+  describe('in dev mode', () => {
+    beforeEach(() => {
+      mShowInformation = stub(window, 'showInformationMessage').returns(
+        Promise.resolve(null)
+      );
+      settings = stub(
+        SfdxCoreSettings.prototype,
+        'getTelemetryEnabled'
+      ).returns(true);
+    });
+
+    afterEach(() => {
+      mShowInformation.restore();
+      settings.restore();
+    });
+
+    it('Should not initialize telemetry reporter', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, 'someValue.machineId');
+
+      const telemetryReporter = telemetryService.getReporter();
+      expect(typeof telemetryReporter).to.be.eql('undefined');
+    });
+
+    it('Should show telemetry info message', async () => {
+      // create vscode extensionContext in which telemetry msg has never been previously shown
+      mockContext = new MockContext(false);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, 'someValue.machineId');
+
+      const telemetryEnabled = telemetryService.isTelemetryEnabled();
+      expect(telemetryEnabled).to.be.eql(true);
+
+      telemetryService.showTelemetryMessage();
+      assert.calledOnce(mShowInformation);
+    });
+
+    it('Should not show telemetry info message', async () => {
+      // create vscode extensionContext in which telemetry msg has been previously shown
+      mockContext = new MockContext(true);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, 'someValue.machineId');
+
+      const telemetryEnabled = telemetryService.isTelemetryEnabled();
+      expect(telemetryEnabled).to.be.eql(true);
+
+      telemetryService.showTelemetryMessage();
+      assert.notCalled(mShowInformation);
+    });
   });
 
-  afterEach(() => {
-    mShowInformation.restore();
-    settings.restore();
-    reporter.restore();
-  });
+  describe('production mode', () => {
+    beforeEach(() => {
+      mShowInformation = stub(window, 'showInformationMessage').returns(
+        Promise.resolve(null)
+      );
+      settings = stub(
+        SfdxCoreSettings.prototype,
+        'getTelemetryEnabled'
+      ).returns(true);
+      reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
+    });
 
-  it('Should show telemetry info message', async () => {
-    // create vscode extensionContext in which telemetry msg has never been previously shown
-    mockContext = new MockContext(false);
+    afterEach(() => {
+      mShowInformation.restore();
+      settings.restore();
+      reporter.restore();
+    });
 
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext);
+    it('Should show telemetry info message', async () => {
+      // create vscode extensionContext in which telemetry msg has never been previously shown
+      mockContext = new MockContext(false);
 
-    const telemetryEnabled = telemetryService.isTelemetryEnabled();
-    expect(telemetryEnabled).to.be.eql(true);
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
 
-    telemetryService.showTelemetryMessage();
-    assert.calledOnce(mShowInformation);
-  });
+      const telemetryEnabled = telemetryService.isTelemetryEnabled();
+      expect(telemetryEnabled).to.be.eql(true);
 
-  it('Should not show telemetry info message', async () => {
-    // create vscode extensionContext in which telemetry msg has been previously shown
-    mockContext = new MockContext(true);
+      telemetryService.showTelemetryMessage();
+      assert.calledOnce(mShowInformation);
+    });
 
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext);
+    it('Should not show telemetry info message', async () => {
+      // create vscode extensionContext in which telemetry msg has been previously shown
+      mockContext = new MockContext(true);
 
-    const telemetryEnabled = telemetryService.isTelemetryEnabled();
-    expect(telemetryEnabled).to.be.eql(true);
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
 
-    telemetryService.showTelemetryMessage();
-    assert.notCalled(mShowInformation);
-  });
+      const telemetryEnabled = telemetryService.isTelemetryEnabled();
+      expect(telemetryEnabled).to.be.eql(true);
 
-  it('Should send telemetry data', async () => {
-    // create vscode extensionContext in which telemetry msg has been previously shown
-    mockContext = new MockContext(true);
+      telemetryService.showTelemetryMessage();
+      assert.notCalled(mShowInformation);
+    });
 
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext);
+    it('Should send telemetry data', async () => {
+      // create vscode extensionContext in which telemetry msg has been previously shown
+      mockContext = new MockContext(true);
 
-    telemetryService.sendExtensionActivationEvent();
-    assert.calledOnce(reporter);
-  });
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
 
-  it('Should not send telemetry data', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext(true);
-    // user has updated settings for not sending telemetry data.
-    settings.restore();
-    settings = stub(SfdxCoreSettings.prototype, 'getTelemetryEnabled').returns(
-      false
-    );
+      telemetryService.sendExtensionActivationEvent();
+      assert.calledOnce(reporter);
+    });
 
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext);
+    it('Should not send telemetry data', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
+      // user has updated settings for not sending telemetry data.
+      settings.restore();
+      settings = stub(
+        SfdxCoreSettings.prototype,
+        'getTelemetryEnabled'
+      ).returns(false);
 
-    const telemetryEnabled = telemetryService.isTelemetryEnabled();
-    expect(telemetryEnabled).to.be.eql(false);
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
 
-    telemetryService.sendCommandEvent('create_apex_class_command');
-    assert.notCalled(reporter);
-  });
+      const telemetryEnabled = telemetryService.isTelemetryEnabled();
+      expect(telemetryEnabled).to.be.eql(false);
 
-  it('Should send correct data format on sendExtensionActivationEvent', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext(true);
+      telemetryService.sendCommandEvent('create_apex_class_command');
+      assert.notCalled(reporter);
+    });
 
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext);
+    it('Should send correct data format on sendExtensionActivationEvent', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
 
-    telemetryService.sendExtensionActivationEvent();
-    assert.calledOnce(reporter);
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-core'
-    };
-    assert.calledWith(reporter, 'activationEvent', expectedData);
-  });
+      telemetryService.sendExtensionActivationEvent();
+      assert.calledOnce(reporter);
 
-  it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext(true);
+      const expectedData = {
+        extensionName: 'salesforcedx-vscode-core'
+      };
+      assert.calledWith(reporter, 'activationEvent', expectedData);
+    });
 
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext);
+    it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
 
-    telemetryService.sendExtensionDeactivationEvent();
-    assert.calledOnce(reporter);
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-core'
-    };
-    assert.calledWith(reporter, 'deactivationEvent', expectedData);
-  });
+      telemetryService.sendExtensionDeactivationEvent();
+      assert.calledOnce(reporter);
 
-  it('Should send correct data format on sendCommandEvent', async () => {
-    // create vscode extensionContext
-    mockContext = new MockContext(true);
+      const expectedData = {
+        extensionName: 'salesforcedx-vscode-core'
+      };
+      assert.calledWith(reporter, 'deactivationEvent', expectedData);
+    });
 
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(mockContext);
+    it('Should send correct data format on sendCommandEvent', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
 
-    telemetryService.sendCommandEvent('create_apex_class_command');
-    assert.calledOnce(reporter);
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-core',
-      commandName: 'create_apex_class_command'
-    };
-    assert.calledWith(reporter, 'commandExecution', expectedData);
+      telemetryService.sendCommandEvent('create_apex_class_command');
+      assert.calledOnce(reporter);
+
+      const expectedData = {
+        extensionName: 'salesforcedx-vscode-core',
+        commandName: 'create_apex_class_command'
+      };
+      assert.calledWith(reporter, 'commandExecution', expectedData);
+    });
   });
 });
