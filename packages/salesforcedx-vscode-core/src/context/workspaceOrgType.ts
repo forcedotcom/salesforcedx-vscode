@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
-export async function setupWorkspaceOrgType(isActivation?: boolean) {
+export async function setupWorkspaceOrgType() {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
   const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
   let isScratchOrg = false;
