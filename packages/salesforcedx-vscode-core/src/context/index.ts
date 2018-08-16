@@ -1,4 +1,4 @@
 export {
-  registerDefaultOrgWatcher,
+  registerDefaultUsernameWatcher,
   setupWorkspaceOrgType
 } from './workspaceOrgType';

@@ -63,7 +63,10 @@ import {
   SFDX_CLIENT_ENV_VAR,
   TERMINAL_INTEGRATED_ENVS
 } from './constants';
-import { registerDefaultOrgWatcher, setupWorkspaceOrgType } from './context';
+import {
+  registerDefaultUsernameWatcher,
+  setupWorkspaceOrgType
+} from './context';
 import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
@@ -422,8 +425,8 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Set context for default workspace org
-  await setupWorkspaceOrgType(true);
-  registerDefaultOrgWatcher(context);
+  await setupWorkspaceOrgType();
+  registerDefaultUsernameWatcher(context);
 
   // Commands
   const commands = registerCommands(context);

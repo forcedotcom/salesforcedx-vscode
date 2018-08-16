@@ -14,17 +14,18 @@ export async function setupWorkspaceOrgType() {
       isScratchOrg = await isAScratchOrg(username);
     } catch (e) {
       if (e.name === 'NamedOrgNotFound') {
-        // TODO: what should we do in this case? Expose all source commands by default?
-        setDefaultOrgIsScratchOrg(true);
-        setDefaultOrgIsNonScratchOrg(true);
+        // If the info for a default username cannot be found,
+        // then assume that the org can be of either type
+        setDefaultUsernameHasChangeTracking(true);
+        setDefaultUsernameHasNoChangeTracking(true);
         return;
       } else {
         throw e;
       }
     }
   }
-  setDefaultOrgIsScratchOrg(defaultUsernameIsSet && isScratchOrg);
-  setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet && !isScratchOrg);
+  setDefaultUsernameHasChangeTracking(defaultUsernameIsSet && isScratchOrg);
+  setDefaultUsernameHasNoChangeTracking(defaultUsernameIsSet && !isScratchOrg);
 }
 
 async function isAScratchOrg(username: string): Promise<boolean> {
@@ -45,18 +46,18 @@ async function getUsername(usernameOrAlias: string): Promise<string> {
   return Promise.resolve(usernameOrAlias);
 }
 
-function setDefaultOrgIsScratchOrg(val: boolean) {
+function setDefaultUsernameHasChangeTracking(val: boolean) {
   vscode.commands.executeCommand(
     'setContext',
-    'sfdx:default_org_is_scratch_org',
+    'sfdx:default_username_has_change_tracking',
     val
   );
 }
 
-function setDefaultOrgIsNonScratchOrg(val: boolean) {
+function setDefaultUsernameHasNoChangeTracking(val: boolean) {
   vscode.commands.executeCommand(
     'setContext',
-    'sfdx:default_org_is_non_scratch_org',
+    'sfdx:default_username_has_no_change_tracking',
     val
   );
 }
@@ -74,7 +75,9 @@ async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   }
 }
 
-export function registerDefaultOrgWatcher(context: vscode.ExtensionContext) {
+export function registerDefaultUsernameWatcher(
+  context: vscode.ExtensionContext
+) {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
