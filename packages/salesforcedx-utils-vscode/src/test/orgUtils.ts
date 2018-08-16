@@ -197,11 +197,9 @@ export function addFeatureToScratchOrgConfig(
     featuresList += feature;
     config.features = featuresList;
   }
-  fs.writeFileSync(
-    scratchDefFilePath,
-    JSON.stringify(config, null, '\t'),
-    'utf8'
-  );
+  fs.writeFileSync(scratchDefFilePath, JSON.stringify(config, null, '\t'), {
+    encoding: 'utf8'
+  });
 }
 
 export function pathToUri(str: string): string {
