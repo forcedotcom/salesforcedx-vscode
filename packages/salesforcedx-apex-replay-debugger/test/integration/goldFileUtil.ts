@@ -29,7 +29,9 @@ export class GoldFileUtil {
   }
 
   public close(): void {
-    fs.writeFileSync(this.goldFilePath, this.golds.join('\n'), 'utf-8');
+    fs.writeFileSync(this.goldFilePath, this.golds.join('\n'), {
+      encoding: 'utf8'
+    });
   }
 
   public async assertTopState(
