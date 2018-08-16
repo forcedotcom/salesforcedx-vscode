@@ -2,37 +2,29 @@ import { Aliases, AuthInfo } from '@salesforce/core';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import {
-  ForceConfigGet,
-  ForceOrgList
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 export async function setupWorkspaceOrgType(isActivation?: boolean) {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
   const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-  if (isActivation) {
-    setDefaultOrgIsScratchOrg(defaultUsernameIsSet);
-    setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet);
-  } else {
-    let isScratchOrg = false;
-    if (defaultUsernameIsSet) {
-      const username = await getUsername(defaultUsernameOrAlias!);
-      try {
-        isScratchOrg = await isAScratchOrg(username);
-      } catch (e) {
-        if (e.name === 'NamedOrgNotFound') {
-          // TODO: what should we do in this case? Expose all source commands by default?
-          setDefaultOrgIsScratchOrg(true);
-          setDefaultOrgIsNonScratchOrg(true);
-          return;
-        } else {
-          throw e;
-        }
+  let isScratchOrg = false;
+  if (defaultUsernameIsSet) {
+    const username = await getUsername(defaultUsernameOrAlias!);
+    try {
+      isScratchOrg = await isAScratchOrg(username);
+    } catch (e) {
+      if (e.name === 'NamedOrgNotFound') {
+        // TODO: what should we do in this case? Expose all source commands by default?
+        setDefaultOrgIsScratchOrg(true);
+        setDefaultOrgIsNonScratchOrg(true);
+        return;
+      } else {
+        throw e;
       }
     }
-    setDefaultOrgIsScratchOrg(defaultUsernameIsSet && isScratchOrg);
-    setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet && !isScratchOrg);
   }
+  setDefaultOrgIsScratchOrg(defaultUsernameIsSet && isScratchOrg);
+  setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet && !isScratchOrg);
 }
 
 async function isAScratchOrg(username: string): Promise<boolean> {
@@ -41,12 +33,16 @@ async function isAScratchOrg(username: string): Promise<boolean> {
   return Promise.resolve(typeof authInfoFields.devHubUsername !== 'undefined');
 }
 
-async function getUsername(usernameOrAlias: string) {
+/**
+ * Returns the non-aliased username
+ * @param usernameOrAlias
+ */
+async function getUsername(usernameOrAlias: string): Promise<string> {
   const username = await Aliases.fetch(usernameOrAlias);
   if (username) {
-    return username;
+    return Promise.resolve(username);
   }
-  return usernameOrAlias;
+  return Promise.resolve(usernameOrAlias);
 }
 
 function setDefaultOrgIsScratchOrg(val: boolean) {
