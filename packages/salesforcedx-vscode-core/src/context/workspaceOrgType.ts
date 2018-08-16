@@ -1,4 +1,4 @@
-import { AuthInfo } from '@salesforce/core';
+import { Aliases, AuthInfo } from '@salesforce/core';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -8,23 +8,45 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 export async function setupWorkspaceOrgType(isActivation?: boolean) {
-  const defaultUsername = await getDefaultUsername();
-  const defaultUsernameIsSet = typeof defaultUsername !== 'undefined';
-
+  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
+  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
   if (isActivation) {
     setDefaultOrgIsScratchOrg(defaultUsernameIsSet);
     setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet);
   } else {
     let isScratchOrg = false;
     if (defaultUsernameIsSet) {
-      const authInfo = await AuthInfo.create(defaultUsername);
-      console.log(authInfo);
-      const forceOrgList = new ForceOrgList();
-      isScratchOrg = await forceOrgList.isScratchOrg(defaultUsername!);
+      const username = await getUsername(defaultUsernameOrAlias!);
+      try {
+        isScratchOrg = await isAScratchOrg(username);
+      } catch (e) {
+        if (e.name === 'NamedOrgNotFound') {
+          // TODO: what should we do in this case? Expose all source commands by default?
+          setDefaultOrgIsScratchOrg(true);
+          setDefaultOrgIsNonScratchOrg(true);
+          return;
+        } else {
+          throw e;
+        }
+      }
     }
     setDefaultOrgIsScratchOrg(defaultUsernameIsSet && isScratchOrg);
     setDefaultOrgIsNonScratchOrg(defaultUsernameIsSet && !isScratchOrg);
   }
+}
+
+async function isAScratchOrg(username: string): Promise<boolean> {
+  const authInfo = await AuthInfo.create(username);
+  const authInfoFields = authInfo.getFields();
+  return Promise.resolve(typeof authInfoFields.devHubUsername !== 'undefined');
+}
+
+async function getUsername(usernameOrAlias: string) {
+  const username = await Aliases.fetch(usernameOrAlias);
+  if (username) {
+    return username;
+  }
+  return usernameOrAlias;
 }
 
 function setDefaultOrgIsScratchOrg(val: boolean) {
@@ -43,7 +65,7 @@ function setDefaultOrgIsNonScratchOrg(val: boolean) {
   );
 }
 
-async function getDefaultUsername(): Promise<string | undefined> {
+async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
