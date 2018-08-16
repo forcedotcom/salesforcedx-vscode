@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "43.11.0",
+  "version": "43.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,8 +23,8 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "43.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "43.11.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "43.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.12.0",
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -71,7 +71,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "onCommand:sfdx.force.project.create",
-    "onCommand:sfdx.force.create.change.set.based",
+    "onCommand:sfdx.force.project.with.manifest.create",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
   "main": "./out/src",
@@ -285,7 +285,7 @@
           "command": "sfdx.force.project.create"
         },
         {
-          "command": "sfdx.force.create.change.set.based",
+          "command": "sfdx.force.project.with.manifest.create",
           "when":
             "config.salesforcedx-vscode-core.change_set_based_tools.enabled"
         },
@@ -488,8 +488,8 @@
         "title": "%force_project_create_text%"
       },
       {
-        "command": "sfdx.force.create.change.set.based",
-        "title": "%force_project_create_change_set_based_text%"
+        "command": "sfdx.force.project.with.manifest.create",
+        "title": "%force_project_with_manifest_create_text%"
       },
       {
         "command": "sfdx.force.apex.trigger.create",

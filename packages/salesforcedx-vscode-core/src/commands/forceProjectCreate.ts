@@ -32,7 +32,7 @@ import {
 } from './commands';
 
 type forceProjectCreateOptions = {
-  isChangeSetBasedProject: boolean;
+  isProjectWithManifest: boolean;
 };
 
 export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
@@ -40,7 +40,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
 > {
   private readonly options: forceProjectCreateOptions;
 
-  public constructor(options = { isChangeSetBasedProject: false }) {
+  public constructor(options = { isProjectWithManifest: false }) {
     super();
     this.options = options;
   }
@@ -52,7 +52,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--projectname', data.projectName)
       .withFlag('--outputdir', data.projectUri);
 
-    if (this.options.isChangeSetBasedProject) {
+    if (this.options.isProjectWithManifest) {
       builder.withArg('--manifest');
     }
 
@@ -182,12 +182,12 @@ export async function forceSfdxProjectCreate() {
   await sfdxProjectCreateCommandlet.run();
 }
 
-const changeSetProjectCreateCommandlet = new SfdxCommandlet(
+const projectWithManifestCreateCommandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
-  new ForceProjectCreateExecutor({ isChangeSetBasedProject: true }),
+  new ForceProjectCreateExecutor({ isProjectWithManifest: true }),
   pathExistsChecker
 );
-export async function forceChangeSetProjectCreate() {
-  await changeSetProjectCreateCommandlet.run();
+export async function forceProjectWithManifestCreate() {
+  await projectWithManifestCreateCommandlet.run();
 }
