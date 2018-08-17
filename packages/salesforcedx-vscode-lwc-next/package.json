@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.11.0",
+  "version": "43.12.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,7 +23,7 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "43.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.12.0",
     "ajv": "^6.1.1",
     "eslint": "4.16.0",
     "eslint-plugin-lwc": "0.4.0",
@@ -35,7 +35,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
-    "@types/node": "^6.0.40",
+    "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "^5.0.5",

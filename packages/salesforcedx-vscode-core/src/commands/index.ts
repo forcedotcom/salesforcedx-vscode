@@ -7,6 +7,7 @@
 
 export {
   CompositeParametersGatherer,
+  EmptyParametersGatherer,
   SelectFileName,
   SelectStrictDirPath,
   SfdxCommandlet,
@@ -21,7 +22,8 @@ export {
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
-  forceApexTestMethodRunCodeActionDelegate
+  forceApexTestMethodRunCodeActionDelegate,
+  ForceApexTestRunCodeActionExecutor
 } from './forceApexTestRunCodeAction';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';

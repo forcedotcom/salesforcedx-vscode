@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "43.11.0",
+  "version": "43.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,9 +23,14 @@
   },
   "categories": ["Other"],
   "dependencies": {
+<<<<<<< HEAD
     "@salesforce/core": "^0.18.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "43.11.0",
     "@salesforce/salesforcedx-utils-vscode": "43.11.0",
+=======
+    "@salesforce/salesforcedx-sobjects-faux-generator": "43.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.12.0",
+>>>>>>> develop
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -39,7 +44,11 @@
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
     "@types/mocha": "2.2.38",
+<<<<<<< HEAD
     "@types/node": "^8.0.0",
+=======
+    "@types/node": "8.9.3",
+>>>>>>> develop
     "@types/path-exists": "^1.0.29",
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
