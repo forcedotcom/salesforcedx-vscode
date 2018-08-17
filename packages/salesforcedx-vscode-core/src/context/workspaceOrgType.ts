@@ -16,6 +16,7 @@ export async function setupWorkspaceOrgType() {
       if (e.name === 'NamedOrgNotFound') {
         // If the info for a default username cannot be found,
         // then assume that the org can be of either type
+        console.log('setting defaultUsername inside of enoent catch -- true');
         setDefaultUsernameHasChangeTracking(true);
         setDefaultUsernameHasNoChangeTracking(true);
         return;
@@ -24,6 +25,10 @@ export async function setupWorkspaceOrgType() {
       }
     }
   }
+
+  console.log(
+    `setting defaultUsername to defaultUsernameIsSet: ${defaultUsernameIsSet} && isScratchOrg: ${isScratchOrg}`
+  );
   setDefaultUsernameHasChangeTracking(defaultUsernameIsSet && isScratchOrg);
   setDefaultUsernameHasNoChangeTracking(defaultUsernameIsSet && !isScratchOrg);
 }
