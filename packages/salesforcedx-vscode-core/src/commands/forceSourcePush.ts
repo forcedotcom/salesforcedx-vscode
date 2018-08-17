@@ -30,7 +30,8 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('force_source_push_default_scratch_org_text')
       )
-      .withArg('force:source:push');
+      .withArg('force:source:push')
+      .withLogName('force_source_push_default_scratch_org');
     if (this.flag === '--forceoverwrite') {
       builder.withArg(this.flag);
       builder.withDescription(

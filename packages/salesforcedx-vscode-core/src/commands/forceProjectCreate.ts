@@ -50,7 +50,8 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
       .withDescription(nls.localize('force_project_create_text'))
       .withArg('force:project:create')
       .withFlag('--projectname', data.projectName)
-      .withFlag('--outputdir', data.projectUri);
+      .withFlag('--outputdir', data.projectUri)
+      .withLogName('force_project_create');
 
     if (this.options.isProjectWithManifest) {
       builder.withArg('--manifest');
@@ -82,6 +83,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
+    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);

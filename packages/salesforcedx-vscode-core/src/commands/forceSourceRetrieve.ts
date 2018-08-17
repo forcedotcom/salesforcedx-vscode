@@ -33,8 +33,10 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
       .withArg('force:source:retrieve');
     if (data.type === FileType.Manifest) {
       commandBuilder.withFlag('--manifest', data.filePath);
+      commandBuilder.withLogName('force_source_retrieve_with_manifest');
     } else {
       commandBuilder.withFlag('--sourcepath', data.filePath);
+      commandBuilder.withLogName('force_source_retrieve_with_sourcepath');
     }
     return commandBuilder.build();
   }

@@ -27,7 +27,8 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   public build(data: SelectedPath): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_deploy_text'))
-      .withArg('force:source:deploy');
+      .withArg('force:source:deploy')
+      .withLogName('force_source_deploy');
     if (data.type === FileType.Manifest) {
       commandBuilder.withFlag('--manifest', data.filePath);
     } else {

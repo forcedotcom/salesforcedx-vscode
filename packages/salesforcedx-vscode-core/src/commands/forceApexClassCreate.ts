@@ -21,7 +21,6 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
-import { telemetryService } from '../telemetry';
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
@@ -43,6 +42,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--classname', data.fileName)
       .withFlag('--template', 'DefaultApexClass')
       .withFlag('--outputdir', data.outputdir)
+      .withLogName('force_apex_class_create')
       .build();
   }
 
@@ -77,7 +77,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
 
-    telemetryService.sendCommandEvent('force_apex_class_create');
+    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);

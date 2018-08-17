@@ -29,6 +29,7 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('force:auth:web:login')
       .withArg('--setdefaultdevhubusername')
+      .withLogName('force_auth_dev_hub')
       .build();
   }
 }
@@ -43,6 +44,7 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
       .withArg('--setdefaultdevhubusername')
       .withArg('--noprompt')
       .withJson()
+      .withLogName('force_auth_dev_hub_demo_mode')
       .build();
   }
 }

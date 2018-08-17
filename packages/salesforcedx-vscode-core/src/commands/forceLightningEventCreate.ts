@@ -42,6 +42,7 @@ class ForceLightningEventCreateExecutor extends SfdxCommandletExecutor<
       .withArg('force:lightning:event:create')
       .withFlag('--eventname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
+      .withLogName('force_lightning_event_create')
       .build();
   }
 
@@ -77,6 +78,7 @@ class ForceLightningEventCreateExecutor extends SfdxCommandletExecutor<
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
+    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);

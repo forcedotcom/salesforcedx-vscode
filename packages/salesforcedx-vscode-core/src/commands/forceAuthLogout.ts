@@ -30,6 +30,7 @@ export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
       .withArg('force:auth:logout')
       .withArg('--all')
       .withArg('--noprompt')
+      .withLogName('force_auth_logout')
       .build();
   }
 }

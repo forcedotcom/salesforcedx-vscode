@@ -27,9 +27,12 @@ class ForceDataSoqlQueryExecutor extends SfdxCommandletExecutor<{}> {
     let command = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_data_soql_query_input_text'))
       .withArg('force:data:soql:query')
-      .withFlag('--query', `${data.query}`);
+      .withFlag('--query', `${data.query}`)
+      .withLogName('force_data_soql_query');
     if (data.api === ApiType.Tooling) {
-      command = command.withArg('--usetoolingapi');
+      command = command
+        .withArg('--usetoolingapi')
+        .withLogName('force_data_soql_query_tooling');
     }
     return command.build();
   }

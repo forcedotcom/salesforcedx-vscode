@@ -45,6 +45,7 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<Alias> {
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
       .withArg('--setdefaultusername')
+      .withLogName('force_auth_web_login')
       .build();
   }
 }
@@ -64,7 +65,7 @@ export abstract class ForceAuthDemoModeExecutor<
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-
+    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
@@ -96,6 +97,7 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
       .withArg('--setdefaultusername')
       .withArg('--noprompt')
       .withJson()
+      .withLogName('force_auth_web_login_demo_mode')
       .build();
   }
 }

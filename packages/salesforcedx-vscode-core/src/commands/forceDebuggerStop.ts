@@ -66,6 +66,7 @@ export class DebuggerSessionDetachExecutor extends SfdxCommandletExecutor<
       .withFlag('--sobjectid', data ? data.id : '')
       .withFlag('--values', 'Status="Detach"')
       .withArg('--usetoolingapi')
+      .withLogName('force_debugger_stop')
       .build();
   }
 }
@@ -81,6 +82,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
       )
       .withArg('--usetoolingapi')
       .withJson()
+      .withLogName('force_debugger_query_session')
       .build();
   }
 
@@ -93,6 +95,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     }).execute(cancellationToken);
 
     const resultPromise = new CommandOutput().getCmdResult(execution);
+    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     ProgressNotification.show(execution, cancellationTokenSource);

@@ -20,6 +20,7 @@ import * as vscode from 'vscode';
 import { developerLogTraceFlag } from '.';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -40,6 +41,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    this.logMetric(execution.command.logName);
     execution.processExitSubject.subscribe(async data => {
       if (data !== undefined && data.toString() === '0') {
         developerLogTraceFlag.turnOffLogging();
@@ -54,6 +56,7 @@ export async function turnOffLogging(): Promise<void> {
     const execution = new CliCommandExecutor(deleteTraceFlag(), {
       cwd: vscode.workspace.rootPath
     }).execute();
+    telemetryService.sendCommandEvent(execution.command.logName);
     const resultPromise = new CommandOutput().getCmdResult(execution);
     const result = await resultPromise;
     const resultJson = JSON.parse(result);
@@ -73,6 +76,7 @@ function deleteTraceFlag(): Command {
     .withFlag('--sobjecttype', 'TraceFlag')
     .withFlag('--sobjectid', nonNullTraceFlag)
     .withArg('--usetoolingapi')
+    .withLogName('force_stop_apex_debug_logging')
     .build();
 }
 class ActiveLogging implements ParametersGatherer<{}> {
