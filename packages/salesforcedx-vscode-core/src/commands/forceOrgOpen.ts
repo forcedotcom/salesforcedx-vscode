@@ -22,6 +22,7 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
       .withArg('force:org:open')
+      .withLogName('force_org_open_default_scratch_org')
       .build();
   }
 }

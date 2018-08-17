@@ -26,6 +26,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
+import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
 export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
@@ -33,9 +34,9 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
   private cancellationToken = this.cancellationTokenSource.token;
 
   public build(): Command {
-    return new CommandBuilder(
-      nls.localize('force_start_apex_debug_logging')
-    ).build();
+    return new CommandBuilder(nls.localize('force_start_apex_debug_logging'))
+      .withLogName('force_start_apex_debug_logging')
+      .build();
   }
 
   public attachSubExecution(execution: CommandExecution) {
@@ -52,6 +53,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       this.cancellationToken
     );
 
+    this.logMetric(executionWrapper.command.logName);
     try {
       // query traceflag
       let resultJson = await this.subExecute(new ForceQueryTraceFlag().build());
@@ -106,9 +108,11 @@ export async function getUserId(projectPath: string): Promise<string> {
     new SfdxCommandBuilder()
       .withArg('force:user:display')
       .withJson()
+      .withLogName('force_user_display')
       .build(),
     { cwd: projectPath }
   ).execute();
+  telemetryService.sendCommandEvent(execution.command.logName);
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   try {
@@ -132,6 +136,7 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
       )
       .withArg('--usetoolingapi')
       .withJson()
+      .withLogName('force_create_debug_level')
       .build();
   }
 }
@@ -159,6 +164,7 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
       )
       .withArg('--usetoolingapi')
       .withJson()
+      .withLogName('force_create_trace_flag')
       .build();
   }
 }
@@ -176,6 +182,7 @@ export class UpdateDebugLevelsExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('--usetoolingapi')
       .withJson()
+      .withLogName('force_update_debug_level')
       .build();
   }
 }
@@ -197,6 +204,7 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('--usetoolingapi')
       .withJson()
+      .withLogName('force_update_trace_flag')
       .build();
   }
 }
@@ -215,6 +223,7 @@ export class ForceQueryTraceFlag extends SfdxCommandletExecutor<{}> {
       )
       .withArg('--usetoolingapi')
       .withJson()
+      .withLogName('force_query_trace_flag')
       .build();
   }
 }

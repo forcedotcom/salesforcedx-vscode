@@ -30,7 +30,8 @@ export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
   public build(data: { username?: string }): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_display_default_text'))
-      .withArg('force:org:display');
+      .withArg('force:org:display')
+      .withLogName('force_org_display_default');
     if (this.flag === '--targetusername' && data.username) {
       builder
         .withDescription(nls.localize('force_org_display_username_text'))

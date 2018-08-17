@@ -83,6 +83,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       .withFlag('--type', 'lwc')
       .withFlag('--componentname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
+      .withLogName('force_lightning_component_create')
       .build();
   }
 
@@ -118,9 +119,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    telemetryService.sendCommandEvent(
-      'force_lightning_lwc_next_component_create'
-    );
+    telemetryService.sendCommandEvent(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
