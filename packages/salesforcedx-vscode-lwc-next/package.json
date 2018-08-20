@@ -19,7 +19,7 @@
   "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.23.0"
+    "vscode": "^1.26.0"
   },
   "categories": ["Programming Languages"],
   "dependencies": {
