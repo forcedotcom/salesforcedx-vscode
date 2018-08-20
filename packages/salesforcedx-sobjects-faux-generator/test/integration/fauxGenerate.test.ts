@@ -27,7 +27,7 @@ const CUSTOM_FIELD_FULLNAME = '.MyCustomField__c';
 const SIMPLE_OBJECT_SOURCE_FOLDER = 'simpleObjectAndField';
 
 // tslint:disable:no-unused-expression
-xdescribe('Generate faux classes for SObjects', function() {
+describe('Generate faux classes for SObjects', function() {
   // tslint:disable-next-line:no-invalid-this
   this.timeout(180000);
   let username: string;
