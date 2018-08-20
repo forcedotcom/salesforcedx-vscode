@@ -70,7 +70,8 @@
       "test": [
         {
           "id": "sfdx.force.test.view",
-          "name": "%test_view_name%"
+          "name": "%test_view_name%",
+          "when": "sfdx:project_opened"
         }
       ]
     },
