@@ -436,7 +436,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  // Set context for default workspace org
+  // Set context for defaultusername org
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
