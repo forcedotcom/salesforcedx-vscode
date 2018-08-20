@@ -7,7 +7,7 @@
   "license": "BSD-3-Clause",
   "categories": ["Other"],
   "engines": {
-    "vscode": "^1.23.0"
+    "vscode": "^1.26.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
