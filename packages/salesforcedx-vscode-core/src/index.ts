@@ -342,14 +342,22 @@ function registerCommands(
   );
 }
 
-function registerIsvAuthWatcher(): vscode.Disposable {
-  const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(
-    path.join('.sfdx', 'sfdx-config.json')
-  );
-  isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
-  isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
-  isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
-  return vscode.Disposable.from(isvAuthWatcher);
+function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
+  if (
+    vscode.workspace.workspaceFolders instanceof Array &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    const configPath = path.join(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      '.sfdx',
+      'sfdx-config.json'
+    );
+    const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
+    isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
+    context.subscriptions.push(isvAuthWatcher);
+  }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -417,7 +425,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // this is done in core because it shares access to GlobalCliEnvironment with the commands
     // (VS Code does not seem to allow sharing npm modules between extensions)
     try {
-      context.subscriptions.push(registerIsvAuthWatcher());
+      registerIsvAuthWatcher(context);
       console.log('Configured file watcher for .sfdx/sfdx-config.json');
       await setupGlobalDefaultUserIsvAuth();
     } catch (e) {

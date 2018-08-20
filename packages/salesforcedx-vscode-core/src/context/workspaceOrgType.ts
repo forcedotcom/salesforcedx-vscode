@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { Aliases, AuthInfo } from '@salesforce/core';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -16,7 +22,6 @@ export async function setupWorkspaceOrgType() {
       if (e.name === 'NamedOrgNotFound') {
         // If the info for a default username cannot be found,
         // then assume that the org can be of either type
-        console.log('setting defaultUsername inside of enoent catch -- true');
         setDefaultUsernameHasChangeTracking(true);
         setDefaultUsernameHasNoChangeTracking(true);
         return;
@@ -25,10 +30,6 @@ export async function setupWorkspaceOrgType() {
       }
     }
   }
-
-  console.log(
-    `setting defaultUsername to defaultUsernameIsSet: ${defaultUsernameIsSet} && isScratchOrg: ${isScratchOrg}`
-  );
   setDefaultUsernameHasChangeTracking(defaultUsernameIsSet && isScratchOrg);
   setDefaultUsernameHasNoChangeTracking(defaultUsernameIsSet && !isScratchOrg);
 }
@@ -88,9 +89,10 @@ export function registerDefaultUsernameWatcher(
     vscode.workspace.workspaceFolders.length > 0
   ) {
     const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(
-        vscode.workspace.workspaceFolders[0],
-        path.join('.sfdx', 'sfdx-config.json')
+      path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        '.sfdx',
+        'sfdx-config.json'
       )
     );
     sfdxConfigWatcher.onDidChange(uri => setupWorkspaceOrgType());
