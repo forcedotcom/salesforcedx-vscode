@@ -79,7 +79,8 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
       .withFlag('--tests', this.test)
       .withFlag('--resultformat', 'human')
       .withArg('--synchronous')
-      .withFlag('--loglevel', 'error');
+      .withFlag('--loglevel', 'error')
+      .withLogName('force_apex_test_run_code_action');
 
     if (this.shouldGetCodeCoverage) {
       this.builder = this.builder.withArg('--codecoverage');

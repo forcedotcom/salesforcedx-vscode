@@ -9,11 +9,13 @@ export class Command {
   public readonly command: string;
   public readonly description?: string;
   public readonly args: string[];
+  public readonly logName?: string;
 
   public constructor(builder: CommandBuilder) {
     this.command = builder.command;
     this.description = builder.description;
     this.args = builder.args;
+    this.logName = builder.logName;
   }
 
   public toString(): string {
@@ -31,6 +33,7 @@ export class CommandBuilder {
   public readonly command: string;
   public description?: string;
   public args: string[] = [];
+  public logName?: string;
 
   public constructor(command: string) {
     this.command = command;
@@ -58,6 +61,11 @@ export class CommandBuilder {
   public withJson(): CommandBuilder {
     this.args.push('--json');
     this.args.push('--loglevel', 'fatal');
+    return this;
+  }
+
+  public withLogName(logName: string): CommandBuilder {
+    this.logName = logName;
     return this;
   }
 

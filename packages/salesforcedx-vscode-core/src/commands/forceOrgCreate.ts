@@ -43,6 +43,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('-f', `${selectionPath}`)
       .withFlag('--setalias', data.alias)
       .withArg('--setdefaultusername')
+      .withLogName('force_org_create_default_scratch_org')
       .build();
   }
 }
