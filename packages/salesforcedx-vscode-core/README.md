@@ -61,17 +61,20 @@ A badge in the footer shows your current default scratch org. It uses the org’
 To check your running tasks, expand the Running Tasks view in the Explorer.  
 ![Running Tasks view, showing that Apex tests are running](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/running_tasks.png)
 
-## Run Apex Tests from Within a File
+## Apex Tests  
+You can run Apex tests from within a file or from the Apex Tests sidebar. The sidebar also provides other useful features for working with your tests.
+
+To retrieve code coverage results when you run Apex tests, edit your workspace settings and set `salesforcedx-vscode-core.retrieve-test-code-coverage` to `true`. 
+
+### Run Apex Tests from Within a File
 To run Apex tests, in your `.cls` file, click **Run Test** or **Run All Tests** above the definition of an Apex test method or class.  
 ![Running Apex tests using the Run Test and Run All Tests code lenses](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)
 
 Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Cmd (macOS) or Ctrl (Windows and Linux) and click that stack trace.  
 
-After you run Apex tests, two new commands are available in the command palette: **SFDX: Re-Run Last Invoked Apex Test Class** and **SFDX: Re-Run Last Invoked Apex Test Method**.  
+After you run Apex tests, two new commands are available in the command palette: **SFDX: Re-Run Last Invoked Apex Test Class** and **SFDX: Re-Run Last Invoked Apex Test Method**.   
 
-To retrieve code coverage results when you run Apex tests, edit your workspace settings and set `salesforcedx-vscode-core.retrieve-test-code-coverage` to `true`.  
-
-## Explore Your Apex Tests
+### Explore Your Apex Tests
 
 The Apex Tests sidebar provides several features. Here, you can see all your Apex tests at a glance. You can run one test method, the test methods in one class, or all your tests. You can view the results of your last test run. And, you can jump from those results to the corresponding lines in your code. To access this sidebar, click the beaker icon (hover text: Test) in the view bar on the left side of the VS Code window. (If you don’t see this icon, make sure that the project you have open in VS Code contains an `sfdx-project.json` file in its root directory.)  
 
