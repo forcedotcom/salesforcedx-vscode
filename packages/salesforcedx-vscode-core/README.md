@@ -73,7 +73,7 @@ To retrieve code coverage results when you run Apex tests, edit your workspace s
 
 ## Explore Your Apex Tests
 
-The Apex Tests sidebar provides several features. Here, you can see all your Apex tests at a glance. You can run one test method, the test methods in one class, or all your tests. You can view the results of your last test run. And, you can jump from those results to the corresponding lines in your code. To access this sidebar, click the flask icon (hover text: Test) in the view bar on the left side of the VS Code window. (If you don’t see this icon, make sure that the project you have open in VS Code contains an `sfdx-project.json` file in its root directory.)  
+The Apex Tests sidebar provides several features. Here, you can see all your Apex tests at a glance. You can run one test method, the test methods in one class, or all your tests. You can view the results of your last test run. And, you can jump from those results to the corresponding lines in your code. To access this sidebar, click the beaker icon (hover text: Test) in the view bar on the left side of the VS Code window. (If you don’t see this icon, make sure that the project you have open in VS Code contains an `sfdx-project.json` file in its root directory.)  
 
 To run selected tests, in the Apex Tests view, hover over the name of a test method or class to reveal a play icon. Click the play icon (hover text: Run Single Test) to run a test method or all the methods in a class. To run all your tests, click the larger play icon at the top of the Apex Tests view (hover text: Run Tests).  
 
