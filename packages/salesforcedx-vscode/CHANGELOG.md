@@ -1,3 +1,15 @@
+## 43.13.0 - August 23, 2018
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- VS Code Apex Test Sidebar that allows you to view, run, and interact with Apex tests in your project. ([PR #552](https://github.com/forcedotcom/salesforcedx-vscode/pull/552))
+
+#### salesforcedx-vscode
+
+- Support telemetry for commands in Salesforce extensions ([PR #549](https://github.com/forcedotcom/salesforcedx-vscode/pull/549))
+
 ## 43.12.0 - August 16, 2018
 
 ### Fixed
