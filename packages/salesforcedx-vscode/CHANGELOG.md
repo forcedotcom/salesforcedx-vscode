@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- VS Code Apex Test Sidebar that allows you to view, run, and interact with Apex tests in your project. ([PR #552](https://github.com/forcedotcom/salesforcedx-vscode/pull/552))
+- [Apex Tests sidebar](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-core/README.md#explore-your-apex-tests) allows you to view, run, and interact with the Apex tests in your project ([PR #552](https://github.com/forcedotcom/salesforcedx-vscode/pull/552))
 
 #### salesforcedx-vscode
 
