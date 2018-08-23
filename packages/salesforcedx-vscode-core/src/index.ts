@@ -10,6 +10,7 @@ import { ConfigurationTarget } from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
+  EmptyParametersGatherer,
   forceAliasList,
   forceApexClassCreate,
   forceApexExecute,
@@ -19,6 +20,7 @@ import {
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
+  ForceApexTestRunCodeActionExecutor,
   forceApexTriggerCreate,
   forceAuthDevHub,
   forceAuthLogoutAll,
@@ -350,7 +352,9 @@ export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
 
   // Telemetry
-  telemetryService.initializeService(context);
+  const machineId =
+    vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
+  telemetryService.initializeService(context, machineId);
   telemetryService.showTelemetryMessage();
   telemetryService.sendExtensionActivationEvent();
 
@@ -445,6 +449,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const api: any = {
     ProgressNotification,
     CompositeParametersGatherer,
+    EmptyParametersGatherer,
+    ForceApexTestRunCodeActionExecutor,
     SelectFileName,
     SelectStrictDirPath,
     SfdxCommandlet,

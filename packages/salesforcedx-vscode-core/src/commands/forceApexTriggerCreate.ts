@@ -42,6 +42,7 @@ export class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
       .withArg('force:apex:trigger:create')
       .withFlag('--triggername', data.fileName)
       .withFlag('--outputdir', data.outputdir)
+      .withLogName('force_apex_trigger_create')
       .build();
   }
 
@@ -78,6 +79,7 @@ export class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    this.logMetric(execution.command.logName);
   }
 }
 

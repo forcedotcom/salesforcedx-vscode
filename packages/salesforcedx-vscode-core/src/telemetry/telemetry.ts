@@ -25,11 +25,18 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
-  public initializeService(context: vscode.ExtensionContext): void {
+  public initializeService(
+    context: vscode.ExtensionContext,
+    machineId: string
+  ): void {
     this.context = context;
-
+    const isDevMode = machineId === 'someValue.machineId';
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (this.reporter === undefined && this.isTelemetryEnabled()) {
+    if (
+      this.reporter === undefined &&
+      this.isTelemetryEnabled() &&
+      !isDevMode
+    ) {
       const extensionPackage = require(this.context.asAbsolutePath(
         './package.json'
       ));
@@ -112,8 +119,12 @@ export class TelemetryService {
     }
   }
 
-  public sendCommandEvent(commandName: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled()) {
+  public sendCommandEvent(commandName?: string): void {
+    if (
+      this.reporter !== undefined &&
+      this.isTelemetryEnabled() &&
+      commandName
+    ) {
       this.reporter.sendTelemetryEvent('commandExecution', {
         extensionName: EXTENSION_NAME,
         commandName

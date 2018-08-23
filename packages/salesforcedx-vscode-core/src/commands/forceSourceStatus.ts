@@ -34,13 +34,16 @@ export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_status_text'))
-      .withArg('force:source:status');
+      .withArg('force:source:status')
+      .withLogName('force_source_status');
     if (this.flag === SourceStatusFlags.Local) {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize('force_source_status_local_text'));
+      builder.withLogName('force_source_status_local');
     } else if (this.flag === SourceStatusFlags.Remote) {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize('force_source_status_remote_text'));
+      builder.withLogName('force_source_status_remote');
     }
     return builder.build();
   }

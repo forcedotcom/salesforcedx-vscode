@@ -13,7 +13,8 @@ const testRunner = require('@salesforce/salesforcedx-utils-vscode/out/src/test/t
 testRunner.configure({
   ui: 'bdd', // the TDD UI is being used in extension.test.ts (suite, test, etc.)
   useColors: true, // colored output from test results
-  timeout: 360000
+  timeout: 360000,
+  retries: 2
 });
 
 module.exports = testRunner;

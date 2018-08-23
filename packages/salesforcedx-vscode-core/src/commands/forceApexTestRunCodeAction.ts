@@ -60,9 +60,9 @@ const forceApexTestRunCacheService = ForceApexTestRunCacheService.getInstance();
 
 // build force:apex:test:run w/ given test class or test method
 export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
-  private test: string;
-  private shouldGetCodeCoverage: boolean = false;
-  private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
+  protected test: string;
+  protected shouldGetCodeCoverage: boolean = false;
+  protected builder: SfdxCommandBuilder = new SfdxCommandBuilder();
 
   public constructor(test: string, shouldGetCodeCoverage: boolean) {
     super();
@@ -79,7 +79,8 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
       .withFlag('--tests', this.test)
       .withFlag('--resultformat', 'human')
       .withArg('--synchronous')
-      .withFlag('--loglevel', 'error');
+      .withFlag('--loglevel', 'error')
+      .withLogName('force_apex_test_run_code_action');
 
     if (this.shouldGetCodeCoverage) {
       this.builder = this.builder.withArg('--codecoverage');

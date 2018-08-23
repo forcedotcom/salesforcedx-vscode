@@ -35,6 +35,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(nls.localize('force_apex_execute_document_text'))
       .withArg('force:apex:execute')
       .withFlag('--apexcodefile', data.fileName)
+      .withLogName('force_apex_execute')
       .build();
   }
 
@@ -54,6 +55,7 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
+    this.logMetric(execution.command.logName);
     channelService.showChannelOutput();
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);

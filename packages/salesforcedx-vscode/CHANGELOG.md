@@ -1,3 +1,15 @@
+## 43.13.0 - August 23, 2018
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- [Apex Tests sidebar](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-core/README.md#explore-your-apex-tests) allows you to view, run, and interact with the Apex tests in your project ([PR #552](https://github.com/forcedotcom/salesforcedx-vscode/pull/552))
+
+#### salesforcedx-vscode
+
+- Support telemetry for commands in Salesforce extensions ([PR #549](https://github.com/forcedotcom/salesforcedx-vscode/pull/549))
+
 ## 43.12.0 - August 16, 2018
 
 ### Fixed
