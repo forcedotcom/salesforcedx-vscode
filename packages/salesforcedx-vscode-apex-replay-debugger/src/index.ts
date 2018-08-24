@@ -6,6 +6,10 @@
  */
 
 import {
+  MetricErrorArgs,
+  MetricLaunchArgs
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
+import {
   breakpointUtil,
   LineBreakpointEventArgs
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
@@ -16,7 +20,9 @@ import {
   LAST_OPENED_LOG_KEY,
   LINE_BREAKPOINT_INFO_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
-  LIVESHARE_DEBUGGER_TYPE
+  LIVESHARE_DEBUGGER_TYPE,
+  SEND_METRIC_ERROR_EVENT,
+  SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
@@ -140,10 +146,10 @@ function registerDebugHandlers(): vscode.Disposable {
     async event => {
       if (event && event.session) {
         const type = await getDebuggerType(event.session);
-        if (
-          type === DEBUGGER_TYPE &&
-          event.event === GET_LINE_BREAKPOINT_INFO_EVENT
-        ) {
+        if (type !== DEBUGGER_TYPE) {
+          return;
+        }
+        if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
           console.log('in registerDebugHandlers, getting line breakpoint info');
           const sfdxApex = vscode.extensions.getExtension(
             'salesforce.salesforcedx-vscode-apex'
@@ -175,6 +181,15 @@ function registerDebugHandlers(): vscode.Disposable {
               'in registerDebugHandlers, retrieved line breakpoint info from language server'
             );
           }
+        } else if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
+          const metricLaunchArgs = event.body as MetricLaunchArgs;
+          telemetryService.sendLaunchEvent(
+            metricLaunchArgs.logSize.toString(),
+            metricLaunchArgs.errorMessage
+          );
+        } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
+          const metricErrorArgs = event.body as MetricErrorArgs;
+          telemetryService.sendErrorEvent(metricErrorArgs.errorMessage);
         }
       }
     }

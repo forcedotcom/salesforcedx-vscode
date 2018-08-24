@@ -22,10 +22,13 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { MetricErrorArgs, MetricLaunchArgs } from '..';
 import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
-  LINE_BREAKPOINT_INFO_REQUEST
+  LINE_BREAKPOINT_INFO_REQUEST,
+  SEND_METRIC_ERROR_EVENT,
+  SEND_METRIC_LAUNCH_EVENT
 } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
@@ -239,28 +242,31 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
     if (!this.logContext.hasLogLines()) {
       response.message = nls.localize('no_log_file_text');
-      this.sendResponse(response);
-      return;
     } else if (!this.logContext.meetsLogLevelRequirements()) {
       response.message = nls.localize('incorrect_log_levels_text');
-      this.sendResponse(response);
-      return;
-    }
-    this.printToDebugConsole(
-      nls.localize('session_started_text', this.logContext.getLogFileName())
-    );
-    // If the projectPath isn't set then don't bother with heap dump processing
-    if (this.projectPath && this.logContext.scanLogForHeapDumpLines()) {
+    } else {
+      this.printToDebugConsole(
+        nls.localize('session_started_text', this.logContext.getLogFileName())
+      );
       if (
-        !(await this.logContext.fetchOverlayResultsForApexHeapDumps(
+        this.projectPath &&
+        this.logContext.scanLogForHeapDumpLines() &&
+        !await this.logContext.fetchOverlayResultsForApexHeapDumps(
           this.projectPath
-        ))
+        )
       ) {
+        response.message = nls.localize('heap_dump_error_wrap_up_text');
         this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
       }
+      response.success = true;
     }
-    response.success = true;
     this.sendResponse(response);
+    this.sendEvent(
+      new Event(SEND_METRIC_LAUNCH_EVENT, {
+        logSize: this.logContext.getLogSize(),
+        errorMessage: response.message ? response.message : ''
+      } as MetricLaunchArgs)
+    );
   }
 
   public setupLogger(args: LaunchRequestArguments): void {
@@ -335,6 +341,11 @@ export class ApexReplayDebug extends LoggingDebugSession {
         this.logContext.copyStateForHeapDump();
         this.heapDumpService.replaceVariablesWithHeapDump();
       } catch (error) {
+        this.sendEvent(
+          new Event(SEND_METRIC_ERROR_EVENT, {
+            errorMessage: error
+          } as MetricErrorArgs)
+        );
         this.logContext.revertStateAfterHeapDump();
         this.warnToDebugConsole(
           nls.localize(
@@ -505,9 +516,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
       const uri = this.convertClientPathToDebugger(args.source.path);
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
-        `setBreakPointsRequest: path=${
-          args.source.path
-        } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
+        `setBreakPointsRequest: path=${args.source
+          .path} uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
           args.breakpoints
         )}`
       );
@@ -523,16 +533,15 @@ export class ApexReplayDebug extends LoggingDebugSession {
           line: bp.line
         });
         if (isVerified) {
-          this.breakpoints
-            .get(uri)!
-            .push(this.convertClientLineToDebugger(bp.line));
+          this.breakpoints.get(uri)!.push(
+            this.convertClientLineToDebugger(bp.line)
+          );
         }
       }
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
-        `setBreakPointsRequest: path=${
-          args.source.path
-        } verified lines=${this.breakpoints.get(uri)!.join(',')}`
+        `setBreakPointsRequest: path=${args.source
+          .path} verified lines=${this.breakpoints.get(uri)!.join(',')}`
       );
     }
     response.success = true;
