@@ -97,7 +97,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
       expect(actualResponse.body.scopes.length).to.equal(0);
     });
 
-    it('Should return local and static scopes', async () => {
+    it('Should return local, static, and global scopes', async () => {
       hasHeapDumpForTopFrameStub = sinon
         .stub(LogContext.prototype, 'hasHeapDumpForTopFrame')
         .returns(false);
@@ -110,9 +110,10 @@ describe('Replay debugger adapter variable handling - unit', () => {
         0
       ).args[0];
       expect(actualResponse.success).to.be.true;
-      expect(actualResponse.body.scopes.length).to.equal(2);
+      expect(actualResponse.body.scopes.length).to.equal(3);
       expect(actualResponse.body.scopes[0].name).to.equal('Local');
       expect(actualResponse.body.scopes[1].name).to.equal('Static');
+      expect(actualResponse.body.scopes[2].name).to.equal('Global');
     });
 
     it('Should replace with heapdump variables', async () => {
