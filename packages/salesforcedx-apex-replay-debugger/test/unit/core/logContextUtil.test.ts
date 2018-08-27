@@ -26,6 +26,11 @@ describe('Log context utilities', () => {
       expect(util.readLogFile(logFilePath)).to.not.be.empty;
     });
 
+    it('Should get file size', () => {
+      const logFilePath = `${process.cwd()}/test/integration/config/logs/recursive.log`;
+      expect(util.getFileSize(logFilePath)).to.be.greaterThan(0);
+    });
+
     it('Should strip brackets', () => {
       expect(util.stripBrackets('[20]')).to.equal('20');
     });
