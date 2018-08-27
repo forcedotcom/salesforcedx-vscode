@@ -7,11 +7,12 @@
 
 export * from './constants';
 
-export interface MetricLaunchArgs {
+export interface MetricLaunch {
   logSize: number;
-  errorMessage: string;
+  error: MetricError;
 }
 
-export interface MetricErrorArgs {
-  errorMessage: string;
+export interface MetricError {
+  subject: string;
+  callstack: string;
 }

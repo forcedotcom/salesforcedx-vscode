@@ -6,8 +6,8 @@
  */
 
 import {
-  MetricErrorArgs,
-  MetricLaunchArgs
+  MetricError,
+  MetricLaunch
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
 import {
   breakpointUtil,
@@ -182,14 +182,17 @@ function registerDebugHandlers(): vscode.Disposable {
             );
           }
         } else if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
-          const metricLaunchArgs = event.body as MetricLaunchArgs;
+          const metricLaunchArgs = event.body as MetricLaunch;
           telemetryService.sendLaunchEvent(
             metricLaunchArgs.logSize.toString(),
-            metricLaunchArgs.errorMessage
+            metricLaunchArgs.error.subject
           );
         } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
-          const metricErrorArgs = event.body as MetricErrorArgs;
-          telemetryService.sendErrorEvent(metricErrorArgs.errorMessage);
+          const metricErrorArgs = event.body as MetricError;
+          telemetryService.sendErrorEvent(
+            metricErrorArgs.subject,
+            metricErrorArgs.callstack
+          );
         }
       }
     }

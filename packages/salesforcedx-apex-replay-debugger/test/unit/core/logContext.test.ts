@@ -42,6 +42,7 @@ import {
 describe('LogContext', () => {
   let context: LogContext;
   let readLogFileStub: sinon.SinonStub;
+  let getFileSizeStub: sinon.SinonStub;
   let parseLogEventStub: sinon.SinonStub;
   let noOpHandleStub: sinon.SinonStub;
   let shouldTraceLogFileStub: sinon.SinonStub;
@@ -62,6 +63,9 @@ describe('LogContext', () => {
         'line1',
         'line2'
       ]);
+    getFileSizeStub = sinon
+      .stub(LogContextUtil.prototype, 'getFileSize')
+      .returns(123);
     shouldTraceLogFileStub = sinon
       .stub(ApexReplayDebug.prototype, 'shouldTraceLogFile')
       .returns(true);
@@ -78,6 +82,7 @@ describe('LogContext', () => {
 
   afterEach(() => {
     readLogFileStub.restore();
+    getFileSizeStub.restore();
     if (parseLogEventStub) {
       parseLogEventStub.restore();
     }
@@ -101,6 +106,10 @@ describe('LogContext', () => {
     expect(logLines.length).to.equal(3);
     expect(logLines[1]).to.equal('line1');
     expect(logLines[2]).to.equal('line2');
+  });
+
+  it('Should return log size', () => {
+    expect(context.getLogSize()).to.equal(123);
   });
 
   it('Should have log lines', () => {

@@ -76,11 +76,12 @@ export class TelemetryService {
     }
   }
 
-  public sendErrorEvent(errorMsg: string): void {
+  public sendErrorEvent(errorMsg: string, callstack: string): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent('error', {
         extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg
+        errorMessage: errorMsg,
+        errorStack: callstack
       });
     }
   }

@@ -22,7 +22,7 @@ import {
   Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { MetricErrorArgs, MetricLaunchArgs } from '..';
+import { MetricError, MetricLaunch } from '..';
 import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
 import {
   GET_LINE_BREAKPOINT_INFO_EVENT,
@@ -264,8 +264,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
     this.sendEvent(
       new Event(SEND_METRIC_LAUNCH_EVENT, {
         logSize: this.logContext.getLogSize(),
-        errorMessage: response.message ? response.message : ''
-      } as MetricLaunchArgs)
+        error: {
+          subject: response.message
+        }
+      } as MetricLaunch)
     );
   }
 
@@ -343,8 +345,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
       } catch (error) {
         this.sendEvent(
           new Event(SEND_METRIC_ERROR_EVENT, {
-            errorMessage: error
-          } as MetricErrorArgs)
+            subject: error.message,
+            callstack: error.stack
+          } as MetricError)
         );
         this.logContext.revertStateAfterHeapDump();
         this.warnToDebugConsole(
