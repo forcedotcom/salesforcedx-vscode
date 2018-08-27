@@ -6,3 +6,13 @@
  */
 
 export * from './constants';
+
+export interface MetricLaunch {
+  logSize: number;
+  error: MetricError;
+}
+
+export interface MetricError {
+  subject: string;
+  callstack: string;
+}

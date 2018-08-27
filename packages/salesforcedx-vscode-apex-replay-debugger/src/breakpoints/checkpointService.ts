@@ -55,6 +55,7 @@ import {
   writeToDebuggerOutputWindow
 } from '../index';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -889,16 +890,15 @@ export async function sfdxCreateCheckpoints() {
     writeToDebuggerOutputWindow(
       `${nls.localize('long_command_end')} ${localizedProgressMessage}`
     );
+    let errorMsg = '';
     if (updateError) {
-      writeToDebuggerOutputWindow(
-        nls.localize(
-          'checkpoint_upload_error_wrap_up_message',
-          nls.localize('sfdx_update_checkpoints_in_org')
-        ),
-        true,
-        VSCodeWindowTypeEnum.Error
+      errorMsg = nls.localize(
+        'checkpoint_upload_error_wrap_up_message',
+        nls.localize('sfdx_update_checkpoints_in_org')
       );
+      writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
     }
+    telemetryService.sendCheckpointEvent(errorMsg);
     creatingCheckpoints = false;
   }
 }

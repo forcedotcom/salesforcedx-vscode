@@ -56,4 +56,33 @@ export class TelemetryService {
       });
     }
   }
+
+  public sendLaunchEvent(logSizeStr: string, errorMsg: string): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('launchDebuggerSession', {
+        extensionName: EXTENSION_NAME,
+        logSize: logSizeStr,
+        errorMessage: errorMsg
+      });
+    }
+  }
+
+  public sendCheckpointEvent(errorMsg: string): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('updateCheckpoints', {
+        extensionName: EXTENSION_NAME,
+        errorMessage: errorMsg
+      });
+    }
+  }
+
+  public sendErrorEvent(errorMsg: string, callstack: string): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('error', {
+        extensionName: EXTENSION_NAME,
+        errorMessage: errorMsg,
+        errorStack: callstack
+      });
+    }
+  }
 }

@@ -16,6 +16,7 @@ import {
   Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { MetricLaunch } from '../../../src';
 import {
   ApexReplayDebug,
   LaunchRequestArguments
@@ -28,7 +29,8 @@ import {
 } from '../../../src/breakpoints';
 import {
   DEFAULT_INITIALIZE_TIMEOUT_MS,
-  LINE_BREAKPOINT_INFO_REQUEST
+  LINE_BREAKPOINT_INFO_REQUEST,
+  SEND_METRIC_LAUNCH_EVENT
 } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
@@ -120,6 +122,7 @@ describe('Replay debugger adapter - unit', () => {
     let hasLogLinesStub: sinon.SinonStub;
     let meetsLogLevelRequirementsStub: sinon.SinonStub;
     let readLogFileStub: sinon.SinonStub;
+    let getLogSizeStub: sinon.SinonStub;
     let printToDebugConsoleStub: sinon.SinonStub;
     let errorToDebugConsoleStub: sinon.SinonStub;
     let scanLogForHeapDumpLinesStub: sinon.SinonStub;
@@ -138,6 +141,9 @@ describe('Replay debugger adapter - unit', () => {
       readLogFileStub = sinon
         .stub(LogContextUtil.prototype, 'readLogFile')
         .returns(['line1', 'line2']);
+      getLogSizeStub = sinon
+        .stub(LogContext.prototype, 'getLogSize')
+        .returns(123);
       printToDebugConsoleStub = sinon.stub(
         ApexReplayDebug.prototype,
         'printToDebugConsole'
@@ -154,6 +160,7 @@ describe('Replay debugger adapter - unit', () => {
       hasLogLinesStub.restore();
       meetsLogLevelRequirementsStub.restore();
       readLogFileStub.restore();
+      getLogSizeStub.restore();
       printToDebugConsoleStub.restore();
       errorToDebugConsoleStub.restore();
       if (scanLogForHeapDumpLinesStub) {
@@ -177,11 +184,21 @@ describe('Replay debugger adapter - unit', () => {
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.false;
       expect(sendResponseSpy.calledOnce).to.be.true;
+      expect(sendEventSpy.calledTwice).to.be.true;
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(
         0
       ).args[0];
       expect(actualResponse.success).to.be.false;
       expect(actualResponse.message).to.equal(nls.localize('no_log_file_text'));
+      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+        InitializedEvent
+      );
+      const eventObj = sendEventSpy.getCall(1).args[0] as DebugProtocol.Event;
+      expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
+      expect(eventObj.body).to.deep.equal({
+        logSize: 123,
+        error: { subject: nls.localize('no_log_file_text') }
+      } as MetricLaunch);
     });
 
     it('Should return error when log levels are incorrect', async () => {
@@ -197,10 +214,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(hasLogLinesStub.calledOnce).to.be.true;
       expect(meetsLogLevelRequirementsStub.calledOnce).to.be.true;
       expect(sendResponseSpy.calledOnce).to.be.true;
-      expect(sendEventSpy.calledOnce).to.be.true;
-      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
-        InitializedEvent
-      );
+      expect(sendEventSpy.calledTwice).to.be.true;
       const actualResponse: DebugProtocol.LaunchResponse = sendResponseSpy.getCall(
         0
       ).args[0];
@@ -208,6 +222,15 @@ describe('Replay debugger adapter - unit', () => {
       expect(actualResponse.message).to.equal(
         nls.localize('incorrect_log_levels_text')
       );
+      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+        InitializedEvent
+      );
+      const eventObj = sendEventSpy.getCall(1).args[0] as DebugProtocol.Event;
+      expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
+      expect(eventObj.body).to.deep.equal({
+        logSize: 123,
+        error: { subject: nls.localize('incorrect_log_levels_text') }
+      } as MetricLaunch);
     });
 
     it('Should send response', async () => {
@@ -322,10 +345,20 @@ describe('Replay debugger adapter - unit', () => {
       expect(scanLogForHeapDumpLinesStub.calledOnce).to.be.true;
       expect(fetchOverlayResultsForApexHeapDumpsStub.calledOnce).to.be.true;
       expect(errorToDebugConsoleStub.calledOnce).to.be.true;
+      expect(sendEventSpy.calledTwice).to.be.true;
       const errorMessage = errorToDebugConsoleStub.getCall(0).args[0];
       expect(errorMessage).to.equal(
         nls.localize('heap_dump_error_wrap_up_text')
       );
+      expect(sendEventSpy.getCall(0).args[0]).to.be.instanceof(
+        InitializedEvent
+      );
+      const eventObj = sendEventSpy.getCall(1).args[0] as DebugProtocol.Event;
+      expect(eventObj.event).to.equal(SEND_METRIC_LAUNCH_EVENT);
+      expect(eventObj.body).to.deep.equal({
+        logSize: 123,
+        error: { subject: nls.localize('heap_dump_error_wrap_up_text') }
+      } as MetricLaunch);
     });
   });
 
