@@ -40,7 +40,11 @@ export class Screenshot {
         : `${this.counter++}.png`
     );
 
-    const image = await this.spectron.app.browserWindow.capturePage();
+    const image = await this.spectron.app.browserWindow
+      .capturePage()
+      .catch(err => {
+        console.log('Error creating test snapshot');
+      });
     await new Promise((c, e) =>
       mkdirp(path.dirname(screenshotPath), err => (err ? e(err) : c()))
     );

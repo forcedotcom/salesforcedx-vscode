@@ -28,7 +28,7 @@ const MIN_CUSTOMOBJECT_NUM_FIELDS = 9;
 const CUSTOMOBJECT_NUMBERFIELD_PRECISION = 18;
 
 // tslint:disable:no-unused-expression
-xdescribe('Fetch sObjects', function() {
+describe('Fetch sObjects', function() {
   // tslint:disable-next-line:no-invalid-this
   this.timeout(180000);
   let username: string;
