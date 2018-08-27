@@ -55,26 +55,29 @@ describe('Notifications', () => {
     settings.restore();
   });
 
-  it('Should notify successful execution', async () => {
+  it('Should notify successful execution', done => {
     const observable = new ReplaySubject<number | undefined>();
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus('mock command', observable);
 
-    assert.notCalled(mShow);
-    assert.calledWith(
-      mShowInformation,
-      'mock command successfully ran',
-      SHOW_BUTTON_TEXT,
-      SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
-    );
-    assert.notCalled(mShowWarningMessage);
-    assert.notCalled(mShowErrorMessage);
-    assert.notCalled(mStatusBar);
+    setTimeout(() => {
+      assert.notCalled(mShow);
+      assert.calledWith(
+        mShowInformation,
+        'mock command successfully ran',
+        SHOW_BUTTON_TEXT,
+        SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
+      );
+      assert.notCalled(mShowWarningMessage);
+      assert.notCalled(mShowErrorMessage);
+      assert.notCalled(mStatusBar);
+      done();
+    }, 0);
   });
 
-  it('Should notify successful and show channel as requested', async () => {
+  it('Should notify successful and show channel as requested', done => {
     // For this particular test, we need it to return a different value
     mShowInformation.restore();
     mShowInformation = stub(window, 'showInformationMessage').returns(
@@ -84,21 +87,23 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus('mock command', observable);
-
-    assert.calledOnce(mShow);
-    assert.calledWith(
-      mShowInformation,
-      'mock command successfully ran',
-      SHOW_BUTTON_TEXT,
-      SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
-    );
-    assert.notCalled(mShowWarningMessage);
-    assert.notCalled(mShowErrorMessage);
-    assert.notCalled(mStatusBar);
+    notificationService.reportExecutionStatus('mock command', observable);
+    setTimeout(() => {
+      assert.calledOnce(mShow);
+      assert.calledWith(
+        mShowInformation,
+        'mock command successfully ran',
+        SHOW_BUTTON_TEXT,
+        SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
+      );
+      assert.notCalled(mShowWarningMessage);
+      assert.notCalled(mShowErrorMessage);
+      assert.notCalled(mStatusBar);
+      done();
+    }, 0);
   });
 
-  it('Should notify successful in status bar based on user configuration', async () => {
+  it('Should notify successful in status bar based on user configuration', done => {
     // Set user configuration to show success messages in status bar.
     settings.restore();
     settings = stub(SfdxCoreSettings.prototype, 'getShowCLISuccessMsg').returns(
@@ -109,16 +114,19 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus('mock command', observable);
 
-    assert.notCalled(mShow);
-    assert.notCalled(mShowInformation);
-    assert.notCalled(mShowWarningMessage);
-    assert.notCalled(mShowErrorMessage);
-    assert.calledOnce(mStatusBar);
+    setTimeout(() => {
+      assert.notCalled(mShow);
+      assert.notCalled(mShowInformation);
+      assert.notCalled(mShowWarningMessage);
+      assert.notCalled(mShowErrorMessage);
+      assert.calledOnce(mStatusBar);
+      done();
+    }, 0);
   });
 
-  it('Should update setting to hide future information messages', async () => {
+  it('Should update setting to hide future information messages', done => {
     // For this particular test, we need it to return a different value
     mShowInformation.restore();
     mShowInformation = stub(window, 'showInformationMessage').returns(
@@ -132,27 +140,30 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus('mock command', observable);
 
-    assert.calledWith(
-      mShowInformation,
-      'mock command successfully ran',
-      SHOW_BUTTON_TEXT,
-      SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
-    );
-    assert.notCalled(mShow);
-    assert.notCalled(mShowWarningMessage);
-    assert.notCalled(mShowErrorMessage);
-    assert.notCalled(mStatusBar);
-    assert.calledOnce(updateSetting);
+    setTimeout(() => {
+      assert.calledWith(
+        mShowInformation,
+        'mock command successfully ran',
+        SHOW_BUTTON_TEXT,
+        SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
+      );
+      assert.notCalled(mShow);
+      assert.notCalled(mShowWarningMessage);
+      assert.notCalled(mShowErrorMessage);
+      assert.notCalled(mStatusBar);
+      assert.calledOnce(updateSetting);
+      done();
+    }, 0);
   });
 
-  it('Should notify cancellation', async () => {
+  it('Should notify cancellation', done => {
     const observable = new ReplaySubject<number | undefined>();
     const cancellationTokenSource = new CancellationTokenSource();
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus(
+    notificationService.reportExecutionStatus(
       'mock command',
       observable,
       cancellationTokenSource.token
@@ -160,37 +171,46 @@ describe('Notifications', () => {
 
     cancellationTokenSource.cancel();
 
-    assert.calledOnce(mShow);
-    assert.notCalled(mShowInformation);
-    assert.calledWith(mShowWarningMessage, 'mock command was canceled');
-    assert.notCalled(mShowErrorMessage);
+    setTimeout(() => {
+      assert.calledOnce(mShow);
+      assert.notCalled(mShowInformation);
+      assert.calledWith(mShowWarningMessage, 'mock command was canceled');
+      assert.notCalled(mShowErrorMessage);
+      done();
+    }, 0);
   });
 
-  it('Should notify unsuccessful execution', async () => {
+  it('Should notify unsuccessful execution', done => {
     const ABNORMAL_EXIT = -1;
     const observable = new ReplaySubject<number | undefined>();
     observable.next(ABNORMAL_EXIT);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus('mock command', observable);
 
-    assert.calledOnce(mShow);
-    assert.notCalled(mShowInformation);
-    assert.notCalled(mShowWarningMessage);
-    assert.calledWith(mShowErrorMessage, 'mock command failed to run');
+    setTimeout(() => {
+      assert.calledOnce(mShow);
+      assert.notCalled(mShowInformation);
+      assert.notCalled(mShowWarningMessage);
+      assert.calledWith(mShowErrorMessage, 'mock command failed to run');
+      done();
+    }, 0);
   });
 
-  it('Should notify errorneous execution', async () => {
+  it('Should notify errorneous execution', done => {
     const error = new Error('');
     const observable = new ReplaySubject<Error | undefined>();
     observable.next(error);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionError('mock command', observable);
+    notificationService.reportExecutionError('mock command', observable);
 
-    assert.calledOnce(mShow);
-    assert.notCalled(mShowInformation);
-    assert.notCalled(mShowWarningMessage);
-    assert.calledWith(mShowErrorMessage, 'mock command failed to run');
+    setTimeout(() => {
+      assert.calledOnce(mShow);
+      assert.notCalled(mShowInformation);
+      assert.notCalled(mShowWarningMessage);
+      assert.calledWith(mShowErrorMessage, 'mock command failed to run');
+      done();
+    }, 0);
   });
 });
