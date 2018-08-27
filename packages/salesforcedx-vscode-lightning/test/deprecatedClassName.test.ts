@@ -26,14 +26,18 @@ describe('SLDS Deprecated Class Name', () => {
     }
   });
 
-  it('Should create SFDX fix deprecated class command', async () => {
-    if (coreExtension && !coreExtension.isActive) {
-      await coreExtension.activate();
-    }
+  it('coreExtension activation', async () => {
+    await coreExtension.activate();
+    expect(coreExtension.isActive);
+  });
 
-    if (lightningExtension && !lightningExtension.isActive) {
-      await lightningExtension.activate();
-    }
+  it('lightningExtension activation', async () => {
+    await lightningExtension.activate();
+    expect(lightningExtension.isActive);
+  });
+
+  it('Should create SFDX fix deprecated class command', async () => {
+    expect(lightningExtension.isActive);
 
     res = await vscode.workspace.findFiles(
       path.join('**', 'DemoComponent.cmp')
