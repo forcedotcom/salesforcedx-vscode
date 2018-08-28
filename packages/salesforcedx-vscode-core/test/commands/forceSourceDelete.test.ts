@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -15,6 +15,8 @@ import {
   ForceSourceDeleteExecutor,
   ManifestChecker
 } from './../../src/commands/forceSourceDelete';
+
+import { nls } from '../../src/messages';
 
 // tslint:disable:no-unused-expression
 
@@ -81,7 +83,9 @@ describe('ConfirmationAndSourcePathGatherer', () => {
   });
 
   it('Should return cancel if the user cancels the command', async () => {
-    informationMessageStub.returns('Cancel');
+    informationMessageStub.returns(
+      nls.localize('cancel_delete_source_button_text')
+    );
 
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
     const response = await gatherer.gather();
@@ -90,7 +94,9 @@ describe('ConfirmationAndSourcePathGatherer', () => {
   });
 
   it('Should return Continue if the user chooses to proceed', async () => {
-    informationMessageStub.returns('Delete source');
+    informationMessageStub.returns(
+      nls.localize('confirm_delete_source_button_text')
+    );
 
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
     const response = (await gatherer.gather()) as ContinueResponse<{

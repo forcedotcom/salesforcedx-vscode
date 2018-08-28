@@ -80,6 +80,8 @@ export const messages = {
     'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete',
   force_source_delete_confirmation_message:
     'This operation will delete files on your computer and in your org. Are you sure you want to proceed?',
+  confirm_delete_source_button_text: 'Delete source',
+  cancel_delete_source_button_text: 'Cancel',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',

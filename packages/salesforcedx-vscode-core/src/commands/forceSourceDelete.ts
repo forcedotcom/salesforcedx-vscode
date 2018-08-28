@@ -66,8 +66,8 @@ export class ManifestChecker implements PreconditionChecker {
 export class ConfirmationAndSourcePathGatherer
   implements ParametersGatherer<{ filePath: string }> {
   private explorerPath: string;
-  private readonly PROCEED = 'Delete source';
-  private readonly CANCEL = 'Cancel';
+  private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
+  private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
   public constructor(explorerPath: any) {
     this.explorerPath = explorerPath.fsPath;
