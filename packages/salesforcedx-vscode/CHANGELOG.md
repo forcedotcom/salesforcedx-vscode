@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-replay-debugger
 
-- Support telemetry for capturing execution & errors ([PR #599](https://github.com/forcedotcom/salesforcedx-vscode/pull/599))
+- Support telemetry for capturing high-level execution details and errors ([PR #599](https://github.com/forcedotcom/salesforcedx-vscode/pull/599))
 
 ### Fixed
 
