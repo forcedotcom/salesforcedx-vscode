@@ -28,7 +28,7 @@ describe('SLDS Deprecated Class Name', () => {
 
   it('coreExtension activation', async function() {
     // tslint:disable-next-line:no-invalid-this
-    this.timeout(0);
+    this.timeout(10000);
     await coreExtension.activate();
     expect(coreExtension.isActive);
   });
