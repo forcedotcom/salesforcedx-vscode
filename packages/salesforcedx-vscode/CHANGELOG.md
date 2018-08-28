@@ -1,3 +1,17 @@
+## 43.14.0 - August 30, 2018
+
+### Added
+
+#### salesforcedx-vscode-replay-debugger
+
+- Support telemetry for capturing execution & errors ([PR #599](https://github.com/forcedotcom/salesforcedx-vscode/pull/599))
+
+### Fixed
+
+#### salesforce-vscode-apex
+
+- Fix `NullPointerException` when Apex Language Server initializes ([PR #598](https://github.com/forcedotcom/salesforcedx-vscode/pull/598))
+
 ## 43.13.0 - August 23, 2018
 
 ### Added
