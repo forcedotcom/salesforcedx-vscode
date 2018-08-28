@@ -77,10 +77,10 @@ export const messages = {
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
   force_source_delete_text: 'SFDX: Delete from Project and Org',
   force_source_delete_manifest_unsupported_message:
-    'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete',
+    'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete.',
   force_source_delete_confirmation_message:
-    'This operation will delete files on your computer and in your org. Are you sure you want to proceed?',
-  confirm_delete_source_button_text: 'Delete source',
+    'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+  confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
 
   force_source_status_text:
