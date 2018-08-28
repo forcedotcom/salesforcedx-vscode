@@ -75,6 +75,11 @@ export const messages = {
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
+  force_source_delete_text: 'SFDX: Delete from Project and Org',
+  force_source_delete_manifest_unsupported_message:
+    'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete',
+  force_source_delete_confirmation_message:
+    'This operation will delete files on your computer and in your org. Are you sure you want to proceed?',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
