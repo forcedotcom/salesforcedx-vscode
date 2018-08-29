@@ -389,19 +389,15 @@ export class ApexReplayDebug extends LoggingDebugSession {
         false
       )
     );
-    // Right now, globals are only going to exist if there's a heapdump and the frame
-    // source is a trigger.
-    if (heapDumpId && this.logContext.isRunningApexTrigger()) {
-      scopes.push(
-        new Scope(
-          'Global',
-          this.logContext
-            .getVariableHandler()
-            .create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
-          false
-        )
-      );
-    }
+    scopes.push(
+      new Scope(
+        'Global',
+        this.logContext
+          .getVariableHandler()
+          .create(new ScopeContainer(SCOPE_TYPES.GLOBAL, frameInfo.globals)),
+        false
+      )
+    );
     response.body = { scopes };
     this.sendResponse(response);
   }
