@@ -80,8 +80,7 @@ export class TelemetryService {
 
   public showTelemetryMessage() {
     // check if we've ever shown Telemetry message to user
-    const showTelemetryMessage = true;
-    this.getHasTelemetryMessageBeenShown();
+    const showTelemetryMessage = this.getHasTelemetryMessageBeenShown();
 
     if (showTelemetryMessage) {
       // Show the message and set telemetry to true;
