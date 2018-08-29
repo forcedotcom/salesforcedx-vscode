@@ -28,6 +28,7 @@ export {
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
+export { forceSourceDelete } from './forceSourceDelete';
 export { forceSourceDeploy } from './forceSourceDeploy';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';

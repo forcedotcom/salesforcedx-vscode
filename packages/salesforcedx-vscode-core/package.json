@@ -102,6 +102,11 @@
           "command": "sfdx.force.source.deploy.current.file",
           "when":
             "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.delete.current.file",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
         }
       ],
       "explorer/context": [
@@ -152,6 +157,11 @@
         },
         {
           "command": "sfdx.force.source.deploy",
+          "when":
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.delete",
           "when":
             "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
         }
@@ -347,6 +357,14 @@
         {
           "command": "sfdx.force.source.deploy.current.file",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.source.delete",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.source.delete.current.file",
+          "when": "false"
         }
       ]
     },
@@ -525,7 +543,7 @@
       },
       {
         "command": "sfdx.force.source.retrieve.current.file",
-        "title": "%force_source_retrieve_this_source_file_text%"
+        "title": "%force_source_retrieve_this_source_text%"
       },
       {
         "command": "sfdx.force.source.deploy",
@@ -533,7 +551,15 @@
       },
       {
         "command": "sfdx.force.source.deploy.current.file",
-        "title": "%force_source_deploy_this_source_file_text%"
+        "title": "%force_source_deploy_this_source_text%"
+      },
+      {
+        "command": "sfdx.force.source.delete",
+        "title": "%force_source_delete_text%"
+      },
+      {
+        "command": "sfdx.force.source.delete.current.file",
+        "title": "%force_source_delete_this_source_text%"
       }
     ],
     "configuration": {

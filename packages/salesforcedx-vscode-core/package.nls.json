@@ -74,9 +74,11 @@
     "Specifies whether the commands for change-set-based development are available to the user.",
   "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",
   "force_source_retrieve_text": "SFDX: Retrieve Source from Org",
-  "force_source_retrieve_this_source_file_text":
-    "SFDX: Retrieve This Source File from Org",
+  "force_source_retrieve_this_source_text":
+    "SFDX: Retrieve This Source from Org",
   "force_source_deploy_text": "SFDX: Deploy Source to Org",
-  "force_source_deploy_this_source_file_text":
-    "SFDX: Deploy This Source File to Org"
+  "force_source_deploy_this_source_text": "SFDX: Deploy This Source to Org",
+  "force_source_delete_text": "SFDX: Delete from Project and Org",
+  "force_source_delete_this_source_text":
+    "SFDX: Delete this from Project and Org"
 }
