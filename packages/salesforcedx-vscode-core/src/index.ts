@@ -38,6 +38,7 @@ import {
   forceOrgOpen,
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
+  forceSourceDelete,
   forceSourceDeploy,
   forceSourcePull,
   forceSourcePush,
@@ -99,6 +100,14 @@ function registerCommands(
   const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
     forceOrgOpen
+  );
+  const forceSourceDeleteCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.delete',
+    forceSourceDelete
+  );
+  const forceSourceDeleteCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.delete.current.file',
+    forceSourceDelete
   );
   const forceSourceDeployCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy',
@@ -307,6 +316,8 @@ function registerCommands(
     forceDataSoqlQuerySelectionCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceSourceDeleteCmd,
+    forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCmd,
     forceSourceDeployCurrentFileCmd,
     forceSourcePullCmd,
