@@ -48,9 +48,10 @@ export class GoldFileUtil {
     const scopesResponse = await this.dc.scopesRequest({
       frameId: stackTraceResponse.body.stackFrames[0].id
     });
-    expect(scopesResponse.body.scopes.length).to.equal(2);
+    expect(scopesResponse.body.scopes.length).to.equal(3);
     expect(scopesResponse.body.scopes[0].name).to.equal('Local');
     expect(scopesResponse.body.scopes[1].name).to.equal('Static');
+    expect(scopesResponse.body.scopes[2].name).to.equal('Global');
 
     const localScope = scopesResponse.body.scopes[0];
     await this.assertVariables(localScope);
@@ -74,9 +75,10 @@ export class GoldFileUtil {
       const scopesResponse = await this.dc.scopesRequest({
         frameId: frame.id
       });
-      expect(scopesResponse.body.scopes.length).to.equal(2);
+      expect(scopesResponse.body.scopes.length).to.equal(3);
       expect(scopesResponse.body.scopes[0].name).to.equal('Local');
       expect(scopesResponse.body.scopes[1].name).to.equal('Static');
+      expect(scopesResponse.body.scopes[2].name).to.equal('Global');
 
       const localScope = scopesResponse.body.scopes[0];
       await this.assertVariables(localScope);
