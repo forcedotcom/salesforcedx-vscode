@@ -11,20 +11,36 @@ import * as vscode from 'vscode';
 
 describe('SLDS Deprecated Class Name', () => {
   let res: vscode.Uri[];
+  let coreExtension: vscode.Extension<any>;
   let lightningExtension: vscode.Extension<any>;
 
   before(async () => {
     if (vscode.workspace.rootPath) {
+      coreExtension = vscode.extensions.getExtension(
+        'salesforce.salesforcedx-vscode-core'
+      ) as vscode.Extension<any>;
+
       lightningExtension = vscode.extensions.getExtension(
         'salesforce.salesforcedx-vscode-lightning'
       ) as vscode.Extension<any>;
     }
   });
 
+  it('coreExtension activation', async function() {
+    // tslint:disable-next-line:no-invalid-this
+    this.timeout(10000);
+    await coreExtension.activate();
+    expect(coreExtension.isActive);
+  });
+
+  it('lightningExtension activation', async () => {
+    await lightningExtension.activate();
+    expect(lightningExtension.isActive);
+  });
+
   it('Should create SFDX fix deprecated class command', async () => {
-    if (lightningExtension && !lightningExtension.isActive) {
-      await lightningExtension.activate();
-    }
+    expect(lightningExtension.isActive);
+
     res = await vscode.workspace.findFiles(
       path.join('**', 'DemoComponent.cmp')
     );
