@@ -80,16 +80,15 @@ export class TelemetryService {
 
   public showTelemetryMessage() {
     // check if we've ever shown Telemetry message to user
-    const showTelemetryMessage = this.getHasTelemetryMessageBeenShown();
+    const showTelemetryMessage = true;
+    this.getHasTelemetryMessageBeenShown();
 
     if (showTelemetryMessage) {
       // Show the message and set telemetry to true;
       const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
+      const showMessage = nls.localize('telemetry_legal_dialog_message');
       vscode.window
-        .showInformationMessage(
-          nls.localize('telemetry_legal_dialog_message'),
-          showButtonText
-        )
+        .showInformationMessage(showMessage, showButtonText)
         .then(selection => {
           // Open disable telemetry link
           if (selection && selection === showButtonText) {

@@ -185,6 +185,7 @@ export const messages = {
   REST_API_description: 'Execute the query with REST API',
   tooling_API_description: 'Execute the query with Tooling API',
   telemetry_legal_dialog_message:
-    'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to opt out.',
+    'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to ' +
+    '[opt out.](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Telemetry)',
   telemetry_legal_dialog_button_text: 'Read more'
 };
