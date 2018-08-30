@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "43.13.0",
+  "version": "43.14.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,8 +23,9 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/salesforcedx-sobjects-faux-generator": "43.13.0",
-    "@salesforce/salesforcedx-utils-vscode": "43.13.0",
+    "@salesforce/core": "0.18.2",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "43.14.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.14.0",
     "adm-zip": "0.4.7",
     "glob": "^7.1.2",
     "moment": "2.20.1",
@@ -95,12 +96,12 @@
         {
           "command": "sfdx.force.source.retrieve.current.file",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
         },
         {
           "command": "sfdx.force.source.deploy.current.file",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
         }
       ],
       "explorer/context": [
@@ -147,12 +148,12 @@
         {
           "command": "sfdx.force.source.retrieve",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
         },
         {
           "command": "sfdx.force.source.deploy",
           "when":
-            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled"
+            "sfdx:project_opened && config.salesforcedx-vscode-core.change_set_based_tools.enabled && sfdx:default_username_has_no_change_tracking"
         }
       ],
       "commandPalette": [
@@ -179,31 +180,38 @@
         },
         {
           "command": "sfdx.force.source.pull",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.pull.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.push",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.push.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.status",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.status.local",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.status.remote",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project"
+          "when":
+            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.apex.test.run",

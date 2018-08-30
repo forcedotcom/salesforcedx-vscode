@@ -66,6 +66,7 @@ export class LogContext {
   private readonly session: ApexReplayDebug;
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
+  private readonly logSize: number;
   private state: DebugLogState | undefined;
   private frameHandles = new Handles<ApexDebugStackFrameInfo>();
   private staticVariablesClassMap = new Map<
@@ -90,6 +91,7 @@ export class LogContext {
     this.launchArgs = launchArgs;
     this.session = session;
     this.logLines = this.util.readLogFile(launchArgs.logFile);
+    this.logSize = this.util.getFileSize(launchArgs.logFile);
   }
 
   public getUtil(): LogContextUtil {
@@ -106,6 +108,10 @@ export class LogContext {
 
   public getLogLines(): string[] {
     return this.logLines;
+  }
+
+  public getLogSize(): number {
+    return this.logSize;
   }
 
   public hasLogLines(): boolean {
@@ -295,9 +301,9 @@ export class LogContext {
     } catch (error) {
       success = false;
       const result = JSON.parse(error) as OrgInfoError;
-      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
-        result.message
-      }`;
+      const errorMessage = `${nls.localize(
+        'unable_to_retrieve_org_info'
+      )} : ${result.message}`;
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;

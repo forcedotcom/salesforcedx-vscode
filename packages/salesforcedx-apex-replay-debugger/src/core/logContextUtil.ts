@@ -8,6 +8,15 @@
 import * as fs from 'fs';
 
 export class LogContextUtil {
+  public getFileSize(filePath: string): number {
+    try {
+      const stats = fs.statSync(filePath);
+      return stats.size;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   public readLogFile(logFilePath: string): string[] {
     try {
       return fs
