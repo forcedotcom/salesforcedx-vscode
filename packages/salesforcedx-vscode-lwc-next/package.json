@@ -29,7 +29,7 @@
     "eslint-plugin-lwc":
       "http://npm.lwcjs.org/eslint-plugin-lwc/-/eslint-plugin-lwc-0.4.0/643f5e18247ca8c0a60bf972f4d3795c97e8e6fe.tgz",
     "lwc-language-server":
-      "http://npm.lwcjs.org/lwc-language-server/-/lwc-language-server-1.6.1/48af811b08f90d445c0a5185071129d29df73d39.tgz",
+      "http://npm.lwcjs.org/lwc-language-server/-/lwc-language-server-1.6.6/b07449a69636eeb8b511a432af2be911a6d06118.tgz",
     "rxjs": "^5.4.1",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "3.5.1"
