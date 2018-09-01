@@ -85,11 +85,12 @@ export class TelemetryService {
     if (showTelemetryMessage) {
       // Show the message and set telemetry to true;
       const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
+      const showMessage = nls.localize(
+        'telemetry_legal_dialog_message',
+        TELEMETRY_OPT_OUT_LINK
+      );
       vscode.window
-        .showInformationMessage(
-          nls.localize('telemetry_legal_dialog_message'),
-          showButtonText
-        )
+        .showInformationMessage(showMessage, showButtonText)
         .then(selection => {
           // Open disable telemetry link
           if (selection && selection === showButtonText) {
