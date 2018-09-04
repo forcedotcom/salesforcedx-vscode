@@ -408,6 +408,10 @@ export class HeapDumpService {
   // refContainer: ApexVariableContainer - the container to the reference being updated
   // extentValue: HeapDumpExtentValue - the extent that contains the information/values for the ref
   // collectionType - the type of the value (for lists/maps), not the type of key.
+  // Of note: when creating these leaf references there are values that will be detected as addresses
+  // by the isAddress function. These will get sorted out when we're creating the variable from the reference.
+  // At that time, when we try to get the reference and it doesn't exist then the value will be set and the
+  // the ref field on the variable cleared.
   private updateLeafReferenceContainer(
     refContainer: ApexVariableContainer,
     extentValue: HeapDumpExtentValue,
@@ -638,17 +642,24 @@ export class HeapDumpService {
             const keyRef = this.logContext
               .getRefsMap()
               .get(keyVarContainer.ref);
-            const updatedKeyVarContainer = this.createVariableFromReference(
-              KEY_VALUE_PAIR_KEY,
-              keyRef!,
-              visitedMap
-            );
-            if (updatedKeyVarContainer) {
-              keyName = updatedKeyVarContainer.value;
-              childVarContainer.variables.set(
+            if (keyRef) {
+              const updatedKeyVarContainer = this.createVariableFromReference(
                 KEY_VALUE_PAIR_KEY,
-                updatedKeyVarContainer
+                keyRef!,
+                visitedMap
               );
+              if (updatedKeyVarContainer) {
+                keyName = updatedKeyVarContainer.value;
+                childVarContainer.variables.set(
+                  KEY_VALUE_PAIR_KEY,
+                  updatedKeyVarContainer
+                );
+              }
+              // The value happened to match our pattern for an address but isn't in the references list.
+              // Set the value to the ref value and clear the ref.
+            } else {
+              keyVarContainer.value = keyVarContainer.ref;
+              keyVarContainer.ref = undefined;
             }
           }
           // process the value
@@ -660,17 +671,24 @@ export class HeapDumpService {
             const valueRef = this.logContext
               .getRefsMap()
               .get(valueVarContainer.ref);
-            const updatedValueVarContainer = this.createVariableFromReference(
-              KEY_VALUE_PAIR_VALUE,
-              valueRef!,
-              visitedMap
-            );
-            if (updatedValueVarContainer) {
-              valueVal = updatedValueVarContainer.value;
-              childVarContainer.variables.set(
+            if (valueRef) {
+              const updatedValueVarContainer = this.createVariableFromReference(
                 KEY_VALUE_PAIR_VALUE,
-                updatedValueVarContainer
+                valueRef!,
+                visitedMap
               );
+              if (updatedValueVarContainer) {
+                valueVal = updatedValueVarContainer.value;
+                childVarContainer.variables.set(
+                  KEY_VALUE_PAIR_VALUE,
+                  updatedValueVarContainer
+                );
+              }
+              // The value happened to match our pattern for an address but isn't in the references list.
+              // Set the value to the ref value and clear the ref.
+            } else {
+              valueVarContainer.value = valueVarContainer.ref;
+              valueVarContainer.ref = undefined;
             }
           }
           // get the name/value of this entity which will end up being from the values of
@@ -690,17 +708,27 @@ export class HeapDumpService {
           const childVarRefContainer = this.logContext
             .getRefsMap()
             .get(childVarContainer.ref!);
-          const updatedChildContainer = this.createVariableFromReference(
-            childVarName,
-            childVarRefContainer!,
-            visitedMap
-          );
-          // update the child variable in the map
-          if (updatedChildContainer) {
-            namedVarContainer.variables.set(
+
+          // The childVarRefContainer can be undefined. If this is the case then the
+          // variable's value just happened to match the pattern for an address.
+          if (childVarRefContainer) {
+            const updatedChildContainer = this.createVariableFromReference(
               childVarName,
-              updatedChildContainer
+              childVarRefContainer!,
+              visitedMap
             );
+            // update the child variable in the map
+            if (updatedChildContainer) {
+              namedVarContainer.variables.set(
+                childVarName,
+                updatedChildContainer
+              );
+            }
+            // The value happened to match our pattern for an address but isn't in the references list.
+            // Set the value to the ref value and clear the ref.
+          } else {
+            childVarContainer.value = childVarContainer.ref;
+            childVarContainer.ref = undefined;
           }
         }
         namedVarContainer.value = this.createStringFromVarContainer(
