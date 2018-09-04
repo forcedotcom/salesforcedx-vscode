@@ -238,7 +238,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
     this.logContext = new LogContext(args, this);
     this.heapDumpService = new HeapDumpService(this.logContext);
-    this.sendEvent(new InitializedEvent());
 
     if (!this.logContext.hasLogLines()) {
       response.message = nls.localize('no_log_file_text');
@@ -261,6 +260,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       response.success = true;
     }
     this.sendResponse(response);
+    this.sendEvent(new InitializedEvent());
     this.sendEvent(
       new Event(SEND_METRIC_LAUNCH_EVENT, {
         logSize: this.logContext.getLogSize(),
