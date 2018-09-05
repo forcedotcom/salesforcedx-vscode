@@ -58,19 +58,20 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
 
-  force_org_create_default_scratch_org_text: 'SFDX: Create a Default Org...',
+  force_org_create_default_scratch_org_text:
+    'SFDX: Create a Default Scartch Org...',
 
   force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
 
   force_source_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Org',
+    'SFDX: Pull Source from Default Scratch Org',
   force_source_pull_force_default_scratch_org_text:
-    'SFDX: Pull Source from Default Org and Override Conflicts',
+    'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
 
   force_source_push_default_scratch_org_text:
-    'SFDX: Push Source to Default Org',
+    'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
-    'SFDX: Push Source to Default Org and Override Conflicts',
+    'SFDX: Push Source to Default Scratch Org and Override Conflicts',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
@@ -82,7 +83,8 @@ export const messages = {
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
 
-  force_source_status_text: 'View All Changes (Local and in Default Org)',
+  force_source_status_text:
+    'View All Changes (Local and in Default Scratch Org)',
 
   force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
   force_apex_test_run_all_test_label: 'All tests',
@@ -103,7 +105,7 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Lightning Event',
   force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
-  force_source_status_remote_text: 'SFDX: View Changes in Default Org',
+  force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
     'One or more files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
