@@ -50,7 +50,7 @@ export const messages = {
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
-    'Enter a scratch org alias or use default alias',
+    'Enter an org alias or use default alias',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
   parameter_gatherer_paste_forceide_url_placeholder:
@@ -58,20 +58,19 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
 
-  force_org_create_default_scratch_org_text:
-    'SFDX: Create a Default Scratch Org...',
+  force_org_create_default_scratch_org_text: 'SFDX: Create a Default Org...',
 
-  force_org_open_default_scratch_org_text: 'SFDX: Open Default Scratch Org',
+  force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
 
   force_source_pull_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org',
+    'SFDX: Pull Source from Default Org',
   force_source_pull_force_default_scratch_org_text:
-    'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
+    'SFDX: Pull Source from Default Org and Override Conflicts',
 
   force_source_push_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org',
+    'SFDX: Push Source to Default Org',
   force_source_push_force_default_scratch_org_text:
-    'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+    'SFDX: Push Source to Default Org and Override Conflicts',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
@@ -83,8 +82,7 @@ export const messages = {
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
 
-  force_source_status_text:
-    'View All Changes (Local and in Default Scratch Org)',
+  force_source_status_text: 'View All Changes (Local and in Default Org)',
 
   force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
   force_apex_test_run_all_test_label: 'All tests',
@@ -105,7 +103,7 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Lightning Event',
   force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
-  force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
+  force_source_status_remote_text: 'SFDX: View Changes in Default Org',
   warning_prompt_file_overwrite:
     'One or more files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
@@ -116,8 +114,7 @@ export const messages = {
   warning_prompt_overwrite_cancel: 'Cancel',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
-  force_org_display_default_text:
-    'SFDX: Display Org Details for Default Scratch Org',
+  force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',

@@ -22,8 +22,7 @@ export const messages = {
   failure_in_sobject_describe_text: 'Failure performing sObject describe %s',
   no_sobject_output_folder_text:
     'No output folder available %s.  Please create this folder and refresh again',
-  fetched_sobjects_length_text:
-    'Fetched %s %s sObjects from default scratch org\n',
+  fetched_sobjects_length_text: 'Fetched %s %s sObjects from default org\n',
   no_generate_if_not_in_project:
     'Unable to generate faux classes for sObjects when not in an SFDX project %s',
   class_header_generated_comment: `\/\/ This file is generated as an Apex representation of the
