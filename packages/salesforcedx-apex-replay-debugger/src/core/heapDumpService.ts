@@ -146,10 +146,7 @@ export class HeapDumpService {
               // the value to a string which seems to work just fine for everything
               // except boolean values. If the boolean values aren't toString'd then
               // they can cause issues in the variable's window.
-              localVar.value =
-                typeof innerExtent.value.value === 'boolean'
-                  ? innerExtent.value.value.toString()
-                  : innerExtent.value.value;
+              localVar.value = innerExtent.value.value.toString();
             }
           } else if (
             symbolName &&
@@ -186,10 +183,7 @@ export class HeapDumpService {
                 }
                 // If the variable isn't a reference then it's just a single value
               } else {
-                staticVar.value =
-                  typeof innerExtent.value.value === 'boolean'
-                    ? innerExtent.value.value.toString()
-                    : innerExtent.value.value;
+                staticVar.value = innerExtent.value.value.toString();
               }
             }
           }
@@ -228,9 +222,7 @@ export class HeapDumpService {
                         symName,
                         new ApexVariableContainer(
                           symName,
-                          typeof innerExtent.value.value === 'boolean'
-                            ? innerExtent.value.value.toString()
-                            : innerExtent.value.value,
+                          innerExtent.value.value.toString(),
                           outerExtent.typeName
                         )
                       );
@@ -464,10 +456,7 @@ export class HeapDumpService {
               keyContainer.ref = extentValueEntry.keyDisplayValue;
             }
           } else {
-            keyContainer.value =
-              typeof extentValueEntry.keyDisplayValue === 'boolean'
-                ? extentValueEntry.keyDisplayValue.toString()
-                : extentValueEntry.keyDisplayValue;
+            keyContainer.value = extentValueEntry.keyDisplayValue.toString();
           }
           const valContainer = new ApexVariableContainer(
             KEY_VALUE_PAIR_VALUE,
@@ -489,10 +478,7 @@ export class HeapDumpService {
               valContainer.ref = extentValueEntry.value.value;
             }
           } else {
-            valContainer.value =
-              typeof extentValueEntry.value.value === 'boolean'
-                ? extentValueEntry.value.value.toString()
-                : extentValueEntry.value.value;
+            valContainer.value = extentValueEntry.value.value.toString();
           }
           keyValueContainer.variables.set(keyContainer.name, keyContainer);
           keyValueContainer.variables.set(valContainer.name, valContainer);
@@ -537,9 +523,7 @@ export class HeapDumpService {
               i.toString(),
               new ApexVariableContainer(
                 i.toString(),
-                typeof values[i].value === 'boolean'
-                  ? values[i].value.toString()
-                  : values[i].value,
+                values[i].value.toString(),
                 valueCollectionType
               )
             );
@@ -580,9 +564,7 @@ export class HeapDumpService {
             extentValueEntry.keyDisplayValue,
             new ApexVariableContainer(
               extentValueEntry.keyDisplayValue,
-              typeof extentValueEntry.value.value === 'boolean'
-                ? extentValueEntry.value.value.toString()
-                : extentValueEntry.value.value,
+              extentValueEntry.value.value.toString(),
               ''
             )
           );
