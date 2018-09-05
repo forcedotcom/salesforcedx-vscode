@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode
 
-- Update telemetry dialog text with additional opt out link ([PR #608](https://github.com/forcedotcom/salesforcedx-vscode/pull/608))
+- Update telemetry dialog text with additional opt-out link ([PR #608](https://github.com/forcedotcom/salesforcedx-vscode/pull/608))
 
 ## 43.14.0 - August 30, 2018
 
