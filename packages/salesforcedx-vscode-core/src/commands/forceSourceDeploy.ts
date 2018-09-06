@@ -76,7 +76,6 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPa
 
     execution.processExitSubject.subscribe(async exitCode => {
       if (exitCode !== 0) {
-
         try {
           const compileErrs = this.getDeployResultData(stdErr);
           const fileErrors = this.groupErrorsByPath(compileErrs);
@@ -95,15 +94,8 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPa
       }
     });
 
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
-    );
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     this.logMetric(execution.command.logName);
-    channelService.showChannelOutput();
-    channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
   private getDeployResultData(stdErr: string) {
