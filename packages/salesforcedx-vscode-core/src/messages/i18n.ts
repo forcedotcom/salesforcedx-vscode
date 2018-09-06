@@ -75,6 +75,13 @@ export const messages = {
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
+  force_source_delete_text: 'SFDX: Delete from Project and Org',
+  force_source_delete_manifest_unsupported_message:
+    'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete.',
+  force_source_delete_confirmation_message:
+    'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+  confirm_delete_source_button_text: 'Delete Source',
+  cancel_delete_source_button_text: 'Cancel',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
@@ -185,6 +192,6 @@ export const messages = {
   REST_API_description: 'Execute the query with REST API',
   tooling_API_description: 'Execute the query with Tooling API',
   telemetry_legal_dialog_message:
-    'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to opt out.',
+    'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more'
 };
