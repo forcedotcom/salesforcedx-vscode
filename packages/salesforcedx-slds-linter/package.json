@@ -5,9 +5,7 @@
   "version": "43.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "engines": {
     "vscode": "^1.26.0"
   },
@@ -41,10 +39,7 @@
     "test:unit": "node ./node_modules/vscode/bin/test"
   },
   "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
+    "reporter": ["text-summary", "lcov"]
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "43.15.0",
