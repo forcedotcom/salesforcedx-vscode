@@ -37,14 +37,14 @@ interface ForceSourceDeployErrorResult {
 
 // move this elsewhere?
 vscode.workspace.onDidChangeTextDocument((e => {
-  if (ForceSourceDeployExecutor._errorCollection.has(e.document.uri)) {
-    ForceSourceDeployExecutor._errorCollection.delete(e.document.uri);
+  if (ForceSourceDeployExecutor.errorCollection.has(e.document.uri)) {
+    ForceSourceDeployExecutor.errorCollection.delete(e.document.uri);
   }
 }));
 
 export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPath> {
 
-  public static _errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
+  public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
 
   public build(data: SelectedPath): Command {
     const commandBuilder = new SfdxCommandBuilder()
@@ -63,9 +63,10 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPa
   public execute(response: ContinueResponse<SelectedPath>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
+    const workspacePath = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : '';
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: workspacePath
     }).execute(cancellationToken);
 
     let stdErr = '';
@@ -75,16 +76,17 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPa
 
     execution.processExitSubject.subscribe(async exitCode => {
       if (exitCode !== 0) {
+
         try {
           const compileErrs = this.getDeployResultData(stdErr);
           const fileErrors = this.groupErrorsByPath(compileErrs);
           Object.keys(fileErrors).forEach(filePath => {
-            const uri = vscode.Uri.file(path.join(vscode.workspace.rootPath || '', filePath));
+            const uri = vscode.Uri.file(path.join(workspacePath, filePath));
             const fileDiagnostics: vscode.Diagnostic[] = [];
             fileErrors[filePath].forEach(err => {
               fileDiagnostics.push(this.createDiagnosticFromResult(err));
             });
-            ForceSourceDeployExecutor._errorCollection.set(uri, fileDiagnostics);
+            ForceSourceDeployExecutor.errorCollection.set(uri, fileDiagnostics);
           });
         } catch (e) {
           // something else happened...?
@@ -105,9 +107,9 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPa
   }
 
   private getDeployResultData(stdErr: string) {
-    const stdErrLines = stdErr.split('\n');
+    const stdErrLines = stdErr.split(require('os').EOL);
     // hack to check for update msg in stderr... there must be a better way
-    const json = stdErrLines.length > 1 && stdErrLines[0].indexOf('▸') > -1 ? stdErrLines[1] : stdErrLines[0]; // are line endings platform agnostic?
+    const json = stdErrLines[stdErrLines.length - 2];
     return JSON.parse(json) as ForceSourceDeployErrorResult;
   }
 
