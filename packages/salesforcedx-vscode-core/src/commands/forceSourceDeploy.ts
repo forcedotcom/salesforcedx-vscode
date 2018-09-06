@@ -8,12 +8,8 @@
 import { CliCommandExecutor, Command, SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
-import { taskViewService } from '../statuses';
 import { SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker } from './commands';
 import { FileType, ManifestOrSourcePathGatherer, SelectedPath } from './forceSourceRetrieve';
 
