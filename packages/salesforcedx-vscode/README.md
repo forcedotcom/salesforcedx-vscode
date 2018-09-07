@@ -1,5 +1,5 @@
 # Salesforce Extensions for Visual Studio Code  
-This extension bundle includes tools for developing on the Salesforce platform using the Salesforce DX development flow in the lightweight, extensible VS Code editor. These tools provide features for working with scratch orgs, Apex, Lightning components, and Visualforce.
+This extension bundle includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with scratch orgs, Apex, Lightning components, and Visualforce.
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)  
 
@@ -17,7 +17,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 ## Documentation for Included Extensions  
 To use Salesforce Extensions for VS Code, install all the extensions in this extension pack. Each extension has its own documentation.
 * [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)  
-   This extension interacts with the Salesforce CLI to provide basic Salesforce DX functionality.
+   This extension interacts with Salesforce CLI to provide core functionality.
 * [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)  
    This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
 * [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)  
