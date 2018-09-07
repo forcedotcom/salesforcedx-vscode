@@ -17,7 +17,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 ## Documentation for Included Extensions  
 To use Salesforce Extensions for VS Code, install all the extensions in this extension pack. Each extension has its own documentation.
 * [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)  
-   This extension interacts with Salesforce CLI to provide basic functionality.
+   This extension interacts with Salesforce CLI to provide core functionality.
 * [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)  
    This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
 * [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)  
