@@ -50,7 +50,7 @@ export const messages = {
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
-    'Enter a scratch org alias or use default alias',
+    'Enter an org alias or use default alias',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
   parameter_gatherer_paste_forceide_url_placeholder:
@@ -61,7 +61,7 @@ export const messages = {
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
 
-  force_org_open_default_scratch_org_text: 'SFDX: Open Default Scratch Org',
+  force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
 
   force_source_pull_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org',
@@ -116,8 +116,7 @@ export const messages = {
   warning_prompt_overwrite_cancel: 'Cancel',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
-  force_org_display_default_text:
-    'SFDX: Display Org Details for Default Scratch Org',
+  force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
