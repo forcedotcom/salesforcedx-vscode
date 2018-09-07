@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.14.0",
+  "version": "43.15.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,27 +23,27 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "43.14.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.15.0",
     "ajv": "^6.1.1",
-    "eslint": "4.16.0",
-    "eslint-plugin-lwc":
-      "http://npm.lwcjs.org/eslint-plugin-lwc/-/eslint-plugin-lwc-0.4.0/643f5e18247ca8c0a60bf972f4d3795c97e8e6fe.tgz",
+    "babel-plugin-transform-lwc-class":
+      "http://npm.lwcjs.org/babel-plugin-transform-lwc-class/-/babel-plugin-transform-lwc-class-0.24.20/d0400eb432808ab6e89a9cab52b6c43a409b460d.tgz",
     "babel-plugin-transform-proxy-compat":
       "http://npm.lwcjs.org/babel-plugin-transform-proxy-compat/-/babel-plugin-transform-proxy-compat-0.18.11/6c2567c41831f58de3c91cb98920b9276bcb61fc.tgz",
     "babel-preset-compat":
       "http://npm.lwcjs.org/babel-preset-compat/-/babel-preset-compat-0.18.11/68d54e19fcd4df57ddec0762f71ca405986be080.tgz",
-    "babel-plugin-transform-lwc-class":
-      "http://npm.lwcjs.org/babel-plugin-transform-lwc-class/-/babel-plugin-transform-lwc-class-0.24.20/d0400eb432808ab6e89a9cab52b6c43a409b460d.tgz",
-    "lwc-language-server":
-      "http://npm.lwcjs.org/lwc-language-server/-/lwc-language-server-1.6.6/b07449a69636eeb8b511a432af2be911a6d06118.tgz",
-    "lwc-engine":
-      "http://npm.lwcjs.org/lwc-engine/-/lwc-engine-0.24.20/6d6c999babafd4ca506d7a7a843b81fb92b2ef64.tgz",
-    "postcss-plugin-lwc":
-      "http://npm.lwcjs.org/postcss-plugin-lwc/-/postcss-plugin-lwc-0.24.20/94f003d93978779dd0f4a1dbe3aaf8a7eb7aaeb9.tgz",
+    "eslint": "4.16.0",
+    "eslint-plugin-lwc":
+      "http://npm.lwcjs.org/eslint-plugin-lwc/-/eslint-plugin-lwc-0.4.0/643f5e18247ca8c0a60bf972f4d3795c97e8e6fe.tgz",
     "lwc-compiler":
       "http://npm.lwcjs.org/lwc-compiler/-/lwc-compiler-0.24.20/21aadd85a0e74cfa6567c5860a7ef025676e2c1b.tgz",
+    "lwc-engine":
+      "http://npm.lwcjs.org/lwc-engine/-/lwc-engine-0.24.20/6d6c999babafd4ca506d7a7a843b81fb92b2ef64.tgz",
+    "lwc-language-server":
+      "http://npm.lwcjs.org/lwc-language-server/-/lwc-language-server-1.6.6/b07449a69636eeb8b511a432af2be911a6d06118.tgz",
     "lwc-template-compiler":
       "http://npm.lwcjs.org/lwc-template-compiler/-/lwc-template-compiler-0.24.20/023c8b989a055534edbdf7b9f32c2be6906dc4bb.tgz",
+    "postcss-plugin-lwc":
+      "http://npm.lwcjs.org/postcss-plugin-lwc/-/postcss-plugin-lwc-0.24.20/94f003d93978779dd0f4a1dbe3aaf8a7eb7aaeb9.tgz",
     "rxjs": "^5.4.1",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "3.5.1"
