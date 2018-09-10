@@ -55,7 +55,10 @@
     "test": "node ../../scripts/run-test-with-top-level-extensions",
     "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
-  "activationEvents": ["onDebug", "workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "onDebugResolve:apex",
+    "workspaceContains:sfdx-project.json"
+  ],
   "main": "./out/src",
   "contributes": {
     "breakpoints": [

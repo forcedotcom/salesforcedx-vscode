@@ -60,7 +60,7 @@
     "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": [
-    "onDebug",
+    "onDebugResolve:apex",
     "onCommand:extension.replay-debugger.getLogFileName",
     "workspaceContains:sfdx-project.json"
   ],
