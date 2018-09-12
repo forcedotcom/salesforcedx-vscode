@@ -4,22 +4,22 @@
 
 #### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger
 
-- Prevent Apex Debugger and Apex Replay Debugger from being activated in non-SFDX projects ([PR #631](https://github.com/forcedotcom/salesforcedx-vscode/pull/631))
+- Prevent Apex Debugger and Apex Replay Debugger from activating in projects without an `sfdx-project.json` file ([PR #631](https://github.com/forcedotcom/salesforcedx-vscode/pull/631))
 
 #### salesforcedx-vscode
 
-- Updates to documentation ([PR #628](https://github.com/forcedotcom/salesforcedx-vscode/pull/628))
-- Update commands and messages that apply to both scratch orgs and org based flow ([PR #621](https://github.com/forcedotcom/salesforcedx-vscode/pull/621))
+- Update documentation ([PR #628](https://github.com/forcedotcom/salesforcedx-vscode/pull/628))
+- Update commands and messages that apply to both scratch orgs and the org development model ([PR #621](https://github.com/forcedotcom/salesforcedx-vscode/pull/621))
 
 #### salesforcedx-vscode-core
 
-- Incorrect error output when successfully running `SFDX: Execute Anonymous Apex with Currently Selected Text` and `SFDX: Execute Anonymous Apex with Editor Contents` commands ([PR #617](https://github.com/forcedotcom/salesforcedx-vscode/pull/617))
+- Fix error output when successfully running `SFDX: Execute Anonymous Apex with Currently Selected Text` and `SFDX: Execute Anonymous Apex with Editor Contents` commands ([PR #617](https://github.com/forcedotcom/salesforcedx-vscode/pull/617))
 
 ### Added
 
 #### salesforcedx-vscode-apex
 
-- Add Folding regions for Apex code ([PR #630](https://github.com/forcedotcom/salesforcedx-vscode/pull/630))
+- Add folding regions for Apex code ([PR #630](https://github.com/forcedotcom/salesforcedx-vscode/pull/630))
 
 ## 43.15.0 - September 6, 2018
 
