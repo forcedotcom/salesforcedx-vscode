@@ -4,11 +4,7 @@
 
 #### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger
 
-- Prevent Apex Debugger and Apex Replay Debugger from being activated in non sfdx projects ([PR #631](https://github.com/forcedotcom/salesforcedx-vscode/pull/631))
-
-#### salesforcedx-vscode-apex-replay-debugger
-
-- Allow breakpoints to be set and hit after heapdumps have been fetched ([PR #609](https://github.com/forcedotcom/salesforcedx-vscode/pull/609))
+- Prevent Apex Debugger and Apex Replay Debugger from being activated in non-SFDX projects ([PR #631](https://github.com/forcedotcom/salesforcedx-vscode/pull/631))
 
 #### salesforcedx-vscode
 
