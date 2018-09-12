@@ -11,7 +11,6 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   AliasGatherer,
-  DEFAULT_ALIAS,
   ForceOrgCreateExecutor
 } from '../../src/commands/forceOrgCreate';
 import { nls } from '../../src/messages';
@@ -20,6 +19,7 @@ import { nls } from '../../src/messages';
 describe('Force Org Create', () => {
   describe('Alias Gatherer', () => {
     const TEST_ALIAS = 'testAlias';
+    const TEST_WORKSPACE = 'sfdxsimple'; // FYI: This test uses the workspace created by the system tests to run
     let inputBoxSpy: sinon.SinonStub;
 
     before(() => {
@@ -45,7 +45,7 @@ describe('Force Org Create', () => {
       const response = await gatherer.gather();
       expect(inputBoxSpy.calledTwice).to.be.true;
       if (response.type === 'CONTINUE') {
-        expect(response.data.alias).to.equal(DEFAULT_ALIAS);
+        expect(response.data.alias).to.equal(TEST_WORKSPACE);
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
