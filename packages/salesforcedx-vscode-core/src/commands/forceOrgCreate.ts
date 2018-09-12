@@ -50,17 +50,27 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 
 export class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
+    let defaultAlias = DEFAULT_ALIAS;
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      defaultAlias = vscode.workspace.workspaceFolders[0].name.replace(
+        /\W/g /* Replace all non-alphanumeric characters */,
+        ''
+      );
+    }
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-      placeHolder: DEFAULT_ALIAS
+      placeHolder: defaultAlias
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
-    // Hitting enter with no alias will default the alias to 'vscodeScratchOrg'
+    // Hitting enter with no alias will use the value of `defaultAlias`
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
     return alias === ''
-      ? { type: 'CONTINUE', data: { alias: DEFAULT_ALIAS } }
+      ? { type: 'CONTINUE', data: { alias: defaultAlias } }
       : { type: 'CONTINUE', data: { alias } };
   }
 }
