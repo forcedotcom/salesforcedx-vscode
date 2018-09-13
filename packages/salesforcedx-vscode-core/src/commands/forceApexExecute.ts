@@ -6,7 +6,6 @@
  */
 
 import {
-  CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -17,12 +16,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
-import { taskViewService } from '../statuses';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -37,29 +32,6 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('--apexcodefile', data.fileName)
       .withLogName('force_apex_execute')
       .build();
-  }
-
-  public execute(response: ContinueResponse<TempFile>): void {
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
-    }).execute(cancellationToken);
-
-    execution.processExitSubject.subscribe(async data => {
-      fs.unlink(response.data.fileName, err => null);
-    });
-
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
-    );
-    this.logMetric(execution.command.logName);
-    channelService.showChannelOutput();
-    channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 
