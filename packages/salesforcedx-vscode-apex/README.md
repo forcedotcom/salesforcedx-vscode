@@ -77,7 +77,7 @@ After you add or edit standard or custom objects or their fields, be sure to rer
 The Apex Language Server is an implementation of the [Language Server Protocol](https://github.com/Microsoft/language-server-protocol) 3.0 specification. The Language Server Protocol allows a tool (in this case, VS Code) to communicate with a language smartness provider (the server). VS Code uses the Apex Language Server to show outlines of Apex classes and triggers, code-completion suggestions, and syntactic errors. To see all diagnostic information from the Apex Language Server, select **View** > **Output**, then choose **Apex Language Server** from the dropdown menu. The diagnostic information gives you insights into the progress of the language server and shows the problems  encountered.  
 
 ## Troubleshooting
-Salesforce Extensions for VS Code functions properly only if the root directory of your open project contains an `sfdx-project.json` file. This extension bundle is designed for the Salesforce DX workflow. If you’re not using Salesforce DX, use the classic version of [Force.com IDE](https://developer.salesforce.com/docs/atlas.en-us.eclipse.meta/eclipse) or a different Salesforce development tool.  
+Salesforce Extensions for VS Code functions properly only if the root directory of your open project contains an `sfdx-project.json` file.  
 
 If you’re not seeing the Apex completion suggestions that you expect, your Apex database might need to be rebuilt. Quit VS Code, and then delete the `.sfdx/tools/apex.db` file from your project. Then relaunch VS Code, and open an Apex class or trigger. The Apex database rebuilds within about 5 seconds (up to 30 seconds for very large code bases).
 
