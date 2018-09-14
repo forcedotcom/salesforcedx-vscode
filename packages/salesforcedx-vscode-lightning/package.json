@@ -69,6 +69,13 @@
           ".tokens"
         ]
       }
+    ],
+    "grammars": [
+      {
+        "language": "html",
+        "scopeName": "text.html.basic",
+        "path": "./syntaxes/html.tmLanguage.json"
+      }
     ]
   }
 }
