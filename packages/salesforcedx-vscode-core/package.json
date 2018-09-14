@@ -66,6 +66,8 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test":
       "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test",
+    "test:insiders":
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' CODE_VERSION=insiders node ./node_modules/vscode/bin/test",
     "test:unit":
       "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
