@@ -142,11 +142,9 @@ export class HeapDumpService {
               }
               // If the variable isn't a reference then it's just a single value
             } else {
-              // The reason for the boolean type check here is that we're assigning
-              // the value to a string which seems to work just fine for everything
-              // except boolean values. If the boolean values aren't toString'd then
-              // they can cause issues in the variable's window.
-              localVar.value = innerExtent.value.value.toString();
+              localVar.value = this.createStringFromExtentValue(
+                innerExtent.value.value
+              );
             }
           } else if (
             symbolName &&
@@ -183,7 +181,9 @@ export class HeapDumpService {
                 }
                 // If the variable isn't a reference then it's just a single value
               } else {
-                staticVar.value = innerExtent.value.value.toString();
+                staticVar.value = this.createStringFromExtentValue(
+                  innerExtent.value.value
+                );
               }
             }
           }
@@ -222,7 +222,9 @@ export class HeapDumpService {
                         symName,
                         new ApexVariableContainer(
                           symName,
-                          innerExtent.value.value.toString(),
+                          this.createStringFromExtentValue(
+                            innerExtent.value.value
+                          ),
                           outerExtent.typeName
                         )
                       );
@@ -404,7 +406,7 @@ export class HeapDumpService {
   // by the isAddress function. These will get sorted out when we're creating the variable from the reference.
   // At that time, when we try to get the reference and it doesn't exist then the value will be set and the
   // the ref field on the variable cleared.
-  private updateLeafReferenceContainer(
+  public updateLeafReferenceContainer(
     refContainer: ApexVariableContainer,
     extentValue: HeapDumpExtentValue,
     collectionType: string | null
@@ -478,7 +480,9 @@ export class HeapDumpService {
               valContainer.ref = extentValueEntry.value.value;
             }
           } else {
-            valContainer.value = extentValueEntry.value.value.toString();
+            valContainer.value = this.createStringFromExtentValue(
+              extentValueEntry.value.value
+            );
           }
           keyValueContainer.variables.set(keyContainer.name, keyContainer);
           keyValueContainer.variables.set(valContainer.name, valContainer);
@@ -523,7 +527,7 @@ export class HeapDumpService {
               i.toString(),
               new ApexVariableContainer(
                 i.toString(),
-                values[i].value.toString(),
+                this.createStringFromExtentValue(values[i].value),
                 valueCollectionType
               )
             );
@@ -564,7 +568,7 @@ export class HeapDumpService {
             extentValueEntry.keyDisplayValue,
             new ApexVariableContainer(
               extentValueEntry.keyDisplayValue,
-              extentValueEntry.value.value.toString(),
+              this.createStringFromExtentValue(extentValueEntry.value.value),
               ''
             )
           );
@@ -577,11 +581,20 @@ export class HeapDumpService {
     }
   }
 
+  public createStringFromExtentValue(value: any): string {
+    // can't toString undefined or null
+    if (value === undefined) {
+      return 'undefined';
+    } else if (value === null) {
+      return 'null';
+    }
+    return value.toString();
+  }
   // When this is invoked, the leaf references have all been set and it is now time to
   // create the variable, piecing it together from any references.
   // The visitedMap is used to prevent circular lookups. Note: We don't actually
   // care what the value is, we just care about the key.
-  private createVariableFromReference(
+  public createVariableFromReference(
     varName: string,
     refVariable: ApexVariableContainer,
     visitedMap: Map<string, null>
