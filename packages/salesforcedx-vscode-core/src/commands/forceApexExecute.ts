@@ -78,6 +78,10 @@ type TempFile = {
 
 export function writeFileAsync(fileName: string, inputText: string) {
   return new Promise((resolve, reject) => {
+    const toolsDir = path.dirname(fileName);
+    if (!fs.existsSync(toolsDir)) {
+      fs.mkdirSync(toolsDir);
+    }
     fs.writeFile(fileName, inputText, err => {
       if (err) {
         reject(err);
