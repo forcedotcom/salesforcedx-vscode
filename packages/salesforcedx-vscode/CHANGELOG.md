@@ -1,3 +1,15 @@
+## 43.17.0 - September 20, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-lightning
+
+- Fix lightning component syntax highlighting ([PR #637](https://github.com/forcedotcom/salesforcedx-vscode/pull/637))
+
+#### salesforcedx-vscode-core
+
+- Change default Scratch Org alias to project folder name ([PR #620](https://github.com/forcedotcom/salesforcedx-vscode/pull/620))
+
 ## 43.16.0 - September 13, 2018
 
 ### Fixed
