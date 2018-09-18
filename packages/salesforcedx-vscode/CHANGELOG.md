@@ -2,13 +2,17 @@
 
 ### Fixed
 
-#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-apex
 
-- Fix Lightning component syntax highlighting ([PR #637](https://github.com/forcedotcom/salesforcedx-vscode/pull/637))
+- Fix `NullPointerException` in Apex Language Server that could occur when using Go To Definition ([PR #642](https://github.com/forcedotcom/salesforcedx-vscode/pull/642))
 
 #### salesforcedx-vscode-core
 
 - Change default scratch org alias to project folder name ([PR #620](https://github.com/forcedotcom/salesforcedx-vscode/pull/620))
+
+#### salesforcedx-vscode-lightning
+
+- Fix Lightning component syntax highlighting ([PR #637](https://github.com/forcedotcom/salesforcedx-vscode/pull/637))
 
 ## 43.16.0 - September 13, 2018
 
