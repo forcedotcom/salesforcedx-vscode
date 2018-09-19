@@ -18,17 +18,17 @@ import {
   LaunchRequestArguments,
   VariableContainer
 } from '../../../src/adapter/apexReplayDebug';
-import {
-  ApexExecutionOverlayResultCommandSuccess,
-  HeapDumpCollectionTypeDefinition,
-  HeapDumpExtentValue,
-  HeapDumpExtentValueEntry
-} from '../../../src/commands/apexExecutionOverlayResultCommand';
+import { ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
 import { ApexHeapDump, LogContext } from '../../../src/core';
 import { Handles } from '../../../src/core/handles';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
-import { createHeapDumpResultForTriggers } from './heapDumpTestUtil';
+import {
+  createHeapDumpResultForTriggers,
+  createHeapDumpWithNestedRefs,
+  createHeapDumpWithNoStringTypes,
+  createHeapDumpWithStrings
+} from './heapDumpTestUtil';
 
 // tslint:disable:no-unused-expression
 describe('Replay debugger adapter variable handling - unit', () => {
@@ -217,222 +217,12 @@ describe('Replay debugger adapter variable handling - unit', () => {
       heapDumpService = new HeapDumpService(logContext);
     });
 
-    describe('updateContainer', () => {
-      let updateContainerWithExtentValueSpy: sinon.SinonSpy;
-      let updateContainerChildrenWithEntriesSpy: sinon.SinonSpy;
-
-      beforeEach(() => {
-        updateContainerWithExtentValueSpy = sinon.spy(
-          HeapDumpService.prototype,
-          'updateContainerWithExtentValue'
-        );
-        updateContainerChildrenWithEntriesSpy = sinon.spy(
-          HeapDumpService.prototype,
-          'updateContainerChildrenWithEntries'
-        );
-      });
-
-      afterEach(() => {
-        updateContainerWithExtentValueSpy.restore();
-        updateContainerChildrenWithEntriesSpy.restore();
-      });
-
-      it('Should update variable if extent has a string value', () => {
-        const varContainer = new ApexVariableContainer('foo', 'bar', '');
-        const extentValue: HeapDumpExtentValue = {
-          value: 'new bar'
-        };
-
-        heapDumpService.updateContainer(
-          varContainer,
-          extentValue,
-          new Map(),
-          new Map(),
-          new Map([['foo', 'String']])
-        );
-
-        expect(varContainer.value).to.equal(`'new bar'`);
-        expect(varContainer.type).to.equal('String');
-        expect(updateContainerWithExtentValueSpy.calledOnce).to.be.true;
-        expect(updateContainerChildrenWithEntriesSpy.called).to.be.false;
-      });
-
-      it('Should update variable if extent has a non string value', () => {
-        const varContainer = new ApexVariableContainer('foo', '5', 'Integer');
-        const extentValue: HeapDumpExtentValue = {
-          value: 10
-        };
-
-        heapDumpService.updateContainer(
-          varContainer,
-          extentValue,
-          new Map(),
-          new Map(),
-          new Map()
-        );
-
-        expect(varContainer.value).to.equal('10');
-        expect(updateContainerWithExtentValueSpy.calledOnce).to.be.true;
-        expect(updateContainerChildrenWithEntriesSpy.called).to.be.false;
-      });
-
-      it('Should update a child variable with extent entry', () => {
-        const varContainer = new ApexVariableContainer('parentfoo', '', 'type');
-        varContainer.variables.set(
-          'foo1',
-          new ApexVariableContainer('foo1', 'bar', 'String')
-        );
-        varContainer.variables.set(
-          'foo2',
-          new ApexVariableContainer('foo2', 'bar', 'String')
-        );
-        const extentValue: HeapDumpExtentValue = {
-          entry: [
-            {
-              keyDisplayValue: 'foo1',
-              value: {
-                value: 'new bar'
-              }
-            },
-            {
-              keyDisplayValue: 'foo2',
-              value: {
-                value: 'bar'
-              }
-            }
-          ]
-        };
-
-        heapDumpService.updateContainer(
-          varContainer,
-          extentValue,
-          new Map(),
-          new Map(),
-          new Map()
-        );
-
-        expect(updateContainerWithExtentValueSpy.calledTwice).to.be.true;
-        expect(updateContainerChildrenWithEntriesSpy.calledOnce).to.be.true;
-        expect(
-          (varContainer.variables.get('foo1') as ApexVariableContainer).value
-        ).to.equal(`'new bar'`);
-        expect(
-          (varContainer.variables.get('foo2') as ApexVariableContainer).value
-        ).to.equal(`'bar'`);
-      });
-    });
-
-    describe('updateContainerChildrenWithEntries', () => {
-      it('Should add to container child variables', () => {
-        const varContainer = new ApexVariableContainer(
-          'MyAccount',
-          '',
-          'Account'
-        );
-        const extentValueEntries = [
-          {
-            keyDisplayValue: 'Name',
-            value: {
-              value: 'MyAccountName'
-            }
-          },
-          {
-            keyDisplayValue: 'Id',
-            value: {
-              value: '001x'
-            }
-          }
-        ] as HeapDumpExtentValueEntry[];
-
-        heapDumpService.updateContainerChildrenWithEntries(
-          varContainer,
-          extentValueEntries,
-          new Map(),
-          new Map(),
-          new Map([['Name', 'String'], ['Id', 'ID']])
-        );
-
-        expect(varContainer.variables.size).to.equal(2);
-        expect(varContainer.variables.has('Name')).to.be.true;
-        expect(varContainer.variables.has('Id')).to.be.true;
-      });
-    });
-
-    describe('updateContainerWithExtentValueOrEntry', () => {
-      beforeEach(() => {
-        adapter = new MockApexReplayDebug();
-        adapter.setLogFile(launchRequestArgs);
-      });
-
-      it('Should use extent value', () => {
-        const varContainer = new ApexVariableContainer('foo', 'bar', 'String');
-
-        heapDumpService.updateContainerWithExtentValueOrEntry(
-          varContainer,
-          'new bar',
-          undefined
-        );
-
-        expect(varContainer.value).to.equal(`'new bar'`);
-      });
-
-      it('Should use extent entry', () => {
-        const varContainer = new ApexVariableContainer('foo', 'bar', 'String');
-
-        heapDumpService.updateContainerWithExtentValueOrEntry(
-          varContainer,
-          undefined,
-          [
-            {
-              keyDisplayValue: 'notfoo',
-              value: {
-                value: 'notfoo'
-              }
-            },
-            {
-              keyDisplayValue: 'foo',
-              value: {
-                value: 'new bar'
-              }
-            }
-          ]
-        );
-
-        expect(varContainer.value).to.equal(`'new bar'`);
-      });
-
-      it('Should find child variable with matching extent entry', () => {
-        const varContainer = new ApexVariableContainer('parentfoo', '', 'type');
-        varContainer.variables.set(
-          'foo',
-          new ApexVariableContainer('foo', 'bar', 'String')
-        );
-
-        heapDumpService.updateContainerWithExtentValueOrEntry(
-          varContainer,
-          undefined,
-          [
-            {
-              keyDisplayValue: 'foo',
-              value: {
-                value: 'new bar'
-              }
-            }
-          ]
-        );
-
-        const childVariable = varContainer.variables.get(
-          'foo'
-        )! as ApexVariableContainer;
-        expect(childVariable.value).to.equal(`'new bar'`);
-      });
-    });
-
     describe('replaceVariablesWithHeapDump', () => {
       let getTopFrameStub: sinon.SinonStub;
       let getHeapDumpForThisLocationStub: sinon.SinonStub;
-      let updateContainerStub: sinon.SinonStub;
-      let updateContainerWithExtentValueOrEntryStub: sinon.SinonStub;
+      let createStringRefsFromHeapdumpSpy: sinon.SinonSpy;
+      let updateLeafReferenceContainerSpy: sinon.SinonSpy;
+      let createVariableFromReferenceSpy: sinon.SinonSpy;
       let getFrameHandlerStub: sinon.SinonStub;
       let getRefsMapStub: sinon.SinonStub;
       let getStaticVariablesClassMapStub: sinon.SinonStub;
@@ -459,13 +249,18 @@ describe('Replay debugger adapter variable handling - unit', () => {
         getTopFrameStub = sinon
           .stub(LogContext.prototype, 'getTopFrame')
           .returns(topFrame);
-        updateContainerStub = sinon.stub(
+
+        createStringRefsFromHeapdumpSpy = sinon.spy(
           HeapDumpService.prototype,
-          'updateContainer'
+          'createStringRefsFromHeapdump'
         );
-        updateContainerWithExtentValueOrEntryStub = sinon.stub(
+        updateLeafReferenceContainerSpy = sinon.spy(
           HeapDumpService.prototype,
-          'updateContainerWithExtentValueOrEntry'
+          'updateLeafReferenceContainer'
+        );
+        createVariableFromReferenceSpy = sinon.spy(
+          HeapDumpService.prototype,
+          'createVariableFromReference'
         );
         getFrameHandlerStub = sinon
           .stub(LogContext.prototype, 'getFrameHandler')
@@ -481,8 +276,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
       afterEach(() => {
         getTopFrameStub.restore();
         getHeapDumpForThisLocationStub.restore();
-        updateContainerStub.restore();
-        updateContainerWithExtentValueOrEntryStub.restore();
+        createStringRefsFromHeapdumpSpy.restore();
+        updateLeafReferenceContainerSpy.restore();
+        createVariableFromReferenceSpy.restore();
         getFrameHandlerStub.restore();
         getRefsMapStub.restore();
         getStaticVariablesClassMapStub.restore();
@@ -495,8 +291,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateContainerStub.called).to.be.false;
-        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
+        expect(createStringRefsFromHeapdumpSpy.called).to.be.false;
+        expect(updateLeafReferenceContainerSpy.called).to.be.false;
+        expect(createVariableFromReferenceSpy.called).to.be.false;
       });
 
       it('Should not switch variables without a successful heapdump for current location', () => {
@@ -507,77 +304,250 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        expect(updateContainerStub.called).to.be.false;
-        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
+        expect(createStringRefsFromHeapdumpSpy.called).to.be.false;
+        expect(updateLeafReferenceContainerSpy.called).to.be.false;
+        expect(createVariableFromReferenceSpy.called).to.be.false;
       });
 
-      it('Should update instance variable', () => {
-        const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
-        heapdump.setOverlaySuccessResult({
-          HeapDump: {
-            extents: [
-              {
-                typeName: 'Foo',
-                definition: [{}],
-                extent: [
-                  {
-                    address: '0xfoo',
-                    value: {
-                      entry: [
-                        {
-                          keyDisplayValue: 'instanceInt',
-                          value: {
-                            value: 2
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        } as ApexExecutionOverlayResultCommandSuccess);
+      it('Should not create string refs if there are not any in the heapdump', () => {
+        // Create the heap dump and pass the overlay result into createStringRefsFromHeapdump
+        // Verify with that the ref's map is empty
+        const heapdump = createHeapDumpWithNoStringTypes();
+        heapDumpService.createStringRefsFromHeapdump(
+          heapdump.getOverlaySuccessResult()!
+        );
+        // There should be no strings in the refsMap
+        expect(refsMap.size).to.be.eq(0);
+      });
+
+      it('Should only create string refs if there are not any in the heapdump', () => {
+        // Create the heap dump and pass the overlay result into createStringRefsFromHeapdump
+        // Verify with that the ref's map is empty
+        const heapdump = createHeapDumpWithNoStringTypes();
+        heapDumpService.createStringRefsFromHeapdump(
+          heapdump.getOverlaySuccessResult()!
+        );
+        // There should be no strings in the refsMap
+        expect(refsMap.size).to.be.eq(0);
+      });
+
+      it('Should create string refs if there are any in the heapdump', () => {
+        // Create the heap dump and pass the overlay result into createStringRefsFromHeapdump
+        // Verify with that the ref's map is empty.
+        const heapdump = createHeapDumpWithStrings();
+        heapDumpService.createStringRefsFromHeapdump(
+          heapdump.getOverlaySuccessResult()!
+        );
+        // There should be 2 strings in the refsMap, verify their values which should
+        // contain quotes
+        expect(refsMap.size).to.be.eq(2);
+        let tempStringVar = refsMap.get('0x47a32f5b') as ApexVariableContainer;
+        expect(tempStringVar.value).to.be.eq(
+          "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
+        );
+        tempStringVar = refsMap.get('0x6cda5efc') as ApexVariableContainer;
+        expect(tempStringVar.value).to.be.eq("'9/13/2018'");
+      });
+
+      it('Should not follow reference chain when creating leaf variables except strings', () => {
+        // Create a heapdump
+        const heapdump = createHeapDumpWithNestedRefs();
         getHeapDumpForThisLocationStub = sinon
           .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
           .returns(heapdump);
-        const thisVariable = new ApexVariableContainer('this', '', 'Foo');
-        thisVariable.variables.set(
-          'instanceInt',
-          new ApexVariableContainer('instanceInt', '1', 'Integer')
-        );
-        refsMap.set('0xfoo', thisVariable);
-        const id = frameHandler.create(new ApexDebugStackFrameInfo(0, 'Foo'));
+        const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
+        const id = frameHandler.create(frameInfo);
         topFrame.id = id;
-
         heapDumpService.replaceVariablesWithHeapDump();
+        expect(createStringRefsFromHeapdumpSpy.called).to.be.true;
+        expect(updateLeafReferenceContainerSpy.called).to.be.true;
+        // with no local, static or global variables to update this shouldn't be called
+        expect(createVariableFromReferenceSpy.called).to.be.false;
 
-        expect(updateContainerStub.called).to.be.false;
-        expect(updateContainerWithExtentValueOrEntryStub.calledOnce).to.be.true;
+        // there should be 4 references in the map, 2 strings and 2 objects
+        expect(refsMap.size).to.be.eq(4);
+
+        // NonStaticClassWithVariablesToInspect has an inner class of the same type.
+        // Get the one that's the top level one and verify that it's innerVariable does not
+        // have children and that all of the other values have been set including the string
+        // value
+        let tempApexVar = refsMap.get('0x3557adc7') as ApexVariableContainer;
+        expect(tempApexVar.variables.size).to.be.eq(7);
         expect(
-          updateContainerWithExtentValueOrEntryStub.getCall(0).args[1]
-        ).to.equal(2);
+          (tempApexVar.variables.get('MyBoolean') as ApexVariableContainer)
+            .value
+        ).to.be.eq('false');
+        expect(
+          (tempApexVar.variables.get('MyDate') as ApexVariableContainer).value
+        ).to.be.eq('Thu Sep 13 00:00:00 GMT 2018');
+        expect(
+          (tempApexVar.variables.get('MyDouble') as ApexVariableContainer).value
+        ).to.be.eq('4.37559');
+        expect(
+          (tempApexVar.variables.get('MyInteger') as ApexVariableContainer)
+            .value
+        ).to.be.eq('10');
+        expect(
+          (tempApexVar.variables.get('MyLong') as ApexVariableContainer).value
+        ).to.be.eq('4271993');
+        expect(
+          (tempApexVar.variables.get('MyString') as ApexVariableContainer).value
+        ).to.be.eq(
+          "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
+        );
+        const innerApexRefVar = tempApexVar.variables.get(
+          'innerVariable'
+        ) as ApexVariableContainer;
+        expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
+        // There should be no children on the inner variable since it's a reference
+        expect(innerApexRefVar.variables.size).to.be.eq(0);
+
+        // Verify there is an entry in the ref's for the inner var, verify everything is set on it
+        tempApexVar = refsMap.get('0x55260a7a') as ApexVariableContainer;
+        expect(tempApexVar.variables.size).to.be.eq(7);
+        expect(
+          (tempApexVar.variables.get('MyBoolean') as ApexVariableContainer)
+            .value
+        ).to.be.eq('true');
+        expect(
+          (tempApexVar.variables.get('MyDate') as ApexVariableContainer).value
+        ).to.be.eq('Thu Sep 13 00:00:00 GMT 2018');
+        expect(
+          (tempApexVar.variables.get('MyDouble') as ApexVariableContainer).value
+        ).to.be.eq('3.14159');
+        expect(
+          (tempApexVar.variables.get('MyInteger') as ApexVariableContainer)
+            .value
+        ).to.be.eq('5');
+        expect(
+          (tempApexVar.variables.get('MyLong') as ApexVariableContainer).value
+        ).to.be.eq('4271990');
+        expect(
+          (tempApexVar.variables.get('MyString') as ApexVariableContainer).value
+        ).to.be.eq("'9/13/2018'");
+        expect(
+          (tempApexVar.variables.get('innerVariable') as ApexVariableContainer)
+            .value
+        ).to.be.eq('null');
       });
 
-      it('Should update local variable', () => {
+      it('Should follow reference chain when creating instance variables from references', () => {
+        // Create the heapdump
+        const heapdump = createHeapDumpWithNestedRefs();
+        getHeapDumpForThisLocationStub = sinon
+          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .returns(heapdump);
+
+        // Create a ref variable to update
+        const localRefVariable = new ApexVariableContainer(
+          'foo',
+          '',
+          'NonStaticClassWithVariablesToInspect'
+        );
+        const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
+        const id = frameHandler.create(frameInfo);
+        topFrame.id = id;
+        frameInfo.locals.set(localRefVariable.name, localRefVariable);
+        // Update it with the heap dump
+        heapDumpService.replaceVariablesWithHeapDump();
+
+        // Verify the variable was updated
+        const updatedLocRefVariable = frameInfo.locals.get(
+          localRefVariable.name
+        ) as ApexVariableContainer;
+        expect(updatedLocRefVariable.variables.size).to.be.eq(7);
+        expect(
+          (updatedLocRefVariable.variables.get(
+            'MyBoolean'
+          ) as ApexVariableContainer).value
+        ).to.be.eq('false');
+        expect(
+          (updatedLocRefVariable.variables.get(
+            'MyDate'
+          ) as ApexVariableContainer).value
+        ).to.be.eq('Thu Sep 13 00:00:00 GMT 2018');
+        expect(
+          (updatedLocRefVariable.variables.get(
+            'MyDouble'
+          ) as ApexVariableContainer).value
+        ).to.be.eq('4.37559');
+        expect(
+          (updatedLocRefVariable.variables.get(
+            'MyInteger'
+          ) as ApexVariableContainer).value
+        ).to.be.eq('10');
+        expect(
+          (updatedLocRefVariable.variables.get(
+            'MyLong'
+          ) as ApexVariableContainer).value
+        ).to.be.eq('4271993');
+        expect(
+          (updatedLocRefVariable.variables.get(
+            'MyString'
+          ) as ApexVariableContainer).value
+        ).to.be.eq(
+          "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
+        );
+        // Get the innerVariable from the updatedLocRefVariable which should be fully populated
+        const innerApexRefVar = updatedLocRefVariable.variables.get(
+          'innerVariable'
+        ) as ApexVariableContainer;
+        expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
+        // The innerVariable should have 7 children (no further references), verify everything has been set correctly
+        expect(innerApexRefVar.variables.size).to.be.eq(7);
+
+        expect(
+          (innerApexRefVar.variables.get('MyBoolean') as ApexVariableContainer)
+            .value
+        ).to.be.eq('true');
+        expect(
+          (innerApexRefVar.variables.get('MyDate') as ApexVariableContainer)
+            .value
+        ).to.be.eq('Thu Sep 13 00:00:00 GMT 2018');
+        expect(
+          (innerApexRefVar.variables.get('MyDouble') as ApexVariableContainer)
+            .value
+        ).to.be.eq('3.14159');
+        expect(
+          (innerApexRefVar.variables.get('MyInteger') as ApexVariableContainer)
+            .value
+        ).to.be.eq('5');
+        expect(
+          (innerApexRefVar.variables.get('MyLong') as ApexVariableContainer)
+            .value
+        ).to.be.eq('4271990');
+        expect(
+          (innerApexRefVar.variables.get('MyString') as ApexVariableContainer)
+            .value
+        ).to.be.eq("'9/13/2018'");
+        expect(
+          (innerApexRefVar.variables.get(
+            'innerVariable'
+          ) as ApexVariableContainer).value
+        ).to.be.eq('null');
+      });
+
+      it('Should update a non-reference variable', () => {
         const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
         heapdump.setOverlaySuccessResult({
           HeapDump: {
             extents: [
               {
-                typeName: 'String',
+                collectionType: null,
+                typeName: 'Integer',
                 definition: [
                   {
-                    name: 'localStr',
-                    type: 'String'
+                    name: 'value',
+                    type: 'Double'
                   }
                 ],
                 extent: [
                   {
-                    address: '0xString',
-                    symbols: ['localStr'],
+                    address: '0xfoo',
+                    isStatic: false,
+                    symbols: ['theInt'],
                     value: {
-                      value: 'new'
+                      value: 5
                     }
                   }
                 ]
@@ -588,99 +558,50 @@ describe('Replay debugger adapter variable handling - unit', () => {
         getHeapDumpForThisLocationStub = sinon
           .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
           .returns(heapdump);
-        const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
-        const localVar = new ApexVariableContainer('localStr', 'old', 'String');
-        frameInfo.locals.set('localStr', localVar);
-        const id = frameHandler.create(frameInfo);
-        topFrame.id = id;
-
-        heapDumpService.replaceVariablesWithHeapDump();
-
-        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
-        expect(updateContainerStub.calledOnce).to.be.true;
-        expect(updateContainerStub.getCall(0).args[0]).to.equal(localVar);
-        const extentValue = updateContainerStub.getCall(0)
-          .args[1] as HeapDumpExtentValue;
-        expect(extentValue.value).to.equal('new');
-      });
-
-      it('Should update static variable', () => {
-        const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
-        heapdump.setOverlaySuccessResult({
-          HeapDump: {
-            extents: [
-              {
-                typeName: 'String',
-                definition: [{}],
-                extent: [
-                  {
-                    address: '0xString',
-                    symbols: ['Foo.staticStr'],
-                    value: {
-                      value: 'new'
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        } as ApexExecutionOverlayResultCommandSuccess);
-        getHeapDumpForThisLocationStub = sinon
-          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
-          .returns(heapdump);
-        const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
-        const staticVar = new ApexVariableContainer(
-          'staticStr',
-          'old',
-          'String'
+        const nonRefVariable = new ApexVariableContainer(
+          'theInt',
+          '2',
+          'Double'
         );
-        staticVariablesClassMap.set('Foo', new Map([['staticStr', staticVar]]));
-        frameInfo.statics.set('staticStr', staticVar);
+        const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
+        frameInfo.locals.set(nonRefVariable.name, nonRefVariable);
 
         heapDumpService.replaceVariablesWithHeapDump();
-
-        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
-        expect(updateContainerStub.calledOnce).to.be.true;
-        expect(updateContainerStub.getCall(0).args[0]).to.equal(staticVar);
-        const extentValue = updateContainerStub.getCall(0)
-          .args[1] as HeapDumpExtentValue;
-        expect(extentValue.value).to.equal('new');
+        expect(createStringRefsFromHeapdumpSpy.calledOnce).to.be.true;
+        expect(updateLeafReferenceContainerSpy.calledOnce).to.be.false;
+        expect(createVariableFromReferenceSpy.calledOnce).to.be.false;
+        // The variable should have been updated and have a value of 5
+        const updatedNonRefVariable = frameInfo.locals.get(
+          nonRefVariable.name
+        ) as ApexVariableContainer;
+        expect(updatedNonRefVariable.value).to.be.eq('5');
       });
 
-      it('Should revisit variable with an address', () => {
+      // Variables, whether local, static or trigger all use the same code
+      // to update. Having this in there for statics is just for sanity
+      it('Should update a non-reference static variable', () => {
         const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
         heapdump.setOverlaySuccessResult({
           HeapDump: {
             extents: [
               {
-                typeName: 'Foo',
-                definition: [{}],
+                collectionType: null,
+                typeName: 'Integer',
+                definition: [
+                  {
+                    name: 'value',
+                    type: 'Double'
+                  }
+                ],
                 extent: [
                   {
                     address: '0xfoo',
+                    isStatic: false,
+                    symbols: ['Foo.theInt'],
                     value: {
-                      entry: [
-                        {
-                          keyDisplayValue: 'instanceStr',
-                          value: {
-                            value: '0xRememberMe'
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                typeName: 'String',
-                definition: [{}],
-                extent: [
-                  {
-                    address: '0xRememberMe',
-                    value: {
-                      value: 'new'
+                      value: 5
                     }
                   }
                 ]
@@ -691,133 +612,31 @@ describe('Replay debugger adapter variable handling - unit', () => {
         getHeapDumpForThisLocationStub = sinon
           .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
           .returns(heapdump);
-        const thisVariable = new ApexVariableContainer('this', '', 'Foo');
-        const instanceVar = new ApexVariableContainer(
-          'instanceStr',
-          'old',
-          'String'
+        const nonRefVariable = new ApexVariableContainer(
+          'theInt',
+          '2',
+          'Double'
         );
-        thisVariable.variables.set('instanceStr', instanceVar);
-        refsMap.set('0xfoo', thisVariable);
-        const id = frameHandler.create(new ApexDebugStackFrameInfo(0, 'Foo'));
+        staticVariablesClassMap.set(
+          'Foo',
+          new Map([['theInt', nonRefVariable]])
+        );
+        const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
+        const id = frameHandler.create(frameInfo);
         topFrame.id = id;
+        frameInfo.statics.set(nonRefVariable.name, nonRefVariable);
 
         heapDumpService.replaceVariablesWithHeapDump();
-
-        expect(updateContainerWithExtentValueOrEntryStub.called).to.be.false;
-        expect(updateContainerStub.calledOnce).to.be.true;
-        expect(updateContainerStub.getCall(0).args[0]).to.equal(instanceVar);
-        const extentValue = updateContainerStub.getCall(0)
-          .args[1] as HeapDumpExtentValue;
-        expect(extentValue.value).to.equal('new');
+        expect(createStringRefsFromHeapdumpSpy.calledOnce).to.be.true;
+        expect(updateLeafReferenceContainerSpy.calledOnce).to.be.false;
+        expect(createVariableFromReferenceSpy.calledOnce).to.be.false;
+        // The variable should have been updated and have a value of 5
+        const updatedNonRefVariable = frameInfo.statics.get(
+          nonRefVariable.name
+        ) as ApexVariableContainer;
+        expect(updatedNonRefVariable.value).to.be.eq('5');
       });
-    });
-
-    describe('getStringVariableNamesAndValues', () => {
-      it('Should get a list of strings', () => {
-        const heapdump = {
-          HeapDump: {
-            extents: [
-              {
-                typeName: 'Account',
-                extent: [
-                  {
-                    value: {
-                      entry: [
-                        {
-                          keyDisplayValue: 'Name',
-                          value: {
-                            value: 'MyAccount'
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                typeName: 'String',
-                extent: [
-                  {
-                    value: {
-                      value: 'Name'
-                    }
-                  },
-                  {
-                    value: {
-                      value: 'MyAccount'
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        } as ApexExecutionOverlayResultCommandSuccess;
-
-        const strings = heapDumpService.getStringVariableNamesAndValues(
-          heapdump
-        );
-        expect(strings.size).to.equal(2);
-        expect(strings.get('Name')).to.equal('String');
-        expect(strings.get('MyAccount')).to.equal('String');
-      });
-    });
-
-    describe('addVariableTypesFromExtentDefinition', () => {
-      it('Should add definitions to map of types', () => {
-        let variableTypes = new Map([['foo', 'String']]);
-        const definitions = [
-          {
-            name: 'MyAccount',
-            type: 'Account'
-          },
-          {
-            name: 'MyInteger',
-            type: 'Integer'
-          }
-        ] as HeapDumpCollectionTypeDefinition[];
-
-        variableTypes = heapDumpService.addVariableTypesFromExtentDefinition(
-          variableTypes,
-          definitions
-        );
-
-        expect(variableTypes.size).to.equal(3);
-        expect(variableTypes.get('foo')).to.equal('String');
-        expect(variableTypes.get('MyAccount')).to.equal('Account');
-        expect(variableTypes.get('MyInteger')).to.equal('Integer');
-      });
-    });
-
-    describe('isContainerForExtentEntry', () => {
-      it('Should match container name with extent keyDisplayValue', () => {
-        const varContainer = new ApexVariableContainer('foo', '', 'type');
-        const extentValueEntry = {
-          keyDisplayValue: 'foo'
-        } as HeapDumpExtentValueEntry;
-
-        expect(
-          heapDumpService.isContainerForExtentEntry(
-            varContainer,
-            extentValueEntry
-          )
-        ).to.be.true;
-      });
-
-      it('Should not match container name with extent keyDisplayValue', () => {
-        const varContainer = new ApexVariableContainer('foo', '', 'type');
-        const extentValueEntry = {
-          keyDisplayValue: 'bar'
-        } as HeapDumpExtentValueEntry;
-
-        expect(
-          heapDumpService.isContainerForExtentEntry(
-            varContainer,
-            extentValueEntry
-          )
-        ).to.be.false;
-      });
-    });
+    }); // Describe replaceVariablesWithHeapDump
 
     describe('heapDumpTriggerContextVariables', () => {
       let getTopFrameStub: sinon.SinonStub;
@@ -905,7 +724,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
         heapDumpService.replaceVariablesWithHeapDump();
 
-        // There should be no gloabs after the heap dump processing
+        // There should be no globals after the heap dump processing
         expect(frameInfo.globals.size).to.eq(0);
       });
 
@@ -982,14 +801,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(triggerNew.variables.size).to.be.eq(3);
         // Verify the entries in the array
         expect(
-          (triggerNew.variables.get('0') as ApexVariableContainer).value
-        ).to.eq("'0x5f163c72'");
+          (triggerNew.variables.get('0') as ApexVariableContainer).ref
+        ).to.eq('0x5f163c72');
         expect(
-          (triggerNew.variables.get('1') as ApexVariableContainer).value
-        ).to.eq("'0xf1fabe'");
+          (triggerNew.variables.get('1') as ApexVariableContainer).ref
+        ).to.eq('0xf1fabe');
         expect(
-          (triggerNew.variables.get('2') as ApexVariableContainer).value
-        ).to.eq("'0x76e9852b'");
+          (triggerNew.variables.get('2') as ApexVariableContainer).ref
+        ).to.eq('0x76e9852b');
 
         // Verify the Trigger.newmap which is a Map<Id,Account>
         const triggerNewmap = frameInfo.globals.get(
@@ -1001,18 +820,52 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(triggerNewmap.variablesRef).to.be.greaterThan(0);
         expect(triggerNewmap.variables.size).to.be.eq(3);
         // Verify the key/value pairs in the map
-        expect(
-          (triggerNewmap.variables.get('0x5c288675') as ApexVariableContainer)
-            .value
-        ).to.be.eq('0x5f163c72');
-        expect(
-          (triggerNewmap.variables.get('0x5db01cb1') as ApexVariableContainer)
-            .value
-        ).to.be.eq('0xf1fabe');
-        expect(
-          (triggerNewmap.variables.get('0x1872dffb') as ApexVariableContainer)
-            .value
-        ).to.be.eq('0x76e9852b');
+        // There should be a key name with the type of Id and value sane as the kvp name
+        // There should be a value of type Account whose ref is the account ref
+        let tempKeyValPairApexVar = triggerNewmap.variables.get(
+          'key0_value0'
+        ) as ApexVariableContainer;
+        expect(tempKeyValPairApexVar.name).to.be.eq("'001xx000003Dv3YAAS'");
+        let keyApexVar = tempKeyValPairApexVar.variables.get(
+          'key'
+        ) as ApexVariableContainer;
+        expect(keyApexVar.type).to.eq('Id');
+        expect(keyApexVar.value).to.eq(tempKeyValPairApexVar.name);
+        let valueApexVar = tempKeyValPairApexVar.variables.get(
+          'value'
+        ) as ApexVariableContainer;
+        expect(valueApexVar.type).to.be.eq('Account');
+        expect(valueApexVar.ref).to.be.eq('0x5f163c72');
+
+        tempKeyValPairApexVar = triggerNewmap.variables.get(
+          'key1_value1'
+        ) as ApexVariableContainer;
+        expect(tempKeyValPairApexVar.name).to.be.eq("'001xx000003Dv3ZAAS'");
+        keyApexVar = tempKeyValPairApexVar.variables.get(
+          'key'
+        ) as ApexVariableContainer;
+        expect(keyApexVar.type).to.eq('Id');
+        expect(keyApexVar.value).to.eq(tempKeyValPairApexVar.name);
+        valueApexVar = tempKeyValPairApexVar.variables.get(
+          'value'
+        ) as ApexVariableContainer;
+        expect(valueApexVar.type).to.be.eq('Account');
+        expect(valueApexVar.ref).to.be.eq('0xf1fabe');
+
+        tempKeyValPairApexVar = triggerNewmap.variables.get(
+          'key2_value2'
+        ) as ApexVariableContainer;
+        expect(tempKeyValPairApexVar.name).to.be.eq("'001xx000003Dv3aAAC'");
+        keyApexVar = tempKeyValPairApexVar.variables.get(
+          'key'
+        ) as ApexVariableContainer;
+        expect(keyApexVar.type).to.eq('Id');
+        expect(keyApexVar.value).to.eq(tempKeyValPairApexVar.name);
+        valueApexVar = tempKeyValPairApexVar.variables.get(
+          'value'
+        ) as ApexVariableContainer;
+        expect(valueApexVar.type).to.be.eq('Account');
+        expect(valueApexVar.ref).to.be.eq('0x76e9852b');
       });
     });
   });
