@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.16.0",
+  "version": "43.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,11 +22,11 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "43.16.0",
+    "@salesforce/salesforcedx-slds-linter": "43.17.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "43.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.17.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
@@ -68,6 +68,13 @@
           ".auradoc",
           ".tokens"
         ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "html",
+        "scopeName": "text.html.basic",
+        "path": "./syntaxes/html.tmLanguage.json"
       }
     ]
   }
