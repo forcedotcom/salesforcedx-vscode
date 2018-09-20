@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.16.0",
+  "version": "43.17.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,7 +23,7 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "43.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.17.0",
     "ajv": "^6.1.1",
     "babel-plugin-transform-lwc-class":
       "http://npm.lwcjs.org/babel-plugin-transform-lwc-class/-/babel-plugin-transform-lwc-class-0.24.20/d0400eb432808ab6e89a9cab52b6c43a409b460d.tgz",
