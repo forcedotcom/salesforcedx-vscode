@@ -26,6 +26,11 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
+import {
+  getDefaultUsernameOrAlias,
+  getUsername,
+  isAScratchOrg
+} from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
@@ -104,22 +109,73 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 }
 
 export async function getUserId(projectPath: string): Promise<string> {
-  const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
+  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
+  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
+  if (defaultUsernameIsSet) {
+    const username = await getUsername(defaultUsernameOrAlias!);
+    let isScratchOrg = false;
+    try {
+      isScratchOrg = await isAScratchOrg(username);
+    } catch (e) {
+      // If the info for the default username cannot be found,
+      // we will treat it like it is not a scratch org
+      if (e.name !== 'NamedOrgNotFound') {
+        throw e;
+      }
+    }
+    let execution;
+    if (isScratchOrg) {
+      execution = new CliCommandExecutor(new ForceUserDisplay().build(), {
+        cwd: projectPath
+      }).execute();
+    } else {
+      execution = new CliCommandExecutor(new ForceQueryUser(username).build(), {
+        cwd: projectPath
+      }).execute();
+    }
+    telemetryService.sendCommandEvent(execution.command.logName);
+    const cmdOutput = new CommandOutput();
+    const result = await cmdOutput.getCmdResult(execution);
+    try {
+      const orgInfo = isScratchOrg
+        ? JSON.parse(result).result.id
+        : JSON.parse(result).result.records[0].Id;
+      return Promise.resolve(orgInfo);
+    } catch (e) {
+      return Promise.reject(result);
+    }
+  } else {
+    throw new Error(nls.localize('no_default_username_found_error'));
+  }
+}
+
+class ForceUserDisplay extends SfdxCommandletExecutor<{}> {
+  public build(): Command {
+    return new SfdxCommandBuilder()
       .withArg('force:user:display')
       .withJson()
       .withLogName('force_user_display')
-      .build(),
-    { cwd: projectPath }
-  ).execute();
-  telemetryService.sendCommandEvent(execution.command.logName);
-  const cmdOutput = new CommandOutput();
-  const result = await cmdOutput.getCmdResult(execution);
-  try {
-    const orgInfo = JSON.parse(result).result.id;
-    return Promise.resolve(orgInfo);
-  } catch (e) {
-    return Promise.reject(result);
+      .build();
+  }
+}
+
+class ForceQueryUser extends SfdxCommandletExecutor<{}> {
+  private username: string;
+  public constructor(username: string) {
+    super();
+    this.username = username;
+  }
+  public build(): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_start_apex_debug_logging'))
+      .withArg('force:data:soql:query')
+      .withFlag(
+        '--query',
+        `SELECT id FROM User WHERE username='${this.username}'`
+      )
+      .withJson()
+      .withLogName('force_query_user')
+      .build();
   }
 }
 

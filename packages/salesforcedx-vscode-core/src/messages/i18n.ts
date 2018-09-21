@@ -192,5 +192,6 @@ export const messages = {
   tooling_API_description: 'Execute the query with Tooling API',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
-  telemetry_legal_dialog_button_text: 'Read more'
+  telemetry_legal_dialog_button_text: 'Read more',
+  no_default_username_found_error: 'No defaultusername found'
 };
