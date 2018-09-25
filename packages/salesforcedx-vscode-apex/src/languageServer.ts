@@ -15,6 +15,7 @@ import {
 } from 'vscode-languageclient';
 import { nls } from './messages';
 import * as requirements from './requirements';
+import { telemetryService } from './telemetry';
 
 const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 const JDWP_DEBUG_PORT = 2739;
@@ -72,6 +73,7 @@ async function createServer(
     };
   } catch (err) {
     vscode.window.showErrorMessage(err);
+    telemetryService.sendApexLSPError(err);
     throw err;
   }
 }

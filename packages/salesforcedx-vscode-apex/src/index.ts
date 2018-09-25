@@ -28,6 +28,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 let languageClient: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
+  const extensionHRStart = process.hrtime();
   const rootPath = vscode.workspace.workspaceFolders![0].name;
   const testOutlineProvider = new ApexTestOutlineProvider(rootPath, null);
   // Telemetry
@@ -40,8 +41,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  telemetryService.sendExtensionActivationEvent();
-
+  const langClientHRStart = process.hrtime();
   languageClient = await languageServer.createLanguageServer(context);
   LanguageClientUtils.setClientInstance(languageClient);
   const handle = languageClient.start();
@@ -52,9 +52,11 @@ export async function activate(context: vscode.ExtensionContext) {
     .then(async () => {
       LanguageClientUtils.languageClientReady = true;
       await testOutlineProvider.refresh();
+      telemetryService.sendApexLSPActivationEvent(langClientHRStart);
     })
     .catch(err => {
       // Handled by clients
+      telemetryService.sendApexLSPError(err);
     });
 
   context.subscriptions.push(await registerTestView(testOutlineProvider));
@@ -65,6 +67,8 @@ export async function activate(context: vscode.ExtensionContext) {
     isLanguageClientReady,
     getApexTests
   };
+
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
 

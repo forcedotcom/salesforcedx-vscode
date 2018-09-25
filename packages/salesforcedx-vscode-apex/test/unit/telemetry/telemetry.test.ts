@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { assert, SinonStub, stub } from 'sinon';
+import { assert, match, SinonStub, stub } from 'sinon';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 
@@ -26,7 +26,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent();
+    telemetryService.sendExtensionActivationEvent([0, 678]);
     assert.calledOnce(sendEvent);
   });
 
@@ -56,13 +56,14 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent();
+    telemetryService.sendExtensionActivationEvent([1, 700]);
     assert.calledOnce(sendEvent);
 
     const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex'
+      extensionName: 'salesforcedx-vscode-apex',
+      startupTime: match.string
     };
-    assert.calledWith(sendEvent, 'activationEvent', expectedData);
+    assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
@@ -76,5 +77,33 @@ describe('Telemetry', () => {
       extensionName: 'salesforcedx-vscode-apex'
     };
     assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
+  });
+
+  it('Should send correct data format on sendApexLSPActivationEvent', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+
+    telemetryService.sendApexLSPActivationEvent([0, 50]);
+    assert.calledOnce(sendEvent);
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-apex',
+      startupTime: match.string
+    };
+    assert.calledWith(sendEvent, 'apexLSPStartup', match(expectedData));
+  });
+
+  it('Should send correct data format on sendApexLSPError', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+    const errorMsg = 'NullPointerException on Apex LSP';
+    telemetryService.sendApexLSPError(errorMsg);
+    assert.calledOnce(sendEvent);
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-apex',
+      errorMsg
+    };
+    assert.calledWith(sendEvent, 'apexLSPError', expectedData);
   });
 });
