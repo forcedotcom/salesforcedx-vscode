@@ -5,31 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, Command, SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecutor, Command, DeployError, ForceDeployErrorParser, SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { SfdxCommandlet, SfdxCommandletExecutor, SfdxWorkspaceChecker } from './commands';
 import { FileType, ManifestOrSourcePathGatherer, SelectedPath } from './forceSourceRetrieve';
-
-interface Result {
-  columnNumber: string;
-  error: string;
-  filePath: string;
-  fullName: string;
-  lineNumber: string;
-  type: string;
-}
-
-interface ForceSourceDeployErrorResult {
-  message: string;
-  name: string;
-  result: Result[];
-  stack: string;
-  status: number;
-  warnings: any[];
-}
 
 // move this elsewhere?
 vscode.workspace.onDidChangeTextDocument((e => {
@@ -73,8 +55,8 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPa
     execution.processExitSubject.subscribe(async exitCode => {
       if (exitCode !== 0) {
         try {
-          const compileErrs = this.getDeployResultData(stdErr);
-          const fileErrors = this.groupErrorsByPath(compileErrs);
+          const parser = new ForceDeployErrorParser();
+          const fileErrors = parser.parse(stdErr);
           Object.keys(fileErrors).forEach(filePath => {
             const uri = vscode.Uri.file(path.join(workspacePath, filePath));
             const fileDiagnostics: vscode.Diagnostic[] = [];
@@ -94,25 +76,7 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<SelectedPa
     this.logMetric(execution.command.logName);
   }
 
-  private getDeployResultData(stdErr: string) {
-    const stdErrLines = stdErr.split(require('os').EOL);
-    // hack to check for update msg in stderr... there must be a better way
-    const json = stdErrLines[stdErrLines.length - 2];
-    return JSON.parse(json) as ForceSourceDeployErrorResult;
-  }
-
-  private groupErrorsByPath(deployResult: ForceSourceDeployErrorResult) {
-    return deployResult.result.reduce<{ [key: string]: Result[] }>((results, err) => {
-      if (results[err.filePath]) {
-        results[err.filePath].push(err);
-      } else {
-        results[err.filePath] = [err];
-      }
-      return results;
-    }, {});
-  }
-
-  private createDiagnosticFromResult(err: Result) {
+  private createDiagnosticFromResult(err: DeployError) {
     const ln = Number(err.lineNumber) - 1;
     const col = Number(err.columnNumber) - 1;
     const range = new vscode.Range(new vscode.Position(ln, col), new vscode.Position(ln, col));
