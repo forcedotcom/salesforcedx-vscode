@@ -37,6 +37,7 @@ describe('force:source:deploy parser', () => {
     const errParser = new ForceDeployErrorParser();
     const errs = errParser.parse(JSON.stringify(deployErrorResult));
     expect(Object.keys(errs).length).to.deep.equal(1);
+    // tslint:disable-next-line:no-unused-expression
     expect(errs[path]).to.not.be.null;
     expect(errs[path].length).to.deep.equal(1);
   });
@@ -82,6 +83,7 @@ describe('force:source:deploy parser', () => {
 
     const errs = errParser.parse(JSON.stringify(deployErrorResult));
     expect(Object.keys(errs).length).to.deep.equal(1);
+    // tslint:disable-next-line:no-unused-expression
     expect(errs[path]).to.not.be.null;
     expect(errs[path].length).to.deep.equal(2);
   });
