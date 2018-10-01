@@ -56,14 +56,14 @@ export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExec
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(() => {
-      this.apexTestOutline.readJSONFile(this.outputToJson);
-    });
-
     super.attachExecution(
       execution,
       cancellationTokenSource,
       cancellationToken
     );
+
+    execution.processExitSubject.subscribe(() => {
+      this.apexTestOutline.readJSONFile(this.outputToJson);
+    });
   }
 }
