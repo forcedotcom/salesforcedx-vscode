@@ -11,8 +11,9 @@ import { developerLogTraceFlag } from '../../src/commands';
 import {
   CreateDebugLevel,
   CreateTraceFlag,
-  ForceQueryTraceFlag,
   ForceStartApexDebugLoggingExecutor,
+  ForceQueryTraceFlag,
+  ForceQueryUser,
   UpdateDebugLevelsExecutor,
   UpdateTraceFlagsExecutor
 } from '../../src/commands/forceStartApexDebugLogging';
@@ -100,6 +101,15 @@ describe('Force Start Apex Debug Logging', () => {
     const createDebugLevelCmd = createDebugLevelExecutor.build();
     expect(createDebugLevelCmd.toCommand()).to.equal(
       `sfdx force:data:record:create --sobjecttype DebugLevel --values developername=${createDebugLevelExecutor.developerName} MasterLabel=${createDebugLevelExecutor.developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL} --usetoolingapi --json --loglevel fatal`
+    );
+  });
+
+  it('Should build the user id query command', async () => {
+    const testUser = 'user@test.org';
+    const forceQueryUserExecutor = new ForceQueryUser(testUser);
+    const forceQueryUserCmd = forceQueryUserExecutor.build();
+    expect(forceQueryUserCmd.toCommand()).to.equal(
+      `sfdx force:data:soql:query --query SELECT id FROM User WHERE username='${testUser}' --json --loglevel fatal`
     );
   });
 });

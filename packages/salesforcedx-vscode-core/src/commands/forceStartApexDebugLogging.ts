@@ -28,7 +28,7 @@ import {
 
 import {
   getDefaultUsernameOrAlias,
-  getUsername,
+  getUsername
 } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
@@ -109,27 +109,22 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 
 export async function getUserId(projectPath: string): Promise<string> {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-  if (defaultUsernameIsSet) {
-    const username = await getUsername(defaultUsernameOrAlias!);
-    const execution = new CliCommandExecutor(new ForceQueryUser(username).build(), {
-      cwd: projectPath
-    }).execute();
-    telemetryService.sendCommandEvent(execution.command.logName);
-    const cmdOutput = new CommandOutput();
-    const result = await cmdOutput.getCmdResult(execution);
-    try {
-      const orgInfo = JSON.parse(result).result.records[0].Id;
-      return Promise.resolve(orgInfo);
-    } catch (e) {
-      return Promise.reject(result);
-    }
-  } else {
-    throw new Error(nls.localize('no_default_username_found_error'));
+  const username = await getUsername(defaultUsernameOrAlias!);
+  const execution = new CliCommandExecutor(new ForceQueryUser(username).build(), {
+    cwd: projectPath
+  }).execute();
+  telemetryService.sendCommandEvent(execution.command.logName);
+  const cmdOutput = new CommandOutput();
+  const result = await cmdOutput.getCmdResult(execution);
+  try {
+    const orgInfo = JSON.parse(result).result.records[0].Id;
+    return Promise.resolve(orgInfo);
+  } catch (e) {
+    return Promise.reject(result);
   }
 }
 
-class ForceQueryUser extends SfdxCommandletExecutor<{}> {
+export class ForceQueryUser extends SfdxCommandletExecutor<{}> {
   private username: string;
   public constructor(username: string) {
     super();
