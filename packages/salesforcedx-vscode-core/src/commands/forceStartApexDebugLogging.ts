@@ -26,10 +26,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-import {
-  getDefaultUsernameOrAlias,
-  getUsername
-} from '../context';
+import { getDefaultUsernameOrAlias, getUsername } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
@@ -110,9 +107,12 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 export async function getUserId(projectPath: string): Promise<string> {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
   const username = await getUsername(defaultUsernameOrAlias!);
-  const execution = new CliCommandExecutor(new ForceQueryUser(username).build(), {
-    cwd: projectPath
-  }).execute();
+  const execution = new CliCommandExecutor(
+    new ForceQueryUser(username).build(),
+    {
+      cwd: projectPath
+    }
+  ).execute();
   telemetryService.sendCommandEvent(execution.command.logName);
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
@@ -132,7 +132,6 @@ export class ForceQueryUser extends SfdxCommandletExecutor<{}> {
   }
   public build(): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_start_apex_debug_logging'))
       .withArg('force:data:soql:query')
       .withFlag(
         '--query',
@@ -178,10 +177,10 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
         '--values',
         `tracedentityid='${this
           .userId}' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()} StartDate='${developerLogTraceFlag
-            .getStartDate()
-            .toUTCString()}' ExpirationDate='${developerLogTraceFlag
-              .getExpirationDate()
-              .toUTCString()}`
+          .getStartDate()
+          .toUTCString()}' ExpirationDate='${developerLogTraceFlag
+          .getExpirationDate()
+          .toUTCString()}`
       )
       .withArg('--usetoolingapi')
       .withJson()
@@ -220,8 +219,8 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
         `StartDate='${developerLogTraceFlag
           .getStartDate()
           .toUTCString()}' ExpirationDate='${developerLogTraceFlag
-            .getExpirationDate()
-            .toUTCString()}'`
+          .getExpirationDate()
+          .toUTCString()}'`
       )
       .withArg('--usetoolingapi')
       .withJson()

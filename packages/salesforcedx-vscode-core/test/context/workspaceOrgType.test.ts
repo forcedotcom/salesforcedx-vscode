@@ -34,13 +34,13 @@ describe('getUsername', () => {
 });
 
 describe('getDefaultUsernameOrAlias', () => {
-  it('returns the defaultusername when the username is set', async () => {
+  it('returns undefined when no defaultusername is set', async () => {
     const getConfigStub = getGetConfigStub(new Map());
     expect(await getDefaultUsernameOrAlias()).to.be.undefined;
     getConfigStub.restore();
   });
 
-  it('returns undefined when no defaultusername is set', async () => {
+  it('returns the defaultusername when the username is set', async () => {
     const username = 'test@org.com';
     const getConfigStub = getGetConfigStub(
       new Map([['defaultusername', username]])
