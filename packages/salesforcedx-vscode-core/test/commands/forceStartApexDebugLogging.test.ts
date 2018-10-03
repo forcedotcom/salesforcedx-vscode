@@ -11,9 +11,9 @@ import { developerLogTraceFlag } from '../../src/commands';
 import {
   CreateDebugLevel,
   CreateTraceFlag,
-  ForceStartApexDebugLoggingExecutor,
   ForceQueryTraceFlag,
   ForceQueryUser,
+  ForceStartApexDebugLoggingExecutor,
   UpdateDebugLevelsExecutor,
   UpdateTraceFlagsExecutor
 } from '../../src/commands/forceStartApexDebugLogging';
