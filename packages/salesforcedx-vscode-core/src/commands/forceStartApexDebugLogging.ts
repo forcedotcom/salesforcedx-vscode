@@ -26,6 +26,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
+import { getDefaultUsernameOrAlias, getUsername } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
@@ -104,22 +105,41 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 }
 
 export async function getUserId(projectPath: string): Promise<string> {
+  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
+  const username = await getUsername(defaultUsernameOrAlias!);
   const execution = new CliCommandExecutor(
-    new SfdxCommandBuilder()
-      .withArg('force:user:display')
-      .withJson()
-      .withLogName('force_user_display')
-      .build(),
-    { cwd: projectPath }
+    new ForceQueryUser(username).build(),
+    {
+      cwd: projectPath
+    }
   ).execute();
   telemetryService.sendCommandEvent(execution.command.logName);
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   try {
-    const orgInfo = JSON.parse(result).result.id;
+    const orgInfo = JSON.parse(result).result.records[0].Id;
     return Promise.resolve(orgInfo);
   } catch (e) {
     return Promise.reject(result);
+  }
+}
+
+export class ForceQueryUser extends SfdxCommandletExecutor<{}> {
+  private username: string;
+  public constructor(username: string) {
+    super();
+    this.username = username;
+  }
+  public build(): Command {
+    return new SfdxCommandBuilder()
+      .withArg('force:data:soql:query')
+      .withFlag(
+        '--query',
+        `SELECT id FROM User WHERE username='${this.username}'`
+      )
+      .withJson()
+      .withLogName('force_query_user')
+      .build();
   }
 }
 

@@ -11,7 +11,44 @@ import * as vscode from 'vscode';
 
 import { Aliases, AuthInfo } from '@salesforce/core';
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { setupWorkspaceOrgType } from '../../src/context';
+import {
+  getDefaultUsernameOrAlias,
+  getUsername,
+  setupWorkspaceOrgType
+} from '../../src/context';
+
+describe('getUsername', () => {
+  it('should return the username when given a username', async () => {
+    const username = 'test@org.com';
+    const aliasesStub = getAliasesFetchStub(undefined);
+    expect(await getUsername(username)).to.equal(username);
+    aliasesStub.restore();
+  });
+
+  it('should return the username when given an alias', async () => {
+    const username = 'test@org.com';
+    const aliasesStub = getAliasesFetchStub(username);
+    expect(await getUsername('orgAlias')).to.equal(username);
+    aliasesStub.restore();
+  });
+});
+
+describe('getDefaultUsernameOrAlias', () => {
+  it('returns undefined when no defaultusername is set', async () => {
+    const getConfigStub = getGetConfigStub(new Map());
+    expect(await getDefaultUsernameOrAlias()).to.be.undefined;
+    getConfigStub.restore();
+  });
+
+  it('returns the defaultusername when the username is set', async () => {
+    const username = 'test@org.com';
+    const getConfigStub = getGetConfigStub(
+      new Map([['defaultusername', username]])
+    );
+    expect(await getDefaultUsernameOrAlias()).to.equal(username);
+    getConfigStub.restore();
+  });
+});
 
 describe('setupWorkspaceOrgType', () => {
   it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to false', async () => {
