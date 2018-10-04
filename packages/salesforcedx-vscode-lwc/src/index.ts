@@ -196,6 +196,6 @@ export async function populateEslintSettingIfNecessary(
 }
 
 export function deactivate() {
-  console.log('SFDX LWC Extension Deactivated');
+  console.log('SFDX LWC Next Extension Deactivated');
   telemetryService.sendExtensionDeactivationEvent();
 }
