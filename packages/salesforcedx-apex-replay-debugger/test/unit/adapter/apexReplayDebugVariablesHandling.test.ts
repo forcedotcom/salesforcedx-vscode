@@ -25,6 +25,7 @@ import { HeapDumpService } from '../../../src/core/heapDumpService';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 import {
   createHeapDumpResultForTriggers,
+  createHeapDumpWithCircularRefs,
   createHeapDumpWithNestedRefs,
   createHeapDumpWithNoStringTypes,
   createHeapDumpWithStrings
@@ -635,6 +636,71 @@ describe('Replay debugger adapter variable handling - unit', () => {
           nonRefVariable.name
         ) as ApexVariableContainer;
         expect(updatedNonRefVariable.value).to.be.eq('5');
+      });
+
+      it('Should correctly deal with circular references and variable values', () => {
+        // Create the heapdump
+        const heapdump = createHeapDumpWithCircularRefs();
+        getHeapDumpForThisLocationStub = sinon
+          .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
+          .returns(heapdump);
+
+        // Create a ref variable to update
+        const localRefVariable = new ApexVariableContainer(
+          'cf1',
+          '',
+          'CircularReference',
+          '0x717304ef'
+        );
+        const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
+        const id = frameHandler.create(frameInfo);
+        topFrame.id = id;
+        frameInfo.locals.set(localRefVariable.name, localRefVariable);
+        // Update it with the heap dump
+        heapDumpService.replaceVariablesWithHeapDump();
+
+        // Verify the variable was updated and that there is a cicular reference that
+        // was set up correctly. The local variable cf1, of type CircularReference contains
+        // a field that's a List<CircularReference>. After creating cf1 we add cf1 to its own
+        // list.
+        const expectedVariableValue =
+          'CircularReference:{(already output), someInt=5}';
+        const expectedListVarValue =
+          '(CircularReference:{already output, someInt=5})';
+
+        const updatedLocRefVariable = frameInfo.locals.get(
+          localRefVariable.name
+        ) as ApexVariableContainer;
+        // Verify the variable's value has been set
+        expect(updatedLocRefVariable.value).to.be.eq(expectedVariableValue);
+
+        // There should be 2 children, 1 list named cfList and 1 integer named someInt
+        expect(updatedLocRefVariable.variables.size).to.be.eq(2);
+        expect(
+          (updatedLocRefVariable.variables.get(
+            'someInt'
+          ) as ApexVariableContainer).value
+        ).to.be.eq('5');
+        const listChildVar = updatedLocRefVariable.variables.get(
+          'cfList'
+        ) as ApexVariableContainer;
+
+        // Verify the value is set correctly and there's exactly 1 item
+        // in the list
+        expect(listChildVar.value).to.be.eq(expectedListVarValue);
+        expect(listChildVar.variables.size).to.be.eq(1);
+
+        // There should be 1 child item on the list and it should have the same
+        // value as cf1, expectedVariableValue.
+        const listElementVar = listChildVar.variables.get(
+          '0'
+        ) as ApexVariableContainer;
+        expect(listElementVar.value).to.be.eq(expectedVariableValue);
+        // Lastly, verify that it's list has the same value as cfList, expectedListVarValue
+        expect(
+          (listElementVar.variables.get('cfList') as ApexVariableContainer)
+            .value
+        ).to.be.eq(expectedListVarValue);
       });
     }); // Describe replaceVariablesWithHeapDump
 

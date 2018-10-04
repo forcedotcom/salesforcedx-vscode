@@ -134,7 +134,8 @@ export class HeapDumpService {
                 const updatedVariable = this.createVariableFromReference(
                   symbolName,
                   refVar,
-                  new Map<string, null>()
+                  new Map<string, null>(),
+                  new Array<ApexVariableContainer>()
                 );
                 if (updatedVariable) {
                   frameInfo.locals.set(localVar.name, updatedVariable);
@@ -173,7 +174,8 @@ export class HeapDumpService {
                   const updatedVariable = this.createVariableFromReference(
                     symbolName,
                     refVar,
-                    new Map<string, null>()
+                    new Map<string, null>(),
+                    new Array<ApexVariableContainer>()
                   );
                   if (updatedVariable) {
                     statics.set(staticVar.name, updatedVariable);
@@ -210,7 +212,8 @@ export class HeapDumpService {
                       const updatedVariable = this.createVariableFromReference(
                         symName,
                         refVar,
-                        new Map<string, null>()
+                        new Map<string, null>(),
+                        new Array<ApexVariableContainer>()
                       );
                       if (updatedVariable) {
                         frameInfo.globals.set(symName, updatedVariable);
@@ -298,7 +301,8 @@ export class HeapDumpService {
   // cloned into a new variable that has a variable name.
   private copyReferenceContainer(
     refContainer: ApexVariableContainer,
-    varName: string
+    varName: string,
+    createVarRef = true
   ) {
     const tmpContainer = new ApexVariableContainer(
       varName,
@@ -311,9 +315,15 @@ export class HeapDumpService {
     // set so it can be expanded in the variables window. Note this check
     // is kind of superfluous but it's better to be safe than sorry
     if (!this.isPrimitiveType(tmpContainer.type)) {
-      tmpContainer.variablesRef = this.logContext
-        .getVariableHandler()
-        .create(tmpContainer);
+      if (createVarRef) {
+        tmpContainer.variablesRef = this.logContext
+          .getVariableHandler()
+          .create(tmpContainer);
+      } else {
+        // If the variable is being cloned for a name change then
+        // it needs to use the same variablesRef as the parent
+        tmpContainer.variablesRef = refContainer.variablesRef;
+      }
     }
     return tmpContainer;
   }
@@ -327,7 +337,8 @@ export class HeapDumpService {
   //   1: '2'
   //   2: '3'
   private createStringFromVarContainer(
-    varContainer: ApexVariableContainer
+    varContainer: ApexVariableContainer,
+    visitedMap: Map<string, null>
   ): string {
     // If the varContainer isn't a reference or is a string references
     if (
@@ -336,36 +347,55 @@ export class HeapDumpService {
     ) {
       return varContainer.value;
     }
-    // For a list or set the name string is going to end up being (<val1>,...<valX)
-    // For a objects, the name string is going to end up being <TypeName>: {<Name1>=<Value1>,...<NameX>=<ValueX>}
-    const isListOrSet =
-      varContainer.type.toLowerCase().startsWith('list<') ||
-      varContainer.type.toLowerCase().startsWith('set<');
-    // The live debugger, for collections, doesn't include their type in variable name/value
-    const containerType = this.isCollectionType(varContainer.type)
-      ? ''
-      : `${varContainer.type}:`;
-    let returnString = isListOrSet ? '(' : `${containerType}{`;
-    let first = true;
-    // Loop through each of the container's variables to get the name/value combinations, calling to create
-    // the string if another collection is found.
-    for (const entry of Array.from(varContainer.variables.entries())) {
-      const valueAsApexVar = entry[1] as ApexVariableContainer;
-      if (!first) {
-        returnString += ', ';
-      }
-      if (valueAsApexVar.ref) {
-        // if this is also a ref then create the string from that
-        returnString += this.createStringFromVarContainer(valueAsApexVar);
+
+    // If the varContainer is a ref and it's already been visited then return the string
+    if (varContainer.ref) {
+      if (visitedMap.has(varContainer.ref)) {
+        return 'already output';
       } else {
-        // otherwise get the name/value from the variable
-        returnString += isListOrSet
-          ? valueAsApexVar.value
-          : `${valueAsApexVar.name}=${valueAsApexVar.value}`;
+        visitedMap.set(varContainer.ref, null);
       }
-      first = false;
     }
-    returnString += isListOrSet ? ')' : '}';
+    let returnString = '';
+    try {
+      // For a list or set the name string is going to end up being (<val1>,...<valX)
+      // For a objects, the name string is going to end up being <TypeName>: {<Name1>=<Value1>,...<NameX>=<ValueX>}
+      const isListOrSet =
+        varContainer.type.toLowerCase().startsWith('list<') ||
+        varContainer.type.toLowerCase().startsWith('set<');
+      // The live debugger, for collections, doesn't include their type in variable name/value
+      const containerType = this.isCollectionType(varContainer.type)
+        ? ''
+        : `${varContainer.type}:`;
+      returnString = isListOrSet ? '(' : `${containerType}{`;
+      let first = true;
+      // Loop through each of the container's variables to get the name/value combinations, calling to create
+      // the string if another collection is found.
+      for (const entry of Array.from(varContainer.variables.entries())) {
+        const valueAsApexVar = entry[1] as ApexVariableContainer;
+        if (!first) {
+          returnString += ', ';
+        }
+        if (valueAsApexVar.ref) {
+          // if this is also a ref then create the string from that
+          returnString += this.createStringFromVarContainer(
+            valueAsApexVar,
+            visitedMap
+          );
+        } else {
+          // otherwise get the name/value from the variable
+          returnString += isListOrSet
+            ? valueAsApexVar.value
+            : `${valueAsApexVar.name}=${valueAsApexVar.value}`;
+        }
+        first = false;
+      }
+      returnString += isListOrSet ? ')' : '}';
+    } finally {
+      if (varContainer.ref) {
+        visitedMap.delete(varContainer.ref);
+      }
+    }
     return returnString;
   }
 
@@ -577,7 +607,10 @@ export class HeapDumpService {
     }
     // If the reference doesn't contain any child references then it's value can set here.
     if (!hasInnerRefs) {
-      refContainer.value = this.createStringFromVarContainer(refContainer);
+      refContainer.value = this.createStringFromVarContainer(
+        refContainer,
+        new Map<string, null>()
+      );
     }
   }
 
@@ -597,24 +630,44 @@ export class HeapDumpService {
   public createVariableFromReference(
     varName: string,
     refVariable: ApexVariableContainer,
-    visitedMap: Map<string, null>
+    visitedMap: Map<string, ApexVariableContainer | null>,
+    updateAfterVarCreation: ApexVariableContainer[]
   ): ApexVariableContainer | undefined {
     // if this isn't a reference?
     if (!refVariable.ref) {
       return undefined;
     }
-    // If this reference has already been seen, return
+    // If this reference has already been seen, then there's
+    // a good chance that the variable is still being created
+    // and we can't reset set the value now.
     if (visitedMap.has(refVariable.ref)) {
+      const visitedVar = visitedMap.get(
+        refVariable.ref
+      ) as ApexVariableContainer;
+      if (visitedVar !== null) {
+        if (visitedVar.name !== varName) {
+          const updatedNameVarContainer = this.copyReferenceContainer(
+            visitedVar,
+            varName,
+            false
+          );
+          updateAfterVarCreation.push(updatedNameVarContainer);
+          return updatedNameVarContainer;
+        } else {
+          return visitedVar;
+        }
+      }
       return undefined;
     }
     try {
-      visitedMap.set(refVariable.ref, null);
-
       // First, clone the reference into the named variable
       const namedVarContainer = this.copyReferenceContainer(
         refVariable,
         varName
       );
+      // Create the visitedMap entry with what will be the actual
+      // variable.
+      visitedMap.set(refVariable.ref, namedVarContainer);
 
       // If the value hasn't been set yet, then we have to walk through all of the children and update
       // any child references on the variable with a recursive call
@@ -641,7 +694,8 @@ export class HeapDumpService {
               const updatedKeyVarContainer = this.createVariableFromReference(
                 KEY_VALUE_PAIR_KEY,
                 keyRef!,
-                visitedMap
+                visitedMap,
+                updateAfterVarCreation
               );
               if (updatedKeyVarContainer) {
                 keyName = updatedKeyVarContainer.value;
@@ -670,7 +724,8 @@ export class HeapDumpService {
               const updatedValueVarContainer = this.createVariableFromReference(
                 KEY_VALUE_PAIR_VALUE,
                 valueRef!,
-                visitedMap
+                visitedMap,
+                updateAfterVarCreation
               );
               if (updatedValueVarContainer) {
                 valueVal = updatedValueVarContainer.value;
@@ -710,7 +765,8 @@ export class HeapDumpService {
             const updatedChildContainer = this.createVariableFromReference(
               childVarName,
               childVarRefContainer!,
-              visitedMap
+              visitedMap,
+              updateAfterVarCreation
             );
             // update the child variable in the map
             if (updatedChildContainer) {
@@ -727,7 +783,8 @@ export class HeapDumpService {
           }
         }
         namedVarContainer.value = this.createStringFromVarContainer(
-          namedVarContainer
+          namedVarContainer,
+          new Map<string, null>()
         );
       }
 
@@ -735,6 +792,18 @@ export class HeapDumpService {
     } finally {
       // Ensure the current reference is removed from the visited map
       visitedMap.delete(refVariable.ref);
+      // If the visited map is empty that means the variable is done being hooked up
+      // If there are any items in the updateAfterVarCreation array then now is the
+      // time to update them
+      if (visitedMap.size === 0) {
+        updateAfterVarCreation.forEach(element => {
+          const varContainer = element as ApexVariableContainer;
+          varContainer.value = this.createStringFromVarContainer(
+            varContainer,
+            new Map<string, null>()
+          );
+        });
+      }
     }
   }
 
