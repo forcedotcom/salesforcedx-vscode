@@ -351,7 +351,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         heapDumpService.replaceVariablesWithHeapDump();
         expect(createStringRefsFromHeapdumpSpy.called).to.be.true;
         expect(updateLeafReferenceContainerSpy.called).to.be.true;
-        // with no local, static or global variables to update this shouldn't be called
         expect(createVariableFromReferenceSpy.called).to.be.false;
         expect(refsMap.size).to.be.eq(4);
 
@@ -389,7 +388,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
         expect(innerApexRefVar.variables.size).to.be.eq(0);
 
-        // Verify there is an entry in the ref's for the inner var
         tempApexVar = refsMap.get('0x55260a7a') as ApexVariableContainer;
         expect(tempApexVar.variables.size).to.be.eq(7);
         expect(
@@ -477,7 +475,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         ) as ApexVariableContainer;
         expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
 
-        // The innerVariable should have 7 children (no further references), verify everything has been set correctly
         expect(innerApexRefVar.variables.size).to.be.eq(7);
         expect(
           (innerApexRefVar.variables.get('MyBoolean') as ApexVariableContainer)
@@ -561,8 +558,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(updatedNonRefVariable.value).to.be.eq('5');
       });
 
-      // Variables, whether local, static or trigger all use the same code
-      // to update. Having this in there for statics is just for sanity
       it('Should update a non-reference static variable', () => {
         const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
         heapdump.setOverlaySuccessResult({
@@ -779,10 +774,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(frameInfo.globals.size).to.eq(0);
         heapDumpService.replaceVariablesWithHeapDump();
 
-        // There should be 8 globals after the heap dump processing
-        // 6 Trigger.is* boolean values
-        // 1 Trigger.new - List
-        // 1 Trigger.newmap - Map
         expect(frameInfo.globals.size).to.eq(8);
         expect(
           (frameInfo.globals.get(
@@ -819,8 +810,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
           EXTENT_TRIGGER_PREFIX + 'new'
         ) as ApexVariableContainer;
         expect(triggerNew.type).to.be.eq('List<Account>');
-        // The variablesRef should be set as part of the variable processing. 0 is
-        // the default, if the reference is set it'll be greater than 0
         expect(triggerNew.variablesRef).to.be.greaterThan(0);
         expect(triggerNew.variables.size).to.be.eq(3);
         expect(
@@ -839,9 +828,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(triggerNewmap.type).to.be.eq('Map<Id,Account>');
         expect(triggerNewmap.variablesRef).to.be.greaterThan(0);
         expect(triggerNewmap.variables.size).to.be.eq(3);
-        // Verify the key/value pairs in the map
-        // There should be a key name with the type of Id and value sane as the kvp name
-        // There should be a value of type Account whose ref is the account ref
+
         let tempKeyValPairApexVar = triggerNewmap.variables.get(
           'key0_value0'
         ) as ApexVariableContainer;
