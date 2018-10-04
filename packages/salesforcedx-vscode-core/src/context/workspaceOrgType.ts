@@ -44,7 +44,7 @@ async function isAScratchOrg(username: string): Promise<boolean> {
  * Returns the non-aliased username
  * @param usernameOrAlias
  */
-async function getUsername(usernameOrAlias: string): Promise<string> {
+export async function getUsername(usernameOrAlias: string): Promise<string> {
   const username = await Aliases.fetch(usernameOrAlias);
   if (username) {
     return Promise.resolve(username);
@@ -68,7 +68,7 @@ function setDefaultUsernameHasNoChangeTracking(val: boolean) {
   );
 }
 
-async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
+export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
