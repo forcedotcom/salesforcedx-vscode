@@ -311,36 +311,26 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should not create string refs if there are not any in the heapdump', () => {
-        // Create the heap dump and pass the overlay result into createStringRefsFromHeapdump
-        // Verify with that the ref's map is empty
         const heapdump = createHeapDumpWithNoStringTypes();
         heapDumpService.createStringRefsFromHeapdump(
           heapdump.getOverlaySuccessResult()!
         );
-        // There should be no strings in the refsMap
         expect(refsMap.size).to.be.eq(0);
       });
 
       it('Should only create string refs if there are not any in the heapdump', () => {
-        // Create the heap dump and pass the overlay result into createStringRefsFromHeapdump
-        // Verify with that the ref's map is empty
         const heapdump = createHeapDumpWithNoStringTypes();
         heapDumpService.createStringRefsFromHeapdump(
           heapdump.getOverlaySuccessResult()!
         );
-        // There should be no strings in the refsMap
         expect(refsMap.size).to.be.eq(0);
       });
 
       it('Should create string refs if there are any in the heapdump', () => {
-        // Create the heap dump and pass the overlay result into createStringRefsFromHeapdump
-        // Verify with that the ref's map is empty.
         const heapdump = createHeapDumpWithStrings();
         heapDumpService.createStringRefsFromHeapdump(
           heapdump.getOverlaySuccessResult()!
         );
-        // There should be 2 strings in the refsMap, verify their values which should
-        // contain quotes
         expect(refsMap.size).to.be.eq(2);
         let tempStringVar = refsMap.get('0x47a32f5b') as ApexVariableContainer;
         expect(tempStringVar.value).to.be.eq(
@@ -351,7 +341,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should not follow reference chain when creating leaf variables except strings', () => {
-        // Create a heapdump
         const heapdump = createHeapDumpWithNestedRefs();
         getHeapDumpForThisLocationStub = sinon
           .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
@@ -364,8 +353,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(updateLeafReferenceContainerSpy.called).to.be.true;
         // with no local, static or global variables to update this shouldn't be called
         expect(createVariableFromReferenceSpy.called).to.be.false;
-
-        // there should be 4 references in the map, 2 strings and 2 objects
         expect(refsMap.size).to.be.eq(4);
 
         // NonStaticClassWithVariablesToInspect has an inner class of the same type.
@@ -400,10 +387,9 @@ describe('Replay debugger adapter variable handling - unit', () => {
           'innerVariable'
         ) as ApexVariableContainer;
         expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
-        // There should be no children on the inner variable since it's a reference
         expect(innerApexRefVar.variables.size).to.be.eq(0);
 
-        // Verify there is an entry in the ref's for the inner var, verify everything is set on it
+        // Verify there is an entry in the ref's for the inner var
         tempApexVar = refsMap.get('0x55260a7a') as ApexVariableContainer;
         expect(tempApexVar.variables.size).to.be.eq(7);
         expect(
@@ -433,13 +419,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should follow reference chain when creating instance variables from references', () => {
-        // Create the heapdump
         const heapdump = createHeapDumpWithNestedRefs();
         getHeapDumpForThisLocationStub = sinon
           .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
           .returns(heapdump);
 
-        // Create a ref variable to update
         const localRefVariable = new ApexVariableContainer(
           'foo',
           '',
@@ -449,10 +433,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
         frameInfo.locals.set(localRefVariable.name, localRefVariable);
-        // Update it with the heap dump
         heapDumpService.replaceVariablesWithHeapDump();
 
-        // Verify the variable was updated
         const updatedLocRefVariable = frameInfo.locals.get(
           localRefVariable.name
         ) as ApexVariableContainer;
@@ -489,14 +471,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
         ).to.be.eq(
           "'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'"
         );
-        // Get the innerVariable from the updatedLocRefVariable which should be fully populated
+
         const innerApexRefVar = updatedLocRefVariable.variables.get(
           'innerVariable'
         ) as ApexVariableContainer;
         expect(innerApexRefVar.ref).to.be.eq('0x55260a7a');
+
         // The innerVariable should have 7 children (no further references), verify everything has been set correctly
         expect(innerApexRefVar.variables.size).to.be.eq(7);
-
         expect(
           (innerApexRefVar.variables.get('MyBoolean') as ApexVariableContainer)
             .value
@@ -573,7 +555,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(createStringRefsFromHeapdumpSpy.calledOnce).to.be.true;
         expect(updateLeafReferenceContainerSpy.calledOnce).to.be.false;
         expect(createVariableFromReferenceSpy.calledOnce).to.be.false;
-        // The variable should have been updated and have a value of 5
         const updatedNonRefVariable = frameInfo.locals.get(
           nonRefVariable.name
         ) as ApexVariableContainer;
@@ -631,7 +612,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         expect(createStringRefsFromHeapdumpSpy.calledOnce).to.be.true;
         expect(updateLeafReferenceContainerSpy.calledOnce).to.be.false;
         expect(createVariableFromReferenceSpy.calledOnce).to.be.false;
-        // The variable should have been updated and have a value of 5
         const updatedNonRefVariable = frameInfo.statics.get(
           nonRefVariable.name
         ) as ApexVariableContainer;
@@ -639,13 +619,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should correctly deal with circular references and variable values', () => {
-        // Create the heapdump
         const heapdump = createHeapDumpWithCircularRefs();
         getHeapDumpForThisLocationStub = sinon
           .stub(LogContext.prototype, 'getHeapDumpForThisLocation')
           .returns(heapdump);
 
-        // Create a ref variable to update
         const localRefVariable = new ApexVariableContainer(
           'cf1',
           '',
@@ -656,7 +634,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
         frameInfo.locals.set(localRefVariable.name, localRefVariable);
-        // Update it with the heap dump
         heapDumpService.replaceVariablesWithHeapDump();
 
         // Verify the variable was updated and that there is a cicular reference that
@@ -671,10 +648,8 @@ describe('Replay debugger adapter variable handling - unit', () => {
         const updatedLocRefVariable = frameInfo.locals.get(
           localRefVariable.name
         ) as ApexVariableContainer;
-        // Verify the variable's value has been set
         expect(updatedLocRefVariable.value).to.be.eq(expectedVariableValue);
 
-        // There should be 2 children, 1 list named cfList and 1 integer named someInt
         expect(updatedLocRefVariable.variables.size).to.be.eq(2);
         expect(
           (updatedLocRefVariable.variables.get(
@@ -685,18 +660,13 @@ describe('Replay debugger adapter variable handling - unit', () => {
           'cfList'
         ) as ApexVariableContainer;
 
-        // Verify the value is set correctly and there's exactly 1 item
-        // in the list
         expect(listChildVar.value).to.be.eq(expectedListVarValue);
         expect(listChildVar.variables.size).to.be.eq(1);
 
-        // There should be 1 child item on the list and it should have the same
-        // value as cf1, expectedVariableValue.
         const listElementVar = listChildVar.variables.get(
           '0'
         ) as ApexVariableContainer;
         expect(listElementVar.value).to.be.eq(expectedVariableValue);
-        // Lastly, verify that it's list has the same value as cfList, expectedListVarValue
         expect(
           (listElementVar.variables.get('cfList') as ApexVariableContainer)
             .value
@@ -778,19 +748,14 @@ describe('Replay debugger adapter variable handling - unit', () => {
           .stub(LogContext.prototype, 'getVariableHandler')
           .returns(variableHandler);
 
-        // In this test we're not running a trigger
         isRunningApexTriggerStub.returns(false);
 
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
 
-        // There should be no globals before the heap dump processing
         expect(frameInfo.globals.size).to.eq(0);
-
         heapDumpService.replaceVariablesWithHeapDump();
-
-        // There should be no globals after the heap dump processing
         expect(frameInfo.globals.size).to.eq(0);
       });
 
@@ -805,16 +770,13 @@ describe('Replay debugger adapter variable handling - unit', () => {
           .stub(LogContext.prototype, 'getVariableHandler')
           .returns(variableHandler);
 
-        // In this test we are running a trigger
         isRunningApexTriggerStub.returns(true);
 
         const frameInfo = new ApexDebugStackFrameInfo(0, 'Foo');
         const id = frameHandler.create(frameInfo);
         topFrame.id = id;
 
-        // There should be no globals before the heap dump processing
         expect(frameInfo.globals.size).to.eq(0);
-
         heapDumpService.replaceVariablesWithHeapDump();
 
         // There should be 8 globals after the heap dump processing
@@ -822,7 +784,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
         // 1 Trigger.new - List
         // 1 Trigger.newmap - Map
         expect(frameInfo.globals.size).to.eq(8);
-        // Verify the false Trigger booleans
         expect(
           (frameInfo.globals.get(
             EXTENT_TRIGGER_PREFIX + 'isbefore'
@@ -843,7 +804,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
             EXTENT_TRIGGER_PREFIX + 'isupdate'
           ) as ApexVariableContainer).value
         ).to.eq('false');
-        // Verify the True Trigger booleans
         expect(
           (frameInfo.globals.get(
             EXTENT_TRIGGER_PREFIX + 'isafter'
@@ -855,7 +815,6 @@ describe('Replay debugger adapter variable handling - unit', () => {
           ) as ApexVariableContainer).value
         ).to.eq('true');
 
-        // Verify the Trigger.new map
         const triggerNew = frameInfo.globals.get(
           EXTENT_TRIGGER_PREFIX + 'new'
         ) as ApexVariableContainer;
@@ -863,9 +822,7 @@ describe('Replay debugger adapter variable handling - unit', () => {
         // The variablesRef should be set as part of the variable processing. 0 is
         // the default, if the reference is set it'll be greater than 0
         expect(triggerNew.variablesRef).to.be.greaterThan(0);
-        // There should be 3 items in the Trigger.new list
         expect(triggerNew.variables.size).to.be.eq(3);
-        // Verify the entries in the array
         expect(
           (triggerNew.variables.get('0') as ApexVariableContainer).ref
         ).to.eq('0x5f163c72');
@@ -876,13 +833,10 @@ describe('Replay debugger adapter variable handling - unit', () => {
           (triggerNew.variables.get('2') as ApexVariableContainer).ref
         ).to.eq('0x76e9852b');
 
-        // Verify the Trigger.newmap which is a Map<Id,Account>
         const triggerNewmap = frameInfo.globals.get(
           EXTENT_TRIGGER_PREFIX + 'newmap'
         ) as ApexVariableContainer;
         expect(triggerNewmap.type).to.be.eq('Map<Id,Account>');
-        // The variablesRef should be set as part of the variable processing. 0 is
-        // the default, if the reference is set it'll be greater than 0
         expect(triggerNewmap.variablesRef).to.be.greaterThan(0);
         expect(triggerNewmap.variables.size).to.be.eq(3);
         // Verify the key/value pairs in the map
