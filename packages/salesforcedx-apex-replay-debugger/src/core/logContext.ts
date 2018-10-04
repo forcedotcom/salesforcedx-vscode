@@ -85,6 +85,7 @@ export class LogContext {
   private backupStackFrameInfos = this.stackFrameInfos;
   private backupFrameHandles = this.frameHandles;
   private backupRefsMap = this.refsMap;
+  private backupStaticVariablesClassMap = this.staticVariablesClassMap;
   private backupVariableHandles = this.variableHandles;
 
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
@@ -195,6 +196,7 @@ export class LogContext {
     this.backupFrameHandles = this.frameHandles.copy();
     this.backupRefsMap = new Map<string, ApexVariableContainer>();
     this.backupVariableHandles = new Handles<ApexVariableContainer>();
+    this.cloneStaticVariablesClassMap();
     for (const backupFrame of this.backupStackFrameInfos) {
       const frameInfo = this.backupFrameHandles.get(backupFrame.id);
       this.copyVariableContainers(frameInfo.locals);
@@ -214,7 +216,24 @@ export class LogContext {
     });
   }
 
+  private cloneStaticVariablesClassMap() {
+    this.backupStaticVariablesClassMap = new Map<
+      string,
+      Map<string, ApexVariableContainer>
+    >();
+    this.staticVariablesClassMap.forEach((value, key) => {
+      const varMap = value as Map<string, ApexVariableContainer>;
+      const newMap = new Map<string, ApexVariableContainer>();
+      varMap.forEach((innerValue, innerKey) => {
+        const variable = innerValue as ApexVariableContainer;
+        newMap.set(innerKey, variable.copy());
+      });
+      this.backupStaticVariablesClassMap.set(key, newMap);
+    });
+  }
+
   public revertStateAfterHeapDump(): void {
+    this.staticVariablesClassMap = this.backupStaticVariablesClassMap;
     this.stackFrameInfos = this.backupStackFrameInfos;
     this.frameHandles = this.backupFrameHandles;
     this.refsMap = this.backupRefsMap;
