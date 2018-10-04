@@ -1,3 +1,12 @@
+## 43.19.0 - October 4, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix test execution from Apex Tests sidebar so it shows an error message when the user is not authenticated ([PR #652](https://github.com/forcedotcom/salesforcedx-vscode/pull/652))
+- Update telemetry to track extension activation time, Apex LSP errors, and startup time ([PR #646](https://github.com/forcedotcom/salesforcedx-vscode/pull/646))
+
 ## 43.17.0 - September 20, 2018
 
 ### Fixed

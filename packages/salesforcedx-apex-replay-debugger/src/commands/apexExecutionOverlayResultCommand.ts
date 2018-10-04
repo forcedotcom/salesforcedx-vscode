@@ -62,6 +62,7 @@ export interface HeapDumpCollectionTypeDefinition {
 export interface HeapDumpExtent {
   address: string;
   size: number;
+  isStatic: boolean;
   symbols: string[] | null;
   value: HeapDumpExtentValue;
 }

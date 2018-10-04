@@ -410,3 +410,429 @@ export function createHeapDumpResultForTriggers(): ApexHeapDump {
   } as ApexExecutionOverlayResultCommandSuccess);
   return heapdump;
 }
+
+// HeapDump with no String typename entries entries
+export function createHeapDumpWithNoStringTypes(): ApexHeapDump {
+  const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
+  heapdump.setOverlaySuccessResult({
+    HeapDump: {
+      extents: [
+        {
+          collectionType: null,
+          count: 1,
+          definition: [{}],
+          extent: [
+            {
+              address: '0x7c6064ee',
+              isStatic: false,
+              size: 4,
+              symbols: ['theDate'],
+              value: {
+                value: '2018-09-13 00:00:00'
+              }
+            }
+          ],
+          totalSize: 4,
+          typeName: 'Date'
+        },
+        {
+          collectionType: null,
+          count: 1,
+          definition: [
+            {
+              name: 'value',
+              type: 'Boolean'
+            }
+          ],
+          extent: [
+            {
+              address: '0x557be9a9',
+              isStatic: false,
+              size: 5,
+              symbols: ['theBoolean'],
+              value: {
+                value: true
+              }
+            }
+          ],
+          totalSize: 5,
+          typeName: 'Boolean'
+        },
+        {
+          collectionType: null,
+          count: 1,
+          definition: [
+            {
+              name: 'value',
+              type: 'Double'
+            }
+          ],
+          extent: [
+            {
+              address: '0x6b112109',
+              isStatic: false,
+              size: 12,
+              symbols: ['theDouble'],
+              value: {
+                value: 3.14159
+              }
+            }
+          ],
+          totalSize: 12,
+          typeName: 'Double'
+        },
+        {
+          collectionType: null,
+          count: 1,
+          definition: [
+            {
+              name: 'value',
+              type: 'Double'
+            }
+          ],
+          extent: [
+            {
+              address: '0x74cb38fc',
+              isStatic: false,
+              size: 8,
+              symbols: ['theInt'],
+              value: {
+                value: 5
+              }
+            }
+          ],
+          totalSize: 8,
+          typeName: 'Integer'
+        },
+        {
+          collectionType: null,
+          count: 1,
+          definition: [
+            {
+              name: 'value',
+              type: 'Double'
+            }
+          ],
+          extent: [
+            {
+              address: '0x538519dc',
+              isStatic: false,
+              size: 12,
+              symbols: ['theLong'],
+              value: {
+                value: 4271990
+              }
+            }
+          ],
+          totalSize: 12,
+          typeName: 'Long'
+        },
+        {
+          collectionType: null,
+          count: 2,
+          definition: [
+            {
+              name: 'MyBoolean',
+              type: 'Boolean'
+            },
+            {
+              name: 'MyDate',
+              type: 'Date'
+            },
+            {
+              name: 'MyDouble',
+              type: 'Double'
+            },
+            {
+              name: 'MyInteger',
+              type: 'Integer'
+            },
+            {
+              name: 'MyLong',
+              type: 'Long'
+            }
+          ],
+          extent: [
+            {
+              address: '0x3557adc7',
+              isStatic: false,
+              size: 32,
+              symbols: ['foo'],
+              value: {
+                entry: [
+                  {
+                    keyDisplayValue: 'MyBoolean',
+                    value: {
+                      value: false
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyDate',
+                    value: {
+                      value: 'Thu Sep 13 00:00:00 GMT 2018'
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyDouble',
+                    value: {
+                      value: 4.37559
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyInteger',
+                    value: {
+                      value: 10
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyLong',
+                    value: {
+                      value: 4271993
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          totalSize: 64,
+          typeName: 'SomeTypeName'
+        }
+      ]
+    }
+  } as ApexExecutionOverlayResultCommandSuccess);
+
+  return heapdump;
+}
+
+// Heapdump with typeName string entries
+export function createHeapDumpWithStrings(): ApexHeapDump {
+  const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
+  heapdump.setOverlaySuccessResult({
+    HeapDump: {
+      extents: [
+        {
+          collectionType: null,
+          count: 2,
+          definition: [
+            {
+              name: 'stringValue',
+              type: 'char[]'
+            }
+          ],
+          extent: [
+            {
+              address: '0x47a32f5b',
+              isStatic: false,
+              size: 104,
+              symbols: ['theString'],
+              value: {
+                value:
+                  'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'
+              }
+            },
+            {
+              address: '0x6cda5efc',
+              isStatic: false,
+              size: 9,
+              symbols: null,
+              value: {
+                value: '9/13/2018'
+              }
+            }
+          ],
+          totalSize: 113,
+          typeName: 'String'
+        }
+      ]
+    }
+  } as ApexExecutionOverlayResultCommandSuccess);
+  return heapdump;
+}
+
+// Partial heapdump with a nested reference, used to verify both leaf reference
+// parsing and putting a variable together from the leaves.
+export function createHeapDumpWithNestedRefs(): ApexHeapDump {
+  const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
+  heapdump.setOverlaySuccessResult({
+    HeapDump: {
+      extents: [
+        {
+          collectionType: null,
+          count: 2,
+          definition: [
+            {
+              name: 'innerVariable',
+              type: 'NonStaticClassWithVariablesToInspect'
+            },
+            {
+              name: 'MyBoolean',
+              type: 'Boolean'
+            },
+            {
+              name: 'MyDate',
+              type: 'Date'
+            },
+            {
+              name: 'MyDouble',
+              type: 'Double'
+            },
+            {
+              name: 'MyInteger',
+              type: 'Integer'
+            },
+            {
+              name: 'MyLong',
+              type: 'Long'
+            },
+            {
+              name: 'MyString',
+              type: 'String'
+            }
+          ],
+          extent: [
+            {
+              address: '0x3557adc7',
+              isStatic: false,
+              size: 32,
+              symbols: ['foo'],
+              value: {
+                entry: [
+                  {
+                    keyDisplayValue: 'innerVariable',
+                    value: {
+                      value: '0x55260a7a'
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyBoolean',
+                    value: {
+                      value: false
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyDate',
+                    value: {
+                      value: 'Thu Sep 13 00:00:00 GMT 2018'
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyDouble',
+                    value: {
+                      value: 4.37559
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyInteger',
+                    value: {
+                      value: 10
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyLong',
+                    value: {
+                      value: 4271993
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyString',
+                    value: {
+                      value: '0x47a32f5b'
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              address: '0x55260a7a',
+              isStatic: false,
+              size: 32,
+              symbols: null,
+              value: {
+                entry: [
+                  {
+                    keyDisplayValue: 'innerVariable',
+                    value: {
+                      value: null
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyBoolean',
+                    value: {
+                      value: true
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyDate',
+                    value: {
+                      value: 'Thu Sep 13 00:00:00 GMT 2018'
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyDouble',
+                    value: {
+                      value: 3.14159
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyInteger',
+                    value: {
+                      value: 5
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyLong',
+                    value: {
+                      value: 4271990
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'MyString',
+                    value: {
+                      value: '0x6cda5efc'
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          totalSize: 64,
+          typeName: 'NonStaticClassWithVariablesToInspect'
+        },
+        {
+          collectionType: null,
+          count: 2,
+          definition: [
+            {
+              name: 'stringValue',
+              type: 'char[]'
+            }
+          ],
+          extent: [
+            {
+              address: '0x47a32f5b',
+              isStatic: false,
+              size: 104,
+              symbols: ['theString'],
+              value: {
+                value:
+                  'This is a longer string that will certainly get truncated until we hit a checkpoint and inspect it_extra'
+              }
+            },
+            {
+              address: '0x6cda5efc',
+              isStatic: false,
+              size: 9,
+              symbols: null,
+              value: {
+                value: '9/13/2018'
+              }
+            }
+          ],
+          totalSize: 113,
+          typeName: 'String'
+        }
+      ]
+    }
+  } as ApexExecutionOverlayResultCommandSuccess);
+  return heapdump;
+}
