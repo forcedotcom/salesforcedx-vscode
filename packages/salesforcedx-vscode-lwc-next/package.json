@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "43.17.0",
+  "version": "43.19.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,7 +23,7 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "43.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "43.19.0",
     "ajv": "^6.1.1",
     "lwc-language-server": "1.6.7",
     "rxjs": "^5.4.1",
