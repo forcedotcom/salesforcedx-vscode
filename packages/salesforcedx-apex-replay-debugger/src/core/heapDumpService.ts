@@ -338,7 +338,7 @@ export class HeapDumpService {
   //   2: '3'
   private createStringFromVarContainer(
     varContainer: ApexVariableContainer,
-    visitedMap: Map<string, null>
+    visitedSet: Set<string>
   ): string {
     // If the varContainer isn't a reference or is a string references
     if (
@@ -350,10 +350,10 @@ export class HeapDumpService {
 
     // If the varContainer is a ref and it's already been visited then return the string
     if (varContainer.ref) {
-      if (visitedMap.has(varContainer.ref)) {
+      if (visitedSet.has(varContainer.ref)) {
         return 'already output';
       } else {
-        visitedMap.set(varContainer.ref, null);
+        visitedSet.add(varContainer.ref);
       }
     }
     let returnString = '';
@@ -380,7 +380,7 @@ export class HeapDumpService {
           // if this is also a ref then create the string from that
           returnString += this.createStringFromVarContainer(
             valueAsApexVar,
-            visitedMap
+            visitedSet
           );
         } else {
           // otherwise get the name/value from the variable
@@ -393,7 +393,7 @@ export class HeapDumpService {
       returnString += isListOrSet ? ')' : '}';
     } finally {
       if (varContainer.ref) {
-        visitedMap.delete(varContainer.ref);
+        visitedSet.delete(varContainer.ref);
       }
     }
     return returnString;
@@ -609,7 +609,7 @@ export class HeapDumpService {
     if (!hasInnerRefs) {
       refContainer.value = this.createStringFromVarContainer(
         refContainer,
-        new Map<string, null>()
+        new Set<string>()
       );
     }
   }
@@ -784,7 +784,7 @@ export class HeapDumpService {
         }
         namedVarContainer.value = this.createStringFromVarContainer(
           namedVarContainer,
-          new Map<string, null>()
+          new Set<string>()
         );
       }
 
@@ -800,7 +800,7 @@ export class HeapDumpService {
           const varContainer = element as ApexVariableContainer;
           varContainer.value = this.createStringFromVarContainer(
             varContainer,
-            new Map<string, null>()
+            new Set<string>()
           );
         });
       }
