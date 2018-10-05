@@ -47,7 +47,6 @@ export class VariableAssignmentState implements DebugLogState {
         // If the className is 'this' that means the variable being split was
         // this.<something>. We need to check the className for 'this' otherwise
         // a propery on 'this' would get incorrectly processed as a local variable.
-        // It'll correclty fall into the local variable
       } else if (className !== 'this' && frameInfo.locals.has(varName)) {
         map = frameInfo.locals;
         container = map.get(varName) as ApexVariableContainer;
