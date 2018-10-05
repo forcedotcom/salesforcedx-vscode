@@ -836,3 +836,78 @@ export function createHeapDumpWithNestedRefs(): ApexHeapDump {
   } as ApexExecutionOverlayResultCommandSuccess);
   return heapdump;
 }
+
+// Partial heapdump with a circular reference
+export function createHeapDumpWithCircularRefs(): ApexHeapDump {
+  const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
+  heapdump.setOverlaySuccessResult({
+    HeapDump: {
+      className: 'CircularRefTest',
+      extents: [
+        {
+          collectionType: null,
+          count: 1,
+          definition: [
+            {
+              name: 'cfList',
+              type: 'List<CircularReference>'
+            },
+            {
+              name: 'someInt',
+              type: 'Integer'
+            }
+          ],
+          extent: [
+            {
+              address: '0x717304ef',
+              isStatic: false,
+              size: 12,
+              symbols: ['cf1'],
+              value: {
+                entry: [
+                  {
+                    keyDisplayValue: 'cfList',
+                    value: {
+                      value: '0x614edc98'
+                    }
+                  },
+                  {
+                    keyDisplayValue: 'someInt',
+                    value: {
+                      value: 5
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          totalSize: 12,
+          typeName: 'CircularReference'
+        },
+        {
+          collectionType: 'CircularReference',
+          count: 1,
+          definition: [],
+          extent: [
+            {
+              address: '0x614edc98',
+              isStatic: false,
+              size: 8,
+              symbols: null,
+              value: {
+                value: [
+                  {
+                    value: '0x717304ef'
+                  }
+                ]
+              }
+            }
+          ],
+          totalSize: 8,
+          typeName: 'List<CircularReference>'
+        }
+      ]
+    }
+  } as ApexExecutionOverlayResultCommandSuccess);
+  return heapdump;
+}
