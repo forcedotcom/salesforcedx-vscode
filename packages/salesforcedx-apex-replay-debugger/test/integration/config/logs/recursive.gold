@@ -34,7 +34,7 @@
   {
     "name": "myClass",
     "value": "",
-    "variablesReference": 1005,
+    "variablesReference": 1003,
     "type": "B.MyInnerClassB",
     "evaluateName": ""
   },
@@ -205,14 +205,14 @@
   {
     "name": "this",
     "value": "",
-    "variablesReference": 1050,
+    "variablesReference": 1022,
     "type": "A",
     "evaluateName": ""
   },
   {
     "name": "myB",
     "value": "",
-    "variablesReference": 1051,
+    "variablesReference": 1023,
     "type": "B",
     "evaluateName": ""
   },
@@ -261,7 +261,7 @@
   {
     "name": "enumVar",
     "value": "",
-    "variablesReference": 1054,
+    "variablesReference": 1027,
     "type": "A.Season",
     "evaluateName": ""
   },
@@ -306,7 +306,7 @@
   {
     "name": "myClass",
     "value": "",
-    "variablesReference": 1031,
+    "variablesReference": 1015,
     "type": "A.MyInnerClassA",
     "evaluateName": ""
   },
@@ -379,14 +379,14 @@
   {
     "name": "myB",
     "value": "",
-    "variablesReference": 1027,
+    "variablesReference": 1013,
     "type": "B",
     "evaluateName": ""
   },
   {
     "name": "myA",
     "value": "",
-    "variablesReference": 1059,
+    "variablesReference": 1032,
     "type": "A",
     "evaluateName": ""
   }

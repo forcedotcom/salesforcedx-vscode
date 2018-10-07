@@ -44,7 +44,10 @@ export class VariableAssignmentState implements DebugLogState {
       if (logContext.getStaticVariablesClassMap().has(className)) {
         map = logContext.getStaticVariablesClassMap().get(className)!;
         container = map.get(varName)! as ApexVariableContainer;
-      } else if (frameInfo.locals.has(varName)) {
+        // If the className is 'this' that means the variable being split was
+        // this.<something>. We need to check the className for 'this' otherwise
+        // a propery on 'this' would get incorrectly processed as a local variable.
+      } else if (className !== 'this' && frameInfo.locals.has(varName)) {
         map = frameInfo.locals;
         container = map.get(varName) as ApexVariableContainer;
         // if the variable we're given is a child variable, then it will come in the format of this.varName
