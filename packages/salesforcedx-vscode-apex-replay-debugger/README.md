@@ -1,10 +1,5 @@
-# Apex Replay Debugger for Visual Studio Code (Beta)
+# Apex Replay Debugger for Visual Studio Code
 Apex Replay Debugger simulates a live debugging session using a debug log that is a recording of all interactions in a transaction. You no longer need to parse through thousands of log lines manually. Instead, Apex Replay Debugger presents the logged information similarly to an interactive debugger, so you can debug your Apex code. The debugging process is a repetition of editing your Apex code, pushing or deploying the code to your org, reproducing the buggy scenario, downloading the resulting debug log, and launching Apex Replay Debugger with that debug log.
-
----
-NOTE: As a beta feature, Apex Replay Debugger is a preview and isn’t part of the “Services” under your master subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this feature within any particular time frame or at all, and we can discontinue it at any time. This feature is for evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally to your use of this feature. You can provide feedback and suggestions for Apex Replay Debugger in the [Issues section](https://github.com/forcedotcom/salesforcedx-vscode/issues) of the salesforcedx-vscode repository on GitHub.
-
----
 
 ## Prerequisites
 Before you set up Apex Replay Debugger, make sure that you have these essentials.
@@ -13,13 +8,15 @@ Before you set up Apex Replay Debugger, make sure that you have these essentials
   Before you use Salesforce Extensions for VS Code, [set up Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup). 
 * **A Salesforce DX project**  
   See [Project Setup](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_ for details.
-* **An active default scratch org, or a local copy of a debug log from the org whose up-to-date source is in your Salesforce DX project**
+* **An active default org, or a local copy of a debug log from the org whose up-to-date source is in your Salesforce DX project**
   1. To create a scratch org, you need a Dev Hub. To set up your production org as a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_.  
   1. To authorize your Dev Hub, open VS Code’s command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Authorize a Dev Hub**.  
   1. To create a default scratch org, run **SFDX: Create a Default Scratch Org**. Then, run **SFDX: Push Source to Default Scratch Org**. For more information, see [Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs.htm) in the _Salesforce DX Developer Guide_.
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later** 
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later**  
 * **The latest version of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions**  
 We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
+* **View All Data**  
+To view, retain, and delete debug logs and to set checkpoints, you need the View All Data user permission.
 
 ## Set Up Apex Replay Debugger
 The first time that you use Apex Replay Debugger, create a launch configuration. Then, each time that you debug an issue, set up an Apex Replay Debugger session.
@@ -50,9 +47,27 @@ To create a launch configuration for Apex Replay Debugger, create or update your
 }
 ```
 
-### Set Up an Apex Replay Debugger Session for a Scratch Org
+### Set Breakpoints and Checkpoints
 
-If you’re debugging an issue in a scratch org, we provide tools to generate a debug log to replay. Enable logging, reproduce your issue, get your debug log from the scratch org, and then start a debugging session.
+Before you generate a debug log for replay debugging, set breakpoints and checkpoints.
+
+1. To set line breakpoints, open a `.cls` or `.trigger` file and click the column to the left of the line numbers.
+1. For more information than line breakpoints provide, add checkpoints. You can set up to five checkpoints to get heap dumps when lines of code run. All local variables, static variables, and trigger context variables have better information at checkpoints. Trigger context variables don’t exist in logs and are available only at checkpoint locations.  
+In Visual Studio Code, a checkpoint is a type of breakpoint. Checkpoints function like breakpoints while replay debugging from a log. Set up and upload your checkpoints before you start an Apex Replay Debugger session.  
+    1. Set checkpoints on up to five lines in Apex classes or triggers.  
+        1. Click the line of code where you want to set the checkpoint.  
+        1. Open the command palette (press Cmd+Shift+P on macOS or Ctrl+Shift+P on Windows or Linux).  
+        1. Run **SFDX: Toggle Checkpoint**.  
+
+        - Or, right-click in the gutter to the left of the line numbers, select **Add Conditional Breakpoint** | **Expression**, and set the expression to `Checkpoint`.  
+
+        - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** | **Expression**. Set the expression to `Checkpoint`.  
+
+    1. To upload your checkpoints to your org to collect heap dump information, open the command palette, and run **SFDX: Update Checkpoints in Org**.
+
+### Set Up an Apex Replay Debugger Session for a Scratch Org or a Default Development Org
+
+If you’re debugging an issue in a scratch org, or in a sandbox or DE org that you’ve set as your default org in VS Code, we provide tools to generate a debug log to replay. Enable logging, reproduce your issue, get your debug log from the org, and then start a debugging session.
 
 1. To enable logging, from VS Code, open the command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
 1. Reproduce the scenario you want to debug. You can do this by:
@@ -66,7 +81,7 @@ If you’re debugging an issue in a scratch org, we provide tools to generate a 
 
 ### Set Up an Apex Replay Debugger Session for a Sandbox or Production Org
 
-If you’re not using a scratch org, download a debug log from your org before you start debugging. Open that log in VS Code and then start a debugging session.
+If you’re not using a scratch org or an org that you’ve set as your default org for development in VS Code, download a debug log from your org before you start debugging. Open that log in VS Code and then start a debugging session.
 
 1. In VS Code, open the debug log that you want to analyze. The log must be generated with a log level of `FINER` or `FINEST` for `VISUALFORCE` and a log level of `FINEST` for `APEX_CODE`.
 1. Run **SFDX: Launch Apex Replay Debugger with Current File**.  
@@ -75,36 +90,40 @@ TIP: If your log file is part of your Salesforce DX project, you don’t need to
 
 ## Debug Your Code
 
-Set breakpoints, then replay your debug log and inspect your variables’ values.
+Replay your debug log and inspect your variables’ values.
 
-1. To set line breakpoints, open a `.cls` or `.trigger` file and click the column to the left of the line numbers.
 1. To switch to VS Code’s Debug view, click the bug icon on the left edge of the window.
 1. To replay the code execution that was logged in your debug log until you hit your first breakpoint, click the green play icon in the Debug actions pane at the top of the editor.
-1. Step through your code and examine the states of your variables in the VARIABLES section of the Debug view. For details, see [Debugging](https://code.visualstudio.com/docs/editor/debugging) in the Visual Studio Code docs.
+1. Step through your code and examine the states of your variables in the VARIABLES section of the Debug view. For details, see [Debugging](https://code.visualstudio.com/docs/editor/debugging) in the Visual Studio Code docs.  
+As you step through your code during a debugging session, Apex Replay Debugger provides details about your variables from heap dumps on lines where you set checkpoints.  
 1. When you’ve stepped through all the logged events, the debugging session ends. If you want to start again at the beginning of the log, run **SFDX: Launch Apex Replay Debugger with Last Log File**.
 
 ## Considerations
 Keep these considerations and known issues in mind when working with Apex Replay Debugger.
 
-* You can replay only one debug log at a time. This limitation can make it difficult to debug asynchronous Apex, which produces multiple debug logs.
-* You can’t replay a debug log generated by scheduled Apex.
-* Long string variable values are truncated.
-* When viewing a standard or custom object, you can drill down only to its immediate child variables (one level deep).
-* You can’t expand a collection (a list, set, or map), because its members are shown in their string form.
-* Modifying a collection does not update the collection variable in the VARIABLES section of the Debug view.
-* You can’t set method or conditional breakpoints.
-* You can’t evaluate or watch variables or expressions in the Debug view’s WATCH section.
-* While debugging, right-clicking a variable in the VARIABLES section of the Debug view and selecting **Copy Value** works properly. However, **Copy as Expression** and **Add to Watch** don’t work as expected. 
-  * **Copy as Expression** functions like Copy Value: It copies the variable’s value instead of copying the full variable name.
-  * **Add to Watch** copies the variable’s value into the WATCH section, but because we don’t evaluate variables in this section you see only `<VariableValue>:<VariableValue>`.
+- You can use this debugger only in your orgs. ISV customer debugging is unavailable in Apex Replay Debugger. To debug customers’ orgs, use [ISV Customer Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger).
+- You can replay only one debug log at a time. This limitation can make it difficult to debug asynchronous Apex, which produces multiple debug logs.
+- Be sure to start a session soon after uploading your checkpoints, because checkpoints expire after 30 minutes.
+- Be sure to debug your code soon after starting the session, because heap dumps expire about a day after you generate them.
+- You can’t replay a debug log generated by scheduled Apex.
+- Long string variable values are truncated at breakpoints. At checkpoints, heap-dump-augmented variables have full strings.
+- When viewing a standard or custom object at a breakpoint, you can drill down only to the object’s immediate child variables (one level deep). At checkpoints, heap-dump-augmented variables have full drill-down to child standard objects, not only to immediate children.
+- You can’t expand a collection (a list, set, or map), because its members are shown in their string form.
+- Modifying a collection does not update the collection variable in the VARIABLES section of the Debug view.
+- You can’t set method or conditional breakpoints.
+- You can’t evaluate or watch variables or expressions in the Debug view’s WATCH section.
+- While debugging, right-clicking a variable in the VARIABLES section of the Debug view and selecting **Copy Value** works properly. However, **Copy as Expression** and **Add to Watch** don’t work as expected. 
+  - **Copy as Expression** functions like Copy Value: It copies the variable’s value instead of copying the full variable name.
+  - **Add to Watch** copies the variable’s value into the WATCH section, but because we don’t evaluate variables in this section you see only `<VariableValue>:<VariableValue>`.
 
 ## Bugs and Feedback
 To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on Github](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).
 
 ## Resources
 
-* YouTube—Salesforce Releases: [Platform Services: Apex Replay Debugger](https://www.youtube.com/watch?v=8GVuMT4MHWc)
-* TrailheaDX ’18 session video: [Banish the Bugs: Apex Debuggers to the Rescue!](https://www.salesforce.com/video/2520334/)
+- YouTube—Salesforce Releases: [Platform Services: Apex Replay Debugger](https://www.youtube.com/watch?v=8GVuMT4MHWc)
+- TrailheaDX ’18 session video: [Banish the Bugs: Apex Debuggers to the Rescue!](https://www.salesforce.com/video/2520334/)
+- _Apex Developer Guide_: [Trigger Context Variables](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_triggers_context_variables.htm)
 
 ---
 Currently, Visual Studio Code extensions are not signed or verified on the Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash Algorithm (SHA) of each extension that we publish. Consult [Manually Verify the salesforcedx-vscode Extensions’ Authenticity](https://developer.salesforce.com/media/vscode/SHA256.md) to learn how to verify the extensions.  
