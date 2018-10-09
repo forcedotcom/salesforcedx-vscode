@@ -5,7 +5,9 @@
 //  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 //  */
 import * as events from 'events';
+import * as mkdirp from 'mkdirp';
 import * as os from 'os';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
@@ -13,6 +15,7 @@ import {
   ApexTestOutlineProvider,
   TestNode
 } from './testOutlineProvider';
+import pathExists = require('path-exists');
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -77,6 +80,16 @@ export class ApexTestRunner {
   }
 
   public getTempFolder(): string {
+    if (vscode.workspace && vscode.workspace.workspaceFolders) {
+      const workspaceRootPath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx');
+      const apexTestPath = path.join(workspaceRootPath, 'apexTests');
+      let test = false;
+      if (pathExists.sync(apexTestPath)) {
+      } else {
+        mkdirp(apexTestPath, err => (err ? err : test = true));
+      }
+      return apexTestPath;
+    }
     return os.tmpdir();
   }
 
