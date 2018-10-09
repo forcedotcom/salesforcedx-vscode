@@ -23,7 +23,7 @@ To use Salesforce Extensions for VS Code, install all the extensions in this ext
 * [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)  
    This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
 * [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)  
-   This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs or to use ISV Customer Debugger.
+   This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs or to use ISV Customer Debugger for your subscribers’ orgs.
 * [salesforcedx-vscode-apex-replay-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)  
    This extension enables VS Code to replay Apex execution from Apex debug logs.
 * [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
