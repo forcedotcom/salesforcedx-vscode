@@ -1,15 +1,52 @@
 # Salesforce CLI Integration for Visual Studio Code
-This extension enables VS Code to use the Salesforce CLI to interact with your scratch orgs.  
+This extension enables VS Code to use the Salesforce CLI to interact with your orgs.  
 
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
 
 ##  Prerequisites
 Before you set up this extension, make sure that you have these essentials.
 
-* **Salesforce CLI and a Salesforce DX project**  
-  Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup) and [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm).  
+* **Salesforce CLI**  
+  Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup).  
+* **A Salesforce DX project**
   Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.  
+  If you don't already have a Salesforce DX project, create one with the **SFDX: Create Project** command (for development against scratch orgs) or the **SFDX: Create Project with Manifest** command (for development against sandboxes or DE orgs). Or, see [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) for information about setting up a project using Salesforce CLI.  
 * **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later**  
+
+## Set Up a Default Scratch Org  
+To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). To create a scratch org and set it as your default org for development, run **SFDX: Authorize a Dev Hub** and then **SFDX: Create a Default Scratch Org**. Then, to push the source in our project to the scratch org, run **SFDX: Push Source to Default Scratch Org**. To open the org in your browser, run **SFDX: Open Default Org**. After you make changes in the Salesforce user interface, to pull those changes to your local project, run **SFDX: Pull Source from Default Scratch Org**.
+
+## Develop Against Any Org in Visual Studio Code (Beta)
+Connect to a sandbox or Developer Edition (DE) org to retrieve and deploy source from Visual Studio Code. You can connect to non-source-tracked orgs (orgs other than scratch orgs) in Salesforce Extensions for VS Code v44 and later.
+
+---
+As a beta feature, the ability to use VS Code with sandbox and production orgs is a preview and isn’t part of the “Services” under your master subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this feature within any particular time frame or at all, and we can discontinue it at any time. This feature is for evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally to your use of this feature. You can provide feedback and suggestions for this functionality in the [Issues section](https://github.com/forcedotcom/salesforcedx-vscode/issues) of the salesforcedx-vscode repository on GitHub.
+
+---
+
+To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). Then run these commands as needed.
+- To log in to a sandbox or a DE org and set that org as the default org for your project, run **SFDX: Authorize an Org**.  
+
+    NOTE: Before you authorize a sandbox org, edit your `sfdx-project.json` file and set your `sfdcLoginUrl` value to `https://test.salesforce.com`:  
+    ```
+    "sfdcLoginUrl": "https://test.salesforce.com"
+    ```
+
+- To generate a project with a manifest (with a `package.xml` file) to develop against orgs without source tracking (orgs that aren’t scratch orgs), run **SFDX: Create Project with Manifest**.  
+
+To retrieve source from an org without source tracking (from an org that’s not a scratch org), right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Retrieve Source from Org**. Or, right-click a file that’s open in the editor, and select **SFDX: Retrieve This Source File from Org**.
+
+CAUTION: Retrieving source from an org overwrites your local versions of the source files.
+
+To deploy source to an org without source tracking (to an org that’s not a scratch org), right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Deploy Source to Org**. Or, right-click a file that’s open in the editor, and select **SFDX: Deploy This Source File to Org**.
+
+CAUTION: Deploying source to an org overwrites the metadata in your org with your local versions of the source files.
+
+To delete source from your project and from your non-source-tracked org, right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Delete from Project and Org**. Or, right-click a file that’s open in the editor, and select **SFDX: Delete This from Project and Org**.
+
+## View Your Default Org
+A badge in the footer shows your default development org. It uses the org’s auto-generated username or the alias that you chose for the org. To open the org in your browser, click this badge.  
+![Username for default scratch org, displayed in footer](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/active_scratch_org.png)
 
 ## Run Salesforce CLI Commands
 To run a command from Salesforce Extensions for VS Code, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) and type **SFDX** in the command palette.  
@@ -41,21 +78,21 @@ These Salesforce CLI commands are available:
 * `force:org:create --setdefaultusername ...`: **SFDX: Create a Default Scratch Org**
 * `force:org:display`: **SFDX: Display Org Details for Default Scratch Org**
 * `force:org:display --targetusername ...`: **SFDX: Display Org Details...**
-* `force:org:open`: **SFDX: Open Default Scratch Org**
+* `force:org:open`: **SFDX: Open Default Org**
 * `force:project:create ...`: **SFDX: Create Project**
+* `force:project:create --manifest ...`: **SFDX: Create Project with Manifest**
+* `force:source:delete`: **SFDX: Delete from Project and Org** (beta)
+* `force:source:deploy`: **SFDX: Deploy Source to Org** (beta)
 * `force:source:pull`: **SFDX: Pull Source from Default Scratch Org**
 * `force:source:pull --forceoverwrite`: **SFDX: Pull Source from Default Scratch Org and Override Conflicts**
 * `force:source:push`: **SFDX: Push Source to Default Scratch Org**
 * `force:source:push --forceoverwrite`: **SFDX: Push Source to Default Scratch Org and Override Conflicts**
+* `force:source:retrieve`: **SFDX: Retrieve Source from Org** (beta)
 * `force:source:status`: **SFDX: View All Changes (Local and in Default Scratch Org)**
 * `force:source:status --local`: **SFDX: View Local Changes**
 * `force:source:status --remote`: **SFDX: View Changes in Default Scratch Org**
 * `force:visualforce:component:create ...`: **SFDX: Create Visualforce Component**
 * `force:visualforce:page:create ...`: **SFDX: Create Visualforce Page**
-
-## View Your Active Scratch Org
-A badge in the footer shows your current default scratch org. It uses the org’s auto-generated username or the alias that you chose for the org.  
-![Username for default scratch org, displayed in footer](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/active_scratch_org.png)
 
 ## View Your Running Tasks
 To check your running tasks, expand the Running Tasks view in the Explorer.  

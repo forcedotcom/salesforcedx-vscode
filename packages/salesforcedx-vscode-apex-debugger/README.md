@@ -1,5 +1,5 @@
 # Apex Debugger for Visual Studio Code
-This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs.
+This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs and to use ISV Customer Debugger.
 
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
 
@@ -25,7 +25,7 @@ The first time that you use the Apex Debugger in VS Code, complete these setup s
 1. In VS Code, run **SFDX: Create a Default Scratch Org**. 
 1. Choose a scratch org definition file that includes the `DebugApex` feature.
 1. When your scratch org is ready, assign permissions for the Apex Debugger to the org’s admin user.  
-    1. In VS Code, run **SFDX: Open Default Scratch Org**.
+    1. In VS Code, run **SFDX: Open Default Org**.
     1. In your browser, from Setup, enter `Permission Sets` in the Quick Find box, then select **Permission Sets**.
     1. Click **New**.
     1. Give the permission set a name that you can remember, such as `Debug Apex`.
