@@ -11,10 +11,10 @@ Before you set up this extension, make sure that you have these essentials.
 * **A Salesforce DX project**
   Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.  
   If you don't already have a Salesforce DX project, create one with the **SFDX: Create Project** command (for development against scratch orgs) or the **SFDX: Create Project with Manifest** command (for development against sandboxes or DE orgs). Or, see [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) for information about setting up a project using Salesforce CLI.  
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later**  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later**  
 
 ## Set Up a Default Scratch Org  
-To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). To create a scratch org and set it as your default org for development, run **SFDX: Authorize a Dev Hub** and then **SFDX: Create a Default Scratch Org**. Then, to push the source in our project to the scratch org, run **SFDX: Push Source to Default Scratch Org**. To open the org in your browser, run **SFDX: Open Default Org**. After you make changes in the Salesforce user interface, to pull those changes to your local project, run **SFDX: Pull Source from Default Scratch Org**.
+To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). To create a scratch org and set it as your default org for development, run **SFDX: Authorize a Dev Hub** and then **SFDX: Create a Default Scratch Org**. Then, to push the source in your project to the scratch org, run **SFDX: Push Source to Default Scratch Org**. To open the org in your browser, run **SFDX: Open Default Org**. After you make changes in the Salesforce user interface, to pull those changes to your local project, run **SFDX: Pull Source from Default Scratch Org**.
 
 ## Develop Against Any Org in Visual Studio Code (Beta)
 Connect to a sandbox or Developer Edition (DE) org to retrieve and deploy source from Visual Studio Code. You can connect to non-source-tracked orgs (orgs other than scratch orgs) in Salesforce Extensions for VS Code v44 and later.

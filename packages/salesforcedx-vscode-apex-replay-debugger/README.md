@@ -12,7 +12,7 @@ Before you set up Apex Replay Debugger, make sure that you have these essentials
   1. To create a scratch org, you need a Dev Hub. To set up your production org as a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_.  
   1. To authorize your Dev Hub, open VS Code’s command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Authorize a Dev Hub**.  
   1. To create a default scratch org, run **SFDX: Create a Default Scratch Org**. Then, run **SFDX: Push Source to Default Scratch Org**. For more information, see [Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs.htm) in the _Salesforce DX Developer Guide_.
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later**  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later**  
 * **The latest version of the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) and [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex) extensions**  
 We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
 * **View All Data**  
@@ -47,6 +47,24 @@ To create a launch configuration for Apex Replay Debugger, create or update your
 }
 ```
 
+### Set Breakpoints and Checkpoints
+
+Before you generate a debug log for replay debugging, set breakpoints and checkpoints.
+
+1. To set line breakpoints, open a `.cls` or `.trigger` file and click the column to the left of the line numbers.
+1. For more information than line breakpoints provide, add checkpoints. You can set up to five checkpoints to get heap dumps when lines of code run. All local variables, static variables, and trigger context variables have better information at checkpoints. Trigger context variables don’t exist in logs and are available only at checkpoint locations.  
+In Visual Studio Code, a checkpoint is a type of breakpoint. Checkpoints function like breakpoints while replay debugging from a log. Set up and upload your checkpoints before you start an Apex Replay Debugger session.  
+    1. Set checkpoints on up to five lines in Apex classes or triggers.  
+        1. Click the line of code where you want to set the checkpoint.  
+        1. Open the command palette (press Cmd+Shift+P on macOS or Ctrl+Shift+P on Windows or Linux).  
+        1. Run **SFDX: Toggle Checkpoint**.  
+
+        - Or, right-click in the gutter to the left of the line numbers, select **Add Conditional Breakpoint** | **Expression**, and set the expression to `Checkpoint`.  
+
+        - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** | **Expression**. Set the expression to `Checkpoint`.  
+
+    1. To upload your checkpoints to your org to collect heap dump information, open the command palette, and run **SFDX: Update Checkpoints in Org**.
+
 ### Set Up an Apex Replay Debugger Session for a Scratch Org or a Default Development Org
 
 If you’re debugging an issue in a scratch org, or in a sandbox or DE org that you’ve set as your default org in VS Code, we provide tools to generate a debug log to replay. Enable logging, reproduce your issue, get your debug log from the org, and then start a debugging session.
@@ -72,21 +90,8 @@ TIP: If your log file is part of your Salesforce DX project, you don’t need to
 
 ## Debug Your Code
 
-Set breakpoints or checkpoints, then replay your debug log and inspect your variables’ values.
+Replay your debug log and inspect your variables’ values.
 
-1. To set line breakpoints, open a `.cls` or `.trigger` file and click the column to the left of the line numbers.
-1. For more information than line breakpoints provide, add checkpoints. You can set up to five checkpoints to get heap dumps when lines of code run. All local variables, static variables, and trigger context variables have better information at checkpoints. Trigger context variables don’t exist in logs and are available only at checkpoint locations.  
-In Visual Studio Code, a checkpoint is a type of breakpoint. Set up and upload your checkpoints, then start an Apex Replay Debugger session.  
-    1. Set checkpoints on up to five lines in Apex classes or triggers.  
-        1. Click the line of code where you want to set the checkpoint.  
-        1. Open the command palette (press Cmd+Shift+P on macOS or Ctrl+Shift+P on Windows or Linux).  
-        1. Run **SFDX: Toggle Checkpoint**.  
-
-        - Or, right-click in the gutter to the left of the line numbers, select **Add Conditional Breakpoint** | **Expression**, and set the expression to `Checkpoint`.  
-
-        - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** | **Expression**. Set the expression to `Checkpoint`.  
-
-    1. To upload your checkpoints to your org so that heap dump information can be collected, open the command palette, and run **SFDX: Update Checkpoints in Org**.
 1. To switch to VS Code’s Debug view, click the bug icon on the left edge of the window.
 1. To replay the code execution that was logged in your debug log until you hit your first breakpoint, click the green play icon in the Debug actions pane at the top of the editor.
 1. Step through your code and examine the states of your variables in the VARIABLES section of the Debug view. For details, see [Debugging](https://code.visualstudio.com/docs/editor/debugging) in the Visual Studio Code docs.  

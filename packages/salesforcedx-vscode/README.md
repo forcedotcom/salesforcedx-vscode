@@ -14,7 +14,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 * **Java 8 Platform, Standard Edition Development Kit**  
   Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later**  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later**  
 
 ## Documentation for Included Extensions  
 To use Salesforce Extensions for VS Code, install all the extensions in this extension pack. Each extension has its own documentation.
