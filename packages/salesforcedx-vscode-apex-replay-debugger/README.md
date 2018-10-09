@@ -82,11 +82,11 @@ In Visual Studio Code, a checkpoint is a type of breakpoint. Set up and upload y
         1. Open the command palette (press Cmd+Shift+P on macOS or Ctrl+Shift+P on Windows or Linux).  
         1. Run **SFDX: Toggle Checkpoint**.  
 
-        - Or, right-click in the gutter to the left of the line numbers, select Add Conditional Breakpoint | Expression, and set the expression to Checkpoint.  
+        - Or, right-click in the gutter to the left of the line numbers, select **Add Conditional Breakpoint** | **Expression**, and set the expression to `Checkpoint`.  
 
-        - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select Edit Breakpoint | Expression. Set the expression to Checkpoint.  
+        - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** | **Expression**. Set the expression to `Checkpoint`.  
 
-    1. To upload your checkpoints to your org so that heap dump information can be collected, open the command palette, and run SFDX: Update Checkpoints in Org.
+    1. To upload your checkpoints to your org so that heap dump information can be collected, open the command palette, and run **SFDX: Update Checkpoints in Org**.
 1. To switch to VS Code’s Debug view, click the bug icon on the left edge of the window.
 1. To replay the code execution that was logged in your debug log until you hit your first breakpoint, click the green play icon in the Debug actions pane at the top of the editor.
 1. Step through your code and examine the states of your variables in the VARIABLES section of the Debug view. For details, see [Debugging](https://code.visualstudio.com/docs/editor/debugging) in the Visual Studio Code docs.  
