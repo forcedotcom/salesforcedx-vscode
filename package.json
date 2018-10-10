@@ -26,11 +26,6 @@
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test",
     "test:unit": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
-<<<<<<< HEAD
-    "test:without-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test",
-    "coverage:system-tests": "lerna run coverage --scope system-tests --concurrency 1 --stream",
-    "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
-=======
     "test:without-system-tests":
       "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test",
     "test:system-tests":
@@ -39,7 +34,6 @@
       "lerna run coverage --scope system-tests --concurrency 1 --stream",
     "vscode:package":
       "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
->>>>>>> develop
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
