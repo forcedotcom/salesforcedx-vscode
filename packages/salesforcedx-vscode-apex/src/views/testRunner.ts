@@ -5,9 +5,8 @@
 //  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 //  */
 import * as events from 'events';
-import * as mkdirp from 'mkdirp';
-import * as os from 'os';
 import * as path from 'path';
+import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
@@ -81,16 +80,19 @@ export class ApexTestRunner {
 
   public getTempFolder(): string {
     if (vscode.workspace && vscode.workspace.workspaceFolders) {
-      const workspaceRootPath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx');
+      const workspaceRootPath = path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        '.sfdx'
+      );
       const apexTestPath = path.join(workspaceRootPath, 'apexTests');
-      let test = false;
-      if (pathExists.sync(apexTestPath)) {
-      } else {
-        mkdirp(apexTestPath, err => (err ? err : test = true));
+
+      if (!pathExists.sync(apexTestPath)) {
+        mkdir('-p', apexTestPath);
       }
       return apexTestPath;
+    } else {
+      throw new Error();
     }
-    return os.tmpdir();
   }
 
   public async runSingleTest(test: TestNode) {
