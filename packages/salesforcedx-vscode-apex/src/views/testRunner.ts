@@ -8,6 +8,7 @@ import * as events from 'events';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
   ApexTestNode,
@@ -91,7 +92,7 @@ export class ApexTestRunner {
       }
       return apexTestPath;
     } else {
-      throw new Error();
+      throw new Error(nls.localize('cannot_determine_workspace'));
     }
   }
 
