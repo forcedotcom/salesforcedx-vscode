@@ -80,11 +80,11 @@ export class ApexTestRunner {
 
   public getTempFolder(): string {
     if (vscode.workspace && vscode.workspace.workspaceFolders) {
-      const workspaceRootPath = path.join(
+      const sfdxDir = path.join(
         vscode.workspace.workspaceFolders[0].uri.fsPath,
         '.sfdx'
       );
-      const apexTestPath = path.join(workspaceRootPath, 'apexTests');
+      const apexTestPath = path.join(sfdxDir, 'apexTests');
 
       if (!pathExists.sync(apexTestPath)) {
         mkdir('-p', apexTestPath);
