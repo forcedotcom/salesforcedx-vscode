@@ -5,8 +5,11 @@
 //  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 //  */
 import * as events from 'events';
-import * as os from 'os';
+import * as path from 'path';
+import * as pathExists from 'path-exists';
+import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
   ApexTestNode,
@@ -77,7 +80,22 @@ export class ApexTestRunner {
   }
 
   public getTempFolder(): string {
-    return os.tmpdir();
+    if (vscode.workspace && vscode.workspace.workspaceFolders) {
+      const apexDir = path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        '.sfdx',
+        'tools',
+        'testresults',
+        'apex'
+      );
+
+      if (!pathExists.sync(apexDir)) {
+        mkdir('-p', apexDir);
+      }
+      return apexDir;
+    } else {
+      throw new Error(nls.localize('cannot_determine_workspace'));
+    }
   }
 
   public async runSingleTest(test: TestNode) {

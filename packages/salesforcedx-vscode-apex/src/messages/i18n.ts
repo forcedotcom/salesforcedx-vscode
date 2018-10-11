@@ -33,5 +33,7 @@ export const messages = {
   wrong_java_version_text:
     'Java 8 is required to run. Download and install it from https://java.com/en/download/.',
 
-  client_name: 'Apex Language Server'
+  client_name: 'Apex Language Server',
+  cannot_determine_workspace:
+    'Unable to determine workspace folders for workspace'
 };
