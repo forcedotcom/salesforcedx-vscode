@@ -6,6 +6,7 @@
 //  */
 import * as events from 'events';
 import * as path from 'path';
+import * as pathExists from 'path-exists';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -15,7 +16,6 @@ import {
   ApexTestOutlineProvider,
   TestNode
 } from './testOutlineProvider';
-import pathExists = require('path-exists');
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -81,16 +81,18 @@ export class ApexTestRunner {
 
   public getTempFolder(): string {
     if (vscode.workspace && vscode.workspace.workspaceFolders) {
-      const sfdxDir = path.join(
+      const apexDir = path.join(
         vscode.workspace.workspaceFolders[0].uri.fsPath,
-        '.sfdx'
+        '.sfdx',
+        'tools',
+        'testresults',
+        'apex'
       );
-      const apexTestPath = path.join(sfdxDir, 'apexTests');
 
-      if (!pathExists.sync(apexTestPath)) {
-        mkdir('-p', apexTestPath);
+      if (!pathExists.sync(apexDir)) {
+        mkdir('-p', apexDir);
       }
-      return apexTestPath;
+      return apexDir;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));
     }
