@@ -1,3 +1,24 @@
+## 44.2.0 - October 13, 2018
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Open beta for Org based development commands ([PR #669](https://github.com/forcedotcom/salesforcedx-vscode/pull/669))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Apex Replay Debugger Generally Available ([PR #664](https://github.com/forcedotcom/salesforcedx-vscode/pull/664))
+
+### Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Fix incorrect variable values when parameters have the same name as the object properties ([PR #663](https://github.com/forcedotcom/salesforcedx-vscode/pull/663))
+- Correctly parse values for circular references ([PR #659](https://github.com/forcedotcom/salesforcedx-vscode/pull/659))
+- Correctly display static variables after processing breakpoints ([PR #657](https://github.com/forcedotcom/salesforcedx-vscode/pull/657))
+- Fix TraceFlag creation when executing `SFDX: Turn On Apex Debug Log for Replay Debugger` on non-scratch orgs ([PR #656](https://github.com/forcedotcom/salesforcedx-vscode/pull/656))
+
 ## 43.19.0 - October 4, 2018
 
 ### Fixed
