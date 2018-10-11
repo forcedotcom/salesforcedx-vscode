@@ -27,13 +27,12 @@
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
     "@types/path-exists": "^1.0.29",
-    "@types/shelljs": "^0.7.4",
+    "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
-    "shelljs": "^0.7.8",
     "sinon": "^2.3.6",
     "typescript": "2.6.2",
     "vscode": "1.1.17",
@@ -174,6 +173,7 @@
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
+    "shelljs": "^0.8.1",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "3.5.1"
   }
