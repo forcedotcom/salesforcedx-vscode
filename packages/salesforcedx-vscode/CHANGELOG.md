@@ -4,20 +4,20 @@
 
 #### salesforcedx-vscode-core
 
-- Open beta for Org based development commands ([PR #669](https://github.com/forcedotcom/salesforcedx-vscode/pull/669))
+- Open beta for Org Development commands ([PR #669](https://github.com/forcedotcom/salesforcedx-vscode/pull/669), _Salesforce Winter ’19 Release Notes_: [Develop Against Any Org in Visual Studio Code (Beta)](https://releasenotes.docs.salesforce.com/en-us/winter19/release-notes/rn_vscode_any_org.htm))
 
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Apex Replay Debugger Generally Available ([PR #664](https://github.com/forcedotcom/salesforcedx-vscode/pull/664))
+- Apex Replay Debugger generally available ([PR #664](https://github.com/forcedotcom/salesforcedx-vscode/pull/664), _Salesforce Winter ’19 Release Notes_: [Debug All Your Orgs for Free with Apex Replay Debugger (Generally Available)](https://releasenotes.docs.salesforce.com/en-us/winter19/release-notes/rn_vscode_replay_debugger.htm))
 
 ### Fixed
 
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Fix incorrect variable values when parameters have the same name as the object properties ([PR #663](https://github.com/forcedotcom/salesforcedx-vscode/pull/663))
+- Fix incorrect variable values when parameters have the same names as the object properties ([PR #663](https://github.com/forcedotcom/salesforcedx-vscode/pull/663))
 - Correctly parse values for circular references ([PR #659](https://github.com/forcedotcom/salesforcedx-vscode/pull/659))
 - Correctly display static variables after processing breakpoints ([PR #657](https://github.com/forcedotcom/salesforcedx-vscode/pull/657))
-- Fix TraceFlag creation when executing `SFDX: Turn On Apex Debug Log for Replay Debugger` on non-scratch orgs ([PR #656](https://github.com/forcedotcom/salesforcedx-vscode/pull/656))
+- Fix trace flag creation when running `SFDX: Turn On Apex Debug Log for Replay Debugger` with non-scratch orgs ([PR #656](https://github.com/forcedotcom/salesforcedx-vscode/pull/656))
 
 ## 43.19.0 - October 4, 2018
 
