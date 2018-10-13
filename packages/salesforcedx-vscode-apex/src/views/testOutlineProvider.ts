@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'path';
 import * as vscode from 'vscode';
 import fs = require('fs');
 import ospath = require('path');
@@ -20,6 +21,7 @@ import { getApexTests, isLanguageClientReady } from '../languageClientUtils';
 import { nls } from '../messages';
 import { ApexTestMethod } from './lspConverter';
 import { FullTestResult, TestSummarizer } from './testDataAccessObjects';
+import pathExists = require('path-exists');
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
 const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
@@ -152,7 +154,15 @@ export class ApexTestOutlineProvider
   }
 
   private getJSONFileOutput(fullFolderName: string): FullTestResult {
-    const files = fs.readdirSync(fullFolderName);
+    // const files = fs.readdirSync(fullFolderName);
+    const testIdFile = path.join(fullFolderName, 'test-run-id.txt');
+    let pathExisting = true;
+    if (!pathExists.sync(testIdFile)) {
+      pathExisting = false;
+    }
+    const testId = fs.readFileSync(testIdFile);
+    let fileName = 'test-result-' + testId + '.json';
+    /*
     let fileName = files[0];
     for (const file of files) {
       if (
@@ -162,9 +172,9 @@ export class ApexTestOutlineProvider
       ) {
         fileName = file;
       }
-    }
+    } */
     fileName = ospath.join(fullFolderName, fileName);
-    const output = fs.readFileSync(fileName).toString();
+    const output = fs.readFileSync(fileName, 'utf8');
     const jsonSummary = JSON.parse(output) as FullTestResult;
     return jsonSummary;
   }
@@ -253,6 +263,7 @@ export abstract class TestNode extends vscode.TreeItem {
 
 export class ApexTestGroupNode extends TestNode {
   public passing: number = 0;
+  public failing: number = 0;
 
   constructor(label: string, location: vscode.Location | null) {
     super(label, vscode.TreeItemCollapsibleState.Expanded, location);
@@ -262,17 +273,23 @@ export class ApexTestGroupNode extends TestNode {
 
   public updatePassFailLabel() {
     this.passing = 0;
+    this.failing = 0;
     this.children.forEach(child => {
       if ((child as ApexTestNode).outcome === 'Pass') {
         this.passing++;
+      } else if ((child as ApexTestNode).outcome === 'Fail') {
+        this.failing++;
       }
     });
     this.label =
       this.name + ' (' + this.passing + '/' + this.children.length + ')';
-    if (this.passing === this.children.length) {
-      this.updateIcon('Pass');
-    } else {
-      this.updateIcon('Fail');
+
+    if (this.passing + this.failing === this.children.length) {
+      if (this.failing !== 0) {
+        this.updateIcon('Fail');
+      } else {
+        this.updateIcon('Pass');
+      }
     }
   }
 
@@ -299,7 +316,6 @@ export class ApexTestNode extends TestNode {
   public updateIcon() {
     super.updateIcon(this.outcome);
     if (this.outcome === 'Pass') {
-      this.errorMessage = '';
       this.errorMessage = '';
     }
   }

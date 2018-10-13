@@ -35,20 +35,21 @@ export class TestSummarizer {
     group: ApexTestGroupNode
   ): string {
     let summString = '';
-    const failing = group.children.length - group.passing;
+    /*
+    const failing = summary.failing;
     const groupPassRate = group.passing * 100 / group.children.length + '%';
     const groupFailRate = failing * 100 / group.children.length + '%';
     let outcome = 'Failed';
     if (failing === 0) {
       outcome = 'Passed';
-    }
-    summString = summString + 'Outcome: ' + outcome + '\n';
-    summString = summString + 'Tests Ran: ' + group.children.length + '\n';
-    summString = summString + 'Passing: ' + group.passing + '\n';
-    summString = summString + 'Failing: ' + failing + '\n';
+    }*/
+    summString = summString + 'Outcome: ' + summary.outcome + '\n';
+    summString = summString + 'Tests Ran: ' + summary.testsRan + '\n';
+    summString = summString + 'Passing: ' + summary.passing + '\n';
+    summString = summString + 'Failing: ' + summary.failing + '\n';
     summString = summString + 'Skipped: ' + summary.skipped + '\n';
-    summString = summString + 'Pass Rate: ' + groupPassRate + '\n';
-    summString = summString + 'Fail Rate: ' + groupFailRate + '\n';
+    summString = summString + 'Pass Rate: ' + summary.passRate + '\n';
+    summString = summString + 'Fail Rate: ' + summary.failRate + '\n';
     summString =
       summString + 'Test Start Time: ' + summary.testStartTime + '\n';
     summString =
