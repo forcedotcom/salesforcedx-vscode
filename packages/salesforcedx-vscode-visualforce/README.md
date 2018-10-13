@@ -4,7 +4,7 @@ This extension uses the Visualforce Language Server and VS Code’s default HTML
 For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.  
 
 ##  Prerequisites
-Before you set up this extension, make sure that you have [Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later.  
+Before you set up this extension, make sure that you have [Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later.  
 
 ## Features Provided by This Extension
 * Code completion (invoke using Ctrl+Space)
