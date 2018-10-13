@@ -1,18 +1,20 @@
 # Salesforce Extensions for Visual Studio Code  
-This extension bundle includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with scratch orgs, Apex, Lightning components, and Visualforce.
+This extension bundle includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Lightning components, and Visualforce.
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)  
 
 ##  Prerequisites
 Before you set up Salesforce Extensions for VS Code, make sure that you have these essentials.
 
-* **Salesforce CLI and a Salesforce DX project**  
-  Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup) and [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm).  
+* **Salesforce CLI**  
+  Before you use Salesforce Extensions for VS Code, [set up the Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup).  
+* **A Salesforce DX project**
   Open your Salesforce DX project in a directory that contains an `sfdx-project.json` file. Otherwise, some features don’t work.  
+  If you don't already have a Salesforce DX project, create one with the **SFDX: Create Project** command (for development against scratch orgs) or the **SFDX: Create Project with Manifest** command (for development against sandboxes or DE orgs). Or, see [create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) for information about setting up a project using Salesforce CLI.  
 * **Java 8 Platform, Standard Edition Development Kit**  
   Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).  
-* **[Visual Studio Code](https://code.visualstudio.com/download) v1.23 or later**  
+* **[Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later**  
 
 ## Documentation for Included Extensions  
 To use Salesforce Extensions for VS Code, install all the extensions in this extension pack. Each extension has its own documentation.
@@ -21,7 +23,7 @@ To use Salesforce Extensions for VS Code, install all the extensions in this ext
 * [salesforcedx-vscode-apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)  
    This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
 * [salesforcedx-vscode-apex-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)  
-   This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs.
+   This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs or to use ISV Customer Debugger for your subscribers’ orgs.
 * [salesforcedx-vscode-apex-replay-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)  
    This extension enables VS Code to replay Apex execution from Apex debug logs.
 * [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
