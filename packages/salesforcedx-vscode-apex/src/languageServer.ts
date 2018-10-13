@@ -149,6 +149,9 @@ export async function createLanguageServer(
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
+    },
+    initializationOptions: {
+      enableRefactor: true
     }
   };
 
