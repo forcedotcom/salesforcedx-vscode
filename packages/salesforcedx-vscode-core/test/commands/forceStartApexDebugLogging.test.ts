@@ -12,6 +12,7 @@ import {
   CreateDebugLevel,
   CreateTraceFlag,
   ForceQueryTraceFlag,
+  ForceQueryUser,
   ForceStartApexDebugLoggingExecutor,
   UpdateDebugLevelsExecutor,
   UpdateTraceFlagsExecutor
@@ -100,6 +101,15 @@ describe('Force Start Apex Debug Logging', () => {
     const createDebugLevelCmd = createDebugLevelExecutor.build();
     expect(createDebugLevelCmd.toCommand()).to.equal(
       `sfdx force:data:record:create --sobjecttype DebugLevel --values developername=${createDebugLevelExecutor.developerName} MasterLabel=${createDebugLevelExecutor.developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL} --usetoolingapi --json --loglevel fatal`
+    );
+  });
+
+  it('Should build the user id query command', async () => {
+    const testUser = 'user@test.org';
+    const forceQueryUserExecutor = new ForceQueryUser(testUser);
+    const forceQueryUserCmd = forceQueryUserExecutor.build();
+    expect(forceQueryUserCmd.toCommand()).to.equal(
+      `sfdx force:data:soql:query --query SELECT id FROM User WHERE username='${testUser}' --json --loglevel fatal`
     );
   });
 });
