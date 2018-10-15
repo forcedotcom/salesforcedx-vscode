@@ -154,25 +154,9 @@ export class ApexTestOutlineProvider
   }
 
   private getJSONFileOutput(fullFolderName: string): FullTestResult {
-    // const files = fs.readdirSync(fullFolderName);
     const testIdFile = path.join(fullFolderName, 'test-run-id.txt');
-    let pathExisting = true;
-    if (!pathExists.sync(testIdFile)) {
-      pathExisting = false;
-    }
     const testId = fs.readFileSync(testIdFile);
     let fileName = 'test-result-' + testId + '.json';
-    /*
-    let fileName = files[0];
-    for (const file of files) {
-      if (
-        file !== 'test-result-codecoverage.json' &&
-        ospath.extname(file) === '.json' &&
-        file.startsWith('test-result')
-      ) {
-        fileName = file;
-      }
-    } */
     fileName = ospath.join(fullFolderName, fileName);
     const output = fs.readFileSync(fileName, 'utf8');
     const jsonSummary = JSON.parse(output) as FullTestResult;
@@ -281,8 +265,6 @@ export class ApexTestGroupNode extends TestNode {
         this.failing++;
       }
     });
-    this.label =
-      this.name + ' (' + this.passing + '/' + this.children.length + ')';
 
     if (this.passing + this.failing === this.children.length) {
       if (this.failing !== 0) {
