@@ -21,7 +21,6 @@ import { getApexTests, isLanguageClientReady } from '../languageClientUtils';
 import { nls } from '../messages';
 import { ApexTestMethod } from './lspConverter';
 import { FullTestResult, TestSummarizer } from './testDataAccessObjects';
-import pathExists = require('path-exists');
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
 const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
@@ -42,9 +41,9 @@ export class ApexTestOutlineProvider
   private path: string;
   private apexTestInfo: ApexTestMethod[] | null;
 
-  constructor(path: string, apexTestInfo: ApexTestMethod[] | null) {
+  constructor(xpath: string, apexTestInfo: ApexTestMethod[] | null) {
     this.rootNode = null;
-    this.path = path;
+    this.path = xpath;
     this.apexTestInfo = apexTestInfo;
     this.getAllApexTests(this.path);
   }
