@@ -111,7 +111,7 @@ export class ApexTestOutlineProvider
     this.onDidChangeTestData.fire();
   }
 
-  private getAllApexTests(path: string): TestNode {
+  private getAllApexTests(xpath: string): TestNode {
     if (this.rootNode == null) {
       // Starting Out
       this.rootNode = new ApexTestGroupNode('ApexTests', null);
