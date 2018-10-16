@@ -141,6 +141,11 @@
           "type": ["string", "null"],
           "default": null,
           "description": "%java_home_description%"
+        },
+        "salesforcedx-vscode-apex.enable-refactor": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%apex_refactor_description%"
         }
       }
     },

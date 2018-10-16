@@ -135,6 +135,13 @@ function protocol2CodeConverter(value: string) {
 export async function createLanguageServer(
   context: vscode.ExtensionContext
 ): Promise<LanguageClient> {
+  const isInsiders: boolean = /insiders/i.test(vscode.env.appName);
+  const enableApexRefactor: boolean = isInsiders
+    ? true
+    : vscode.workspace
+        .getConfiguration()
+        .get<boolean>('salesforcedx-vscode-apex.enable-refactor', false);
+
   const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
     documentSelector: [{ language: 'apex', scheme: 'file' }],
@@ -151,7 +158,7 @@ export async function createLanguageServer(
       protocol2Code: protocol2CodeConverter
     },
     initializationOptions: {
-      enableRefactor: true
+      enableRefactor: enableApexRefactor
     }
   };
 
