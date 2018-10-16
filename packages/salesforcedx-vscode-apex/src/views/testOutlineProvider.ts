@@ -12,9 +12,11 @@ import {
   APEX_GROUP_RANGE,
   DARK_BLUE_BUTTON,
   DARK_GREEN_BUTTON,
+  DARK_ORANGE_BUTTON,
   DARK_RED_BUTTON,
   LIGHT_BLUE_BUTTON,
   LIGHT_GREEN_BUTTON,
+  LIGHT_ORANGE_BUTTON,
   LIGHT_RED_BUTTON
 } from '../constants';
 import { getApexTests, isLanguageClientReady } from '../languageClientUtils';
@@ -238,6 +240,12 @@ export abstract class TestNode extends vscode.TreeItem {
         light: LIGHT_RED_BUTTON,
         dark: DARK_RED_BUTTON
       };
+    } else if (outcome === 'Skip') {
+      // Skipped test
+      this.iconPath = {
+        light: LIGHT_ORANGE_BUTTON,
+        dark: DARK_ORANGE_BUTTON
+      };
     }
   }
 
@@ -247,6 +255,7 @@ export abstract class TestNode extends vscode.TreeItem {
 export class ApexTestGroupNode extends TestNode {
   public passing: number = 0;
   public failing: number = 0;
+  public skipping: number = 0;
 
   constructor(label: string, location: vscode.Location | null) {
     super(label, vscode.TreeItemCollapsibleState.Expanded, location);
@@ -257,6 +266,7 @@ export class ApexTestGroupNode extends TestNode {
   public updatePassFailLabel() {
     this.passing = 0;
     this.failing = 0;
+    this.skipping = 0;
     this.children.forEach(child => {
       if ((child as ApexTestNode).outcome === 'Pass') {
         this.passing++;
@@ -265,7 +275,7 @@ export class ApexTestGroupNode extends TestNode {
       }
     });
 
-    if (this.passing + this.failing === this.children.length) {
+    if (this.passing + this.failing + this.skipping === this.children.length) {
       if (this.failing !== 0) {
         this.updateIcon('Fail');
       } else {
