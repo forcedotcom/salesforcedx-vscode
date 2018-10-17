@@ -191,7 +191,7 @@ export class ApexTestOutlineProvider
     }
     groups.forEach(group => {
       group.updatePassFailLabel();
-      group.description = TestSummarizer.summarize(jsonSummary.summary, group);
+      // group.description = TestSummarizer.summarize(jsonSummary.summary, group);
     });
   }
 }
