@@ -30,7 +30,7 @@ let languageClient: LanguageClient | undefined;
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const rootPath = vscode.workspace.workspaceFolders![0].name;
-  const testOutlineProvider = new ApexTestOutlineProvider(rootPath, null);
+  const testOutlineProvider = new ApexTestOutlineProvider(null);
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
     sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();

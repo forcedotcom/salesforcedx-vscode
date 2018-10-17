@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestGroupNode } from './testOutlineProvider';
 export type FullTestResult = {
   summary: TestSummary;
   tests: TestResult[];
@@ -30,19 +29,8 @@ export type TestSummary = {
 };
 
 export class TestSummarizer {
-  public static summarize(
-    summary: TestSummary,
-    group: ApexTestGroupNode
-  ): string {
+  public static summarize(summary: TestSummary): string {
     let summString = '';
-    /*
-    const failing = summary.failing;
-    const groupPassRate = group.passing * 100 / group.children.length + '%';
-    const groupFailRate = failing * 100 / group.children.length + '%';
-    let outcome = 'Failed';
-    if (failing === 0) {
-      outcome = 'Passed';
-    }*/
     summString = summString + 'Outcome: ' + summary.outcome + '\n';
     summString = summString + 'Tests Ran: ' + summary.testsRan + '\n';
     summString = summString + 'Passing: ' + summary.passing + '\n';

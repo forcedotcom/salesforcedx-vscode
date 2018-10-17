@@ -40,19 +40,17 @@ export class ApexTestOutlineProvider
   private apexTestMap: Map<string, TestNode> = new Map<string, TestNode>();
   private rootNode: TestNode | null;
   public testStrings: Set<string> = new Set<string>();
-  private path: string;
   private apexTestInfo: ApexTestMethod[] | null;
 
-  constructor(xpath: string, apexTestInfo: ApexTestMethod[] | null) {
+  constructor(apexTestInfo: ApexTestMethod[] | null) {
     this.rootNode = null;
-    this.path = xpath;
     this.apexTestInfo = apexTestInfo;
-    this.getAllApexTests(this.path);
+    this.getAllApexTests();
   }
 
   public getHead(): TestNode {
     if (this.rootNode === null) {
-      return this.getAllApexTests(this.path);
+      return this.getAllApexTests();
     } else {
       return this.rootNode;
     }
@@ -84,7 +82,7 @@ export class ApexTestOutlineProvider
     if (element) {
       return element;
     } else {
-      this.getAllApexTests(this.path);
+      this.getAllApexTests();
       let message = NO_TESTS_MESSAGE;
       let description = NO_TESTS_DESCRIPTION;
       if (!isLanguageClientReady()) {
@@ -109,11 +107,11 @@ export class ApexTestOutlineProvider
     if (isLanguageClientReady()) {
       this.apexTestInfo = await getApexTests();
     }
-    this.getAllApexTests(this.path);
+    this.getAllApexTests();
     this.onDidChangeTestData.fire();
   }
 
-  private getAllApexTests(xpath: string): TestNode {
+  private getAllApexTests(): TestNode {
     if (this.rootNode == null) {
       // Starting Out
       this.rootNode = new ApexTestGroupNode('ApexTests', null);
@@ -155,12 +153,12 @@ export class ApexTestOutlineProvider
   }
 
   private getJSONFileOutput(fullFolderName: string): FullTestResult {
-    const testIdFile = path.join(fullFolderName, 'test-run-id.txt');
-    const testId = fs.readFileSync(testIdFile);
-    let fileName = 'test-result-' + testId + '.json';
-    fileName = ospath.join(fullFolderName, fileName);
-    const output = fs.readFileSync(fileName, 'utf8');
-    const jsonSummary = JSON.parse(output) as FullTestResult;
+    const testRunIdFile = path.join(fullFolderName, 'test-run-id.txt');
+    const testRunId = fs.readFileSync(testRunIdFile);
+    let testResultFilePath = 'test-result-' + testRunId + '.json';
+    testResultFilePath = ospath.join(fullFolderName, testResultFilePath);
+    const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
+    const jsonSummary = JSON.parse(testResultOutput) as FullTestResult;
     return jsonSummary;
   }
 
@@ -191,7 +189,6 @@ export class ApexTestOutlineProvider
     }
     groups.forEach(group => {
       group.updatePassFailLabel();
-      // group.description = TestSummarizer.summarize(jsonSummary.summary, group);
     });
   }
 }
@@ -272,6 +269,8 @@ export class ApexTestGroupNode extends TestNode {
         this.passing++;
       } else if ((child as ApexTestNode).outcome === 'Fail') {
         this.failing++;
+      } else if ((child as ApexTestNode).outcome === 'Skip') {
+        this.skipping++;
       }
     });
 
