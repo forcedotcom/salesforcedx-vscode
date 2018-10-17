@@ -22,7 +22,7 @@ import {
 import { getApexTests, isLanguageClientReady } from '../languageClientUtils';
 import { nls } from '../messages';
 import { ApexTestMethod } from './lspConverter';
-import { FullTestResult, TestSummarizer } from './testDataAccessObjects';
+import { FullTestResult } from './testDataAccessObjects';
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
 const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
