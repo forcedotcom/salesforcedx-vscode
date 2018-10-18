@@ -14,15 +14,17 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.2.0",
+  "version": "44.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "44.2.0",
+    "@salesforce/salesforcedx-apex-debugger": "44.3.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-extension-telemetry": "0.0.17"
   },
@@ -49,8 +51,7 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ../../scripts/run-test-with-top-level-extensions",
     "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
@@ -83,10 +84,11 @@
       {
         "type": "apex",
         "label": "Apex Debugger",
-        "program":
-          "./node_modules/@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
+        "program": "./node_modules/@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
         "runtime": "node",
-        "languages": ["apex"],
+        "languages": [
+          "apex"
+        ],
         "configurationSnippets": [
           {
             "label": "%launch_snippet_label_text%",
@@ -105,7 +107,9 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": ["sfdxProject"],
+              "required": [
+                "sfdxProject"
+              ],
               "userIdFilter": {
                 "type": "array",
                 "description": "%user_id_filter_text%",
@@ -152,14 +156,20 @@
                 "default": "${workspaceRoot}"
               },
               "trace": {
-                "type": ["boolean", "string"],
+                "type": [
+                  "boolean",
+                  "string"
+                ],
                 "description": "%trace_text%",
                 "default": false
               },
               "connectType": {
                 "type": "string",
                 "description": "%connect_type_text%",
-                "enum": ["DEFAULT", "ISV_DEBUGGER"]
+                "enum": [
+                  "DEFAULT",
+                  "ISV_DEBUGGER"
+                ]
               }
             }
           }
