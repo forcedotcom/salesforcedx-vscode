@@ -1,3 +1,11 @@
+## 44.3.0 - October 18, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed some minor under-the-hood bugs.
+
 ## 44.2.0 - October 13, 2018
 
 ### Added
