@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Store Apex Test sidebar execution results in .sfdx folder ([PR #670](https://github.com/forcedotcom/salesforcedx-vscode/pull/670))
+- We fixed some minor under-the-hood bugs.
 
 ## 44.2.0 - October 13, 2018
 
