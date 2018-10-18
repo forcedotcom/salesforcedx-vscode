@@ -43,9 +43,9 @@
     "eslint-check":
       "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
     "reformat": "node scripts/reformat-with-prettier.js",
-    "synk:test":
+    "snyk:test":
       "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
-    "synk:monitor":
+    "snyk:monitor":
       "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js"
   },
