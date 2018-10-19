@@ -25,6 +25,12 @@ Currently, we have the following extensions:
 - [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
    This extension supports Visualforce pages and components. It uses the HTML language server from VS Code.
 
+## Be An Efficient Salesforce Developer with VS Code
+
+Dreamforce 2018 session on how to use VS Code and the SalesforceDX Extensions for VS Code
+
+[![Be An Efficient Salesforce Developer with VS Code](imgs/DF18_VSCode_Session_thumbnail.jpg)](https://www.youtube.com/watch?v=hw9LBvjo4PQ)
+
 ## Getting Started
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
