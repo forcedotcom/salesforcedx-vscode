@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'path';
 import * as vscode from 'vscode';
 import fs = require('fs');
 import ospath = require('path');
@@ -11,15 +12,17 @@ import {
   APEX_GROUP_RANGE,
   DARK_BLUE_BUTTON,
   DARK_GREEN_BUTTON,
+  DARK_ORANGE_BUTTON,
   DARK_RED_BUTTON,
   LIGHT_BLUE_BUTTON,
   LIGHT_GREEN_BUTTON,
+  LIGHT_ORANGE_BUTTON,
   LIGHT_RED_BUTTON
 } from '../constants';
 import { getApexTests, isLanguageClientReady } from '../languageClientUtils';
 import { nls } from '../messages';
 import { ApexTestMethod } from './lspConverter';
-import { FullTestResult, TestSummarizer } from './testDataAccessObjects';
+import { FullTestResult } from './testDataAccessObjects';
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
 const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
@@ -37,19 +40,17 @@ export class ApexTestOutlineProvider
   private apexTestMap: Map<string, TestNode> = new Map<string, TestNode>();
   private rootNode: TestNode | null;
   public testStrings: Set<string> = new Set<string>();
-  private path: string;
   private apexTestInfo: ApexTestMethod[] | null;
 
-  constructor(path: string, apexTestInfo: ApexTestMethod[] | null) {
+  constructor(apexTestInfo: ApexTestMethod[] | null) {
     this.rootNode = null;
-    this.path = path;
     this.apexTestInfo = apexTestInfo;
-    this.getAllApexTests(this.path);
+    this.getAllApexTests();
   }
 
   public getHead(): TestNode {
     if (this.rootNode === null) {
-      return this.getAllApexTests(this.path);
+      return this.getAllApexTests();
     } else {
       return this.rootNode;
     }
@@ -81,7 +82,7 @@ export class ApexTestOutlineProvider
     if (element) {
       return element;
     } else {
-      this.getAllApexTests(this.path);
+      this.getAllApexTests();
       let message = NO_TESTS_MESSAGE;
       let description = NO_TESTS_DESCRIPTION;
       if (!isLanguageClientReady()) {
@@ -106,11 +107,11 @@ export class ApexTestOutlineProvider
     if (isLanguageClientReady()) {
       this.apexTestInfo = await getApexTests();
     }
-    this.getAllApexTests(this.path);
+    this.getAllApexTests();
     this.onDidChangeTestData.fire();
   }
 
-  private getAllApexTests(path: string): TestNode {
+  private getAllApexTests(): TestNode {
     if (this.rootNode == null) {
       // Starting Out
       this.rootNode = new ApexTestGroupNode('ApexTests', null);
@@ -152,20 +153,12 @@ export class ApexTestOutlineProvider
   }
 
   private getJSONFileOutput(fullFolderName: string): FullTestResult {
-    const files = fs.readdirSync(fullFolderName);
-    let fileName = files[0];
-    for (const file of files) {
-      if (
-        file !== 'test-result-codecoverage.json' &&
-        ospath.extname(file) === '.json' &&
-        file.startsWith('test-result')
-      ) {
-        fileName = file;
-      }
-    }
-    fileName = ospath.join(fullFolderName, fileName);
-    const output = fs.readFileSync(fileName).toString();
-    const jsonSummary = JSON.parse(output) as FullTestResult;
+    const testRunIdFile = path.join(fullFolderName, 'test-run-id.txt');
+    const testRunId = fs.readFileSync(testRunIdFile);
+    let testResultFilePath = 'test-result-' + testRunId + '.json';
+    testResultFilePath = ospath.join(fullFolderName, testResultFilePath);
+    const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
+    const jsonSummary = JSON.parse(testResultOutput) as FullTestResult;
     return jsonSummary;
   }
 
@@ -196,7 +189,6 @@ export class ApexTestOutlineProvider
     }
     groups.forEach(group => {
       group.updatePassFailLabel();
-      group.description = TestSummarizer.summarize(jsonSummary.summary, group);
     });
   }
 }
@@ -245,6 +237,12 @@ export abstract class TestNode extends vscode.TreeItem {
         light: LIGHT_RED_BUTTON,
         dark: DARK_RED_BUTTON
       };
+    } else if (outcome === 'Skip') {
+      // Skipped test
+      this.iconPath = {
+        light: LIGHT_ORANGE_BUTTON,
+        dark: DARK_ORANGE_BUTTON
+      };
     }
   }
 
@@ -253,6 +251,8 @@ export abstract class TestNode extends vscode.TreeItem {
 
 export class ApexTestGroupNode extends TestNode {
   public passing: number = 0;
+  public failing: number = 0;
+  public skipping: number = 0;
 
   constructor(label: string, location: vscode.Location | null) {
     super(label, vscode.TreeItemCollapsibleState.Expanded, location);
@@ -262,17 +262,24 @@ export class ApexTestGroupNode extends TestNode {
 
   public updatePassFailLabel() {
     this.passing = 0;
+    this.failing = 0;
+    this.skipping = 0;
     this.children.forEach(child => {
       if ((child as ApexTestNode).outcome === 'Pass') {
         this.passing++;
+      } else if ((child as ApexTestNode).outcome === 'Fail') {
+        this.failing++;
+      } else if ((child as ApexTestNode).outcome === 'Skip') {
+        this.skipping++;
       }
     });
-    this.label =
-      this.name + ' (' + this.passing + '/' + this.children.length + ')';
-    if (this.passing === this.children.length) {
-      this.updateIcon('Pass');
-    } else {
-      this.updateIcon('Fail');
+
+    if (this.passing + this.failing + this.skipping === this.children.length) {
+      if (this.failing !== 0) {
+        this.updateIcon('Fail');
+      } else {
+        this.updateIcon('Pass');
+      }
     }
   }
 
@@ -299,7 +306,6 @@ export class ApexTestNode extends TestNode {
   public updateIcon() {
     super.updateIcon(this.outcome);
     if (this.outcome === 'Pass') {
-      this.errorMessage = '';
       this.errorMessage = '';
     }
   }

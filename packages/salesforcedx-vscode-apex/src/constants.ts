@@ -39,6 +39,15 @@ export const LIGHT_GREEN_BUTTON = path.join(
   'light',
   'testPass.svg'
 );
+export const LIGHT_ORANGE_BUTTON = path.join(
+  __filename,
+  '..',
+  '..',
+  '..',
+  'resources',
+  'light',
+  'testSkip.svg'
+);
 
 export const DARK_BLUE_BUTTON = path.join(
   __filename,
@@ -66,6 +75,15 @@ export const DARK_GREEN_BUTTON = path.join(
   'resources',
   'dark',
   'testPass.svg'
+);
+export const DARK_ORANGE_BUTTON = path.join(
+  __filename,
+  '..',
+  '..',
+  '..',
+  'resources',
+  'dark',
+  'testSkip.svg'
 );
 
 const startPos = new vscode.Position(0, 0);

@@ -34,7 +34,7 @@ describe('TestView', () => {
   for (let i = 0; i < 8; i++) {
     const methodName = 'test' + i;
     const definingType = 'file' + Math.floor(i / 2); // Parent is either file1, file2, file3, or file4
-    const line = (i / 2) * 4 + 3;
+    const line = i / 2 * 4 + 3;
     const startPos = new vscode.Position(line, 0);
     const endPos = new vscode.Position(line, 5);
     const file = '/bogus/path/to/' + definingType + '.cls';
@@ -53,7 +53,7 @@ describe('TestView', () => {
 
   describe('Get Tests and Create Tree', () => {
     it('Should add no tests', () => {
-      testOutline = new ApexTestOutlineProvider('/bogus/path', null);
+      testOutline = new ApexTestOutlineProvider(null);
       const expected = new ApexTestGroupNode('ApexTests', null);
       expected.description = NO_TESTS_DESCRIPTION;
       expect(testOutline.getHead()).to.deep.equal(
@@ -62,10 +62,7 @@ describe('TestView', () => {
     });
 
     it('Should create one test and one class', () => {
-      testOutline = new ApexTestOutlineProvider(
-        '/bogus/path/',
-        apexTestInfo.slice(0, 1)
-      );
+      testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
       if (testOutline.getHead()) {
         expect(testOutline.getHead().name).to.equal('ApexTests');
         expect(testOutline.getHead().children.length).to.equal(1);
@@ -87,7 +84,7 @@ describe('TestView', () => {
     });
 
     it('Should update tests with 8 tests and 4 classes', () => {
-      testOutline = new ApexTestOutlineProvider('/bogus/path/', apexTestInfo);
+      testOutline = new ApexTestOutlineProvider(apexTestInfo);
       if (testOutline.getHead()) {
         expect(testOutline.getHead().children.length).to.equal(4);
         let i = 0;
@@ -145,10 +142,7 @@ describe('TestView', () => {
       parseJSONStub.callsFake(() => {
         return jsonSummaryOneFilePass;
       });
-      testOutline = new ApexTestOutlineProvider(
-        '/bogus/path/',
-        apexTestInfo.slice(0, 1)
-      );
+      testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
       testOutline.readJSONFile('oneFilePass');
       const testGroupNode = testOutline.getHead()
         .children[0] as ApexTestGroupNode;
@@ -161,7 +155,7 @@ describe('TestView', () => {
       parseJSONStub.callsFake(() => {
         return jsonSummaryMultipleFiles;
       });
-      testOutline = new ApexTestOutlineProvider('/bogus/path/', apexTestInfo);
+      testOutline = new ApexTestOutlineProvider(apexTestInfo);
       testOutline.readJSONFile('multipleFilesMixed');
       let classNum = 0;
       expect(testOutline.getHead().children.length).to.equal(4);

@@ -99,6 +99,7 @@ export class ApexTestRunner {
   }
 
   public async runSingleTest(test: TestNode) {
+    await this.testOutline.refresh();
     const tmpFolder = this.getTempFolder();
     const builder = new ReadableApexTestRunExecutor(
       [test.name],
