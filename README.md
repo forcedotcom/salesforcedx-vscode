@@ -39,4 +39,4 @@ For information about using the extensions, consult the README.md file for each 
 
 Dreamforce 2018 session on how to use VS Code and the SalesforceDX Extensions for VS Code
 
-[![Be An Efficient Salesforce Developer with VS Code](imgs/DF18_VSCode_Session_thumbnail.png)](https://www.youtube.com/watch?v=hw9LBvjo4PQ)
+[![Be An Efficient Salesforce Developer with VS Code](imgs/DF18_VSCode_Session_thumbnail.jpg)](https://www.youtube.com/watch?v=hw9LBvjo4PQ)
