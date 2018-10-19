@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestGroupNode } from './testOutlineProvider';
 export type FullTestResult = {
   summary: TestSummary;
   tests: TestResult[];
@@ -30,25 +29,15 @@ export type TestSummary = {
 };
 
 export class TestSummarizer {
-  public static summarize(
-    summary: TestSummary,
-    group: ApexTestGroupNode
-  ): string {
+  public static summarize(summary: TestSummary): string {
     let summString = '';
-    const failing = group.children.length - group.passing;
-    const groupPassRate = group.passing * 100 / group.children.length + '%';
-    const groupFailRate = failing * 100 / group.children.length + '%';
-    let outcome = 'Failed';
-    if (failing === 0) {
-      outcome = 'Passed';
-    }
-    summString = summString + 'Outcome: ' + outcome + '\n';
-    summString = summString + 'Tests Ran: ' + group.children.length + '\n';
-    summString = summString + 'Passing: ' + group.passing + '\n';
-    summString = summString + 'Failing: ' + failing + '\n';
+    summString = summString + 'Outcome: ' + summary.outcome + '\n';
+    summString = summString + 'Tests Ran: ' + summary.testsRan + '\n';
+    summString = summString + 'Passing: ' + summary.passing + '\n';
+    summString = summString + 'Failing: ' + summary.failing + '\n';
     summString = summString + 'Skipped: ' + summary.skipped + '\n';
-    summString = summString + 'Pass Rate: ' + groupPassRate + '\n';
-    summString = summString + 'Fail Rate: ' + groupFailRate + '\n';
+    summString = summString + 'Pass Rate: ' + summary.passRate + '\n';
+    summString = summString + 'Fail Rate: ' + summary.failRate + '\n';
     summString =
       summString + 'Test Start Time: ' + summary.testStartTime + '\n';
     summString =
