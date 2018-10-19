@@ -34,3 +34,9 @@ If you are interested in building the extensions locally, please take a look at 
 You can find more information about developing Salesforce Extensions for VS Code in the [docs](docs) folder. If the docs don’t cover what you are looking for, please feel free to open an issue.
 
 For information about using the extensions, consult the README.md file for each package.
+
+### Be An Efficient Salesforce Developer with VS Code
+
+Dreamforce 2018 session on how to use VS Code and the SalesforceDX Extensions for VS Code
+
+[![Be An Efficient Salesforce Developer with VS Code](imgs/DF18_VSCode_Session_thumbnail.png)](https://www.youtube.com/watch?v=hw9LBvjo4PQ)
