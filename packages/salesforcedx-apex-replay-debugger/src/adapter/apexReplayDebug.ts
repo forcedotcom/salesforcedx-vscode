@@ -222,14 +222,37 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
-    this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
+    // this.sendEvent(new InitializedEvent());
+    this.initializedResponse.body = {
+      supportsConfigurationDoneRequest: true,
+      supportsCompletionsRequest: false,
+      supportsConditionalBreakpoints: true,
+      supportsDelayedStackTraceLoading: false,
+      supportsEvaluateForHovers: false,
+      supportsExceptionInfoRequest: false,
+      supportsExceptionOptions: false,
+      supportsFunctionBreakpoints: false,
+      supportsHitConditionalBreakpoints: false,
+      supportsLoadedSourcesRequest: false,
+      supportsRestartFrame: false,
+      supportsSetVariable: false,
+      supportsStepBack: false,
+      supportsStepInTargetsRequest: false
+    };
+    this.initializedResponse.success = true;
+    this.sendResponse(this.initializedResponse);
+    // this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
   public async launchRequest(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
+    this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
     response.success = false;
+    console.log('----------------');
+    console.log('launchRequest');
+    console.log('----------------');
     this.setupLogger(args);
     this.log(
       TRACE_CATEGORY_LAUNCH,
@@ -568,7 +591,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           );
           this.sendResponse(this.initializedResponse);
         }
-        if (this.initializedResponse) {
+      /* if (this.initializedResponse) {
           this.initializedResponse.body = {
             supportsConfigurationDoneRequest: true,
             supportsCompletionsRequest: false,
@@ -588,7 +611,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
           this.initializedResponse.success = true;
           this.sendResponse(this.initializedResponse);
           break;
-        }
+        } */
     }
     this.sendResponse(response);
   }
