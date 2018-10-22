@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LineBreakpointEventArgs } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   DEBUGGER_LAUNCH_TYPE,
   DEBUGGER_TYPE
@@ -46,6 +47,32 @@ export class DebugConfigurationProvider
     }
     if (config.trace === undefined) {
       config.trace = true;
+    }
+
+    const sfdxApex = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-apex'
+    );
+    if (sfdxApex && sfdxApex.exports) {
+      const lineBpInfo = sfdxApex.exports.getLineBreakpointInfo();
+      let fsPath: string | undefined;
+      if (
+        vscode.workspace.workspaceFolders &&
+        vscode.workspace.workspaceFolders[0]
+      ) {
+        fsPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      }
+      /* const config = vscode.workspace.getConfiguration();
+      const checkpointsEnabled = config.get(
+        'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
+        false
+      ); */
+      const returnArgs: LineBreakpointEventArgs = {
+        lineBreakpointInfo: lineBpInfo,
+        // for the moment always send undefined if checkpoints aren't enabled.
+        projectPath: fsPath !== null ? fsPath : undefined
+      };
+
+      config.__privateData = returnArgs;
     }
     return config;
   }
