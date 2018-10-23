@@ -24,6 +24,7 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
@@ -141,6 +142,53 @@ export async function getDebuggerType(
   return type;
 }
 
+function registerApexFileWatchers(): vscode.Disposable {
+  const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
+  clsWatcher.onDidChange(uri => updateProjectLineBreakpointFile());
+  clsWatcher.onDidCreate(uri => updateProjectLineBreakpointFile());
+  clsWatcher.onDidDelete(uri => updateProjectLineBreakpointFile());
+
+  const trgWatcher = vscode.workspace.createFileSystemWatcher('**/*.trigger');
+  trgWatcher.onDidChange(uri => updateProjectLineBreakpointFile());
+  trgWatcher.onDidCreate(uri => updateProjectLineBreakpointFile());
+  trgWatcher.onDidDelete(uri => updateProjectLineBreakpointFile());
+  return vscode.Disposable.from(clsWatcher, trgWatcher);
+}
+
+export async function updateProjectLineBreakpointFile() {
+  console.log('Update Project Line Breakpoint File');
+  const sfdxApex = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-apex'
+  );
+  if (sfdxApex && sfdxApex.exports) {
+    const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
+
+    // TODO: move everything below this to salesforce-vscode-apex module
+    let folderPath: string | undefined;
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      folderPath = path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        '.sfdx',
+        'tools'
+      );
+
+      const myJsonString = JSON.stringify(lineBpInfo);
+      console.log(myJsonString);
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath);
+      }
+      const projectBreakpointPath = path.join(
+        folderPath,
+        'projectBreakpoints.json'
+      );
+      fs.writeFileSync(projectBreakpointPath, myJsonString);
+    }
+  }
+}
+
 function registerDebugHandlers(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
@@ -149,39 +197,8 @@ function registerDebugHandlers(): vscode.Disposable {
         if (type !== DEBUGGER_TYPE) {
           return;
         }
-        if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
-          console.log('in registerDebugHandlers, getting line breakpoint info');
-          const sfdxApex = vscode.extensions.getExtension(
-            'salesforce.salesforcedx-vscode-apex'
-          );
-          if (sfdxApex && sfdxApex.exports) {
-            const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-            let fsPath: string | undefined;
-            if (
-              vscode.workspace.workspaceFolders &&
-              vscode.workspace.workspaceFolders[0]
-            ) {
-              fsPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-            }
-            const config = vscode.workspace.getConfiguration();
-            const checkpointsEnabled = config.get(
-              'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
-              false
-            );
-            const returnArgs: LineBreakpointEventArgs = {
-              lineBreakpointInfo: lineBpInfo,
-              // for the moment always send undefined if checkpoints aren't enabled.
-              projectPath: checkpointsEnabled ? fsPath : undefined
-            };
-            event.session.customRequest(
-              LINE_BREAKPOINT_INFO_REQUEST,
-              returnArgs
-            );
-            console.log(
-              'in registerDebugHandlers, retrieved line breakpoint info from language server'
-            );
-          }
-        } else if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
+
+        if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
           const metricLaunchArgs = event.body as MetricLaunch;
           telemetryService.sendLaunchEvent(
             metricLaunchArgs.logSize.toString(),
@@ -232,12 +249,18 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const commands = registerCommands(checkpointsEnabled);
+  const apexFileWatcher = registerApexFileWatchers();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
     new DebugConfigurationProvider()
   );
-  context.subscriptions.push(commands, debugHandlers, debugConfigProvider);
+  context.subscriptions.push(
+    commands,
+    apexFileWatcher,
+    debugHandlers,
+    debugConfigProvider
+  );
 
   // Don't create the checkpoint service or register the breakpoints event
   // if checkpoints aren't enabled

@@ -59,6 +59,7 @@ export interface LaunchRequestArguments
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
+  __privateData: any;
 }
 
 export class ApexVariable extends Variable {
@@ -222,7 +223,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
-    // this.sendEvent(new InitializedEvent());
     this.initializedResponse.body = {
       supportsConfigurationDoneRequest: true,
       supportsCompletionsRequest: false,
@@ -241,14 +241,24 @@ export class ApexReplayDebug extends LoggingDebugSession {
     };
     this.initializedResponse.success = true;
     this.sendResponse(this.initializedResponse);
-    // this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
   }
 
   public async launchRequest(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
-    this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
+    // TODO: need to remove __privateData from args because it's being used later for other purposes.
+    // TODO: also might want to move this somewhere along lines 275 for validation purposes
+    if (args) {
+      const lineBreakpointEventArgs = args.__privateData as LineBreakpointEventArgs;
+      breakpointUtil.createMappingsFromLineBreakpointInfo(
+        lineBreakpointEventArgs.lineBreakpointInfo
+      );
+      this.projectPath = lineBreakpointEventArgs.projectPath;
+    } else {
+      response.message = nls.localize('session_language_server_error_text');
+    }
+
     response.success = false;
     console.log('----------------');
     console.log('launchRequest');
@@ -567,52 +577,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
       );
     }
     response.success = true;
-    this.sendResponse(response);
-  }
-
-  public customRequest(
-    command: string,
-    response: DebugProtocol.Response,
-    args: any
-  ): void {
-    response.success = true;
-    switch (command) {
-      case LINE_BREAKPOINT_INFO_REQUEST:
-        if (args) {
-          const lineBreakpointEventArgs = args as LineBreakpointEventArgs;
-          breakpointUtil.createMappingsFromLineBreakpointInfo(
-            lineBreakpointEventArgs.lineBreakpointInfo
-          );
-          this.projectPath = lineBreakpointEventArgs.projectPath;
-        } else {
-          this.initializedResponse.success = false;
-          this.initializedResponse.message = nls.localize(
-            'session_language_server_error_text'
-          );
-          this.sendResponse(this.initializedResponse);
-        }
-      /* if (this.initializedResponse) {
-          this.initializedResponse.body = {
-            supportsConfigurationDoneRequest: true,
-            supportsCompletionsRequest: false,
-            supportsConditionalBreakpoints: true,
-            supportsDelayedStackTraceLoading: false,
-            supportsEvaluateForHovers: false,
-            supportsExceptionInfoRequest: false,
-            supportsExceptionOptions: false,
-            supportsFunctionBreakpoints: false,
-            supportsHitConditionalBreakpoints: false,
-            supportsLoadedSourcesRequest: false,
-            supportsRestartFrame: false,
-            supportsSetVariable: false,
-            supportsStepBack: false,
-            supportsStepInTargetsRequest: false
-          };
-          this.initializedResponse.success = true;
-          this.sendResponse(this.initializedResponse);
-          break;
-        } */
-    }
     this.sendResponse(response);
   }
 
