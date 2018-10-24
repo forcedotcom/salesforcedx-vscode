@@ -5,13 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LineBreakpointEventArgs } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   DEBUGGER_LAUNCH_TYPE,
   DEBUGGER_TYPE
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -43,6 +40,7 @@ export class DebugConfigurationProvider
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
+    config.projectBreakpointFilePath = '${command:sfdx.updateBreakpoint}';
     config.logFile = config.logFile || '${command:AskForLogFileName}';
     if (config.stopOnEntry === undefined) {
       config.stopOnEntry = true;
@@ -50,29 +48,11 @@ export class DebugConfigurationProvider
     if (config.trace === undefined) {
       config.trace = true;
     }
-
-    // TODO: move everything below this to salesforce-vscode-apex module
-    let fsPath: string | undefined;
     if (
       vscode.workspace.workspaceFolders &&
       vscode.workspace.workspaceFolders[0]
     ) {
-      fsPath = path.join(
-        vscode.workspace.workspaceFolders[0].uri.fsPath,
-        '.sfdx',
-        'tools',
-        'projectBreakpoints.json'
-      );
-
-      const testResultOutput = fs.readFileSync(fsPath, 'utf8');
-      const lineBpInfo = JSON.parse(testResultOutput);
-
-      const returnArgs: LineBreakpointEventArgs = {
-        lineBreakpointInfo: lineBpInfo,
-        projectPath: vscode.workspace.workspaceFolders[0].uri.fsPath
-      };
-      // END TODO
-      config.__privateData = returnArgs;
+      config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
 
     return config;

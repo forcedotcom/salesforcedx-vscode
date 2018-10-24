@@ -21,15 +21,9 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
-import {
-  breakpointUtil,
-  BreakpointUtil,
-  LineBreakpointEventArgs,
-  LineBreakpointInfo
-} from '../../../src/breakpoints';
+import { BreakpointUtil } from '../../../src/breakpoints';
 import {
   DEFAULT_INITIALIZE_TIMEOUT_MS,
-  LINE_BREAKPOINT_INFO_REQUEST,
   SEND_METRIC_LAUNCH_EVENT
 } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
@@ -914,7 +908,7 @@ describe('Replay debugger adapter - unit', () => {
       ]);
     });
   });
-
+  /*
   describe('Custom request', () => {
     describe('Line breakpoint info', () => {
       let sendResponseSpy: sinon.SinonSpy;
@@ -1033,5 +1027,5 @@ describe('Replay debugger adapter - unit', () => {
         expect(adapter.getProjectPath()).to.equal(projectPathArg);
       });
     });
-  });
+  }); */
 });

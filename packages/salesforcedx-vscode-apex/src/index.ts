@@ -60,6 +60,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(await registerTestView(testOutlineProvider));
 
+  const updateBreakpointCmd = vscode.commands.registerCommand(
+    'sfdx.updateBreakpoint',
+    updateProjectLineBreakpointFile
+  );
+
+  context.subscriptions.push(updateBreakpointCmd);
+
   const exportedApi = {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
@@ -69,6 +76,34 @@ export async function activate(context: vscode.ExtensionContext) {
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
+}
+
+async function updateProjectLineBreakpointFile() {
+  const lineBpInfo = await getLineBreakpointInfo();
+
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders[0]
+  ) {
+    const folderPath = path.join(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      '.sfdx',
+      'tools'
+    );
+
+    const myJsonString = JSON.stringify(lineBpInfo);
+    console.log(myJsonString);
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+    const projectBreakpointPath = path.join(
+      folderPath,
+      'projectBreakpoints.json'
+    );
+    fs.writeFileSync(projectBreakpointPath, myJsonString);
+    return projectBreakpointPath;
+  }
+  return '';
 }
 
 async function registerTestView(
