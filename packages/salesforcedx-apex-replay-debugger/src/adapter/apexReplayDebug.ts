@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as fs from 'fs';
 import { EOL } from 'os';
 import {
   DebugSession,
@@ -23,10 +24,8 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { MetricError, MetricLaunch } from '..';
-import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
+import { breakpointUtil } from '../breakpoints';
 import {
-  GET_LINE_BREAKPOINT_INFO_EVENT,
-  LINE_BREAKPOINT_INFO_REQUEST,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '../constants';
@@ -59,7 +58,8 @@ export interface LaunchRequestArguments
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
-  __privateData: any;
+  projectBreakpointFilePath?: string;
+  projectPath?: string;
 }
 
 export class ApexVariable extends Variable {
@@ -249,20 +249,19 @@ export class ApexReplayDebug extends LoggingDebugSession {
   ): Promise<void> {
     // TODO: need to remove __privateData from args because it's being used later for other purposes.
     // TODO: also might want to move this somewhere along lines 275 for validation purposes
-    if (args) {
-      const lineBreakpointEventArgs = args.__privateData as LineBreakpointEventArgs;
-      breakpointUtil.createMappingsFromLineBreakpointInfo(
-        lineBreakpointEventArgs.lineBreakpointInfo
+    if (args && args.projectBreakpointFilePath && args.projectPath) {
+      const testResultOutput = fs.readFileSync(
+        args.projectBreakpointFilePath,
+        'utf8'
       );
-      this.projectPath = lineBreakpointEventArgs.projectPath;
+      const lineBpInfo = JSON.parse(testResultOutput);
+      breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
+      this.projectPath = args.projectPath;
     } else {
       response.message = nls.localize('session_language_server_error_text');
     }
 
     response.success = false;
-    console.log('----------------');
-    console.log('launchRequest');
-    console.log('----------------');
     this.setupLogger(args);
     this.log(
       TRACE_CATEGORY_LAUNCH,

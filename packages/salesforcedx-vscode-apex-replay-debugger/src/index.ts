@@ -9,22 +9,16 @@ import {
   MetricError,
   MetricLaunch
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
-import {
-  breakpointUtil,
-  LineBreakpointEventArgs
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   DEBUGGER_TYPE,
-  GET_LINE_BREAKPOINT_INFO_EVENT,
   LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY,
-  LINE_BREAKPOINT_INFO_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
@@ -142,53 +136,6 @@ export async function getDebuggerType(
   return type;
 }
 
-function registerApexFileWatchers(): vscode.Disposable {
-  const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
-  clsWatcher.onDidChange(uri => updateProjectLineBreakpointFile());
-  clsWatcher.onDidCreate(uri => updateProjectLineBreakpointFile());
-  clsWatcher.onDidDelete(uri => updateProjectLineBreakpointFile());
-
-  const trgWatcher = vscode.workspace.createFileSystemWatcher('**/*.trigger');
-  trgWatcher.onDidChange(uri => updateProjectLineBreakpointFile());
-  trgWatcher.onDidCreate(uri => updateProjectLineBreakpointFile());
-  trgWatcher.onDidDelete(uri => updateProjectLineBreakpointFile());
-  return vscode.Disposable.from(clsWatcher, trgWatcher);
-}
-
-export async function updateProjectLineBreakpointFile() {
-  console.log('Update Project Line Breakpoint File');
-  const sfdxApex = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-apex'
-  );
-  if (sfdxApex && sfdxApex.exports) {
-    const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-
-    // TODO: move everything below this to salesforce-vscode-apex module
-    let folderPath: string | undefined;
-    if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      folderPath = path.join(
-        vscode.workspace.workspaceFolders[0].uri.fsPath,
-        '.sfdx',
-        'tools'
-      );
-
-      const myJsonString = JSON.stringify(lineBpInfo);
-      console.log(myJsonString);
-      if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath);
-      }
-      const projectBreakpointPath = path.join(
-        folderPath,
-        'projectBreakpoints.json'
-      );
-      fs.writeFileSync(projectBreakpointPath, myJsonString);
-    }
-  }
-}
-
 function registerDebugHandlers(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
     async event => {
@@ -249,18 +196,12 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const commands = registerCommands(checkpointsEnabled);
-  const apexFileWatcher = registerApexFileWatchers();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
     new DebugConfigurationProvider()
   );
-  context.subscriptions.push(
-    commands,
-    apexFileWatcher,
-    debugHandlers,
-    debugConfigProvider
-  );
+  context.subscriptions.push(commands, debugHandlers, debugConfigProvider);
 
   // Don't create the checkpoint service or register the breakpoints event
   // if checkpoints aren't enabled
