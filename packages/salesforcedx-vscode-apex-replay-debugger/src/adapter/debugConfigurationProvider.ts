@@ -38,21 +38,17 @@ export class DebugConfigurationProvider
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    return this.asyncDebugConfig(folder, config).catch(err => {
-      return vscode.window
-        .showErrorMessage(err.message, { modal: true })
-        .then(_ => undefined); // abort launch
+    return this.asyncDebugConfig(config).catch(async err => {
+      return vscode.window.showErrorMessage(err.message).then(x => undefined);
     });
   }
 
   private async asyncDebugConfig(
-    folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration
   ): Promise<vscode.DebugConfiguration | undefined> {
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
-    // config.projectBreakpointFilePath = '${command:sfdx.updateBreakpoint}';
     config.logFile = config.logFile || '${command:AskForLogFileName}';
     if (config.stopOnEntry === undefined) {
       config.stopOnEntry = true;

@@ -245,22 +245,23 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
-    let projectBreakpointFileAvailable = false;
+    let lineBreakpointInfoAvailable = false;
+    if (args && args.lineBreakpointInfo) {
+      lineBreakpointInfoAvailable = true;
+      const lineBreakpointEventArgs = args.lineBreakpointInfo as LineBreakpointEventArgs;
+      breakpointUtil.createMappingsFromLineBreakpointInfo(
+        lineBreakpointEventArgs.lineBreakpointInfo
+      );
+      this.projectPath = lineBreakpointEventArgs.projectPath;
+      delete args.lineBreakpointInfo;
+    }
+
     response.success = false;
     this.setupLogger(args);
     this.log(
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: args=${JSON.stringify(args)}`
     );
-
-    if (args && args.lineBreakpointInfo) {
-      projectBreakpointFileAvailable = true;
-      const lineBreakpointEventArgs = args.lineBreakpointInfo as LineBreakpointEventArgs;
-      breakpointUtil.createMappingsFromLineBreakpointInfo(
-        lineBreakpointEventArgs.lineBreakpointInfo
-      );
-      this.projectPath = lineBreakpointEventArgs.projectPath;
-    }
 
     this.logContext = new LogContext(args, this);
     this.heapDumpService = new HeapDumpService(this.logContext);
@@ -269,7 +270,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       response.message = nls.localize('no_log_file_text');
     } else if (!this.logContext.meetsLogLevelRequirements()) {
       response.message = nls.localize('incorrect_log_levels_text');
-    } else if (!projectBreakpointFileAvailable) {
+    } else if (!lineBreakpointInfoAvailable) {
       response.message = nls.localize('session_language_server_error_text');
     } else {
       this.printToDebugConsole(
