@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
 import { EOL } from 'os';
 import {
   DebugSession,
@@ -24,7 +23,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { MetricError, MetricLaunch } from '..';
-import { breakpointUtil } from '../breakpoints';
+import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
 import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
@@ -58,8 +57,7 @@ export interface LaunchRequestArguments
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
-  projectBreakpointFilePath?: string;
-  projectPath?: string;
+  lineBreakpointInfo?: any;
 }
 
 export class ApexVariable extends Variable {
@@ -247,26 +245,22 @@ export class ApexReplayDebug extends LoggingDebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
-    // TODO: need to remove __privateData from args because it's being used later for other purposes.
-    // TODO: also might want to move this somewhere along lines 275 for validation purposes
-    if (args && args.projectBreakpointFilePath && args.projectPath) {
-      const testResultOutput = fs.readFileSync(
-        args.projectBreakpointFilePath,
-        'utf8'
-      );
-      const lineBpInfo = JSON.parse(testResultOutput);
-      breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
-      this.projectPath = args.projectPath;
-    } else {
-      response.message = nls.localize('session_language_server_error_text');
-    }
-
+    let projectBreakpointFileAvailable = false;
     response.success = false;
     this.setupLogger(args);
     this.log(
       TRACE_CATEGORY_LAUNCH,
       `launchRequest: args=${JSON.stringify(args)}`
     );
+
+    if (args && args.lineBreakpointInfo) {
+      projectBreakpointFileAvailable = true;
+      const lineBreakpointEventArgs = args.lineBreakpointInfo as LineBreakpointEventArgs;
+      breakpointUtil.createMappingsFromLineBreakpointInfo(
+        lineBreakpointEventArgs.lineBreakpointInfo
+      );
+      this.projectPath = lineBreakpointEventArgs.projectPath;
+    }
 
     this.logContext = new LogContext(args, this);
     this.heapDumpService = new HeapDumpService(this.logContext);
@@ -275,6 +269,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
       response.message = nls.localize('no_log_file_text');
     } else if (!this.logContext.meetsLogLevelRequirements()) {
       response.message = nls.localize('incorrect_log_levels_text');
+    } else if (!projectBreakpointFileAvailable) {
+      response.message = nls.localize('session_language_server_error_text');
     } else {
       this.printToDebugConsole(
         nls.localize('session_started_text', this.logContext.getLogFileName())

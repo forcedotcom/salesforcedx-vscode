@@ -21,7 +21,11 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../../src/adapter/apexReplayDebug';
-import { BreakpointUtil } from '../../../src/breakpoints';
+import {
+  BreakpointUtil,
+  LineBreakpointEventArgs,
+  LineBreakpointInfo
+} from '../../../src/breakpoints';
 import {
   DEFAULT_INITIALIZE_TIMEOUT_MS,
   SEND_METRIC_LAUNCH_EVENT
@@ -102,7 +106,7 @@ describe('Replay debugger adapter - unit', () => {
       adapter.initializeRequest(response, args);
 
       setTimeout(() => {
-        expect(sendResponseSpy.calledOnce).to.be.false;
+        expect(sendResponseSpy.calledOnce).to.be.true;
       }, DEFAULT_INITIALIZE_TIMEOUT_MS);
       clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
     });
@@ -121,6 +125,16 @@ describe('Replay debugger adapter - unit', () => {
     let errorToDebugConsoleStub: sinon.SinonStub;
     let scanLogForHeapDumpLinesStub: sinon.SinonStub;
     let fetchOverlayResultsForApexHeapDumpsStub: sinon.SinonStub;
+    const lineBpInfo: LineBreakpointInfo[] = [];
+    lineBpInfo.push({
+      uri: 'classA',
+      typeref: 'StaticVarsA',
+      lines: [9, 10, 13]
+    });
+    const lineBreakpointInfoArgs: LineBreakpointEventArgs = {
+      lineBreakpointInfo: lineBpInfo,
+      projectPath: 'some/file/path'
+    };
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -235,6 +249,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'meetsLogLevelRequirements')
         .returns(true);
 
+      args.lineBreakpointInfo = lineBreakpointInfoArgs;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -284,7 +299,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(true);
 
-      adapter.setProjectPath('someProjectPath');
+      args.lineBreakpointInfo = lineBreakpointInfoArgs;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -308,7 +323,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(true);
 
-      adapter.setProjectPath('someProjectPath');
+      args.lineBreakpointInfo = lineBreakpointInfoArgs;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -331,7 +346,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(false);
 
-      adapter.setProjectPath('someProjectPath');
+      args.lineBreakpointInfo = lineBreakpointInfoArgs;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -908,10 +923,9 @@ describe('Replay debugger adapter - unit', () => {
       ]);
     });
   });
-  /*
+
   describe('Custom request', () => {
     describe('Line breakpoint info', () => {
-      let sendResponseSpy: sinon.SinonSpy;
       let createMappingsFromLineBreakpointInfo: sinon.SinonSpy;
       const initializedResponse = {
         success: true,
@@ -935,11 +949,10 @@ describe('Replay debugger adapter - unit', () => {
 
       beforeEach(() => {
         adapter = new MockApexReplayDebug();
-        adapter.initializeRequest(
+        adapter.launchRequest(
           initializedResponse,
-          {} as DebugProtocol.InitializeRequestArguments
+          {} as LaunchRequestArguments
         );
-        sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
         createMappingsFromLineBreakpointInfo = sinon.spy(
           BreakpointUtil.prototype,
           'createMappingsFromLineBreakpointInfo'
@@ -947,26 +960,16 @@ describe('Replay debugger adapter - unit', () => {
       });
 
       afterEach(() => {
-        sendResponseSpy.restore();
         createMappingsFromLineBreakpointInfo.restore();
       });
 
       it('Should handle undefined args', () => {
-        adapter.customRequest(
-          LINE_BREAKPOINT_INFO_REQUEST,
-          {} as DebugProtocol.Response,
-          null
-        );
-
         expect(createMappingsFromLineBreakpointInfo.called).to.be.false;
-        expect(sendResponseSpy.called).to.be.true;
-        const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.getCall(
-          0
-        ).args[0];
-        expect(actualResponse.success).to.be.true;
-        expect(actualResponse).to.deep.equal(initializedResponse);
+        expect(initializedResponse.message).to.deep.equal(
+          nls.localize('no_log_file_text')
+        );
       });
-
+      /*
       it('Should handle empty line breakpoint info', () => {
         const returnArgs: LineBreakpointEventArgs = {
           lineBreakpointInfo: [],
@@ -1025,7 +1028,7 @@ describe('Replay debugger adapter - unit', () => {
           expectedLineNumberMapping
         );
         expect(adapter.getProjectPath()).to.equal(projectPathArg);
-      });
+      });*/
     });
-  }); */
+  });
 });

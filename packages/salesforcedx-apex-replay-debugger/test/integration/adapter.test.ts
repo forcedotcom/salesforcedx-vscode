@@ -18,7 +18,6 @@ import {
   LineBreakpointEventArgs,
   LineBreakpointInfo
 } from '../../src/breakpoints';
-import { LINE_BREAKPOINT_INFO_REQUEST } from '../../src/constants';
 import { GoldFileUtil } from './goldFileUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
@@ -121,13 +120,12 @@ describe('Replay debugger adapter - integration', function() {
       projectPath: undefined
     };
 
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, returnArgs);
-
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
-      trace: true
+      trace: true,
+      lineBreakpointInfo: returnArgs
     } as LaunchRequestArguments);
     expect(launchResponse.success).to.equal(true);
 
@@ -224,13 +222,12 @@ describe('Replay debugger adapter - integration', function() {
       projectPath: undefined
     };
 
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, returnArgs);
-
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
-      trace: true
+      trace: true,
+      lineBreakpointInfo: returnArgs
     } as LaunchRequestArguments);
     expect(launchResponse.success).to.equal(true);
 
