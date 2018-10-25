@@ -973,8 +973,8 @@ describe('Replay debugger adapter - unit', () => {
         createMappingsFromLineBreakpointInfo.restore();
       });
 
-      it('Should handle undefined args', () => {
-        adapter.launchRequest(
+      it('Should handle undefined args', async () => {
+        await adapter.launchRequest(
           initializedResponse,
           {} as LaunchRequestArguments
         );
@@ -984,7 +984,7 @@ describe('Replay debugger adapter - unit', () => {
         );
       });
 
-      it('Should handle empty line breakpoint info', () => {
+      it('Should handle empty line breakpoint info', async () => {
         const returnArgs: LineBreakpointEventArgs = {
           lineBreakpointInfo: [],
           projectPath: undefined
@@ -994,7 +994,7 @@ describe('Replay debugger adapter - unit', () => {
           logFile: 'someTestLogFile.log'
         };
 
-        adapter.launchRequest(
+        await adapter.launchRequest(
           initializedResponse,
           config as LaunchRequestArguments
         );
@@ -1008,7 +1008,7 @@ describe('Replay debugger adapter - unit', () => {
         expect(adapter.getProjectPath()).to.equal(undefined);
       });
 
-      it('Should save line number mapping', () => {
+      it('Should save line number mapping', async () => {
         const info: LineBreakpointInfo[] = [
           { uri: 'file:///foo.cls', typeref: 'foo', lines: [1, 2, 3] },
           { uri: 'file:///foo.cls', typeref: 'foo$inner', lines: [4, 5, 6] },
@@ -1028,7 +1028,7 @@ describe('Replay debugger adapter - unit', () => {
           lineBreakpointInfo: returnArgs,
           logFile: 'someTestLogFile.log'
         };
-        adapter.launchRequest(
+        await adapter.launchRequest(
           initializedResponse,
           config as LaunchRequestArguments
         );

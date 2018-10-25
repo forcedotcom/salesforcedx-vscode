@@ -68,8 +68,8 @@ describe('Configuration provider', () => {
     const config = DebugConfigurationProvider.getConfig('/path/foo.cls');
     expect(config).to.deep.equal(expectedConfig);
   });
-
-  it('Should fill in empty attributes in the config', () => {
+  /*
+  it('Should fill in empty attributes in the config', ()=> {
     const expectedConfig = {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
@@ -108,7 +108,7 @@ describe('Configuration provider', () => {
     });
 
     expect(config).to.deep.equal(expectedConfig);
-  });
+  }); */
 });
 
 describe('extension context log path tests', () => {

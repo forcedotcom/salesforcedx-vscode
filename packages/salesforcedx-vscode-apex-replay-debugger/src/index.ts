@@ -44,7 +44,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
-function registerCommands(checkpointsEnabled: boolean): vscode.Disposable {
+function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
     async config => {
@@ -89,30 +89,22 @@ function registerCommands(checkpointsEnabled: boolean): vscode.Disposable {
     }
   );
 
-  if (checkpointsEnabled) {
-    const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
-      'sfdx.create.checkpoints',
-      sfdxCreateCheckpoints
-    );
-    const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
-      'sfdx.toggle.checkpoint',
-      sfdxToggleCheckpoint
-    );
+  const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
+    'sfdx.create.checkpoints',
+    sfdxCreateCheckpoints
+  );
+  const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
+    'sfdx.toggle.checkpoint',
+    sfdxToggleCheckpoint
+  );
 
-    return vscode.Disposable.from(
-      promptForLogCmd,
-      launchFromLogFileCmd,
-      launchFromLastLogFileCmd,
-      sfdxCreateCheckpointsCmd,
-      sfdxToggleCheckpointCmd
-    );
-  } else {
-    return vscode.Disposable.from(
-      promptForLogCmd,
-      launchFromLogFileCmd,
-      launchFromLastLogFileCmd
-    );
-  }
+  return vscode.Disposable.from(
+    promptForLogCmd,
+    launchFromLogFileCmd,
+    launchFromLastLogFileCmd,
+    sfdxCreateCheckpointsCmd,
+    sfdxToggleCheckpointCmd
+  );
 }
 
 export function updateLastOpened(
@@ -181,45 +173,30 @@ export async function activate(context: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent();
 
   extContext = context;
-
-  // registerCommands needs the checkpoint configuration
-  const config = vscode.workspace.getConfiguration();
-  const checkpointsEnabled = config.get(
-    'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
-    false
-  );
-
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:replay_debugger_checkpoints_enabled',
-    checkpointsEnabled
-  );
-
-  const commands = registerCommands(checkpointsEnabled);
+  const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
     new DebugConfigurationProvider()
   );
-  context.subscriptions.push(commands, debugHandlers, debugConfigProvider);
+  const checkpointsView = vscode.window.registerTreeDataProvider(
+    'sfdx.force.view.checkpoint',
+    checkpointService
+  );
+  const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
+    processBreakpointChangedForCheckpoints
+  );
 
-  // Don't create the checkpoint service or register the breakpoints event
-  // if checkpoints aren't enabled
-  if (checkpointsEnabled) {
-    const checkpointsView = vscode.window.registerTreeDataProvider(
-      'sfdx.force.view.checkpoint',
-      checkpointService
-    );
-    context.subscriptions.push(checkpointsView);
-
-    const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
-      processBreakpointChangedForCheckpoints
-    );
-    context.subscriptions.push(breakpointsSub);
-    console.log(
-      'in activate, added breakpointsSub to subscriptions, activation complete'
-    );
-  }
+  context.subscriptions.push(
+    commands,
+    debugHandlers,
+    debugConfigProvider,
+    checkpointsView,
+    breakpointsSub
+  );
+  console.log(
+    'in activate, added breakpointsSub to subscriptions, activation complete'
+  );
 }
 
 function getDialogStartingPath(): vscode.Uri | undefined {
