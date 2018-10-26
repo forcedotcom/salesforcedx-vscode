@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-lightning",
-  "displayName": "Lightning Component Code Editor for Visual Studio Code",
+  "displayName": "Lightning Component Framework",
   "description": "Provides syntax highlighting for Lightning components",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {

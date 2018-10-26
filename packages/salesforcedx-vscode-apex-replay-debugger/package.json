@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-replay-debugger",
-  "displayName": "Apex Replay Debugger for Visual Studio Code",
+  "displayName": "Apex Replay Debugger",
   "description": "Replay Apex execution from Apex Debug Log",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {

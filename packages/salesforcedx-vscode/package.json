@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode",
-  "displayName": "Salesforce Extensions for VS Code",
+  "displayName": "Salesforce Extensions Pack",
   "description":
     "Collection of extensions for the Salesforce DX development flow",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
