@@ -2,7 +2,7 @@
 
 This extension uses the default HTML language server from VS Code to provide syntax highlighting, code completion, an outline view of your files, and a Salesforce Lightning Design System (SLDS) linter.
 
-For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.
+**For best results, do not install this extension directly. Install the complete [Salesforce Extension Pack] (https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
 ## Prerequisites
 
