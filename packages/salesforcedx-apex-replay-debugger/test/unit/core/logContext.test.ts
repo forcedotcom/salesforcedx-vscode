@@ -52,7 +52,8 @@ describe('LogContext', () => {
   let revertStateAfterHeapDumpSpy: sinon.SinonSpy;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: '/path/foo.log',
-    trace: true
+    trace: true,
+    projectPath: 'path/project'
   };
 
   beforeEach(() => {

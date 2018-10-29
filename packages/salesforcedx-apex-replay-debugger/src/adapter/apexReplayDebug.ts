@@ -23,10 +23,8 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { MetricError, MetricLaunch } from '..';
-import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
+import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
 import {
-  GET_LINE_BREAKPOINT_INFO_EVENT,
-  LINE_BREAKPOINT_INFO_REQUEST,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '../constants';
@@ -59,6 +57,8 @@ export interface LaunchRequestArguments
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
+  lineBreakpointInfo?: LineBreakpointInfo[];
+  projectPath: string | undefined;
 }
 
 export class ApexVariable extends Variable {
@@ -222,13 +222,39 @@ export class ApexReplayDebug extends LoggingDebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ): void {
     this.initializedResponse = response;
-    this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
+    this.initializedResponse.body = {
+      supportsConfigurationDoneRequest: true,
+      supportsCompletionsRequest: false,
+      supportsConditionalBreakpoints: true,
+      supportsDelayedStackTraceLoading: false,
+      supportsEvaluateForHovers: false,
+      supportsExceptionInfoRequest: false,
+      supportsExceptionOptions: false,
+      supportsFunctionBreakpoints: false,
+      supportsHitConditionalBreakpoints: false,
+      supportsLoadedSourcesRequest: false,
+      supportsRestartFrame: false,
+      supportsSetVariable: false,
+      supportsStepBack: false,
+      supportsStepInTargetsRequest: false
+    };
+    this.initializedResponse.success = true;
+    this.sendResponse(this.initializedResponse);
   }
 
   public async launchRequest(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
+    let lineBreakpointInfoAvailable = false;
+    if (args && args.lineBreakpointInfo) {
+      lineBreakpointInfoAvailable = true;
+      breakpointUtil.createMappingsFromLineBreakpointInfo(
+        args.lineBreakpointInfo
+      );
+      delete args.lineBreakpointInfo;
+    }
+    this.projectPath = args.projectPath;
     response.success = false;
     this.setupLogger(args);
     this.log(
@@ -243,6 +269,8 @@ export class ApexReplayDebug extends LoggingDebugSession {
       response.message = nls.localize('no_log_file_text');
     } else if (!this.logContext.meetsLogLevelRequirements()) {
       response.message = nls.localize('incorrect_log_levels_text');
+    } else if (!lineBreakpointInfoAvailable) {
+      response.message = nls.localize('session_language_server_error_text');
     } else {
       this.printToDebugConsole(
         nls.localize('session_started_text', this.logContext.getLogFileName())
@@ -544,52 +572,6 @@ export class ApexReplayDebug extends LoggingDebugSession {
       );
     }
     response.success = true;
-    this.sendResponse(response);
-  }
-
-  public customRequest(
-    command: string,
-    response: DebugProtocol.Response,
-    args: any
-  ): void {
-    response.success = true;
-    switch (command) {
-      case LINE_BREAKPOINT_INFO_REQUEST:
-        if (args) {
-          const lineBreakpointEventArgs = args as LineBreakpointEventArgs;
-          breakpointUtil.createMappingsFromLineBreakpointInfo(
-            lineBreakpointEventArgs.lineBreakpointInfo
-          );
-          this.projectPath = lineBreakpointEventArgs.projectPath;
-        } else {
-          this.initializedResponse.success = false;
-          this.initializedResponse.message = nls.localize(
-            'session_language_server_error_text'
-          );
-          this.sendResponse(this.initializedResponse);
-        }
-        if (this.initializedResponse) {
-          this.initializedResponse.body = {
-            supportsConfigurationDoneRequest: true,
-            supportsCompletionsRequest: false,
-            supportsConditionalBreakpoints: true,
-            supportsDelayedStackTraceLoading: false,
-            supportsEvaluateForHovers: false,
-            supportsExceptionInfoRequest: false,
-            supportsExceptionOptions: false,
-            supportsFunctionBreakpoints: false,
-            supportsHitConditionalBreakpoints: false,
-            supportsLoadedSourcesRequest: false,
-            supportsRestartFrame: false,
-            supportsSetVariable: false,
-            supportsStepBack: false,
-            supportsStepInTargetsRequest: false
-          };
-          this.initializedResponse.success = true;
-          this.sendResponse(this.initializedResponse);
-          break;
-        }
-    }
     this.sendResponse(response);
   }
 
