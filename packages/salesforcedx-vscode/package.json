@@ -1,8 +1,8 @@
 {
   "name": "salesforcedx-vscode",
-  "displayName": "Salesforce Extensions Pack",
+  "displayName": "Salesforce",
   "description":
-    "Collection of extensions for the Salesforce DX development flow",
+    "Extensions for developing on the Salesforce Platform",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
