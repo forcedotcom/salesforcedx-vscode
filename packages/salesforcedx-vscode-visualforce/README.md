@@ -2,7 +2,7 @@
 
 This extension uses the Visualforce Language Server and VS Code’s default HTML language server to provide syntax highlighting, code completion, and an outline view of your files.
 
-For best results, use this extension with the other extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) bundle.
+**For best results, do not install this extension directly. Install the complete [Salesforce Extension Pack] (https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
 ## Prerequisites
 
