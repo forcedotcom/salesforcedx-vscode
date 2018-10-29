@@ -26,7 +26,8 @@ describe('Frame entry event', () => {
   const uriFromSignature = 'file:///path/foo.cls';
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: logFilePath,
-    trace: true
+    trace: true,
+    projectPath: undefined
   };
   let map: Map<string, Map<string, ApexVariable>>;
 

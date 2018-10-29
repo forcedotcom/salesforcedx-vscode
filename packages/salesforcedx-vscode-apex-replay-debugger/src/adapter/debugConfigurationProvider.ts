@@ -37,6 +37,14 @@ export class DebugConfigurationProvider
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
+    return this.asyncDebugConfig(config).catch(async err => {
+      return vscode.window.showErrorMessage(err.message).then(x => undefined);
+    });
+  }
+
+  private async asyncDebugConfig(
+    config: vscode.DebugConfiguration
+  ): Promise<vscode.DebugConfiguration | undefined> {
     config.name = config.name || nls.localize('config_name_text');
     config.type = config.type || DEBUGGER_TYPE;
     config.request = config.request || DEBUGGER_LAUNCH_TYPE;
@@ -47,6 +55,22 @@ export class DebugConfigurationProvider
     if (config.trace === undefined) {
       config.trace = true;
     }
+
+    if (
+      vscode.workspace &&
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    }
+
+    const sfdxApex = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-apex'
+    );
+    if (sfdxApex && sfdxApex.exports) {
+      config.lineBreakpointInfo = await sfdxApex.exports.getLineBreakpointInfo();
+    }
+
     return config;
   }
 }

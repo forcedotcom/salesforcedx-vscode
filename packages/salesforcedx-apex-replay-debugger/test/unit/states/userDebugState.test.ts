@@ -26,7 +26,8 @@ describe('User debug event', () => {
   const logFilePath = `path/${logFileName}`;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: logFilePath,
-    trace: true
+    trace: true,
+    projectPath: undefined
   };
 
   beforeEach(() => {

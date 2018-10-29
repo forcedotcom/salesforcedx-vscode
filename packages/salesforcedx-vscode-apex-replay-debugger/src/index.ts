@@ -9,16 +9,11 @@ import {
   MetricError,
   MetricLaunch
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
-import {
-  breakpointUtil,
-  LineBreakpointEventArgs
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   DEBUGGER_TYPE,
-  GET_LINE_BREAKPOINT_INFO_EVENT,
   LAST_OPENED_LOG_FOLDER_KEY,
   LAST_OPENED_LOG_KEY,
-  LINE_BREAKPOINT_INFO_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_ERROR_EVENT,
@@ -49,7 +44,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
 
-function registerCommands(checkpointsEnabled: boolean): vscode.Disposable {
+function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
     async config => {
@@ -94,30 +89,22 @@ function registerCommands(checkpointsEnabled: boolean): vscode.Disposable {
     }
   );
 
-  if (checkpointsEnabled) {
-    const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
-      'sfdx.create.checkpoints',
-      sfdxCreateCheckpoints
-    );
-    const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
-      'sfdx.toggle.checkpoint',
-      sfdxToggleCheckpoint
-    );
+  const sfdxCreateCheckpointsCmd = vscode.commands.registerCommand(
+    'sfdx.create.checkpoints',
+    sfdxCreateCheckpoints
+  );
+  const sfdxToggleCheckpointCmd = vscode.commands.registerCommand(
+    'sfdx.toggle.checkpoint',
+    sfdxToggleCheckpoint
+  );
 
-    return vscode.Disposable.from(
-      promptForLogCmd,
-      launchFromLogFileCmd,
-      launchFromLastLogFileCmd,
-      sfdxCreateCheckpointsCmd,
-      sfdxToggleCheckpointCmd
-    );
-  } else {
-    return vscode.Disposable.from(
-      promptForLogCmd,
-      launchFromLogFileCmd,
-      launchFromLastLogFileCmd
-    );
-  }
+  return vscode.Disposable.from(
+    promptForLogCmd,
+    launchFromLogFileCmd,
+    launchFromLastLogFileCmd,
+    sfdxCreateCheckpointsCmd,
+    sfdxToggleCheckpointCmd
+  );
 }
 
 export function updateLastOpened(
@@ -149,39 +136,8 @@ function registerDebugHandlers(): vscode.Disposable {
         if (type !== DEBUGGER_TYPE) {
           return;
         }
-        if (event.event === GET_LINE_BREAKPOINT_INFO_EVENT) {
-          console.log('in registerDebugHandlers, getting line breakpoint info');
-          const sfdxApex = vscode.extensions.getExtension(
-            'salesforce.salesforcedx-vscode-apex'
-          );
-          if (sfdxApex && sfdxApex.exports) {
-            const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-            let fsPath: string | undefined;
-            if (
-              vscode.workspace.workspaceFolders &&
-              vscode.workspace.workspaceFolders[0]
-            ) {
-              fsPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-            }
-            const config = vscode.workspace.getConfiguration();
-            const checkpointsEnabled = config.get(
-              'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
-              false
-            );
-            const returnArgs: LineBreakpointEventArgs = {
-              lineBreakpointInfo: lineBpInfo,
-              // for the moment always send undefined if checkpoints aren't enabled.
-              projectPath: checkpointsEnabled ? fsPath : undefined
-            };
-            event.session.customRequest(
-              LINE_BREAKPOINT_INFO_REQUEST,
-              returnArgs
-            );
-            console.log(
-              'in registerDebugHandlers, retrieved line breakpoint info from language server'
-            );
-          }
-        } else if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
+
+        if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
           const metricLaunchArgs = event.body as MetricLaunch;
           telemetryService.sendLaunchEvent(
             metricLaunchArgs.logSize.toString(),
@@ -217,45 +173,30 @@ export async function activate(context: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent();
 
   extContext = context;
-
-  // registerCommands needs the checkpoint configuration
-  const config = vscode.workspace.getConfiguration();
-  const checkpointsEnabled = config.get(
-    'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
-    false
-  );
-
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:replay_debugger_checkpoints_enabled',
-    checkpointsEnabled
-  );
-
-  const commands = registerCommands(checkpointsEnabled);
+  const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
     new DebugConfigurationProvider()
   );
-  context.subscriptions.push(commands, debugHandlers, debugConfigProvider);
+  const checkpointsView = vscode.window.registerTreeDataProvider(
+    'sfdx.force.view.checkpoint',
+    checkpointService
+  );
+  const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
+    processBreakpointChangedForCheckpoints
+  );
 
-  // Don't create the checkpoint service or register the breakpoints event
-  // if checkpoints aren't enabled
-  if (checkpointsEnabled) {
-    const checkpointsView = vscode.window.registerTreeDataProvider(
-      'sfdx.force.view.checkpoint',
-      checkpointService
-    );
-    context.subscriptions.push(checkpointsView);
-
-    const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
-      processBreakpointChangedForCheckpoints
-    );
-    context.subscriptions.push(breakpointsSub);
-    console.log(
-      'in activate, added breakpointsSub to subscriptions, activation complete'
-    );
-  }
+  context.subscriptions.push(
+    commands,
+    debugHandlers,
+    debugConfigProvider,
+    checkpointsView,
+    breakpointsSub
+  );
+  console.log(
+    'in activate, added breakpointsSub to subscriptions, activation complete'
+  );
 }
 
 function getDialogStartingPath(): vscode.Uri | undefined {
