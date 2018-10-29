@@ -30,7 +30,8 @@ describe('Variable assignment event', () => {
   const uriFromSignature = 'file:///path/foo.cls';
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: logFilePath,
-    trace: true
+    trace: true,
+    projectPath: undefined
   };
   describe('Primitive assignment', () => {
     const STATIC_PRIMITIVE_VARIABLE_SCOPE_BEGIN =
@@ -78,10 +79,9 @@ describe('Variable assignment event', () => {
         'staticInteger'
       );
       expect(
-        context
-          .getStaticVariablesClassMap()
-          .get('signature')!
-          .get('staticInteger')
+        context.getStaticVariablesClassMap().get('signature')!.get(
+          'staticInteger'
+        )
       ).to.include({
         name: 'staticInteger',
         value: 'null'
@@ -92,10 +92,9 @@ describe('Variable assignment event', () => {
         'staticInteger'
       );
       expect(
-        context
-          .getStaticVariablesClassMap()
-          .get('signature')!
-          .get('staticInteger')
+        context.getStaticVariablesClassMap().get('signature')!.get(
+          'staticInteger'
+        )
       ).to.include({
         name: 'staticInteger',
         value: '5'

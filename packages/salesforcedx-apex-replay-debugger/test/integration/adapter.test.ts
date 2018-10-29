@@ -14,11 +14,7 @@ import {
   ApexReplayDebug,
   LaunchRequestArguments
 } from '../../src/adapter/apexReplayDebug';
-import {
-  LineBreakpointEventArgs,
-  LineBreakpointInfo
-} from '../../src/breakpoints';
-import { LINE_BREAKPOINT_INFO_REQUEST } from '../../src/constants';
+import { LineBreakpointInfo } from '../../src/breakpoints';
 import { GoldFileUtil } from './goldFileUtil';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
@@ -116,18 +112,14 @@ describe('Replay debugger adapter - integration', function() {
       dc,
       path.join(LOG_FOLDER, `${testName}.gold`)
     );
-    const returnArgs: LineBreakpointEventArgs = {
-      lineBreakpointInfo: lineBpInfo,
-      projectPath: undefined
-    };
-
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, returnArgs);
 
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
-      trace: true
+      trace: true,
+      lineBreakpointInfo: lineBpInfo,
+      projectPath: undefined
     } as LaunchRequestArguments);
     expect(launchResponse.success).to.equal(true);
 
@@ -219,18 +211,13 @@ describe('Replay debugger adapter - integration', function() {
       path.join(LOG_FOLDER, `${testName}.gold`)
     );
 
-    const returnArgs: LineBreakpointEventArgs = {
-      lineBreakpointInfo: lineBpInfo,
-      projectPath: undefined
-    };
-
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, returnArgs);
-
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath,
       logFile: logFilePath,
       stopOnEntry: true,
-      trace: true
+      trace: true,
+      lineBreakpointInfo: lineBpInfo,
+      projectPath: undefined
     } as LaunchRequestArguments);
     expect(launchResponse.success).to.equal(true);
 

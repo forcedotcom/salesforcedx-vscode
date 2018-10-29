@@ -26,7 +26,8 @@ describe('Variable begin scope event', () => {
   const uriFromSignature = 'file:///path/foo.cls';
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: logFilePath,
-    trace: true
+    trace: true,
+    projectPath: undefined
   };
   const STATIC_VARIABLE_LOG_LINE =
     'fakeTime|VARIABLE_SCOPE_BEGIN|[38]|fakeClass.staticInteger|Integer|false|true';
