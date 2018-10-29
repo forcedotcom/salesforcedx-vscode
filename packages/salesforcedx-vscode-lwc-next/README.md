@@ -1,6 +1,6 @@
-# salesforcedx-vscode-lwc-next
+# LWC (next) for Visual Studio Code
 
-This is a preview of a work in progress implementation of the salesforcedx-vscode-lwc-next extension. It is published to enable early feedback and testing. 
+This is a preview of a work in progress implementation of the salesforcedx-vscode-lwc-next extension. It is published to enable early feedback and testing.
 
 Install either this version (if you have been granted early access) or the salesforcedx-vscode-lwc-next version. Do not install both.
 

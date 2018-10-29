@@ -1,4 +1,4 @@
-# salesforcedx-vscode-lwc
+# LWC for Visual Studio Code
 
 salesforce-vscode-lwc is part of a private pilot for testing new features. We are not accepting pilot enrollments at this time. This extension will not work unless you are part of the pilot.
 

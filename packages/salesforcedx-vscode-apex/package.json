@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex",
-  "displayName": "Apex Code Editor for Visual Studio Code",
+  "displayName": "Apex",
   "description":
     "Provides code-editing features for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
