@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-core",
-  "displayName": "CLI Integration",
+  "displayName": "Salesforce CLI Integration",
   "description": "Provides integration with the Salesforce CLI",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
