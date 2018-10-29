@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-lwc",
-  "displayName": "LWC Code Editor for Visual Studio Code",
+  "displayName": "LWC",
   "description": "Provides code-editing features for LWC",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
