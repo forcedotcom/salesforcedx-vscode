@@ -37,9 +37,11 @@ describe('Replay debugger adapter variable handling - unit', () => {
   let sendResponseSpy: sinon.SinonSpy;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
+  const projectPath = undefined;
   const launchRequestArgs: LaunchRequestArguments = {
     logFile: logFilePath,
-    trace: true
+    trace: true,
+    projectPath
   };
 
   describe('Scopes request', () => {

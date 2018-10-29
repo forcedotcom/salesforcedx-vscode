@@ -23,7 +23,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { MetricError, MetricLaunch } from '..';
-import { breakpointUtil, LineBreakpointEventArgs } from '../breakpoints';
+import { breakpointUtil, LineBreakpointInfo } from '../breakpoints';
 import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
@@ -57,7 +57,8 @@ export interface LaunchRequestArguments
   logFile: string;
   stopOnEntry?: boolean | true;
   trace?: boolean | string;
-  lineBreakpointInfo?: any;
+  lineBreakpointInfo?: LineBreakpointInfo[];
+  projectPath: string | undefined;
 }
 
 export class ApexVariable extends Variable {
@@ -248,14 +249,12 @@ export class ApexReplayDebug extends LoggingDebugSession {
     let lineBreakpointInfoAvailable = false;
     if (args && args.lineBreakpointInfo) {
       lineBreakpointInfoAvailable = true;
-      const lineBreakpointEventArgs = args.lineBreakpointInfo as LineBreakpointEventArgs;
       breakpointUtil.createMappingsFromLineBreakpointInfo(
-        lineBreakpointEventArgs.lineBreakpointInfo
+        args.lineBreakpointInfo
       );
-      this.projectPath = lineBreakpointEventArgs.projectPath;
       delete args.lineBreakpointInfo;
     }
-
+    this.projectPath = args.projectPath;
     response.success = false;
     this.setupLogger(args);
     this.log(

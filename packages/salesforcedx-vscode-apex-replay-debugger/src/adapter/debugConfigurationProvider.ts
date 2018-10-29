@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LineBreakpointEventArgs } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   DEBUGGER_LAUNCH_TYPE,
   DEBUGGER_TYPE
@@ -57,26 +56,19 @@ export class DebugConfigurationProvider
       config.trace = true;
     }
 
+    if (
+      vscode.workspace &&
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    }
+
     const sfdxApex = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-apex'
     );
-
     if (sfdxApex && sfdxApex.exports) {
-      const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-      let fsPath: string | undefined;
-      if (
-        vscode.workspace &&
-        vscode.workspace.workspaceFolders &&
-        vscode.workspace.workspaceFolders[0]
-      ) {
-        fsPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-      }
-
-      const returnArgs: LineBreakpointEventArgs = {
-        lineBreakpointInfo: lineBpInfo,
-        projectPath: fsPath
-      };
-      config.lineBreakpointInfo = returnArgs;
+      config.lineBreakpointInfo = await sfdxApex.exports.getLineBreakpointInfo();
     }
 
     return config;

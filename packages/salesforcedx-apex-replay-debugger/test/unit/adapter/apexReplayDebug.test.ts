@@ -24,7 +24,6 @@ import {
 import {
   breakpointUtil,
   BreakpointUtil,
-  LineBreakpointEventArgs,
   LineBreakpointInfo
 } from '../../../src/breakpoints';
 import {
@@ -81,6 +80,7 @@ describe('Replay debugger adapter - unit', () => {
   let adapter: MockApexReplayDebug;
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
+  const projectPath = 'path/project';
 
   describe('Initialize', () => {
     let sendResponseSpy: sinon.SinonSpy;
@@ -132,10 +132,6 @@ describe('Replay debugger adapter - unit', () => {
       typeref: 'StaticVarsA',
       lines: [9, 10, 13]
     });
-    const lineBreakpointInfoArgs: LineBreakpointEventArgs = {
-      lineBreakpointInfo: lineBpInfo,
-      projectPath: 'some/file/path'
-    };
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -143,7 +139,8 @@ describe('Replay debugger adapter - unit', () => {
       args = {
         logFile: logFilePath,
         stopOnEntry: true,
-        trace: false
+        trace: false,
+        projectPath
       };
       sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
       sendEventSpy = sinon.spy(ApexReplayDebug.prototype, 'sendEvent');
@@ -250,7 +247,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'meetsLogLevelRequirements')
         .returns(true);
 
-      args.lineBreakpointInfo = lineBreakpointInfoArgs;
+      args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -300,7 +297,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(true);
 
-      args.lineBreakpointInfo = lineBreakpointInfoArgs;
+      args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -324,7 +321,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(true);
 
-      args.lineBreakpointInfo = lineBreakpointInfoArgs;
+      args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -347,7 +344,7 @@ describe('Replay debugger adapter - unit', () => {
         .stub(LogContext.prototype, 'fetchOverlayResultsForApexHeapDumps')
         .returns(false);
 
-      args.lineBreakpointInfo = lineBreakpointInfoArgs;
+      args.lineBreakpointInfo = lineBpInfo;
       await adapter.launchRequest(response, args);
 
       expect(hasLogLinesStub.calledOnce).to.be.true;
@@ -381,7 +378,8 @@ describe('Replay debugger adapter - unit', () => {
     const args: DebugProtocol.ConfigurationDoneArguments = {};
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
-      trace: true
+      trace: true,
+      projectPath
     };
 
     beforeEach(() => {
@@ -476,7 +474,8 @@ describe('Replay debugger adapter - unit', () => {
     let readLogFileStub: sinon.SinonStub;
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
-      trace: true
+      trace: true,
+      projectPath
     };
 
     beforeEach(() => {
@@ -518,7 +517,8 @@ describe('Replay debugger adapter - unit', () => {
     let getFramesStub: sinon.SinonStub;
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
-      trace: true
+      trace: true,
+      projectPath
     };
     const sampleStackFrames: StackFrame[] = [
       {
@@ -585,7 +585,8 @@ describe('Replay debugger adapter - unit', () => {
     let args: DebugProtocol.ContinueArguments;
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
-      trace: true
+      trace: true,
+      projectPath
     };
 
     beforeEach(() => {
@@ -797,7 +798,8 @@ describe('Replay debugger adapter - unit', () => {
     let args: DebugProtocol.SetBreakpointsArguments;
     const launchRequestArgs: LaunchRequestArguments = {
       logFile: logFilePath,
-      trace: true
+      trace: true,
+      projectPath
     };
 
     beforeEach(() => {
@@ -985,13 +987,10 @@ describe('Replay debugger adapter - unit', () => {
       });
 
       it('Should handle empty line breakpoint info', async () => {
-        const returnArgs: LineBreakpointEventArgs = {
-          lineBreakpointInfo: [],
-          projectPath: undefined
-        };
         const config = {
-          lineBreakpointInfo: returnArgs,
-          logFile: 'someTestLogFile.log'
+          lineBreakpointInfo: [],
+          logFile: 'someTestLogFile.log',
+          projectPath: undefined
         };
 
         await adapter.launchRequest(
@@ -1020,12 +1019,9 @@ describe('Replay debugger adapter - unit', () => {
         expectedLineNumberMapping.set('file:///bar.cls', [1, 2, 3, 4, 5, 6]);
         const projectPathArg = 'some path';
 
-        const returnArgs: LineBreakpointEventArgs = {
-          lineBreakpointInfo: info,
-          projectPath: projectPathArg
-        };
         const config = {
-          lineBreakpointInfo: returnArgs,
+          lineBreakpointInfo: info,
+          projectPath: projectPathArg,
           logFile: 'someTestLogFile.log'
         };
         await adapter.launchRequest(
