@@ -17,10 +17,8 @@ export interface ForceSourceDeployErrorResult {
 }
 
 export class ForceDeployErrorParser {
-
   public parse(stdErr: string) {
-    const compileErrs = this.getDeployResultData(stdErr);
-    return this.groupErrorsByPath(compileErrs);
+    return this.getDeployResultData(stdErr);
   }
 
   private getDeployResultData(stdErr: string) {
@@ -32,16 +30,4 @@ export class ForceDeployErrorParser {
     }
     throw new Error('No JSON found in response');
   }
-
-  private groupErrorsByPath(deployResult: ForceSourceDeployErrorResult) {
-    return deployResult.result.reduce<{ [key: string]: DeployError[] }>((results, err) => {
-      if (results[err.filePath]) {
-        results[err.filePath].push(err);
-      } else {
-        results[err.filePath] = [err];
-      }
-      return results;
-    }, {});
-  }
-
 }
