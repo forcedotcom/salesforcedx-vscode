@@ -9,13 +9,13 @@ import {
   CliCommandExecutor,
   Command,
   ForceDeployErrorParser,
-  ForceSourceDeployErrorResult,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as path from 'path';
 import * as vscode from 'vscode';
+import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -75,72 +75,25 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
         try {
           const deployErrorParser = new ForceDeployErrorParser();
           const fileErrors = deployErrorParser.parse(stdErr);
-          this.handleDiagnosticErrors(fileErrors, workspacePath, execFilePath);
+          ForceSourceDeployExecutor.errorCollection.clear();
+          ForceSourceDeployExecutor.errorCollection = handleDiagnosticErrors(
+            fileErrors,
+            workspacePath,
+            execFilePath
+          );
         } catch (e) {
-          // TODO: add metric to track issues.
-          console.log(`Could not parse Compile Errors`);
+          telemetryService.sendError(
+            'Error while creating diagnostics for vscode problem view.'
+          );
+          console.log(
+            'Error while creating diagnostics for vscode problem view.'
+          );
         }
       }
     });
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     this.logMetric(execution.command.logName);
-  }
-
-  private handleDiagnosticErrors(
-    errors: ForceSourceDeployErrorResult,
-    workspacePath: string,
-    sourcePath: string
-  ) {
-    ForceSourceDeployExecutor.errorCollection.clear();
-    const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-    if (errors.hasOwnProperty('result')) {
-      errors.result.forEach(error => {
-        // source:deploys sometimes returns N/A as filePath
-        const fileUri =
-          error.filePath === 'N/A'
-            ? sourcePath
-            : path.join(workspacePath, error.filePath);
-        const range = this.getRange(error.lineNumber, error.columnNumber);
-        const diagnostic = {
-          message: error.error,
-          severity: vscode.DiagnosticSeverity.Error,
-          source: error.type,
-          range
-        } as vscode.Diagnostic;
-
-        if (!diagnosticMap.has(fileUri)) {
-          diagnosticMap.set(fileUri, []);
-        }
-
-        diagnosticMap.get(fileUri)!.push(diagnostic);
-      });
-
-      diagnosticMap.forEach((diagMap: vscode.Diagnostic[], file) => {
-        const fileUri = vscode.Uri.file(file);
-        ForceSourceDeployExecutor.errorCollection.set(fileUri, diagMap);
-      });
-    } else if (errors.hasOwnProperty('message')) {
-      const fileUri = vscode.Uri.file(sourcePath);
-      const range = this.getRange('1', '1');
-      const diagnostic = {
-        message: errors.message,
-        severity: vscode.DiagnosticSeverity.Error,
-        source: errors.name,
-        range
-      } as vscode.Diagnostic;
-
-      ForceSourceDeployExecutor.errorCollection.set(fileUri, [diagnostic]);
-    }
-  }
-
-  private getRange(lineNumber: string, columnNumber: string): vscode.Range {
-    const ln = Number(lineNumber) - 1;
-    const col = Number(columnNumber) - 1;
-    return new vscode.Range(
-      new vscode.Position(ln, col),
-      new vscode.Position(ln, col)
-    );
   }
 }
 
