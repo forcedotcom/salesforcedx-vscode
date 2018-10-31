@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import vscode = require('vscode');
-import TelemetryReporter from 'vscode-extension-telemetry';
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
+import TelemetryReporter from './telemetryReporter';
 
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
@@ -30,7 +30,8 @@ export class TelemetryService {
     machineId: string
   ): void {
     this.context = context;
-    const isDevMode = machineId === 'someValue.machineId';
+    const isDevMode = false;
+    // machineId === 'someValue.machineId';
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
