@@ -1,3 +1,11 @@
+## 44.4.0 - November 1, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We fixed some minor under-the-hood bugs.
+
 ## 44.4.0 - October 25, 2018
 
 ### Fixed
