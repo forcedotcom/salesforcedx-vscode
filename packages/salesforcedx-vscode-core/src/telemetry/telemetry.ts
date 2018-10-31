@@ -30,8 +30,7 @@ export class TelemetryService {
     machineId: string
   ): void {
     this.context = context;
-    const isDevMode = false;
-    // machineId === 'someValue.machineId';
+    const isDevMode = machineId === 'someValue.machineId';
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
@@ -45,7 +44,8 @@ export class TelemetryService {
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
         extensionPackage.version,
-        extensionPackage.aiKey
+        extensionPackage.aiKey,
+        true
       );
       this.context.subscriptions.push(this.reporter);
     }

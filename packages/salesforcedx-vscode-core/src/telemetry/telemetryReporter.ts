@@ -4,8 +4,7 @@
 
 'use strict';
 
-/* tslint:disable */
-process.env['APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL'] = true;
+// process.env['APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL'] = true;
 
 import * as appInsights from 'applicationinsights';
 import * as fs from 'fs';
@@ -17,6 +16,7 @@ export default class TelemetryReporter extends vscode.Disposable {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
   private toDispose: vscode.Disposable[] = [];
+  private uniqueUserMetrics: boolean = false;
 
   private static TELEMETRY_CONFIG_ID = 'telemetry';
   private static TELEMETRY_CONFIG_ENABLED_ID = 'enableTelemetry';
@@ -26,7 +26,8 @@ export default class TelemetryReporter extends vscode.Disposable {
   constructor(
     private extensionId: string,
     private extensionVersion: string,
-    key: string
+    key: string,
+    enableUniqueMetrics?: boolean
   ) {
     super(() => this.toDispose.forEach(d => d && d.dispose()));
     let logFilePath = process.env['VSCODE_LOGS'] || '';
@@ -41,6 +42,9 @@ export default class TelemetryReporter extends vscode.Disposable {
         encoding: 'utf8',
         autoClose: true
       });
+    }
+    if (enableUniqueMetrics) {
+      this.uniqueUserMetrics = true;
     }
     this.updateUserOptIn(key);
     this.toDispose.push(
@@ -68,10 +72,7 @@ export default class TelemetryReporter extends vscode.Disposable {
     }
   }
 
-  private createAppInsightsClient(
-    key: string,
-    enableUniqueUserMetrics?: boolean
-  ) {
+  private createAppInsightsClient(key: string) {
     // check if another instance is already initialized
     if (appInsights.defaultClient) {
       this.appInsightsClient = new appInsights.TelemetryClient(key);
@@ -92,7 +93,7 @@ export default class TelemetryReporter extends vscode.Disposable {
     }
 
     this.appInsightsClient.commonProperties = this.getCommonProperties();
-    if (enableUniqueUserMetrics && vscode && vscode.env) {
+    if (this.uniqueUserMetrics && vscode && vscode.env) {
       this.appInsightsClient.context.tags['ai.user.id'] = vscode.env.machineId;
       this.appInsightsClient.context.tags['ai.session.id'] =
         vscode.env.sessionId;
@@ -105,13 +106,6 @@ export default class TelemetryReporter extends vscode.Disposable {
     }
   }
 
-  // __GDPR__COMMON__ "common.os" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-  // __GDPR__COMMON__ "common.platformversion" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-  // __GDPR__COMMON__ "common.extname" : { "classification": "PublicNonPersonalData", "purpose": "FeatureInsight" }
-  // __GDPR__COMMON__ "common.extversion" : { "classification": "PublicNonPersonalData", "purpose": "FeatureInsight" }
-  // __GDPR__COMMON__ "common.vscodemachineid" : { "endPoint": "MacAddressHash", "classification": "EndUserPseudonymizedInformation", "purpose": "FeatureInsight" }
-  // __GDPR__COMMON__ "common.vscodesessionid" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-  // __GDPR__COMMON__ "common.vscodeversion" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
   private getCommonProperties(): { [key: string]: string } {
     const commonProperties = Object.create(null);
     commonProperties['common.os'] = os.platform();
@@ -135,8 +129,8 @@ export default class TelemetryReporter extends vscode.Disposable {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        properties: [properties],
-        measurements: [measurements]
+        properties,
+        measurements
       });
 
       if (this.logStream) {
