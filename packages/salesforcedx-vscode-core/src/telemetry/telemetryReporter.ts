@@ -4,8 +4,6 @@
 
 'use strict';
 
-// process.env['APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL'] = true;
-
 import * as appInsights from 'applicationinsights';
 import * as fs from 'fs';
 import * as os from 'os';
