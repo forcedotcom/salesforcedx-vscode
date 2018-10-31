@@ -67,6 +67,7 @@ export default class TelemetryReporter extends vscode.Disposable {
       if (this.userOptIn) {
         this.createAppInsightsClient(key);
       } else {
+        // tslint:disable-next-line:no-floating-promises
         this.dispose();
       }
     }
@@ -136,8 +137,10 @@ export default class TelemetryReporter extends vscode.Disposable {
       if (this.logStream) {
         this.logStream.write(
           `telemetry/${eventName} ${JSON.stringify({
-            properties,
-            measurements
+            // tslint:disable-next-line:object-literal-shorthand
+            properties: properties,
+            // tslint:disable-next-line:object-literal-shorthand
+            measurements: measurements
           })}\n`
         );
       }

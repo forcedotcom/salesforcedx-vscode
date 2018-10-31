@@ -136,7 +136,7 @@ export class TelemetryService {
 
   public dispose(): void {
     if (this.reporter !== undefined) {
-      this.reporter.dispose();
+      this.reporter.dispose().catch();
     }
   }
 }
