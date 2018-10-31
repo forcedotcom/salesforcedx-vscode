@@ -130,17 +130,17 @@ export default class TelemetryReporter extends vscode.Disposable {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
-        properties,
-        measurements
+        // tslint:disable-next-line:object-literal-shorthand
+        properties: properties,
+        // tslint:disable-next-line:object-literal-shorthand
+        measurements: measurements
       });
 
       if (this.logStream) {
         this.logStream.write(
           `telemetry/${eventName} ${JSON.stringify({
-            // tslint:disable-next-line:object-literal-shorthand
-            properties: properties,
-            // tslint:disable-next-line:object-literal-shorthand
-            measurements: measurements
+            properties,
+            measurements
           })}\n`
         );
       }
