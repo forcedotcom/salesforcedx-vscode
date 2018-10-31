@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-lwc-next",
-  "displayName": "LWC Code Editor for Visual Studio Code",
+  "displayName": "LWC",
   "description": "Provides code-editing features for LWC",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.3.0",
+  "version": "44.4.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,7 +23,7 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.4.0",
     "ajv": "^6.1.1",
     "lwc-language-server": "1.6.7",
     "rxjs": "^5.4.1",
@@ -69,7 +69,7 @@
         {
           "command": "sfdx.force.lightning.lwc.create",
           "when":
-            "explorerResourceIsFolder && resourceFilename == lightningcomponents && sfdx:project_opened"
+            "explorerResourceIsFolder && resourceFilename == lwc && sfdx:project_opened"
         }
       ],
       "commandPalette": [

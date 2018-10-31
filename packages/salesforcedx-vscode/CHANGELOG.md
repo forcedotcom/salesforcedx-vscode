@@ -1,3 +1,15 @@
+## 44.4.0 - October 25, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Report accurate test results in Apex Tests sidebar ([PR #683](https://github.com/forcedotcom/salesforcedx-vscode/pull/683)) ([Issue #645](https://github.com/forcedotcom/salesforcedx-vscode/issues/645))
+
+#### salesforcedx-vscode
+
+- Fix typo in scripts ([PR #682](https://github.com/forcedotcom/salesforcedx-vscode/pull/682)). Contribution by [@hasantayyar](https://github.com/hasantayyar)
+
 ## 44.3.0 - October 18, 2018
 
 ### Fixed

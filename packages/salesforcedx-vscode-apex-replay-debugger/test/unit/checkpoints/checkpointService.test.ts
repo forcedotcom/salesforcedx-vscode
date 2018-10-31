@@ -27,13 +27,6 @@ import {
 } from '../../../src/breakpoints/checkpointService';
 
 describe('Checkpoint Service - unit', () => {
-  if (!checkpointsEnabled()) {
-    console.log(
-      'Checkpoints are not enabled, skipping CheckpointService tests'
-    );
-    return;
-  }
-
   const breakpointId = '6c1d848c-fake-4c2c-8b90-5fabe1740da4';
   const breakpointEnabled = true;
   const actionObjectId = '1doxx000000FAKE';
@@ -167,13 +160,6 @@ describe('Checkpoint Service - unit', () => {
 
 // Verify that the vscode.debug.onDidChangeBreakpoints cal
 describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', () => {
-  if (!checkpointsEnabled()) {
-    console.log(
-      'Checkpoints not enabled, skipping Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints'
-    );
-    return;
-  }
-
   // constant empty list
   const bpEmpty: vscode.Breakpoint[] = [];
 
@@ -607,13 +593,6 @@ describe('Verify checkpoint callback for vscode.debug.onDidChangeBreakpoints', (
 //  3. if the logMessage isn't empty and doesn't start with 'select' then it is treated as ActionScriptEnum.Apex
 // IsDumpingHeap defaults to true, there's currently no way to reset this.
 describe('Checkpoint parsing from SourceBreakpoint', () => {
-  if (!checkpointsEnabled()) {
-    console.log(
-      'Checkpoints not enabled, skipping Checkpoint parsing from SourceBreakpoint'
-    );
-    return;
-  }
-
   const uriInput = 'file:///bar.cls';
   const lineInput = 5;
 
@@ -703,13 +682,6 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
 });
 
 describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
-  if (!checkpointsEnabled()) {
-    console.log(
-      'Checkpoints not enabled, skipping Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint'
-    );
-    return;
-  }
-
   const cpService = require('../../../src/breakpoints/checkpointService');
 
   const breakpointEnabled = true;
@@ -929,13 +901,4 @@ function clearOutCheckpoints() {
       );
     }
   }
-}
-
-function checkpointsEnabled(): boolean {
-  const config = vscode.workspace.getConfiguration();
-  const enabled = config.get(
-    'salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled',
-    false
-  );
-  return enabled;
 }
