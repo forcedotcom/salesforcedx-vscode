@@ -27,6 +27,7 @@
     "@salesforce/salesforcedx-sobjects-faux-generator": "44.4.0",
     "@salesforce/salesforcedx-utils-vscode": "44.4.0",
     "adm-zip": "0.4.7",
+    "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
     "moment": "2.20.1",
     "rxjs": "^5.4.1",
