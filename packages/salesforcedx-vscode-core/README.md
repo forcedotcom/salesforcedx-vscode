@@ -2,7 +2,7 @@
 
 This extension enables VS Code to use the Salesforce CLI to interact with your orgs.
 
-**For best results, do not install this extension directly. Install the complete [Salesforce Extension Pack] (https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
+**For best results, do not install this extension directly. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
 ## Prerequisites
 
