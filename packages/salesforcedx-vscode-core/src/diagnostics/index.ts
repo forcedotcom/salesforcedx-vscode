@@ -5,4 +5,4 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { handleDiagnosticErrors } from './diagnostics';
+export { getRange, handleDiagnosticErrors } from './diagnostics';

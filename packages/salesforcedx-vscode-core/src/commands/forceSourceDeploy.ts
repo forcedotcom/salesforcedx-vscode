@@ -75,17 +75,17 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
         try {
           const deployErrorParser = new ForceDeployErrorParser();
           const fileErrors = deployErrorParser.parse(stdErr);
-          ForceSourceDeployExecutor.errorCollection.clear();
-          ForceSourceDeployExecutor.errorCollection = handleDiagnosticErrors(
+          handleDiagnosticErrors(
             fileErrors,
             workspacePath,
-            execFilePath
+            execFilePath,
+            ForceSourceDeployExecutor.errorCollection
           );
         } catch (e) {
           telemetryService.sendError(
             'Error while creating diagnostics for vscode problem view.'
           );
-          console.log(
+          console.error(
             'Error while creating diagnostics for vscode problem view.'
           );
         }

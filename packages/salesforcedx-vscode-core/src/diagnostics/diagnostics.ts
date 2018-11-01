@@ -12,18 +12,23 @@ import * as vscode from 'vscode';
 export function handleDiagnosticErrors(
   errors: ForceSourceDeployErrorResult,
   workspacePath: string,
-  sourcePath: string
-) {
-  const errorCollection = vscode.languages.createDiagnosticCollection('tmp');
+  sourcePath: string,
+  errorCollection: vscode.DiagnosticCollection
+): vscode.DiagnosticCollection {
+  errorCollection.clear();
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
   if (errors.hasOwnProperty('result')) {
     errors.result.forEach(error => {
-      // source:deploys sometimes returns N/A as filePath
+      // source:deploy sometimes returns N/A as filePath
       const fileUri =
         error.filePath === 'N/A'
           ? sourcePath
           : path.join(workspacePath, error.filePath);
-      const range = getRange(error.lineNumber, error.columnNumber);
+      const range = getRange(
+        error.lineNumber || '1',
+        error.columnNumber || '1'
+      );
+
       const diagnostic = {
         message: error.error,
         severity: vscode.DiagnosticSeverity.Error,
