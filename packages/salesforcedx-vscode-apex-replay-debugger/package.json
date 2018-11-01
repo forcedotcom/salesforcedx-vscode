@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex-replay-debugger",
-  "displayName": "Apex Replay Debugger for Visual Studio Code",
+  "displayName": "Apex Replay Debugger",
   "description": "Replay Apex execution from Apex Debug Log",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.4.0",
+  "version": "44.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,7 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-replay-debugger": "44.4.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "44.5.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.1",
@@ -90,13 +90,11 @@
       "commandPalette": [
         {
           "command": "sfdx.create.checkpoints",
-          "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.toggle.checkpoint",
-          "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled && editorLangId == 'apex'"
+          "when": "sfdx:project_opened && editorLangId == 'apex'"
         },
         {
           "command": "sfdx.launch.replay.debugger.logfile",
@@ -110,8 +108,7 @@
       "view/title": [
         {
           "command": "sfdx.create.checkpoints",
-          "when":
-            "view == sfdx.force.view.checkpoint && sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled",
+          "when": "view == sfdx.force.view.checkpoint && sfdx:project_opened",
           "group": "navigation"
         }
       ],
@@ -141,8 +138,7 @@
           "light": "images/light/cloud-upload.svg",
           "dark": "images/dark/cloud-upload.svg"
         },
-        "when":
-          "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+        "when": "sfdx:project_opened"
       },
       {
         "command": "sfdx.launch.replay.debugger.logfile",
@@ -158,8 +154,7 @@
         {
           "id": "sfdx.force.view.checkpoint",
           "name": "%view_checkpoints%",
-          "when":
-            "sfdx:project_opened && sfdx:replay_debugger_checkpoints_enabled"
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -211,17 +206,6 @@
           }
         }
       }
-    ],
-    "configuration": {
-      "type": "object",
-      "title": "%replay-debugger_checkpoint_configuration_title%",
-      "properties": {
-        "salesforcedx-vscode-apex-replay-debugger-checkpoints.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "%replay-debugger_checkpoints_enabled%"
-        }
-      }
-    }
+    ]
   }
 }

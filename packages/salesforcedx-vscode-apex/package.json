@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-apex",
-  "displayName": "Apex Code Editor for Visual Studio Code",
+  "displayName": "Apex",
   "description":
     "Provides code-editing features for the Apex programming language",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.4.0",
+  "version": "44.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -169,7 +169,7 @@
   },
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.5.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

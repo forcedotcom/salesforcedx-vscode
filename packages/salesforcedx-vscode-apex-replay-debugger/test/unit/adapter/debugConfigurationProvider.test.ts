@@ -13,30 +13,42 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as vscode from 'vscode';
+import {
+  DebugConfiguration,
+  ExtensionContext,
+  extensions,
+  Uri,
+  WorkspaceFolder
+} from 'vscode';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { updateLastOpened } from '../../../src/index';
 import { nls } from '../../../src/messages';
+import { MockJorje } from './MockJorje';
 
 // tslint:disable:no-unused-expression
 describe('Configuration provider', () => {
   let provider: DebugConfigurationProvider;
   let getConfigSpy: sinon.SinonSpy;
-  const folder: vscode.WorkspaceFolder = {
+  const folder: WorkspaceFolder = {
     name: 'myWorkspaceFolder',
     index: 0,
     uri: {
       fsPath: '/foo'
-    } as vscode.Uri
+    } as Uri
   };
+  let mockApexJorje: sinon.SinonStub;
 
   beforeEach(() => {
     provider = new DebugConfigurationProvider();
     getConfigSpy = sinon.spy(DebugConfigurationProvider, 'getConfig');
+    mockApexJorje = sinon
+      .stub(extensions, 'getExtension')
+      .returns({ exports: new MockJorje() });
   });
 
   afterEach(() => {
     getConfigSpy.restore();
+    mockApexJorje.restore();
   });
 
   it('Should provide default config', () => {
@@ -47,7 +59,7 @@ describe('Configuration provider', () => {
       logFile: '${command:AskForLogFileName}',
       stopOnEntry: true,
       trace: true
-    } as vscode.DebugConfiguration;
+    } as DebugConfiguration;
 
     const configs = provider.provideDebugConfigurations(folder);
 
@@ -63,42 +75,37 @@ describe('Configuration provider', () => {
       logFile: '/path/foo.cls',
       stopOnEntry: true,
       trace: true
-    } as vscode.DebugConfiguration;
+    } as DebugConfiguration;
 
     const config = DebugConfigurationProvider.getConfig('/path/foo.cls');
     expect(config).to.deep.equal(expectedConfig);
   });
 
-  it('Should fill in empty attributes in the config', () => {
-    const expectedConfig = {
-      name: nls.localize('config_name_text'),
-      type: DEBUGGER_TYPE,
-      request: DEBUGGER_LAUNCH_TYPE,
-      logFile: '${command:AskForLogFileName}',
-      stopOnEntry: true,
-      trace: true
-    } as vscode.DebugConfiguration;
-
-    const config = provider.resolveDebugConfiguration(folder, {
+  it('Should fill in empty attributes in the config', async () => {
+    const config = await provider.resolveDebugConfiguration(folder, {
       name: '',
       type: '',
       request: ''
     });
 
-    expect(config).to.deep.equal(expectedConfig);
+    if (config) {
+      expect(config.name).to.equals(nls.localize('config_name_text'));
+      expect(config.type).to.equals(DEBUGGER_TYPE);
+      expect(config.request).to.equals(DEBUGGER_LAUNCH_TYPE);
+      expect(config.logFile).to.equals('${command:AskForLogFileName}');
+      expect(config.stopOnEntry).to.equals(true);
+      expect(config.trace).to.equals(true);
+      expect(config.projectPath).to.not.equals(undefined);
+      expect(config.lineBreakpointInfo).to.not.equals(undefined);
+    } else {
+      expect.fail(
+        'Did not get configuration information from resolveDebugConfiguration'
+      );
+    }
   });
 
-  it('Should not modify existing config', () => {
-    const expectedConfig = {
-      name: 'sampleName',
-      type: 'sampleType',
-      request: 'sampleConfigType',
-      logFile: 'foo.log',
-      stopOnEntry: false,
-      trace: false
-    } as vscode.DebugConfiguration;
-
-    const config = provider.resolveDebugConfiguration(folder, {
+  it('Should not modify existing config', async () => {
+    const config = await provider.resolveDebugConfiguration(folder, {
       name: 'sampleName',
       type: 'sampleType',
       request: 'sampleConfigType',
@@ -107,7 +114,20 @@ describe('Configuration provider', () => {
       trace: false
     });
 
-    expect(config).to.deep.equal(expectedConfig);
+    if (config) {
+      expect(config.name).to.equals('sampleName');
+      expect(config.type).to.equals('sampleType');
+      expect(config.request).to.equals('sampleConfigType');
+      expect(config.logFile).to.equals('foo.log');
+      expect(config.stopOnEntry).to.equals(false);
+      expect(config.trace).to.equals(false);
+      expect(config.projectPath).to.not.equals(undefined);
+      expect(config.lineBreakpointInfo).to.not.equals(undefined);
+    } else {
+      expect.fail(
+        'Did not get configuration information from resolveDebugConfiguration'
+      );
+    }
   });
 });
 
@@ -125,7 +145,7 @@ describe('extension context log path tests', () => {
 
   it('Should update the extension context', () => {
     updateLastOpened(
-      (mContext as any) as vscode.ExtensionContext,
+      (mContext as any) as ExtensionContext,
       '/foo/bar/logfilename.log'
     );
     expect(mementoKeys).to.have.same.members([
