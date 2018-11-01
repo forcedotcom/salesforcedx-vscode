@@ -20,9 +20,7 @@
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": [
-    "Programming Languages"
-  ],
+  "categories": ["Programming Languages"],
   "dependencies": {
     "@salesforce/salesforcedx-slds-linter": "44.5.0",
     "vscode-extension-telemetry": "0.0.17"
@@ -40,9 +38,7 @@
     "typescript": "2.6.2",
     "vscode": "1.1.17"
   },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
-  ],
+  "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -51,14 +47,13 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ../../scripts/run-test-with-top-level-extensions",
     "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
+  "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
   "contributes": {
     "languages": [
