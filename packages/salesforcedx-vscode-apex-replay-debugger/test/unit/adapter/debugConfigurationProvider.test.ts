@@ -96,13 +96,7 @@ describe('Configuration provider', () => {
       expect(config.stopOnEntry).to.equals(true);
       expect(config.trace).to.equals(true);
       expect(config.projectPath).to.not.equals(undefined);
-      expect(config.lineBreakpointInfo).to.deep.equals([
-        {
-          uri: '/force-app/main/default/classes/A.cls',
-          typeref: 'A',
-          lines: [2, 5, 6, 7]
-        }
-      ]);
+      expect(config.lineBreakpointInfo).to.not.equals(undefined);
     } else {
       expect.fail(
         'Did not get configuration information from resolveDebugConfiguration'
@@ -128,13 +122,7 @@ describe('Configuration provider', () => {
       expect(config.stopOnEntry).to.equals(false);
       expect(config.trace).to.equals(false);
       expect(config.projectPath).to.not.equals(undefined);
-      expect(config.lineBreakpointInfo).to.deep.equals([
-        {
-          uri: '/force-app/main/default/classes/A.cls',
-          typeref: 'A',
-          lines: [2, 5, 6, 7]
-        }
-      ]);
+      expect(config.lineBreakpointInfo).to.not.equals(undefined);
     } else {
       expect.fail(
         'Did not get configuration information from resolveDebugConfiguration'
