@@ -6,10 +6,16 @@
  */
 
 import {
+  CliCommandExecutor,
   Command,
+  ForceDeployErrorParser,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as vscode from 'vscode';
+import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -21,20 +27,73 @@ import {
   SelectedPath
 } from './forceSourceRetrieve';
 
+vscode.workspace.onDidChangeTextDocument(e => {
+  if (ForceSourceDeployExecutor.errorCollection.has(e.document.uri)) {
+    ForceSourceDeployExecutor.errorCollection.delete(e.document.uri);
+  }
+});
+
 export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   SelectedPath
 > {
+  public static errorCollection = vscode.languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
+
   public build(data: SelectedPath): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_deploy_text'))
       .withArg('force:source:deploy')
-      .withLogName('force_source_deploy');
+      .withLogName('force_source_deploy')
+      .withJson();
     if (data.type === FileType.Manifest) {
       commandBuilder.withFlag('--manifest', data.filePath);
     } else {
       commandBuilder.withFlag('--sourcepath', data.filePath);
     }
     return commandBuilder.build();
+  }
+
+  public execute(response: ContinueResponse<SelectedPath>): void {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const workspacePath = vscode.workspace.workspaceFolders
+      ? vscode.workspace.workspaceFolders[0].uri.path
+      : '';
+    const execFilePath = response.data.filePath;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: workspacePath
+    }).execute(cancellationToken);
+
+    let stdErr = '';
+    execution.stderrSubject.subscribe(realData => {
+      stdErr += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      if (exitCode !== 0) {
+        try {
+          const deployErrorParser = new ForceDeployErrorParser();
+          const fileErrors = deployErrorParser.parse(stdErr);
+          handleDiagnosticErrors(
+            fileErrors,
+            workspacePath,
+            execFilePath,
+            ForceSourceDeployExecutor.errorCollection
+          );
+        } catch (e) {
+          telemetryService.sendError(
+            'Error while creating diagnostics for vscode problem view.'
+          );
+          console.error(
+            'Error while creating diagnostics for vscode problem view.'
+          );
+        }
+      }
+    });
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    this.logMetric(execution.command.logName);
   }
 }
 

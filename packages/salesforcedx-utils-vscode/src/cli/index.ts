@@ -27,3 +27,8 @@ export { CommandOutput } from './commandOutput';
 export { ForceConfigGet } from './forceConfigGet';
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export { LocalCommandExecution } from './localCommandExecutor';
+export {
+  ForceDeployErrorParser,
+  ForceSourceDeployErrorResult,
+  DeployError
+} from './deployErrorParser';

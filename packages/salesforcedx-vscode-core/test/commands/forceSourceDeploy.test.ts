@@ -22,7 +22,7 @@ describe('Force Source Deploy with Manifest Option', () => {
       type: FileType.Manifest
     });
     expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --manifest ${manifestPath}`
+      `sfdx force:source:deploy --json --loglevel fatal --manifest ${manifestPath}`
     );
     expect(sourceDeployCommand.description).to.equal(
       nls.localize('force_source_deploy_text')
@@ -38,8 +38,9 @@ describe('Force Source Deploy with Sourcepath Option', () => {
       filePath: sourcePath,
       type: FileType.Source
     });
+
     expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --sourcepath ${sourcePath}`
+      `sfdx force:source:deploy --json --loglevel fatal --sourcepath ${sourcePath}`
     );
     expect(sourceDeployCommand.description).to.equal(
       nls.localize('force_source_deploy_text')
