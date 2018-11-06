@@ -21,7 +21,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Report accurate test results in Apex Tests sidebar ([PR #683](https://github.com/forcedotcom/salesforcedx-vscode/pull/683)) ([Issue #645](https://github.com/forcedotcom/salesforcedx-vscode/issues/645))
+- Report accurate test results in Apex Tests sidebar ([PR #683](https://github.com/forcedotcom/salesforcedx-vscode/pull/683), [Issue #645](https://github.com/forcedotcom/salesforcedx-vscode/issues/645))
 
 #### salesforcedx-vscode
 
