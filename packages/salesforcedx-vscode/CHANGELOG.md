@@ -1,4 +1,13 @@
-## 44.4.0 - November 1, 2018
+## 44.6.0 - November 8, 2018
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Include deployment errors in the Problems view for `SFDX: Deploy This Source to Org` and `SFDX: Deploy Source to Org` commands ([PR #717](https://github.com/forcedotcom/salesforcedx-vscode/pull/717), [Issue #588](https://github.com/forcedotcom/salesforcedx-vscode/issues/588)). Contribution by [@ChuckJonas](https://github.com/ChuckJonas)
+- Validate JSON schema for `sfdx-project.json` and `project-scratch-def.json` files ([PR #719](https://github.com/forcedotcom/salesforcedx-vscode/pull/719), [Issue #287](https://github.com/forcedotcom/salesforcedx-vscode/issues/287))
+
+## 44.5.0 - November 1, 2018
 
 ### Fixed
 
@@ -12,7 +21,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Report accurate test results in Apex Tests sidebar ([PR #683](https://github.com/forcedotcom/salesforcedx-vscode/pull/683)) ([Issue #645](https://github.com/forcedotcom/salesforcedx-vscode/issues/645))
+- Report accurate test results in Apex Tests sidebar ([PR #683](https://github.com/forcedotcom/salesforcedx-vscode/pull/683), [Issue #645](https://github.com/forcedotcom/salesforcedx-vscode/issues/645))
 
 #### salesforcedx-vscode
 
@@ -196,7 +205,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Apex code snippets for use in autocompletion and when running **Insert Snippet** ([PR #464](https://github.com/forcedotcom/salesforcedx-vscode/pull/464)), ([PR #487](https://github.com/forcedotcom/salesforcedx-vscode/pull/487))
+- Apex code snippets for use in autocompletion and when running **Insert Snippet** ([PR #464](https://github.com/forcedotcom/salesforcedx-vscode/pull/464), [PR #487](https://github.com/forcedotcom/salesforcedx-vscode/pull/487))
 
 #### salesforcedx-vscode-core
 
