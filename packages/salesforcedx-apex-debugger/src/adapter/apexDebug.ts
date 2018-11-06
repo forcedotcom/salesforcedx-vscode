@@ -117,6 +117,7 @@ export interface LaunchRequestArguments
   entryPointFilter?: string;
   sfdxProject: string;
   connectType?: string;
+  workspaceSettings: WorkspaceSettings;
 }
 
 export interface SetExceptionBreakpointsArguments {
@@ -531,8 +532,8 @@ export class MapTupleContainer implements VariableContainer {
 
 export class ApexDebug extends LoggingDebugSession {
   protected myRequestService = new RequestService();
-  protected mySessionService = new SessionService(this.myRequestService);
-  protected myBreakpointService = new BreakpointService(this.myRequestService);
+  protected mySessionService: SessionService; // = new SessionService(this.myRequestService);
+  protected myBreakpointService: BreakpointService; // = new BreakpointService(this.myRequestService);
   protected myStreamingService = StreamingService.getInstance();
   protected sfdxProject: string;
   protected requestThreads: Map<number, string>;
@@ -566,7 +567,7 @@ export class ApexDebug extends LoggingDebugSession {
   ): void {
     this.myBreakpointService.clearSavedBreakpoints();
     this.initializedResponse = response;
-    this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
+    // this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
     this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
     setTimeout(() => {
       if (!this.myBreakpointService.hasLineNumberMapping()) {
@@ -644,6 +645,20 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
+    console.log('------------ launchRequest', args);
+    // initialize myRequestService from args
+    if (args && args.workspaceSettings) {
+      const workspaceSettings: WorkspaceSettings = args.workspaceSettings;
+      this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
+      this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
+      this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
+      this.myRequestService.connectionTimeoutMs =
+        workspaceSettings.connectionTimeoutMs;
+    }
+    // initialize services
+    this.mySessionService = new SessionService(this.myRequestService);
+    this.myBreakpointService = new BreakpointService(this.myRequestService);
+
     if (typeof args.trace === 'boolean') {
       this.trace = args.trace ? [TRACE_ALL] : undefined;
       this.traceAll = args.trace;
@@ -1077,14 +1092,14 @@ export class ApexDebug extends LoggingDebugSession {
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
-      case WORKSPACE_SETTINGS_REQUEST:
+      /* case WORKSPACE_SETTINGS_REQUEST:
         const workspaceSettings: WorkspaceSettings = args;
         this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
         this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
         this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
         this.myRequestService.connectionTimeoutMs =
           workspaceSettings.connectionTimeoutMs;
-        break;
+        break; */
       case EXCEPTION_BREAKPOINT_REQUEST:
         const requestArgs: SetExceptionBreakpointsArguments = args;
         if (requestArgs && requestArgs.exceptionInfo) {

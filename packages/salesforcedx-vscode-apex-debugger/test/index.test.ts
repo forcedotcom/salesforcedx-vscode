@@ -14,7 +14,7 @@ import {
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import {
-  ApexDebuggerConfigurationProvider,
+  /* ApexDebuggerConfigurationProvider,*/
   ExceptionBreakpointItem,
   getDebuggerType,
   getExceptionBreakpointCache,
@@ -24,7 +24,7 @@ import {
 import { nls } from '../src/messages';
 
 describe('Extension Setup', () => {
-  describe('Configuration provider', () => {
+  /*describe('Configuration provider', () => {
     let provider: ApexDebuggerConfigurationProvider;
 
     beforeEach(() => {
@@ -239,5 +239,5 @@ describe('Extension Setup', () => {
 
       expect(realType).to.be.equal(DEBUGGER_TYPE);
     });
-  });
+  }); */
 });
