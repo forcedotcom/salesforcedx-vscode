@@ -13,6 +13,10 @@ import * as vscode from 'vscode';
 
 export class DebugConfigurationProvider
   implements vscode.DebugConfigurationProvider {
+  private sfdxApex = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-apex'
+  );
+
   public static getConfig(folder: vscode.WorkspaceFolder | undefined) {
     return {
       name: 'Launch Apex Debugger',
@@ -37,6 +41,16 @@ export class DebugConfigurationProvider
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
+    return this.asyncDebugConfig(config).catch(async err => {
+      return vscode.window
+        .showErrorMessage(err.message, { modal: true })
+        .then(x => undefined);
+    });
+  }
+
+  private async asyncDebugConfig(
+    config: vscode.DebugConfiguration
+  ): Promise<vscode.DebugConfiguration | undefined> {
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();
       config.workspaceSettings = {
@@ -51,6 +65,31 @@ export class DebugConfigurationProvider
         )
       } as WorkspaceSettings;
     }
+
+    if (this.sfdxApex && this.sfdxApex.exports) {
+      await this.isLanguageClientReady();
+      config.lineBreakpointInfo = await this.sfdxApex.exports.getLineBreakpointInfo();
+    }
     return config;
+  }
+
+  private async isLanguageClientReady() {
+    let expired = false;
+    let i = 0;
+    while (
+      this.sfdxApex &&
+      this.sfdxApex.exports &&
+      !this.sfdxApex.exports.isLanguageClientReady() &&
+      !expired
+    ) {
+      await new Promise(r => setTimeout(r, 100));
+      if (i >= 30) {
+        expired = true;
+      }
+      i++;
+    }
+    if (expired) {
+      throw Error('Server is not ready Luis!'); // nls.localize('language_client_not_ready'));
+    }
   }
 }

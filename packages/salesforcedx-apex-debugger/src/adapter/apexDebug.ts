@@ -118,6 +118,7 @@ export interface LaunchRequestArguments
   sfdxProject: string;
   connectType?: string;
   workspaceSettings: WorkspaceSettings;
+  lineBreakpointInfo: LineBreakpointInfo[];
 }
 
 export interface SetExceptionBreakpointsArguments {
@@ -565,11 +566,28 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
   ): void {
-    this.myBreakpointService.clearSavedBreakpoints();
+    // this.myBreakpointService.clearSavedBreakpoints();
     this.initializedResponse = response;
+    this.initializedResponse.body = {
+      supportsCompletionsRequest: false,
+      supportsConditionalBreakpoints: false,
+      supportsDelayedStackTraceLoading: false,
+      supportsEvaluateForHovers: false,
+      supportsExceptionInfoRequest: false,
+      supportsExceptionOptions: false,
+      supportsFunctionBreakpoints: false,
+      supportsHitConditionalBreakpoints: false,
+      supportsLoadedSourcesRequest: false,
+      supportsRestartFrame: false,
+      supportsSetVariable: false,
+      supportsStepBack: false,
+      supportsStepInTargetsRequest: false
+    };
+    this.initializedResponse.success = true;
+    this.sendResponse(this.initializedResponse);
     // this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
-    this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
-    setTimeout(() => {
+    // this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
+    /* setTimeout(() => {
       if (!this.myBreakpointService.hasLineNumberMapping()) {
         this.initializedResponse.success = false;
         this.initializedResponse.message = nls.localize(
@@ -577,7 +595,7 @@ export class ApexDebug extends LoggingDebugSession {
         );
         this.sendResponse(this.initializedResponse);
       }
-    }, DEFAULT_INITIALIZE_TIMEOUT_MS);
+    }, DEFAULT_INITIALIZE_TIMEOUT_MS); */
   }
 
   protected attachRequest(
@@ -655,9 +673,37 @@ export class ApexDebug extends LoggingDebugSession {
       this.myRequestService.connectionTimeoutMs =
         workspaceSettings.connectionTimeoutMs;
     }
+
     // initialize services
     this.mySessionService = new SessionService(this.myRequestService);
     this.myBreakpointService = new BreakpointService(this.myRequestService);
+
+    // initialize myRequestService from args
+    if (args && args.lineBreakpointInfo) {
+      const lineBpInfo: LineBreakpointInfo[] = args.lineBreakpointInfo;
+      if (lineBpInfo && lineBpInfo.length > 0) {
+        const lineNumberMapping: Map<
+          string,
+          LineBreakpointsInTyperef[]
+        > = new Map();
+        const typerefMapping: Map<string, string> = new Map();
+        for (const info of lineBpInfo) {
+          if (!lineNumberMapping.has(info.uri)) {
+            lineNumberMapping.set(info.uri, []);
+          }
+          const validLines: LineBreakpointsInTyperef = {
+            typeref: info.typeref,
+            lines: info.lines
+          };
+          lineNumberMapping.get(info.uri)!.push(validLines);
+          typerefMapping.set(info.typeref, info.uri);
+        }
+        this.myBreakpointService.setValidLines(
+          lineNumberMapping,
+          typerefMapping
+        );
+      }
+    }
 
     if (typeof args.trace === 'boolean') {
       this.trace = args.trace ? [TRACE_ALL] : undefined;
@@ -1045,7 +1091,7 @@ export class ApexDebug extends LoggingDebugSession {
   ): Promise<void> {
     response.success = true;
     switch (command) {
-      case LINE_BREAKPOINT_INFO_REQUEST:
+      /* case LINE_BREAKPOINT_INFO_REQUEST:
         const lineBpInfo: LineBreakpointInfo[] = args;
         if (lineBpInfo && lineBpInfo.length > 0) {
           const lineNumberMapping: Map<
@@ -1088,7 +1134,7 @@ export class ApexDebug extends LoggingDebugSession {
           this.initializedResponse.success = true;
           this.sendResponse(this.initializedResponse);
         }
-        break;
+        break; */
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;

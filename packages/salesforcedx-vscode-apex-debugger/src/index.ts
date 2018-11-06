@@ -49,7 +49,7 @@ function registerCommands(): vscode.Disposable {
     async event => {
       if (event && event.session) {
         const type = await getDebuggerType(event.session);
-        if (
+        /* if (
           type === DEBUGGER_TYPE &&
           event.event === GET_LINE_BREAKPOINT_INFO_EVENT
         ) {
@@ -64,10 +64,8 @@ function registerCommands(): vscode.Disposable {
             );
             console.log('Retrieved line breakpoint info from language server');
           }
-        } else if (
-          type === DEBUGGER_TYPE &&
-          event.event === SHOW_MESSAGE_EVENT
-        ) {
+        } else */
+        if (type === DEBUGGER_TYPE && event.event === SHOW_MESSAGE_EVENT) {
           const eventBody = event.body as VscodeDebuggerMessage;
           if (eventBody && eventBody.type && eventBody.message) {
             switch (eventBody.type as VscodeDebuggerMessageType) {
