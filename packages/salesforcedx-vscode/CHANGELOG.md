@@ -4,8 +4,8 @@
 
 #### salesforcedx-vscode-core
 
-- Include deploy errors in Problem view for commands `SFDX: Deploy This Source to Org` and `SFDX: Deploy Source to Org` ([PR #717](https://github.com/forcedotcom/salesforcedx-vscode/pull/717)), ([Issue #588](https://github.com/forcedotcom/salesforcedx-vscode/issues/588)). Contribution by [@ChuckJonas](https://github.com/ChuckJonas).
-- JSON schema validation for `sfdx-project.json` and `project-scratch-def.json` files ([PR #719](https://github.com/forcedotcom/salesforcedx-vscode/pull/719)), ([Issue #287](https://github.com/forcedotcom/salesforcedx-vscode/issues/287)).
+- Include deployment errors in the Problems view for `SFDX: Deploy This Source to Org` and `SFDX: Deploy Source to Org` commands ([PR #717](https://github.com/forcedotcom/salesforcedx-vscode/pull/717)), ([Issue #588](https://github.com/forcedotcom/salesforcedx-vscode/issues/588)). Contribution by [@ChuckJonas](https://github.com/ChuckJonas)
+- Validate JSON schema for `sfdx-project.json` and `project-scratch-def.json` files ([PR #719](https://github.com/forcedotcom/salesforcedx-vscode/pull/719)), ([Issue #287](https://github.com/forcedotcom/salesforcedx-vscode/issues/287))
 
 ## 44.5.0 - November 1, 2018
 
