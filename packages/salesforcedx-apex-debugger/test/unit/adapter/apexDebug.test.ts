@@ -6,11 +6,11 @@
  */
 // This is only done in tests because we are mocking things
 // tslint:disable:no-floating-promises
-import {
+/* import {
   ForceConfigGet,
   ForceOrgDisplay,
   OrgInfo
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli'; */
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/constants';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as AsyncLock from 'async-lock';
@@ -29,7 +29,7 @@ import {
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
-  LaunchRequestArguments,
+  // LaunchRequestArguments,
   SetExceptionBreakpointsArguments
 } from '../../../src/adapter/apexDebug';
 import {

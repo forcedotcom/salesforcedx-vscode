@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
+/*import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
@@ -14,14 +14,14 @@ import {
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import {
-  /* ApexDebuggerConfigurationProvider,*/
+  // ApexDebuggerConfigurationProvider,
   ExceptionBreakpointItem,
   getDebuggerType,
   getExceptionBreakpointCache,
   mergeExceptionBreakpointInfos,
   updateExceptionBreakpointCache
 } from '../src/index';
-import { nls } from '../src/messages';
+import { nls } from '../src/messages'; */
 
 describe('Extension Setup', () => {
   /*describe('Configuration provider', () => {
