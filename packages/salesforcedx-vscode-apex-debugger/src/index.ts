@@ -10,9 +10,7 @@ import {
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
-  // GET_LINE_BREAKPOINT_INFO_EVENT,
   HOTSWAP_REQUEST,
-  // LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
@@ -49,22 +47,6 @@ function registerCommands(): vscode.Disposable {
     async event => {
       if (event && event.session) {
         const type = await getDebuggerType(event.session);
-        /* if (
-          type === DEBUGGER_TYPE &&
-          event.event === GET_LINE_BREAKPOINT_INFO_EVENT
-        ) {
-          const sfdxApex = vscode.extensions.getExtension(
-            'salesforce.salesforcedx-vscode-apex'
-          );
-          if (sfdxApex && sfdxApex.exports) {
-            const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-            event.session.customRequest(
-              LINE_BREAKPOINT_INFO_REQUEST,
-              lineBpInfo
-            );
-            console.log('Retrieved line breakpoint info from language server');
-          }
-        } else */
         if (type === DEBUGGER_TYPE && event.event === SHOW_MESSAGE_EVENT) {
           const eventBody = event.body as VscodeDebuggerMessage;
           if (eventBody && eventBody.type && eventBody.message) {
@@ -83,20 +65,7 @@ function registerCommands(): vscode.Disposable {
               }
             }
           }
-        } /* else if (
-          type === DEBUGGER_TYPE &&
-          event.event === GET_WORKSPACE_SETTINGS_EVENT
-        ) {
-          const config = vscode.workspace.getConfiguration();
-          event.session.customRequest(WORKSPACE_SETTINGS_REQUEST, {
-            proxyUrl: config.get('http.proxy', '') as string,
-            proxyStrictSSL: config.get('http.proxyStrictSSL', false) as boolean,
-            proxyAuth: config.get('http.proxyAuthorization', '') as string,
-            connectionTimeoutMs: config.get(
-              'salesforcedx-vscode-apex-debugger.connectionTimeoutMs'
-            )
-          } as WorkspaceSettings);
-        } */
+        }
       }
     }
   );

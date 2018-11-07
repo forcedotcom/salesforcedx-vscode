@@ -59,20 +59,15 @@ import {
   DEFAULT_IDLE_WARN1_MS,
   DEFAULT_IDLE_WARN2_MS,
   DEFAULT_IDLE_WARN3_MS,
-  // DEFAULT_INITIALIZE_TIMEOUT_MS,
   DEFAULT_LOCK_TIMEOUT_MS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
-  // GET_LINE_BREAKPOINT_INFO_EVENT,
-  // GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
-  // LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SALESFORCE_EXCEPTION_PREFIX,
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
-  // WORKSPACE_SETTINGS_REQUEST
 } from '../constants';
 import {
   ApexDebuggerEventType,
@@ -118,7 +113,7 @@ export interface LaunchRequestArguments
   sfdxProject: string;
   connectType?: string;
   workspaceSettings: WorkspaceSettings;
-  lineBreakpointInfo: LineBreakpointInfo[];
+  lineBreakpointInfo?: LineBreakpointInfo[];
 }
 
 export interface SetExceptionBreakpointsArguments {
@@ -533,8 +528,8 @@ export class MapTupleContainer implements VariableContainer {
 
 export class ApexDebug extends LoggingDebugSession {
   protected myRequestService = new RequestService();
-  protected mySessionService: SessionService; // = new SessionService(this.myRequestService);
-  protected myBreakpointService: BreakpointService; // = new BreakpointService(this.myRequestService);
+  protected mySessionService: SessionService;
+  protected myBreakpointService: BreakpointService;
   protected myStreamingService = StreamingService.getInstance();
   protected sfdxProject: string;
   protected requestThreads: Map<number, string>;
@@ -566,7 +561,6 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
   ): void {
-    // this.myBreakpointService.clearSavedBreakpoints();
     this.initializedResponse = response;
     this.initializedResponse.body = {
       supportsCompletionsRequest: false,
@@ -585,17 +579,6 @@ export class ApexDebug extends LoggingDebugSession {
     };
     this.initializedResponse.success = true;
     this.sendResponse(this.initializedResponse);
-    // this.sendEvent(new Event(GET_WORKSPACE_SETTINGS_EVENT));
-    // this.sendEvent(new Event(GET_LINE_BREAKPOINT_INFO_EVENT));
-    /* setTimeout(() => {
-      if (!this.myBreakpointService.hasLineNumberMapping()) {
-        this.initializedResponse.success = false;
-        this.initializedResponse.message = nls.localize(
-          'session_language_server_error_text'
-        );
-        this.sendResponse(this.initializedResponse);
-      }
-    }, DEFAULT_INITIALIZE_TIMEOUT_MS); */
   }
 
   protected attachRequest(
@@ -663,63 +646,10 @@ export class ApexDebug extends LoggingDebugSession {
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
-    console.log('------------ launchRequest', args);
-    // initialize myRequestService from args
-    if (args && args.workspaceSettings) {
-      const workspaceSettings: WorkspaceSettings = args.workspaceSettings;
-      this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
-      this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
-      this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
-      this.myRequestService.connectionTimeoutMs =
-        workspaceSettings.connectionTimeoutMs;
-    }
-
-    // initialize services
-    this.mySessionService = new SessionService(this.myRequestService);
-    this.myBreakpointService = new BreakpointService(this.myRequestService);
-
-    // initialize myRequestService from args
-    if (args && args.lineBreakpointInfo) {
-      const lineBpInfo: LineBreakpointInfo[] = args.lineBreakpointInfo;
-      if (lineBpInfo && lineBpInfo.length > 0) {
-        const lineNumberMapping: Map<
-          string,
-          LineBreakpointsInTyperef[]
-        > = new Map();
-        const typerefMapping: Map<string, string> = new Map();
-        for (const info of lineBpInfo) {
-          if (!lineNumberMapping.has(info.uri)) {
-            lineNumberMapping.set(info.uri, []);
-          }
-          const validLines: LineBreakpointsInTyperef = {
-            typeref: info.typeref,
-            lines: info.lines
-          };
-          lineNumberMapping.get(info.uri)!.push(validLines);
-          typerefMapping.set(info.typeref, info.uri);
-        }
-        this.myBreakpointService.setValidLines(
-          lineNumberMapping,
-          typerefMapping
-        );
-      }
-    }
-
-    if (typeof args.trace === 'boolean') {
-      this.trace = args.trace ? [TRACE_ALL] : undefined;
-      this.traceAll = args.trace;
-    } else if (typeof args.trace === 'string') {
-      this.trace = args.trace.split(',').map(category => category.trim());
-      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
-    }
-    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
-      // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
-      logger.setup(Logger.LogLevel.Verbose, false);
-    } else {
-      logger.setup(Logger.LogLevel.Stop, false);
-    }
-
     response.success = false;
+    this.initBreakpointSessionServices(args);
+    this.setValidBreakpointLines(args);
+    this.setupLogger(args);
     this.sfdxProject = args.sfdxProject;
     this.log(
       TRACE_CATEGORY_LAUNCH,
@@ -730,7 +660,6 @@ export class ApexDebug extends LoggingDebugSession {
       response.message = nls.localize('session_language_server_error_text');
       return this.sendResponse(response);
     }
-
     try {
       if (args.connectType === CONNECT_TYPE_ISV_DEBUGGER) {
         const forceConfig = await new ForceConfigGet().getConfig(
@@ -785,8 +714,66 @@ export class ApexDebug extends LoggingDebugSession {
     } catch (error) {
       this.tryToParseSfdxError(response, error);
     }
-
     this.sendResponse(response);
+  }
+
+  private initBreakpointSessionServices(args: LaunchRequestArguments): void {
+    if (args && args.workspaceSettings) {
+      const workspaceSettings: WorkspaceSettings = args.workspaceSettings;
+      this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
+      this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
+      this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
+      this.myRequestService.connectionTimeoutMs =
+        workspaceSettings.connectionTimeoutMs;
+    }
+
+    // initialize services
+    this.mySessionService = new SessionService(this.myRequestService);
+    this.myBreakpointService = new BreakpointService(this.myRequestService);
+  }
+
+  private setValidBreakpointLines(args: LaunchRequestArguments): void {
+    if (args && args.lineBreakpointInfo) {
+      const lineBpInfo: LineBreakpointInfo[] = args.lineBreakpointInfo;
+      if (lineBpInfo && lineBpInfo.length > 0) {
+        const lineNumberMapping: Map<
+          string,
+          LineBreakpointsInTyperef[]
+        > = new Map();
+        const typerefMapping: Map<string, string> = new Map();
+        for (const info of lineBpInfo) {
+          if (!lineNumberMapping.has(info.uri)) {
+            lineNumberMapping.set(info.uri, []);
+          }
+          const validLines: LineBreakpointsInTyperef = {
+            typeref: info.typeref,
+            lines: info.lines
+          };
+          lineNumberMapping.get(info.uri)!.push(validLines);
+          typerefMapping.set(info.typeref, info.uri);
+        }
+        this.myBreakpointService.setValidLines(
+          lineNumberMapping,
+          typerefMapping
+        );
+      }
+    }
+  }
+
+  private setupLogger(args: LaunchRequestArguments): void {
+    if (typeof args.trace === 'boolean') {
+      this.trace = args.trace ? [TRACE_ALL] : undefined;
+      this.traceAll = args.trace;
+    } else if (typeof args.trace === 'string') {
+      this.trace = args.trace.split(',').map(category => category.trim());
+      this.traceAll = this.trace.indexOf(TRACE_ALL) >= 0;
+    }
+    if (this.trace && this.trace.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
+      // only log debug adapter protocol if 'protocol' tracing flag is set, ignore traceAll here
+      logger.setup(Logger.LogLevel.Verbose, false);
+    } else {
+      logger.setup(Logger.LogLevel.Stop, false);
+    }
   }
 
   protected async disconnectRequest(
@@ -1091,61 +1078,9 @@ export class ApexDebug extends LoggingDebugSession {
   ): Promise<void> {
     response.success = true;
     switch (command) {
-      /* case LINE_BREAKPOINT_INFO_REQUEST:
-        const lineBpInfo: LineBreakpointInfo[] = args;
-        if (lineBpInfo && lineBpInfo.length > 0) {
-          const lineNumberMapping: Map<
-            string,
-            LineBreakpointsInTyperef[]
-          > = new Map();
-          const typerefMapping: Map<string, string> = new Map();
-          for (const info of lineBpInfo) {
-            if (!lineNumberMapping.has(info.uri)) {
-              lineNumberMapping.set(info.uri, []);
-            }
-            const validLines: LineBreakpointsInTyperef = {
-              typeref: info.typeref,
-              lines: info.lines
-            };
-            lineNumberMapping.get(info.uri)!.push(validLines);
-            typerefMapping.set(info.typeref, info.uri);
-          }
-          this.myBreakpointService.setValidLines(
-            lineNumberMapping,
-            typerefMapping
-          );
-        }
-        if (this.initializedResponse) {
-          this.initializedResponse.body = {
-            supportsCompletionsRequest: false,
-            supportsConditionalBreakpoints: false,
-            supportsDelayedStackTraceLoading: false,
-            supportsEvaluateForHovers: false,
-            supportsExceptionInfoRequest: false,
-            supportsExceptionOptions: false,
-            supportsFunctionBreakpoints: false,
-            supportsHitConditionalBreakpoints: false,
-            supportsLoadedSourcesRequest: false,
-            supportsRestartFrame: false,
-            supportsSetVariable: false,
-            supportsStepBack: false,
-            supportsStepInTargetsRequest: false
-          };
-          this.initializedResponse.success = true;
-          this.sendResponse(this.initializedResponse);
-        }
-        break; */
       case HOTSWAP_REQUEST:
         this.warnToDebugConsole(nls.localize('hotswap_warn_text'));
         break;
-      /* case WORKSPACE_SETTINGS_REQUEST:
-        const workspaceSettings: WorkspaceSettings = args;
-        this.myRequestService.proxyUrl = workspaceSettings.proxyUrl;
-        this.myRequestService.proxyStrictSSL = workspaceSettings.proxyStrictSSL;
-        this.myRequestService.proxyAuthorization = workspaceSettings.proxyAuth;
-        this.myRequestService.connectionTimeoutMs =
-          workspaceSettings.connectionTimeoutMs;
-        break; */
       case EXCEPTION_BREAKPOINT_REQUEST:
         const requestArgs: SetExceptionBreakpointsArguments = args;
         if (requestArgs && requestArgs.exceptionInfo) {
