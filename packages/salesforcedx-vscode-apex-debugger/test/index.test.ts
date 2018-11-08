@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/*import {
+import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
@@ -14,63 +14,15 @@
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import {
-  // ApexDebuggerConfigurationProvider,
   ExceptionBreakpointItem,
   getDebuggerType,
   getExceptionBreakpointCache,
   mergeExceptionBreakpointInfos,
   updateExceptionBreakpointCache
 } from '../src/index';
-import { nls } from '../src/messages'; */
+import { nls } from '../src/messages';
 
 describe('Extension Setup', () => {
-  /*describe('Configuration provider', () => {
-    let provider: ApexDebuggerConfigurationProvider;
-
-    beforeEach(() => {
-      provider = new ApexDebuggerConfigurationProvider();
-    });
-
-    it('Should use context folder path', () => {
-      const folder: vscode.WorkspaceFolder = {
-        name: 'mySfdxProject',
-        index: 0,
-        uri: {
-          fsPath: '/foo'
-        } as vscode.Uri
-      };
-      const expectedConfig = {
-        name: 'Launch Apex Debugger',
-        type: 'apex',
-        request: 'launch',
-        userIdFilter: [],
-        requestTypeFilter: [],
-        entryPointFilter: '',
-        sfdxProject: '/foo'
-      } as vscode.DebugConfiguration;
-
-      const configs = provider.provideDebugConfigurations(folder);
-
-      expect(configs).to.deep.equal([expectedConfig]);
-    });
-
-    it('Should use default workspaceRoot', () => {
-      const expectedConfig = {
-        name: 'Launch Apex Debugger',
-        type: 'apex',
-        request: 'launch',
-        userIdFilter: [],
-        requestTypeFilter: [],
-        entryPointFilter: '',
-        sfdxProject: '${workspaceRoot}'
-      } as vscode.DebugConfiguration;
-
-      const configs = provider.provideDebugConfigurations(undefined);
-
-      expect(configs).to.deep.equal([expectedConfig]);
-    });
-  });
-
   describe('Exception breakpoint', () => {
     describe('Merge breakpoint infos', () => {
       let breakpointInfos: ExceptionBreakpointItem[] = [];
@@ -239,5 +191,5 @@ describe('Extension Setup', () => {
 
       expect(realType).to.be.equal(DEBUGGER_TYPE);
     });
-  }); */
+  });
 });

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export const DEBUGGER_LAUNCH_TYPE = 'launch';
 export const DEBUGGER_TYPE = 'apex';
 export const LIVESHARE_DEBUGGER_TYPE = 'vslsShare';
 export const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
