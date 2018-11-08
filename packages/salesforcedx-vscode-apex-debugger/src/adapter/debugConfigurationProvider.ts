@@ -71,7 +71,6 @@ export class DebugConfigurationProvider
 
     if (vscode.workspace) {
       const workspaceConfig = vscode.workspace.getConfiguration();
-      // console.log('---------- workspaceConfig: ', workspaceConfig);
       config.workspaceSettings = {
         proxyUrl: workspaceConfig.get('http.proxy', '') as string,
         proxyStrictSSL: workspaceConfig.get(
