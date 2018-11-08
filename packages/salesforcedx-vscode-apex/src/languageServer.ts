@@ -136,11 +136,11 @@ export async function createLanguageServer(
   context: vscode.ExtensionContext
 ): Promise<LanguageClient> {
   const isInsiders: boolean = /insiders/i.test(vscode.env.appName);
-  const enableApexRefactor: boolean = isInsiders
+  const enableApexRename: boolean = isInsiders
     ? true
     : vscode.workspace
         .getConfiguration()
-        .get<boolean>('salesforcedx-vscode-apex.enable-refactor', false);
+        .get<boolean>('salesforcedx-vscode-apex.enable-rename', false);
 
   const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
@@ -158,7 +158,7 @@ export async function createLanguageServer(
       protocol2Code: protocol2CodeConverter
     },
     initializationOptions: {
-      enableRefactor: enableApexRefactor
+      enableRename: enableApexRename
     }
   };
 

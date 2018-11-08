@@ -6,6 +6,8 @@
   "refresh_test_title": "Refresh Tests",
   "run_single_test_title": "Run Single Test",
   "show_error_title": "Display Error",
-  "java_home_description": "Specifies the folder path to the Java 8 runtime used to launch the Apex Language Server (for example, /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home).",
-  "apex_refactor_description": "Enable Apex refactor capabilities, currently in beta. This feature flag is exclusive for VSCode; feature is auto-enabled in VSCode Insiders."
+  "java_home_description":
+    "Specifies the folder path to the Java 8 runtime used to launch the Apex Language Server (for example, /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home).",
+  "apex_rename_description":
+    "Enable Apex rename capabilities, currently in beta. This feature flag is exclusive for VSCode; feature is auto-enabled in VSCode Insiders."
 }

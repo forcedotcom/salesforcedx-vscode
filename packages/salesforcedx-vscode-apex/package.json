@@ -142,10 +142,10 @@
           "default": null,
           "description": "%java_home_description%"
         },
-        "salesforcedx-vscode-apex.enable-refactor": {
+        "salesforcedx-vscode-apex.enable-rename": {
           "type": ["boolean"],
           "default": false,
-          "description": "%apex_refactor_description%"
+          "description": "%apex_rename_description%"
         }
       }
     },
