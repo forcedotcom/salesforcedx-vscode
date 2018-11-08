@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import vscode = require('vscode');
-import TelemetryReporter from 'vscode-extension-telemetry';
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
+import TelemetryReporter from './telemetryReporter';
 
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
@@ -44,7 +44,8 @@ export class TelemetryService {
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
         extensionPackage.version,
-        extensionPackage.aiKey
+        extensionPackage.aiKey,
+        true
       );
       this.context.subscriptions.push(this.reporter);
     }
@@ -133,9 +134,18 @@ export class TelemetryService {
     }
   }
 
+  public sendError(errorMsg: string): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('coreError', {
+        extensionName: EXTENSION_NAME,
+        errorMsg
+      });
+    }
+  }
+
   public dispose(): void {
     if (this.reporter !== undefined) {
-      this.reporter.dispose();
+      this.reporter.dispose().catch(err => console.log(err));
     }
   }
 }

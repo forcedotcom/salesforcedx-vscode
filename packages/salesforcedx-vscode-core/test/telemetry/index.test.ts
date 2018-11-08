@@ -7,9 +7,9 @@
 import { expect } from 'chai';
 import { assert, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
-import TelemetryReporter from 'vscode-extension-telemetry';
 import { SfdxCoreSettings } from '../../src/settings/sfdxCoreSettings';
 import { TelemetryService } from '../../src/telemetry/telemetry';
+import TelemetryReporter from '../../src/telemetry/telemetryReporter';
 import { MockContext } from './MockContext';
 
 describe('Telemetry', () => {
