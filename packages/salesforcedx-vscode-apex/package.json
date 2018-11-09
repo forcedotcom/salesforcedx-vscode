@@ -146,6 +146,11 @@
           "type": ["boolean"],
           "default": false,
           "description": "%apex_rename_description%"
+        },
+        "salesforcedx-vscode-apex.enable-semantic-errors": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%apex_semantic_errors_description%"
         }
       }
     },

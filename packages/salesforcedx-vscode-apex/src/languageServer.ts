@@ -35,6 +35,10 @@ async function createServer(
       `${requirementsData.java_home}/bin/java`
     );
     let args: string[];
+    const enableSemanticErrors: boolean = vscode.workspace
+      .getConfiguration()
+      .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
+
     if (DEBUG) {
       args = ['-cp', uberJar];
 
@@ -44,7 +48,7 @@ async function createServer(
 
       args.push(
         '-Ddebug.internal.errors=true',
-        '-Ddebug.semantic.errors=false',
+        `-Ddebug.semantic.errors=${enableSemanticErrors}`,
         '-Dtrace.protocol=false',
         `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`,
         APEX_LANGUAGE_SERVER_MAIN
@@ -58,7 +62,7 @@ async function createServer(
 
       args.push(
         '-Ddebug.internal.errors=true',
-        '-Ddebug.semantic.errors=false',
+        `-Ddebug.semantic.errors=${enableSemanticErrors}`,
         APEX_LANGUAGE_SERVER_MAIN
       );
     }
@@ -156,11 +160,14 @@ export async function createLanguageServer(
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
-    },
-    initializationOptions: {
-      enableRename: enableApexRename
     }
   };
+
+  if (enableApexRename) {
+    clientOptions['initializationOptions'] = {
+      enableRename: true
+    };
+  }
 
   const server = await createServer(context);
   const client = new LanguageClient(

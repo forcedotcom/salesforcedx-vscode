@@ -9,5 +9,7 @@
   "java_home_description":
     "Specifies the folder path to the Java 8 runtime used to launch the Apex Language Server (for example, /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home).",
   "apex_rename_description":
-    "Enable Apex rename capabilities, currently in beta. This feature flag is exclusive for VSCode; feature is auto-enabled in VSCode Insiders."
+    "Enable Apex rename capabilities, currently in beta. This feature flag is exclusive for VSCode; feature is auto-enabled in VSCode Insiders.",
+  "apex_semantic_errors_description":
+    "Enable Apex LSP to surface semantic errors, currently in beta."
 }
