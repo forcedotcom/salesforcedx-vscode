@@ -58,7 +58,7 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = vscode.workspace.workspaceFolders
-      ? vscode.workspace.workspaceFolders[0].uri.path
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : '';
     const execFilePath = response.data.filePath;
     const execution = new CliCommandExecutor(this.build(response.data), {
