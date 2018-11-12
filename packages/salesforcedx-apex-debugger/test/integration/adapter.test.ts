@@ -19,7 +19,6 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import { LaunchRequestArguments } from '../../src/adapter/apexDebug';
 import { LineBreakpointInfo } from '../../src/breakpoints/lineBreakpoint';
-import { LINE_BREAKPOINT_INFO_REQUEST } from '../../src/constants';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const SIMPLE_VARIABLES_DIR = path.join(
@@ -129,8 +128,6 @@ describe.skip('Interactive debugger adapter - integration', function() {
   });
 
   it('End-to-end flow', async () => {
-    // Send line breakpoint info
-    await dc.customRequest(LINE_BREAKPOINT_INFO_REQUEST, LINE_BREAKPOINT_INFO);
     // Launch Apex Debugger session
     const launchResponse = await dc.launchRequest({
       sfdxProject: projectPath

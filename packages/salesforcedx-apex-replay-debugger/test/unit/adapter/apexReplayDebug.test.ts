@@ -26,10 +26,7 @@ import {
   BreakpointUtil,
   LineBreakpointInfo
 } from '../../../src/breakpoints';
-import {
-  DEFAULT_INITIALIZE_TIMEOUT_MS,
-  SEND_METRIC_LAUNCH_EVENT
-} from '../../../src/constants';
+import { SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
 import { nls } from '../../../src/messages';
@@ -81,37 +78,6 @@ describe('Replay debugger adapter - unit', () => {
   const logFileName = 'foo.log';
   const logFilePath = `path/${logFileName}`;
   const projectPath = 'path/project';
-
-  describe('Initialize', () => {
-    let sendResponseSpy: sinon.SinonSpy;
-    let response: DebugProtocol.InitializeResponse;
-    let args: DebugProtocol.InitializeRequestArguments;
-    let clock: sinon.SinonFakeTimers;
-
-    beforeEach(() => {
-      adapter = new MockApexReplayDebug();
-      response = adapter.getDefaultResponse();
-      args = {
-        adapterID: ''
-      };
-      sendResponseSpy = sinon.spy(ApexReplayDebug.prototype, 'sendResponse');
-      clock = sinon.useFakeTimers();
-    });
-
-    afterEach(() => {
-      sendResponseSpy.restore();
-      clock.restore();
-    });
-
-    it('Should send successful initialized response', () => {
-      adapter.initializeRequest(response, args);
-
-      setTimeout(() => {
-        expect(sendResponseSpy.calledOnce).to.be.true;
-      }, DEFAULT_INITIALIZE_TIMEOUT_MS);
-      clock.tick(DEFAULT_INITIALIZE_TIMEOUT_MS + 1);
-    });
-  });
 
   describe('Launch', () => {
     let sendResponseSpy: sinon.SinonSpy;
