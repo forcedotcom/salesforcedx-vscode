@@ -10,22 +10,18 @@ import {
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
-  GET_LINE_BREAKPOINT_INFO_EVENT,
-  GET_WORKSPACE_SETTINGS_EVENT,
   HOTSWAP_REQUEST,
-  LINE_BREAKPOINT_INFO_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
-  VscodeDebuggerMessageType,
-  WORKSPACE_SETTINGS_REQUEST,
-  WorkspaceSettings
+  VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 const cachedExceptionBreakpoints: Map<
@@ -35,27 +31,6 @@ const cachedExceptionBreakpoints: Map<
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 );
-
-export class ApexDebuggerConfigurationProvider
-  implements vscode.DebugConfigurationProvider {
-  public provideDebugConfigurations(
-    folder: vscode.WorkspaceFolder | undefined,
-    token?: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.DebugConfiguration[]> {
-    // note: part of this is duplicated in bootstrapCmd.ts but not linked to avoid hard dependency from core to debugger
-    return [
-      {
-        name: 'Launch Apex Debugger',
-        type: DEBUGGER_TYPE,
-        request: 'launch',
-        userIdFilter: [],
-        requestTypeFilter: [],
-        entryPointFilter: '',
-        sfdxProject: folder ? folder.uri.fsPath : '${workspaceRoot}'
-      } as vscode.DebugConfiguration
-    ];
-  }
-}
 
 export async function getDebuggerType(
   session: vscode.DebugSession
@@ -72,25 +47,7 @@ function registerCommands(): vscode.Disposable {
     async event => {
       if (event && event.session) {
         const type = await getDebuggerType(event.session);
-        if (
-          type === DEBUGGER_TYPE &&
-          event.event === GET_LINE_BREAKPOINT_INFO_EVENT
-        ) {
-          const sfdxApex = vscode.extensions.getExtension(
-            'salesforce.salesforcedx-vscode-apex'
-          );
-          if (sfdxApex && sfdxApex.exports) {
-            const lineBpInfo = await sfdxApex.exports.getLineBreakpointInfo();
-            event.session.customRequest(
-              LINE_BREAKPOINT_INFO_REQUEST,
-              lineBpInfo
-            );
-            console.log('Retrieved line breakpoint info from language server');
-          }
-        } else if (
-          type === DEBUGGER_TYPE &&
-          event.event === SHOW_MESSAGE_EVENT
-        ) {
+        if (type === DEBUGGER_TYPE && event.event === SHOW_MESSAGE_EVENT) {
           const eventBody = event.body as VscodeDebuggerMessage;
           if (eventBody && eventBody.type && eventBody.message) {
             switch (eventBody.type as VscodeDebuggerMessageType) {
@@ -108,19 +65,6 @@ function registerCommands(): vscode.Disposable {
               }
             }
           }
-        } else if (
-          type === DEBUGGER_TYPE &&
-          event.event === GET_WORKSPACE_SETTINGS_EVENT
-        ) {
-          const config = vscode.workspace.getConfiguration();
-          event.session.customRequest(WORKSPACE_SETTINGS_REQUEST, {
-            proxyUrl: config.get('http.proxy', '') as string,
-            proxyStrictSSL: config.get('http.proxyStrictSSL', false) as boolean,
-            proxyAuth: config.get('http.proxyAuthorization', '') as string,
-            connectionTimeoutMs: config.get(
-              'salesforcedx-vscode-apex-debugger.connectionTimeoutMs'
-            )
-          } as WorkspaceSettings);
         }
       }
     }
@@ -298,7 +242,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.debug.registerDebugConfigurationProvider(
       'apex',
-      new ApexDebuggerConfigurationProvider()
+      new DebugConfigurationProvider()
     )
   );
 
