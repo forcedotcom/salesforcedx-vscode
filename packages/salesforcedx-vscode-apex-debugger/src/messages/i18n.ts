@@ -16,8 +16,11 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
+  config_name_text: 'Launch Apex Debugger',
   select_exception_text: 'Select an exception',
   select_break_option_text: 'Select break option',
   always_break_text: 'Always break',
-  never_break_text: 'Never break'
+  never_break_text: 'Never break',
+  language_client_not_ready:
+    'Unable to retrieve breakpoint info from language server, language server is not ready'
 };

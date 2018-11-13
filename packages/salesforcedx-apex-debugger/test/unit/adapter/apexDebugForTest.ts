@@ -88,7 +88,7 @@ export class ApexDebugForTest extends ApexDebug {
     super.attachRequest(response, args);
   }
 
-  public async launchReq(
+  public async launchRequest(
     response: DebugProtocol.LaunchResponse,
     args: LaunchRequestArguments
   ): Promise<void> {
