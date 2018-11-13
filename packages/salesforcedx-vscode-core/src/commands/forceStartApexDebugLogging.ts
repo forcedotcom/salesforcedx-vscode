@@ -176,9 +176,7 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
       .withFlag(
         '--values',
         `tracedentityid='${this
-          .userId}' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()} StartDate='${developerLogTraceFlag
-          .getStartDate()
-          .toUTCString()}' ExpirationDate='${developerLogTraceFlag
+          .userId}' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()} StartDate='' ExpirationDate='${developerLogTraceFlag
           .getExpirationDate()
           .toUTCString()}`
       )
@@ -216,9 +214,7 @@ export class UpdateTraceFlagsExecutor extends SfdxCommandletExecutor<{}> {
       .withFlag('--sobjectid', nonNullTraceFlag)
       .withFlag(
         '--values',
-        `StartDate='${developerLogTraceFlag
-          .getStartDate()
-          .toUTCString()}' ExpirationDate='${developerLogTraceFlag
+        `StartDate='' ExpirationDate='${developerLogTraceFlag
           .getExpirationDate()
           .toUTCString()}'`
       )

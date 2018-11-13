@@ -76,7 +76,7 @@ describe('Force Start Apex Debug Logging', () => {
     const updateTraceFlagsExecutor = new UpdateTraceFlagsExecutor();
     const updateTraceFlagCmd = updateTraceFlagsExecutor.build();
     expect(updateTraceFlagCmd.toCommand()).to.equal(
-      `sfdx force:data:record:update --sobjecttype TraceFlag --sobjectid ${fakeTraceFlagId} --values StartDate='${startDate.toUTCString()}' ExpirationDate='${endDate.toUTCString()}' --usetoolingapi --json --loglevel fatal`
+      `sfdx force:data:record:update --sobjecttype TraceFlag --sobjectid ${fakeTraceFlagId} --values StartDate='' ExpirationDate='${endDate.toUTCString()}' --usetoolingapi --json --loglevel fatal`
     );
   });
 
@@ -92,7 +92,7 @@ describe('Force Start Apex Debug Logging', () => {
     const createTraceFlagExecutor = new CreateTraceFlag('testUserId');
     const createTraceFlagCmd = createTraceFlagExecutor.build();
     expect(createTraceFlagCmd.toCommand()).to.equal(
-      `sfdx force:data:record:create --sobjecttype TraceFlag --values tracedentityid='testUserId' logtype=developer_log debuglevelid=${fakeDebugLevelId} StartDate='${startDate.toUTCString()}' ExpirationDate='${endDate.toUTCString()} --usetoolingapi --json --loglevel fatal`
+      `sfdx force:data:record:create --sobjecttype TraceFlag --values tracedentityid='testUserId' logtype=developer_log debuglevelid=${fakeDebugLevelId} StartDate='' ExpirationDate='${endDate.toUTCString()} --usetoolingapi --json --loglevel fatal`
     );
   });
 
