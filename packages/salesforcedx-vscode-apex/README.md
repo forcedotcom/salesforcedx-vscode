@@ -8,16 +8,16 @@ View outlines of Apex classes and triggers, see code-completion suggestions, and
 
 Before you set up this extension, make sure that you have these essentials.
 
-- **Java 8 Platform, Standard Edition Development Kit**  
-  Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).  
+- **Java 8 Platform, Standard Edition Development Kit**
+  Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platform, Standard Edition Development Kit (JDK).
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 - **[Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later**
-- **[Salesforce Extensions for VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)**  
+- **[Salesforce Extensions for VS Code](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)**
   Code smartness for sObjects in Apex code is powered by the [salesforcedx-vscode-core](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core) extension. We suggest that you install all extensions in the [salesforcedx-vscode](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension pack.
 
 ## View Code-Completion Suggestions
 
-To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.  
+To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.
 ![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
 
 ## Insert Code Snippets
@@ -48,7 +48,7 @@ To preview a definition, hold down Cmd (macOS) or Ctrl (Windows or Linux) and ho
 
 To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
 
-To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.  
+To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.
 ![Previewing, viewing, and jumping to a definition](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_go_to_definition.gif)
 
 ## Find All References
@@ -68,12 +68,12 @@ To find references to an item, right-click the item and select **Find All Refere
 
 If you leave out a `;`, `}`, or `)`, the syntax error is marked with a red squiggly line in the editor.
 
-The Problems view in the bottom pane also lists the syntax errors. Double-click the problem to go to the source file.  
+The Problems view in the bottom pane also lists the syntax errors. Double-click the problem to go to the source file.
 ![Problems view, showing a missing semicolon in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_problems.png)
 
 ## View an Outline of Your Apex Class or Trigger
 
-The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Cmd+Shift+O (macOS) or Ctrl+Shift+O (Windows or Linux). To jump to one of the symbols, select it in the list.  
+The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Cmd+Shift+O (macOS) or Ctrl+Shift+O (Windows or Linux). To jump to one of the symbols, select it in the list.
 ![Outline view, showing the symbols in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_outline.png)
 
 ## Enable Code Smartness for SObjects
@@ -101,8 +101,8 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 ## Resources
 
 - Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
-- _[Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)_
-- _[Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)_
+- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
+- [Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)
 - Dreamforce ’17 session video: [Building Powerful Tooling For All IDEs Through Language Servers](https://www.salesforce.com/video/1765282/)
 - GitHub: [Language Server Protocol](https://github.com/Microsoft/language-server-protocol)
 - GitHub: [salesforcedx-vscode-apex](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex)
