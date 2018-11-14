@@ -8,7 +8,7 @@ import { Extension } from 'vscode';
 export class MockApexExtension implements Extension<any> {
   constructor() {
     this.id = 'salesforce.salesforcedx-vscode-apex';
-    this.extensionPath = 'thunder';
+    this.extensionPath = 'extension/local/path';
     this.isActive = true;
     this.exports = new MockJorje();
   }
@@ -17,7 +17,7 @@ export class MockApexExtension implements Extension<any> {
   public isActive: boolean;
   public packageJSON: any;
   public activate(): Thenable<any> {
-    throw new Error('Method not implemented.');
+    return Promise.resolve('activated');
   }
   public exports: any;
 }
