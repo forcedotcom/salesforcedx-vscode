@@ -23,7 +23,7 @@ import {
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { updateLastOpened } from '../../../src/index';
 import { nls } from '../../../src/messages';
-import { MockJorje } from './MockJorje';
+import { MockApexExtension } from './MockApexExtension';
 
 // tslint:disable:no-unused-expression
 describe('Configuration provider', () => {
@@ -36,19 +36,19 @@ describe('Configuration provider', () => {
       fsPath: '/foo'
     } as Uri
   };
-  let mockApexJorje: sinon.SinonStub;
+  let mockApexExtension: sinon.SinonStub;
 
   beforeEach(() => {
-    provider = new DebugConfigurationProvider();
     getConfigSpy = sinon.spy(DebugConfigurationProvider, 'getConfig');
-    mockApexJorje = sinon
+    mockApexExtension = sinon
       .stub(extensions, 'getExtension')
-      .returns({ exports: new MockJorje() });
+      .returns(new MockApexExtension());
+    provider = new DebugConfigurationProvider();
   });
 
   afterEach(() => {
     getConfigSpy.restore();
-    mockApexJorje.restore();
+    mockApexExtension.restore();
   });
 
   it('Should provide default config', () => {
@@ -97,6 +97,7 @@ describe('Configuration provider', () => {
       expect(config.trace).to.equals(true);
       expect(config.projectPath).to.not.equals(undefined);
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
+      expect(mockApexExtension.calledOnce).to.be.true;
     } else {
       expect.fail(
         'Did not get configuration information from resolveDebugConfiguration'
@@ -123,6 +124,7 @@ describe('Configuration provider', () => {
       expect(config.trace).to.equals(false);
       expect(config.projectPath).to.not.equals(undefined);
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
+      expect(mockApexExtension.calledOnce).to.be.true;
     } else {
       expect.fail(
         'Did not get configuration information from resolveDebugConfiguration'
