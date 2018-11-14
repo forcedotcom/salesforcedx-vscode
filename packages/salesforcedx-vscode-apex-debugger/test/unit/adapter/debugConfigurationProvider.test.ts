@@ -11,29 +11,35 @@ import {
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as vscode from 'vscode';
+import { DebugConfiguration, extensions, Uri, WorkspaceFolder } from 'vscode';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { nls } from '../../../src/messages';
+import { MockApexExtension } from './MockApexExtension';
 
 // tslint:disable:no-unused-expression
 describe('Configuration provider', () => {
   let provider: DebugConfigurationProvider;
   let getConfigSpy: sinon.SinonSpy;
-  const folder: vscode.WorkspaceFolder = {
+  const folder: WorkspaceFolder = {
     name: 'mySfdxProject',
     index: 0,
     uri: {
       fsPath: '/foo'
-    } as vscode.Uri
+    } as Uri
   };
+  let mockApexExtension: sinon.SinonStub;
 
   beforeEach(() => {
+    mockApexExtension = sinon
+      .stub(extensions, 'getExtension')
+      .returns(new MockApexExtension());
     provider = new DebugConfigurationProvider();
     getConfigSpy = sinon.spy(DebugConfigurationProvider, 'getConfig');
   });
 
   afterEach(() => {
     getConfigSpy.restore();
+    mockApexExtension.restore();
   });
 
   it('Should provide default config', () => {
@@ -45,7 +51,7 @@ describe('Configuration provider', () => {
       requestTypeFilter: [],
       entryPointFilter: '',
       sfdxProject: '/foo'
-    } as vscode.DebugConfiguration;
+    } as DebugConfiguration;
 
     const configs = provider.provideDebugConfigurations(folder);
 
@@ -70,6 +76,7 @@ describe('Configuration provider', () => {
       expect(config.sfdxProject).to.equals('/foo');
       expect(config.workspaceSettings).to.not.equals(undefined);
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
+      expect(mockApexExtension.calledOnce).to.be.true;
     } else {
       expect.fail(
         'Did not get configuration information from resolveDebugConfiguration'
@@ -106,6 +113,7 @@ describe('Configuration provider', () => {
       expect(config.trace).to.equals(true);
       expect(config.workspaceSettings).to.not.equals(undefined);
       expect(config.lineBreakpointInfo).to.not.equals(undefined);
+      expect(mockApexExtension.calledOnce).to.be.true;
     } else {
       expect.fail(
         'Did not get configuration information from resolveDebugConfiguration'
