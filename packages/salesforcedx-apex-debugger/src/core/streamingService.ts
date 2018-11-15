@@ -77,7 +77,11 @@ export class StreamingService {
     systemEventClientInfo: StreamingClientInfo,
     userEventClientInfo: StreamingClientInfo
   ): Promise<boolean> {
-    const urlElements = [requestService.instanceUrl, 'cometd', this.apiVersion];
+    const urlElements = [
+      this.removeTrailingSlashURL(requestService.instanceUrl),
+      'cometd',
+      this.apiVersion
+    ];
     const streamUrl = urlElements.join('/');
 
     this.systemEventClient = new StreamingClient(
@@ -94,6 +98,10 @@ export class StreamingService {
     await this.systemEventClient.subscribe();
     await this.userEventClient.subscribe();
     return Promise.resolve(this.isReady());
+  }
+
+  private removeTrailingSlashURL(instanceUrl: string) {
+    return instanceUrl ? instanceUrl.replace(/\/+$/, '') : '';
   }
 
   public disconnect(): void {
