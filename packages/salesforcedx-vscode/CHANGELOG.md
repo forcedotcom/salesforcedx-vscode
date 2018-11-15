@@ -1,3 +1,25 @@
+## 44.7.0 - November 15, 2018
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- Beta for Apex Refactor Rename capabilities ([PR #681](https://github.com/forcedotcom/salesforcedx-vscode/pull/681), [Apex Refactor: Rename (Beta)](<https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Refactor:-Rename-(Beta)>))
+
+### Fixed
+
+#### salesforcedx-vscode-apex-debugger
+
+- Update Apex Interactive Debugger initialization ([PR #732](https://github.com/forcedotcom/salesforcedx-vscode/pull/732), [Issue #722](https://github.com/forcedotcom/salesforcedx-vscode/issues/722))
+
+## 44.6.1 - November 9, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Update API used for workspace path for commands `SFDX: Deploy This Source to Org` and `SFDX: Deploy Source to Org` ([PR #738](https://github.com/forcedotcom/salesforcedx-vscode/pull/738), [Issue #737](https://github.com/forcedotcom/salesforcedx-vscode/issues/737))
+
 ## 44.6.0 - November 8, 2018
 
 ### Added
