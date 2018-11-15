@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Beta for Apex Refactor Rename capabilities ([PR #681](https://github.com/forcedotcom/salesforcedx-vscode/pull/681), [Apex Refactor: Rename (Beta)](<https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Refactor:-Rename-(Beta)>))
+- Beta for Apex Refactor: Rename capabilities ([PR #681](https://github.com/forcedotcom/salesforcedx-vscode/pull/681), [Apex Refactor: Rename (Beta)](<https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Refactor:-Rename-(Beta)>))
 
 ### Fixed
 
