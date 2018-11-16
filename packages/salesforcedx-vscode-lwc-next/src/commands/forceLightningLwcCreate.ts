@@ -136,8 +136,8 @@ export async function forceLightningLwcCreate(explorerDir?: any) {
     'lwc'
   );
   const parameterGatherer = new CompositeParametersGatherer(
-    fileNameGatherer,
-    outputDirGatherer
+    outputDirGatherer,
+    fileNameGatherer
   );
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
