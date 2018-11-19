@@ -235,7 +235,7 @@ export class ForceQueryTraceFlag extends SfdxCommandletExecutor<{}> {
       .withArg('force:data:soql:query')
       .withFlag(
         '--query',
-        "SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
+        "SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' and debuglevelid != null"
       )
       .withArg('--usetoolingapi')
       .withJson()
