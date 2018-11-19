@@ -26,8 +26,8 @@
   ],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "44.7.0",
-    "ajv": "^6.1.1",
-    "eslint": "^5.9.0",
+    "ajv": "^5.5.2",
+    "eslint": "^4.19.1",
     "eslint-plugin-lwc": "^0.5.1",
     "lwc-language-server": "1.6.7",
     "rxjs": "^5.4.1",
