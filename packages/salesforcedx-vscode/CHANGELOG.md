@@ -22,7 +22,7 @@
 
 #### salesforcedx-vscode-apex-debugger
 
-- Update Apex Interactive Debugger initialization ([PR #732](https://github.com/forcedotcom/salesforcedx-vscode/pull/732), [PR #754](https://github.com/forcedotcom/salesforcedx-vscode/pull/754) [Issue #722](https://github.com/forcedotcom/salesforcedx-vscode/issues/722))
+- Update Apex Interactive Debugger initialization ([PR #732](https://github.com/forcedotcom/salesforcedx-vscode/pull/732), [PR #754](https://github.com/forcedotcom/salesforcedx-vscode/pull/754), [Issue #722](https://github.com/forcedotcom/salesforcedx-vscode/issues/722))
 
 ## 44.6.1 - November 9, 2018
 
