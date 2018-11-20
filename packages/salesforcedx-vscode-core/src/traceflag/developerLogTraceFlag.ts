@@ -58,7 +58,11 @@ export class DeveloperLogTraceFlag {
   }
 
   public isValidDebugLevelId() {
-    return this.debugLevelId != null;
+    return (
+      this.debugLevelId !== null &&
+      this.debugLevelId !== undefined &&
+      this.debugLevelId !== ''
+    );
   }
 
   public isValidDateLength() {
