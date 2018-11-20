@@ -41,6 +41,7 @@ test_script:
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
       npm run test:without-system-tests
+      npm run test:insiders
       npm run coverage:system-tests
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
