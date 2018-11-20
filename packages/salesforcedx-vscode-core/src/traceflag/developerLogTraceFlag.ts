@@ -11,7 +11,7 @@ export class DeveloperLogTraceFlag {
   private static instance: DeveloperLogTraceFlag;
   private active: boolean;
   private traceflagId: string | undefined;
-  private debugLevelId: string | undefined;
+  private debugLevelId: string | undefined | null;
   private startDate: Date;
   private expirationDate: Date;
 
@@ -35,7 +35,7 @@ export class DeveloperLogTraceFlag {
     id: string,
     startDate: string,
     expirationDate: string,
-    debugLevelId: string
+    debugLevelId: string | null
   ) {
     this.traceflagId = id;
     this.startDate = new Date(startDate);
@@ -44,7 +44,7 @@ export class DeveloperLogTraceFlag {
     this.active = true;
   }
 
-  public setDebugLevelId(debugLevelId: string) {
+  public setDebugLevelId(debugLevelId: string | undefined | null) {
     this.debugLevelId = debugLevelId;
   }
 
@@ -58,7 +58,7 @@ export class DeveloperLogTraceFlag {
   }
 
   public isValidDebugLevelId() {
-    return this.debugLevelId !== null;
+    return this.debugLevelId != null;
   }
 
   public isValidDateLength() {
