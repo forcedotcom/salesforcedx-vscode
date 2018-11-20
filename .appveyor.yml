@@ -41,7 +41,7 @@ test_script:
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
 
-  - cmd: npm run test:without-system-tests
+  # cmd: npm run test:without-system-tests
   - cmd: npm run test:insiders
   - cmd: npm run coverage:system-tests
   - cmd: npm run aggregateJUnit
