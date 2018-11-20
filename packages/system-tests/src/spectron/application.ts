@@ -120,15 +120,28 @@ export class SpectronApplication {
   private async checkWindowReady(): Promise<any> {
     await this.webclient.waitUntilWindowLoaded(60000);
 
-    // Pick the first workbench window here
+    // Pick the window that loads VSCode,
+    // added code to address Spectron limitation in Windows OS (https://github.com/electron/spectron/issues/60)
     const count = await this.webclient.getWindowCount();
+    if (count > 1) {
+      for (let i = 0; i < count; i++) {
+        await this.webclient.windowByIndex(i);
+        const title = await this.webclient.getTitle();
 
-    for (let i = 0; i < count; i++) {
-      await this.webclient.windowByIndex(i);
-
-      if (/bootstrap\/index\.html/.test(await this.webclient.getUrl())) {
-        break;
+        if (
+          process.platform === 'win32' &&
+          title !== '' &&
+          /Visual Studio Code/.test(title)
+        ) {
+          break;
+        } else if (
+          /bootstrap\/index\.html/.test(await this.webclient.getUrl())
+        ) {
+          break;
+        }
       }
+    } else {
+      await this.webclient.windowByIndex(0);
     }
 
     await this.waitFor(this.spectron.client.getHTML, '.monaco-workbench');
@@ -177,8 +190,8 @@ export class SpectronApplication {
           await this.screenshot.capture();
           rej(
             `Could not retrieve the element in ${this.testRetry *
-            this.pollTrials *
-            this.pollTimeout} seconds. (${JSON.stringify(args)})`
+              this.pollTrials *
+              this.pollTimeout} seconds. (${JSON.stringify(args)})`
           );
           break;
         }
