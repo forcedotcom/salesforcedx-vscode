@@ -66,6 +66,14 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
           traceflag.ExpirationDate,
           traceflag.DebugLevelId
         );
+        if (!developerLogTraceFlag.isValidDebugLevelId()) {
+          throw new Error(
+            nls.localize(
+              'invalid_debug_level_id_error',
+              developerLogTraceFlag.getTraceFlagId()
+            )
+          );
+        }
         await this.subExecute(new UpdateDebugLevelsExecutor().build());
 
         if (!developerLogTraceFlag.isValidDateLength()) {

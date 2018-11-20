@@ -192,5 +192,8 @@ export const messages = {
   tooling_API_description: 'Execute the query with Tooling API',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
-  telemetry_legal_dialog_button_text: 'Read more'
+  telemetry_legal_dialog_button_text: 'Read more',
+
+  invalid_debug_level_id_error:
+    "You have an invalid trace flag in your org. Please delete the trace flag with Id: %s and any others that are missing an associated Debug Level before running this command again. You can find trace flags that are missing debug levels by running the soql query: 'SELECT Id FROM TraceFlag WHERE debuglevelid = null' or visiting the Debug Logs page in your org's Setup UI."
 };

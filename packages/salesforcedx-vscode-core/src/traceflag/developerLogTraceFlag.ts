@@ -57,6 +57,10 @@ export class DeveloperLogTraceFlag {
     showTraceFlagExpiration(this.getExpirationDate());
   }
 
+  public isValidDebugLevelId() {
+    return this.debugLevelId !== null;
+  }
+
   public isValidDateLength() {
     const currDate = new Date().valueOf();
     return (
