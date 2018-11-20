@@ -26,7 +26,7 @@
     "publish": "node scripts/publish.js",
     "prepush": "npm run lint",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test",
-    "test-insiders":
+    "test:insiders":
       "lerna exec --concurrency 1 --stream --bail=false -- npm run test:insiders",
     "test:unit":
       "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
