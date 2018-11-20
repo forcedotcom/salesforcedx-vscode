@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-core
 
-- Fix StartDate when creating or updating a TraceFlag for command `SFDX: Turn On Apex Debug Log for Replay Debugger` ([PR #743](https://github.com/forcedotcom/salesforcedx-vscode/pull/743), [Issue #710](https://github.com/forcedotcom/salesforcedx-vscode/issues/710))
+- Fix start date when creating or updating a trace flag for the command `SFDX: Turn On Apex Debug Log for Replay Debugger` ([PR #743](https://github.com/forcedotcom/salesforcedx-vscode/pull/743), [Issue #710](https://github.com/forcedotcom/salesforcedx-vscode/issues/710))
 
 #### salesforcedx-vscode-apex
 
-- Fix `NullPointerException` in Apex Language Server that could occur during initialization ([PR #760](https://github.com/forcedotcom/salesforcedx-vscode/pull/760))
+- Fix `NullPointerException` in Apex Language Server that sometimes occurred during initialization ([PR #760](https://github.com/forcedotcom/salesforcedx-vscode/pull/760))
 
 ## 44.7.0 - November 15, 2018
 
