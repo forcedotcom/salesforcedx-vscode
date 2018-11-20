@@ -62,11 +62,11 @@
     "test":
       "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
     "test:insiders":
-      "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
+      "cross-env CODE_VERSION=insiders FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
     "test:unit":
       "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
     "test:unit-insiders":
-      "cross-env FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions"
+      "cross-env CODE_VERSION=insiders FORCE_LOAD_CURRENT_LWC=true node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
