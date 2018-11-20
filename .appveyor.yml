@@ -40,10 +40,13 @@ test_script:
       "--------------------------------------------"
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
-      npm run test:without-system-tests
-      npm run test:insiders
-      npm run coverage:system-tests
-      npm run aggregateJUnit
+
+  - npm run test:without-system-tests
+  - npm run test:insiders
+  - npm run coverage:system-tests
+  - npm run aggregateJUnit
+
+  - ps: |
       junit-merge -d junit-aggregate -o junit-aggregate.xml
       $NpmTestsExitCode = $LastExitCode
       # Show status
