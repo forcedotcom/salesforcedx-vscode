@@ -52,7 +52,7 @@
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ../../scripts/run-test-with-top-level-extensions",
     "test:insiders":
-      "CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
+      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
     "test:unit": "node ../../scripts/run-test-with-top-level-extensions",
     "test:unit-insiders":
       "CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions"
