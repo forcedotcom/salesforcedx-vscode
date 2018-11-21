@@ -29,6 +29,7 @@ class MockMemento implements Memento {
 export class MockContext implements ExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
+    this.workspaceState = new MockMemento(mm);
   }
   public subscriptions: Array<{ dispose(): any }> = [];
   public workspaceState: Memento;

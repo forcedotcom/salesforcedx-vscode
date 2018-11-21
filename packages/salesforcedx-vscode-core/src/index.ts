@@ -74,6 +74,7 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -451,6 +452,8 @@ export async function activate(context: vscode.ExtensionContext) {
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
+  // Register filewatcher for push or deploy on save
+  await registerPushOrDeployOnSave();
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
