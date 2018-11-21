@@ -13,6 +13,9 @@ platform: x64
 environment:
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
+  matrix:
+    - vscode: test:without-system-tests
+    - vscode: test:insiders
 
 install:
   - ps: Install-Product node 8 x64
@@ -41,7 +44,8 @@ test_script:
       "Running npm run test:without-system-tests..."
       "--------------------------------------------"
       # npm run test:without-system-tests
-      npm run test:insiders
+  - cmd: npm run %vscode%
+  - ps: |
       npm run coverage:system-tests
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
