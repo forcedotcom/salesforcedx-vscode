@@ -36,4 +36,21 @@ describe('Force Start Apex Debug Logging', () => {
       );
     });
   });
+
+  describe('Validating debuglevelid', () => {
+    it('Should return true if debuglevelid exists', () => {
+      developerLogTraceFlag.setDebugLevelId('fakeDebugLevelId');
+      expect(developerLogTraceFlag.isValidDebugLevelId()).to.be.true;
+    });
+
+    it('Should return false if debuglevelid is null', () => {
+      developerLogTraceFlag.setDebugLevelId(null);
+      expect(developerLogTraceFlag.isValidDebugLevelId()).to.be.false;
+    });
+
+    it('Should return false if debuglevelid is undefined', () => {
+      developerLogTraceFlag.setDebugLevelId(undefined);
+      expect(developerLogTraceFlag.isValidDebugLevelId()).to.be.false;
+    });
+  });
 });
