@@ -577,6 +577,11 @@
           "type": ["boolean"],
           "default": true,
           "description": "%telemetry_enabled_description%"
+        },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%push_or_deploy_on_save_enabled_description%"
         }
       }
     },
