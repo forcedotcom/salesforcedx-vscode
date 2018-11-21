@@ -46,7 +46,7 @@ export const messages = {
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
 
   parameter_directory_strict_not_available:
-    'A required folder named "%s" does not exist in this workspace.',
+    'A required metadata folder named "%s" does not exist in this workspace.',
 
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
