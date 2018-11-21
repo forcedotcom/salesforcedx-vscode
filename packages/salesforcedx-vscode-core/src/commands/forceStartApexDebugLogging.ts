@@ -67,12 +67,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
           traceflag.DebugLevelId
         );
         if (!developerLogTraceFlag.isValidDebugLevelId()) {
-          throw new Error(
-            nls.localize(
-              'invalid_debug_level_id_error',
-              developerLogTraceFlag.getTraceFlagId()
-            )
-          );
+          throw new Error(nls.localize('invalid_debug_level_id_error'));
         }
         await this.subExecute(new UpdateDebugLevelsExecutor().build());
 

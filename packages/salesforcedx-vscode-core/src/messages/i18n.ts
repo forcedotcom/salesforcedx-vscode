@@ -195,5 +195,5 @@ export const messages = {
   telemetry_legal_dialog_button_text: 'Read more',
 
   invalid_debug_level_id_error:
-    "You have an invalid trace flag in your org. Please delete the trace flag with Id: %s and any others that are missing an associated Debug Level before running this command again. You can find trace flags that are missing debug levels by running the soql query: 'SELECT Id FROM TraceFlag WHERE debuglevelid = null' or visiting the Debug Logs page in your org's Setup UI."
+    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.'
 };
