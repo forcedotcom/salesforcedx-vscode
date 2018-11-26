@@ -27,6 +27,7 @@ import {
 } from './commands';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
+export const DEFAULT_EXPIRATION_DATE = 7;
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
 > {
@@ -42,6 +43,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       .withArg('force:org:create')
       .withFlag('-f', `${selectionPath}`)
       .withFlag('--setalias', data.alias)
+      .withFlag('-d', data.expirationDays)
       .withArg('--setdefaultusername')
       .withLogName('force_org_create_default_scratch_org')
       .build();
@@ -50,6 +52,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 
 export class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
+    const defaultExpirationdate = DEFAULT_EXPIRATION_DATE;
     let defaultAlias = DEFAULT_ALIAS;
     if (
       vscode.workspace.workspaceFolders &&
@@ -64,18 +67,34 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias
     } as vscode.InputBoxOptions;
+    const expirationDays = {
+      prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+      placeHolder: defaultExpirationdate.toString()
+    } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
+    const scratchOrgExpirationInDays = await vscode.window.showInputBox(
+      expirationDays
+    );
     // Hitting enter with no alias will use the value of `defaultAlias`
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
-    return alias === ''
-      ? { type: 'CONTINUE', data: { alias: defaultAlias } }
-      : { type: 'CONTINUE', data: { alias } };
+    // return params;
+    return {
+      type: 'CONTINUE',
+      data: {
+        alias: alias === '' ? defaultAlias : alias,
+        expirationDays:
+          scratchOrgExpirationInDays === ''
+            ? defaultExpirationdate
+            : scratchOrgExpirationInDays
+      }
+    };
   }
 }
 export interface Alias {
   alias: string;
+  expirationDays: number;
 }
 
 export type AliasAndFileSelection = Alias & FileSelection;
