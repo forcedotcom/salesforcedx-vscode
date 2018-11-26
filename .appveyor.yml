@@ -41,13 +41,13 @@ test_script:
       # Run tests
       "`n`n`n`n"
       "--------------------------------------------"
+      "Running npm run " + $vscode
       if ($vscode == test:without-system-tests)
       {"Running npm run test:without-system-tests..."}
       else
       {"Running npm run test:insiders-without-system-tests"}
       "--------------------------------------------"
-  - cmd: npm run %vscode%
-  - ps: |
+      npm run $vscode
       npm run coverage:system-tests
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
