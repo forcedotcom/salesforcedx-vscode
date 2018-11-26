@@ -57,9 +57,7 @@
     "test": "node ../../scripts/run-test-with-top-level-extensions",
     "test:insiders":
       "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit": "node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit-insiders":
-      "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions"
+    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src/extension",

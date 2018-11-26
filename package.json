@@ -30,8 +30,6 @@
       "lerna exec --concurrency 1 --stream --bail=false -- npm run test:insiders",
     "test:unit":
       "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
-    "test:unit-insiders":
-      "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
     "test:without-system-tests":
       "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test",
