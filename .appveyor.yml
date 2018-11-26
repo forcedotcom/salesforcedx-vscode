@@ -41,7 +41,7 @@ test_script:
       # Run tests
       "`n`n`n`n"
       "--------------------------------------------"
-      if (%vscode% == test:without-system-tests)
+      if ($vscode == test:without-system-tests)
       {"Running npm run test:without-system-tests..."}
       else
       {"Running npm run test:insiders-without-system-tests"}
