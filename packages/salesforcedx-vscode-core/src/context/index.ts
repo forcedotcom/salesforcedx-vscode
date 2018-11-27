@@ -7,6 +7,7 @@
 export {
   getDefaultUsernameOrAlias,
   getUsername,
+  isAScratchOrg,
   registerDefaultUsernameWatcher,
   setupWorkspaceOrgType
 } from './workspaceOrgType';

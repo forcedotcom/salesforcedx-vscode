@@ -34,7 +34,7 @@ export async function setupWorkspaceOrgType() {
   setDefaultUsernameHasNoChangeTracking(defaultUsernameIsSet && !isScratchOrg);
 }
 
-async function isAScratchOrg(username: string): Promise<boolean> {
+export async function isAScratchOrg(username: string): Promise<boolean> {
   const authInfo = await AuthInfo.create(username);
   const authInfoFields = authInfo.getFields();
   return Promise.resolve(typeof authInfoFields.devHubUsername !== 'undefined');
