@@ -11,7 +11,10 @@ import {
   ForceDeployErrorParser,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
@@ -97,9 +100,32 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   }
 }
 
+export class SourcePathsGatherer implements ParametersGatherer<SelectedPath> {
+  private uris: vscode.Uri[];
+  public constructor(uris: vscode.Uri[]) {
+    this.uris = uris;
+  }
+  public async gather(): Promise<ContinueResponse<SelectedPath>> {
+    const sourcePaths = this.uris.map(uri => uri.fsPath).join(',');
+    return {
+      type: 'CONTINUE',
+      data: { filePath: sourcePaths, type: FileType.Source }
+    };
+  }
+}
+
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceSourceDeploy(explorerPath: any) {
+export async function forceSourceDeployMultiplePaths(uris: vscode.Uri[]) {
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    new SourcePathsGatherer(uris),
+    new ForceSourceDeployExecutor()
+  );
+  await commandlet.run();
+}
+
+export async function forceSourceDeploy(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     new ManifestOrSourcePathGatherer(explorerPath),

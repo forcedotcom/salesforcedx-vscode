@@ -40,7 +40,10 @@ export async function registerPushOrDeployOnSave() {
 
           if (orgType === OrgType.NonSourceTrackedOrg) {
             console.log(`created files: ${createdFiles}`);
-            vscode.commands.executeCommand('sfdx.force.source.deploy', uri);
+            vscode.commands.executeCommand(
+              'sfdx.force.source.deploy.multiple.paths',
+              createdFiles
+            );
             createdFiles = [];
           }
         }, 1000);

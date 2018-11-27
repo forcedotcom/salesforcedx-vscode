@@ -40,6 +40,7 @@ import {
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeploy,
+  forceSourceDeployMultiplePaths,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieve,
@@ -117,6 +118,10 @@ function registerCommands(
   const forceSourceDeployCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.file',
     forceSourceDeploy
+  );
+  const forceSourceDeployMultiplePathsCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.multiple.paths',
+    forceSourceDeployMultiplePaths
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -321,6 +326,7 @@ function registerCommands(
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCmd,
     forceSourceDeployCurrentFileCmd,
+    forceSourceDeployMultiplePathsCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
