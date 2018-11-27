@@ -87,7 +87,6 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     ) {
       scratchOrgExpirationInDays = defaultExpirationdate;
     }
-    // return params;
     return {
       type: 'CONTINUE',
       data: {

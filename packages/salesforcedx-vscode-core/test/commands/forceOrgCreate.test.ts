@@ -21,6 +21,7 @@ describe('Force Org Create', () => {
     const TEST_ALIAS = 'testAlias';
     const TEST_WORKSPACE = 'sfdxsimple'; // FYI: This test uses the workspace created by the system tests to run
     const TEST_ORG_EXPIRATION_DAYS = '7';
+    const TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY = '8';
     let inputBoxSpy: sinon.SinonStub;
 
     before(() => {
@@ -31,7 +32,7 @@ describe('Force Org Create', () => {
       inputBoxSpy.onCall(2).returns('');
 
       inputBoxSpy.onCall(3).returns(TEST_ALIAS);
-      inputBoxSpy.onCall(4).returns('8');
+      inputBoxSpy.onCall(4).returns(TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY);
     });
 
     after(() => {
@@ -41,7 +42,6 @@ describe('Force Org Create', () => {
     it('Should return cancel if alias is undefined', async () => {
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      // expect(inputBoxSpy.calledOnce).to.be.true;
       expect(inputBoxSpy.callCount).to.equal(1);
       expect(response.type).to.equal('CANCEL');
     });
@@ -49,7 +49,6 @@ describe('Force Org Create', () => {
     it('Should return Continue with default alias if user input is empty string', async () => {
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      // expect(inputBoxSpy.calledTwice).to.be.true;
       expect(inputBoxSpy.callCount).to.equal(3);
       if (response.type === 'CONTINUE') {
         expect(response.data.alias).to.equal(TEST_WORKSPACE);
@@ -62,12 +61,13 @@ describe('Force Org Create', () => {
     it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      // expect(inputBoxSpy.calledThrice).to.be.true;
       expect(inputBoxSpy.callCount).to.equal(5);
       expect(response.type).to.equal('CONTINUE');
       if (response.type === 'CONTINUE') {
         expect(response.data.alias).to.equal(TEST_ALIAS);
-        expect(response.data.expirationDays).to.equal('8');
+        expect(response.data.expirationDays).to.equal(
+          TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY
+        );
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
