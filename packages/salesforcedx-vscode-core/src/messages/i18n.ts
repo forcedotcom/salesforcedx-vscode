@@ -52,7 +52,7 @@ export const messages = {
   parameter_gatherer_enter_alias_name:
     'Enter an org alias or use default alias',
   parameter_gatherer_enter_scratch_org_expiration_days:
-    'Enter the expiration days for the scratch org',
+    'Enter the number of days (1–30) until scratch org expiration or use the default value',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
   parameter_gatherer_paste_forceide_url_placeholder:
