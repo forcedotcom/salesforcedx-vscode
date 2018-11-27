@@ -85,7 +85,6 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       return { type: 'CANCEL' };
     }
     if (
-      scratchOrgExpirationInDays !== undefined &&
       !Number.isNaN(Number.parseInt(scratchOrgExpirationInDays)) &&
       Number.parseInt(scratchOrgExpirationInDays) >= 1 &&
       Number.parseInt(scratchOrgExpirationInDays) <= 30
