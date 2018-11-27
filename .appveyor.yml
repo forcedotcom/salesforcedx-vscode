@@ -42,6 +42,8 @@ test_script:
       "`n`n`n`n"
       "--------------------------------------------"
   - cmd: echo Running npm run %vscode%
+  - ps: |
+      "--------------------------------------------"
   - cmd: npm run %vscode%
   - ps: |
       npm run coverage:system-tests
