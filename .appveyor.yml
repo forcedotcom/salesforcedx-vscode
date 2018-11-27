@@ -41,9 +41,8 @@ test_script:
       # Run tests
       "`n`n`n`n"
       "--------------------------------------------"
-      "Running npm run test:without-system-tests..."
-      "Running npm run test:insiders-without-system-tests"
-      "--------------------------------------------"
+  - cmd: echo Running npm run %vscode%
+  - ps: '--------------------------------------------'
   - cmd: npm run %vscode%
   - ps: |
       npm run coverage:system-tests
