@@ -41,8 +41,9 @@ test_script:
       # Run tests
       "`n`n`n`n"
       "--------------------------------------------"
-      "Running npm run " + $vscode
+      # "Running npm run " + $vscode
       "--------------------------------------------"
+  - cmd: "Running npm run " + %vscode%
   - cmd: npm run %vscode%
   - ps: |
       npm run coverage:system-tests
