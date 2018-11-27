@@ -74,13 +74,13 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       placeHolder: defaultExpirationdate.toString()
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
-    let scratchOrgExpirationInDays = await vscode.window.showInputBox(
-      expirationDays
-    );
     // Hitting enter with no alias will use the value of `defaultAlias`
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
+    let scratchOrgExpirationInDays = await vscode.window.showInputBox(
+      expirationDays
+    );
     if (
       scratchOrgExpirationInDays === undefined ||
       scratchOrgExpirationInDays === ''

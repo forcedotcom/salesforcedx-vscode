@@ -26,8 +26,12 @@ describe('Force Org Create', () => {
     before(() => {
       inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
       inputBoxSpy.onCall(0).returns(undefined);
+
       inputBoxSpy.onCall(1).returns('');
-      inputBoxSpy.onCall(2).returns(TEST_ALIAS);
+      inputBoxSpy.onCall(2).returns('');
+
+      inputBoxSpy.onCall(3).returns(TEST_ALIAS);
+      inputBoxSpy.onCall(4).returns('8');
     });
 
     after(() => {
@@ -37,14 +41,16 @@ describe('Force Org Create', () => {
     it('Should return cancel if alias is undefined', async () => {
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledOnce).to.be.true;
+      // expect(inputBoxSpy.calledOnce).to.be.true;
+      expect(inputBoxSpy.callCount).to.equal(1);
       expect(response.type).to.equal('CANCEL');
     });
 
     it('Should return Continue with default alias if user input is empty string', async () => {
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledTwice).to.be.true;
+      // expect(inputBoxSpy.calledTwice).to.be.true;
+      expect(inputBoxSpy.callCount).to.equal(3);
       if (response.type === 'CONTINUE') {
         expect(response.data.alias).to.equal(TEST_WORKSPACE);
         expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
@@ -56,10 +62,12 @@ describe('Force Org Create', () => {
     it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledThrice).to.be.true;
+      // expect(inputBoxSpy.calledThrice).to.be.true;
+      expect(inputBoxSpy.callCount).to.equal(5);
+      expect(response.type).to.equal('CONTINUE');
       if (response.type === 'CONTINUE') {
         expect(response.data.alias).to.equal(TEST_ALIAS);
-        expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
+        expect(response.data.expirationDays).to.equal('8');
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
@@ -78,7 +86,7 @@ describe('Force Org Create', () => {
         expirationDays: TEST_ORG_EXPIRATION_DAYS
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:org:create -f ${CONFIG_FILE} --setalias ${TEST_ALIAS} --setdefaultusername`
+        `sfdx force:org:create -f ${CONFIG_FILE} --setalias ${TEST_ALIAS} -d ${TEST_ORG_EXPIRATION_DAYS} --setdefaultusername`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_org_create_default_scratch_org_text')
