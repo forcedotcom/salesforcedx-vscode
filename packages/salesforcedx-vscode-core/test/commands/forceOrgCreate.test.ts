@@ -20,6 +20,7 @@ describe('Force Org Create', () => {
   describe('Alias Gatherer', () => {
     const TEST_ALIAS = 'testAlias';
     const TEST_WORKSPACE = 'sfdxsimple'; // FYI: This test uses the workspace created by the system tests to run
+    const TEST_ORG_EXPIRATION_DAYS = '7';
     let inputBoxSpy: sinon.SinonStub;
 
     before(() => {
@@ -46,6 +47,7 @@ describe('Force Org Create', () => {
       expect(inputBoxSpy.calledTwice).to.be.true;
       if (response.type === 'CONTINUE') {
         expect(response.data.alias).to.equal(TEST_WORKSPACE);
+        expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
@@ -57,6 +59,7 @@ describe('Force Org Create', () => {
       expect(inputBoxSpy.calledThrice).to.be.true;
       if (response.type === 'CONTINUE') {
         expect(response.data.alias).to.equal(TEST_ALIAS);
+        expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
@@ -67,10 +70,12 @@ describe('Force Org Create', () => {
     it('Should build the org create command', async () => {
       const CONFIG_FILE = 'configFile.txt';
       const TEST_ALIAS = 'testAlias';
+      const TEST_ORG_EXPIRATION_DAYS = '7';
       const forceOrgCreateBuilder = new ForceOrgCreateExecutor();
       const createCommand = forceOrgCreateBuilder.build({
         file: path.join(vscode.workspace.rootPath!, CONFIG_FILE),
-        alias: TEST_ALIAS
+        alias: TEST_ALIAS,
+        expirationDays: TEST_ORG_EXPIRATION_DAYS
       });
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:org:create -f ${CONFIG_FILE} --setalias ${TEST_ALIAS} --setdefaultusername`
