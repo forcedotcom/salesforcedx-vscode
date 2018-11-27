@@ -101,7 +101,7 @@ export const messages = {
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
   force_lightning_app_create_text: 'SFDX: Create Lightning App',
-  force_lightning_component_create_text: 'SFDX: Create Lightning Component',
+  force_lightning_component_create_text: 'SFDX: Create Aura Component',
   force_lightning_event_create_text: 'SFDX: Create Lightning Event',
   force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
