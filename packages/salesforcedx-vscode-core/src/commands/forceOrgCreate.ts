@@ -27,7 +27,7 @@ import {
 } from './commands';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
-export const DEFAULT_EXPIRATION_DATE = 7;
+export const DEFAULT_EXPIRATION_DATE = '7';
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
 > {
@@ -68,33 +68,38 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       placeHolder: defaultAlias
     } as vscode.InputBoxOptions;
     const expirationDays = {
-      prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+      prompt: nls.localize(
+        'parameter_gatherer_enter_scratch_org_expiration_days'
+      ),
       placeHolder: defaultExpirationdate.toString()
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
-    const scratchOrgExpirationInDays = await vscode.window.showInputBox(
+    let scratchOrgExpirationInDays = await vscode.window.showInputBox(
       expirationDays
     );
     // Hitting enter with no alias will use the value of `defaultAlias`
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
+    if (
+      scratchOrgExpirationInDays === undefined ||
+      scratchOrgExpirationInDays === ''
+    ) {
+      scratchOrgExpirationInDays = defaultExpirationdate;
+    }
     // return params;
     return {
       type: 'CONTINUE',
       data: {
         alias: alias === '' ? defaultAlias : alias,
-        expirationDays:
-          scratchOrgExpirationInDays === ''
-            ? defaultExpirationdate
-            : scratchOrgExpirationInDays
+        expirationDays: scratchOrgExpirationInDays
       }
     };
   }
 }
 export interface Alias {
   alias: string;
-  expirationDays: number;
+  expirationDays: string;
 }
 
 export type AliasAndFileSelection = Alias & FileSelection;
