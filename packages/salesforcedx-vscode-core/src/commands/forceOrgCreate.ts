@@ -43,7 +43,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       .withArg('force:org:create')
       .withFlag('-f', `${selectionPath}`)
       .withFlag('--setalias', data.alias)
-      .withFlag('-d', data.expirationDays)
+      .withFlag('--durationdays', data.expirationDays)
       .withArg('--setdefaultusername')
       .withLogName('force_org_create_default_scratch_org')
       .build();
