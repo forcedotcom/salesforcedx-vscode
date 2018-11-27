@@ -27,7 +27,7 @@ import {
 } from './commands';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
-export const DEFAULT_EXPIRATION_DATE = '7';
+export const DEFAULT_EXPIRATION_DAYS = '7';
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
 > {
@@ -52,7 +52,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 
 export class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
-    const defaultExpirationdate = DEFAULT_EXPIRATION_DATE;
+    const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;
     if (
       vscode.workspace.workspaceFolders &&
