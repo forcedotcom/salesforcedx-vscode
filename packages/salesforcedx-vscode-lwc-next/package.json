@@ -58,6 +58,8 @@
     "pretest": "node ../../scripts/download-vscode-for-system-tests",
     "test":
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
+    "test:insiders":
+      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
     "test:unit":
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
