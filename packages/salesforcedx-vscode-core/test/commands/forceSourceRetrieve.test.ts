@@ -6,7 +6,9 @@
  */
 
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 
 import {
@@ -51,7 +53,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
   });
 });
 
-describe('Manifest or Sourcepath Gatherer', () => {
+describe('Sourcepath Gatherer', () => {
   it("Should return an object of type 'Source'", async () => {
     if (
       vscode.workspace.workspaceFolders &&
@@ -70,23 +72,261 @@ describe('Manifest or Sourcepath Gatherer', () => {
       expect.fail('The workspace root path was undefined');
     }
   });
+});
 
-  it("Should return an object of type 'Manifest'", async () => {
+describe('Manifest Gatherer', () => {
+  let showOpenDialogStub: sinon.SinonStub;
+  before(() => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const manifestDir = path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        'manifest'
+      );
+      if (!fs.existsSync(manifestDir)) {
+        fs.mkdirSync(manifestDir);
+      }
+    } else {
+      expect.fail('The workspace root path was undefined');
+    }
+  });
+
+  after(() => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const manifestDir = path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        'manifest'
+      );
+      if (fs.existsSync(manifestDir)) {
+        fs.rmdirSync(manifestDir);
+      }
+    }
+  });
+
+  beforeEach(() => {
+    showOpenDialogStub = sinon.stub(vscode.window, 'showOpenDialog');
+  });
+  afterEach(() => {
+    showOpenDialogStub.restore();
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const manifestDir = path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        'manifest'
+      );
+      if (fs.existsSync(manifestDir)) {
+        fs.readdirSync(manifestDir).forEach(file => {
+          const fileWithPath = path.join(manifestDir, file);
+          fs.unlinkSync(fileWithPath);
+        });
+      }
+    }
+  });
+
+  it("Should return an object of type 'Manifest' with full path to manifest file ", async () => {
     if (
       vscode.workspace.workspaceFolders &&
       vscode.workspace.workspaceFolders[0]
     ) {
       const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
       const manifestPath = {
-        fsPath: path.join(workspaceRootPath, 'manifest', 'file')
+        fsPath: path.join(workspaceRootPath, 'manifest', 'project.xml')
       };
+      fs.writeFileSync(manifestPath.fsPath, '');
       const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
       const response = await gatherer.gather();
       if (response.type === 'CONTINUE') {
         expect(response.data.type).to.equal(FileType.Manifest);
         expect(response.data.filePath).to.equal(manifestPath.fsPath);
+        expect(showOpenDialogStub.calledOnce).to.eq(false);
       } else {
         expect.fail('Response should be of type ContinueResponse');
+      }
+    } else {
+      expect.fail('The workspace root path was undefined');
+    }
+  });
+
+  it("Should return an object of type 'Manifest' from manifest directory path containing a single manifest ", async () => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const manifestPath = {
+        fsPath: path.join(workspaceRootPath, 'manifest')
+      };
+      const manifestXmlFileWithPath = path.join(
+        workspaceRootPath,
+        'manifest',
+        'project.xml'
+      );
+      fs.writeFileSync(manifestXmlFileWithPath, '');
+      const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
+      const response = await gatherer.gather();
+      if (response.type === 'CONTINUE') {
+        expect(response.data.type).to.equal(FileType.Manifest);
+        expect(response.data.filePath).to.equal(manifestXmlFileWithPath);
+        expect(showOpenDialogStub.calledOnce).to.eq(false);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    } else {
+      expect.fail('The workspace root path was undefined');
+    }
+  });
+
+  it("Should return an object of type 'Manifest' from manifest directory path containing a single manifest ", async () => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const manifestPath = {
+        fsPath: path.join(workspaceRootPath, 'manifest')
+      };
+      const manifestXmlFileWithPath = path.join(
+        workspaceRootPath,
+        'manifest',
+        'project.xml'
+      );
+      fs.writeFileSync(manifestXmlFileWithPath, '');
+      const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
+      const response = await gatherer.gather();
+      if (response.type === 'CONTINUE') {
+        expect(response.data.type).to.equal(FileType.Manifest);
+        expect(response.data.filePath).to.equal(manifestXmlFileWithPath);
+        expect(showOpenDialogStub.calledOnce).to.eq(false);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    } else {
+      expect.fail('The workspace root path was undefined');
+    }
+  });
+
+  it("Should return an object of type 'Manifest' from manifest directory path containing a single manifest file ", async () => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const manifestPath = {
+        fsPath: path.join(workspaceRootPath, 'manifest')
+      };
+      const manifestXmlFileWithPath = path.join(
+        workspaceRootPath,
+        'manifest',
+        'project.xml'
+      );
+      fs.writeFileSync(manifestXmlFileWithPath, '');
+      const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
+      const response = await gatherer.gather();
+      if (response.type === 'CONTINUE') {
+        expect(response.data.type).to.equal(FileType.Manifest);
+        expect(response.data.filePath).to.equal(manifestXmlFileWithPath);
+        expect(showOpenDialogStub.calledOnce).to.eq(false);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    } else {
+      expect.fail('The workspace root path was undefined');
+    }
+  });
+
+  it('Should make the user choose a manifest file if there are more than one in the manifest directory ', async () => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const manifestPath = {
+        fsPath: path.join(workspaceRootPath, 'manifest')
+      };
+      const manifestXmlFileWithPath = path.join(
+        workspaceRootPath,
+        'manifest',
+        'project.xml'
+      );
+      fs.writeFileSync(manifestXmlFileWithPath, '');
+      const manifestXmlFileWithPath2 = path.join(
+        workspaceRootPath,
+        'manifest',
+        'project2.xml'
+      );
+      fs.writeFileSync(manifestXmlFileWithPath2, '');
+      showOpenDialogStub.resolves([{ fsPath: manifestXmlFileWithPath2 }]);
+      const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
+      const response = await gatherer.gather();
+      if (response.type === 'CONTINUE') {
+        expect(response.data.type).to.equal(FileType.Manifest);
+        expect(response.data.filePath).to.equal(manifestXmlFileWithPath2);
+        expect(showOpenDialogStub.calledOnce).to.eq(true);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    } else {
+      expect.fail('The workspace root path was undefined');
+    }
+  });
+
+  it('Should open a select dialog if there are no manifest files in the directory ', async () => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const manifestPath = {
+        fsPath: path.join(workspaceRootPath, 'manifest')
+      };
+      showOpenDialogStub.resolves(undefined);
+      const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
+      const response = await gatherer.gather();
+      if (response.type === 'CANCEL') {
+        expect(showOpenDialogStub.calledOnce).to.eq(true);
+      } else {
+        expect.fail('Response should be of type CancelResponse');
+      }
+    } else {
+      expect.fail('The workspace root path was undefined');
+    }
+  });
+
+  it('Should cancel request if there are multiple manifest files and user selects cancel ', async () => {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const manifestPath = {
+        fsPath: path.join(workspaceRootPath, 'manifest')
+      };
+      const manifestXmlFileWithPath = path.join(
+        workspaceRootPath,
+        'manifest',
+        'project.xml'
+      );
+      fs.writeFileSync(manifestXmlFileWithPath, '');
+      const manifestXmlFileWithPath2 = path.join(
+        workspaceRootPath,
+        'manifest',
+        'project2.xml'
+      );
+      fs.writeFileSync(manifestXmlFileWithPath2, '');
+      showOpenDialogStub.resolves(undefined);
+      const gatherer = new ManifestOrSourcePathGatherer(manifestPath);
+      const response = await gatherer.gather();
+      if (response.type === 'CANCEL') {
+        expect(showOpenDialogStub.calledOnce).to.eq(true);
+      } else {
+        expect.fail('Response should be of type CancelResponse');
       }
     } else {
       expect.fail('The workspace root path was undefined');

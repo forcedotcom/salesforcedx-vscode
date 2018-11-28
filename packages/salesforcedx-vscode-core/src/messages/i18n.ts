@@ -82,6 +82,8 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
+  select_manifest_file_button_text: 'Select Manifest File',
+  select_manifest_filter_button_text: 'Manifest',
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
