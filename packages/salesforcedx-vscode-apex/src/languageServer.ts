@@ -42,11 +42,7 @@ async function createServer(
     if (DEBUG) {
       args = ['-cp', uberJar];
 
-      if (!shouldUseNewLwcFeatures()) {
-        args.push('-Dlwc.scoped.apex=false');
-      }
-
-      args.push(
+s      args.push(
         '-Ddebug.internal.errors=true',
         `-Ddebug.semantic.errors=${enableSemanticErrors}`,
         '-Dtrace.protocol=false',
@@ -55,10 +51,6 @@ async function createServer(
       );
     } else {
       args = ['-cp', uberJar];
-
-      if (!shouldUseNewLwcFeatures()) {
-        args.push('-Dlwc.scoped.use=false');
-      }
 
       args.push(
         '-Ddebug.internal.errors=true',
@@ -108,17 +100,6 @@ function startedInDebugMode(): boolean {
     );
   }
   return false;
-}
-
-/**
- * This is a temporary function that is just used to gate LWC features.
- * This is to be removed when LWC goes GA.
- */
-function shouldUseNewLwcFeatures(): boolean {
-  const isLwcNext = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-lwc-next'
-  );
-  return isLwcNext ? true : false;
 }
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
