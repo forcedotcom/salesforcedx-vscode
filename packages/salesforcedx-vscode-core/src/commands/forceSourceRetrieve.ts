@@ -81,7 +81,7 @@ export class ManifestOrSourcePathGatherer
               canSelectFolders: false,
               canSelectMany: false,
               openLabel: nls.localize('select_manifest_file_button_text'),
-              filters: { localizedFilterButtonText: ['xml'] },
+              filters: { [localizedFilterButtonText]: ['xml'] },
               defaultUri: vscode.Uri.file(manifestFile)
             });
             if (fileUris && fileUris.length === 1) {
