@@ -115,17 +115,17 @@
         {
           "command": "sfdx.force.apex.class.create",
           "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.component.create",
           "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.page.create",
           "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.app.create",
@@ -150,7 +150,7 @@
         {
           "command": "sfdx.force.apex.trigger.create",
           "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lightningcomponents && sfdx:project_opened"
+            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.source.retrieve",
