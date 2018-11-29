@@ -100,7 +100,8 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class SourcePathsGatherer implements ParametersGatherer<SelectedPath> {
+export class MultipleSourcePathsGatherer
+  implements ParametersGatherer<SelectedPath> {
   private uris: vscode.Uri[];
   public constructor(uris: vscode.Uri[]) {
     this.uris = uris;
@@ -119,7 +120,7 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 export async function forceSourceDeployMultiplePaths(uris: vscode.Uri[]) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
-    new SourcePathsGatherer(uris),
+    new MultipleSourcePathsGatherer(uris),
     new ForceSourceDeployExecutor()
   );
   await commandlet.run();
