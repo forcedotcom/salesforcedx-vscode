@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.8.0",
+  "version": "44.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,7 +22,7 @@
   },
   "categories": ["Debuggers"],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "44.8.0",
+    "@salesforce/salesforcedx-apex-debugger": "44.9.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-extension-telemetry": "0.0.17"
   },
@@ -53,6 +53,8 @@
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ../../scripts/run-test-with-top-level-extensions",
+    "test:insiders":
+      "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
     "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": [
