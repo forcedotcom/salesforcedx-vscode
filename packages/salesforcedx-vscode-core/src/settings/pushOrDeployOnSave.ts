@@ -4,6 +4,7 @@ import {
   getUsername,
   isAScratchOrg
 } from '../context';
+import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 
 import * as vscode from 'vscode';
@@ -65,15 +66,20 @@ export async function registerPushOrDeployOnSave() {
         clearTimeout(deletedFilesTimeout);
 
         deletedFilesTimeout = setTimeout(async () => {
-          const orgType = await getOrgType();
+          let orgType;
+          try {
+            orgType = await getOrgType();
+          } catch (e) {
+            console.log(e);
+          }
+
           if (orgType === OrgType.SourceTrackedOrg) {
             vscode.commands.executeCommand('sfdx.force.source.push');
             deletedFiles = [];
           }
 
           if (orgType === OrgType.NonSourceTrackedOrg) {
-            console.log(`deleted files: ${deletedFiles}`);
-            vscode.commands.executeCommand('sfdx.force.source.delete', uri);
+            notificationService.showErrorMessage('Use the Delete Command Plz');
             deletedFiles = [];
           }
         });
