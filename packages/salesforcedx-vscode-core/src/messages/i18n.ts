@@ -192,5 +192,9 @@ export const messages = {
   tooling_API_description: 'Execute the query with Tooling API',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
-  telemetry_legal_dialog_button_text: 'Read more'
+  telemetry_legal_dialog_button_text: 'Read more',
+  error_fetching_auth_info_text:
+    'Error fetching the info for your defaultusername. Please re-auth into your org and manually push or deploy your change again.',
+  error_change_not_deleted_text:
+    'Unfortunately, automatic deployment of deletes is not supported. If you would like to deploy the source that you just deleted, please undo your last deletion and delete your source using the SFDX: Delete Source from Project and Org command'
 };

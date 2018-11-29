@@ -50,7 +50,13 @@ export async function registerPushOrDeployOnSave() {
             createdFiles = [];
           } catch (e) {
             createdFiles = [];
-            notificationService.showErrorMessage(e.message);
+            if (e.name === 'NamedOrgNotFound') {
+              notificationService.showErrorMessage(
+                nls.localize('error_fetching_auth_info_text')
+              );
+            } else {
+              notificationService.showErrorMessage(e);
+            }
           }
         }, WAIT_TIME_IN_MS);
       });
@@ -66,7 +72,13 @@ export async function registerPushOrDeployOnSave() {
             vscode.commands.executeCommand('sfdx.force.source.deploy', uri);
           }
         } catch (e) {
-          notificationService.showErrorMessage(e.message);
+          if (e.name === 'NamedOrgNotFound') {
+            notificationService.showErrorMessage(
+              nls.localize('error_fetching_auth_info_text')
+            );
+          } else {
+            notificationService.showErrorMessage(e);
+          }
         }
       });
 
@@ -83,13 +95,19 @@ export async function registerPushOrDeployOnSave() {
 
             if (orgType === OrgType.NonSourceTrackedOrg) {
               notificationService.showErrorMessage(
-                'Use the Delete Command Plz'
+                nls.localize('error_change_not_deleted_text')
               );
             }
             deletedFiles = [];
           } catch (e) {
             deletedFiles = [];
-            notificationService.showErrorMessage(e.message);
+            if (e.name === 'NamedOrgNotFound') {
+              notificationService.showErrorMessage(
+                nls.localize('error_fetching_auth_info_text')
+              );
+            } else {
+              notificationService.showErrorMessage(e);
+            }
           }
         }, WAIT_TIME_IN_MS);
       });
@@ -112,7 +130,7 @@ async function getOrgType(): Promise<OrgType> {
     try {
       isScratchOrg = await isAScratchOrg(username);
     } catch (e) {
-      throw new Error('Error finding default org type, please re-auth');
+      throw e;
     }
 
     if (defaultUsernameIsSet && isScratchOrg) {
