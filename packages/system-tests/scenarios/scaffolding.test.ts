@@ -178,9 +178,9 @@ describe('Scaffolding commands', () => {
   });
 
   it('Should create Lightning component', async () => {
-    // Invoke SFDX: Create Aura Component command by name
+    // Invoke SFDX: Create Lightning Component command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create Aura Component');
+    await common.type('>SFDX: Create Lightning Component');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 

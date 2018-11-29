@@ -82,7 +82,7 @@ These Salesforce CLI commands are available:
 - `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
 - `force:data:soql:query ...`: **SFDX: Execute SOQL Query...**
 - `force:lightning:app:create ...`: **SFDX: Create Lightning App**
-- `force:lightning:component:create ...`: **SFDX: Create Aura Component**
+- `force:lightning:component:create ...`: **SFDX: Create Lightning Component**
 - `force:lightning:event:create ...`: **SFDX: Create Lightning Event**
 - `force:lightning:interface:create ...`: **SFDX: Create Lightning Interface**
 - `force:org:create --setdefaultusername ...`: **SFDX: Create a Default Scratch Org**
