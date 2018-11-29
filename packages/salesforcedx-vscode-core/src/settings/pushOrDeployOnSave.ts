@@ -19,14 +19,20 @@ interface PackageDirectory {
   default?: boolean;
 }
 
+enum EventType {
+  Create,
+  Change,
+  Delete
+}
+
 const WAIT_TIME_IN_MS = 1000;
 
 export async function registerPushOrDeployOnSave() {
   if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
-    let createdFiles: vscode.Uri[] = [];
+    const createdFiles: vscode.Uri[] = [];
     let createdFilesTimeout: NodeJS.Timer;
 
-    let deletedFiles: vscode.Uri[] = [];
+    const deletedFiles: vscode.Uri[] = [];
     let deletedFilesTimeout: NodeJS.Timer;
     const sourceFilesWatcher = await createSourceFilesWatcher();
     if (sourceFilesWatcher) {
@@ -35,51 +41,12 @@ export async function registerPushOrDeployOnSave() {
         clearTimeout(createdFilesTimeout);
 
         createdFilesTimeout = setTimeout(async () => {
-          try {
-            const orgType = await getOrgType();
-            if (orgType === OrgType.SourceTrackedOrg) {
-              vscode.commands.executeCommand('sfdx.force.source.push');
-            }
-
-            if (orgType === OrgType.NonSourceTrackedOrg) {
-              vscode.commands.executeCommand(
-                'sfdx.force.source.deploy.multiple.paths',
-                createdFiles
-              );
-            }
-            createdFiles = [];
-          } catch (e) {
-            createdFiles = [];
-            if (e.name === 'NamedOrgNotFound') {
-              notificationService.showErrorMessage(
-                nls.localize('error_fetching_auth_info_text')
-              );
-            } else {
-              notificationService.showErrorMessage(e);
-            }
-          }
+          await pushOrDeploy(EventType.Create, createdFiles);
         }, WAIT_TIME_IN_MS);
       });
 
       sourceFilesWatcher.onDidChange(async uri => {
-        try {
-          const orgType = await getOrgType();
-          if (orgType === OrgType.SourceTrackedOrg) {
-            vscode.commands.executeCommand('sfdx.force.source.push');
-          }
-
-          if (orgType === OrgType.NonSourceTrackedOrg) {
-            vscode.commands.executeCommand('sfdx.force.source.deploy', uri);
-          }
-        } catch (e) {
-          if (e.name === 'NamedOrgNotFound') {
-            notificationService.showErrorMessage(
-              nls.localize('error_fetching_auth_info_text')
-            );
-          } else {
-            notificationService.showErrorMessage(e);
-          }
-        }
+        await pushOrDeploy(EventType.Change, [uri]);
       });
 
       sourceFilesWatcher.onDidDelete(async uri => {
@@ -87,30 +54,46 @@ export async function registerPushOrDeployOnSave() {
         clearTimeout(deletedFilesTimeout);
 
         deletedFilesTimeout = setTimeout(async () => {
-          try {
-            const orgType = await getOrgType();
-            if (orgType === OrgType.SourceTrackedOrg) {
-              vscode.commands.executeCommand('sfdx.force.source.push');
-            }
-
-            if (orgType === OrgType.NonSourceTrackedOrg) {
-              notificationService.showErrorMessage(
-                nls.localize('error_change_not_deleted_text')
-              );
-            }
-            deletedFiles = [];
-          } catch (e) {
-            deletedFiles = [];
-            if (e.name === 'NamedOrgNotFound') {
-              notificationService.showErrorMessage(
-                nls.localize('error_fetching_auth_info_text')
-              );
-            } else {
-              notificationService.showErrorMessage(e);
-            }
-          }
+          await pushOrDeploy(EventType.Delete, deletedFiles);
         }, WAIT_TIME_IN_MS);
       });
+    }
+  }
+}
+
+async function pushOrDeploy(
+  eventType: EventType,
+  uris: vscode.Uri[]
+): Promise<void> {
+  try {
+    const orgType = await getOrgType();
+    if (orgType === OrgType.SourceTrackedOrg) {
+      vscode.commands.executeCommand('sfdx.force.source.push');
+    }
+
+    if (orgType === OrgType.NonSourceTrackedOrg) {
+      if (eventType === EventType.Create) {
+        vscode.commands.executeCommand(
+          'sfdx.force.source.deploy.multiple.paths',
+          uris
+        );
+      } else if (eventType === EventType.Change) {
+        vscode.commands.executeCommand('sfdx.force.source.deploy', uris[0]);
+      } else {
+        notificationService.showErrorMessage(
+          nls.localize('error_change_not_deleted_text')
+        );
+      }
+    }
+    uris = [];
+  } catch (e) {
+    uris = [];
+    if (e.name === 'NamedOrgNotFound') {
+      notificationService.showErrorMessage(
+        nls.localize('error_fetching_auth_info_text')
+      );
+    } else {
+      notificationService.showErrorMessage(e);
     }
   }
 }

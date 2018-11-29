@@ -196,7 +196,7 @@ export const messages = {
   invalid_debug_level_id_error:
     'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
   error_fetching_auth_info_text:
-    'Error fetching the info for your defaultusername. Please re-auth into your org and manually push or deploy your change again.',
+    'Error fetching the info for your defaultusername. Your last change was not deployed to your org. Please re-auth into your org and manually push or deploy your change again.',
   error_change_not_deleted_text:
     'Unfortunately, automatic deployment of deletes is not supported. If you would like to deploy the source that you just deleted, please undo your last deletion and delete your source using the SFDX: Delete Source from Project and Org command'
 };
