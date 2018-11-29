@@ -4,6 +4,7 @@ import {
   getUsername,
   isAScratchOrg
 } from '../context';
+import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 
@@ -18,71 +19,79 @@ interface PackageDirectory {
   default?: boolean;
 }
 
-let createdFiles: vscode.Uri[] = [];
-let createdFilesTimeout: any = null;
-
-let deletedFiles: vscode.Uri[] = [];
-let deletedFilesTimeout: any = null;
+const WAIT_TIME_IN_MS = 1000;
 
 export async function registerPushOrDeployOnSave() {
   if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
-    const fileSystemWatcher = await createFileSystemWatcher();
-    if (fileSystemWatcher) {
-      fileSystemWatcher.onDidCreate(async uri => {
+    let createdFiles: vscode.Uri[] = [];
+    let createdFilesTimeout: NodeJS.Timer;
+
+    let deletedFiles: vscode.Uri[] = [];
+    let deletedFilesTimeout: NodeJS.Timer;
+    const sourceFilesWatcher = await createSourceFilesWatcher();
+    if (sourceFilesWatcher) {
+      sourceFilesWatcher.onDidCreate(async uri => {
         createdFiles.push(uri);
         clearTimeout(createdFilesTimeout);
 
         createdFilesTimeout = setTimeout(async () => {
+          try {
+            const orgType = await getOrgType();
+            if (orgType === OrgType.SourceTrackedOrg) {
+              vscode.commands.executeCommand('sfdx.force.source.push');
+            }
+
+            if (orgType === OrgType.NonSourceTrackedOrg) {
+              vscode.commands.executeCommand(
+                'sfdx.force.source.deploy.multiple.paths',
+                createdFiles
+              );
+            }
+            createdFiles = [];
+          } catch (e) {
+            createdFiles = [];
+            notificationService.showErrorMessage(e.message);
+          }
+        }, WAIT_TIME_IN_MS);
+      });
+
+      sourceFilesWatcher.onDidChange(async uri => {
+        try {
           const orgType = await getOrgType();
           if (orgType === OrgType.SourceTrackedOrg) {
             vscode.commands.executeCommand('sfdx.force.source.push');
-            createdFiles = [];
           }
 
           if (orgType === OrgType.NonSourceTrackedOrg) {
-            console.log(`created files: ${createdFiles}`);
-            vscode.commands.executeCommand(
-              'sfdx.force.source.deploy.multiple.paths',
-              createdFiles
-            );
-            createdFiles = [];
+            vscode.commands.executeCommand('sfdx.force.source.deploy', uri);
           }
-        }, 1000);
-      });
-
-      fileSystemWatcher.onDidChange(async uri => {
-        const orgType = await getOrgType();
-        if (orgType === OrgType.SourceTrackedOrg) {
-          vscode.commands.executeCommand('sfdx.force.source.push');
-        }
-
-        if (orgType === OrgType.NonSourceTrackedOrg) {
-          vscode.commands.executeCommand('sfdx.force.source.deploy', uri);
+        } catch (e) {
+          notificationService.showErrorMessage(e.message);
         }
       });
 
-      fileSystemWatcher.onDidDelete(async uri => {
+      sourceFilesWatcher.onDidDelete(async uri => {
         deletedFiles.push(uri);
         clearTimeout(deletedFilesTimeout);
 
         deletedFilesTimeout = setTimeout(async () => {
-          let orgType;
           try {
-            orgType = await getOrgType();
+            const orgType = await getOrgType();
+            if (orgType === OrgType.SourceTrackedOrg) {
+              vscode.commands.executeCommand('sfdx.force.source.push');
+            }
+
+            if (orgType === OrgType.NonSourceTrackedOrg) {
+              notificationService.showErrorMessage(
+                'Use the Delete Command Plz'
+              );
+            }
+            deletedFiles = [];
           } catch (e) {
-            console.log(e);
-          }
-
-          if (orgType === OrgType.SourceTrackedOrg) {
-            vscode.commands.executeCommand('sfdx.force.source.push');
             deletedFiles = [];
+            notificationService.showErrorMessage(e.message);
           }
-
-          if (orgType === OrgType.NonSourceTrackedOrg) {
-            notificationService.showErrorMessage('Use the Delete Command Plz');
-            deletedFiles = [];
-          }
-        });
+        }, WAIT_TIME_IN_MS);
       });
     }
   }
@@ -117,7 +126,7 @@ async function getOrgType(): Promise<OrgType> {
   return Promise.resolve(OrgType.NoOrgSet);
 }
 
-async function createFileSystemWatcher(): Promise<vscode.FileSystemWatcher | null> {
+async function createSourceFilesWatcher(): Promise<vscode.FileSystemWatcher | null> {
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders.length > 0
