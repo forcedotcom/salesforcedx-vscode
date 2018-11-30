@@ -117,7 +117,7 @@ export class MultipleSourcePathsGatherer
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceSourceDeployMultiplePaths(uris: vscode.Uri[]) {
+export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     new MultipleSourcePathsGatherer(uris),

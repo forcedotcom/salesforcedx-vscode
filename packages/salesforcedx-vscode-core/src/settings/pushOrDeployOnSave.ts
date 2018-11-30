@@ -77,7 +77,7 @@ async function pushOrDeploy(
     if (orgType === OrgType.NonSourceTracked) {
       if (fileEventType === FileEventType.Create) {
         vscode.commands.executeCommand(
-          'sfdx.force.source.deploy.multiple.paths',
+          'sfdx.force.source.deploy.multiple.source.paths',
           filesToDeploy!.slice(0)
         );
       } else if (fileEventType === FileEventType.Change) {

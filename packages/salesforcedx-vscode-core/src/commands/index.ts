@@ -31,7 +31,7 @@ export { forceOrgOpen } from './forceOrgOpen';
 export { forceSourceDelete } from './forceSourceDelete';
 export {
   forceSourceDeploy,
-  forceSourceDeployMultiplePaths
+  forceSourceDeployMultipleSourcePaths
 } from './forceSourceDeploy';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
