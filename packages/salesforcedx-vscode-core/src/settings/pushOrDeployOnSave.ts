@@ -82,7 +82,7 @@ async function pushOrDeploy(
         );
       } else if (fileEventType === FileEventType.Change) {
         vscode.commands.executeCommand(
-          'sfdx.force.source.deploy',
+          'sfdx.force.source.deploy.manifest.or.source.path',
           filesToDeploy![0]
         );
       } else if (fileEventType === FileEventType.Delete) {

@@ -39,7 +39,7 @@ import {
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
-  forceSourceDeploy,
+  forceSourceDeployManifestOrSourcePath,
   forceSourceDeployMultipleSourcePaths,
   forceSourcePull,
   forceSourcePush,
@@ -111,13 +111,13 @@ function registerCommands(
     'sfdx.force.source.delete.current.file',
     forceSourceDelete
   );
-  const forceSourceDeployCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy',
-    forceSourceDeploy
+  const forceSourceDeployManifestOrSourcePathCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.manifest.or.source.path',
+    forceSourceDeployManifestOrSourcePath
   );
   const forceSourceDeployCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.file',
-    forceSourceDeploy
+    forceSourceDeployManifestOrSourcePath
   );
   const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.multiple.source.paths',
@@ -324,7 +324,7 @@ function registerCommands(
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
-    forceSourceDeployCmd,
+    forceSourceDeployManifestOrSourcePathCmd,
     forceSourceDeployCurrentFileCmd,
     forceSourceDeployMultipleSourcePathsCmd,
     forceSourcePullCmd,

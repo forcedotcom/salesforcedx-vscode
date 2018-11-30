@@ -126,7 +126,9 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   await commandlet.run();
 }
 
-export async function forceSourceDeploy(explorerPath: vscode.Uri) {
+export async function forceSourceDeployManifestOrSourcePath(
+  explorerPath: vscode.Uri
+) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     new ManifestOrSourcePathGatherer(explorerPath),

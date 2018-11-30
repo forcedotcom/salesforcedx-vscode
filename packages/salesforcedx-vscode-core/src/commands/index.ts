@@ -30,7 +30,7 @@ export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
 export { forceSourceDelete } from './forceSourceDelete';
 export {
-  forceSourceDeploy,
+  forceSourceDeployManifestOrSourcePath,
   forceSourceDeployMultipleSourcePaths
 } from './forceSourceDeploy';
 export { forceSourcePull } from './forceSourcePull';

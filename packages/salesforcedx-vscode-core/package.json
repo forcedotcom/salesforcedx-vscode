@@ -158,7 +158,7 @@
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         },
         {
-          "command": "sfdx.force.source.deploy",
+          "command": "sfdx.force.source.deploy.manifest.or.source.path",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         },
@@ -346,7 +346,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy",
+          "command": "sfdx.force.source.deploy.manifest.or.source.path",
           "when": "false"
         },
         {
@@ -545,7 +545,7 @@
         "title": "%force_source_retrieve_this_source_text%"
       },
       {
-        "command": "sfdx.force.source.deploy",
+        "command": "sfdx.force.source.deploy.manifest.or.source.path",
         "title": "%force_source_deploy_text%"
       },
       {
