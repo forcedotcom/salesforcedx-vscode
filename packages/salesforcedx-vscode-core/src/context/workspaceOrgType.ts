@@ -10,34 +10,58 @@ import * as vscode from 'vscode';
 
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
-export async function setupWorkspaceOrgType() {
-  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-  let isScratchOrg = false;
-  if (defaultUsernameIsSet) {
-    const username = await getUsername(defaultUsernameOrAlias!);
-    try {
-      isScratchOrg = await isAScratchOrg(username);
-    } catch (e) {
-      if (e.name === 'NamedOrgNotFound') {
-        // If the info for a default username cannot be found,
-        // then assume that the org can be of either type
-        setDefaultUsernameHasChangeTracking(true);
-        setDefaultUsernameHasNoChangeTracking(true);
-        return;
-      } else {
-        throw e;
-      }
-    }
-  }
-  setDefaultUsernameHasChangeTracking(defaultUsernameIsSet && isScratchOrg);
-  setDefaultUsernameHasNoChangeTracking(defaultUsernameIsSet && !isScratchOrg);
+export enum OrgType {
+  SourceTracked,
+  NonSourceTracked
 }
 
-export async function isAScratchOrg(username: string): Promise<boolean> {
-  const authInfo = await AuthInfo.create(username);
-  const authInfoFields = authInfo.getFields();
-  return Promise.resolve(typeof authInfoFields.devHubUsername !== 'undefined');
+export async function getWorkspaceOrgType(): Promise<OrgType> {
+  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
+  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
+
+  if (defaultUsernameIsSet) {
+    const username = await getUsername(defaultUsernameOrAlias!);
+    const isScratchOrg = await isAScratchOrg(username);
+    return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+  }
+
+  const e = new Error('Defaultusername is not set');
+  e.name = 'NoDefaultusernameSet';
+  throw e;
+}
+
+export async function setupWorkspaceOrgType() {
+  try {
+    const orgType = await getWorkspaceOrgType();
+    setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
+    setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
+  } catch (e) {
+    if (e.name === 'NamedOrgNotFound') {
+      // If the info for a default username cannot be found,
+      // then assume that the org can be of either type
+      setDefaultUsernameHasChangeTracking(true);
+      setDefaultUsernameHasNoChangeTracking(true);
+    } else if (e.name === 'NoDefaultusernameSet') {
+      setDefaultUsernameHasChangeTracking(false);
+      setDefaultUsernameHasNoChangeTracking(false);
+    } else {
+      throw e;
+    }
+  }
+}
+
+async function isAScratchOrg(username: string): Promise<boolean> {
+  try {
+    const authInfo = await AuthInfo.create(username);
+    const authInfoFields = authInfo.getFields();
+    return Promise.resolve(
+      typeof authInfoFields.devHubUsername !== 'undefined'
+    );
+  } catch (e) {
+    // If the info for a username cannot be found,
+    // then the name of the exception will be 'NamedOrgNotFound'
+    throw e;
+  }
 }
 
 /**

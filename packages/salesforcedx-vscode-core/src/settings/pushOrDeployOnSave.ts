@@ -1,9 +1,5 @@
 import { SfdxProject } from '@salesforce/core';
-import {
-  getDefaultUsernameOrAlias,
-  getUsername,
-  isAScratchOrg
-} from '../context';
+import { getWorkspaceOrgType, OrgType } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -19,7 +15,7 @@ interface PackageDirectory {
   default?: boolean;
 }
 
-enum EventType {
+enum FileEventType {
   Create,
   Change,
   Delete
@@ -29,116 +25,107 @@ const WAIT_TIME_IN_MS = 1000;
 
 export async function registerPushOrDeployOnSave() {
   if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
-    const createdFiles: vscode.Uri[] = [];
-    let createdFilesTimeout: NodeJS.Timer;
-
-    const deletedFiles: vscode.Uri[] = [];
-    let deletedFilesTimeout: NodeJS.Timer;
-    const sourceFilesWatcher = await createSourceFilesWatcher();
-    if (sourceFilesWatcher) {
-      sourceFilesWatcher.onDidCreate(async uri => {
-        createdFiles.push(uri);
-        clearTimeout(createdFilesTimeout);
-
-        createdFilesTimeout = setTimeout(async () => {
-          await pushOrDeploy(EventType.Create, createdFiles);
-        }, WAIT_TIME_IN_MS);
-      });
-
-      sourceFilesWatcher.onDidChange(async uri => {
-        await pushOrDeploy(EventType.Change, [uri]);
-      });
-
-      sourceFilesWatcher.onDidDelete(async uri => {
-        deletedFiles.push(uri);
-        clearTimeout(deletedFilesTimeout);
-
-        deletedFilesTimeout = setTimeout(async () => {
-          await pushOrDeploy(EventType.Delete, deletedFiles);
-        }, WAIT_TIME_IN_MS);
-      });
+    const sourceFileWatcher = await createSourceFileWatcher();
+    if (sourceFileWatcher) {
+      setupFileCreateListener(sourceFileWatcher);
+      setupFileChangeListener(sourceFileWatcher);
+      setupFileDeleteListener(sourceFileWatcher);
     }
   }
 }
 
+function setupFileCreateListener(sourceFileWatcher: vscode.FileSystemWatcher) {
+  const createdFiles: vscode.Uri[] = [];
+  let createdFilesTimeout: NodeJS.Timer;
+  sourceFileWatcher.onDidCreate(async uri => {
+    createdFiles.push(uri);
+    clearTimeout(createdFilesTimeout);
+
+    createdFilesTimeout = setTimeout(async () => {
+      await pushOrDeploy(FileEventType.Create, createdFiles);
+    }, WAIT_TIME_IN_MS);
+  });
+}
+
+function setupFileChangeListener(sourceFileWatcher: vscode.FileSystemWatcher) {
+  sourceFileWatcher.onDidChange(async uri => {
+    await pushOrDeploy(FileEventType.Change, [uri]);
+  });
+}
+
+function setupFileDeleteListener(sourceFileWatcher: vscode.FileSystemWatcher) {
+  let deletedFilesTimeout: NodeJS.Timer;
+  sourceFileWatcher.onDidDelete(async uri => {
+    clearTimeout(deletedFilesTimeout);
+
+    deletedFilesTimeout = setTimeout(async () => {
+      await pushOrDeploy(FileEventType.Delete);
+    }, WAIT_TIME_IN_MS);
+  });
+}
+
 async function pushOrDeploy(
-  eventType: EventType,
-  uris: vscode.Uri[]
+  fileEventType: FileEventType,
+  filesToDeploy?: vscode.Uri[]
 ): Promise<void> {
   try {
-    const orgType = await getOrgType();
-    if (orgType === OrgType.SourceTrackedOrg) {
+    const orgType = await getWorkspaceOrgType();
+    if (orgType === OrgType.SourceTracked) {
       vscode.commands.executeCommand('sfdx.force.source.push');
     }
 
-    if (orgType === OrgType.NonSourceTrackedOrg) {
-      if (eventType === EventType.Create) {
+    if (orgType === OrgType.NonSourceTracked) {
+      if (fileEventType === FileEventType.Create) {
         vscode.commands.executeCommand(
           'sfdx.force.source.deploy.multiple.paths',
-          uris
+          filesToDeploy!.slice(0)
         );
-      } else if (eventType === EventType.Change) {
-        vscode.commands.executeCommand('sfdx.force.source.deploy', uris[0]);
-      } else {
+      } else if (fileEventType === FileEventType.Change) {
+        vscode.commands.executeCommand(
+          'sfdx.force.source.deploy',
+          filesToDeploy![0]
+        );
+      } else if (fileEventType === FileEventType.Delete) {
         notificationService.showErrorMessage(
           nls.localize('error_change_not_deleted_text')
         );
       }
     }
-    uris = [];
   } catch (e) {
-    uris = [];
     if (e.name === 'NamedOrgNotFound') {
       notificationService.showErrorMessage(
         nls.localize('error_fetching_auth_info_text')
       );
+    } else if (e.name === 'NoDefaultusernameSet') {
+      // Do nothing.
     } else {
       notificationService.showErrorMessage(e);
     }
-  }
-}
-
-enum OrgType {
-  SourceTrackedOrg,
-  NonSourceTrackedOrg,
-  NoOrgSet
-}
-
-async function getOrgType(): Promise<OrgType> {
-  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-  let isScratchOrg = false;
-  if (defaultUsernameIsSet) {
-    const username = await getUsername(defaultUsernameOrAlias!);
-    try {
-      isScratchOrg = await isAScratchOrg(username);
-    } catch (e) {
-      throw e;
-    }
-
-    if (defaultUsernameIsSet && isScratchOrg) {
-      return Promise.resolve(OrgType.SourceTrackedOrg);
-    }
-
-    if (defaultUsernameIsSet && !isScratchOrg) {
-      return Promise.resolve(OrgType.NonSourceTrackedOrg);
+  } finally {
+    if (filesToDeploy) {
+      emptyCollectedFiles(filesToDeploy);
     }
   }
-  return Promise.resolve(OrgType.NoOrgSet);
 }
 
-async function createSourceFilesWatcher(): Promise<vscode.FileSystemWatcher | null> {
+function emptyCollectedFiles(uris: vscode.Uri[]) {
+  uris.length = 0;
+}
+
+async function createSourceFileWatcher(): Promise<vscode.FileSystemWatcher | null> {
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders.length > 0
   ) {
-    const projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const project = await SfdxProject.resolve(projectPath);
-    const projectJson = (await project.resolveProjectConfig()) as SfdxProjectJson;
-    const packageDirectoryPaths = projectJson.packageDirectories.map(
+    const sfdxProjectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
+    const sfdxProjectJson = (await sfdxProject.resolveProjectConfig()) as SfdxProjectJson;
+    const packageDirectoryPaths = sfdxProjectJson.packageDirectories.map(
       packageDir => packageDir.path
     );
-    const globString = `${projectPath}/{${packageDirectoryPaths.join(',')}}/**`;
+    const globString = `${sfdxProjectPath}/{${packageDirectoryPaths.join(
+      ','
+    )}}/**`;
     const fileSystemWatcher = vscode.workspace.createFileSystemWatcher(
       globString
     );
