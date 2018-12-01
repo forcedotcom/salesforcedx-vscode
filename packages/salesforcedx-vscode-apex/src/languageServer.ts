@@ -42,7 +42,7 @@ async function createServer(
     if (DEBUG) {
       args = ['-cp', uberJar];
 
-s      args.push(
+      args.push(
         '-Ddebug.internal.errors=true',
         `-Ddebug.semantic.errors=${enableSemanticErrors}`,
         '-Dtrace.protocol=false',
