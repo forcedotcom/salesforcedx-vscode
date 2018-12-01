@@ -26,6 +26,7 @@
     "@salesforce/salesforcedx-utils-vscode": "44.8.0",
     "@salesforce/eslint-config-lwc": "^0.2.0",
     "ajv": "^6.1.1",
+    "eslint": "^5.0.0",
     "lwc-language-server": "^1.7.0",
     "rxjs": "^5.4.1",
     "vscode-extension-telemetry": "0.0.17",
