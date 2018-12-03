@@ -81,19 +81,22 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     let scratchOrgExpirationInDays = await vscode.window.showInputBox(
       expirationDays
     );
-    if (scratchOrgExpirationInDays === undefined) {
-      return { type: 'CANCEL' };
-    }
     if (
-      !Number.isNaN(Number.parseInt(scratchOrgExpirationInDays)) &&
-      Number.parseInt(scratchOrgExpirationInDays) >= 1 &&
-      Number.parseInt(scratchOrgExpirationInDays) <= 30
+      scratchOrgExpirationInDays === undefined ||
+      !Number.isSafeInteger(Number.parseInt(scratchOrgExpirationInDays))
     ) {
-      scratchOrgExpirationInDays = Number.parseInt(
-        scratchOrgExpirationInDays
-      ).toString();
+      return { type: 'CANCEL' };
     } else {
-      scratchOrgExpirationInDays = DEFAULT_EXPIRATION_DAYS;
+      if (
+        Number.parseInt(scratchOrgExpirationInDays) < 1 ||
+        Number.parseInt(scratchOrgExpirationInDays) > 30
+      ) {
+        scratchOrgExpirationInDays = DEFAULT_EXPIRATION_DAYS;
+      } else {
+        scratchOrgExpirationInDays = Number.parseInt(
+          scratchOrgExpirationInDays
+        ).toString();
+      }
     }
     return {
       type: 'CONTINUE',
