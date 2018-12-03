@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import fs = require('fs');
@@ -42,7 +43,10 @@ export class ApexTestOutlineProvider
   public testStrings: Set<string> = new Set<string>();
   private apexTestInfo: ApexTestMethod[] | null;
 
-  constructor(apexTestInfo: ApexTestMethod[] | null) {
+  constructor(
+    apexTestInfo: ApexTestMethod[] | null,
+    context: vscode.ExtensionContext
+  ) {
     this.rootNode = null;
     this.apexTestInfo = apexTestInfo;
     this.getAllApexTests();
@@ -148,17 +152,17 @@ export class ApexTestOutlineProvider
     return this.rootNode;
   }
 
-  public readJSONFile(folderName: string) {
-    const jsonSummary = this.getJSONFileOutput(folderName);
+  public readJSONFile(testResultFilePath: string) {
+    const jsonSummary = this.getJSONFileOutput(testResultFilePath);
     this.updateTestsFromJSON(jsonSummary);
     this.onDidChangeTestData.fire();
   }
 
-  private getJSONFileOutput(fullFolderName: string): FullTestResult {
-    const testRunIdFile = path.join(fullFolderName, 'test-run-id.txt');
+  private getJSONFileOutput(testResultFilePath: string): FullTestResult {
+    /*const testRunIdFile = path.join(fullFolderName, 'test-run-id.txt');
     const testRunId = fs.readFileSync(testRunIdFile);
     let testResultFilePath = 'test-result-' + testRunId + '.json';
-    testResultFilePath = ospath.join(fullFolderName, testResultFilePath);
+    testResultFilePath = ospath.join(fullFolderName, testResultFilePath);*/
     const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
     const jsonSummary = JSON.parse(testResultOutput) as FullTestResult;
     return jsonSummary;

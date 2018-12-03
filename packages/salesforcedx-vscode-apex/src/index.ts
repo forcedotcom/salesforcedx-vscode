@@ -29,7 +29,27 @@ let languageClient: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const testOutlineProvider = new ApexTestOutlineProvider(null);
+  const testOutlineProvider = new ApexTestOutlineProvider(null, context);
+  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+    const apexDirPath = path.join(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      '.sfdx',
+      'tools',
+      'testresults',
+      'apex',
+      '*.json'
+    );
+    const testFileWatcher = vscode.workspace.createFileSystemWatcher(
+      apexDirPath
+    );
+    /*testFileWatcher.onDidChange(uri =>
+      testOutlineProvider.readJSONFile(uri.path)
+    );*/
+    testFileWatcher.onDidCreate(uri =>
+      testOutlineProvider.readJSONFile(uri.path)
+    );
+    context.subscriptions.push(testFileWatcher);
+  }
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
     sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();

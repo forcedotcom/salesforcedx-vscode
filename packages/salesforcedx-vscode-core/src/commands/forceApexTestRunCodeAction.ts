@@ -6,9 +6,12 @@
  */
 
 import {
+  CliCommandExecutor,
   Command,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -63,11 +66,17 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
   protected test: string;
   protected shouldGetCodeCoverage: boolean = false;
   protected builder: SfdxCommandBuilder = new SfdxCommandBuilder();
+  private outputToJson: string;
 
-  public constructor(test: string, shouldGetCodeCoverage: boolean) {
+  public constructor(
+    test: string,
+    shouldGetCodeCoverage: boolean,
+    outputToJson: string
+  ) {
     super();
     this.test = test || '';
     this.shouldGetCodeCoverage = shouldGetCodeCoverage;
+    this.outputToJson = outputToJson;
   }
 
   public build(data: {}): Command {
@@ -94,12 +103,25 @@ async function forceApexTestRunCodeAction(test: string) {
   const getCodeCoverage: boolean = sfdxCoreSettings
     .getConfiguration()
     .get('retrieve-test-code-coverage') as boolean;
+  const outputToJson = getTempFolder();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
-    new ForceApexTestRunCodeActionExecutor(test, getCodeCoverage)
+    new ForceApexTestRunCodeActionExecutor(test, getCodeCoverage, outputToJson)
   );
   await commandlet.run();
+}
+
+function getTempFolder(): string {
+  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+    const apexDir = new TestRunner().getTempFolder(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      'apex'
+    );
+    return apexDir;
+  } else {
+    throw new Error(nls.localize('cannot_determine_workspace'));
+  }
 }
 
 //   T E S T   C L A S S
