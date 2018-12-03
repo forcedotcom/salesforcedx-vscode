@@ -32,3 +32,4 @@ export {
   ForceSourceDeployErrorResult,
   DeployError
 } from './deployErrorParser';
+export { TestRunner } from './testRunner';
