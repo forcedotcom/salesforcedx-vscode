@@ -32,7 +32,7 @@ export class TelemetryService {
     machineId: string
   ): void {
     this.context = context;
-    const isDevMode = machineId === 'someValue.machineId';
+    const isDevMode = false; // machineId === 'someValue.machineId';
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
@@ -110,6 +110,17 @@ export class TelemetryService {
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
+      this.reporter.sendTelemetryEvent('activationEvent', {
+        extensionName: EXTENSION_NAME,
+        startupTime
+      });
+    }
+  }
+
+  public sendExtensionActivationEventTWO(hrstart: [number, number]): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      const startupTime = this.getEndHRTime(hrstart);
+      console.log('------- CORE STARTUP = ' + startupTime);
       this.reporter.sendTelemetryEvent('activationEvent', {
         extensionName: EXTENSION_NAME,
         startupTime
