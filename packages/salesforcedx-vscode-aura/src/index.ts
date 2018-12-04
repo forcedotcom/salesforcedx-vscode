@@ -39,7 +39,7 @@ export async function activate(context: ExtensionContext) {
   );
 
   // The debug options for the server
-  let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+  let debugOptions = { execArgv: ['--nolazy', '--inspect=6020'] };
   // let debugOptions = { };
 
   // If the extension is launched in debug mode then the debug server options are used
