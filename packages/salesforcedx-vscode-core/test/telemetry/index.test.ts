@@ -128,7 +128,7 @@ describe('Telemetry', () => {
       const telemetryService = TelemetryService.getInstance();
       telemetryService.initializeService(mockContext, machineId);
 
-      telemetryService.sendExtensionActivationEvent();
+      telemetryService.sendExtensionActivationEvent([0, 678]);
       assert.calledOnce(reporter);
     });
 
@@ -159,7 +159,7 @@ describe('Telemetry', () => {
       const telemetryService = TelemetryService.getInstance();
       telemetryService.initializeService(mockContext, machineId);
 
-      telemetryService.sendExtensionActivationEvent();
+      telemetryService.sendExtensionActivationEvent([0, 678]);
       assert.calledOnce(reporter);
 
       const expectedData = {
