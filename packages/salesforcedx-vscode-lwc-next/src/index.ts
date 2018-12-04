@@ -142,6 +142,12 @@ function startLWCLanguageServer(
       fileEvents: [
         vscode.workspace.createFileSystemWatcher('**/*.resource'),
         vscode.workspace.createFileSystemWatcher(
+          '**/staticresources/*.resource-meta.xml'
+        ),
+        vscode.workspace.createFileSystemWatcher(
+          '**/contentassets/*.asset-meta.xml'
+        ),
+        vscode.workspace.createFileSystemWatcher(
           '**/labels/CustomLabels.labels-meta.xml'
         ),
         vscode.workspace.createFileSystemWatcher(
