@@ -4,11 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import fs = require('fs');
-import ospath = require('path');
 import {
   APEX_GROUP_RANGE,
   DARK_BLUE_BUTTON,
@@ -153,7 +150,7 @@ export class ApexTestOutlineProvider
   }
 
   public readJSONFile(testResultFilePath: string) {
-    this.refresh();
+    // this.refresh();
     const jsonSummary = this.getJSONFileOutput(testResultFilePath);
     this.updateTestsFromJSON(jsonSummary);
     this.onDidChangeTestData.fire();

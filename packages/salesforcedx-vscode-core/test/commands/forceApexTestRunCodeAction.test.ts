@@ -5,17 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
+/*import { expect } from 'chai';
 import {
   ForceApexTestRunCodeActionExecutor,
   resolveTestClassParam,
   resolveTestMethodParam
-} from '../../src/commands/forceApexTestRunCodeAction';
+} from '../../src/commands/forceApexTestRunCodeAction';*/
 
 // return undefined: used to get around strict checks
-function getUndefined(): any {
+/*function getUndefined(): any {
   return undefined;
-}
+}*/
 
 /* describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Class', () => {

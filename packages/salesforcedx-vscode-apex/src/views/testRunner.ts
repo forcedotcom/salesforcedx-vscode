@@ -95,8 +95,8 @@ export class ApexTestRunner {
     const builder = new ReadableApexTestRunExecutor(
       [test.name],
       false,
-      tmpFolder,
-      this.testOutline
+      tmpFolder
+      // this.testOutline
     );
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
@@ -112,8 +112,8 @@ export class ApexTestRunner {
     const builder = new ReadableApexTestRunExecutor(
       Array.from(this.testOutline.testStrings.values()),
       false,
-      tmpFolder,
-      this.testOutline
+      tmpFolder
+      // this.testOutline
     );
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
