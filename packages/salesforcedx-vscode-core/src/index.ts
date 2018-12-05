@@ -117,6 +117,10 @@ function registerCommands(
     'sfdx.force.source.deploy.current.file',
     forceSourceDeploy
   );
+  const forceSourceDeployUsingManifestCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.using.manifest',
+    forceSourceDeploy
+  );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
     forceSourcePull
@@ -141,6 +145,10 @@ function registerCommands(
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.current.file',
+    forceSourceRetrieve
+  );
+  const forceSourceRetrieveUsingManifestCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.using.manifest',
     forceSourceRetrieve
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
@@ -320,12 +328,14 @@ function registerCommands(
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCmd,
     forceSourceDeployCurrentFileCmd,
+    forceSourceDeployUsingManifestCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
+    forceSourceRetrieveUsingManifestCmd,
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
