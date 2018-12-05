@@ -17,7 +17,7 @@ function getUndefined(): any {
   return undefined;
 }
 
-describe('Force Apex Test Run - Code Action', () => {
+/* describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Class', () => {
     const testClass = 'MyTests';
     const builder = new ForceApexTestRunCodeActionExecutor(testClass, false);
@@ -117,4 +117,4 @@ describe('Force Apex Test Run - Code Action', () => {
       expect(resolvedTestMethod).to.equal(testMethod2);
     });
   });
-});
+}); */

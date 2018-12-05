@@ -61,9 +61,5 @@ export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExec
       cancellationTokenSource,
       cancellationToken
     );
-
-    /*execution.processExitSubject.subscribe(() => {
-      this.apexTestOutline.readJSONFile(this.outputToJson);
-    });*/
   }
 }

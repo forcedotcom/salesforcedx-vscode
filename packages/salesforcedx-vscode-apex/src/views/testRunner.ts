@@ -90,7 +90,7 @@ export class ApexTestRunner {
   }
 
   public async runSingleTest(test: TestNode) {
-    await this.testOutline.refresh();
+    // await this.testOutline.refresh();
     const tmpFolder = this.getTempFolder();
     const builder = new ReadableApexTestRunExecutor(
       [test.name],
@@ -107,7 +107,7 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(): Promise<void> {
-    await this.testOutline.refresh();
+    // await this.testOutline.refresh();
     const tmpFolder = this.getTempFolder();
     const builder = new ReadableApexTestRunExecutor(
       Array.from(this.testOutline.testStrings.values()),
