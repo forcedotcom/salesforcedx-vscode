@@ -118,32 +118,34 @@ export class ApexTestOutlineProvider
     }
     this.rootNode.children = new Array<TestNode>();
     if (this.apexTestInfo) {
-      this.apexTestInfo
-        .sort((a, b) => a.definingType.localeCompare(b.definingType))
-        .forEach(test => {
-          let apexGroup = this.apexTestMap.get(
-            test.definingType
-          ) as ApexTestGroupNode;
-          if (!apexGroup) {
-            const groupLocation = new vscode.Location(
-              test.location.uri,
-              APEX_GROUP_RANGE
-            );
-            apexGroup = new ApexTestGroupNode(test.definingType, groupLocation);
-            this.apexTestMap.set(test.definingType, apexGroup);
-          }
-          const apexTest = new ApexTestNode(test.methodName, test.location);
-          apexTest.name = apexGroup.label + '.' + apexTest.label;
-          this.apexTestMap.set(apexTest.name, apexTest);
-          apexGroup.children.push(apexTest);
-          if (
-            this.rootNode &&
-            !(this.rootNode.children.indexOf(apexGroup) >= 0)
-          ) {
-            this.rootNode.children.push(apexGroup);
-          }
-          this.testStrings.add(apexGroup.name);
-        });
+      this.apexTestInfo.forEach(test => {
+        let apexGroup = this.apexTestMap.get(
+          test.definingType
+        ) as ApexTestGroupNode;
+        if (!apexGroup) {
+          const groupLocation = new vscode.Location(
+            test.location.uri,
+            APEX_GROUP_RANGE
+          );
+          apexGroup = new ApexTestGroupNode(test.definingType, groupLocation);
+          this.apexTestMap.set(test.definingType, apexGroup);
+        }
+        const apexTest = new ApexTestNode(test.methodName, test.location);
+        apexTest.name = apexGroup.label + '.' + apexTest.label;
+        this.apexTestMap.set(apexTest.name, apexTest);
+        apexGroup.children.push(apexTest);
+        if (
+          this.rootNode &&
+          !(this.rootNode.children.indexOf(apexGroup) >= 0)
+        ) {
+          this.rootNode.children.push(apexGroup);
+        }
+        this.testStrings.add(apexGroup.name);
+      });
+      // Sorting independently so we don't loose the order of the test methods per test class.
+      this.apexTestInfo.sort((a, b) =>
+        a.definingType.localeCompare(b.definingType)
+      );
     }
     return this.rootNode;
   }
