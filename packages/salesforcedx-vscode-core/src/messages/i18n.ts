@@ -45,6 +45,9 @@ export const messages = {
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
 
+  parameter_directory_strict_not_available:
+    'A required metadata folder named "%s" does not exist in this workspace.',
+
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
