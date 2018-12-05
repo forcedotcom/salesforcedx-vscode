@@ -593,6 +593,12 @@
         "url":
           "https://forcedotcom.github.io/schemas/project-scratch-def.json/project-scratch-def.schema.json"
       }
+    ],
+    "languages": [
+      {
+        "id": "ignore",
+        "filenames": [".forceignore"]
+      }
     ]
   }
 }
