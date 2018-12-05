@@ -153,6 +153,7 @@ export class ApexTestOutlineProvider
   }
 
   public readJSONFile(testResultFilePath: string) {
+    this.refresh();
     const jsonSummary = this.getJSONFileOutput(testResultFilePath);
     this.updateTestsFromJSON(jsonSummary);
     this.onDidChangeTestData.fire();

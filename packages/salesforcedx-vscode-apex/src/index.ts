@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -17,6 +18,7 @@ import {
   LanguageClientUtils
 } from './languageClientUtils';
 import * as languageServer from './languageServer';
+import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { ApexTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner } from './views/testRunner';
@@ -32,24 +34,24 @@ export async function activate(context: vscode.ExtensionContext) {
   const testOutlineProvider = new ApexTestOutlineProvider(null, context);
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      '.sfdx',
-      'tools',
-      'testresults',
-      'apex',
+      new TestRunner().getTempFolder(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        'apex'
+      ),
       '*.json'
     );
     const testFileWatcher = vscode.workspace.createFileSystemWatcher(
       apexDirPath
     );
-    /*testFileWatcher.onDidChange(uri =>
-      testOutlineProvider.readJSONFile(uri.path)
-    );*/
+    // await testFileWatcher.onDidCreate(uri => testOutlineProvider.refresh());
     testFileWatcher.onDidCreate(uri =>
       testOutlineProvider.readJSONFile(uri.path)
     );
     context.subscriptions.push(testFileWatcher);
+  } else {
+    throw new Error(nls.localize('cannot_determine_workspace'));
   }
+
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
     sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
