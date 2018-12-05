@@ -6,12 +6,12 @@
  */
 
 import {
-  CliCommandExecutor,
+  // CliCommandExecutor,
   Command,
   SfdxCommandBuilder,
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+// import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';

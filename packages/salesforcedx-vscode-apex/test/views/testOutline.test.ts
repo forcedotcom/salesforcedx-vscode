@@ -6,14 +6,14 @@
  */
 
 // tslint:disable:no-unused-expression
-import { expect } from 'chai';
+/*import { expect } from 'chai';
 import * as fs from 'fs';
-import { SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';*/
 import * as vscode from 'vscode';
-import { APEX_GROUP_RANGE } from '../../src/constants';
-import { nls } from '../../src/messages';
+// import { APEX_GROUP_RANGE } from '../../src/constants';
+// import { nls } from '../../src/messages';
 import { ApexTestMethod } from '../../src/views/lspConverter';
-import {
+/*import {
   ApexTestGroupNode,
   ApexTestNode,
   ApexTestOutlineProvider
@@ -25,7 +25,7 @@ import {
 
 const NO_TESTS_DESCRIPTION = nls.localize(
   'force_test_view_no_tests_description'
-);
+);*/
 
 describe('TestView', () => {
   // let testOutline: ApexTestOutlineProvider;
