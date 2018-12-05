@@ -36,25 +36,7 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(forceLightningLwcCreateCmd);
 }
 
-function isLwcNextInstalled(): boolean {
-  const lwcNexteDependency = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-lwc-next'
-  );
-  return lwcNexteDependency ? true : false;
-}
-
-function shouldForceLoadCurrentLwc(): boolean {
-  return process.env.FORCE_LOAD_CURRENT_LWC ? true : false;
-}
-
 export async function activate(context: vscode.ExtensionContext) {
-  if (isLwcNextInstalled() && !shouldForceLoadCurrentLwc()) {
-    console.log(
-      'salesforce.salesforcedx-vscode-lwc-next is installed; starting that (lwc-next) instead of this (lwc).'
-    );
-    return;
-  }
-
   if (coreDependency && coreDependency.exports) {
     coreDependency.exports.telemetryService.showTelemetryMessage();
 
@@ -152,10 +134,14 @@ function startLWCLanguageServer(
           '**/labels/CustomLabels.labels-meta.xml'
         ),
         vscode.workspace.createFileSystemWatcher(
-          '**/lightningcomponents/*/*.js'
+          '**/staticresources/*.resource-meta.xml'
         ),
+        vscode.workspace.createFileSystemWatcher(
+          '**/contentassets/*.asset-meta.xml'
+        ),
+        vscode.workspace.createFileSystemWatcher('**/lwc/*/*.js'),
         // need to watch for directory deletions as no events are created for contents or deleted directories
-        vscode.workspace.createFileSystemWatcher('**/', true, true, false)
+        vscode.workspace.createFileSystemWatcher('**/', false, true, false)
       ]
     },
     uriConverters: {

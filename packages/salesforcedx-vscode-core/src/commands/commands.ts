@@ -219,6 +219,18 @@ export abstract class SelectDirPath
     const rootPath = vscode.workspace.rootPath;
     let outputdir;
     if (rootPath) {
+      if (
+        !this.explorerDir &&
+        this.globDirs(rootPath, this.globKeyWord).length === 0
+      ) {
+        notificationService.showErrorMessage(
+          nls.localize(
+            'parameter_directory_strict_not_available',
+            this.globKeyWord
+          )
+        );
+        return { type: 'CANCEL' };
+      }
       outputdir = this.explorerDir
         ? path.relative(rootPath, this.explorerDir)
         : await vscode.window.showQuickPick(
