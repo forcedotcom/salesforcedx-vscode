@@ -39,16 +39,9 @@ export async function activate(context: vscode.ExtensionContext) {
     );
 
     const testResultOutput = path.join(apexDirPath, '*.json');
-    // const testRunIdFile = path.join(apexDirPath, 'test-run-id.txt');
     const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(
       testResultOutput
     );
-    /*const testRunIdFileWatcher = vscode.workspace.createFileSystemWatcher(
-      testRunIdFile
-    );
-    await testRunIdFileWatcher.onDidChange(uri =>
-      testOutlineProvider.refresh()
-    );*/
     testResultFileWatcher.onDidCreate(uri =>
       testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
     );
