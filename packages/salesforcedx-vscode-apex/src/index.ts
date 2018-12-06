@@ -33,21 +33,27 @@ export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const testOutlineProvider = new ApexTestOutlineProvider(null, context);
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDirPath = path.join(
-      new TestRunner().getTempFolder(
-        vscode.workspace.workspaceFolders[0].uri.fsPath,
-        'apex'
-      ),
-      '*.json'
+    const apexDirPath = new TestRunner().getTempFolder(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      'apex'
     );
-    const testFileWatcher = vscode.workspace.createFileSystemWatcher(
-      apexDirPath
+
+    const testResultOutput = path.join(apexDirPath, '*.json');
+    // const testRunIdFile = path.join(apexDirPath, 'test-run-id.txt');
+    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(
+      testResultOutput
     );
-    // await testFileWatcher.onDidCreate(uri => testOutlineProvider.refresh());
-    testFileWatcher.onDidCreate(uri =>
-      testOutlineProvider.readJSONFile(uri.path)
+    /*const testRunIdFileWatcher = vscode.workspace.createFileSystemWatcher(
+      testRunIdFile
     );
-    context.subscriptions.push(testFileWatcher);
+    await testRunIdFileWatcher.onDidChange(uri =>
+      testOutlineProvider.refresh()
+    );*/
+    testResultFileWatcher.onDidCreate(uri =>
+      testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
+    );
+
+    context.subscriptions.push(testResultFileWatcher);
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }

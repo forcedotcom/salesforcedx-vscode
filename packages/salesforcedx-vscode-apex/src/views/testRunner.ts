@@ -90,13 +90,11 @@ export class ApexTestRunner {
   }
 
   public async runSingleTest(test: TestNode) {
-    // await this.testOutline.refresh();
     const tmpFolder = this.getTempFolder();
     const builder = new ReadableApexTestRunExecutor(
       [test.name],
       false,
       tmpFolder
-      // this.testOutline
     );
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
@@ -107,13 +105,11 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(): Promise<void> {
-    // await this.testOutline.refresh();
     const tmpFolder = this.getTempFolder();
     const builder = new ReadableApexTestRunExecutor(
       Array.from(this.testOutline.testStrings.values()),
       false,
       tmpFolder
-      // this.testOutline
     );
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),

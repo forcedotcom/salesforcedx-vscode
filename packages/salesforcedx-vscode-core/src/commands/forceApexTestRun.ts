@@ -118,7 +118,6 @@ export class ForceApexTestRunCommandFactory {
           '--classnames',
           `${this.data.label}`
         );
-        // .withArg('--synchronous');
         break;
       default:
         break;
