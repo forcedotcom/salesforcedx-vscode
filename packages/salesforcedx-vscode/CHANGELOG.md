@@ -1,4 +1,20 @@
-## 44.8.0 - November 19, 2018
+## 44.10.0 - December 6, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Alphabetically sort test classes displayed in Apex Tests sidebar ([PR #782](https://github.com/forcedotcom/salesforcedx-vscode/pull/782), [Issue #605](https://github.com/forcedotcom/salesforcedx-vscode/issues/605)). Contribution by [@0ff](https://github.com/0ff).
+
+## 44.9.0 - November 29, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Show better error message for `SFDX: Turn On Apex Debug Log for Replay Debugger` when updating a trace flag that is missing a debug level ([PR #765](https://github.com/forcedotcom/salesforcedx-vscode/pull/765), [Issue #761](https://github.com/forcedotcom/salesforcedx-vscode/issues/761))
+
+## 44.8.0 - November 22, 2018
 
 ### Fixed
 
