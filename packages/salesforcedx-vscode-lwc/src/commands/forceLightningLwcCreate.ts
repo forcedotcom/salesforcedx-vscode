@@ -106,7 +106,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
             path.join(
               vscode.workspace.rootPath,
               response.data.outputdir,
-              // fileName is also used to create a subdirectory for the app in the lightningcomponents directory
+              // fileName is also used to create a subdirectory for the app in the lwc directory
               response.data.fileName,
               response.data.fileName + LIGHTNING_LWC_EXTENSION
             )
@@ -133,11 +133,11 @@ const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 export async function forceLightningLwcCreate(explorerDir?: any) {
   const outputDirGatherer = new SelectStrictDirPath(
     explorerDir,
-    'lightningcomponents'
+    'lwc'
   );
   const parameterGatherer = new CompositeParametersGatherer(
-    fileNameGatherer,
-    outputDirGatherer
+    outputDirGatherer,
+    fileNameGatherer
   );
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
