@@ -6,12 +6,10 @@
  */
 
 import {
-  // CliCommandExecutor,
   Command,
   SfdxCommandBuilder,
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-// import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -85,7 +83,6 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
         nls.localize('force_apex_test_run_codeAction_description_text')
       )
       .withArg('force:apex:test:run')
-      // .withArg('--synchronous')
       .withFlag('--tests', this.test)
       .withFlag('--resultformat', 'human')
       .withFlag('--outputdir', this.outputToJson)
@@ -192,15 +189,15 @@ export async function forceApexTestMethodRunCodeActionDelegate(
 // evaluate test method param: if not provided, apply cached value
 // exported for testability
 export function resolveTestMethodParam(testMethod: string): string {
-  /*if (isEmpty(testMethod)) {
+  if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available
     if (forceApexTestRunCacheService.hasCachedMethodTestParam()) {
       testMethod = forceApexTestRunCacheService.lastMethodTestParam;
     }
-  } else {*/
-  forceApexTestRunCacheService.lastMethodTestParam = testMethod;
-  // }
+  } else {
+    forceApexTestRunCacheService.lastMethodTestParam = testMethod;
+  }
 
   return testMethod;
 }
