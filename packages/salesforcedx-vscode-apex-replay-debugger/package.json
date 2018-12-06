@@ -14,15 +14,17 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.9.0",
+  "version": "44.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-replay-debugger": "44.9.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "44.10.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.1",
@@ -53,12 +55,10 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "node ../../scripts/run-test-with-top-level-extensions",
-    "test:insiders":
-      "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
+    "test:insiders": "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
     "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": [
@@ -76,8 +76,13 @@
     "languages": [
       {
         "id": "apexlog",
-        "aliases": ["ApexLog", "DebugLog"],
-        "extensions": [".log"],
+        "aliases": [
+          "ApexLog",
+          "DebugLog"
+        ],
+        "extensions": [
+          ".log"
+        ],
         "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
       }
     ],
@@ -123,8 +128,7 @@
       "explorer/context": [
         {
           "command": "sfdx.launch.replay.debugger.logfile",
-          "when":
-            "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
+          "when": "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
         }
       ]
     },
@@ -164,10 +168,11 @@
       {
         "type": "apex-replay",
         "label": "Apex Replay Debugger",
-        "program":
-          "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "program": "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
         "runtime": "node",
-        "languages": ["apex"],
+        "languages": [
+          "apex"
+        ],
         "variables": {
           "AskForLogFileName": "extension.replay-debugger.getLogFileName"
         },
@@ -188,7 +193,9 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": ["logFile"],
+              "required": [
+                "logFile"
+              ],
               "logFile": {
                 "type": "string",
                 "description": "%logfile_text%",
@@ -200,7 +207,10 @@
                 "default": true
               },
               "trace": {
-                "type": ["boolean", "string"],
+                "type": [
+                  "boolean",
+                  "string"
+                ],
                 "description": "%trace_text%",
                 "default": false
               }
