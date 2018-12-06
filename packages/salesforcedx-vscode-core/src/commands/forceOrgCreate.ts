@@ -67,17 +67,17 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias
     } as vscode.InputBoxOptions;
-    const expirationDays = {
-      prompt: nls.localize(
-        'parameter_gatherer_enter_scratch_org_expiration_days'
-      ),
-      placeHolder: defaultExpirationdate
-    } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will use the value of `defaultAlias`
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
+    const expirationDays = {
+      prompt: nls.localize(
+        'parameter_gatherer_enter_scratch_org_expiration_days'
+      ),
+      value: defaultExpirationdate
+    } as vscode.InputBoxOptions;
     let scratchOrgExpirationInDays = await vscode.window.showInputBox(
       expirationDays
     );

@@ -28,33 +28,16 @@ describe('Force Org Create', () => {
     const TEST_ORG_EXPIRATION_DAYS_INPUT_INVALID_RANGE = '31';
     let inputBoxSpy: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
-      inputBoxSpy.onCall(0).returns(undefined);
-
-      inputBoxSpy.onCall(1).returns('');
-      inputBoxSpy.onCall(2).returns('');
-
-      inputBoxSpy.onCall(3).returns(TEST_ALIAS);
-      inputBoxSpy.onCall(4).returns(TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY);
-
-      inputBoxSpy.onCall(5).returns(TEST_ALIAS);
-      inputBoxSpy.onCall(6).returns(TEST_ORG_EXPIRATION_DAYS_INPUT_FLOAT);
-
-      inputBoxSpy.onCall(7).returns(TEST_ALIAS);
-      inputBoxSpy.onCall(8).returns(undefined);
-
-      inputBoxSpy.onCall(9).returns(TEST_ALIAS);
-      inputBoxSpy
-        .onCall(10)
-        .returns(TEST_ORG_EXPIRATION_DAYS_INPUT_INVALID_RANGE);
     });
 
-    after(() => {
+    afterEach(() => {
       inputBoxSpy.restore();
     });
 
     it('Should return cancel if alias is undefined', async () => {
+      inputBoxSpy.onCall(0).returns(undefined);
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
       expect(inputBoxSpy.callCount).to.equal(1);
@@ -62,9 +45,11 @@ describe('Force Org Create', () => {
     });
 
     it('Should return Continue with default alias if user input is empty string', async () => {
+      inputBoxSpy.onCall(0).returns('');
+      inputBoxSpy.onCall(1).returns(TEST_ORG_EXPIRATION_DAYS);
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.callCount).to.equal(3);
+      expect(inputBoxSpy.callCount).to.equal(2);
       if (response.type === EVENT_CONTINUE) {
         expect(response.data.alias).to.equal(TEST_WORKSPACE);
         expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
@@ -74,9 +59,11 @@ describe('Force Org Create', () => {
     });
 
     it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
+      inputBoxSpy.onCall(0).returns(TEST_ALIAS);
+      inputBoxSpy.onCall(1).returns(TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY);
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.callCount).to.equal(5);
+      expect(inputBoxSpy.callCount).to.equal(2);
       expect(response.type).to.equal(EVENT_CONTINUE);
       if (response.type === EVENT_CONTINUE) {
         expect(response.data.alias).to.equal(TEST_ALIAS);
@@ -89,9 +76,11 @@ describe('Force Org Create', () => {
     });
 
     it('Should return Continue with default alias and the expiration date the user inputted as float, but converted to the integer', async () => {
+      inputBoxSpy.onCall(0).returns(TEST_ALIAS);
+      inputBoxSpy.onCall(1).returns(TEST_ORG_EXPIRATION_DAYS_INPUT_FLOAT);
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.callCount).to.equal(7);
+      expect(inputBoxSpy.callCount).to.equal(2);
       if (response.type === EVENT_CONTINUE) {
         expect(response.data.alias).to.equal(TEST_ALIAS);
         expect(response.data.expirationDays).to.equal(
@@ -103,16 +92,22 @@ describe('Force Org Create', () => {
     });
 
     it('Should return Cancel since the user canceled (pressed ESC) the process when defining the expiration for the scratch org', async () => {
+      inputBoxSpy.onCall(0).returns(TEST_ALIAS);
+      inputBoxSpy.onCall(1).returns(undefined);
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.callCount).to.equal(9);
+      expect(inputBoxSpy.callCount).to.equal(2);
       expect(response.type).to.equal(EVENT_CANCEL);
     });
 
     it('Should return Continue with default alias and the default expiration date, since the user inputted an invalid integer as expiration date', async () => {
+      inputBoxSpy.onCall(0).returns(TEST_ALIAS);
+      inputBoxSpy
+        .onCall(1)
+        .returns(TEST_ORG_EXPIRATION_DAYS_INPUT_INVALID_RANGE);
       const gatherer = new AliasGatherer();
       const response = await gatherer.gather();
-      expect(inputBoxSpy.callCount).to.equal(11);
+      expect(inputBoxSpy.callCount).to.equal(2);
       if (response.type === EVENT_CONTINUE) {
         expect(response.data.alias).to.equal(TEST_ALIAS);
         expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
