@@ -142,6 +142,8 @@ export class ApexTestOutlineProvider
         }
         this.testStrings.add(apexGroup.name);
       });
+      // Sorting independently so we don't loose the order of the test methods per test class.
+      this.rootNode.children.sort((a, b) => a.name.localeCompare(b.name));
     }
     return this.rootNode;
   }
