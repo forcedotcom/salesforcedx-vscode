@@ -23,7 +23,7 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/core": "1.0.1",
+    "@salesforce/core": "1.0.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "44.10.0",
     "@salesforce/salesforcedx-utils-vscode": "44.10.0",
     "adm-zip": "0.4.7",
