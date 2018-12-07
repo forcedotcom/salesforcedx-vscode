@@ -1,6 +1,6 @@
-# Lightning Component Framework for Visual Studio Code
+# Aura Components for Visual Studio Code
 
-This extension uses the default HTML language server from VS Code to provide syntax highlighting, code completion, an outline view of your files, and a Salesforce Lightning Design System (SLDS) linter.
+This extension provides code-editing features for the Aura Components programming model, which is part of the Lightning Component framework. It uses the default HTML language server from VS Code to provide syntax highlighting, code completion, an outline view of your files, and a Salesforce Lightning Design System (SLDS) linter.
 
 **For best results, do not install this extension directly. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
