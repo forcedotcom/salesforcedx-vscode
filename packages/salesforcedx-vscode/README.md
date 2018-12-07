@@ -1,6 +1,6 @@
 # Salesforce Extensions for Visual Studio Code
 
-This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Lightning components, and Visualforce.
+This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)
 
@@ -33,7 +33,7 @@ Documentation for each extension as well as additional resources are listed belo
 - [Apex Replay Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)  
    This extension enables VS Code to replay Apex execution from Apex debug logs.
 - [Lighting Component Framework](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
-   This extension supports Lightning component bundles. It uses the HTML language server from VS Code.
+   This extension supports Aura component bundles. It uses the HTML language server from VS Code.
 - [Visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
    This extension supports Visualforce pages and components. It uses the Visualforce Language Server and the HTML language server from VS Code.
 

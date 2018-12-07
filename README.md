@@ -21,7 +21,7 @@ Currently, we have the following extensions:
 - [salesforcedx-vscode-apex-replay-debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)  
    This extension enables VS Code to replay Apex execution from Apex debug logs.
 - [salesforcedx-vscode-lightning](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
-   This extension supports Lightning component bundles. It uses the HTML language server from VS Code.
+   This extension supports Aura component bundles. It uses the HTML language server from VS Code.
 - [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
    This extension supports Visualforce pages and components. It uses the HTML language server from VS Code.
 
