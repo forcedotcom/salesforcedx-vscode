@@ -98,6 +98,13 @@ async function registerTestView(
       testRunner.showErrorMessage(test)
     )
   );
+  // Run Class Tests command
+  testViewItems.push(
+    vscode.commands.registerCommand(
+      'sfdx.force.test.view.runClassTests',
+      test => testRunner.runSingleTest(test)
+    )
+  );
   // Run Single Test command
   testViewItems.push(
     vscode.commands.registerCommand(
