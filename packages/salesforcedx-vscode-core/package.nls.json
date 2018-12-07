@@ -74,7 +74,7 @@
   "force_source_retrieve_this_source_text":
     "SFDX: Retrieve This Source from Org",
   "force_source_retrieve_in_manifest_text":
-    "SFDX: Retrieve Source from Org using Manifest",
+    "SFDX: Retrieve Source in Manifest from Org",
   "force_source_deploy_text": "SFDX: Deploy Source to Org",
   "force_source_deploy_this_source_text": "SFDX: Deploy This Source to Org",
   "force_source_deploy_in_manifest_text":
