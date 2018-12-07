@@ -44,10 +44,14 @@ export class ChannelService {
     this.channel.appendLine(execution.command.toString());
     this.channel.appendLine('');
 
-    this.channel.appendLine(execution.command.toCommand());
+    this.channel.appendLine(
+      this.getExecutionTime() + ' ' + execution.command.toCommand()
+    );
 
     execution.processExitSubject.subscribe(data => {
-      this.channel.append(execution.command.toCommand());
+      this.channel.append(
+        this.getExecutionTime() + ' ' + execution.command.toCommand()
+      );
       this.channel.append(' ');
       if (data !== undefined) {
         this.channel.appendLine(
@@ -60,7 +64,9 @@ export class ChannelService {
     });
 
     execution.processErrorSubject.subscribe(data => {
-      this.channel.append(execution.command.toCommand());
+      this.channel.append(
+        this.getExecutionTime() + ' ' + execution.command.toCommand()
+      );
       this.channel.append(' ');
       if (data !== undefined) {
         this.channel.appendLine(
@@ -77,6 +83,19 @@ export class ChannelService {
       }
       this.channel.appendLine('');
     });
+  }
+
+  private getExecutionTime() {
+    const d = new Date();
+    const hr = this.ensureDoubleDigits(d.getHours());
+    const mins = this.ensureDoubleDigits(d.getMinutes());
+    const sec = this.ensureDoubleDigits(d.getSeconds());
+    const milli = d.getMilliseconds();
+    return `${hr}:${mins}:${sec}.${milli}`;
+  }
+
+  private ensureDoubleDigits(num: number) {
+    return num < 10 ? `0${num.toString()}` : num.toString();
   }
 
   public showChannelOutput() {
