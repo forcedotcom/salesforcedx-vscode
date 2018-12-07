@@ -163,7 +163,7 @@
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.deploy",
+          "command": "sfdx.force.source.deploy.manifest.or.source.path",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
@@ -356,7 +356,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy",
+          "command": "sfdx.force.source.deploy.manifest.or.source.path",
           "when": "false"
         },
         {
@@ -567,7 +567,7 @@
         "title": "%force_source_retrieve_in_manifest_text%"
       },
       {
-        "command": "sfdx.force.source.deploy",
+        "command": "sfdx.force.source.deploy.manifest.or.source.path",
         "title": "%force_source_deploy_text%"
       },
       {
@@ -605,6 +605,11 @@
           "type": ["boolean"],
           "default": true,
           "description": "%telemetry_enabled_description%"
+        },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%push_or_deploy_on_save_enabled_description%"
         }
       }
     },

@@ -8,3 +8,9 @@
 import { SfdxCoreSettings } from './sfdxCoreSettings';
 
 export const sfdxCoreSettings = SfdxCoreSettings.getInstance();
+export {
+  FileEventType,
+  getPackageDirectoriesGlobString,
+  pushOrDeploy,
+  registerPushOrDeployOnSave
+} from './pushOrDeployOnSave';

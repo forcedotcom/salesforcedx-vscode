@@ -39,7 +39,8 @@ import {
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
-  forceSourceDeploy,
+  forceSourceDeployManifestOrSourcePath,
+  forceSourceDeployMultipleSourcePaths,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieve,
@@ -74,6 +75,7 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -109,17 +111,21 @@ function registerCommands(
     'sfdx.force.source.delete.current.file',
     forceSourceDelete
   );
-  const forceSourceDeployCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy',
-    forceSourceDeploy
+  const forceSourceDeployManifestOrSourcePathCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.manifest.or.source.path',
+    forceSourceDeployManifestOrSourcePath
   );
   const forceSourceDeployCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.file',
-    forceSourceDeploy
+    forceSourceDeployManifestOrSourcePath
+  );
+  const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.multiple.source.paths',
+    forceSourceDeployMultipleSourcePaths
   );
   const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.in.manifest',
-    forceSourceDeploy
+    forceSourceDeployManifestOrSourcePath
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -326,9 +332,10 @@ function registerCommands(
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
-    forceSourceDeployCmd,
+    forceSourceDeployManifestOrSourcePathCmd,
     forceSourceDeployCurrentFileCmd,
     forceSourceDeployInManifestCmd,
+    forceSourceDeployMultipleSourcePathsCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
@@ -460,6 +467,8 @@ export async function activate(context: vscode.ExtensionContext) {
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
+  // Register filewatcher for push or deploy on save
+  await registerPushOrDeployOnSave();
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);

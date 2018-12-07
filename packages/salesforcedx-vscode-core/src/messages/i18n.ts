@@ -198,7 +198,21 @@ export const messages = {
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
-
   invalid_debug_level_id_error:
-    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.'
+    'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
+  error_fetching_auth_info_text:
+    'Error fetching the info for your defaultusername. Your last change was not deployed to your org. Please re-auth into your org and manually push or deploy your change again.',
+  error_change_not_deleted_text:
+    'Unfortunately, automatic deployment of deletes is not supported. If you would like to deploy the source that you just deleted, please undo your last deletion and delete your source using the SFDX: Delete Source from Project and Org command',
+  error_setting_up_push_or_deploy_on_save_text:
+    'Error Setting up Push or Deploy on Save',
+  error_no_package_directories_found_text:
+    "No packageDirectories were found in sfdx-project.json. Please add a 'packageDirectories' parameter to your sfdx-project.json to specify which directories contain your source.",
+  error_no_package_directories_paths_found_text:
+    "No paths were found in the 'packageDirectories' parameter of your sfdx-project.json. Please specify at least one path to a directory containing your source.",
+  reference_salesforcedx_project_configuration_doc:
+    'Reference https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm for more info.',
+  error_push_or_deploy_on_save_no_default_username:
+    'Deploy on save is enabled, but no org is authorized. No files deployed to org.',
+  error_push_or_deploy_on_save: 'Error pushing or deploying on save'
 };
