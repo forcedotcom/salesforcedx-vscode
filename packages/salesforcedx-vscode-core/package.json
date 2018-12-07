@@ -158,7 +158,7 @@
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.retrieve.using.manifest",
+          "command": "sfdx.force.source.retrieve.in.manifest",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
@@ -168,7 +168,7 @@
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.deploy.using.manifest",
+          "command": "sfdx.force.source.deploy.in.manifest",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
@@ -364,7 +364,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.retrieve.using.manifest",
+          "command": "sfdx.force.source.retrieve.in.manifest",
           "when": "false"
         },
         {
@@ -372,7 +372,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy.using.manifest",
+          "command": "sfdx.force.source.deploy.in.manifest",
           "when": "false"
         },
         {
@@ -563,8 +563,8 @@
         "title": "%force_source_retrieve_this_source_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve.using.manifest",
-        "title": "%force_source_retrieve_using_manifest_text%"
+        "command": "sfdx.force.source.retrieve.in.manifest",
+        "title": "%force_source_retrieve_in_manifest_text%"
       },
       {
         "command": "sfdx.force.source.deploy",
@@ -575,8 +575,8 @@
         "title": "%force_source_deploy_this_source_text%"
       },
       {
-        "command": "sfdx.force.source.deploy.using.manifest",
-        "title": "%force_source_deploy_using_manifest_text%"
+        "command": "sfdx.force.source.deploy.in.manifest",
+        "title": "%force_source_deploy_in_manifest_text%"
       },
       {
         "command": "sfdx.force.source.delete",
