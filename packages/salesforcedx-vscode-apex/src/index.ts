@@ -31,7 +31,7 @@ let languageClient: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const testOutlineProvider = new ApexTestOutlineProvider(null, context);
+  const testOutlineProvider = new ApexTestOutlineProvider(null);
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = new TestRunner().getTempFolder(
       vscode.workspace.workspaceFolders[0].uri.fsPath,

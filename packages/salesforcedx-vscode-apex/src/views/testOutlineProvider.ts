@@ -41,10 +41,7 @@ export class ApexTestOutlineProvider
   public testStrings: Set<string> = new Set<string>();
   private apexTestInfo: ApexTestMethod[] | null;
 
-  constructor(
-    apexTestInfo: ApexTestMethod[] | null,
-    context: vscode.ExtensionContext
-  ) {
+  constructor(apexTestInfo: ApexTestMethod[] | null) {
     this.rootNode = null;
     this.apexTestInfo = apexTestInfo;
     this.getAllApexTests();

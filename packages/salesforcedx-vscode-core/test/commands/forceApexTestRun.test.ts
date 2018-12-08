@@ -19,6 +19,7 @@ import { nls } from '../../src/messages';
 describe('Force Apex Test Run', () => {
   describe('Command builder', () => {
     const builder = new ForceApexTestRunExecutor();
+    // const outputToJson = 'outputToJson';
 
     it('Should build command for test suite', () => {
       const command = builder.build({
@@ -28,7 +29,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --suitenames MySuite --resultformat human --loglevel error'
+        'sfdx force:apex:test:run --suitenames MySuite --resultformat human --outputDir outputToJson --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -43,7 +44,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --classnames MyTestClass --synchronous --resultformat human --loglevel error'
+        'sfdx force:apex:test:run --classnames MyTestClass --synchronous --resultformat human --outputDir outputToJson --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -60,7 +61,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --resultformat human --loglevel error'
+        'sfdx force:apex:test:run --resultformat human --outputDir outputToJson --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')

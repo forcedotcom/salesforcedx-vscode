@@ -6,14 +6,14 @@
  */
 
 // tslint:disable:no-unused-expression
-/*import { expect } from 'chai';
+import { expect } from 'chai';
 import * as fs from 'fs';
-import { SinonStub, stub } from 'sinon';*/
+import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-// import { APEX_GROUP_RANGE } from '../../src/constants';
-// import { nls } from '../../src/messages';
+import { APEX_GROUP_RANGE } from '../../src/constants';
+import { nls } from '../../src/messages';
 import { ApexTestMethod } from '../../src/views/lspConverter';
-/*import {
+import {
   ApexTestGroupNode,
   ApexTestNode,
   ApexTestOutlineProvider
@@ -25,10 +25,10 @@ import {
 
 const NO_TESTS_DESCRIPTION = nls.localize(
   'force_test_view_no_tests_description'
-);*/
+);
 
 describe('TestView', () => {
-  // let testOutline: ApexTestOutlineProvider;
+  let testOutline: ApexTestOutlineProvider;
   const apexTestInfo: ApexTestMethod[] = new Array<ApexTestMethod>();
   // All test methods, has same info as file1, file2, file3, file4
   for (let i = 0; i < 8; i++) {
@@ -51,9 +51,9 @@ describe('TestView', () => {
     apexTestInfo.push(testInfo);
   }
 
-  /* describe('Get Tests and Create Tree', () => {
+  describe('Get Tests and Create Tree', () => {
     it('Should add no tests', () => {
-      testOutline = new ApexTestOutlineProvider(null, vscode.ExtensionContext);
+      testOutline = new ApexTestOutlineProvider(null);
       const expected = new ApexTestGroupNode('ApexTests', null);
       expected.description = NO_TESTS_DESCRIPTION;
       expect(testOutline.getHead()).to.deep.equal(
@@ -62,10 +62,7 @@ describe('TestView', () => {
     });
 
     it('Should create one test and one class', () => {
-      testOutline = new ApexTestOutlineProvider(
-        apexTestInfo.slice(0, 1),
-        vscode.ExtensionContext
-      );
+      testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
       if (testOutline.getHead()) {
         expect(testOutline.getHead().name).to.equal('ApexTests');
         expect(testOutline.getHead().children.length).to.equal(1);
@@ -87,10 +84,7 @@ describe('TestView', () => {
     });
 
     it('Should update tests with 8 tests and 4 classes', () => {
-      testOutline = new ApexTestOutlineProvider(
-        apexTestInfo,
-        vscode.ExtensionContext
-      );
+      testOutline = new ApexTestOutlineProvider(apexTestInfo);
       if (testOutline.getHead()) {
         expect(testOutline.getHead().children.length).to.equal(4);
         let i = 0;
@@ -148,10 +142,7 @@ describe('TestView', () => {
       parseJSONStub.callsFake(() => {
         return jsonSummaryOneFilePass;
       });
-      testOutline = new ApexTestOutlineProvider(
-        apexTestInfo.slice(0, 1),
-        vscode.ExtensionContext
-      );
+      testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
       testOutline.readJSONFile('oneFilePass');
       const testGroupNode = testOutline.getHead()
         .children[0] as ApexTestGroupNode;
@@ -164,10 +155,7 @@ describe('TestView', () => {
       parseJSONStub.callsFake(() => {
         return jsonSummaryMultipleFiles;
       });
-      testOutline = new ApexTestOutlineProvider(
-        apexTestInfo,
-        vscode.ExtensionContext
-      );
+      testOutline = new ApexTestOutlineProvider(apexTestInfo);
       testOutline.readJSONFile('multipleFilesMixed');
       let classNum = 0;
       expect(testOutline.getHead().children.length).to.equal(4);
@@ -200,5 +188,5 @@ describe('TestView', () => {
         classNum++;
       }
     });
-  });*/
+  });
 });
