@@ -105,7 +105,7 @@ export class CommonActions {
 
         const toType = textSplit[i + 1] ? `${textSplit[i]} ` : textSplit[i];
         await spectron.client.keys(toType, false);
-        await spectron.client.keys(['NULL']);
+        await spectron.client.keys(['NULL'], false);
         await type(i + 1);
       }
 
