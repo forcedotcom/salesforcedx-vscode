@@ -95,8 +95,13 @@
           "when": "view == sfdx.force.test.view"
         },
         {
+          "command": "sfdx.force.test.view.runClassTests",
+          "when": "view == sfdx.force.test.view && viewItem == apexTestGroup",
+          "group": "inline"
+        },
+        {
           "command": "sfdx.force.test.view.runSingleTest",
-          "when": "view == sfdx.force.test.view",
+          "when": "view == sfdx.force.test.view && viewItem == apexTest",
           "group": "inline"
         }
       ]
@@ -124,6 +129,14 @@
         "icon": {
           "light": "resources/light/document/notRun.svg",
           "dark": "resources/dark/document/notRun.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.runClassTests",
+        "title": "%run_tests_title%",
+        "icon": {
+          "light": "resources/light/play-side.svg",
+          "dark": "resources/dark/play-side.svg"
         }
       },
       {
