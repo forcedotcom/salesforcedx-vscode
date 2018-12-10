@@ -42,7 +42,7 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 
 ## Resources
 
-- Doc: [Lightning Web Components Developer Guide](http://developer.salesfore.com/docs/component-library/documentation/lwc)
+- Doc: [Lightning Web Components Developer Guide](http://developer.salesfore.com/docs/component-library/documentation/lwc) (available after December 17th)
 - Trailhead: [Lightning Web Components Quick Start]
 (https://trailhead.salesforce.com/content/learn/projects/quick-start-lightning-web-components/)
 - Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
