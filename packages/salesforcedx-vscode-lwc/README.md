@@ -24,7 +24,7 @@ Before you set up this extension
 * Auto-completion for resources in JavaScript files
     * Static resources
     * Custom label imports
-    * Lightning web components imports from `lwc`
+    * Lightning web components imports from the core `lwc` module
 
 * Auto-completion for resources in HTML files
     * Tags and attributes for standard `lightning` namespace Lightning web components
