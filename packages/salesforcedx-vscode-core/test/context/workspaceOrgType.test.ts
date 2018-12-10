@@ -105,7 +105,9 @@ describe('setupWorkspaceOrgType', () => {
 
     await setupWorkspaceOrgType();
 
-    expect(authInfoCreateStub.getCall(0).args[0]).to.equal('scratch@org.com');
+    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
+      username: 'scratch@org.com'
+    });
     expect(executeCommandStub.calledTwice).to.be.true;
     expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
@@ -128,7 +130,9 @@ describe('setupWorkspaceOrgType', () => {
 
     await setupWorkspaceOrgType();
 
-    expect(authInfoCreateStub.getCall(0).args[0]).to.equal('sandbox@org.com');
+    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
+      username: 'sandbox@org.com'
+    });
     expect(executeCommandStub.calledTwice).to.be.true;
     expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
