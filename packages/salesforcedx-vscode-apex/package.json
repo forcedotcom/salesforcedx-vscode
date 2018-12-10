@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.9.0",
+  "version": "44.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -95,8 +95,13 @@
           "when": "view == sfdx.force.test.view"
         },
         {
+          "command": "sfdx.force.test.view.runClassTests",
+          "when": "view == sfdx.force.test.view && viewItem == apexTestGroup",
+          "group": "inline"
+        },
+        {
           "command": "sfdx.force.test.view.runSingleTest",
-          "when": "view == sfdx.force.test.view",
+          "when": "view == sfdx.force.test.view && viewItem == apexTest",
           "group": "inline"
         }
       ]
@@ -124,6 +129,14 @@
         "icon": {
           "light": "resources/light/document/notRun.svg",
           "dark": "resources/dark/document/notRun.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.runClassTests",
+        "title": "%run_tests_title%",
+        "icon": {
+          "light": "resources/light/play-side.svg",
+          "dark": "resources/dark/play-side.svg"
         }
       },
       {
@@ -181,7 +194,7 @@
   },
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.10.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

@@ -45,12 +45,17 @@ export const messages = {
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
 
+  parameter_directory_strict_not_available:
+    'A required metadata folder named "%s" does not exist in this workspace.',
+
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
     'Enter an org alias or use default alias',
+  parameter_gatherer_enter_scratch_org_expiration_days:
+    'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
   parameter_gatherer_paste_forceide_url_placeholder:
