@@ -92,16 +92,23 @@
       "view/item/context": [
         {
           "command": "sfdx.force.test.view.showError",
-          "when": "view == sfdx.force.test.view"
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
+        },
+        {
+          "command": "sfdx.force.test.view.showDefinition",
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
         },
         {
           "command": "sfdx.force.test.view.runClassTests",
-          "when": "view == sfdx.force.test.view && viewItem == apexTestGroup",
+          "when": "view == sfdx.force.test.view && viewItem =~ /apexTestGroup/",
           "group": "inline"
         },
         {
           "command": "sfdx.force.test.view.runSingleTest",
-          "when": "view == sfdx.force.test.view && viewItem == apexTest",
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
       ]
@@ -126,6 +133,14 @@
       {
         "command": "sfdx.force.test.view.showError",
         "title": "%show_error_title%",
+        "icon": {
+          "light": "resources/light/document/notRun.svg",
+          "dark": "resources/dark/document/notRun.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.showDefinition",
+        "title": "%show_definition_title%",
         "icon": {
           "light": "resources/light/document/notRun.svg",
           "dark": "resources/dark/document/notRun.svg"
