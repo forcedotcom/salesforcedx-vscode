@@ -2,10 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "lib": [
-      "dom",
-      "es2016"
-    ],
+    "lib": ["dom", "es2016"],
     "sourceMap": true,
     "declaration": true,
     "moduleResolution": "node",
@@ -13,10 +10,8 @@
     "rootDir": ".",
     "outDir": "out",
     "preserveConstEnums": true,
-    "strict": true
+    "strict": true,
+    "strictPropertyInitialization": false
   },
-  "exclude": [
-    "node_modules",
-    "out"
-  ]
+  "exclude": ["node_modules", "out"]
 }

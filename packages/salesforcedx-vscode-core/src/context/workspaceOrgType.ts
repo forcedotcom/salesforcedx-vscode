@@ -35,7 +35,7 @@ export async function setupWorkspaceOrgType() {
 }
 
 async function isAScratchOrg(username: string): Promise<boolean> {
-  const authInfo = await AuthInfo.create(username);
+  const authInfo = await AuthInfo.create({ username });
   const authInfoFields = authInfo.getFields();
   return Promise.resolve(typeof authInfoFields.devHubUsername !== 'undefined');
 }
