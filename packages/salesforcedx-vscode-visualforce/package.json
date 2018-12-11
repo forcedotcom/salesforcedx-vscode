@@ -24,7 +24,6 @@
   "dependencies": {
     "@salesforce/salesforcedx-visualforce-language-server": "44.10.0",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "44.10.0",
-    "typescript": "3.1.6",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
@@ -40,7 +39,8 @@
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "typescript": "3.1.6"
   },
   "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
