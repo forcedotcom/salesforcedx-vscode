@@ -26,7 +26,7 @@
     "remap-istanbul": "^0.9.5",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
-    "typescript": "2.6.2",
+    "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
   "scripts": {

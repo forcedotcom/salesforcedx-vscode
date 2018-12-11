@@ -34,7 +34,7 @@
     "shelljs": "^0.7.8",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
-    "typescript": "2.6.2"
+    "typescript": "3.1.6"
   },
   "engines": {
     "vscode": "^1.26.0"

@@ -170,6 +170,7 @@ export function getJavascriptMode(
         item.data.offset,
         item.label,
         undefined,
+        undefined,
         undefined
       );
       if (details) {
@@ -198,7 +199,8 @@ export function getJavascriptMode(
       updateCurrentTextDocument(document);
       const signHelp = jsLanguageService.getSignatureHelpItems(
         FILE_NAME,
-        currentTextDocument.offsetAt(position)
+        currentTextDocument.offsetAt(position),
+        undefined
       );
       if (signHelp) {
         const ret: SignatureHelp = {
