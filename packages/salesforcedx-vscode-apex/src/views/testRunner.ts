@@ -89,7 +89,7 @@ export class ApexTestRunner {
     }
   }
 
-  public async runSingleTest(test: TestNode) {
+  public async runTestOrTestClass(test: TestNode) {
     const tmpFolder = this.getTempFolder();
     const builder = new ReadableApexTestRunExecutor(
       [test.name],
