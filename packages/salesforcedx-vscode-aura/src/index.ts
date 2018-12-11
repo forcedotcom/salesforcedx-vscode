@@ -33,7 +33,6 @@ async function timeout(ms: number) {
 }
 
 export async function activate(context: ExtensionContext) {
-  debugger;
   let serverModule = context.asAbsolutePath(
     path.join('node_modules', 'aura-language-server', 'lib', 'server.js')
   );
