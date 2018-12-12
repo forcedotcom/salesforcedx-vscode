@@ -28,9 +28,13 @@ const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 const channelService = sfdxCoreExports.channelService;
 export class ApexTestRunner {
   private testOutline: ApexTestOutlineProvider;
-  private eventsEmitter = new events.EventEmitter();
-  constructor(testOutline: ApexTestOutlineProvider) {
+  private eventsEmitter: events.EventEmitter;
+  constructor(
+    testOutline: ApexTestOutlineProvider,
+    eventsEmitter?: events.EventEmitter
+  ) {
     this.testOutline = testOutline;
+    this.eventsEmitter = eventsEmitter || new events.EventEmitter();
     this.eventsEmitter.on('sfdx:update_selection', this.updateSelection);
   }
 
@@ -66,12 +70,21 @@ export class ApexTestRunner {
         channelService.showChannelOutput();
       }
     }
+
     if (testNode.location) {
       vscode.window.showTextDocument(testNode.location.uri).then(() => {
         this.eventsEmitter.emit('sfdx:update_selection', position);
       });
     }
   }
+
+  // public goToPosition(test: TestNode, position: vscode.Range | number) {
+  //   if (test.location) {
+  //     vscode.window.showTextDocument(test.location.uri).then(() => {
+  //       this.eventsEmitter.emit('sfdx:update_selection', position);
+  //     });
+  //   }
+  // }
 
   public updateSelection(index: vscode.Range | number) {
     const editor = vscode.window.activeTextEditor;

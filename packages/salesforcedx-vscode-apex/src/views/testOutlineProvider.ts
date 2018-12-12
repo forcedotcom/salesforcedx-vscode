@@ -247,8 +247,8 @@ export abstract class TestNode extends vscode.TreeItem {
       };
     }
 
-    const contextValue = this.contextValue.split('_');
-    this.contextValue = `${contextValue}_${outcome}`;
+    const nodeType = this.contextValue.split('_')[0];
+    this.contextValue = `${nodeType}_${outcome}`;
   }
 
   public abstract contextValue: string;

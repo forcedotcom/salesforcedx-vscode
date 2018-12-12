@@ -96,7 +96,7 @@
             "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
         },
         {
-          "command": "sfdx.force.test.view.showDefinition",
+          "command": "sfdx.force.test.view.goToDefinition",
           "when":
             "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
         },
@@ -139,8 +139,8 @@
         }
       },
       {
-        "command": "sfdx.force.test.view.showDefinition",
-        "title": "%show_definition_title%",
+        "command": "sfdx.force.test.view.goToDefinition",
+        "title": "%go_to_definition_title%",
         "icon": {
           "light": "resources/light/document/notRun.svg",
           "dark": "resources/dark/document/notRun.svg"

@@ -101,7 +101,7 @@ async function registerTestView(
   // Show Definition command
   testViewItems.push(
     vscode.commands.registerCommand(
-      'sfdx.force.test.view.showDefinition',
+      'sfdx.force.test.view.goToDefinition',
       test => testRunner.showErrorMessage(test)
     )
   );

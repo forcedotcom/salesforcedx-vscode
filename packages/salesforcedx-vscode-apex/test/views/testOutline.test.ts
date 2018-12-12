@@ -7,6 +7,7 @@
 
 // tslint:disable:no-unused-expression
 import { expect } from 'chai';
+import * as events from 'events';
 import * as fs from 'fs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
@@ -18,6 +19,7 @@ import {
   ApexTestNode,
   ApexTestOutlineProvider
 } from '../../src/views/testOutlineProvider';
+import { ApexTestRunner } from '../../src/views/testRunner';
 import {
   jsonSummaryMultipleFiles,
   jsonSummaryOneFilePass
@@ -187,6 +189,81 @@ describe('TestView', () => {
         }
         classNum++;
       }
+    });
+  });
+
+  describe('Navigate to test definition or error', () => {
+    let readFolderStub: SinonStub;
+    let readFileStub: SinonStub;
+    let parseJSONStub: SinonStub;
+    let showTextDocumentStub: SinonStub;
+    let eventEmitterStub: SinonStub;
+
+    let testRunner: ApexTestRunner;
+    const eventEmitter = new events.EventEmitter();
+    // let locationResult: vscode.Range | number;
+
+    beforeEach(() => {
+      readFolderStub = stub(fs, 'readdirSync');
+      readFolderStub.callsFake(folderName => ['test-result.json']);
+      readFileStub = stub(fs, 'readFileSync');
+      readFileStub.callsFake(fileName => 'nonsense');
+      parseJSONStub = stub(JSON, 'parse');
+      parseJSONStub.callsFake(() => jsonSummaryMultipleFiles);
+      eventEmitterStub = stub(eventEmitter, 'emit');
+      showTextDocumentStub = stub(vscode.window, 'showTextDocument');
+      showTextDocumentStub.returns(Promise.resolve());
+
+      testOutline = new ApexTestOutlineProvider(apexTestInfo);
+      testOutline.readJSONFile('multipleFilesMixed');
+      testRunner = new ApexTestRunner(testOutline, eventEmitter);
+    });
+
+    afterEach(() => {
+      readFolderStub.restore();
+      readFileStub.restore();
+      parseJSONStub.restore();
+      eventEmitterStub.restore();
+      showTextDocumentStub.restore();
+    });
+
+    it('Should go to definition if a test does not have an error message', async () => {
+      const testNode = new ApexTestNode('sampleTest', apexTestInfo[0].location);
+      const testRange = testNode.location!.range;
+
+      await testRunner.showErrorMessage(testNode);
+
+      // make sure we emit the update_selection event with the correct position
+      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
+        'sfdx:update_selection',
+        testRange
+      ]);
+    });
+
+    it('Should go to error if a test has one', async () => {
+      const lineFailure = 22;
+      const testNode = new ApexTestNode('failedTest', apexTestInfo[0].location);
+      testNode.errorMessage = 'System.AssertException: Assertion Failed';
+      testNode.stackTrace = `Class.fakeClass.test0: line ${lineFailure}, column 1`;
+
+      await testRunner.showErrorMessage(testNode);
+
+      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
+        'sfdx:update_selection',
+        lineFailure - 1
+      ]);
+    });
+
+    it('Should go to error of first failing test in a failed test class', async () => {
+      const testClass = testOutline.getHead().children[0] as ApexTestGroupNode;
+      const lineFailure = 40; // first failure in testJSONOutputs.testResultsMultipleFiles
+
+      await testRunner.showErrorMessage(testClass);
+
+      expect(eventEmitterStub.getCall(0).args).to.be.deep.equal([
+        'sfdx:update_selection',
+        lineFailure - 1
+      ]);
     });
   });
 });
