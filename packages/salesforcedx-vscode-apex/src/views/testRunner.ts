@@ -78,14 +78,6 @@ export class ApexTestRunner {
     }
   }
 
-  // public goToPosition(test: TestNode, position: vscode.Range | number) {
-  //   if (test.location) {
-  //     vscode.window.showTextDocument(test.location.uri).then(() => {
-  //       this.eventsEmitter.emit('sfdx:update_selection', position);
-  //     });
-  //   }
-  // }
-
   public updateSelection(index: vscode.Range | number) {
     const editor = vscode.window.activeTextEditor;
     if (editor) {

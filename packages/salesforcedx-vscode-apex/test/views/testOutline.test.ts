@@ -17,7 +17,8 @@ import { ApexTestMethod } from '../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
   ApexTestNode,
-  ApexTestOutlineProvider
+  ApexTestOutlineProvider,
+  TestNode
 } from '../../src/views/testOutlineProvider';
 import { ApexTestRunner } from '../../src/views/testRunner';
 import {
