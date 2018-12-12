@@ -36,6 +36,56 @@ vscode.workspace.onDidChangeTextDocument(e => {
   }
 });
 
+export abstract class ForceSourceDeployAbstractExecutor extends SfdxCommandletExecutor<
+  string
+> {
+  public static errorCollection = vscode.languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
+
+  public execute(response: ContinueResponse<string>): void {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const workspacePath = vscode.workspace.workspaceFolders
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : '';
+    const execFilePathOrPaths = response.data;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: workspacePath
+    }).execute(cancellationToken);
+
+    let stdErr = '';
+    execution.stderrSubject.subscribe(realData => {
+      stdErr += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      if (exitCode !== 0) {
+        try {
+          const deployErrorParser = new ForceDeployErrorParser();
+          const fileErrors = deployErrorParser.parse(stdErr);
+          handleDiagnosticErrors(
+            fileErrors,
+            workspacePath,
+            execFilePathOrPaths,
+            ForceSourceDeployExecutor.errorCollection
+          );
+        } catch (e) {
+          telemetryService.sendError(
+            'Error while creating diagnostics for vscode problem view.'
+          );
+          console.error(
+            'Error while creating diagnostics for vscode problem view.'
+          );
+        }
+      }
+    });
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    this.logMetric(execution.command.logName);
+  }
+}
+
 export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   SelectedPath
 > {
@@ -81,7 +131,7 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
           handleDiagnosticErrors(
             fileErrors,
             workspacePath,
-            execFilePath,
+            'n/a',
             ForceSourceDeployExecutor.errorCollection
           );
         } catch (e) {
@@ -97,21 +147,6 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     this.logMetric(execution.command.logName);
-  }
-}
-
-export class MultipleSourcePathsGatherer
-  implements ParametersGatherer<SelectedPath> {
-  private uris: vscode.Uri[];
-  public constructor(uris: vscode.Uri[]) {
-    this.uris = uris;
-  }
-  public async gather(): Promise<ContinueResponse<SelectedPath>> {
-    const sourcePaths = this.uris.map(uri => uri.fsPath).join(',');
-    return {
-      type: 'CONTINUE',
-      data: { filePath: sourcePaths, type: FileType.Source }
-    };
   }
 }
 

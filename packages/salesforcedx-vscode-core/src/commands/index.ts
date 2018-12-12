@@ -29,10 +29,10 @@ export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
 export { forceSourceDelete } from './forceSourceDelete';
+export { forceSourceDeployManifestOrSourcePath } from './forceSourceDeploy';
 export {
-  forceSourceDeployManifestOrSourcePath,
   forceSourceDeployMultipleSourcePaths
-} from './forceSourceDeploy';
+} from './forceSourceDeploySourcePath';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
 export { forceSourceRetrieve } from './forceSourceRetrieve';
