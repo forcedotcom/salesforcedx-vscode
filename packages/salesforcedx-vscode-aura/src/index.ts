@@ -53,6 +53,7 @@ export async function activate(context: ExtensionContext) {
   };
 
   let clientOptions: LanguageClientOptions = {
+    outputChannelName: 'Aura LSP Debug',
     documentSelector: ['html', 'javascript'],
     synchronize: {
       fileEvents: [
