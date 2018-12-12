@@ -34,7 +34,7 @@ export class ApexTestRunner {
     this.eventsEmitter.on('sfdx:update_selection', this.updateSelection);
   }
 
-  public async showErrorMessage(test: TestNode) {
+  public showErrorMessage(test: TestNode) {
     let testNode = test;
     let position: vscode.Range | number = test.location!.range;
     if (testNode instanceof ApexTestGroupNode) {
@@ -66,8 +66,12 @@ export class ApexTestRunner {
         channelService.showChannelOutput();
       }
     }
-    if (testNode.location) {
-      vscode.window.showTextDocument(testNode.location.uri).then(() => {
+    this.goToPosition(testNode, position);
+  }
+
+  public goToPosition(test: TestNode, position: vscode.Range | number) {
+    if (test.location) {
+      vscode.window.showTextDocument(test.location.uri).then(() => {
         this.eventsEmitter.emit('sfdx:update_selection', position);
       });
     }

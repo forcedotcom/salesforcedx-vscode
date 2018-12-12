@@ -16,8 +16,10 @@ import { ApexTestMethod } from '../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
   ApexTestNode,
-  ApexTestOutlineProvider
+  ApexTestOutlineProvider,
+  TestNode
 } from '../../src/views/testOutlineProvider';
+import { ApexTestRunner } from '../../src/views/testRunner';
 import {
   jsonSummaryMultipleFiles,
   jsonSummaryOneFilePass
@@ -187,6 +189,70 @@ describe('TestView', () => {
         }
         classNum++;
       }
+    });
+  });
+
+  describe('Navigate to test definition or error', () => {
+    let readFolderStub: SinonStub;
+    let readFileStub: SinonStub;
+    let parseJSONStub: SinonStub;
+    let goToPositionStub: SinonStub;
+
+    let testRunner: ApexTestRunner;
+    let locationResult: vscode.Range | number;
+
+    beforeEach(() => {
+      readFolderStub = stub(fs, 'readdirSync');
+      readFolderStub.callsFake(folderName => ['test-result.json']);
+      readFileStub = stub(fs, 'readFileSync');
+      readFileStub.callsFake(fileName => 'nonsense');
+      parseJSONStub = stub(JSON, 'parse');
+      parseJSONStub.callsFake(() => jsonSummaryMultipleFiles);
+      testOutline = new ApexTestOutlineProvider(apexTestInfo);
+      testOutline.readJSONFile('multipleFilesMixed');
+      testRunner = new ApexTestRunner(testOutline);
+      goToPositionStub = stub(testRunner, 'goToPosition');
+      goToPositionStub.callsFake((testNode, position) => {
+        locationResult = position;
+      });
+    });
+
+    afterEach(() => {
+      readFolderStub.restore();
+      readFileStub.restore();
+      parseJSONStub.restore();
+    });
+
+    it('Go to definition if a test does not have an error message', () => {
+      const testNode = new ApexTestNode('sampleTest', apexTestInfo[0].location);
+      const testRange = testNode.location!.range;
+
+      testRunner.showErrorMessage(testNode);
+
+      expect(goToPositionStub.calledOnce).to.be.true;
+      expect(locationResult).to.equal(testRange);
+    });
+
+    it('Go to error if a test has one', () => {
+      const lineFailure = 22;
+      const testNode = new ApexTestNode('failedTest', apexTestInfo[0].location);
+      testNode.errorMessage = 'System.AssertException: Assertion Failed';
+      testNode.stackTrace = `Class.fakeClass.test0: line ${lineFailure}, column 1`;
+
+      testRunner.showErrorMessage(testNode);
+
+      expect(goToPositionStub.calledOnce).to.be.true;
+      expect(locationResult).to.equal(lineFailure - 1);
+    });
+
+    it('Go to first failing test in a failed test class', () => {
+      const testClass = testOutline.getHead().children[0] as ApexTestGroupNode;
+      const lineFailure = 40; // first failure in testJSONOutputs.testResultsMultipleFiles
+
+      testRunner.showErrorMessage(testClass);
+
+      expect(goToPositionStub.calledOnce).to.be.true;
+      expect(locationResult).to.equal(lineFailure - 1);
     });
   });
 });
