@@ -70,18 +70,9 @@ export class ApexTestRunner {
         channelService.showChannelOutput();
       }
     }
-<<<<<<< HEAD
 
     if (testNode.location) {
       vscode.window.showTextDocument(testNode.location.uri).then(() => {
-=======
-    this.goToPosition(testNode, position);
-  }
-
-  public goToPosition(test: TestNode, position: vscode.Range | number) {
-    if (test.location) {
-      vscode.window.showTextDocument(test.location.uri).then(() => {
->>>>>>> e2b4d324a0f86d148b284ee152ffa067a75d32ee
         this.eventsEmitter.emit('sfdx:update_selection', position);
       });
     }
