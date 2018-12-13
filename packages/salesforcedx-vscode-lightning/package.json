@@ -1,7 +1,7 @@
 {
   "name": "salesforcedx-vscode-lightning",
-  "displayName": "Lightning Component Framework",
-  "description": "Provides syntax highlighting for Lightning components",
+  "displayName": "Aura Components",
+  "description": "Provides syntax highlighting for Aura components",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.10.0",
+  "version": "44.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,11 +22,11 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "44.10.0",
+    "@salesforce/salesforcedx-slds-linter": "44.11.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.11.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
