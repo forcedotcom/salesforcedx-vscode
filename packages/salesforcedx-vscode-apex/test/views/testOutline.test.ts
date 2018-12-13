@@ -202,7 +202,6 @@ describe('TestView', () => {
 
     let testRunner: ApexTestRunner;
     const eventEmitter = new events.EventEmitter();
-    // let locationResult: vscode.Range | number;
 
     beforeEach(() => {
       readFolderStub = stub(fs, 'readdirSync');
