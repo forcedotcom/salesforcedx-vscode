@@ -13,6 +13,8 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 
+import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -145,34 +147,27 @@ async function createSourceFileWatcher(): Promise<vscode.FileSystemWatcher | nul
 }
 
 export async function getPackageDirectoriesGlobString(): Promise<string> {
-  const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-  const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
-  const sfdxProjectJson = await sfdxProject.resolveProjectConfig();
-  const packageDirectories = sfdxProjectJson.packageDirectories as JsonArray;
-  if (packageDirectories) {
-    const packageDirectoryPaths: string[] = [];
-    packageDirectories.forEach(packageDir => {
-      if (packageDir) {
-        const packageDirectory = packageDir as JsonMap;
-        if (packageDirectory.path) {
-          const dirPath = packageDirectory.path as string;
-          packageDirectoryPaths.push(dirPath);
-        }
-      }
-    });
-    if (packageDirectoryPaths.length === 0) {
-      throw new Error(
-        nls.localize('error_no_package_directories_paths_found_text')
-      );
-    }
+  try {
+    const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
+    const sfdxProjectJsonParser = new SfdxProjectJsonParser();
+    const packageDirectoryPaths = await sfdxProjectJsonParser.getPackageDirectoryPaths(
+      sfdxProjectPath
+    );
     const globString = path.join(
       sfdxProjectPath,
       `{${packageDirectoryPaths.join(',')}}`,
       '**'
     );
     return Promise.resolve(globString);
-  } else {
-    throw new Error(nls.localize('error_no_package_directories_found_text'));
+  } catch (error) {
+    if (error.name === 'NoPackageDirectoriesFound') {
+      throw new Error(nls.localize('error_no_package_directories_found_text'));
+    } else if (error.name === 'NoPackageDirectoryPathsFound') {
+      throw new Error(
+        nls.localize('error_no_package_directories_paths_found_text')
+      );
+    }
+    throw error;
   }
 }
 

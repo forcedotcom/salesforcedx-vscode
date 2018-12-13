@@ -10,7 +10,8 @@
   "dependencies": {
     "cross-spawn": "6.0.5",
     "rxjs": "^5.4.1",
-    "tree-kill": "^1.1.0"
+    "tree-kill": "^1.1.0",
+    "@salesforce/core": "1.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",

@@ -33,3 +33,4 @@ export {
   DeployError
 } from './deployErrorParser';
 export { TestRunner } from './testRunner';
+export { SfdxProjectJsonParser } from './sfdxProjectJsonParser';
