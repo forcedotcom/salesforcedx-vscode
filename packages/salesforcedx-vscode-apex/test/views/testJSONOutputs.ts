@@ -69,8 +69,8 @@ const testResultsMultipleFiles = [
     MethodName: 'test1',
     Outcome: 'Fail',
     RunTime: 1,
-    Message: '',
-    StackTrace: '',
+    Message: 'System.AssertException: Assertion Failed',
+    StackTrace: 'Class.fakeClass.test1: line 40, column 1',
     FullName: 'file0.test1'
   },
   {
@@ -114,8 +114,8 @@ const testResultsMultipleFiles = [
     MethodName: 'test6',
     Outcome: 'Fail',
     RunTime: 1,
-    Message: '',
-    StackTrace: '',
+    Message: 'System.AssertException: Assertion Failed',
+    StackTrace: 'Class.fakeClass.test6: line 22, column 1',
     FullName: 'file3.test6'
   },
   {

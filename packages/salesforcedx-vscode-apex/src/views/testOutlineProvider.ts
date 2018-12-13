@@ -180,7 +180,7 @@ export class ApexTestOutlineProvider
       ) as ApexTestNode;
       if (apexTest) {
         apexTest.outcome = testResult.Outcome;
-        apexTest.updateIcon();
+        apexTest.updateOutcome();
         if (testResult.Outcome === 'Fail') {
           apexTest.errorMessage = testResult.Message;
           apexTest.stackTrace = testResult.StackTrace;
@@ -226,7 +226,7 @@ export abstract class TestNode extends vscode.TreeItem {
     return this.description;
   }
 
-  public updateIcon(outcome: string) {
+  public updateOutcome(outcome: string) {
     if (outcome === 'Pass') {
       // Passed Test
       this.iconPath = {
@@ -246,6 +246,9 @@ export abstract class TestNode extends vscode.TreeItem {
         dark: DARK_ORANGE_BUTTON
       };
     }
+
+    const nodeType = this.contextValue.split('_')[0];
+    this.contextValue = `${nodeType}_${outcome}`;
   }
 
   public abstract contextValue: string;
@@ -278,19 +281,19 @@ export class ApexTestGroupNode extends TestNode {
 
     if (this.passing + this.failing + this.skipping === this.children.length) {
       if (this.failing !== 0) {
-        this.updateIcon('Fail');
+        this.updateOutcome('Fail');
       } else {
-        this.updateIcon('Pass');
+        this.updateOutcome('Pass');
       }
     }
   }
 
-  public updateIcon(outcome: string) {
-    super.updateIcon(outcome);
+  public updateOutcome(outcome: string) {
+    super.updateOutcome(outcome);
     if (outcome === 'Pass') {
       this.children.forEach(child => {
         // Update all the children as well
-        child.updateIcon(outcome);
+        child.updateOutcome(outcome);
       });
     }
   }
@@ -305,8 +308,8 @@ export class ApexTestNode extends TestNode {
     super(label, vscode.TreeItemCollapsibleState.None, location);
   }
 
-  public updateIcon() {
-    super.updateIcon(this.outcome);
+  public updateOutcome() {
+    super.updateOutcome(this.outcome);
     if (this.outcome === 'Pass') {
       this.errorMessage = '';
     }
