@@ -114,7 +114,6 @@ export class ApexTestOutlineProvider
     apexTestPath: string,
     testResultFile: string
   ) {
-    await this.refresh();
     const testRunIdFile = path.join(apexTestPath, 'test-run-id.txt');
     const testRunId = fs.readFileSync(testRunIdFile);
     const testResultFilePath = path.join(
@@ -122,6 +121,7 @@ export class ApexTestOutlineProvider
       'test-result-' + testRunId + '.json'
     );
     if (testResultFile === testResultFilePath) {
+      await this.refresh();
       this.readJSONFile(testResultFile);
     }
   }
