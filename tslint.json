@@ -6,6 +6,7 @@
     "quotemark": [true, "single", "avoid-escape"],
     "member-ordering": false,
     "no-string-based-set-timeout": false,
-    "semicolon": [true, "always", "ignore-bound-class-methods"]
+    "semicolon": [true, "always", "ignore-bound-class-methods"],
+    "no-floating-promises": false
   }
 }
