@@ -36,7 +36,8 @@ export {
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
-export { forceSourceRetrieve } from './forceSourceRetrieve';
+export { forceSourceRetrieveSourcePath } from './forceSourceRetrieveSourcePath';
+export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './forceApexClassCreate';

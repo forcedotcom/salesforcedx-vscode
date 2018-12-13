@@ -98,7 +98,12 @@
         {
           "command": "sfdx.force.source.retrieve.current.file",
           "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.source.retrieve.in.manifest",
+          "when":
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
@@ -158,7 +163,7 @@
             "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.source.retrieve",
+          "command": "sfdx.force.source.retrieve.source.path",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
@@ -357,7 +362,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.source.retrieve",
+          "command": "sfdx.force.source.retrieve.source.path",
           "when": "false"
         },
         {
@@ -560,7 +565,7 @@
         "title": "%force_apex_log_get_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve",
+        "command": "sfdx.force.source.retrieve.source.path",
         "title": "%force_source_retrieve_text%"
       },
       {

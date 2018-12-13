@@ -7,28 +7,13 @@
 
 import {
   CliCommandExecutor,
-  Command,
-  ForceDeployErrorParser,
-  SfdxCommandBuilder
+  ForceDeployErrorParser
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { handleDiagnosticErrors } from '../diagnostics';
-import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './commands';
-import {
-  FileType,
-  ManifestOrSourcePathGatherer,
-  SelectedPath
-} from './forceSourceRetrieve';
+import { SfdxCommandletExecutor } from './commands';
 
 vscode.workspace.onDidChangeTextDocument(e => {
   if (ForceSourceDeployExecutor.errorCollection.has(e.document.uri)) {

@@ -44,7 +44,8 @@ import {
   forceSourceDeploySourcePath,
   forceSourcePull,
   forceSourcePush,
-  forceSourceRetrieve,
+  forceSourceRetrieveManifest,
+  forceSourceRetrieveSourcePath,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -147,16 +148,16 @@ function registerCommands(
     { flag: '--forceoverwrite' }
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve',
-    forceSourceRetrieve
+    'sfdx.force.source.retrieve.source.path',
+    forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.current.file',
-    forceSourceRetrieve
+    forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.in.manifest',
-    forceSourceRetrieve
+    forceSourceRetrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
