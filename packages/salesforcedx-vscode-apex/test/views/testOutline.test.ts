@@ -17,7 +17,8 @@ import { ApexTestMethod } from '../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
   ApexTestNode,
-  ApexTestOutlineProvider
+  ApexTestOutlineProvider,
+  TestNode
 } from '../../src/views/testOutlineProvider';
 import { ApexTestRunner } from '../../src/views/testRunner';
 import {
@@ -201,7 +202,6 @@ describe('TestView', () => {
 
     let testRunner: ApexTestRunner;
     const eventEmitter = new events.EventEmitter();
-    // let locationResult: vscode.Range | number;
 
     beforeEach(() => {
       readFolderStub = stub(fs, 'readdirSync');
