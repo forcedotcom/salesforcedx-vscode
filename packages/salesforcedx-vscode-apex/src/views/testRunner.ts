@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
+  ApexTestGroupNode,
   ApexTestNode,
   ApexTestOutlineProvider,
   TestNode
@@ -27,18 +28,33 @@ const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 const channelService = sfdxCoreExports.channelService;
 export class ApexTestRunner {
   private testOutline: ApexTestOutlineProvider;
-  private eventsEmitter = new events.EventEmitter();
-  constructor(testOutline: ApexTestOutlineProvider) {
+  private eventsEmitter: events.EventEmitter;
+  constructor(
+    testOutline: ApexTestOutlineProvider,
+    eventsEmitter?: events.EventEmitter
+  ) {
     this.testOutline = testOutline;
+    this.eventsEmitter = eventsEmitter || new events.EventEmitter();
     this.eventsEmitter.on('sfdx:update_selection', this.updateSelection);
   }
 
-  public async showErrorMessage(test: TestNode) {
+  public showErrorMessage(test: TestNode) {
+    let testNode = test;
     let position: vscode.Range | number = test.location!.range;
-    if (test instanceof ApexTestNode) {
-      const errorMessage = test.errorMessage;
+    if (testNode instanceof ApexTestGroupNode) {
+      if (test.contextValue === 'apexTestGroup_Fail') {
+        const failedTest = test.children.find(
+          testCase => testCase.contextValue === 'apexTest_Fail'
+        );
+        if (failedTest) {
+          testNode = failedTest;
+        }
+      }
+    }
+    if (testNode instanceof ApexTestNode) {
+      const errorMessage = testNode.errorMessage;
       if (errorMessage && errorMessage !== '') {
-        const stackTrace = test.stackTrace;
+        const stackTrace = testNode.stackTrace;
         position =
           parseInt(
             stackTrace.substring(
@@ -54,8 +70,9 @@ export class ApexTestRunner {
         channelService.showChannelOutput();
       }
     }
-    if (test.location) {
-      vscode.window.showTextDocument(test.location.uri).then(() => {
+
+    if (testNode.location) {
+      vscode.window.showTextDocument(testNode.location.uri).then(() => {
         this.eventsEmitter.emit('sfdx:update_selection', position);
       });
     }
