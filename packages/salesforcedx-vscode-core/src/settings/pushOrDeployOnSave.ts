@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxProject } from '@salesforce/core';
-import { JsonArray, JsonMap } from '@salesforce/ts-types';
 import { channelService } from '../channels';
 import { getWorkspaceOrgType, OrgType } from '../context';
 import { nls } from '../messages';
@@ -150,7 +148,7 @@ export async function getPackageDirectoriesGlobString(): Promise<string> {
   try {
     const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
     const sfdxProjectJsonParser = new SfdxProjectJsonParser();
-    const packageDirectoryPaths = await sfdxProjectJsonParser.getPackageDirectoryPaths(
+    const packageDirectoryPaths: string[] = await sfdxProjectJsonParser.getPackageDirectoryPaths(
       sfdxProjectPath
     );
     const globString = path.join(

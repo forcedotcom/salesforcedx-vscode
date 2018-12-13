@@ -5,16 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-
 import * as path from 'path';
-
 import { SinonStub, stub } from 'sinon';
-
 import * as vscode from 'vscode';
-
 import * as context from '../../src/context';
 
-import { SfdxProject } from '@salesforce/core';
+import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { channelService } from '../../src/channels';
 import { nls } from '../../src/messages';
 import { notificationService } from '../../src/notifications';
@@ -28,61 +24,55 @@ const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */
 describe('getPackageDirectoriesGlobString', () => {
   it('should return a glob string with one package directory', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({
-        resolveProjectConfig: () => ({
-          packageDirectories: [{ path: 'force-app' }]
-        })
-      })
-    );
+    const getPackageDirectoriesStub = stub(
+      SfdxProjectJsonParser.prototype,
+      'getPackageDirectoryPaths'
+    ).returns(['force-app']);
     const globString = await getPackageDirectoriesGlobString();
     expect(globString).to.include(path.join('{force-app}', '**'));
-    sfdxProjectStub.restore();
+    getPackageDirectoriesStub.restore();
   });
 
   it('should return a glob string with multiple package directories', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({
-        resolveProjectConfig: () => ({
-          packageDirectories: [
-            { path: 'package1' },
-            { path: 'package2' },
-            { path: 'package3' }
-          ]
-        })
-      })
-    );
+    const getPackageDirectoriesStub = stub(
+      SfdxProjectJsonParser.prototype,
+      'getPackageDirectoryPaths'
+    ).returns(['package1', 'package2', 'package3']);
     const globString = await getPackageDirectoriesGlobString();
     expect(globString).to.include(
       path.join('{package1,package2,package3}', '**')
     );
-    sfdxProjectStub.restore();
+    getPackageDirectoriesStub.restore();
   });
 
   it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({ resolveProjectConfig: () => ({}) })
-    );
+    const error = new Error();
+    error.name = 'NoPackageDirectoriesFound';
+    const getPackageDirectoriesStub = stub(
+      SfdxProjectJsonParser.prototype,
+      'getPackageDirectoryPaths'
+    ).throws(error);
     let errorWasThrown = false;
     try {
       await getPackageDirectoriesGlobString();
-    } catch (error) {
+    } catch (e) {
       errorWasThrown = true;
-      expect(error.message).to.equal(
+      expect(e.message).to.equal(
         nls.localize('error_no_package_directories_found_text')
       );
     } finally {
       expect(errorWasThrown).to.be.true;
-      sfdxProjectStub.restore();
+      getPackageDirectoriesStub.restore();
     }
   });
 
   it('should throw an error if packageDirectories does not specify any paths', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({
-        resolveProjectConfig: () => ({ packageDirectories: [] })
-      })
-    );
+    const error = new Error();
+    error.name = 'NoPackageDirectoryPathsFound';
+    const getPackageDirectoriesStub = stub(
+      SfdxProjectJsonParser.prototype,
+      'getPackageDirectoryPaths'
+    ).throws(error);
     let errorWasThrown = false;
     try {
       await getPackageDirectoriesGlobString();
@@ -93,7 +83,7 @@ describe('getPackageDirectoriesGlobString', () => {
       );
     } finally {
       expect(errorWasThrown).to.be.true;
-      sfdxProjectStub.restore();
+      getPackageDirectoriesStub.restore();
     }
   });
 });

@@ -19,7 +19,7 @@ describe('Force Source Deploy with Sourcepath Option', () => {
     const sourceDeployCommand = sourceDeploy.build(sourcePath);
 
     expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --json --loglevel fatal --sourcepath ${sourcePath}`
+      `sfdx force:source:deploy --sourcepath ${sourcePath} --json --loglevel fatal`
     );
     expect(sourceDeployCommand.description).to.equal(
       nls.localize('force_source_deploy_text')

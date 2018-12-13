@@ -18,7 +18,7 @@ describe('Force Source Deploy in Manifest', () => {
     const sourceDeploy = new ForceSourceDeployManifestExecutor();
     const sourceDeployCommand = sourceDeploy.build(manifestPath);
     expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --json --loglevel fatal --manifest ${manifestPath}`
+      `sfdx force:source:deploy --manifest ${manifestPath} --json --loglevel fatal`
     );
     expect(sourceDeployCommand.description).to.equal(
       nls.localize('force_source_deploy_text')
