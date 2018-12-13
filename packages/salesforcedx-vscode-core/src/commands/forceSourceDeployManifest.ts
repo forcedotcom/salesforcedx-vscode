@@ -9,9 +9,9 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './commands';
-import { ForceSourceDeployAbstractExecutor } from './forceSourceDeploy';
+import { ForceSourceDeployExecutor } from './forceSourceDeploy';
 
-export class ForceSourceDeployManifestExecutor extends ForceSourceDeployAbstractExecutor {
+export class ForceSourceDeployManifestExecutor extends ForceSourceDeployExecutor {
   public build(manifestPath: string): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_deploy_text'))

@@ -101,14 +101,19 @@
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         },
         {
-          "command": "sfdx.force.source.deploy.current.file",
+          "command": "sfdx.force.source.deploy.current.source.file",
           "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.source.deploy.in.manifest",
+          "when":
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
           "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
@@ -163,7 +168,7 @@
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.deploy.manifest.or.source.path",
+          "command": "sfdx.force.source.deploy.source.path",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
@@ -356,7 +361,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy.manifest.or.source.path",
+          "command": "sfdx.force.source.deploy.source.path",
           "when": "false"
         },
         {
@@ -368,7 +373,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy.current.file",
+          "command": "sfdx.force.source.deploy.current.source.file",
           "when": "false"
         },
         {
@@ -567,11 +572,11 @@
         "title": "%force_source_retrieve_in_manifest_text%"
       },
       {
-        "command": "sfdx.force.source.deploy.manifest.or.source.path",
+        "command": "sfdx.force.source.deploy.source.path",
         "title": "%force_source_deploy_text%"
       },
       {
-        "command": "sfdx.force.source.deploy.current.file",
+        "command": "sfdx.force.source.deploy.current.source.file",
         "title": "%force_source_deploy_this_source_text%"
       },
       {

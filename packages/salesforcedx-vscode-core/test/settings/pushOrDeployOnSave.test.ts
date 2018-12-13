@@ -228,7 +228,7 @@ describe('pushOrDeploy', () => {
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.deploy.manifest.or.source.path'
+        'sfdx.force.source.deploy.source.path'
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;

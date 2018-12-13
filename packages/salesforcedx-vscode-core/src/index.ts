@@ -39,8 +39,9 @@ import {
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
-  forceSourceDeployManifestOrSourcePath,
+  forceSourceDeployManifest,
   forceSourceDeployMultipleSourcePaths,
+  forceSourceDeploySourcePath,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieve,
@@ -111,21 +112,21 @@ function registerCommands(
     'sfdx.force.source.delete.current.file',
     forceSourceDelete
   );
-  const forceSourceDeployManifestOrSourcePathCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.manifest.or.source.path',
-    forceSourceDeployManifestOrSourcePath
+  const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.current.source.file',
+    forceSourceDeploySourcePath
   );
-  const forceSourceDeployCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.current.file',
-    forceSourceDeployManifestOrSourcePath
+  const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.in.manifest',
+    forceSourceDeployManifest
   );
   const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.multiple.source.paths',
     forceSourceDeployMultipleSourcePaths
   );
-  const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.in.manifest',
-    forceSourceDeployManifestOrSourcePath
+  const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.source.path',
+    forceSourceDeploySourcePath
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -332,10 +333,10 @@ function registerCommands(
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
-    forceSourceDeployManifestOrSourcePathCmd,
-    forceSourceDeployCurrentFileCmd,
+    forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,
+    forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
