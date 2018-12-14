@@ -56,17 +56,35 @@ describe('Force Auth Web Login in Demo  Mode', () => {
 });
 
 describe('Auth Params Gatherer', () => {
-  const inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
-  const quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+  let inputBoxSpy: sinon.SinonStub;
+  let quickPickStub: sinon.SinonStub;
 
-  afterEach(() => {
-    inputBoxSpy.reset();
-    quickPickStub.reset();
+  const setGathererBehavior = (
+    orgType: string,
+    customUrl: string | undefined,
+    orgAlias: string | undefined
+  ) => {
+    quickPickStub.returns({ label: orgType });
+    let inputBoxCall = 0;
+    if (orgType === 'Custom') {
+      inputBoxSpy.onCall(inputBoxCall).returns(customUrl);
+      inputBoxCall += 1;
+    }
+    inputBoxSpy.onCall(inputBoxCall).returns(orgAlias);
+  };
+
+  beforeEach(() => {
+    inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
+    quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
   });
 
-  it('Should return cancel if custom loginUrl is undefined', async () => {
-    quickPickStub.returns({ label: 'Custom' });
-    inputBoxSpy.returns(undefined);
+  afterEach(() => {
+    inputBoxSpy.restore();
+    quickPickStub.restore();
+  });
+
+  it('Should return Cancel if custom loginUrl is undefined', async () => {
+    setGathererBehavior('Custom', undefined, '');
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
@@ -75,9 +93,7 @@ describe('Auth Params Gatherer', () => {
   });
 
   it('Should return Continue with production URL if custom URL user input is an empty string', async () => {
-    quickPickStub.returns({ label: 'Custom' });
-    inputBoxSpy.onCall(0).returns('');
-    inputBoxSpy.onCall(1).returns('');
+    setGathererBehavior('Custom', '', '');
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
@@ -90,9 +106,7 @@ describe('Auth Params Gatherer', () => {
   });
 
   it('Should return Continue with inputted URL if custom URL user input is not undefined or empty', async () => {
-    quickPickStub.returns({ label: 'Custom' });
-    inputBoxSpy.onCall(0).returns(TEST_URL);
-    inputBoxSpy.onCall(1).returns('');
+    setGathererBehavior('Custom', TEST_URL, '');
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
@@ -105,8 +119,7 @@ describe('Auth Params Gatherer', () => {
   });
 
   it('Should return Continue with production URL if Production option is chosen', async () => {
-    quickPickStub.returns({ label: 'Production' });
-    inputBoxSpy.returns('');
+    setGathererBehavior('Production', undefined, '');
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
@@ -119,8 +132,7 @@ describe('Auth Params Gatherer', () => {
   });
 
   it('Should return Continue with sandbox URL if Sandbox option is chosen', async () => {
-    quickPickStub.returns({ label: 'Sandbox' });
-    inputBoxSpy.returns('');
+    setGathererBehavior('Sandbox', undefined, '');
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
@@ -132,9 +144,8 @@ describe('Auth Params Gatherer', () => {
     }
   });
 
-  it('Should return cancel if alias is undefined', async () => {
-    quickPickStub.returns({ label: 'Production' });
-    inputBoxSpy.returns(undefined);
+  it('Should return Cancel if alias is undefined', async () => {
+    setGathererBehavior('Production', undefined, undefined);
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
@@ -143,8 +154,7 @@ describe('Auth Params Gatherer', () => {
   });
 
   it('Should return Continue with default alias if user input is empty string', async () => {
-    quickPickStub.returns({ label: 'Production' });
-    inputBoxSpy.returns('');
+    setGathererBehavior('Production', undefined, '');
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
@@ -157,8 +167,7 @@ describe('Auth Params Gatherer', () => {
   });
 
   it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
-    quickPickStub.returns({ label: 'Production' });
-    inputBoxSpy.returns(TEST_ALIAS);
+    setGathererBehavior('Production', undefined, TEST_ALIAS);
 
     const gatherer = new AuthParamsGatherer();
     const response = await gatherer.gather();
