@@ -26,7 +26,7 @@ describe('getPackageDirectoriesGlobString', () => {
     const packageDirectories = await parser.getPackageDirectoryPaths(
       SFDX_PROJECT_PATH
     );
-    expect(packageDirectories).length.to.equal(1);
+    expect(packageDirectories.length).to.equal(1);
     expect(packageDirectories[0]).to.equal('force-app');
     sfdxProjectStub.restore();
   });
@@ -47,7 +47,7 @@ describe('getPackageDirectoriesGlobString', () => {
     const packageDirectories = await parser.getPackageDirectoryPaths(
       SFDX_PROJECT_PATH
     );
-    expect(packageDirectories).length.to.equal(3);
+    expect(packageDirectories.length).to.equal(3);
     expect(packageDirectories[0]).to.equal('package1');
     expect(packageDirectories[1]).to.equal('package2');
     expect(packageDirectories[2]).to.equal('package3');
