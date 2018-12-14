@@ -18,7 +18,7 @@ import {
   FileEventType,
   getPackageDirectoriesGlobString,
   pushOrDeploy
-} from '../../src/settings';
+} from '../../src/settings/pushOrDeployOnSave';
 
 const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */
@@ -161,7 +161,7 @@ describe('pushOrDeploy', () => {
       executeCommandStub.restore();
     });
 
-    const testPushOrDeployOn = async (fileEvent: FileEventType) => {
+    const testPushOn = async (fileEvent: FileEventType) => {
       await pushOrDeploy(fileEvent);
 
       expect(executeCommandStub.calledOnce).to.be.true;
@@ -173,15 +173,15 @@ describe('pushOrDeploy', () => {
     };
 
     it('should call force:source:push on file creation', async () => {
-      await testPushOrDeployOn(FileEventType.Create);
+      await testPushOn(FileEventType.Create);
     });
 
     it('should call force:source:push on file change', async () => {
-      await testPushOrDeployOn(FileEventType.Change);
+      await testPushOn(FileEventType.Change);
     });
 
     it('should call force:source:push on file deletion', async () => {
-      await testPushOrDeployOn(FileEventType.Delete);
+      await testPushOn(FileEventType.Delete);
     });
   });
 

@@ -52,7 +52,7 @@ describe('SourcePathChecker', () => {
     showErrorMessageSpy.restore();
   });
 
-  it('Should continue when source path is package directory', async () => {
+  it('Should continue when source path is a package directory', async () => {
     const getProjectDirectoriesStub = stub(
       SfdxProjectJsonParser.prototype,
       'getPackageDirectoryPaths'
