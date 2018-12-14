@@ -8,33 +8,35 @@ This extension provides code-editing features for the Lightning Web Components p
 
 Before you set up this extension
 
-* Make sure that you have [Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later.
+- Make sure that you have [Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later.
 
-* Install the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) to get all the required dependencies.
+- Install the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) to get all the required dependencies.
 
 ## Features Provided by This Extension
 
-* Notification of HTML and JavaScript file errors or compiler warnings
+- Notification of HTML and JavaScript file errors or compiler warnings
 
-* ESLint configuration for Lightning web components
-    * Errors and warnings appear in JavaScript files
-    * Hover over code to display warning messages
-    * Click the displayed message for available code actions
-  
-* Auto-completion for resources in JavaScript files
-    * Static resources
-    * Custom label imports
-    * Lightning web components imports from the core `lwc` module
+- ESLint configuration for Lightning web components
 
-* Auto-completion for resources in HTML files
-    * Tags and attributes for standard `lightning` namespace Lightning web components
-    * Tags and attributes for custom `c` namespace Lightning web components
-    * Lightning web components directives in related HTML files
-  
-* Help documentation when you hover over standard `lightning` namespace Lightning web components or attributes
+  - Errors and warnings appear in JavaScript files
+  - Hover over code to display warning messages
+  - Click the displayed message for available code actions
 
-* Click navigation from HTML files to the main JavaScript file for custom `c` namespace Lightning web components and attributes
-  
+- Auto-completion for resources in JavaScript files
+
+  - Static resources
+  - Custom label imports
+  - Lightning web components imports from the core `lwc` module
+
+- Auto-completion for resources in HTML files
+
+  - Tags and attributes for standard `lightning` namespace Lightning web components
+  - Tags and attributes for custom `c` namespace Lightning web components
+  - Lightning web components directives in related HTML files
+
+- Help documentation when you hover over standard `lightning` namespace Lightning web components or attributes
+
+- Click navigation from HTML files to the main JavaScript file for custom `c` namespace Lightning web components and attributes
 
 ## Bugs and Feedback
 
@@ -42,11 +44,10 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 
 ## Resources
 
-- Doc: [Lightning Web Components Developer Guide](http://developer.salesfore.com/docs/component-library/documentation/lwc) (available after December 17th)
+- Doc: [Lightning Web Components Developer Guide](https://developer.salesforce.com/docs/component-library/documentation/lwc) (available after December 17th)
 - Trailhead: [Lightning Web Components Quick Start](https://trailhead.salesforce.com/content/learn/projects/quick-start-lightning-web-components/)
 - Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 - Doc: [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
-
 
 ---
 
