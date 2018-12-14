@@ -12,7 +12,7 @@ import { ForceSourceDeploySourcePathExecutor } from './../../src/commands/forceS
 
 import { nls } from '../../src/messages';
 
-describe('Force Source Deploy with Sourcepath Option', () => {
+describe('Force Source Deploy Using Sourcepath Option', () => {
   it('Should build the source deploy command for', () => {
     const sourcePath = path.join('path', 'to', 'sourceFile');
     const sourceDeploy = new ForceSourceDeploySourcePathExecutor();

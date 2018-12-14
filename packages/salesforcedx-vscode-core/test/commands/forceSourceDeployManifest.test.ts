@@ -12,7 +12,7 @@ import { ForceSourceDeployManifestExecutor } from './../../src/commands/forceSou
 
 import { nls } from '../../src/messages';
 
-describe('Force Source Deploy in Manifest', () => {
+describe('Force Source Deploy Using Manifest Option', () => {
   it('Should build the source deploy command', () => {
     const manifestPath = path.join('path', 'to', 'manifest', 'package.xml');
     const sourceDeploy = new ForceSourceDeployManifestExecutor();
