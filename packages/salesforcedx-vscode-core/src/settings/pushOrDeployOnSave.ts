@@ -80,40 +80,41 @@ export async function pushOrDeploy(
     }
 
     if (orgType === OrgType.NonSourceTracked) {
-      if (fileEventType === FileEventType.Create) {
-        vscode.commands.executeCommand(
-          'sfdx.force.source.deploy.multiple.source.paths',
-          filesToDeploy!.slice(0)
-        );
-      } else if (fileEventType === FileEventType.Change) {
-        vscode.commands.executeCommand(
-          'sfdx.force.source.deploy.source.path',
-          filesToDeploy![0]
-        );
-      } else if (fileEventType === FileEventType.Delete) {
-        const deleteError = nls.localize('error_change_not_deleted_text');
-        const consoleError = `Error attempting to push or deploy: ${nls.localize(
-          'error_change_not_deleted_text'
-        )}`;
-        displayError(deleteError, [consoleError]);
+      switch (fileEventType) {
+        case FileEventType.Create:
+          vscode.commands.executeCommand(
+            'sfdx.force.source.deploy.multiple.source.paths',
+            filesToDeploy!.slice(0)
+          );
+          break;
+        case FileEventType.Change:
+          vscode.commands.executeCommand(
+            'sfdx.force.source.deploy.source.path',
+            filesToDeploy![0]
+          );
+          break;
+        case FileEventType.Delete:
+          displayError(
+            nls.localize(
+              'error_push_or_deploy_on_save_delete_not_supported_text'
+            )
+          );
+          break;
       }
     }
   } catch (e) {
-    let errorMessage: string;
-    if (e.name === 'NamedOrgNotFound') {
-      errorMessage = `${nls.localize(
-        'error_push_or_deploy_on_save'
-      )}: ${nls.localize('error_fetching_auth_info_text')}`;
-    } else if (e.name === 'NoDefaultusernameSet') {
-      errorMessage = nls.localize(
-        'error_push_or_deploy_on_save_no_default_username'
-      );
-    } else {
-      errorMessage = `${nls.localize(
-        'error_push_or_deploy_on_save'
-      )}: ${e.message}`;
+    switch (e.name) {
+      case 'NamedOrgNotFound':
+        displayError(nls.localize('error_fetching_auth_info_text'));
+        break;
+      case 'NoDefaultusernameSet':
+        displayError(
+          nls.localize('error_push_or_deploy_on_save_no_default_username')
+        );
+        break;
+      default:
+        displayError(e.message);
     }
-    displayError(errorMessage, [errorMessage]);
   } finally {
     if (filesToDeploy) {
       emptyCollectedFiles(filesToDeploy);
@@ -133,13 +134,7 @@ async function createSourceFileWatcher(): Promise<vscode.FileSystemWatcher | nul
     );
     return Promise.resolve(fileSystemWatcher);
   } catch (error) {
-    const errorSettingUp = nls.localize(
-      'error_setting_up_push_or_deploy_on_save_text'
-    );
-    displayError(errorSettingUp, [
-      `${errorSettingUp}: ${error.message}`,
-      nls.localize('reference_salesforcedx_project_configuration_doc')
-    ]);
+    displayError(error.message);
   }
   return Promise.resolve(null);
 }
@@ -158,20 +153,24 @@ export async function getPackageDirectoriesGlobString(): Promise<string> {
     );
     return Promise.resolve(globString);
   } catch (error) {
-    if (error.name === 'NoPackageDirectoriesFound') {
-      throw new Error(nls.localize('error_no_package_directories_found_text'));
-    } else if (error.name === 'NoPackageDirectoryPathsFound') {
-      throw new Error(
-        nls.localize('error_no_package_directories_paths_found_text')
-      );
+    switch (error.name) {
+      case 'NoPackageDirectoriesFound':
+        throw new Error(
+          nls.localize('error_no_package_directories_found_text')
+        );
+      case 'NoPackageDirectoryPathsFound':
+        throw new Error(
+          nls.localize('error_no_package_directories_paths_found_text')
+        );
+      default:
+        throw error;
     }
-    throw error;
   }
 }
 
-function displayError(notifcationMessage: string, consoleMessages: string[]) {
-  notificationService.showErrorMessage(notifcationMessage);
-  consoleMessages.forEach(message => channelService.appendLine(message));
+function displayError(message: string) {
+  notificationService.showErrorMessage(message);
+  channelService.appendLine(message);
   channelService.showChannelOutput();
 }
 

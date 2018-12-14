@@ -44,33 +44,42 @@ export class SourcePathChecker implements PostconditionChecker<string> {
   public async check(
     inputs: ContinueResponse<string> | CancelResponse
   ): Promise<ContinueResponse<string> | CancelResponse> {
+    let errorMessage;
     if (inputs.type === 'CONTINUE') {
       const sourcePath = inputs.data;
       const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
       const sfdxProjectJsonParser = new SfdxProjectJsonParser();
-      const packageDirectoryPaths = await sfdxProjectJsonParser.getPackageDirectoryPaths(
-        sfdxProjectPath
-      );
-      const fullPackagePaths = packageDirectoryPaths.map(packageDirectoryPath =>
-        path.join(sfdxProjectPath, packageDirectoryPath)
-      );
+      try {
+        const packageDirectoryPaths = await sfdxProjectJsonParser.getPackageDirectoryPaths(
+          sfdxProjectPath
+        );
+        const fullPackagePaths = packageDirectoryPaths.map(
+          packageDirectoryPath =>
+            path.join(sfdxProjectPath, packageDirectoryPath)
+        );
 
-      let sourcePathIsInPackageDirectory = false;
-      for (const packagePath of fullPackagePaths) {
-        if (sourcePath.startsWith(packagePath)) {
-          sourcePathIsInPackageDirectory = true;
-          break;
+        let sourcePathIsInPackageDirectory = false;
+        for (const packagePath of fullPackagePaths) {
+          if (sourcePath.startsWith(packagePath)) {
+            sourcePathIsInPackageDirectory = true;
+            break;
+          }
         }
+        if (sourcePathIsInPackageDirectory) {
+          return inputs;
+        }
+        errorMessage = nls.localize(
+          'error_source_path_not_in_package_directory_text',
+          packageDirectoryPaths.join(',')
+        );
+      } catch (error) {
+        errorMessage = nls.localize(
+          'error_source_path_not_in_package_directory_text',
+          ''
+        );
       }
-      if (sourcePathIsInPackageDirectory) {
-        return inputs;
-      }
-      notificationService.showErrorMessage(
-        nls.localize('reference_salesforcedx_project_configuration_doc')
-      );
-      channelService.appendLine(
-        nls.localize('reference_salesforcedx_project_configuration_doc')
-      );
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
     }
     return { type: 'CANCEL' };
