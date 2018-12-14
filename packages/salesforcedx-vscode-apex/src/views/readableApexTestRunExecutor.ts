@@ -11,8 +11,6 @@ import {
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { ApexTestOutlineProvider } from './testOutlineProvider';
-
 const ForceApexTestRunCodeActionExecutor = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports.ForceApexTestRunCodeActionExecutor;
@@ -21,17 +19,14 @@ export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExec
   new (test: string, shouldGetCodeCoverage: boolean): any;
 }) {
   private outputToJson: string;
-  private apexTestOutline: ApexTestOutlineProvider;
 
   public constructor(
     tests: string[],
     shouldGetCodeCoverage: boolean,
-    outputToJson: string,
-    apexTestOutline: ApexTestOutlineProvider
+    outputToJson: string
   ) {
     super(tests.join(','), shouldGetCodeCoverage);
     this.outputToJson = outputToJson;
-    this.apexTestOutline = apexTestOutline;
   }
 
   public build(data: {}): Command {
@@ -61,9 +56,5 @@ export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExec
       cancellationTokenSource,
       cancellationToken
     );
-
-    execution.processExitSubject.subscribe(() => {
-      this.apexTestOutline.readJSONFile(this.outputToJson);
-    });
   }
 }
