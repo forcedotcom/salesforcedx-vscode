@@ -95,9 +95,7 @@ export async function pushOrDeploy(
           break;
         case FileEventType.Delete:
           displayError(
-            nls.localize(
-              'error_push_or_deploy_on_save_delete_not_supported_text'
-            )
+            nls.localize('error_deploy_delete_on_save_not_supported_text')
           );
           break;
       }

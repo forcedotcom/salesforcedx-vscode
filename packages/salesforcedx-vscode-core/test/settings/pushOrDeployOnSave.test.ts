@@ -226,7 +226,7 @@ describe('pushOrDeploy', () => {
       await pushOrDeploy(FileEventType.Delete);
 
       const error = nls.localize(
-        'error_push_or_deploy_on_save_delete_not_supported_text'
+        'error_deploy_delete_on_save_not_supported_text'
       );
       expect(executeCommandStub.called).to.be.false;
       expect(showErrorMessageStub.calledOnce).to.be.true;
