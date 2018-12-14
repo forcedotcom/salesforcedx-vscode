@@ -14,6 +14,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 import { ForceSourceDeployExecutor } from './forceSourceDeploy';
+import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 
 export class ForceSourceDeploySourcePathExecutor extends ForceSourceDeployExecutor {
   public build(sourcePath: string): Command {
@@ -45,7 +46,8 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    new ForceSourceDeploySourcePathExecutor()
+    new ForceSourceDeploySourcePathExecutor(),
+    new SourcePathChecker()
   );
   await commandlet.run();
 }

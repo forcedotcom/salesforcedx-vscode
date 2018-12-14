@@ -7,6 +7,8 @@
 import { SfdxProject } from '@salesforce/core';
 import { JsonArray, JsonMap } from '@salesforce/ts-types';
 
+import * as path from 'path';
+
 export class SfdxProjectJsonParser {
   public async getPackageDirectoryPaths(
     workspacePath: string
@@ -21,7 +23,11 @@ export class SfdxProjectJsonParser {
         if (packageDir) {
           const packageDirectory = packageDir as JsonMap;
           if (packageDirectory.path) {
-            const dirPath = packageDirectory.path as string;
+            let dirPath = packageDirectory.path as string;
+            dirPath = dirPath.trim();
+            if (dirPath.startsWith(path.sep)) {
+              dirPath = dirPath.substring(1);
+            }
             packageDirectoryPaths.push(dirPath);
           }
         }
