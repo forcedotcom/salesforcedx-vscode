@@ -118,7 +118,7 @@
         {
           "command": "sfdx.force.source.delete.current.file",
           "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && && resourceLangId != 'forcesourcemanifest'"
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [

@@ -6,6 +6,7 @@
  */
 import { SfdxProject } from '@salesforce/core';
 import { expect } from 'chai';
+import * as path from 'path';
 import { stub } from 'sinon';
 
 import { SfdxProjectJsonParser } from '../../src/cli/sfdxProjectJsonParser';
@@ -26,8 +27,7 @@ describe('getPackageDirectoriesGlobString', () => {
     const packageDirectories = await parser.getPackageDirectoryPaths(
       SFDX_PROJECT_PATH
     );
-    expect(packageDirectories.length).to.equal(1);
-    expect(packageDirectories[0]).to.equal('force-app');
+    expect(packageDirectories).to.eql(['force-app']);
     sfdxProjectStub.restore();
   });
 
@@ -47,10 +47,31 @@ describe('getPackageDirectoriesGlobString', () => {
     const packageDirectories = await parser.getPackageDirectoryPaths(
       SFDX_PROJECT_PATH
     );
-    expect(packageDirectories.length).to.equal(3);
-    expect(packageDirectories[0]).to.equal('package1');
-    expect(packageDirectories[1]).to.equal('package2');
-    expect(packageDirectories[2]).to.equal('package3');
+    expect(packageDirectories).to.eql(['package1', 'package2', 'package3']);
+    sfdxProjectStub.restore();
+  });
+
+  it('should trim whitespace and remove leading slashes from package directories', async () => {
+    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
+      Promise.resolve({
+        resolveProjectConfig: () => ({
+          packageDirectories: [
+            { path: '   package1   ' },
+            { path: `${path.sep}package2` },
+            { path: path.join('package', 'three') }
+          ]
+        })
+      })
+    );
+    const parser = new SfdxProjectJsonParser();
+    const packageDirectories = await parser.getPackageDirectoryPaths(
+      SFDX_PROJECT_PATH
+    );
+    expect(packageDirectories).to.eql([
+      'package1',
+      'package2',
+      path.join('package', 'three')
+    ]);
     sfdxProjectStub.restore();
   });
 

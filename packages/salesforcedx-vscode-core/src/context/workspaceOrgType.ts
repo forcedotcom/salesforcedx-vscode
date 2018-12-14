@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { nls } from '../../src/messages';
 
 export enum OrgType {
   SourceTracked,
@@ -25,7 +26,7 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
     return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
   }
 
-  const e = new Error('Defaultusername is not set');
+  const e = new Error();
   e.name = 'NoDefaultusernameSet';
   throw e;
 }
@@ -36,16 +37,19 @@ export async function setupWorkspaceOrgType() {
     setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
     setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
   } catch (e) {
-    if (e.name === 'NamedOrgNotFound') {
-      // If the info for a default username cannot be found,
-      // then assume that the org can be of either type
-      setDefaultUsernameHasChangeTracking(true);
-      setDefaultUsernameHasNoChangeTracking(true);
-    } else if (e.name === 'NoDefaultusernameSet') {
-      setDefaultUsernameHasChangeTracking(false);
-      setDefaultUsernameHasNoChangeTracking(false);
-    } else {
-      throw e;
+    switch (e.name) {
+      case 'NamedOrgNotFound':
+        // If the info for a default username cannot be found,
+        // then assume that the org can be of either type
+        setDefaultUsernameHasChangeTracking(true);
+        setDefaultUsernameHasNoChangeTracking(true);
+        break;
+      case 'NoDefaultusernameSet':
+        setDefaultUsernameHasChangeTracking(false);
+        setDefaultUsernameHasNoChangeTracking(false);
+        break;
+      default:
+        throw e;
     }
   }
 }

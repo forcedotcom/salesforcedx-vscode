@@ -38,7 +38,8 @@
       "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"]
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
+      "preLaunchTask": "Compile"
     },
     {
       "name": "Launch Apex Debug adapter",
