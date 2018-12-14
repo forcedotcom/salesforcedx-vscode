@@ -37,13 +37,18 @@ import {
 import { ForceAuthLogoutAll } from './forceAuthLogout';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
+export const PRODUCTION_URL = 'https://login.salesforce.com';
+export const SANDBOX_URL = 'https://test.salesforce.com';
 
-export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<Alias> {
-  public build(data: Alias): Command {
+export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
+  AuthParams
+> {
+  public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
+      .withFlag('--instanceurl', data.loginUrl)
       .withArg('--setdefaultusername')
       .withLogName('force_auth_web_login')
       .build();
@@ -87,13 +92,14 @@ export abstract class ForceAuthDemoModeExecutor<
 }
 
 export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor<
-  Alias
+  AuthParams
 > {
-  public build(data: Alias): Command {
+  public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
+      .withFlag('--instanceurl', data.loginUrl)
       .withArg('--setdefaultusername')
       .withArg('--noprompt')
       .withJson()
@@ -102,8 +108,31 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
   }
 }
 
-export class AliasGatherer implements ParametersGatherer<Alias> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
+export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<AuthParams>
+  > {
+    const orgTypeItems: vscode.QuickPickItem[] = [
+      { label: 'Production', detail: 'login.salesforce.com' },
+      { label: 'Sandbox', detail: 'test.salesforce.com' },
+      { label: 'Custom', detail: 'Use a custom login URL' }
+    ];
+    const selection = await vscode.window.showQuickPick(orgTypeItems);
+    const orgType = (selection as vscode.QuickPickItem).label;
+    let loginUrl: string | undefined;
+    if (orgType === 'Custom') {
+      const customUrlInputOptions = {
+        prompt: nls.localize('parameter_gatherer_enter_custom_url'),
+        placeHolder: PRODUCTION_URL
+      };
+      loginUrl = await vscode.window.showInputBox(customUrlInputOptions);
+      if (loginUrl === undefined) {
+        return { type: 'CANCEL' };
+      }
+    } else {
+      loginUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
+    }
+
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS
@@ -113,14 +142,19 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
-    return alias === ''
-      ? { type: 'CONTINUE', data: { alias: DEFAULT_ALIAS } }
-      : { type: 'CONTINUE', data: { alias } };
+    return {
+      type: 'CONTINUE',
+      data: {
+        alias: alias || DEFAULT_ALIAS,
+        loginUrl: loginUrl || PRODUCTION_URL
+      }
+    };
   }
 }
 
-export interface Alias {
+export interface AuthParams {
   alias: string;
+  loginUrl: string;
 }
 
 export async function promptLogOutForProdOrg() {
@@ -132,7 +166,7 @@ export async function promptLogOutForProdOrg() {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new AliasGatherer();
+const parameterGatherer = new AuthParamsGatherer();
 
 export function createExecutor(): SfdxCommandletExecutor<{}> {
   return isDemoMode()

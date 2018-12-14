@@ -54,6 +54,8 @@ export const messages = {
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
     'Enter an org alias or use default alias',
+  parameter_gatherer_enter_custom_url:
+    'Enter a custom login URL or use default URL',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
   parameter_gatherer_enter_project_name: 'Enter project name',
