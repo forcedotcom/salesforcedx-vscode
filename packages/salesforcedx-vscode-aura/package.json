@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.9.0",
+  "version": "44.10.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -23,7 +23,7 @@
   },
   "categories": ["Programming Languages"],
   "dependencies": {
-    "lwc-language-server": "1.6.7",
+    "lwc-language-server": "1.8.3",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "3.5.1"
   },
