@@ -62,7 +62,7 @@
     "description": "Creates a @wire'd function for Apex with data modification",
     "body": [
       "@wire(${1:apex-method-name}, {$0})",
-      "apex${2:apex-function-name} ({error, data}) {",
+      "${2:apex-function-name} ({error, data}) {",
       "    if (error) {",
       "        // TODO: Error handling",
       "    } else if (data) {",
