@@ -7,7 +7,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import fs = require('fs');
-import ospath = require('path');
 import {
   APEX_GROUP_RANGE,
   DARK_BLUE_BUTTON,
@@ -111,6 +110,22 @@ export class ApexTestOutlineProvider
     this.onDidChangeTestData.fire();
   }
 
+  public async onResultFileCreate(
+    apexTestPath: string,
+    testResultFile: string
+  ) {
+    const testRunIdFile = path.join(apexTestPath, 'test-run-id.txt');
+    const testRunId = fs.readFileSync(testRunIdFile);
+    const testResultFilePath = path.join(
+      apexTestPath,
+      'test-result-' + testRunId + '.json'
+    );
+    if (testResultFile === testResultFilePath) {
+      await this.refresh();
+      this.readJSONFile(testResultFile);
+    }
+  }
+
   private getAllApexTests(): TestNode {
     if (this.rootNode == null) {
       // Starting Out
@@ -148,18 +163,14 @@ export class ApexTestOutlineProvider
     return this.rootNode;
   }
 
-  public readJSONFile(folderName: string) {
-    const jsonSummary = this.getJSONFileOutput(folderName);
+  public readJSONFile(testResultFilePath: string) {
+    const jsonSummary = this.getJSONFileOutput(testResultFilePath);
     this.updateTestsFromJSON(jsonSummary);
     this.onDidChangeTestData.fire();
   }
 
-  private getJSONFileOutput(fullFolderName: string): FullTestResult {
-    const testRunIdFile = path.join(fullFolderName, 'test-run-id.txt');
-    const testRunId = fs.readFileSync(testRunIdFile);
-    let testResultFilePath = 'test-result-' + testRunId + '.json';
-    testResultFilePath = ospath.join(fullFolderName, testResultFilePath);
-    const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
+  private getJSONFileOutput(testResultFileName: string): FullTestResult {
+    const testResultOutput = fs.readFileSync(testResultFileName, 'utf8');
     const jsonSummary = JSON.parse(testResultOutput) as FullTestResult;
     return jsonSummary;
   }
