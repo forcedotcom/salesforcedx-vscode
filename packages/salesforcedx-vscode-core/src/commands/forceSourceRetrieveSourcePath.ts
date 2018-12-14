@@ -44,7 +44,6 @@ export class SourcePathChecker implements PostconditionChecker<string> {
   public async check(
     inputs: ContinueResponse<string> | CancelResponse
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    let errorMessage;
     if (inputs.type === 'CONTINUE') {
       const sourcePath = inputs.data;
       const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
@@ -68,16 +67,11 @@ export class SourcePathChecker implements PostconditionChecker<string> {
         if (sourcePathIsInPackageDirectory) {
           return inputs;
         }
-        errorMessage = nls.localize(
-          'error_source_path_not_in_package_directory_text',
-          packageDirectoryPaths.join(',')
-        );
-      } catch (error) {
-        errorMessage = nls.localize(
-          'error_source_path_not_in_package_directory_text',
-          ''
-        );
-      }
+      } catch (error) {}
+
+      const errorMessage = nls.localize(
+        'error_source_path_not_in_package_directory_text'
+      );
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();

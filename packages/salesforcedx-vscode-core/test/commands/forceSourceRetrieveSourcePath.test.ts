@@ -120,8 +120,7 @@ describe('SourcePathChecker', () => {
     })) as CancelResponse;
 
     const errorMessage = nls.localize(
-      'error_source_path_not_in_package_directory_text',
-      'package1,package2'
+      'error_source_path_not_in_package_directory_text'
     );
     expect(appendLineSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
@@ -141,8 +140,7 @@ describe('SourcePathChecker', () => {
     })) as CancelResponse;
 
     const errorMessage = nls.localize(
-      'error_source_path_not_in_package_directory_text',
-      ''
+      'error_source_path_not_in_package_directory_text'
     );
     expect(appendLineSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
