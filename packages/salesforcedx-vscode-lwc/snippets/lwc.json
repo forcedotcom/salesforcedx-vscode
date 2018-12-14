@@ -1,10 +1,9 @@
 {
   "lwc-event": {
     "prefix": "lwc-event",
-    "description": "Creates a standard event without custom details",
+    "description": "Creates an event without custom details",
     "body": [
-      "const ${1:event} = new CustomEvent('${2:event-name}');",
-      "this.dispatchEvent(${1:event});"
+      "this.dispatchEvent(new CustomEvent('${2:event-name}'));"
     ]
   },
   "lwc-event-data": {
@@ -63,7 +62,7 @@
     "description": "Creates a @wire'd function for Apex with data modification",
     "body": [
       "@wire(${1:apex-method-name}, {$0})",
-      "apex${2:apex-function-name} ({error, data}) {",
+      "${2:apex-function-name} ({error, data}) {",
       "    if (error) {",
       "        // TODO: Error handling",
       "    } else if (data) {",
