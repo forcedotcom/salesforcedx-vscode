@@ -1,10 +1,9 @@
 {
   "lwc-event": {
     "prefix": "lwc-event",
-    "description": "Creates a standard event without custom details",
+    "description": "Creates an event without custom details",
     "body": [
-      "const ${1:event} = new CustomEvent('${2:event-name}');",
-      "this.dispatchEvent(${1:event});"
+      "this.dispatchEvent(new CustomEvent('${2:event-name}'));"
     ]
   },
   "lwc-event-data": {
