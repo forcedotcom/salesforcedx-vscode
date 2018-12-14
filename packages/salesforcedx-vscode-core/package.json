@@ -96,7 +96,7 @@
       ],
       "editor/context": [
         {
-          "command": "sfdx.force.source.retrieve.current.file",
+          "command": "sfdx.force.source.retrieve.current.source.file",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
@@ -370,7 +370,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.retrieve.current.file",
+          "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "false"
         },
         {
@@ -569,7 +569,7 @@
         "title": "%force_source_retrieve_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve.current.file",
+        "command": "sfdx.force.source.retrieve.current.source.file",
         "title": "%force_source_retrieve_this_source_text%"
       },
       {

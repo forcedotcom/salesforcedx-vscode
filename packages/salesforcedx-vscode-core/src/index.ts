@@ -152,7 +152,7 @@ function registerCommands(
     forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.current.file',
+    'sfdx.force.source.retrieve.current.source.file',
     forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
