@@ -18,7 +18,7 @@ export function handleDiagnosticErrors(
   errorCollection.clear();
 
   // In the case that we have deployed multiple source paths,
-  // the default error path for errors not associated with a specific
+  // the default error path for errors without an associated
   // file path should be the workspace path
   const defaultErrorPath = sourcePathOrPaths.includes(',')
     ? workspacePath
