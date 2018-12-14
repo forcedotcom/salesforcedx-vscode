@@ -28,7 +28,9 @@ describe('getPackageDirectoriesGlobString', () => {
       SfdxProjectJsonParser.prototype,
       'getPackageDirectoryPaths'
     ).returns(['force-app']);
+
     const globString = await getPackageDirectoriesGlobString();
+
     expect(globString).to.include(path.join('{force-app}', '**'));
     getPackageDirectoriesStub.restore();
   });
@@ -38,7 +40,9 @@ describe('getPackageDirectoriesGlobString', () => {
       SfdxProjectJsonParser.prototype,
       'getPackageDirectoryPaths'
     ).returns(['package1', 'package2', 'package3']);
+
     const globString = await getPackageDirectoriesGlobString();
+
     expect(globString).to.include(
       path.join('{package1,package2,package3}', '**')
     );
@@ -53,6 +57,7 @@ describe('getPackageDirectoriesGlobString', () => {
       'getPackageDirectoryPaths'
     ).throws(error);
     let errorWasThrown = false;
+
     try {
       await getPackageDirectoriesGlobString();
     } catch (e) {
@@ -89,6 +94,17 @@ describe('getPackageDirectoriesGlobString', () => {
 });
 
 describe('pushOrDeploy', () => {
+  let appendLineStub: SinonStub;
+  let showErrorMessageStub: SinonStub;
+  beforeEach(() => {
+    appendLineStub = stub(channelService, 'appendLine');
+    showErrorMessageStub = stub(notificationService, 'showErrorMessage');
+  });
+
+  afterEach(() => {
+    appendLineStub.restore();
+    showErrorMessageStub.restore();
+  });
   describe('when it is not possible to determine the org type', () => {
     it('should display an error to the user when the defaultusername org info cannot be found', async () => {
       const namedOrgNotFoundError = new Error();
@@ -97,19 +113,15 @@ describe('pushOrDeploy', () => {
         context,
         'getWorkspaceOrgType'
       ).throws(namedOrgNotFoundError);
-      const showErrorMessageStub = stub(
-        notificationService,
-        'showErrorMessage'
-      );
-      const appendLineStub = stub(channelService, 'appendLine');
 
       await pushOrDeploy(FileEventType.Create);
 
+      const error = nls.localize('error_fetching_auth_info_text');
       expect(showErrorMessageStub.calledOnce).to.be.true;
+      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
       expect(appendLineStub.calledOnce).to.be.true;
+      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
       getWorkspaceOrgTypeStub.restore();
-      showErrorMessageStub.restore();
-      appendLineStub.restore();
     });
 
     it('should display an error to the user when no defaultusername is set', async () => {
@@ -119,41 +131,33 @@ describe('pushOrDeploy', () => {
         context,
         'getWorkspaceOrgType'
       ).throws(noDefaultUsernameSetError);
-      const showErrorMessageStub = stub(
-        notificationService,
-        'showErrorMessage'
-      );
-      const appendLineStub = stub(channelService, 'appendLine');
 
       await pushOrDeploy(FileEventType.Create);
 
+      const error = nls.localize(
+        'error_push_or_deploy_on_save_no_default_username'
+      );
       expect(showErrorMessageStub.calledOnce).to.be.true;
+      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
       expect(appendLineStub.calledOnce).to.be.true;
+      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
       getWorkspaceOrgTypeStub.restore();
-      showErrorMessageStub.restore();
-      appendLineStub.restore();
     });
   });
 
   describe('orgs with sourceTracking', () => {
     let getWorkspaceOrgTypeStub: SinonStub;
-    let showErrorMessageStub: SinonStub;
-    let appendLineStub: SinonStub;
     let executeCommandStub: SinonStub;
 
     beforeEach(() => {
       getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType').returns(
         OrgType.SourceTracked
       );
-      showErrorMessageStub = stub(notificationService, 'showErrorMessage');
-      appendLineStub = stub(channelService, 'appendLine');
       executeCommandStub = stub(vscode.commands, 'executeCommand');
     });
 
     afterEach(() => {
       getWorkspaceOrgTypeStub.restore();
-      showErrorMessageStub.restore();
-      appendLineStub.restore();
       executeCommandStub.restore();
     });
 
@@ -183,22 +187,16 @@ describe('pushOrDeploy', () => {
 
   describe('orgs without sourceTracking', () => {
     let getWorkspaceOrgTypeStub: SinonStub;
-    let showErrorMessageStub: SinonStub;
-    let appendLineStub: SinonStub;
     let executeCommandStub: SinonStub;
     beforeEach(() => {
       getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType').returns(
         Promise.resolve(OrgType.NonSourceTracked)
       );
-      showErrorMessageStub = stub(notificationService, 'showErrorMessage');
-      appendLineStub = stub(channelService, 'appendLine');
       executeCommandStub = stub(vscode.commands, 'executeCommand');
     });
 
     afterEach(() => {
       getWorkspaceOrgTypeStub.restore();
-      showErrorMessageStub.restore();
-      appendLineStub.restore();
       executeCommandStub.restore();
     });
 
@@ -227,9 +225,14 @@ describe('pushOrDeploy', () => {
     it('should display an error to the user for file deletions', async () => {
       await pushOrDeploy(FileEventType.Delete);
 
+      const error = nls.localize(
+        'error_push_or_deploy_on_save_delete_not_supported_text'
+      );
       expect(executeCommandStub.called).to.be.false;
       expect(showErrorMessageStub.calledOnce).to.be.true;
+      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
       expect(appendLineStub.calledOnce).to.be.true;
+      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
     });
   });
 });
