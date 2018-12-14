@@ -119,6 +119,13 @@ async function registerTestView(
       testRunner.showErrorMessage(test)
     )
   );
+  // Show Definition command
+  testViewItems.push(
+    vscode.commands.registerCommand(
+      'sfdx.force.test.view.goToDefinition',
+      test => testRunner.showErrorMessage(test)
+    )
+  );
   // Run Class Tests command
   testViewItems.push(
     vscode.commands.registerCommand(
