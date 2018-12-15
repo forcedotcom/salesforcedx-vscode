@@ -77,7 +77,11 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+<<<<<<< HEAD
 import { registerPushOrDeployOnSave } from './settings';
+=======
+import { getOrgList } from './orgPicker/orgList';
+>>>>>>> Initial changes for reading auth info
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -469,8 +473,13 @@ export async function activate(context: vscode.ExtensionContext) {
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
+<<<<<<< HEAD
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
+=======
+  await getOrgList();
+
+>>>>>>> Initial changes for reading auth info
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
