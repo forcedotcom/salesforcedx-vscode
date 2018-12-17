@@ -11,6 +11,7 @@ import { telemetryService } from './telemetry';
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX SLDS Linter Extension Activated');
+  const extensionHRStart = process.hrtime();
   vscode.workspace.findFiles('**/staticresources/*.resource').then(
     // all good
     (result: vscode.Uri[]) => {
@@ -43,7 +44,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  telemetryService.sendExtensionActivationEvent();
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
 export function deactivate() {
