@@ -26,7 +26,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent();
+    telemetryService.sendExtensionActivationEvent([1, 300]);
     assert.calledOnce(sendEvent);
   });
 
@@ -42,7 +42,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent();
+    telemetryService.sendExtensionActivationEvent([1, 300]);
     assert.calledOnce(sendEvent);
 
     const expectedData = {
