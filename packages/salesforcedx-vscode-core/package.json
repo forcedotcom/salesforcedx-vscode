@@ -630,6 +630,13 @@
         "aliases": ["ForceSourceManifest", "forcesourcemanifest"],
         "filenamePatterns": ["**/manifest/**/*.xml"]
       }
+    ],
+    "grammars": [
+      {
+        "language": "forcesourcemanifest",
+        "scopeName": "manifest.text.xml",
+        "path": "./syntaxes/manifestXML.tmLanguage.json"
+      }
     ]
   }
 }
