@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -15,9 +16,11 @@ import {
   ForceAuthWebLoginDemoModeExecutor,
   ForceAuthWebLoginExecutor,
   PRODUCTION_URL,
-  SANDBOX_URL
+  SANDBOX_URL,
+  OrgTypeItem
 } from '../../src/commands/forceAuthWebLogin';
 import { nls } from '../../src/messages';
+import { IdGatherer } from '../../src/commands/forceDebuggerStop';
 
 const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
@@ -58,15 +61,20 @@ describe('Force Auth Web Login in Demo  Mode', () => {
 describe('Auth Params Gatherer', () => {
   let inputBoxSpy: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
+  let existsStub: sinon.SinonStub;
+  let readFileStub: sinon.SinonStub;
+  let validateUrlSpy: sinon.SinonSpy;
+
+  let gatherer: AuthParamsGatherer;
 
   const setGathererBehavior = (
-    orgType: string,
+    orgType: OrgTypeItem | undefined,
     customUrl: string | undefined,
     orgAlias: string | undefined
   ) => {
-    quickPickStub.returns({ label: orgType });
+    quickPickStub.returns(orgType);
     let inputBoxCall = 0;
-    if (orgType === 'Custom') {
+    if (orgType && orgType === gatherer.orgTypes.custom) {
       inputBoxSpy.onCall(inputBoxCall).returns(customUrl);
       inputBoxCall += 1;
     }
@@ -76,108 +84,140 @@ describe('Auth Params Gatherer', () => {
   beforeEach(() => {
     inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+    existsStub = sinon.stub(fs, 'existsSync');
+    readFileStub = sinon.stub(fs, 'readFileSync');
+    validateUrlSpy = sinon.spy(AuthParamsGatherer, 'validateUrl');
+    existsStub.returns(true);
+    readFileStub.returns(JSON.stringify({ sfdcLoginUrl: TEST_URL }));
+    gatherer = new AuthParamsGatherer();
   });
 
   afterEach(() => {
     inputBoxSpy.restore();
     quickPickStub.restore();
+    existsStub.restore();
+    readFileStub.restore();
+    validateUrlSpy.restore();
   });
 
-  it('Should return Cancel if custom loginUrl is undefined', async () => {
-    setGathererBehavior('Custom', undefined, '');
+  describe('Org Type Quick Pick Selection', () => {
+    it('Should return Cancel if org type selection is undefined', async () => {
+      setGathererBehavior(undefined, undefined, undefined);
+      const response = await gatherer.gather();
+      expect(response.type).to.equal('CANCEL');
+    });
 
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledOnce).to.be.true;
-    expect(response.type).to.equal('CANCEL');
+    it('Should not give Project Default option if sfdx-project file doesn’t exist', () => {
+      existsStub.returns(false);
+      const items = gatherer.getQuickPickItems();
+      const { label } = gatherer.orgTypes.project;
+      expect(items.length).to.equal(3);
+      expect(items.some(i => i.label === label)).to.be.false;
+    });
+
+    it('Should not give Project Default option is sfdcLoginUrl property doesn’t exist', () => {
+      readFileStub.returns('{}');
+      const items = gatherer.getQuickPickItems();
+      const { label } = gatherer.orgTypes.project;
+      expect(items.length).to.equal(3);
+      expect(items.some(i => i.label === label)).to.be.false;
+    });
+
+    it('Should return Continue with sfdcLoginUrl if Project Default is chosen', async () => {
+      setGathererBehavior(gatherer.orgTypes.project, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(TEST_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return Cancel if custom loginUrl is undefined', async () => {
+      setGathererBehavior(gatherer.orgTypes.custom, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return Continue with inputted URL if custom URL user input is not undefined or empty', async () => {
+      setGathererBehavior(gatherer.orgTypes.custom, TEST_URL, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledTwice).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(TEST_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should consider URL invalid if it does not begin with http:// or https://', async () => {
+      expect(AuthParamsGatherer.validateUrl('http://example.com')).to.be.null;
+      expect(AuthParamsGatherer.validateUrl('https://example.com')).to.be.null;
+      expect(AuthParamsGatherer.validateUrl('example.com')).to.be.not.null;
+    });
+
+    it('Should return Continue with production URL if Production option is chosen', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(PRODUCTION_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return Continue with sandbox URL if Sandbox option is chosen', async () => {
+      setGathererBehavior(gatherer.orgTypes.sandbox, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(SANDBOX_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
   });
 
-  it('Should return Continue with production URL if custom URL user input is an empty string', async () => {
-    setGathererBehavior('Custom', '', '');
+  describe('Org Alias Input', () => {
+    it('Should return Cancel if alias is undefined', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, undefined);
 
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledTwice).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.loginUrl).to.equal(PRODUCTION_URL);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
-  });
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+    });
 
-  it('Should return Continue with inputted URL if custom URL user input is not undefined or empty', async () => {
-    setGathererBehavior('Custom', TEST_URL, '');
+    it('Should return Continue with default alias if user input is empty string', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, '');
 
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledTwice).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.loginUrl).to.equal(TEST_URL);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
-  });
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.alias).to.equal(DEFAULT_ALIAS);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
 
-  it('Should return Continue with production URL if Production option is chosen', async () => {
-    setGathererBehavior('Production', undefined, '');
+    it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, TEST_ALIAS);
 
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledOnce).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.loginUrl).to.equal(PRODUCTION_URL);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
-  });
-
-  it('Should return Continue with sandbox URL if Sandbox option is chosen', async () => {
-    setGathererBehavior('Sandbox', undefined, '');
-
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledOnce).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.loginUrl).to.equal(SANDBOX_URL);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
-  });
-
-  it('Should return Cancel if alias is undefined', async () => {
-    setGathererBehavior('Production', undefined, undefined);
-
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledOnce).to.be.true;
-    expect(response.type).to.equal('CANCEL');
-  });
-
-  it('Should return Continue with default alias if user input is empty string', async () => {
-    setGathererBehavior('Production', undefined, '');
-
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledOnce).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.alias).to.equal(DEFAULT_ALIAS);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
-  });
-
-  it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
-    setGathererBehavior('Production', undefined, TEST_ALIAS);
-
-    const gatherer = new AuthParamsGatherer();
-    const response = await gatherer.gather();
-
-    expect(inputBoxSpy.calledOnce).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.alias).to.equal(TEST_ALIAS);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.alias).to.equal(TEST_ALIAS);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
   });
 });
 

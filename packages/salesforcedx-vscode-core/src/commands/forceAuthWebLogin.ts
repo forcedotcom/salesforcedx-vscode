@@ -18,9 +18,12 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { CancellationTokenSource, workspace } from 'vscode';
 import { channelService } from '../channels/index';
+import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { isDemoMode, isProdOrg } from '../modes/demo-mode';
 import {
@@ -108,27 +111,86 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
   }
 }
 
+export class OrgTypeItem implements vscode.QuickPickItem {
+  public label: string;
+  public detail: string;
+  constructor(localizeLabel: string, localizeDetail: string) {
+    this.label = nls.localize(localizeLabel);
+    this.detail = nls.localize(localizeDetail);
+  }
+}
+
 export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
+  public readonly orgTypes = {
+    project: new OrgTypeItem('auth_project_label', 'auth_project_detail'),
+    production: new OrgTypeItem('auth_prod_label', 'auth_prod_detail'),
+    sandbox: new OrgTypeItem('auth_sandbox_label', 'auth_sandbox_detail'),
+    custom: new OrgTypeItem('auth_custom_label', 'auth_custom_detail')
+  };
+
+  public static readonly validateUrl = (url: string) => {
+    const expr = /https?:\/\/(.*)/;
+    if (expr.test(url)) {
+      return null;
+    }
+    return nls.localize('auth_invalid_url');
+  };
+
+  private getProjectUrl(): string | undefined {
+    let projectUrl: string | undefined;
+    if (workspace.rootPath) {
+      const sfdxProjectJsonFile = path.join(
+        workspace.rootPath,
+        SFDX_PROJECT_FILE
+      );
+      if (fs.existsSync(sfdxProjectJsonFile)) {
+        const sfdxProjectConfig = JSON.parse(
+          fs.readFileSync(sfdxProjectJsonFile, { encoding: 'utf-8' })
+        );
+        projectUrl = sfdxProjectConfig.sfdcLoginUrl;
+      }
+    }
+    return projectUrl;
+  }
+
+  public getQuickPickItems(): vscode.QuickPickItem[] {
+    const projectUrl = this.getProjectUrl();
+    const items: vscode.QuickPickItem[] = [
+      this.orgTypes.production,
+      this.orgTypes.sandbox,
+      this.orgTypes.custom
+    ];
+    if (projectUrl) {
+      const { project } = this.orgTypes;
+      project.detail = `${nls.localize('auth_project_detail')} (${projectUrl})`;
+      items.unshift(project);
+    }
+    return items;
+  }
+
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AuthParams>
   > {
-    const orgTypeItems: vscode.QuickPickItem[] = [
-      { label: 'Production', detail: 'login.salesforce.com' },
-      { label: 'Sandbox', detail: 'test.salesforce.com' },
-      { label: 'Custom', detail: 'Use a custom login URL' }
-    ];
-    const selection = await vscode.window.showQuickPick(orgTypeItems);
-    const orgType = (selection as vscode.QuickPickItem).label;
+    const quickPickItems = this.getQuickPickItems();
+    const selection = await vscode.window.showQuickPick(quickPickItems);
+    if (!selection) {
+      return { type: 'CANCEL' };
+    }
+
+    const orgType = selection.label;
     let loginUrl: string | undefined;
-    if (orgType === 'Custom') {
+    if (orgType === this.orgTypes.custom.label) {
       const customUrlInputOptions = {
         prompt: nls.localize('parameter_gatherer_enter_custom_url'),
-        placeHolder: PRODUCTION_URL
+        placeHolder: PRODUCTION_URL,
+        validateInput: AuthParamsGatherer.validateUrl
       };
       loginUrl = await vscode.window.showInputBox(customUrlInputOptions);
       if (loginUrl === undefined) {
         return { type: 'CANCEL' };
       }
+    } else if (orgType === this.orgTypes.project.label) {
+      loginUrl = this.getProjectUrl();
     } else {
       loginUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
     }
