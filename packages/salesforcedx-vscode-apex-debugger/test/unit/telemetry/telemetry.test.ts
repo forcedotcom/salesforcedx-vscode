@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { assert, SinonStub, stub } from 'sinon';
+import { assert, match, SinonStub, stub } from 'sinon';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 
@@ -60,9 +60,10 @@ describe('Telemetry', () => {
     assert.calledOnce(sendEvent);
 
     const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-debugger'
+      extensionName: 'salesforcedx-vscode-apex-debugger',
+      startupTime: match.string
     };
-    assert.calledWith(sendEvent, 'activationEvent', expectedData);
+    assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {

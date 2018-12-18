@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { assert, SinonStub, stub } from 'sinon';
+import { assert, match, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
 import { SfdxCoreSettings } from '../../src/settings/sfdxCoreSettings';
 import { TelemetryService } from '../../src/telemetry/telemetry';
@@ -163,9 +163,10 @@ describe('Telemetry', () => {
       assert.calledOnce(reporter);
 
       const expectedData = {
-        extensionName: 'salesforcedx-vscode-core'
+        extensionName: 'salesforcedx-vscode-core',
+        startupTime: match.string
       };
-      assert.calledWith(reporter, 'activationEvent', expectedData);
+      assert.calledWith(reporter, 'activationEvent', match(expectedData));
     });
 
     it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
