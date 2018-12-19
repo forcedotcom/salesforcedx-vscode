@@ -7,7 +7,8 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+  TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
@@ -87,10 +88,16 @@ export class ForceApexTestRunCommandFactory {
   private getCodeCoverage: boolean;
   private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
   private testRunExecutorCommand: Command;
+  private outputToJson: string;
 
-  constructor(data: ApexTestQuickPickItem, getCodeCoverage: boolean) {
+  constructor(
+    data: ApexTestQuickPickItem,
+    getCodeCoverage: boolean,
+    outputToJson: string
+  ) {
     this.data = data;
     this.getCodeCoverage = getCodeCoverage;
+    this.outputToJson = outputToJson;
   }
 
   public constructExecutorCommand(): Command {
@@ -107,9 +114,10 @@ export class ForceApexTestRunCommandFactory {
         );
         break;
       case TestType.Class:
-        this.builder = this.builder
-          .withFlag('--classnames', `${this.data.label}`)
-          .withArg('--synchronous');
+        this.builder = this.builder.withFlag(
+          '--classnames',
+          `${this.data.label}`
+        );
         break;
       default:
         break;
@@ -121,10 +129,23 @@ export class ForceApexTestRunCommandFactory {
 
     this.builder = this.builder
       .withFlag('--resultformat', 'human')
+      .withFlag('--outputdir', this.outputToJson)
       .withFlag('--loglevel', 'error');
 
     this.testRunExecutorCommand = this.builder.build();
     return this.testRunExecutorCommand;
+  }
+}
+
+function getTempFolder(): string {
+  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+    const apexDir = new TestRunner().getTempFolder(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      'apex'
+    );
+    return apexDir;
+  } else {
+    throw new Error(nls.localize('cannot_determine_workspace'));
   }
 }
 
@@ -135,9 +156,11 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
     const getCodeCoverage: boolean = sfdxCoreSettings
       .getConfiguration()
       .get('retrieve-test-code-coverage') as boolean;
+    const outputToJson = getTempFolder();
     const factory: ForceApexTestRunCommandFactory = new ForceApexTestRunCommandFactory(
       data,
-      getCodeCoverage
+      getCodeCoverage,
+      outputToJson
     );
     return factory.constructExecutorCommand();
   }
