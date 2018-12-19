@@ -13,6 +13,7 @@ import { sfdxCoreSettings } from '../settings';
 
 import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -174,9 +175,13 @@ function displayError(message: string) {
 }
 
 function ignorePath(uri: vscode.Uri) {
-  return isDotFile(uri);
+  return isDotFile(uri) || isDirectory(uri);
 }
 
 function isDotFile(uri: vscode.Uri) {
   return path.basename(uri.fsPath).startsWith('.');
+}
+
+function isDirectory(uri: vscode.Uri) {
+  return fs.lstatSync(uri.fsPath).isDirectory();
 }
