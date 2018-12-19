@@ -28,6 +28,7 @@ describe('Force Apex Log Get Logging', () => {
       Operation: '/should/show/up/third',
       Request: 'Api',
       StartTime: oldestStartTime.toISOString(),
+      Status: 'Success',
       LogUser: {
         Name: 'Marco'
       }
@@ -38,6 +39,7 @@ describe('Force Apex Log Get Logging', () => {
       Operation: '/should/show/up/second',
       Request: 'Api',
       StartTime: olderStartTime.toISOString(),
+      Status: 'Success',
       LogUser: {
         Name: 'Marco'
       }
@@ -48,6 +50,7 @@ describe('Force Apex Log Get Logging', () => {
       Operation: '/should/show/up/first',
       Request: 'Api',
       StartTime: newerStartTime.toISOString(),
+      Status: 'Success',
       LogUser: {
         Name: 'Marco'
       }

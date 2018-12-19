@@ -110,6 +110,7 @@ export type ApexDebugLogObject = {
   LogLength: number;
   Operation: string;
   Request: string;
+  Status: string;
   LogUser: ApexDebugLogUser;
 };
 
@@ -130,9 +131,10 @@ export class LogFileSelector
         return {
           id: logInfo.Id,
           label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
-          detail: moment(new Date(logInfo.StartTime)).format(
-            'M/DD/YYYY, h:mm:s a'
-          ),
+          detail:
+            moment(new Date(logInfo.StartTime)).format('M/DD/YYYY, h:mm:s a') +
+            ' - ' +
+            logInfo.Status.substr(0, 150),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });
