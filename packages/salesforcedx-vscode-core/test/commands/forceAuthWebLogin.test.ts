@@ -6,7 +6,6 @@
  */
 
 import { expect } from 'chai';
-import * as fs from 'fs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -60,9 +59,7 @@ describe('Force Auth Web Login in Demo  Mode', () => {
 describe('Auth Params Gatherer', () => {
   let inputBoxSpy: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
-  let existsStub: sinon.SinonStub;
-  let readFileStub: sinon.SinonStub;
-  let validateUrlSpy: sinon.SinonSpy;
+  let getProjectUrlStub: sinon.SinonStub;
 
   let gatherer: AuthParamsGatherer;
 
@@ -81,22 +78,18 @@ describe('Auth Params Gatherer', () => {
   };
 
   beforeEach(() => {
+    gatherer = new AuthParamsGatherer();
     inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
-    existsStub = sinon.stub(fs, 'existsSync');
-    readFileStub = sinon.stub(fs, 'readFileSync');
-    validateUrlSpy = sinon.spy(AuthParamsGatherer, 'validateUrl');
-    existsStub.returns(true);
-    readFileStub.returns(JSON.stringify({ sfdcLoginUrl: TEST_URL }));
-    gatherer = new AuthParamsGatherer();
+    getProjectUrlStub = sinon
+      .stub(gatherer, 'getProjectLoginUrl')
+      .returns(TEST_URL);
   });
 
   afterEach(() => {
     inputBoxSpy.restore();
     quickPickStub.restore();
-    existsStub.restore();
-    readFileStub.restore();
-    validateUrlSpy.restore();
+    getProjectUrlStub.restore();
   });
 
   describe('Org Type Quick Pick Selection', () => {
@@ -106,17 +99,9 @@ describe('Auth Params Gatherer', () => {
       expect(response.type).to.equal('CANCEL');
     });
 
-    it('Should not give Project Default option if sfdx-project file doesn’t exist', () => {
-      existsStub.returns(false);
-      const items = gatherer.getQuickPickItems();
-      const { label } = gatherer.orgTypes.project;
-      expect(items.length).to.equal(3);
-      expect(items.some(i => i.label === label)).to.be.false;
-    });
-
-    it('Should not give Project Default option is sfdcLoginUrl property doesn’t exist', () => {
-      readFileStub.returns('{}');
-      const items = gatherer.getQuickPickItems();
+    it('Should not give Project Default option is sfdcLoginUrl property doesn’t exist', async () => {
+      getProjectUrlStub.returns(undefined);
+      const items = await gatherer.getQuickPickItems();
       const { label } = gatherer.orgTypes.project;
       expect(items.length).to.equal(3);
       expect(items.some(i => i.label === label)).to.be.false;

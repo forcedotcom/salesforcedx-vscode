@@ -11,6 +11,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandOutput';
 import {
@@ -136,25 +137,17 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     return nls.localize('auth_invalid_url');
   };
 
-  private getProjectUrl(): string | undefined {
-    let projectUrl: string | undefined;
-    if (workspace.rootPath) {
-      const sfdxProjectJsonFile = path.join(
-        workspace.rootPath,
-        SFDX_PROJECT_FILE
-      );
-      if (fs.existsSync(sfdxProjectJsonFile)) {
-        const sfdxProjectConfig = JSON.parse(
-          fs.readFileSync(sfdxProjectJsonFile, { encoding: 'utf-8' })
-        );
-        projectUrl = sfdxProjectConfig.sfdcLoginUrl;
-      }
-    }
-    return projectUrl;
+  public async getProjectLoginUrl(): Promise<string | undefined> {
+    const projectConfig = new SfdxProjectJsonParser();
+    const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
+    return (await projectConfig.getValue(
+      projectPath,
+      'sfdcLoginUrl'
+    )) as string;
   }
 
-  public getQuickPickItems(): vscode.QuickPickItem[] {
-    const projectUrl = this.getProjectUrl();
+  public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
+    const projectUrl = await this.getProjectLoginUrl();
     const items: vscode.QuickPickItem[] = [
       this.orgTypes.production,
       this.orgTypes.sandbox,
@@ -171,7 +164,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<AuthParams>
   > {
-    const quickPickItems = this.getQuickPickItems();
+    const quickPickItems = await this.getQuickPickItems();
     const selection = await vscode.window.showQuickPick(quickPickItems);
     if (!selection) {
       return { type: 'CANCEL' };
@@ -190,7 +183,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
         return { type: 'CANCEL' };
       }
     } else if (orgType === this.orgTypes.project.label) {
-      loginUrl = this.getProjectUrl();
+      loginUrl = await this.getProjectLoginUrl();
     } else {
       loginUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
     }
