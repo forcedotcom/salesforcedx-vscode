@@ -106,6 +106,7 @@ export type ApexDebugLogObject = {
   LogLength: number;
   Operation: string;
   Request: string;
+  Name: string;
 };
 
 interface ApexDebugLogItem extends vscode.QuickPickItem {
@@ -124,7 +125,7 @@ export class LogFileSelector
         const icon = '$(file-text) ';
         return {
           id: logInfo.Id,
-          label: icon + logInfo.Operation,
+          label: icon + logInfo.Name + ' - ' + logInfo.Operation,
           detail: moment(new Date(logInfo.StartTime)).format(
             'M/DD/YYYY, h:mm:s a'
           ),
