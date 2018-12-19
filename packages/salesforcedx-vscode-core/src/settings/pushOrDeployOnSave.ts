@@ -26,11 +26,13 @@ export enum FileEventType {
 const WAIT_TIME_IN_MS = 50;
 
 export async function registerPushOrDeployOnSave() {
-  const sourceFileWatcher = await createSourceFileWatcher();
-  if (sourceFileWatcher) {
-    setupFileCreateListener(sourceFileWatcher);
-    setupFileChangeListener(sourceFileWatcher);
-    setupFileDeleteListener(sourceFileWatcher);
+  if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
+    const sourceFileWatcher = await createSourceFileWatcher();
+    if (sourceFileWatcher) {
+      setupFileCreateListener(sourceFileWatcher);
+      setupFileChangeListener(sourceFileWatcher);
+      setupFileDeleteListener(sourceFileWatcher);
+    }
   }
 }
 
