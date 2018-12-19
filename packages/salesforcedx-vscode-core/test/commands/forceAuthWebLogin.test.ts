@@ -15,12 +15,11 @@ import {
   DEFAULT_ALIAS,
   ForceAuthWebLoginDemoModeExecutor,
   ForceAuthWebLoginExecutor,
+  OrgTypeItem,
   PRODUCTION_URL,
-  SANDBOX_URL,
-  OrgTypeItem
+  SANDBOX_URL
 } from '../../src/commands/forceAuthWebLogin';
 import { nls } from '../../src/messages';
-import { IdGatherer } from '../../src/commands/forceDebuggerStop';
 
 const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
