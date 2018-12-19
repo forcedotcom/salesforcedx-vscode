@@ -48,22 +48,7 @@ namespace TagCloseRequest {
 }
 
 export async function activate(context: ExtensionContext) {
-  // Telemetry
-  const sfdxCoreExtension = extensions.getExtension(
-    'salesforce.salesforcedx-vscode-core'
-  );
-
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
-
-  telemetryService.sendExtensionActivationEvent();
-
+  const extensionHRStart = process.hrtime();
   const toDispose = context.subscriptions;
 
   // The server is implemented in node
@@ -272,6 +257,22 @@ export async function activate(context: ExtensionContext) {
       }
     ]
   });
+
+  // Telemetry
+  const sfdxCoreExtension = extensions.getExtension(
+    'salesforce.salesforcedx-vscode-core'
+  );
+
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
+  }
+
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
 export function deactivate() {

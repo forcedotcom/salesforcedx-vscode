@@ -159,18 +159,7 @@ function registerDebugHandlers(): vscode.Disposable {
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
-
-  // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
-
-  telemetryService.sendExtensionActivationEvent();
+  const extensionHRStart = process.hrtime();
 
   extContext = context;
   const commands = registerCommands();
@@ -194,9 +183,18 @@ export async function activate(context: vscode.ExtensionContext) {
     checkpointsView,
     breakpointsSub
   );
-  console.log(
-    'in activate, added breakpointsSub to subscriptions, activation complete'
-  );
+
+  // Telemetry
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
+  }
+
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
 function getDialogStartingPath(): vscode.Uri | undefined {

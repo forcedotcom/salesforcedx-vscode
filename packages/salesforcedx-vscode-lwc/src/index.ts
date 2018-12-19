@@ -37,25 +37,7 @@ function registerCommands(): vscode.Disposable {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  if (coreDependency && coreDependency.exports) {
-    coreDependency.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      coreDependency.exports.telemetryService.getReporter(),
-      coreDependency.exports.telemetryService.isTelemetryEnabled()
-    );
-  } else {
-    vscode.window.showErrorMessage(
-      nls.localize('salesforcedx_vscode_core_not_installed_text')
-    );
-    console.log(
-      'salesforce.salesforcedx-vscode-core not installed or activated, exiting extension'
-    );
-    return;
-  }
-
-  telemetryService.sendExtensionActivationEvent();
-
+  const extensionHRStart = process.hrtime();
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
   );
@@ -90,6 +72,26 @@ export async function activate(context: vscode.ExtensionContext) {
   // Commands
   const commands = registerCommands();
   context.subscriptions.push(commands);
+
+  // Telemetry
+  if (coreDependency && coreDependency.exports) {
+    coreDependency.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      coreDependency.exports.telemetryService.getReporter(),
+      coreDependency.exports.telemetryService.isTelemetryEnabled()
+    );
+  } else {
+    vscode.window.showErrorMessage(
+      nls.localize('salesforcedx_vscode_core_not_installed_text')
+    );
+    console.log(
+      'salesforce.salesforcedx-vscode-core not installed or activated, exiting extension'
+    );
+    return;
+  }
+
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105

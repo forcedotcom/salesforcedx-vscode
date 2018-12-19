@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import * as util from 'util';
 import vscode = require('vscode');
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
@@ -105,10 +107,12 @@ export class TelemetryService {
     }
   }
 
-  public sendExtensionActivationEvent(): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled()) {
+  public sendExtensionActivationEvent(hrstart: [number, number]): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      const startupTime = this.getEndHRTime(hrstart);
       this.reporter.sendTelemetryEvent('activationEvent', {
-        extensionName: EXTENSION_NAME
+        extensionName: EXTENSION_NAME,
+        startupTime
       });
     }
   }
@@ -147,5 +151,10 @@ export class TelemetryService {
     if (this.reporter !== undefined) {
       this.reporter.dispose().catch(err => console.log(err));
     }
+  }
+
+  private getEndHRTime(hrstart: [number, number]): string {
+    const hrend = process.hrtime(hrstart);
+    return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);
   }
 }

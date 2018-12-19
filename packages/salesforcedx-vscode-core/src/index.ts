@@ -383,13 +383,12 @@ function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
-
+  const extensionHRStart = process.hrtime();
   // Telemetry
   const machineId =
     vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
   telemetryService.initializeService(context, machineId);
   telemetryService.showTelemetryMessage();
-  telemetryService.sendExtensionActivationEvent();
 
   // Context
   let sfdxProjectOpened = false;
@@ -500,6 +499,7 @@ export async function activate(context: vscode.ExtensionContext) {
     getUserId
   };
 
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return api;
 }
 
