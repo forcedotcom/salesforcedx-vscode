@@ -77,7 +77,7 @@ describe(TITLE, () => {
     await app.wait();
 
     // Enter SOQL query in active editor
-    const query = `SELECT Id, Name FROM Account`;
+    const query = 'SELECT Id, Name\nFROM Account';
     await common.type(query);
     await app.wait();
 
