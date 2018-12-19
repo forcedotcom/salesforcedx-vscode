@@ -15,7 +15,7 @@ environment:
   SFDX_DOMAIN_RETRY: 300
   matrix:
     - vscode: test:without-system-tests
-    - vscode: test:insiders-without-system-tests
+    #- vscode: test:insiders-without-system-tests
 
 install:
   - ps: Install-Product node 8 x64
