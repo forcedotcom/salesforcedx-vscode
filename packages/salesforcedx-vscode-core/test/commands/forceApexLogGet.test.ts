@@ -27,21 +27,30 @@ describe('Force Apex Log Get Logging', () => {
       LogLength: 300,
       Operation: '/should/show/up/third',
       Request: 'Api',
-      StartTime: oldestStartTime.toISOString()
+      StartTime: oldestStartTime.toISOString(),
+      LogUser: {
+        Name: 'Marco'
+      }
     },
     {
       Id: 'id2',
       LogLength: 200,
       Operation: '/should/show/up/second',
       Request: 'Api',
-      StartTime: olderStartTime.toISOString()
+      StartTime: olderStartTime.toISOString(),
+      LogUser: {
+        Name: 'Marco'
+      }
     },
     {
       Id: 'id1',
       LogLength: 100,
       Operation: '/should/show/up/first',
       Request: 'Api',
-      StartTime: newerStartTime.toISOString()
+      StartTime: newerStartTime.toISOString(),
+      LogUser: {
+        Name: 'Marco'
+      }
     }
   ];
 
