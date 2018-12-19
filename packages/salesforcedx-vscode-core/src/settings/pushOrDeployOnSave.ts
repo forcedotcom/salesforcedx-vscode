@@ -183,5 +183,8 @@ function isDotFile(uri: vscode.Uri) {
 }
 
 function isDirectory(uri: vscode.Uri) {
-  return fs.lstatSync(uri.fsPath).isDirectory();
+  if (fs.existsSync(uri.fsPath)) {
+    return fs.lstatSync(uri.fsPath).isDirectory();
+  }
+  return false;
 }
