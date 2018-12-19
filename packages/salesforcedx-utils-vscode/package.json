@@ -10,7 +10,8 @@
   "dependencies": {
     "cross-spawn": "6.0.5",
     "rxjs": "^5.4.1",
-    "tree-kill": "^1.1.0"
+    "tree-kill": "^1.1.0",
+    "@salesforce/core": "1.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -35,7 +36,8 @@
     "shelljs": "^0.7.8",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
-    "typescript": "3.1.6"
+    "typescript": "3.1.6",
+    "vscode": "1.1.17"
   },
   "engines": {
     "vscode": "^1.26.0"
