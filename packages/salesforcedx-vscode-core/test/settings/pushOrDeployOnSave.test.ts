@@ -16,22 +16,22 @@ import { nls } from '../../src/messages';
 import { notificationService } from '../../src/notifications';
 import {
   FileEventType,
-  getPackageDirectoriesGlobString,
+  getPackageDirectoriesRelativePattern,
   pushOrDeploy
 } from '../../src/settings/pushOrDeployOnSave';
 
 const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */
-describe('getPackageDirectoriesGlobString', () => {
+describe('getPackageDirectoriesRelativePattern', () => {
   it('should return a glob string with one package directory', async () => {
     const getPackageDirectoriesStub = stub(
       SfdxProjectJsonParser.prototype,
       'getPackageDirectoryPaths'
     ).returns(['force-app']);
 
-    const globString = await getPackageDirectoriesGlobString();
+    const relativePattern = await getPackageDirectoriesRelativePattern();
 
-    expect(globString).to.include(path.join('{force-app}', '**'));
+    expect(relativePattern.pattern).to.equal('{force-app}/**');
     getPackageDirectoriesStub.restore();
   });
 
@@ -41,11 +41,9 @@ describe('getPackageDirectoriesGlobString', () => {
       'getPackageDirectoryPaths'
     ).returns(['package1', 'package2', 'package3']);
 
-    const globString = await getPackageDirectoriesGlobString();
+    const relativePattern = await getPackageDirectoriesRelativePattern();
 
-    expect(globString).to.include(
-      path.join('{package1,package2,package3}', '**')
-    );
+    expect(relativePattern.pattern).to.equal('{package1,package2,package3}/**');
     getPackageDirectoriesStub.restore();
   });
 
@@ -59,7 +57,7 @@ describe('getPackageDirectoriesGlobString', () => {
     let errorWasThrown = false;
 
     try {
-      await getPackageDirectoriesGlobString();
+      await getPackageDirectoriesRelativePattern();
     } catch (e) {
       errorWasThrown = true;
       expect(e.message).to.equal(
@@ -80,7 +78,7 @@ describe('getPackageDirectoriesGlobString', () => {
     ).throws(error);
     let errorWasThrown = false;
     try {
-      await getPackageDirectoriesGlobString();
+      await getPackageDirectoriesRelativePattern();
     } catch (error) {
       errorWasThrown = true;
       expect(error.message).to.equal(

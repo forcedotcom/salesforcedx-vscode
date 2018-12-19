@@ -38,8 +38,7 @@
       "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
-      "preLaunchTask": "Compile"
+      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"]
     },
     {
       "name": "Launch Apex Debug adapter",
@@ -85,7 +84,8 @@
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"]
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
     },
     {
       "name": "Launch Salesforce DX VS Code Apex Tests",

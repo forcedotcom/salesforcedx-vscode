@@ -14,7 +14,7 @@ import { SfdxProjectJsonParser } from '../../src/cli/sfdxProjectJsonParser';
 const SFDX_PROJECT_PATH = 'fakeSfdxProjectPath';
 
 /* tslint:disable:no-unused-expression */
-describe('getPackageDirectoriesGlobString', () => {
+describe('getPackageDirectoryPaths', () => {
   it('should return one package directory', async () => {
     const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
       Promise.resolve({

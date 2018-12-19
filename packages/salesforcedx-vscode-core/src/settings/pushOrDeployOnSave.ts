@@ -126,9 +126,9 @@ function emptyCollectedFiles(uris: vscode.Uri[]) {
 
 async function createSourceFileWatcher(): Promise<vscode.FileSystemWatcher | null> {
   try {
-    const globString = await getPackageDirectoriesGlobString();
+    const relativePattern = await getPackageDirectoriesRelativePattern();
     const fileSystemWatcher = vscode.workspace.createFileSystemWatcher(
-      globString
+      relativePattern
     );
     return Promise.resolve(fileSystemWatcher);
   } catch (error) {
@@ -137,19 +137,20 @@ async function createSourceFileWatcher(): Promise<vscode.FileSystemWatcher | nul
   return Promise.resolve(null);
 }
 
-export async function getPackageDirectoriesGlobString(): Promise<string> {
+export async function getPackageDirectoriesRelativePattern(): Promise<
+  vscode.RelativePattern
+> {
   try {
     const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
     const sfdxProjectJsonParser = new SfdxProjectJsonParser();
     const packageDirectoryPaths: string[] = await sfdxProjectJsonParser.getPackageDirectoryPaths(
       sfdxProjectPath
     );
-    const globString = path.join(
+    const relativePattern = new vscode.RelativePattern(
       sfdxProjectPath,
-      `{${packageDirectoryPaths.join(',')}}`,
-      '**'
+      `{${packageDirectoryPaths.join(',')}}/**`
     );
-    return Promise.resolve(globString);
+    return Promise.resolve(relativePattern);
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':
