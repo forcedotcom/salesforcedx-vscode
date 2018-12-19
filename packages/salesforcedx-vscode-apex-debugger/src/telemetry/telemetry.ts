@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import * as util from 'util';
 import TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex-debugger';
@@ -32,10 +34,12 @@ export class TelemetryService {
     this.reporter = reporter;
   }
 
-  public sendExtensionActivationEvent(): void {
+  public sendExtensionActivationEvent(hrstart: [number, number]): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      const startupTime = this.getEndHRTime(hrstart);
       this.reporter.sendTelemetryEvent('activationEvent', {
-        extensionName: EXTENSION_NAME
+        extensionName: EXTENSION_NAME,
+        startupTime
       });
     }
   }
@@ -55,5 +59,10 @@ export class TelemetryService {
         commandName
       });
     }
+  }
+
+  private getEndHRTime(hrstart: [number, number]): string {
+    const hrend = process.hrtime(hrstart);
+    return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);
   }
 }

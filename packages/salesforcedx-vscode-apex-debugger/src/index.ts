@@ -236,6 +236,7 @@ function notifyDebuggerSessionFileChanged(): void {
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Apex Debugger Extension Activated');
+  const extensionHRStart = process.hrtime();
   const commands = registerCommands();
   const fileWatchers = registerFileWatchers();
   context.subscriptions.push(commands, fileWatchers);
@@ -256,7 +257,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  telemetryService.sendExtensionActivationEvent();
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
 export function deactivate() {
