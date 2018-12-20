@@ -22,7 +22,8 @@ export class SfdxProjectJsonParser {
   public async getPackageDirectoryPaths(
     workspacePath: string
   ): Promise<string[]> {
-    const sfdxProject = await SfdxProject.resolve(workspacePath);
+    const sfdxProjectPath = workspacePath;
+    const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
     const sfdxProjectJson = await sfdxProject.resolveProjectConfig();
     const packageDirectories = sfdxProjectJson.packageDirectories as JsonArray;
     if (packageDirectories) {
