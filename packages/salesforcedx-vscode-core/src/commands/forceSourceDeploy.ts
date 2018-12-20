@@ -7,25 +7,13 @@
 
 import {
   CliCommandExecutor,
-  Command,
-  ForceDeployErrorParser,
-  SfdxCommandBuilder
+  ForceDeployErrorParser
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { handleDiagnosticErrors } from '../diagnostics';
-import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './commands';
-import {
-  FileType,
-  ManifestOrSourcePathGatherer,
-  SelectedPath
-} from './forceSourceRetrieve';
+import { SfdxCommandletExecutor } from './commands';
 
 vscode.workspace.onDidChangeTextDocument(e => {
   if (ForceSourceDeployExecutor.errorCollection.has(e.document.uri)) {
@@ -33,34 +21,20 @@ vscode.workspace.onDidChangeTextDocument(e => {
   }
 });
 
-export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
-  SelectedPath
+export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
+  string
 > {
   public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
 
-  public build(data: SelectedPath): Command {
-    const commandBuilder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_deploy_text'))
-      .withArg('force:source:deploy')
-      .withLogName('force_source_deploy')
-      .withJson();
-    if (data.type === FileType.Manifest) {
-      commandBuilder.withFlag('--manifest', data.filePath);
-    } else {
-      commandBuilder.withFlag('--sourcepath', data.filePath);
-    }
-    return commandBuilder.build();
-  }
-
-  public execute(response: ContinueResponse<SelectedPath>): void {
+  public execute(response: ContinueResponse<string>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = vscode.workspace.workspaceFolders
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : '';
-    const execFilePath = response.data.filePath;
+    const execFilePathOrPaths = response.data;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath
     }).execute(cancellationToken);
@@ -78,7 +52,7 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
           handleDiagnosticErrors(
             fileErrors,
             workspacePath,
-            execFilePath,
+            execFilePathOrPaths,
             ForceSourceDeployExecutor.errorCollection
           );
         } catch (e) {
@@ -95,15 +69,4 @@ export class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     this.logMetric(execution.command.logName);
   }
-}
-
-const workspaceChecker = new SfdxWorkspaceChecker();
-
-export async function forceSourceDeploy(explorerPath: any) {
-  const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    new ManifestOrSourcePathGatherer(explorerPath),
-    new ForceSourceDeployExecutor()
-  );
-  await commandlet.run();
 }

@@ -7,6 +7,7 @@
 
 import * as vscode from 'vscode';
 import {
+  PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -47,6 +48,10 @@ export class SfdxCoreSettings {
 
   public async updateShowCLISuccessMsg(value: boolean) {
     await this.setConfigValue(SHOW_CLI_SUCCESS_INFO_MSG, value);
+  }
+
+  public getPushOrDeployOnSaveEnabled(): boolean {
+    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

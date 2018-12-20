@@ -39,10 +39,13 @@ import {
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
-  forceSourceDeploy,
+  forceSourceDeployManifest,
+  forceSourceDeployMultipleSourcePaths,
+  forceSourceDeploySourcePath,
   forceSourcePull,
   forceSourcePush,
-  forceSourceRetrieve,
+  forceSourceRetrieveManifest,
+  forceSourceRetrieveSourcePath,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -74,6 +77,7 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -109,17 +113,21 @@ function registerCommands(
     'sfdx.force.source.delete.current.file',
     forceSourceDelete
   );
-  const forceSourceDeployCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy',
-    forceSourceDeploy
-  );
-  const forceSourceDeployCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.current.file',
-    forceSourceDeploy
+  const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.current.source.file',
+    forceSourceDeploySourcePath
   );
   const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.in.manifest',
-    forceSourceDeploy
+    forceSourceDeployManifest
+  );
+  const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.multiple.source.paths',
+    forceSourceDeployMultipleSourcePaths
+  );
+  const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.source.path',
+    forceSourceDeploySourcePath
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -140,16 +148,16 @@ function registerCommands(
     { flag: '--forceoverwrite' }
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve',
-    forceSourceRetrieve
+    'sfdx.force.source.retrieve.source.path',
+    forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.current.file',
-    forceSourceRetrieve
+    'sfdx.force.source.retrieve.current.source.file',
+    forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.in.manifest',
-    forceSourceRetrieve
+    forceSourceRetrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -326,9 +334,10 @@ function registerCommands(
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
-    forceSourceDeployCmd,
-    forceSourceDeployCurrentFileCmd,
+    forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
+    forceSourceDeployMultipleSourcePathsCmd,
+    forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
@@ -460,6 +469,8 @@ export async function activate(context: vscode.ExtensionContext) {
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
+  // Register filewatcher for push or deploy on save
+  await registerPushOrDeployOnSave();
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
