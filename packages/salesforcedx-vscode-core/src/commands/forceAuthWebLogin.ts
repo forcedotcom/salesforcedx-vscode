@@ -28,6 +28,7 @@ import {
   ProgressNotification
 } from '../notifications/index';
 import { taskViewService } from '../statuses/index';
+import { SfdxProjectJsonParser } from '../util/sfdxProjectJsonParser';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -37,13 +38,18 @@ import {
 import { ForceAuthLogoutAll } from './forceAuthLogout';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
+export const PRODUCTION_URL = 'https://login.salesforce.com';
+export const SANDBOX_URL = 'https://test.salesforce.com';
 
-export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<Alias> {
-  public build(data: Alias): Command {
+export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
+  AuthParams
+> {
+  public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
+      .withFlag('--instanceurl', data.loginUrl)
       .withArg('--setdefaultusername')
       .withLogName('force_auth_web_login')
       .build();
@@ -87,13 +93,14 @@ export abstract class ForceAuthDemoModeExecutor<
 }
 
 export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor<
-  Alias
+  AuthParams
 > {
-  public build(data: Alias): Command {
+  public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
       .withArg('force:auth:web:login')
       .withFlag('--setalias', data.alias)
+      .withFlag('--instanceurl', data.loginUrl)
       .withArg('--setdefaultusername')
       .withArg('--noprompt')
       .withJson()
@@ -102,8 +109,82 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
   }
 }
 
-export class AliasGatherer implements ParametersGatherer<Alias> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
+export class OrgTypeItem implements vscode.QuickPickItem {
+  public label: string;
+  public detail: string;
+  constructor(localizeLabel: string, localizeDetail: string) {
+    this.label = nls.localize(localizeLabel);
+    this.detail = nls.localize(localizeDetail);
+  }
+}
+
+export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
+  public readonly orgTypes = {
+    project: new OrgTypeItem('auth_project_label', 'auth_project_detail'),
+    production: new OrgTypeItem('auth_prod_label', 'auth_prod_detail'),
+    sandbox: new OrgTypeItem('auth_sandbox_label', 'auth_sandbox_detail'),
+    custom: new OrgTypeItem('auth_custom_label', 'auth_custom_detail')
+  };
+
+  public static readonly validateUrl = (url: string) => {
+    const expr = /https?:\/\/(.*)/;
+    if (expr.test(url)) {
+      return null;
+    }
+    return nls.localize('auth_invalid_url');
+  };
+
+  public async getProjectLoginUrl(): Promise<string | undefined> {
+    const projectConfig = new SfdxProjectJsonParser();
+    const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
+    return (await projectConfig.getValue(
+      projectPath,
+      'sfdcLoginUrl'
+    )) as string;
+  }
+
+  public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
+    const projectUrl = await this.getProjectLoginUrl();
+    const items: vscode.QuickPickItem[] = [
+      this.orgTypes.production,
+      this.orgTypes.sandbox,
+      this.orgTypes.custom
+    ];
+    if (projectUrl) {
+      const { project } = this.orgTypes;
+      project.detail = `${nls.localize('auth_project_detail')} (${projectUrl})`;
+      items.unshift(project);
+    }
+    return items;
+  }
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<AuthParams>
+  > {
+    const quickPickItems = await this.getQuickPickItems();
+    const selection = await vscode.window.showQuickPick(quickPickItems);
+    if (!selection) {
+      return { type: 'CANCEL' };
+    }
+
+    const orgType = selection.label;
+    let loginUrl: string | undefined;
+    if (orgType === this.orgTypes.custom.label) {
+      const customUrlInputOptions = {
+        prompt: nls.localize('parameter_gatherer_enter_custom_url'),
+        placeHolder: PRODUCTION_URL,
+        validateInput: AuthParamsGatherer.validateUrl
+      };
+      loginUrl = await vscode.window.showInputBox(customUrlInputOptions);
+      if (loginUrl === undefined) {
+        return { type: 'CANCEL' };
+      }
+    } else if (orgType === this.orgTypes.project.label) {
+      loginUrl = await this.getProjectLoginUrl();
+    } else {
+      loginUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
+    }
+
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: DEFAULT_ALIAS
@@ -113,14 +194,19 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
-    return alias === ''
-      ? { type: 'CONTINUE', data: { alias: DEFAULT_ALIAS } }
-      : { type: 'CONTINUE', data: { alias } };
+    return {
+      type: 'CONTINUE',
+      data: {
+        alias: alias || DEFAULT_ALIAS,
+        loginUrl: loginUrl || PRODUCTION_URL
+      }
+    };
   }
 }
 
-export interface Alias {
+export interface AuthParams {
   alias: string;
+  loginUrl: string;
 }
 
 export async function promptLogOutForProdOrg() {
@@ -132,7 +218,7 @@ export async function promptLogOutForProdOrg() {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new AliasGatherer();
+const parameterGatherer = new AuthParamsGatherer();
 
 export function createExecutor(): SfdxCommandletExecutor<{}> {
   return isDemoMode()

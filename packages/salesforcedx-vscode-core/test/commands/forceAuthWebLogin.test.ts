@@ -9,23 +9,30 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  AliasGatherer,
+  AuthParamsGatherer,
   createExecutor,
   DEFAULT_ALIAS,
   ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor
+  ForceAuthWebLoginExecutor,
+  OrgTypeItem,
+  PRODUCTION_URL,
+  SANDBOX_URL
 } from '../../src/commands/forceAuthWebLogin';
 import { nls } from '../../src/messages';
 
 const TEST_ALIAS = 'testAlias';
+const TEST_URL = 'https://my.testdomain.salesforce.com';
 
 // tslint:disable:no-unused-expression
 describe('Force Auth Web Login', () => {
   it('Should build the auth web login command', async () => {
     const authWebLogin = new ForceAuthWebLoginExecutor();
-    const authWebLoginCommand = authWebLogin.build({ alias: TEST_ALIAS });
+    const authWebLoginCommand = authWebLogin.build({
+      alias: TEST_ALIAS,
+      loginUrl: TEST_URL
+    });
     expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --setdefaultusername`
+      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername`
     );
     expect(authWebLoginCommand.description).to.equal(
       nls.localize('force_auth_web_login_authorize_org_text')
@@ -36,9 +43,12 @@ describe('Force Auth Web Login', () => {
 describe('Force Auth Web Login in Demo  Mode', () => {
   it('Should build the auth web login command', async () => {
     const authWebLogin = new ForceAuthWebLoginDemoModeExecutor();
-    const authWebLoginCommand = authWebLogin.build({ alias: TEST_ALIAS });
+    const authWebLoginCommand = authWebLogin.build({
+      alias: TEST_ALIAS,
+      loginUrl: TEST_URL
+    });
     expect(authWebLoginCommand.toCommand()).to.equal(
-      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --setdefaultusername --noprompt --json --loglevel fatal`
+      `sfdx force:auth:web:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername --noprompt --json --loglevel fatal`
     );
     expect(authWebLoginCommand.description).to.equal(
       nls.localize('force_auth_web_login_authorize_org_text')
@@ -46,47 +56,152 @@ describe('Force Auth Web Login in Demo  Mode', () => {
   });
 });
 
-describe('Alias Gatherer', () => {
+describe('Auth Params Gatherer', () => {
   let inputBoxSpy: sinon.SinonStub;
+  let quickPickStub: sinon.SinonStub;
+  let getProjectUrlStub: sinon.SinonStub;
 
-  before(() => {
+  let gatherer: AuthParamsGatherer;
+
+  const setGathererBehavior = (
+    orgType: OrgTypeItem | undefined,
+    customUrl: string | undefined,
+    orgAlias: string | undefined
+  ) => {
+    quickPickStub.returns(orgType);
+    let inputBoxCall = 0;
+    if (orgType && orgType === gatherer.orgTypes.custom) {
+      inputBoxSpy.onCall(inputBoxCall).returns(customUrl);
+      inputBoxCall += 1;
+    }
+    inputBoxSpy.onCall(inputBoxCall).returns(orgAlias);
+  };
+
+  beforeEach(() => {
+    gatherer = new AuthParamsGatherer();
     inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
-    inputBoxSpy.onCall(0).returns(undefined);
-    inputBoxSpy.onCall(1).returns('');
-    inputBoxSpy.onCall(2).returns(TEST_ALIAS);
+    quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+    getProjectUrlStub = sinon
+      .stub(gatherer, 'getProjectLoginUrl')
+      .returns(TEST_URL);
   });
 
-  after(() => {
+  afterEach(() => {
     inputBoxSpy.restore();
+    quickPickStub.restore();
+    getProjectUrlStub.restore();
   });
 
-  it('Should return cancel if alias is undefined', async () => {
-    const gatherer = new AliasGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledOnce).to.be.true;
-    expect(response.type).to.equal('CANCEL');
+  describe('Org Type Quick Pick Selection', () => {
+    it('Should return Cancel if org type selection is undefined', async () => {
+      setGathererBehavior(undefined, undefined, undefined);
+      const response = await gatherer.gather();
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should not give Project Default option is sfdcLoginUrl property doesn’t exist', async () => {
+      getProjectUrlStub.returns(undefined);
+      const items = await gatherer.getQuickPickItems();
+      const { label } = gatherer.orgTypes.project;
+      expect(items.length).to.equal(3);
+      expect(items.some(i => i.label === label)).to.be.false;
+    });
+
+    it('Should return Continue with sfdcLoginUrl if Project Default is chosen', async () => {
+      setGathererBehavior(gatherer.orgTypes.project, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(TEST_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return Cancel if custom loginUrl is undefined', async () => {
+      setGathererBehavior(gatherer.orgTypes.custom, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return Continue with inputted URL if custom URL user input is not undefined or empty', async () => {
+      setGathererBehavior(gatherer.orgTypes.custom, TEST_URL, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledTwice).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(TEST_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should consider URL invalid if it does not begin with http:// or https://', async () => {
+      expect(AuthParamsGatherer.validateUrl('http://example.com')).to.be.null;
+      expect(AuthParamsGatherer.validateUrl('https://example.com')).to.be.null;
+      expect(AuthParamsGatherer.validateUrl('example.com')).to.be.not.null;
+    });
+
+    it('Should return Continue with production URL if Production option is chosen', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(PRODUCTION_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return Continue with sandbox URL if Sandbox option is chosen', async () => {
+      setGathererBehavior(gatherer.orgTypes.sandbox, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.loginUrl).to.equal(SANDBOX_URL);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
   });
 
-  it('Should return Continue with default alias if user input is empty string', async () => {
-    const gatherer = new AliasGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledTwice).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.alias).to.equal(DEFAULT_ALIAS);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
-  });
+  describe('Org Alias Input', () => {
+    it('Should return Cancel if alias is undefined', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, undefined);
 
-  it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
-    const gatherer = new AliasGatherer();
-    const response = await gatherer.gather();
-    expect(inputBoxSpy.calledThrice).to.be.true;
-    if (response.type === 'CONTINUE') {
-      expect(response.data.alias).to.equal(TEST_ALIAS);
-    } else {
-      expect.fail('Response should be of type ContinueResponse');
-    }
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return Continue with default alias if user input is empty string', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, '');
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.alias).to.equal(DEFAULT_ALIAS);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
+      setGathererBehavior(gatherer.orgTypes.production, undefined, TEST_ALIAS);
+
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.calledOnce).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.alias).to.equal(TEST_ALIAS);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
   });
 });
 
