@@ -9,8 +9,7 @@ import * as vscode from 'vscode';
 
 import {
   Command,
-  SfdxCommandBuilder,
-  SfdxProjectJsonParser
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
@@ -20,6 +19,8 @@ import {
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
+import { SfdxProjectJsonParser } from '../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -67,11 +68,14 @@ export class SourcePathChecker implements PostconditionChecker<string> {
         if (sourcePathIsInPackageDirectory) {
           return inputs;
         }
-      } catch (error) {}
+      } catch (error) {
+        telemetryService.sendError(error.name);
+      }
 
       const errorMessage = nls.localize(
         'error_source_path_not_in_package_directory_text'
       );
+      telemetryService.sendError(errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();

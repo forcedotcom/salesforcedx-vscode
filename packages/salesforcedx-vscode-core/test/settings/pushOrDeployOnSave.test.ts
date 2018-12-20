@@ -10,7 +10,6 @@ import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import * as context from '../../src/context';
 
-import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { channelService } from '../../src/channels';
 import { nls } from '../../src/messages';
 import { notificationService } from '../../src/notifications';
@@ -19,6 +18,7 @@ import {
   getPackageDirectoriesRelativePattern,
   pushOrDeploy
 } from '../../src/settings/pushOrDeployOnSave';
+import { SfdxProjectJsonParser } from '../../src/util';
 
 const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */

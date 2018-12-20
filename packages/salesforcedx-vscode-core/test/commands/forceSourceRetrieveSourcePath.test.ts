@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
   ContinueResponse
@@ -22,6 +21,7 @@ import {
 import { channelService } from '../../src/channels';
 import { nls } from '../../src/messages';
 import { notificationService } from '../../src/notifications';
+import { SfdxProjectJsonParser } from '../../src/util';
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
   it('Should build the source retrieve command', () => {
