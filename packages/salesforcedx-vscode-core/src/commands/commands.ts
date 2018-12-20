@@ -153,6 +153,20 @@ export class EmptyParametersGatherer implements ParametersGatherer<{}> {
   }
 }
 
+export class FilePathGatherer implements ParametersGatherer<string> {
+  private filePath: string;
+  public constructor(uri: vscode.Uri) {
+    this.filePath = uri.fsPath;
+  }
+
+  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
+    if (vscode.workspace && vscode.workspace.workspaceFolders) {
+      return { type: 'CONTINUE', data: this.filePath };
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
 export type FileSelection = { file: string };
 export class FileSelector implements ParametersGatherer<FileSelection> {
   private readonly include: string;

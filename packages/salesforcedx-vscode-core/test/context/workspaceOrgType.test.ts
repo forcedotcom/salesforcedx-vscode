@@ -14,6 +14,8 @@ import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cl
 import {
   getDefaultUsernameOrAlias,
   getUsername,
+  getWorkspaceOrgType,
+  OrgType,
   setupWorkspaceOrgType
 } from '../../src/context';
 
@@ -47,6 +49,90 @@ describe('getDefaultUsernameOrAlias', () => {
     );
     expect(await getDefaultUsernameOrAlias()).to.equal(username);
     getConfigStub.restore();
+  });
+});
+
+describe('getWorkspaceOrgType', () => {
+  it('returns the source-tracked org type', async () => {
+    const getConfigStub = getGetConfigStub(
+      new Map([['defaultusername', 'scratchOrgAlias']])
+    );
+    const aliasesStub = getAliasesFetchStub('scratch@org.com');
+    const authInfoCreateStub = getAuthInfoCreateStub({
+      getFields: () => ({
+        devHubUsername: 'dev@hub.com'
+      })
+    });
+
+    const orgType = await getWorkspaceOrgType();
+
+    expect(orgType).to.equal(OrgType.SourceTracked);
+
+    getConfigStub.restore();
+    aliasesStub.restore();
+    authInfoCreateStub.restore();
+  });
+
+  it('returns the non-source-tracked org type', async () => {
+    const getConfigStub = getGetConfigStub(
+      new Map([['defaultusername', 'sandbox@org.com']])
+    );
+    const aliasesStub = getAliasesFetchStub(undefined);
+    const authInfoCreateStub = getAuthInfoCreateStub({
+      getFields: () => ({})
+    });
+    const orgType = await getWorkspaceOrgType();
+
+    expect(orgType).to.equal(OrgType.NonSourceTracked);
+    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
+      username: 'sandbox@org.com'
+    });
+
+    getConfigStub.restore();
+    aliasesStub.restore();
+    authInfoCreateStub.restore();
+  });
+
+  it('throws an error when no defaultusername is set', async () => {
+    const getConfigStub = getGetConfigStub(new Map());
+    const aliasesSpy = sinon.spy(Aliases, 'fetch');
+
+    let errorWasThrown = false;
+    try {
+      await getWorkspaceOrgType();
+    } catch (error) {
+      errorWasThrown = true;
+      expect(error.name).to.equal('NoDefaultusernameSet');
+    } finally {
+      expect(aliasesSpy.called).to.be.false;
+      expect(errorWasThrown).to.be.true;
+      getConfigStub.restore();
+      aliasesSpy.restore();
+    }
+  });
+
+  it('throws an error when the info cannot be found for the defaultusername', async () => {
+    const getConfigStub = getGetConfigStub(
+      new Map([['defaultusername', 'testUsername']])
+    );
+    const aliasesStub = getAliasesFetchStub('test@org.com');
+
+    const error = new Error();
+    error.name = 'NamedOrgNotFound';
+    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+
+    let errorWasThrown = false;
+    try {
+      await getWorkspaceOrgType();
+    } catch (error) {
+      errorWasThrown = true;
+      expect(error.name).to.equal('NamedOrgNotFound');
+    } finally {
+      expect(errorWasThrown).to.be.true;
+      getConfigStub.restore();
+      aliasesStub.restore();
+      authInfoStub.restore();
+    }
   });
 });
 

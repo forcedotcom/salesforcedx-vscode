@@ -12,17 +12,24 @@ import * as vscode from 'vscode';
 export function handleDiagnosticErrors(
   errors: ForceSourceDeployErrorResult,
   workspacePath: string,
-  sourcePath: string,
+  sourcePathOrPaths: string,
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
   errorCollection.clear();
+
+  // In the case that we have deployed multiple source paths,
+  // the default error path for errors without an associated
+  // file path should be the workspace path
+  const defaultErrorPath = sourcePathOrPaths.includes(',')
+    ? workspacePath
+    : sourcePathOrPaths;
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
   if (errors.hasOwnProperty('result')) {
     errors.result.forEach(error => {
       // source:deploy sometimes returns N/A as filePath
       const fileUri =
         error.filePath === 'N/A'
-          ? sourcePath
+          ? defaultErrorPath
           : path.join(workspacePath, error.filePath);
       const range = getRange(
         error.lineNumber || '1',
@@ -48,7 +55,7 @@ export function handleDiagnosticErrors(
       errorCollection.set(fileUri, diagMap);
     });
   } else if (errors.hasOwnProperty('message')) {
-    const fileUri = vscode.Uri.file(sourcePath);
+    const fileUri = vscode.Uri.file(defaultErrorPath);
     const range = getRange('1', '1');
     const diagnostic = {
       message: errors.message,
