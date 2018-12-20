@@ -11,7 +11,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 
-import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SfdxProjectJsonParser } from '../util';
 
 import * as fs from 'fs';
 import * as path from 'path';

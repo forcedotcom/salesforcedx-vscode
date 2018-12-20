@@ -28,7 +28,7 @@ export class ForceSourceDeploySourcePathExecutor extends ForceSourceDeployExecut
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_deploy_text'))
       .withArg('force:source:deploy')
-      .withLogName('force_source_deploy')
+      .withLogName('force_source_deploy_with_sourcepath')
       .withFlag('--sourcepath', sourcePath)
       .withJson();
     return commandBuilder.build();
