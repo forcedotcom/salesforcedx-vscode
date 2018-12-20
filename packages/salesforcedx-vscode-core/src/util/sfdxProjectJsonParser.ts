@@ -5,15 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SfdxProject } from '@salesforce/core';
-import { JsonArray, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, JsonArray, JsonMap } from '@salesforce/ts-types';
 
 import * as path from 'path';
 
 export class SfdxProjectJsonParser {
-  public async getValue(workspacePath: string, key: string) {
+  public async getValue(
+    workspacePath: string,
+    key: string
+  ): Promise<AnyJson | undefined> {
     const sfdxProject = await SfdxProject.resolve(workspacePath);
     const sfdxProjectJson = await sfdxProject.resolveProjectConfig();
-    return sfdxProjectJson[key];
+    return Promise.resolve(sfdxProjectJson[key]);
   }
 
   public async getPackageDirectoryPaths(

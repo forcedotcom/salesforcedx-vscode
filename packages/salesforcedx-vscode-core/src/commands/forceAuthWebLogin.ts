@@ -11,7 +11,6 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { SfdxProjectJsonParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandOutput';
 import {
@@ -19,12 +18,9 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import * as fs from 'fs';
-import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { CancellationTokenSource, workspace } from 'vscode';
 import { channelService } from '../channels/index';
-import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { isDemoMode, isProdOrg } from '../modes/demo-mode';
 import {
@@ -32,6 +28,7 @@ import {
   ProgressNotification
 } from '../notifications/index';
 import { taskViewService } from '../statuses/index';
+import { SfdxProjectJsonParser } from '../util/sfdxProjectJsonParser';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,

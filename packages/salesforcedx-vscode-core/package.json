@@ -21,9 +21,11 @@
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "dependencies": {
-    "@salesforce/core": "1.0.2",
+    "@salesforce/core": "1.1.1",
     "@salesforce/salesforcedx-sobjects-faux-generator": "44.11.0",
     "@salesforce/salesforcedx-utils-vscode": "44.11.0",
     "adm-zip": "0.4.7",
@@ -61,15 +63,11 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test":
-      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test",
-    "test:insiders":
-      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' CODE_VERSION=insiders node ./node_modules/vscode/bin/test",
-    "test:unit":
-      "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
+    "test": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test",
+    "test:insiders": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' CODE_VERSION=insiders node ./node_modules/vscode/bin/test",
+    "test:unit": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ./node_modules/vscode/bin/test"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
@@ -97,85 +95,69 @@
       "editor/context": [
         {
           "command": "sfdx.force.source.retrieve.current.file",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         },
         {
           "command": "sfdx.force.source.deploy.current.file",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         }
       ],
       "explorer/context": [
         {
           "command": "sfdx.force.apex.class.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.component.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.page.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.app.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.component.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.event.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.interface.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == aura && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.apex.trigger.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.source.retrieve",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
-          "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "commandPalette": [
@@ -201,38 +183,31 @@
         },
         {
           "command": "sfdx.force.source.pull",
-          "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.pull.force",
-          "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.push",
-          "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.push.force",
-          "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.status",
-          "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.status.local",
-          "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.source.status.remote",
-          "when":
-            "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
           "command": "sfdx.force.apex.test.run",
@@ -592,17 +567,23 @@
       "title": "%feature_previews_title%",
       "properties": {
         "salesforcedx-vscode-core.show-cli-success-msg": {
-          "type": ["boolean"],
+          "type": [
+            "boolean"
+          ],
           "default": true,
           "description": "%show_cli_success_msg_description%"
         },
         "salesforcedx-vscode-core.retrieve-test-code-coverage": {
-          "type": ["boolean"],
+          "type": [
+            "boolean"
+          ],
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
         },
         "salesforcedx-vscode-core.telemetry.enabled": {
-          "type": ["boolean"],
+          "type": [
+            "boolean"
+          ],
           "default": true,
           "description": "%telemetry_enabled_description%"
         }
@@ -611,24 +592,29 @@
     "jsonValidation": [
       {
         "fileMatch": "sfdx-project.json",
-        "url":
-          "https://forcedotcom.github.io/schemas/sfdx-project.json/sfdx-project.schema.json"
+        "url": "https://forcedotcom.github.io/schemas/sfdx-project.json/sfdx-project.schema.json"
       },
       {
         "fileMatch": "*-scratch-def.json",
-        "url":
-          "https://forcedotcom.github.io/schemas/project-scratch-def.json/project-scratch-def.schema.json"
+        "url": "https://forcedotcom.github.io/schemas/project-scratch-def.json/project-scratch-def.schema.json"
       }
     ],
     "languages": [
       {
         "id": "ignore",
-        "filenames": [".forceignore"]
+        "filenames": [
+          ".forceignore"
+        ]
       },
       {
         "id": "forcesourcemanifest",
-        "aliases": ["ForceSourceManifest", "forcesourcemanifest"],
-        "filenamePatterns": ["**/manifest/**/*.xml"]
+        "aliases": [
+          "ForceSourceManifest",
+          "forcesourcemanifest"
+        ],
+        "filenamePatterns": [
+          "**/manifest/**/*.xml"
+        ]
       }
     ],
     "grammars": [
