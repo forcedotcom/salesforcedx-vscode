@@ -54,6 +54,8 @@ export const messages = {
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
     'Enter an org alias or use default alias',
+  parameter_gatherer_enter_custom_url:
+    'Enter a custom login URL or use default URL',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
   parameter_gatherer_enter_project_name: 'Enter project name',
@@ -200,6 +202,15 @@ export const messages = {
   telemetry_legal_dialog_button_text: 'Read more',
   invalid_debug_level_id_error:
     'At least one trace flag in your org doesn\'t have an associated debug level. Before you run this command again, run "sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"". Then, to delete each invalid trace flag, run "sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx", replacing 7tfxxxxxxxxxxxxxxx with the ID of each trace flag without a debug level.',
+  auth_project_label: 'Project Default',
+  auth_project_detail: 'Use login URL defined in sfdx-project.json',
+  auth_prod_label: 'Production',
+  auth_prod_detail: 'login.salesforce.com',
+  auth_sandbox_label: 'Sandbox',
+  auth_sandbox_detail: 'test.salesforce.com',
+  auth_custom_label: 'Custom',
+  auth_custom_detail: 'Enter a custom login URL',
+  auth_invalid_url: 'URL must begin with http:// or https://',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_deploy_delete_on_save_not_supported_text:

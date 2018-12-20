@@ -7,107 +7,127 @@
 import { SfdxProject } from '@salesforce/core';
 import { expect } from 'chai';
 import * as path from 'path';
-import { stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 
 import { SfdxProjectJsonParser } from '../../src/util';
 
 const SFDX_PROJECT_PATH = 'fakeSfdxProjectPath';
 
 /* tslint:disable:no-unused-expression */
-describe('getPackageDirectoryPaths', () => {
-  it('should return one package directory', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({
-        resolveProjectConfig: () => ({
-          packageDirectories: [{ path: 'force-app' }]
-        })
-      })
-    );
-    const parser = new SfdxProjectJsonParser();
-    const packageDirectories = await parser.getPackageDirectoryPaths(
-      SFDX_PROJECT_PATH
-    );
-    expect(packageDirectories).to.eql(['force-app']);
+describe('SFDX Project JSON Parser', () => {
+  let sfdxProjectStub: SinonStub;
+  let parser: SfdxProjectJsonParser;
+
+  beforeEach(() => {
+    parser = new SfdxProjectJsonParser();
+  });
+
+  afterEach(() => {
     sfdxProjectStub.restore();
   });
 
-  it('should return multiple package directories', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
+  describe('Get Project Config Values', () => {
+    const bestFood = 'Swiss Cheese Fondue';
+    sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
       Promise.resolve({
-        resolveProjectConfig: () => ({
-          packageDirectories: [
-            { path: 'package1' },
-            { path: 'package2' },
-            { path: 'package3' }
-          ]
+        resolveProjectConfig: () => ({ bestFood })
+      })
+    );
+
+    it('Should correctly read sfdx-project config values', async () => {
+      expect(await parser.getValue(SFDX_PROJECT_PATH, 'bestFood')).to.equal(
+        bestFood
+      );
+      expect(await parser.getValue(SFDX_PROJECT_PATH, 'bestDrink')).to.be
+        .undefined;
+    });
+  });
+
+  describe('getPackageDirectoryPaths', () => {
+    it('should return one package directory', async () => {
+      sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
+        Promise.resolve({
+          resolveProjectConfig: () => ({
+            packageDirectories: [{ path: 'force-app' }]
+          })
         })
-      })
-    );
-    const parser = new SfdxProjectJsonParser();
-    const packageDirectories = await parser.getPackageDirectoryPaths(
-      SFDX_PROJECT_PATH
-    );
-    expect(packageDirectories).to.eql(['package1', 'package2', 'package3']);
-    sfdxProjectStub.restore();
-  });
+      );
+      const packageDirectories = await parser.getPackageDirectoryPaths(
+        SFDX_PROJECT_PATH
+      );
+      expect(packageDirectories).to.eql(['force-app']);
+    });
 
-  it('should trim whitespace and remove leading slashes from package directories', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({
-        resolveProjectConfig: () => ({
-          packageDirectories: [
-            { path: '   package1   ' },
-            { path: `${path.sep}package2` },
-            { path: path.join('package', 'three') }
-          ]
+    it('should return multiple package directories', async () => {
+      sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
+        Promise.resolve({
+          resolveProjectConfig: () => ({
+            packageDirectories: [
+              { path: 'package1' },
+              { path: 'package2' },
+              { path: 'package3' }
+            ]
+          })
         })
-      })
-    );
-    const parser = new SfdxProjectJsonParser();
-    const packageDirectories = await parser.getPackageDirectoryPaths(
-      SFDX_PROJECT_PATH
-    );
-    expect(packageDirectories).to.eql([
-      'package1',
-      'package2',
-      path.join('package', 'three')
-    ]);
-    sfdxProjectStub.restore();
-  });
+      );
+      const packageDirectories = await parser.getPackageDirectoryPaths(
+        SFDX_PROJECT_PATH
+      );
+      expect(packageDirectories).to.eql(['package1', 'package2', 'package3']);
+    });
 
-  it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({ resolveProjectConfig: () => ({}) })
-    );
-    let errorWasThrown = false;
-    try {
-      const parser = new SfdxProjectJsonParser();
-      await parser.getPackageDirectoryPaths(SFDX_PROJECT_PATH);
-    } catch (error) {
-      errorWasThrown = true;
-      expect(error.name).to.equal('NoPackageDirectoriesFound');
-    } finally {
-      expect(errorWasThrown).to.be.true;
-      sfdxProjectStub.restore();
-    }
-  });
+    it('should trim whitespace and remove leading slashes from package directories', async () => {
+      sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
+        Promise.resolve({
+          resolveProjectConfig: () => ({
+            packageDirectories: [
+              { path: '   package1   ' },
+              { path: `${path.sep}package2` },
+              { path: path.join('package', 'three') }
+            ]
+          })
+        })
+      );
+      const packageDirectories = await parser.getPackageDirectoryPaths(
+        SFDX_PROJECT_PATH
+      );
+      expect(packageDirectories).to.eql([
+        'package1',
+        'package2',
+        path.join('package', 'three')
+      ]);
+    });
 
-  it('should throw an error if packageDirectories does not specify any paths', async () => {
-    const sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
-      Promise.resolve({
-        resolveProjectConfig: () => ({ packageDirectories: [] })
-      })
-    );
-    let errorWasThrown = false;
-    try {
-      const parser = new SfdxProjectJsonParser();
-      await parser.getPackageDirectoryPaths(SFDX_PROJECT_PATH);
-    } catch (error) {
-      errorWasThrown = true;
-      expect(error.name).to.equal('NoPackageDirectoryPathsFound');
-    } finally {
-      expect(errorWasThrown).to.be.true;
-      sfdxProjectStub.restore();
-    }
+    it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
+      sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
+        Promise.resolve({ resolveProjectConfig: () => ({}) })
+      );
+      let errorWasThrown = false;
+      try {
+        await parser.getPackageDirectoryPaths(SFDX_PROJECT_PATH);
+      } catch (error) {
+        errorWasThrown = true;
+        expect(error.name).to.equal('NoPackageDirectoriesFound');
+      } finally {
+        expect(errorWasThrown).to.be.true;
+      }
+    });
+
+    it('should throw an error if packageDirectories does not specify any paths', async () => {
+      sfdxProjectStub = stub(SfdxProject, 'resolve').returns(
+        Promise.resolve({
+          resolveProjectConfig: () => ({ packageDirectories: [] })
+        })
+      );
+      let errorWasThrown = false;
+      try {
+        await parser.getPackageDirectoryPaths(SFDX_PROJECT_PATH);
+      } catch (error) {
+        errorWasThrown = true;
+        expect(error.name).to.equal('NoPackageDirectoryPathsFound');
+      } finally {
+        expect(errorWasThrown).to.be.true;
+      }
+    });
   });
 });
