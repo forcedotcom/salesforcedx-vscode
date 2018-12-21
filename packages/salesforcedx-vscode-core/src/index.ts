@@ -479,6 +479,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
 =======
@@ -486,6 +487,11 @@ export async function activate(context: vscode.ExtensionContext) {
 =======
   await new OrgList().getOrgList();
 >>>>>>> Reading auth file info
+=======
+  const orgList = new OrgList();
+  const authInfo = await orgList.getOrgList();
+  orgList.filterAuthInfo(authInfo);
+>>>>>>> Filtered auth info array
 
 >>>>>>> Initial changes for reading auth info
   // Commands
