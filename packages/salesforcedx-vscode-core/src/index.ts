@@ -78,10 +78,14 @@ import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { registerPushOrDeployOnSave } from './settings';
 =======
 import { getOrgList } from './orgPicker/orgList';
 >>>>>>> Initial changes for reading auth info
+=======
+import { OrgList } from './orgPicker/orgList';
+>>>>>>> Reading auth file info
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -474,10 +478,14 @@ export async function activate(context: vscode.ExtensionContext) {
   registerDefaultUsernameWatcher(context);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
 =======
   await getOrgList();
+=======
+  await new OrgList().getOrgList();
+>>>>>>> Reading auth file info
 
 >>>>>>> Initial changes for reading auth info
   // Commands
