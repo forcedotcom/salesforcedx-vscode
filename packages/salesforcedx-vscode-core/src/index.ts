@@ -77,15 +77,8 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { registerPushOrDeployOnSave } from './settings';
-=======
-import { getOrgList } from './orgPicker/orgList';
->>>>>>> Initial changes for reading auth info
-=======
 import { OrgList } from './orgPicker/orgList';
->>>>>>> Reading auth file info
+import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -477,23 +470,11 @@ export async function activate(context: vscode.ExtensionContext) {
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
-=======
-  await getOrgList();
-=======
-  await new OrgList().getOrgList();
->>>>>>> Reading auth file info
-=======
   const orgList = new OrgList();
   const authInfo = await orgList.getOrgList();
   orgList.filterAuthInfo(authInfo);
->>>>>>> Filtered auth info array
-
->>>>>>> Initial changes for reading auth info
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
