@@ -1,3 +1,49 @@
+## 44.15.0 - January 10, 2019
+
+### Added
+
+#### salesforcedx-vscode
+
+- New [Code of Conduct](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/CODE_OF_CONDUCT.md) ([PR #846](https://github.com/forcedotcom/salesforcedx-vscode/pull/846))
+
+#### salesforcedx-vscode-apex
+
+- Apex Tests sidebar displays results for tests executed using code lens, Apex Tests sidebar or command palette commands ([PR #800](https://github.com/forcedotcom/salesforcedx-vscode/pull/800))
+
+- Update right-click menu label based on test status in Apex Tests sidebar ([PR #811](https://github.com/forcedotcom/salesforcedx-vscode/pull/811))
+
+#### salesforcedx-vscode-core
+
+- Allow selecting different domains (production, sandbox, or custom) when running `SFDX: Authorize an Org` ([PR #818](https://github.com/forcedotcom/salesforcedx-vscode/pull/818), [Issue #610](https://github.com/forcedotcom/salesforcedx-vscode/issues/610))
+
+- Deploy code on save ([PR #822](https://github.com/forcedotcom/salesforcedx-vscode/pull/822), [Issue #577](https://github.com/forcedotcom/salesforcedx-vscode/issues/577), [Issue #662](https://github.com/forcedotcom/salesforcedx-vscode/issues/662))
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Enable multi-line SOQL selection for `SFDX: Execute SOQL Query with Currently Selected Text` ([PR #833](https://github.com/forcedotcom/salesforcedx-vscode/pull/833/files), [Issue #816](https://github.com/forcedotcom/salesforcedx-vscode/issues/816)). Contribution by [@boxfoot](https://github.com/boxfoot).
+
+- Fix syntax hightlighting for manifest XML files ([PR #823](https://github.com/forcedotcom/salesforcedx-vscode/pull/823))
+
+## 44.11.0 - December
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Two new commands for working with manifest files; `SFDX: Deploy Source to Org using Manifest` and `SFDX: Retrieve Source from Org using Manifest` ([PR #795](https://github.com/forcedotcom/salesforcedx-vscode/pull/795))
+
+- Set the Duration of a Scratch Org when running `SFDX: Create a Default Scratch Org` ([PR #799](https://github.com/forcedotcom/salesforcedx-vscode/pull/799), [Issue #768](https://github.com/forcedotcom/salesforcedx-vscode/issues/768)). Contribution by [@renatoliveira](https://github.com/renatoliveira).
+
+- Include timestamps for command executions in Output view ([PR #780](https://github.com/forcedotcom/salesforcedx-vscode/pull/780), [Issue #759](https://github.com/forcedotcom/salesforcedx-vscode/issues/759))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Update Apex Test View to use "Run Tests" hover text for whole classes ([PR #805](https://github.com/forcedotcom/salesforcedx-vscode/pull/805))
+
 ## 44.10.0 - December 6, 2018
 
 ### Fixed
