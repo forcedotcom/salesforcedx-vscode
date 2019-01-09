@@ -77,7 +77,7 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { OrgList } from './orgPicker/orgList';
+import { updateOrgList } from './orgPicker/orgList';
 import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
@@ -316,6 +316,11 @@ function registerCommands(
     forceApexLogGet
   );
 
+  const forceOrgPickerStatusBar = vscode.commands.registerCommand(
+    'sfdx.force.org.picker.status.bar',
+    updateOrgList
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -369,7 +374,8 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd
+    forceApexLogGetCmd,
+    forceOrgPickerStatusBar
   );
 }
 
@@ -472,9 +478,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
-  const orgList = new OrgList();
-  const authInfo = await orgList.getOrgList();
-  orgList.filterAuthInfo(authInfo);
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
