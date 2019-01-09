@@ -1,16 +1,17 @@
 {
   "name": "@salesforce/salesforcedx-utils-vscode",
   "displayName": "SFDX Utilities for VS Code",
-  "description": "Provides utilies to interface the SFDX libraries with VS Code",
+  "description":
+    "Provides utilies to interface the SFDX libraries with VS Code",
   "version": "44.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
   "dependencies": {
     "cross-spawn": "6.0.5",
+    "path-exists": "3.0.0",
     "rxjs": "^5.4.1",
+    "shelljs": "0.8.3",
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
@@ -20,7 +21,7 @@
     "@types/mocha": "^2.2.38",
     "@types/node": "8.9.3",
     "@types/path-exists": "^1.0.29",
-    "@types/shelljs": "^0.7.4",
+    "@types/shelljs": "0.7.9",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
@@ -33,7 +34,6 @@
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
     "request-light": "0.2.1",
-    "shelljs": "^0.7.8",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
     "typescript": "3.1.6"
@@ -45,15 +45,15 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
-    "test:unit": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "clean":
+      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test":
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "test:unit":
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
+    "reporter": ["text-summary", "lcov"]
   }
 }
