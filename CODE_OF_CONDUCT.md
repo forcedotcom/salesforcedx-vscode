@@ -6,10 +6,10 @@ Equality is a core value at Salesforce. We believe a diverse and inclusive
 community fosters innovation and creativity, and are committed to building a
 culture where everyone feels included.
 
-Salesforce open source projects are committed to providing a friendly, safe, and
+Salesforce open-source projects are committed to providing a friendly, safe, and
 welcoming environment for all, regardless of gender identity and expression,
 sexual orientation, disability, physical appearance, body size, ethnicity, nationality, 
-race, age, religion, level of experience, education,  socio-economic status, or 
+race, age, religion, level of experience, education, socioeconomic status, or 
 other similar personal characteristics.
 
 The goal of this code of conduct is to specify a baseline standard of behavior so
@@ -18,7 +18,7 @@ together effectively, productively, and respectfully in our open source communit
 It also establishes a mechanism for reporting issues and resolving conflicts.
 
 All questions and reports of abusive, harassing, or otherwise unacceptable behavior
-in a Salesforce open source project may be reported by contacting the Salesforce
+in a Salesforce open-source project may be reported by contacting the Salesforce
 Open Source Conduct Committee at ossconduct@salesforce.com.
 
 ## Our Pledge
@@ -26,9 +26,9 @@ Open Source Conduct Committee at ossconduct@salesforce.com.
 In the interest of fostering an open and welcoming environment, we as
 contributors and maintainers pledge to making participation in our project and
 our community a harassment-free experience for everyone, regardless of gender 
-identity and expression, sexual orientation, disability, physical  appearance, 
-body size, ethnicity, nationality, race, age, religion, level of  experience, education, 
-socio-economic status, or other similar personal characteristics.
+identity and expression, sexual orientation, disability, physical appearance, 
+body size, ethnicity, nationality, race, age, religion, level of experience, education, 
+socioeconomic status, or other similar personal characteristics.
 
 ## Our Standards
 
@@ -39,7 +39,7 @@ include:
 * Being respectful of differing viewpoints and experiences
 * Gracefully accepting constructive criticism
 * Focusing on what is best for the community
-* Showing empathy towards other community members
+* Showing empathy toward other community members
 
 Examples of unacceptable behavior by participants include:
 
@@ -47,8 +47,8 @@ Examples of unacceptable behavior by participants include:
 advances
 * Personal attacks, insulting/derogatory comments, or trolling
 * Public or private harassment
-* Publishing, or threatening to publish, others' private information–such as
-a physical or electronic address–without explicit permission
+* Publishing, or threatening to publish, others' private information—such as
+a physical or electronic address—without explicit permission
 * Other conduct which could reasonably be considered inappropriate in a
 professional setting
 * Advocating for or encouraging any of the above behaviors
@@ -61,7 +61,7 @@ response to any instances of unacceptable behavior.
 
 Project maintainers have the right and responsibility to remove, edit, or
 reject comments, commits, code, wiki edits, issues, and other contributions
-that are not aligned to this Code of Conduct, or to ban temporarily or
+that are not aligned with this Code of Conduct, or to ban temporarily or
 permanently any contributor for other behaviors that they deem inappropriate,
 threatening, offensive, or harmful.
 
@@ -69,7 +69,7 @@ threatening, offensive, or harmful.
 
 This Code of Conduct applies both within project spaces and in public spaces
 when an individual is representing the project or its community. Examples of
-representing a project or community include using an official project e-mail
+representing a project or community include using an official project email
 address, posting via an official social media account, or acting as an appointed
 representative at an online or offline event. Representation of a project may be
 further defined and clarified by project maintainers.
