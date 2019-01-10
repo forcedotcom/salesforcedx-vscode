@@ -7,54 +7,62 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { ForceConfigGet, SfdxCommandBuilder } from '../../src/cli';
+import { ForceOrgDisplay, OrgInfo, SfdxCommandBuilder } from '../../../src/cli';
 import childProcess = require('child_process');
 
-describe('force:config:get', () => {
+describe('force:org:display', () => {
   const mockSpawn = require('mock-spawn');
-  let command: ForceConfigGet;
+  let command: ForceOrgDisplay;
   let origSpawn: any;
   let mySpawn: any;
   let cmdWithArgSpy: sinon.SinonSpy;
-  let cmdJsonSpy: sinon.SinonSpy;
+  let cmdWithJsonSpy: sinon.SinonSpy;
   let cmdBuildSpy: sinon.SinonSpy;
 
   beforeEach(() => {
-    command = new ForceConfigGet();
+    command = new ForceOrgDisplay();
     origSpawn = childProcess.spawn;
     mySpawn = mockSpawn();
     childProcess.spawn = mySpawn;
     cmdWithArgSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withArg');
-    cmdJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
+    cmdWithJsonSpy = sinon.spy(SfdxCommandBuilder.prototype, 'withJson');
     cmdBuildSpy = sinon.spy(SfdxCommandBuilder.prototype, 'build');
   });
 
   afterEach(() => {
     childProcess.spawn = origSpawn;
     cmdWithArgSpy.restore();
-    cmdJsonSpy.restore();
+    cmdWithJsonSpy.restore();
     cmdBuildSpy.restore();
   });
 
-  it('Should return config successfully', async () => {
-    const response = new Array<any>();
-    response.push({ key: 'key1', value: 'val1' });
-    response.push({ key: 'key2', value: 'val2' });
+  it('Should return org info successfully', async () => {
+    const orgInfo: OrgInfo = {
+      username: 'name',
+      devHubId: 'devHubId',
+      id: 'id',
+      createdBy: 'someone',
+      createdDate: new Date().toDateString(),
+      expirationDate: new Date().toDateString(),
+      status: 'active',
+      edition: 'Enterprise',
+      orgName: 'My org',
+      accessToken: '123',
+      instanceUrl: 'https://wwww.salesforce.com',
+      clientId: 'foo'
+    };
     mySpawn.setDefault(
-      mySpawn.simple(0, `{ "status": 0, "result": ${JSON.stringify(response)}}`)
+      mySpawn.simple(0, `{ "status": 0, "result": ${JSON.stringify(orgInfo)}}`)
     );
 
-    const cmdOutput = await command.getConfig('foo', 'key1', 'key2');
+    const cmdOutput: OrgInfo = await command.getOrgInfo('foo');
 
-    expect(cmdOutput.get('key1')).to.equal('val1');
-    expect(cmdOutput.get('key2')).to.equal('val2');
-    expect(cmdWithArgSpy.callCount).to.equal(3);
+    expect(cmdOutput).to.deep.equal(orgInfo);
+    expect(cmdWithArgSpy.calledOnce).to.equal(true);
     expect(cmdWithArgSpy.getCall(0).args).to.have.same.members([
-      'force:config:get'
+      'force:org:display'
     ]);
-    expect(cmdWithArgSpy.getCall(1).args).to.have.same.members(['key1']);
-    expect(cmdWithArgSpy.getCall(2).args).to.have.same.members(['key2']);
-    expect(cmdJsonSpy.calledOnce).to.equal(true);
+    expect(cmdWithJsonSpy.calledOnce).to.equal(true);
     expect(cmdBuildSpy.calledOnce).to.equal(true);
   });
 
@@ -62,7 +70,7 @@ describe('force:config:get', () => {
     mySpawn.setDefault(mySpawn.simple(1, '', 'There was an error'));
 
     try {
-      await command.getConfig('foo');
+      await command.getOrgInfo('foo');
     } catch (error) {
       expect(error).to.equal('There was an error');
     }
@@ -72,10 +80,9 @@ describe('force:config:get', () => {
     mySpawn.setDefault(mySpawn.simple(0, '{ not valid JSON'));
 
     try {
-      await command.getConfig('foo');
-      expect(false).to.equal('should not reach this point!');
+      await command.getOrgInfo('foo');
     } catch (error) {
-      // good
+      expect(error).to.equal('{ not valid JSON');
     }
   });
 });

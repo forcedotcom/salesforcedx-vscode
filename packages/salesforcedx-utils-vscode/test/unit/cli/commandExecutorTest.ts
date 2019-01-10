@@ -12,7 +12,7 @@ import {
   CliCommandExecutor,
   CommandBuilder,
   SfdxCommandBuilder
-} from '../../src/cli';
+} from '../../../src/cli';
 
 describe('CommandExecutor tests', () => {
   describe('Handle listeners on stdout and stderr', () => {
