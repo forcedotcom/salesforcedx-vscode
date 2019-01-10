@@ -6,7 +6,7 @@
 
 import * as assert from 'assert';
 import { TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../src/htmlLanguageService';
+import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Hover', () => {
   function assertHover(

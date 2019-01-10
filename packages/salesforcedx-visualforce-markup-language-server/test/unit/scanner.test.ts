@@ -11,7 +11,7 @@ import {
   Scanner,
   ScannerState,
   TokenType
-} from '../src/parser/htmlScanner';
+} from '../../src/parser/htmlScanner';
 
 describe('HTML Scanner', () => {
   interface Token {

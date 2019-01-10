@@ -15,7 +15,7 @@ import {
   CompletionList,
   TextDocument
 } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../src/htmlLanguageService';
+import * as htmlLanguageService from '../../src/htmlLanguageService';
 import { applyEdits } from './textEditSupport';
 
 export interface ItemDescription {
