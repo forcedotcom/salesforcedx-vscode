@@ -13,7 +13,7 @@ import {
   DEFAULT_LOCALE,
   Localization,
   Message
-} from '../../src/i18n/localization';
+} from '../../../src/i18n/localization';
 
 /**
  * Due to the way `require` resolves the paths (relative to the module), we must

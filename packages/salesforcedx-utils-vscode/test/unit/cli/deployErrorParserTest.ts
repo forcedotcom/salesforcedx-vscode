@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import {
   ForceDeployErrorParser,
   ForceSourceDeployErrorResult
-} from '../../src/cli';
+} from '../../../src/cli';
 
 describe('force:source:deploy parser', () => {
   let deployErrorResult: ForceSourceDeployErrorResult;
