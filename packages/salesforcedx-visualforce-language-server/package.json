@@ -14,7 +14,8 @@
     "vscode-languageserver-protocol": "3.4.2",
     "vscode-languageserver-types": "3.4.0",
     "vscode-nls": "2.0.2",
-    "vscode-uri": "1.0.1"
+    "vscode-uri": "1.0.1",
+    "typescript": "3.1.6"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.38",
@@ -26,8 +27,7 @@
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
-    "source-map-support": "^0.4.15",
-    "typescript": "3.1.6"
+    "source-map-support": "^0.4.15"
   },
   "scripts": {
     "compile": "tsc -p ./ && shx cp -R test/fixtures out/test",
