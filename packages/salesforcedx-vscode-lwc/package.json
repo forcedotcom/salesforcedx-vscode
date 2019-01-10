@@ -14,17 +14,19 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.11.0",
+  "version": "44.15.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": ["Programming Languages"],
+  "categories": [
+    "Programming Languages"
+  ],
   "dependencies": {
     "@salesforce/eslint-config-lwc": "0.3.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.15.0",
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
     "lwc-language-server": "1.8.3",
@@ -56,26 +58,23 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "pretest": "node ../../scripts/download-vscode-for-system-tests",
-    "test":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
-    "test:insiders":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
+    "test": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
+    "test:insiders": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "main": "./out/src",
   "contributes": {
     "menus": {
       "explorer/context": [
         {
           "command": "sfdx.force.lightning.lwc.create",
-          "when":
-            "explorerResourceIsFolder && resourceFilename == lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == lwc && sfdx:project_opened"
         }
       ],
       "commandPalette": [
