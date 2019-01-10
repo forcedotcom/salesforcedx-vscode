@@ -14,9 +14,9 @@ import {
   TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
-import { getLanguageModes } from '../src/modes/languageModes';
+import { getLanguageModes } from '../../src/modes/languageModes';
 
-import { format } from '../src/modes/formatting';
+import { format } from '../../src/modes/formatting';
 
 describe('HTML Embedded Formatting', () => {
   function assertFormat(
