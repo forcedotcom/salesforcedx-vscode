@@ -39,7 +39,7 @@
     "test":
       "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
     "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]

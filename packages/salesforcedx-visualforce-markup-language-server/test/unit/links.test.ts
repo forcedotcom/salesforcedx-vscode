@@ -7,7 +7,7 @@
 import * as assert from 'assert';
 import * as url from 'url';
 import { TextDocument } from 'vscode-languageserver-types';
-import * as htmlLanguageService from '../src/htmlLanguageService';
+import * as htmlLanguageService from '../../src/htmlLanguageService';
 
 describe('HTML Link Detection', () => {
   function getDocumentContext(
