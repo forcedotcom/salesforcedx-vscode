@@ -1,3 +1,13 @@
 {
-  "extensions.autoUpdate": false
+  "extensions.autoUpdate": false,
+  "terminal.integrated.env.osx": {
+    "SFDX_SET_CLIENT_IDS": "sfdx-vscode"
+  },
+  "terminal.integrated.env.linux": {
+    "SFDX_SET_CLIENT_IDS": "sfdx-vscode"
+  },
+  "terminal.integrated.env.windows": {
+    "SFDX_SET_CLIENT_IDS": "sfdx-vscode"
+  },
+  "eslint.nodePath": "/Users/allison.leong/Documents/sfdx/salesforcedx-vscode/packages/salesforcedx-vscode-lwc/node_modules"
 }
