@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -17,6 +18,7 @@ import {
   LanguageClientUtils
 } from './languageClientUtils';
 import * as languageServer from './languageServer';
+import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { ApexTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner } from './views/testRunner';
@@ -30,6 +32,25 @@ let languageClient: LanguageClient | undefined;
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const testOutlineProvider = new ApexTestOutlineProvider(null);
+  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+    const apexDirPath = new TestRunner().getTempFolder(
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      'apex'
+    );
+
+    const testResultOutput = path.join(apexDirPath, '*.json');
+    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(
+      testResultOutput
+    );
+    testResultFileWatcher.onDidCreate(uri =>
+      testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
+    );
+
+    context.subscriptions.push(testResultFileWatcher);
+  } else {
+    throw new Error(nls.localize('cannot_determine_workspace'));
+  }
+
   // Telemetry
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
     sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
@@ -96,6 +117,13 @@ async function registerTestView(
   testViewItems.push(
     vscode.commands.registerCommand('sfdx.force.test.view.showError', test =>
       testRunner.showErrorMessage(test)
+    )
+  );
+  // Show Definition command
+  testViewItems.push(
+    vscode.commands.registerCommand(
+      'sfdx.force.test.view.goToDefinition',
+      test => testRunner.showErrorMessage(test)
     )
   );
   // Run Class Tests command

@@ -3,13 +3,15 @@
   "displayName": "SFDX Utilities for VS Code",
   "description":
     "Provides utilies to interface the SFDX libraries with VS Code",
-  "version": "44.11.0",
+  "version": "44.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": ["Other"],
   "dependencies": {
     "cross-spawn": "6.0.5",
+    "path-exists": "3.0.0",
     "rxjs": "^5.4.1",
+    "shelljs": "0.8.3",
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
@@ -18,7 +20,8 @@
     "@types/glob": "^5.0.30",
     "@types/mocha": "^2.2.38",
     "@types/node": "8.9.3",
-    "@types/shelljs": "^0.7.4",
+    "@types/path-exists": "^1.0.29",
+    "@types/shelljs": "0.7.9",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
@@ -31,10 +34,9 @@
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
     "request-light": "0.2.1",
-    "shelljs": "^0.7.8",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
-    "typescript": "2.6.2"
+    "typescript": "3.1.6"
   },
   "engines": {
     "vscode": "^1.26.0"

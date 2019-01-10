@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.11.0",
+  "version": "44.15.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -24,7 +24,7 @@
   "categories": ["Programming Languages"],
   "dependencies": {
     "@salesforce/eslint-config-lwc": "0.3.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.15.0",
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
     "lwc-language-server": "1.8.3",
@@ -41,7 +41,7 @@
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "typescript": "2.6.2",
+    "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
   "extensionDependencies": [

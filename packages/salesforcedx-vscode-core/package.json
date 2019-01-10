@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "44.11.0",
+  "version": "44.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,9 +23,9 @@
   },
   "categories": ["Other"],
   "dependencies": {
-    "@salesforce/core": "0.18.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "44.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.11.0",
+    "@salesforce/core": "1.1.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "44.15.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.15.0",
     "adm-zip": "0.4.7",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -40,7 +40,6 @@
     "@types/glob": "^5.0.30",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
-    "@types/path-exists": "^1.0.29",
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
@@ -50,7 +49,7 @@
     "mock-spawn": "0.2.6",
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
-    "typescript": "2.6.2",
+    "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
   "scripts": {
@@ -96,19 +95,29 @@
       ],
       "editor/context": [
         {
-          "command": "sfdx.force.source.retrieve.current.file",
+          "command": "sfdx.force.source.retrieve.current.source.file",
           "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.deploy.current.file",
+          "command": "sfdx.force.source.retrieve.in.manifest",
           "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.source.deploy.current.source.file",
+          "when":
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.source.deploy.in.manifest",
+          "when":
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
           "when":
-            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+            "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
@@ -153,7 +162,7 @@
             "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.source.retrieve",
+          "command": "sfdx.force.source.retrieve.source.path",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
@@ -163,7 +172,7 @@
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.source.deploy",
+          "command": "sfdx.force.source.deploy.source.path",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
@@ -352,15 +361,15 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.source.retrieve",
+          "command": "sfdx.force.source.retrieve.source.path",
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy",
+          "command": "sfdx.force.source.deploy.source.path",
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.retrieve.current.file",
+          "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "false"
         },
         {
@@ -368,7 +377,7 @@
           "when": "false"
         },
         {
-          "command": "sfdx.force.source.deploy.current.file",
+          "command": "sfdx.force.source.deploy.current.source.file",
           "when": "false"
         },
         {
@@ -555,11 +564,11 @@
         "title": "%force_apex_log_get_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve",
+        "command": "sfdx.force.source.retrieve.source.path",
         "title": "%force_source_retrieve_text%"
       },
       {
-        "command": "sfdx.force.source.retrieve.current.file",
+        "command": "sfdx.force.source.retrieve.current.source.file",
         "title": "%force_source_retrieve_this_source_text%"
       },
       {
@@ -567,11 +576,11 @@
         "title": "%force_source_retrieve_in_manifest_text%"
       },
       {
-        "command": "sfdx.force.source.deploy",
+        "command": "sfdx.force.source.deploy.source.path",
         "title": "%force_source_deploy_text%"
       },
       {
-        "command": "sfdx.force.source.deploy.current.file",
+        "command": "sfdx.force.source.deploy.current.source.file",
         "title": "%force_source_deploy_this_source_text%"
       },
       {
@@ -605,6 +614,11 @@
           "type": ["boolean"],
           "default": true,
           "description": "%telemetry_enabled_description%"
+        },
+        "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
+          "type": ["boolean"],
+          "default": false,
+          "description": "%push_or_deploy_on_save_enabled_description%"
         }
       }
     },
@@ -629,6 +643,13 @@
         "id": "forcesourcemanifest",
         "aliases": ["ForceSourceManifest", "forcesourcemanifest"],
         "filenamePatterns": ["**/manifest/**/*.xml"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "forcesourcemanifest",
+        "scopeName": "manifest.text.xml",
+        "path": "./syntaxes/manifestXML.tmLanguage.json"
       }
     ]
   }

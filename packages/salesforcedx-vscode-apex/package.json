@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.11.0",
+  "version": "44.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -34,7 +34,7 @@
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
-    "typescript": "2.6.2",
+    "typescript": "3.1.6",
     "vscode": "1.1.17",
     "vscode-extension-telemetry": "0.0.17"
   },
@@ -92,16 +92,23 @@
       "view/item/context": [
         {
           "command": "sfdx.force.test.view.showError",
-          "when": "view == sfdx.force.test.view"
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
+        },
+        {
+          "command": "sfdx.force.test.view.goToDefinition",
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
         },
         {
           "command": "sfdx.force.test.view.runClassTests",
-          "when": "view == sfdx.force.test.view && viewItem == apexTestGroup",
+          "when": "view == sfdx.force.test.view && viewItem =~ /apexTestGroup/",
           "group": "inline"
         },
         {
           "command": "sfdx.force.test.view.runSingleTest",
-          "when": "view == sfdx.force.test.view && viewItem == apexTest",
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
       ]
@@ -126,6 +133,14 @@
       {
         "command": "sfdx.force.test.view.showError",
         "title": "%show_error_title%",
+        "icon": {
+          "light": "resources/light/document/notRun.svg",
+          "dark": "resources/dark/document/notRun.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.goToDefinition",
+        "title": "%go_to_definition_title%",
         "icon": {
           "light": "resources/light/document/notRun.svg",
           "dark": "resources/dark/document/notRun.svg"
@@ -194,7 +209,7 @@
   },
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.15.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",

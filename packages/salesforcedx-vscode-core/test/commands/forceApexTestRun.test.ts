@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -18,6 +19,11 @@ import { nls } from '../../src/messages';
 
 describe('Force Apex Test Run', () => {
   describe('Command builder', () => {
+    sinon
+      .stub(TestRunner.prototype, 'getTempFolder')
+      .returns(
+        '/Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex'
+      );
     const builder = new ForceApexTestRunExecutor();
 
     it('Should build command for test suite', () => {
@@ -28,7 +34,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --suitenames MySuite --resultformat human --loglevel error'
+        'sfdx force:apex:test:run --suitenames MySuite --resultformat human --outputdir /Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -43,7 +49,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --classnames MyTestClass --synchronous --resultformat human --loglevel error'
+        'sfdx force:apex:test:run --classnames MyTestClass --resultformat human --outputdir /Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -60,7 +66,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --resultformat human --loglevel error'
+        'sfdx force:apex:test:run --resultformat human --outputdir /Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex --loglevel error'
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')

@@ -9,35 +9,63 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { nls } from '../../src/messages';
 
-export async function setupWorkspaceOrgType() {
+export enum OrgType {
+  SourceTracked,
+  NonSourceTracked
+}
+
+export async function getWorkspaceOrgType(): Promise<OrgType> {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
   const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-  let isScratchOrg = false;
+
   if (defaultUsernameIsSet) {
     const username = await getUsername(defaultUsernameOrAlias!);
-    try {
-      isScratchOrg = await isAScratchOrg(username);
-    } catch (e) {
-      if (e.name === 'NamedOrgNotFound') {
+    const isScratchOrg = await isAScratchOrg(username);
+    return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+  }
+
+  const e = new Error();
+  e.name = 'NoDefaultusernameSet';
+  throw e;
+}
+
+export async function setupWorkspaceOrgType() {
+  try {
+    const orgType = await getWorkspaceOrgType();
+    setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
+    setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
+  } catch (e) {
+    switch (e.name) {
+      case 'NamedOrgNotFound':
         // If the info for a default username cannot be found,
         // then assume that the org can be of either type
         setDefaultUsernameHasChangeTracking(true);
         setDefaultUsernameHasNoChangeTracking(true);
-        return;
-      } else {
+        break;
+      case 'NoDefaultusernameSet':
+        setDefaultUsernameHasChangeTracking(false);
+        setDefaultUsernameHasNoChangeTracking(false);
+        break;
+      default:
         throw e;
-      }
     }
   }
-  setDefaultUsernameHasChangeTracking(defaultUsernameIsSet && isScratchOrg);
-  setDefaultUsernameHasNoChangeTracking(defaultUsernameIsSet && !isScratchOrg);
 }
 
 async function isAScratchOrg(username: string): Promise<boolean> {
-  const authInfo = await AuthInfo.create(username);
-  const authInfoFields = authInfo.getFields();
-  return Promise.resolve(typeof authInfoFields.devHubUsername !== 'undefined');
+  try {
+    const authInfo = await AuthInfo.create({ username });
+    const authInfoFields = authInfo.getFields();
+    return Promise.resolve(
+      typeof authInfoFields.devHubUsername !== 'undefined'
+    );
+  } catch (e) {
+    // If the info for a username cannot be found,
+    // then the name of the exception will be 'NamedOrgNotFound'
+    throw e;
+  }
 }
 
 /**
