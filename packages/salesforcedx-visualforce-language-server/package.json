@@ -1,21 +1,21 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-language-server",
   "description": "Visualforce language server",
-  "version": "44.11.0",
+  "version": "44.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "44.11.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "44.15.0",
+    "typescript": "3.1.6",
     "vscode-css-languageservice": "2.1.9",
     "vscode-languageserver": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
     "vscode-languageserver-types": "3.4.0",
     "vscode-nls": "2.0.2",
-    "vscode-uri": "1.0.1",
-    "typescript": "3.1.6"
+    "vscode-uri": "1.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.38",
@@ -33,14 +33,14 @@
     "compile": "tsc -p ./ && shx cp -R test/fixtures out/test",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
-    "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "test:unit": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
