@@ -7,7 +7,7 @@
 import { getLanguageService } from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import * as assert from 'assert';
 import { TextDocument } from 'vscode-languageserver-types';
-import * as embeddedSupport from '../src/modes/embeddedSupport';
+import * as embeddedSupport from '../../src/modes/embeddedSupport';
 
 describe('HTML Embedded Support', () => {
   const htmlLanguageService = getLanguageService();

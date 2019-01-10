@@ -5,7 +5,7 @@
 'use strict';
 
 import * as assert from 'assert';
-import * as words from '../src/utils/strings';
+import * as words from '../../src/utils/strings';
 
 describe('Words', () => {
   const wordRegex = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;

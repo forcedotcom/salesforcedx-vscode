@@ -7,9 +7,9 @@
 import { getLanguageService } from '@salesforce/salesforcedx-visualforce-markup-language-server';
 import * as assert from 'assert';
 import { TextDocument } from 'vscode-languageserver-types';
-import { getLanguageModelCache } from '../src/languageModelCache';
-import * as embeddedSupport from '../src/modes/embeddedSupport';
-import { getJavascriptMode } from '../src/modes/javascriptMode';
+import { getLanguageModelCache } from '../../src/languageModelCache';
+import * as embeddedSupport from '../../src/modes/embeddedSupport';
+import { getJavascriptMode } from '../../src/modes/javascriptMode';
 
 describe('HTML Javascript Support', () => {
   const htmlLanguageService = getLanguageService();
