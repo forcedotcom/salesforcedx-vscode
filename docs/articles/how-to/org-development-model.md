@@ -2,7 +2,7 @@
 title: Org Development Model with VS Code
 ---
 
-The latest release of the Salesforce Extensions for VS Code and the Salesforce CLI added an open beta of basic support for developing against non-scratch orgs. This means you can now use VS Code with your `package.xml` file against Scratch Orgs, Developer Edition Orgs, etc. This release is limited in functionality as it is an open beta and we suggest you only use it to evaluate features and provide us with [feedback](#bugs-and-feedback) - it is not recommended to use in your day to day work yet.
+The latest release of the Salesforce Extensions for VS Code and the Salesforce CLI added an open beta of basic support for developing against non-scratch orgs. This means you can now use VS Code with your `package.xml` file against Scratch Orgs, Developer Edition Orgs, etc.
 
 ![Demo](/images/changeset-demo.gif)
 
@@ -14,7 +14,7 @@ First, Open VS Code and create a project. To create a project with a manifest ru
 
 > Alternatively you can use the CLI to create the project.
 
-```bash
+```
 sfdx force:project:create --projectname myproject --manifest
 cd mychangeset
 code .
