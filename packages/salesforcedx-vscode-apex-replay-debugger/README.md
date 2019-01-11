@@ -2,7 +2,7 @@
 
 Apex Replay Debugger simulates a live debugging session using a debug log that is a recording of all interactions in a transaction. You no longer need to parse through thousands of log lines manually. Instead, Apex Replay Debugger presents the logged information similarly to an interactive debugger, so you can debug your Apex code. The debugging process is a repetition of editing your Apex code, pushing or deploying the code to your org, reproducing the buggy scenario, downloading the resulting debug log, and launching Apex Replay Debugger with that debug log.
 
-**Do not install this extension directly. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
+**DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
 ## Documentation
 

@@ -9,22 +9,40 @@
       url: /articles/getting-started/recommended-extensions
     - title: Tips & Tricks
       url: /articles/getting-started/tips-and-tricks
-- title: How To
-  baseUrl: /articles/how-to/
+- title: User Guide
+  baseUrl: /articles/user-guide/
   children:
     - title: Org Development
-      url: /articles/how-to/org-development-model
+      url: /articles/user-guide/org-development-model
     - title: Package Development
-      url: /articles/how-to/package-development-model
+      url: /articles/user-guide/package-development-model
     - title: 'Migrate: Force.com IDE'
-      url: /articles/how-to/migrate-from-forcecom-ide
-- title: Features
-  baseUrl: /articles/features/
-  children:
-    - title: Apex Refactoring
-      url: /articles/features/apex-refactoring
+      url: /articles/user-guide/migrate-from-forcecom-ide
     - title: Deploy on Save
-      url: /articles/features/deploy-on-save
+      url: /articles/user-guide/deploy-on-save
+- title: Apex
+  baseUrl: /articles/apex/
+  children:
+    - title: Apex Language
+      url: /articles/apex/introduction
+    - title: Testing
+      url: /articles/apex/testing
+    - title: Refactoring
+      url: /articles/apex/refactoring
+    - title: Interactive Debugger
+      url: /articles/apex/interactive-debugger
+    - title: Replay Debugger
+      url: /articles/apex/replay-debugger
+- title: Frameworks
+  baseUrl: /articles/frameworks
+  children:
+    - title: Aura
+      url: /articles/frameworks/aura
+    - title: Lighting Web Components
+      url: /articles/frameworks/lwc
+    - title: Visualforce
+      url: /articles/frameworks/visualforce
+
 - title: FAQ
   baseUrl: /articles/faq/
   children:

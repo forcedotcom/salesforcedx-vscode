@@ -15,7 +15,7 @@ To create a launch configuration for Apex Replay Debugger, create or update your
 1. Open your `.vscode/launch.json` file.
 1. Add a configuration named `Launch Apex Replay Debugger`.
 
-```
+```json
 {
   // Use IntelliSense to learn about possible attributes.
   // Hover to view descriptions of existing attributes.
@@ -51,7 +51,7 @@ Before you generate a debug log for replay debugging, set breakpoints and checkp
 
             - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** | **Expression**. Set the expression to `Checkpoint`.
 
-        1. To upload your checkpoints to your org to collect heap dump information, open the command palette, and run **SFDX: Update Checkpoints in Org**.
+    1.  To upload your checkpoints to your org to collect heap dump information, open the command palette, and run **SFDX: Update Checkpoints in Org**.
 
 ### Set Up an Apex Replay Debugger Session for a Scratch Org or a Default Development Org
 
