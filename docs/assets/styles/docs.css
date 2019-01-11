@@ -3572,3 +3572,16 @@ html {
 .docs h2 {
   font-size: 1.25rem;
 }
+
+pre {
+  background-color: rgba(224, 229, 238, 0.1);
+  /* box-shadow: inset 0 1px 3px #a8b7c7; */
+  padding: 10px;
+}
+
+blockquote {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid #dddbda;
+  background-color: #f3f2f2;
+}

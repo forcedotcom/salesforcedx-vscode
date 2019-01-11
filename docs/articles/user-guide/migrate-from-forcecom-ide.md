@@ -4,12 +4,6 @@ title: Migrate from Force.com IDE to Visual Studio Code
 
 With the latest release of the Salesforce Extensions for Visual Studio Code, you can now develop against any org using the same workflows you are used to with the Force.com IDE. This article walks through two techniques for migrating your existing project from Force.com IDE to VS Code.
 
-### Table of Contents
-
-1. [Determining Which Migration Process to Use](#determining-which-migration-process-to-use)
-1. [Migrate using Package.xml (easy)](#migrate-using-packagexml-easy)
-1. [Migrate by Conversion (advanced)](#migrate-by-conversion-advanced)
-
 > NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback please open a GitHub issue.
 
 ## Why You Need to Migrate
@@ -99,7 +93,7 @@ The second option for migrating your project is to do an in-place convert. This 
 
 1. The default `sfdx-project.json` assumes your source code is in the `force-app` folder. You can use this, but in our case we are assuming `src`. You will need to change the following in the `sfdx-project.json`.
 
-   ```
+   ```json
    {
     "packageDirectories": [
         {
