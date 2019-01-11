@@ -1,0 +1,53 @@
+
+// Default background color for the whole app.
+$color-background: rgb(243, 242, 242) !default;
+// Used as the background color for the hover state on rows or items on list-like components.
+$color-background-row-hover: rgb(243, 242, 242) !default;
+// Used as the background color for the active state on rows or items on list-like components.
+$color-background-row-active: rgb(236, 235, 234) !default;
+// Used as the background color for selected rows or items on list-like components.
+$color-background-row-selected: rgb(236, 235, 234) !default;
+// Background color for UI elements related to providing neutral information (not error, success, or warning).
+$color-background-info: rgb(112, 110, 107) !default;
+// Used as background for loading stencils on white background.
+$color-background-stencil: rgb(243, 242, 242) !default;
+// Used as an alternate background for loading stencils on gray backgrounds.
+$color-background-stencil-alt: rgb(236, 235, 234) !default;
+// Default border color for UI elements.
+$color-border: rgb(221, 219, 218) !default;
+// Lightest separator color - used as default separator on white backgrounds.
+$color-border-separator: rgb(243, 242, 242) !default;
+// Medium separator color - used as default separator on light gray backgrounds.
+$color-border-separator-alt: rgb(221, 219, 218) !default;
+// Darkest separator color - used as an alternate separator color when more differentiation is desired.
+$color-border-separator-alt-2: rgb(201, 199, 197) !default;
+// Border color for UI elements related to providing neutral information (not error, success, or warning).
+$color-border-info: rgb(112, 110, 107) !default;
+// Border color for UI elements related to the offline state.
+$color-border-offline: rgb(62, 62, 60) !default;
+// Used to delineate the boundary of a component that is being clicked. Specific to builders.
+$color-border-selection-active: rgb(243, 242, 242) !default;
+// Action label text color
+$color-text-action-label: rgb(62, 62, 60) !default;
+// Action label active text color
+$color-text-action-label-active: rgb(8, 7, 7) !default;
+// Body text color
+$color-text-default: rgb(8, 7, 7) !default;
+// Primary body text color
+$color-text-primary: rgb(8, 7, 7) !default;
+// Color for text that is purposefully de-emphasized to create visual hierarchy.
+$color-text-weak: rgb(62, 62, 60) !default;
+// Input placeholder text on dark backgrounds.
+$color-text-placeholder-inverse: rgb(236, 235, 234) !default;
+// Link text (508)
+$color-text-link: rgb(0, 109, 204) !default;
+// Default icon color.
+$color-text-icon-default: rgb(112, 110, 107) !default;
+// Inverse text color for dark backgrounds
+$color-text-inverse: rgb(255, 255, 255) !default;
+// Input placeholder text.
+$color-text-placeholder: rgb(62, 62, 60) !default;
+// Weak inverse text color for dark backgrounds
+$color-text-inverse-weak: rgb(176, 173, 171) !default;
+// Text color for field labels.
+$color-text-label: rgb(62, 62, 60) !default;

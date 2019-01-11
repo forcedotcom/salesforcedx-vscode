@@ -1,0 +1,488 @@
+
+// Deprecated: use FONT_FAMILY_TEXT instead for regular body text and FONT_FAMILY_HEADING for headings.
+$font-family: 'Salesforce Sans', Arial, sans-serif !default;
+// Used as the background color for the active state on rows or items on list-like components.
+$color-background-row-active: rgb(242, 242, 243) !default;
+// Used as the background color for the hover state on rows or items on list-like components.
+$color-background-row-hover: rgb(249, 249, 250) !default;
+// Dark color for UI elements related to errors. Accessible with white text.
+$color-background-error-dark: rgb(194, 57, 52) !default;
+// Background color for UI elements related to providing neutral information (not error, success, or warning).
+$color-background-info: rgb(107, 109, 112) !default;
+// Alternative background color for dark portions of the app.
+$color-background-alt-inverse: rgb(22, 50, 92) !default;
+// Used as the background color for the new state on rows or items on list-like components.
+$color-background-row-new: rgb(217, 255, 223) !default;
+// Dark color for UI elements that have to do with success. Accessible with white text.
+$color-background-success-dark: rgb(4, 132, 75) !default;
+// Used as background for loading stencils on white background.
+$color-background-stencil: rgb(242, 242, 243) !default;
+// Color for UI elements that have to do with warning.
+$color-background-warning: rgb(255, 183, 93) !default;
+// Background color for highlighting text in search results.
+$color-background-highlight-search: rgb(255, 240, 63) !default;
+// Hover color for UI elements related to destructive actions.
+$color-background-destructive-hover: rgb(166, 26, 20) !default;
+// Default background color for the whole app.
+$color-background: rgb(249, 249, 250) !default;
+// Our product brand blue, darkened to meet accessibility color contrast ratios with white text.
+$color-brand-dark: rgb(0, 112, 210) !default;
+// The color of the mask overlay that appears when you enter a modal state.
+$color-background-backdrop: rgba(255, 255, 255, 0.75) !default;
+// Our product brand blue.
+$color-brand: rgb(21, 137, 238) !default;
+// Color for UI elements related to destructive actions.
+$color-background-destructive: rgb(194, 57, 52) !default;
+// Color for UI elements that have to do with success.
+$color-background-success: rgb(75, 202, 129) !default;
+// Color for UI elements related to the offline state.
+$color-background-offline: rgb(62, 64, 65) !default;
+// Used as an alternate background for loading stencils on gray backgrounds.
+$color-background-stencil-alt: rgb(233, 234, 236) !default;
+// Background color for UI elements related to the concept of an external user or customer.
+$color-background-customer: rgb(255, 154, 60) !default;
+// Color for UI elements related to errors.
+$color-background-error: rgb(212, 80, 76) !default;
+// Second default background color for the app.
+$color-background-alt: rgb(255, 255, 255) !default;
+// Used as the background color for selected rows or items on list-like components.
+$color-background-row-selected: rgb(233, 234, 236) !default;
+// Our product brand blue, darkened even further.
+$color-brand-darker: rgb(0, 95, 178) !default;
+// Background color for text selected with a mouse.
+$color-background-selection: rgb(216, 237, 255) !default;
+// Active color for UI elements related to destructive actions.
+$color-background-destructive-active: rgb(135, 5, 0) !default;
+// Default background color for dark portions of the app (like Stage Left or tooltips).
+$color-background-inverse: rgb(6, 28, 63) !default;
+// Background color for highlighting UI elements.
+$color-background-highlight: rgb(250, 255, 189) !default;
+// Dark alternative border color for UI elements related to errors.
+$color-border-error-dark: rgb(234, 130, 136) !default;
+// Our product brand blue, darkened to meet accessibility color contrast ratios with white text.
+$color-border-brand-dark: rgb(0, 112, 210) !default;
+// Border color for UI elements related to providing neutral information (not error, success, or warning).
+$color-border-info: rgb(107, 109, 112) !default;
+// Border color for UI elements that have to do with warnings.
+$color-border-warning: rgb(255, 183, 93) !default;
+// Hover border color for UI elements that have to do with destructive actions.
+$color-border-destructive-hover: rgb(166, 26, 20) !default;
+// Default border color for UI elements.
+$color-border: rgb(217, 219, 221) !default;
+// Dark alternative border color for UI elements that have to do with success.
+$color-border-success-dark: rgb(4, 132, 75) !default;
+// Border color for UI elements that have to do with destructive actions.
+$color-border-destructive: rgb(194, 57, 52) !default;
+// Darkest separator color - used as an alternate separator color when more differentiation is desired.
+$color-border-separator-alt-2: rgb(196, 198, 202) !default;
+// Border color for UI elements related to the offline state.
+$color-border-offline: rgb(62, 64, 65) !default;
+// Border color for UI elements that have to do with success.
+$color-border-success: rgb(75, 202, 129) !default;
+// Lightest separator color - used as default separator on white backgrounds.
+$color-border-separator: rgb(249, 249, 250) !default;
+// Our product brand blue.
+$color-border-brand: rgb(21, 137, 238) !default;
+// Used to delineate the boundary of a component that is being clicked. Specific to builders.
+$color-border-selection-active: rgb(249, 249, 250) !default;
+// Border color for UI elements that have to do with errors.
+$color-border-error: rgb(194, 57, 52) !default;
+// Used to delineate the boundary of a component that is being hovered over. Specific to builders.
+$color-border-selection-hover: rgb(21, 137, 238) !default;
+// Used as the border color for the hover state on selected rows or items on list-like components.
+$color-border-row-selected-hover: rgb(21, 137, 238) !default;
+// Border color for UI elements related to the concept of an external user or customer.
+$color-border-customer: rgb(255, 154, 60) !default;
+// Used to delineate the boundary of a selected component. Specific to builders.
+$color-border-selection: rgb(0, 112, 210) !default;
+// Used as the border color for selected rows or items on list-like components.
+$color-border-row-selected: rgb(0, 112, 210) !default;
+// Medium separator color - used as default separator on light gray backgrounds.
+$color-border-separator-alt: rgb(217, 219, 221) !default;
+// Border color to match UI elements using color-background-inverse.
+$color-border-inverse: rgb(6, 28, 63) !default;
+// Active border color for UI elements that have to do with destructive actions.
+$color-border-destructive-active: rgb(135, 5, 0) !default;
+// Alternative border color for UI elements related to errors.
+$color-border-error-alt: rgb(234, 130, 136) !default;
+// Used as a separator on dark backgrounds, such as stage left navigation.
+$color-border-separator-inverse: rgb(42, 66, 108) !default;
+$border-radius-small: 0.125rem !default;
+// Icons in lists, record home icon, unbound input elements
+$border-radius-medium: 0.25rem !default;
+$border-radius-large: 0.5rem !default;
+$border-radius-pill: 15rem !default;
+// Circle for global use, action icon bgd shape
+$border-radius-circle: 50% !default;
+// Shadow for drag-n-drop.
+$shadow-drag: 0 2px 4px 0 rgba(0, 0, 0, 0.40) !default;
+// Shadow for drop down.
+$shadow-drop-down: 0 2px 3px 0 rgba(0, 0, 0, 0.16) !default;
+// Shadow for header.
+$shadow-header: 0 2px 4px rgba(0, 0, 0, 0.07) !default;
+$font-family-text: 'Salesforce Sans', Arial, sans-serif !default;
+$font-family-heading: 'Salesforce Sans', Arial, sans-serif !default;
+$font-family-monospace: Consolas, Menlo, Monaco, Courier, monospace !default;
+// Constant typography token for font size 1
+$font-size-1: 0.625rem !default;
+// Constant typography token for font size 2
+$font-size-2: 0.75rem !default;
+// Constant typography token for font size 3
+$font-size-3: 0.8125rem !default;
+// Variable typography token for font size 10
+$var-font-size-10: 2rem !default;
+// Constant typography token for font size 4
+$font-size-4: 0.875rem !default;
+// Variable typography token for font size 11
+$var-font-size-11: 2.625rem !default;
+// Constant typography token for font size 5
+$font-size-5: 1rem !default;
+// Constant typography token for font size 6
+$font-size-6: 1.125rem !default;
+// Constant typography token for font size 7
+$font-size-7: 1.25rem !default;
+// Constant typography token for font size 8
+$font-size-8: 1.5rem !default;
+// Variable typography token for font size 1
+$var-font-size-1: 0.625rem !default;
+// Constant typography token for font size 9
+$font-size-9: 1.75rem !default;
+// Variable typography token for font size 2
+$var-font-size-2: 0.75rem !default;
+// Variable typography token for font size 3
+$var-font-size-3: 0.8125rem !default;
+// Constant typography token for font size 10
+$font-size-10: 2rem !default;
+// Variable typography token for font size 4
+$var-font-size-4: 0.875rem !default;
+// Constant typography token for font size 11
+$font-size-11: 2.625rem !default;
+// Variable typography token for font size 5
+$var-font-size-5: 1rem !default;
+// Variable typography token for font size 6
+$var-font-size-6: 1.125rem !default;
+// Variable typography token for font size 7
+$var-font-size-7: 1.25rem !default;
+// Variable typography token for font size 8
+$var-font-size-8: 1.5rem !default;
+// Variable typography token for font size 9
+$var-font-size-9: 1.75rem !default;
+// Use for large headings only.
+$font-weight-light: 300 !default;
+// Most all body copy.
+$font-weight-regular: 400 !default;
+// Used sparingly for emphasized text within regular body copy.
+$font-weight-bold: 700 !default;
+$illustration-empty-state-assistant: "/assets/images/illustrations/empty-state-assistant.svg" !default;
+$illustration-empty-state-events: "/assets/images/illustrations/empty-state-events.svg" !default;
+$illustration-empty-state-tasks: "/assets/images/illustrations/empty-state-tasks.svg" !default;
+// Unitless line-heights for reusability
+$line-height-heading: 1.25 !default;
+// Unitless line-heights for reusability
+$line-height-text: 1.5 !default;
+// Remove extra leading. Unitless line-heights for reusability
+$line-height-reset: 1 !default;
+// Line heights for tabs
+$line-height-tab: 2.5rem !default;
+// Variable unitless line-heights for reusability
+$var-line-height-text: 1.5 !default;
+// 50% transparency of an element
+$opacity-5: 0.5 !default;
+// 80% transparency of an element
+$opacity-8: 0.8 !default;
+// Disabled state of BRAND_HEADER_CONTRAST_WEAK
+$brand-header-contrast-weak-disabled: rgba(166, 166, 166, 0.25) !default;
+// Gray Color 11
+$color-gray-11: rgb(62, 62, 60) !default;
+// Transparent value of BRAND_PRIMARY at 10%
+$brand-primary-transparent-10: rgba(21, 137, 238, 0.1) !default;
+// Gray Color 12
+$color-gray-12: rgb(43, 40, 38) !default;
+// These RGBA values need to be updated if BRAND_BACKGROUND_DARK changes, solves webkit bug
+$brand-background-dark-transparent: rgba(221, 219, 218, 0) !default;
+// Gray Color 13
+$color-gray-13: rgb(8, 7, 7) !default;
+// Background color a branded app header
+$brand-header: rgb(255, 255, 255) !default;
+// Active / Hover state of BRAND_LIGHT
+$brand-light-active: rgb(227, 229, 237) !default;
+// Variant of BRAND_HEADER_CONTRAST that provides a warm color
+$brand-header-contrast-warm: rgb(191, 2, 1) !default;
+// Disabled state of BRAND_HEADER_ICON
+$brand-header-icon-disabled: rgba(145, 145, 145, 0.25) !default;
+// Active / Hover state of BRAND_HEADER_CONTRAST
+$brand-header-contrast-active: rgb(80, 80, 80) !default;
+// Primary page background color
+$brand-background-primary: rgb(250, 250, 249) !default;
+// Primary brand color
+$brand-primary: rgb(21, 137, 238) !default;
+// Active / Hover state of BRAND_HEADER_CONTRAST_WEAK
+$brand-header-contrast-weak-active: rgb(129, 129, 129) !default;
+// Active / Hover state of BRAND_CONTRAST
+$brand-contrast-active: rgb(13, 14, 18) !default;
+// Variant of BRAND_HEADER_CONTRAST that provides a cool color
+$brand-header-contrast-cool: rgb(0, 85, 131) !default;
+// Variant of BRAND_HEADER that is accessible with BRAND_HEADER
+$brand-header-contrast-inverse: rgb(255, 255, 255) !default;
+// Dark variant of BRAND that is accessible with light colors
+$brand-dark: rgb(24, 35, 55) !default;
+// Dark variant of BRAND that is accessible with white
+$brand-accessible: rgb(0, 112, 210) !default;
+// Dark variant of BRAND_BACKGROUND_PRIMARY, used within gradient of background color
+$brand-background-dark: rgb(232, 232, 232) !default;
+// Active / Hover state of BRAND_TEXT_LINK
+$brand-text-link-active: rgb(0, 95, 178) !default;
+// Gray Color 1
+$color-gray-1: rgb(255, 255, 255) !default;
+// Gray Color 2
+$color-gray-2: rgb(250, 250, 249) !default;
+// Active / Hover state of BRAND_HEADER_ICON
+$brand-header-icon-active: rgb(129, 129, 129) !default;
+// Gray Color 3
+$color-gray-3: rgb(243, 242, 242) !default;
+// Icons of BRAND_HEADER that is accessible with BRAND_HEADER
+$brand-header-icon: rgb(145, 145, 145) !default;
+// Disabled state of BRAND_A11Y
+$brand-disabled: rgb(201, 199, 197) !default;
+// Primary text link brand color
+$brand-text-link: rgb(0, 109, 204) !default;
+// Gray Color 4
+$color-gray-4: rgb(236, 235, 234) !default;
+// Gray Color 5
+$color-gray-5: rgb(221, 219, 218) !default;
+// Gray Color 6
+$color-gray-6: rgb(201, 199, 197) !default;
+// Active / Hover state of BRAND_A11Y
+$brand-accessible-active: rgb(0, 95, 178) !default;
+// Gray Color 7
+$color-gray-7: rgb(176, 173, 171) !default;
+// Active / Hover state of BRAND_DARK
+$brand-dark-active: rgb(37, 48, 69) !default;
+// Gray Color 8
+$color-gray-8: rgb(150, 148, 146) !default;
+// Active / Hover state of BRAND_HEADER_CONTRAST
+$brand-header-contrast-inverse-active: rgb(238, 238, 238) !default;
+// Active / Hover state of BRAND_HEADER_CONTRAST_COOL
+$brand-header-contrast-cool-active: rgb(0, 85, 131) !default;
+// Gray Color 9
+$color-gray-9: rgb(112, 110, 107) !default;
+// Variant of BRAND that is accessible with BRAND
+$brand-contrast: rgb(26, 27, 30) !default;
+// Weak contrast ratio, useful for iconography
+$brand-header-contrast-weak: rgb(145, 145, 145) !default;
+// Active / Hover state of BRAND_PRIMARY
+$brand-primary-active: rgb(0, 122, 221) !default;
+// These RGBA values need to be updated if BRAND_BACKGROUND_PRIMARY changes, solves webkit bug
+$brand-background-primary-transparent: rgba(250, 250, 249, 0) !default;
+// Variant of BRAND_HEADER that is accessible with BRAND_HEADER
+$brand-header-contrast: rgb(94, 94, 94) !default;
+// Transparent value of BRAND_PRIMARY
+$brand-primary-transparent: rgba(21, 137, 238, 0.1) !default;
+// Active / Hover state of BRAND_HEADER_CONTRAST_WARM
+$brand-header-contrast-warm-active: rgb(172, 0, 0) !default;
+// Transparent value of BRAND_PRIMARY at 40%
+$brand-primary-transparent-40: rgba(21, 137, 238, 0.4) !default;
+// Light variant of BRAND that is accessible with dark colors
+$brand-light: rgb(244, 246, 254) !default;
+// Gray Color 10
+$color-gray-10: rgb(81, 79, 77) !default;
+// Generic sizing token scale for UI components.
+$size-x-small: 12rem !default;
+// Generic sizing token scale for UI components.
+$size-xxx-small: 3rem !default;
+// Large utility icon without border.
+$square-icon-utility-large: 1.5rem !default;
+// Generic sizing token scale for UI components.
+$size-xx-small: 6rem !default;
+// Search Results: Outer colored tile
+$square-icon-small-boundary: 1.5rem !default;
+// Generic sizing token scale for UI components.
+$size-small: 15rem !default;
+// Medium utility icon without border.
+$square-icon-utility-medium: 1.25rem !default;
+// Very small icon button boundary.
+$square-icon-x-small-boundary: 1.25rem !default;
+// Small utility icon without border.
+$square-icon-utility-small: 1rem !default;
+// Stage left & actions: Outer colored tile
+$square-icon-medium-boundary: 2rem !default;
+// Anchor: Icon content (white shape)
+$square-icon-large-content: 2rem !default;
+// Anchor: Outer colored tile
+$square-icon-large-boundary: 3rem !default;
+// Generic sizing token scale for UI components.
+$size-medium: 20rem !default;
+// Stage left & actions: Icon content (white shape)
+$square-icon-medium-content: 1rem !default;
+// Generic sizing token scale for UI components.
+$size-x-large: 40rem !default;
+// Very small icons in icon buttons.
+$square-icon-x-small-content: 0.5rem !default;
+// Variable medium boundary for square icons
+$var-square-icon-medium-boundary: 2rem !default;
+// Icon button boundary.
+$square-icon-medium-boundary-alt: 2.25rem !default;
+// Generic sizing token scale for UI components.
+$size-xx-large: 60rem !default;
+// Anchor: avatar
+$square-icon-large-boundary-alt: 5rem !default;
+// Generic sizing token scale for UI components.
+$size-large: 25rem !default;
+// Search Results: Icon content (white shape)
+$square-icon-small-content: 0.75rem !default;
+// Very very small icon button boundary.
+$square-icon-xx-small-boundary: 1rem !default;
+// Alternate medium tap target size
+$square-icon-medium-content-alt: 0.875rem !default;
+// Variable spacing token for size X Large
+$var-spacing-x-large: 2rem !default;
+// Variable horizontal spacing token for size Small
+$var-spacing-horizontal-small: 0.75rem !default;
+// Variable horizontal spacing token for size XX Large
+$var-spacing-horizontal-xx-large: 3rem !default;
+// Constant spacing token for size X small
+$spacing-x-small: 0.5rem !default;
+// Constant spacing token for size XXX small
+$spacing-xxx-small: 0.125rem !default;
+// Constant spacing token for size XX small
+$spacing-xx-small: 0.25rem !default;
+$border-width-thin: 1px !default;
+// Variable vertical spacing token for size Large
+$var-spacing-vertical-large: 1.5rem !default;
+// Variable spacing token for size Large
+$var-spacing-large: 1.5rem !default;
+// Variable spacing token for size Medium
+$var-spacing-medium: 1rem !default;
+// Variable vertical spacing token for size Medium
+$var-spacing-vertical-medium: 1rem !default;
+// Variable vertical spacing token for size X Small
+$var-spacing-vertical-x-small: 0.5rem !default;
+// Constant spacing token for size Small
+$spacing-small: 0.75rem !default;
+// Variable vertical spacing token for size XXX Small
+$var-spacing-vertical-xxx-small: 0.125rem !default;
+// Variable spacing token for size X Small
+$var-spacing-x-small: 0.5rem !default;
+// Variable spacing token for size XXX Small
+$var-spacing-xxx-small: 0.125rem !default;
+// Variable horizontal spacing token for size X Large
+$var-spacing-horizontal-x-large: 2rem !default;
+// Variable horizontal spacing token for size XX Small
+$var-spacing-horizontal-xx-small: 0.25rem !default;
+// Variable spacing token for size XX Large
+$var-spacing-xx-large: 3rem !default;
+$border-width-thick: 2px !default;
+// Constant spacing token for size Medium
+$spacing-medium: 1rem !default;
+// Variable vertical spacing token for size XX Large
+$var-spacing-vertical-xx-large: 3rem !default;
+// Variable vertical spacing token for size Small
+$var-spacing-vertical-small: 0.75rem !default;
+// Variable spacing token for size Small
+$var-spacing-small: 0.75rem !default;
+// Constant spacing token for 0
+$spacing-none: 0 !default;
+// Variable horizontal spacing token for size Large
+$var-spacing-horizontal-large: 1.5rem !default;
+// Constant spacing token for size X Large
+$spacing-x-large: 2rem !default;
+// Constant spacing token for size XX Large
+$spacing-xx-large: 3rem !default;
+// Variable horizontal spacing token for size XXX Small
+$var-spacing-horizontal-xxx-small: 0.125rem !default;
+// Variable horizontal spacing token for size X Small
+$var-spacing-horizontal-x-small: 0.5rem !default;
+// Variable spacing token for size XX Small
+$var-spacing-xx-small: 0.25rem !default;
+// Variable horizontal spacing token for size Medium
+$var-spacing-horizontal-medium: 1rem !default;
+// Variable vertical spacing token for size XX Small
+$var-spacing-vertical-xx-small: 0.25rem !default;
+// Variable vertical spacing token for size X Large
+$var-spacing-vertical-x-large: 2rem !default;
+// Constant spacing token for size Large
+$spacing-large: 1.5rem !default;
+// Action label text color
+$color-text-action-label: rgb(107, 109, 112) !default;
+// Link color on dark background
+$color-text-link-inverse: rgb(255, 255, 255) !default;
+// Link color on dark background - active state
+$color-text-link-inverse-active: rgba(255, 255, 255, 0.5) !default;
+// Action label active text color
+$color-text-action-label-active: rgb(22, 50, 92) !default;
+// Color for texts or icons that are related to warnings on a dark background.
+$color-text-warning: rgb(255, 183, 93) !default;
+// Focus link text
+$color-text-link-focus: rgb(0, 95, 178) !default;
+// Text color for destructive actions - hover state
+$color-text-destructive-hover: rgb(161, 43, 43) !default;
+// Disabled link text
+$color-text-link-disabled: rgb(22, 50, 92) !default;
+// Body text color
+$color-text-default: rgb(22, 50, 92) !default;
+// Primary body text color
+$color-text-primary: rgb(22, 50, 92) !default;
+// Text color for destructive actions
+$color-text-destructive: rgb(194, 57, 52) !default;
+// Hover link text
+$color-text-link-hover: rgb(0, 95, 178) !default;
+// Text color for success text.
+$color-text-success: rgb(2, 126, 70) !default;
+// Color for text that is purposefully de-emphasized to create visual hierarchy.
+$color-text-weak: rgb(107, 109, 112) !default;
+// Link text (508)
+$color-text-link: rgb(0, 112, 210) !default;
+// Color for texts that are related to warnings on a light background.
+$color-text-warning-alt: rgb(132, 72, 0) !default;
+// Default icon color.
+$color-text-icon-default: rgb(107, 109, 112) !default;
+// Our product brand blue.
+$color-text-brand: rgb(21, 137, 238) !default;
+// Error text for inputs and error misc
+$color-text-error: rgb(194, 57, 52) !default;
+// Customer text used in anchor subtitle
+$color-text-customer: rgb(255, 154, 60) !default;
+// Text color found on any primary brand color
+$color-text-brand-primary: rgb(255, 255, 255) !default;
+// Active link text
+$color-text-link-active: rgb(0, 57, 107) !default;
+// Color of required field marker.
+$color-text-required: rgb(194, 57, 52) !default;
+// Link color on dark background - disabled state
+$color-text-link-inverse-disabled: rgba(255, 255, 255, 0.15) !default;
+// Inverse text color for dark backgrounds
+$color-text-inverse: rgb(255, 255, 255) !default;
+// Input placeholder text.
+$color-text-placeholder: rgb(107, 109, 112) !default;
+// Weak inverse text color for dark backgrounds
+$color-text-inverse-weak: rgb(171, 173, 176) !default;
+// Link color on dark background - hover state
+$color-text-link-inverse-hover: rgba(255, 255, 255, 0.75) !default;
+// Text color for success text on dark backgrounds.
+$color-text-success-inverse: rgb(75, 202, 129) !default;
+// Text color for field labels.
+$color-text-label: rgb(107, 109, 112) !default;
+// Dropdown
+$z-index-dropdown: 7000 !default;
+// Docked element
+$z-index-docked: 4 !default;
+// Notifications under modals
+$z-index-reminder: 8500 !default;
+// Spinner
+$z-index-spinner: 9050 !default;
+// Default
+$z-index-default: 1 !default;
+// Deep dive
+$z-index-deepdive: -99999 !default;
+// Toasts
+$z-index-toast: 10000 !default;
+// Dialog
+$z-index-dialog: 6000 !default;
+// Popup
+$z-index-popup: 5000 !default;
+// Modal
+$z-index-modal: 9000 !default;
+// Stickied element
+$z-index-sticky: 100 !default;
+// Overlay
+$z-index-overlay: 8000 !default;

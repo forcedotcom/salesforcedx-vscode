@@ -1,0 +1,67 @@
+<section class="site site-sidebar slds-order_2">
+  <div class="site-banner">
+    <div class="site-skip-content"><a href="#site-main-content" class="slds-assistive-text slds-assistive-text_focus">Skip
+        to Content</a></div>
+    <div class="site-logo"><a href="/"><span class="slds-assistive-text">Salesforce</span></a></div>
+    <form class="slds-grid site-search slds-grid_vertical-align-center" novalidate="">
+      <div role="search" class="site-searchbox__wrapper slds-col"><label for="search-landing-nav" class="slds-assistive-text">Search</label><span
+          class="algolia-autocomplete" style="position: relative; display: inline-block; direction: ltr;"><input id="search-landing-nav"
+            class="site-searchbox__input slds-input site-search-input ds-input" type="text" name="search" placeholder="Search"
+            autocomplete="off" required="" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"
+            aria-owns="algolia-autocomplete-listbox-14" dir="auto" style="position: relative; vertical-align: top;">
+          <pre aria-hidden="true" style="position: absolute; visibility: hidden; white-space: pre; font-family: 'Salesforce Sans', Arial, sans-serif; font-size: 14px; font-style: normal; font-variant: normal; font-weight: 400; word-spacing: 0px; letter-spacing: normal; text-indent: 0px; text-rendering: auto; text-transform: none;"></pre></span><button
+          type="submit" class="slds-assistive-text" tabindex="-1">Submit
+          your search query</button></div>
+    </form>
+  </div>
+  <div id="site-navigation" class="site site-navigation site-navigation--has-search">
+    <nav id="navigation" role="navigation" tabindex="-1" aria-label="Main navigation">
+      <ul class="slds-list_vertical slds-has-block-links">
+        {% assign page_url = page.url|replace:'.html', '/' %}
+        {% for item in site.data.sidebar %}
+        {% if page.url contains item.baseUrl %}
+        <li class="list__item slds-is-open slds-is-selected">
+          <button class="slds-button_reset" aria-expanded="true">
+            <span class="slds-media slds-media--center">
+              <span class="slds-media__body">{{ item.title }}</span><span class="slds-media__figure--reverse">
+                <svg class="slds-icon slds-icon__svg slds-icon-utility-right slds-icon--small" aria-hidden="true" style="transform: rotate(90deg);">
+                  <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#right"></use>
+                </svg>
+              </span>
+            </span>
+            </a>
+          </button>
+          <ul class="slds-list_vertical slds-has-block-links slds-is-nested">
+            {% for entry in item.children %}
+            <li class="list__item {% if page_url == entry.url %}slds-is-selected slds-is-active{% endif %}"><a href="{{ entry.url }}">
+                <span class="slds-media slds-media--center">
+                  <span class="slds-media__body">{{ entry.title }}</span>
+                </span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+        {% else %}
+        {% if item.url %}
+        <li class="list__item {% if page_url == item.url %}slds-is-selected slds-is-active{% endif %}"><a href="{{ item.url }}">
+            <span class="slds-media slds-media--center">
+              <span class="slds-media__body">{{ item.title }}</span>
+            </span>
+          </a>
+        </li>
+        {% else %}
+        <li class="list__item">
+          <a href="{{ item.children.first.url }}">
+            <span class="slds-media slds-media--center">
+              <span class="slds-media__body">{{ item.title }}</span>
+            </span>
+          </a>
+        </li>
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+</section>
