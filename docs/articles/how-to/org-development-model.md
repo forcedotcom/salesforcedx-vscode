@@ -14,7 +14,7 @@ First, Open VS Code and create a project. To create a project with a manifest ru
 
 > Alternatively you can use the CLI to create the project.
 
-```
+```bash
 sfdx force:project:create --projectname myproject --manifest
 cd mychangeset
 code .

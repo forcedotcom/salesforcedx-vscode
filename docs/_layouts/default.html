@@ -10,8 +10,9 @@
     <link rel="stylesheet" type="text/css" href="/assets/styles/docs.css" />
     <link
       rel="stylesheet"
-      type="text/css"
-      href="/assets/styles/highlight.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css"
+      integrity="sha256-N1K43s+8twRa+tzzoF3V8EgssdDiZ6kd9r8Rfgg8kZU="
+      crossorigin="anonymous"
     />
   </head>
 
@@ -38,7 +39,7 @@
             <div
               class="site site-main-content slds-col slds-col--rule-right slds-size_1-of-1 slds-large-size--9-of-12 slds-large-order--1"
             >
-              <div class="slds-container_medium">{{ content }}</div>
+              <div class="slds-container_medium docs">{{ content }}</div>
             </div>
           </div>
         </div>
@@ -60,5 +61,10 @@
         list.appendChild(li);
       }
     </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"
+      integrity="sha256-jc6y1s/Y+F+78EgCT/lI2lyU7ys+PFYrRSJ6q8/R8+o="
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>
