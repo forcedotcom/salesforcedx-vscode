@@ -1,11 +1,12 @@
-- title: Getting Started
+- title: Get Started
+  baseUrl: /articles/getting-started/
   children:
-    - title: Thing 1
-      url: /thing1.html
-    - title: Thing 2
-      url: /thing2.html
-    - title: Thing 3
-      url: /thing3.html
+    - title: Introduction
+      url: /articles/getting-started/introduction
+    - title: Extensions
+      url: /articles/getting-started/recommended-extensions
+    - title: Tips & Tricks
+      url: /articles/getting-started/tips-and-tricks
 - title: How To
   baseUrl: /articles/how-to/
   children:
@@ -15,15 +16,22 @@
       url: /articles/how-to/package-development-model
     - title: 'Migrate: Force.com IDE'
       url: /articles/how-to/migrate-from-forcecom-ide
-    - title: 'Migrate: Mavens Mate'
-      url: /articles/how-to/migrate-from-mavens-mate
-- title: Reference
+- title: Features
+  baseUrl: /articles/features/
   children:
-    - title: Piece 1
-      url: /piece1.html
-    - title: Piece 2
-      url: /piece2.html
-    - title: Piece 3
-      url: /piece3.html
+    - title: Apex Refactoring
+      url: /articles/features/apex-refactoring
+    - title: Deploy on Save
+      url: /articles/features/deploy-on-save
 - title: FAQ
-  url: /faq/
+  baseUrl: /articles/faq/
+  children:
+    - title: General
+      url: /articles/faq/general
+    - title: Telemetry
+      url: /articles/faq/telemetry
+- title: Troubleshooting
+  baseUrl: /articles/troubleshooting/
+  children:
+    - title: General
+      url: /articles/troubleshooting/general
