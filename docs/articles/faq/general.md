@@ -1,24 +1,13 @@
 ---
-title: Frequently Asked Questions
+title: 'FAQ: General'
 ---
 
-## How do I retrieve a single metadata object from an org?
+## Are the Salesforce Extensions officially supported by Salesforce?
 
-Currently, there is not an easy way to do this. We are working on adding functionality that will allow you to select metadata from a list to pull from the server, but it is not available in the product today. The workaround at this time is to create a new pacakge.xml file and use that to retrieve the metadata.
+Yes, you can use your normal support channels to recieve support from Salesforce. Additionally, we also accept bugs and feature requests through the [Github Repository](https://github.com/forcedotcom/salesforcedx-vscode/issues)
 
-For example, if you want to pull a single custom field, create a manifest like this:
+However, Salesforce does not provide support for Visual Studio Code itself. This product is created by Microsoft. You can learn more about Visual Studio Code through [their documentation](https://code.visualstudio.com/docs).
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <types>
-        <members>OpportunityTeamMember.TeamMemberRole</members>
-        <name>CustomField</name>
-    </types>
-    <version>37.0</version>
-</Package>
-```
+## Is this a real Salesforce Project? I am worried that it is open source.
 
-Save the file to the `manifest` directory. You can then right click on the newly created file and select the command "SFDX: Retrieve from Org". The metadata specified in the manifest file will be pulled into the default folder.
-
-For more information on manifest files [see the documentation](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm).
+Yes, this is an official and supported Salesforce project. We have dedicated product and engineering resources for this tool just as we do with any other project. We make the extensions open source because [we believe the best developer tools are built in the open](https://developer.salesforce.com/blogs/2018/12/the-future-of-salesforce-ides.html).

@@ -40,10 +40,14 @@ If neither of the previous solutions solves your problem, try to identify which 
 1. Relaunch VS Code.
 1. Reinstall the extension that you deleted.
 
-# Other Resources
+## Other Resources
 
 For Apex Debugger troubleshooting information, see this wiki’s [Apex Debugger](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Debugger) page.
 
 For information on troubleshooting issues with code smartness for the Apex language, see this wiki’s [Apex Language Server](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Language-Server) page.
 
 For general information about VS Code, see the [Visual Studio Code docs](https://code.visualstudio.com/docs).
+
+## Monitor Apex Language Server Output
+
+The Apex Language Server is an implementation of the [Language Server Protocol](https://github.com/Microsoft/language-server-protocol) 3.0 specification. The Language Server Protocol allows a tool (in this case, VS Code) to communicate with a language smartness provider (the server). VS Code uses the Apex Language Server to show outlines of Apex classes and triggers, code-completion suggestions, and syntactic errors. To see all diagnostic information from the Apex Language Server, select **View** > **Output**, then choose **Apex Language Server** from the dropdown menu. The diagnostic information gives you insights into the progress of the language server and shows the problems encountered.

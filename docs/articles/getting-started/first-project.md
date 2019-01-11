@@ -1,36 +1,10 @@
 ---
-title: Getting Started
+title: Creating your First Project
 ---
 
 This guide helps Salesforce developers who are new to Visual Studio Code go from zero to a deployed app using the Salesforce Extensions for Visual Studio Code.
 
-## Part 1: System Setup
-
-Before you get started you need to install the required software on your machine.
-
-### Install Visual Studio Code
-
-Visual Studio Code can be installed on any computer running macOS, Windows, or Linux. The [system requirements](https://code.visualstudio.com/docs/supporting/requirements) are faily small so it should run about on any machine.
-
-To install Visual Studio Code visit <https://code.visualstudio.com> and click the big green download button. Once it is downloaded open the installer and follow the steps to complete the installation.
-
-### Install the Salesforce CLI
-
-The Salesforce CLI is used to execute commands against the Salesforce Org and work with source files and metadata on your local machine. You can use the CLI directly, but even if you don't the Salesforce Extensions for Visual Studio Code require the CLI to be installed on your machine.
-
-To install the CLI visit <https://developer.salesforce.com/tools/sfdxcli> and click the download button. Once it is downloaded open the installer and follow the steps to complete the installation.
-
-### Salesforce Extensions for Visual Studio Code
-
-Next, you will need to install the Salesforce Extension Pack to Visual Studio Code. The extension pack contains everything you need to develop Salesforce apps using Visual Studio Code.
-
-To install the extensions visit <https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode> and click the green "Install" link. This will prompt you to open Visual Studio Code. Once Visual Studio Code is open a dialog will open in the lower right corner asking you to install the extension. Click "Install" to proceed.
-
-![Install Extension](/images/install-salesforce-extensions-dialog.png)
-
-Once the extensions are installed you will see the blue button asking you to reload Visual Studio Code to finish the install. You can also just close and reopen Visual Studio Code.
-
-## Part 2: Creating a Project
+## Part 1: Creating a Project
 
 There are two types of developer processes or models supported in Visual Studio Code. These models are explained below. Each model offers pros and cons and is fully supported.
 
@@ -73,7 +47,7 @@ The `packageDirectories` file tells VS Code and the Salesforce CLI where metadat
 ]
 ```
 
-## Part 3: Working with Source
+## Part 2: Working with Source
 
 ### Authorize an Org
 
@@ -133,6 +107,6 @@ The behaviour is such that the operation will occur on any metadata below the pa
 
 Scratch orgs support a feature called source tracking. This means that VS Code will only push and pull metadata to or from and or if there are changes. You don't need to run deploy or retrieve operations on individual files or folders or even use a `package.xml` file. Just run two commands `SFDX: Pull Source from Org` and `SFDX: Push Source to Org` and any changed metadata files will be pulled or pushed.
 
-## Part 4: Deploying to Production
+## Part 3: Deploying to Production
 
 You should not deploy your code to production directly from Visual Studio Code. The deploy and retrieve commands do not support transactional operations. This means that a deployment can fail in a partial state. Deployments should be done using [packaging](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_dev2gp.htm) or by [converting your source](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_source.htm#cli_reference_convert) into metadata format and using the [metadata deploy command](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_mdapi.htm#cli_reference_deploy).

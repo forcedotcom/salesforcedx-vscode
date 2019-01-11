@@ -1,4 +1,4 @@
-# Committ Guidelines
+# Commit Guidelines
 
 When working on a large project with multiple users, it's a good idea to follow
 a convention for committing in Git. A guide that we follow is
