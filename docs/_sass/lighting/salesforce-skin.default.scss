@@ -1,0 +1,233 @@
+
+// Used as the background color for the active state on rows or items on list-like components.
+$color-background-row-active: rgb(236, 235, 234) !default;
+// Background color for a new notification list item.
+$color-background-notification-new: rgb(243, 242, 242) !default;
+$color-contrast-primary: rgb(243, 242, 242) !default;
+// Used as the background color for the hover state on rows or items on list-like components.
+$color-background-row-hover: rgb(243, 242, 242) !default;
+// Background color for UI elements related to providing neutral information (not error, success, or warning).
+$color-background-info: rgb(112, 110, 107) !default;
+// The color of the mask overlay that appears when you enter a modal state.
+$color-background-temp-modal-tint: rgba(8, 7, 7, 0.6) !default;
+// Winter 18 token, this has been deprecated. Please use BRAND_BACKGROUND_DARK_TRANSPARENT instead. These RGBA values need to be updated if BRAND_BAND_COLOR_BACKGROUND_PRIMARY changes, solves webkit bug
+$brand-band-color-background-secondary-transparent: rgba(253, 253, 253, 0) !default;
+$popover-walkthrough-header-image: "/assets/images/popovers/popover-header.png" !default;
+// Disabled input
+$color-background-input-disabled: rgb(236, 235, 234) !default;
+// Hovered toggle background color.
+$color-background-toggle-hover: rgb(150, 148, 146) !default;
+$popover-walkthrough-color-background: rgb(3, 46, 97) !default;
+// Used as background for loading stencils on white background.
+$color-background-stencil: rgb(243, 242, 242) !default;
+// Used when further differentiation is needed because colorBackground and colorBackgroundAlt are both being used in close proximity.
+$color-background-alt-2: rgb(243, 242, 242) !default;
+$popover-walkthrough-alt-image: "/assets/images/popovers/popover-action.png" !default;
+// Hover color for utility bar item.
+$color-background-utility-bar-hover: rgb(236, 235, 234) !default;
+$progress-color-border-shade: rgb(243, 242, 242) !default;
+// Toggle background color.
+$color-background-toggle: rgb(176, 173, 171) !default;
+// Use COLOR_BACKGROUND_PAGE_HEADER instead.
+$color-background-anchor: rgb(243, 242, 242) !default;
+$popover-walkthrough-alt-nubbin-color-background: rgb(33, 92, 160) !default;
+$progress-color-background-shade: rgb(243, 242, 242) !default;
+// Default background color for the whole app.
+$color-background: rgb(243, 242, 242) !default;
+// Default Page Header background color
+$page-header-color-background: rgb(243, 242, 242) !default;
+$color-background-primary: rgb(243, 242, 242) !default;
+// Disabled checkboxes
+$color-background-input-checkbox-disabled: rgb(221, 219, 218) !default;
+// Color of the spinner dot.
+$color-background-spinner-dot: rgb(176, 173, 171) !default;
+// Color for UI elements related to the offline state.
+$color-background-offline: rgb(62, 62, 60) !default;
+$table-color-background-header-hover: rgb(255, 255, 255) !default;
+// The color of the mask overlay that provides user feedback on interaction.
+$color-background-backdrop-tint: rgb(250, 250, 249) !default;
+$popover-walkthrough-color-background-alt: rgb(22, 74, 133) !default;
+// Winter 18 token, this has been deprecated. Please use BRAND_BACKGROUND_PRIMARY_DARK instead.
+$brand-band-color-background-secondary: rgb(253, 253, 253) !default;
+$table-color-background-header: rgb(250, 250, 249) !default;
+// Used as an alternate background for loading stencils on gray backgrounds.
+$color-background-stencil-alt: rgb(236, 235, 234) !default;
+// The background color of an internal scrollbar.
+$color-background-scrollbar: rgb(236, 235, 234) !default;
+// Disabled toggle background color.
+$color-background-toggle-disabled: rgb(176, 173, 171) !default;
+// Background color for toast messaging.
+$color-background-toast: rgb(112, 110, 107) !default;
+// Winter 18 token, this has been deprecated. Please use BRAND_BACKGROUND_PRIMARY_TRANSPARENT instead. These RGBA values need to be updated if BRAND_BAND_COLOR_BACKGROUND_PRIMARY changes, solves webkit bug
+$brand-band-color-background-primary-transparent: rgba(253, 253, 253, 0) !default;
+$color-contrast-secondary: rgb(243, 242, 242) !default;
+// Secondary top bar background color (child browser, file preview, etc.)
+$color-background-browser: rgb(112, 110, 107) !default;
+// Background color of comment posts in the feed.
+$color-background-post: rgb(243, 242, 242) !default;
+// Used as the background color for selected rows or items on list-like components.
+$color-background-row-selected: rgb(236, 235, 234) !default;
+// Used as the default background color for temporary dialog elements, such as the progress spinner background.
+$color-background-temp-modal: rgb(150, 148, 146) !default;
+// Used as gray background when more contrast is desired.
+$color-background-shade: rgb(236, 235, 234) !default;
+// Background color for payloads in the feed.
+$color-background-payload: rgb(250, 250, 249) !default;
+$color-picker-slider-thumb-color-background: rgb(243, 242, 242) !default;
+// Winter 18 token, this has been deprecated. Please use BRAND_BACKGROUND_PRIMARY instead.
+$page-color-background-primary: rgb(253, 253, 253) !default;
+// Used as gray background in conjunction with Shade when more contrast is desired.
+$color-background-shade-dark: rgb(221, 219, 218) !default;
+// Background for utility icons that live in the action bar on mobile.
+$color-background-actionbar-icon-utility: rgb(112, 110, 107) !default;
+// The background color of an internal scrollbar track.
+$color-background-scrollbar-track: rgb(201, 199, 197) !default;
+// Winter 18 token, this has been deprecated. Please use BRAND_BACKGROUND_PRIMARY instead.
+$brand-band-color-background-primary: rgb(253, 253, 253) !default;
+$color-background-secondary: rgb(255, 255, 255) !default;
+$popover-walkthrough-header-color-background: rgb(22, 74, 133) !default;
+$brand-band-default-image: "/assets/images/themes/oneSalesforce/banner-brand-default.png" !default;
+$banner-user-default-image: "/assets/images/themes/oneSalesforce/banner-user-default.png" !default;
+$banner-group-default-image: "/assets/images/themes/oneSalesforce/banner-group-public-default.png" !default;
+// Border color for UI elements related to providing neutral information (not error, success, or warning).
+$color-border-info: rgb(112, 110, 107) !default;
+// Disabled stroke color.
+$color-stroke-disabled: rgb(236, 235, 234) !default;
+// Default border color for UI elements.
+$color-border: rgb(221, 219, 218) !default;
+// Border color on disabled form elements.
+$color-border-input-disabled: rgb(201, 199, 197) !default;
+// Border color on notification reminders.
+$color-border-reminder: rgb(236, 235, 234) !default;
+// Active stroke color for our product brand blue.
+$color-stroke-brand-active: rgb(22, 50, 92) !default;
+$page-header-color-border: rgb(221, 219, 218) !default;
+$color-border-primary: rgb(221, 219, 218) !default;
+// Border color for default secondary button
+$color-border-button-default: rgb(221, 219, 218) !default;
+// Darkest separator color - used as an alternate separator color when more differentiation is desired.
+$color-border-separator-alt-2: rgb(201, 199, 197) !default;
+// Border color for UI elements related to the offline state.
+$color-border-offline: rgb(62, 62, 60) !default;
+// Lightest separator color - used as default separator on white backgrounds.
+$color-border-separator: rgb(243, 242, 242) !default;
+// Used to delineate the boundary of a component that is being clicked. Specific to builders.
+$color-border-selection-active: rgb(243, 242, 242) !default;
+// Border color on form elements.
+$color-border-input: rgb(221, 219, 218) !default;
+$card-color-border: rgb(221, 219, 218) !default;
+$button-color-border-primary: rgb(221, 219, 218) !default;
+// Medium separator color - used as default separator on light gray backgrounds.
+$color-border-separator-alt: rgb(221, 219, 218) !default;
+// Hover stroke color for our product brand blue.
+$color-stroke-brand-hover: rgb(0, 112, 210) !default;
+// Stroke color for our global header buttons.
+$color-stroke-header-button: rgb(176, 173, 171) !default;
+$page-header-joined-color-border: rgb(221, 219, 218) !default;
+// Our product brand blue.
+$color-stroke-brand: rgb(0, 112, 210) !default;
+$card-footer-color-border: rgb(221, 219, 218) !default;
+$page-header-border-radius: 0.25rem !default;
+$table-border-radius: 0 0 0.25rem 0.25rem !default;
+// Hard dropshadow found on general UI elements such as containers
+$shadow-hard-primary: rgba(0, 0, 0, 0.10) 0 2px 0 !default;
+// Soft dropshadow found on general UI elements such as containers
+$shadow-soft-primary: rgba(0, 0, 0, 0.10) 0 2px 2px !default;
+$shadow-soft-primary-hover: rgba(0, 0, 0, 0.20) 0 3px 6px !default;
+$shadow-soft-primary-active: rgba(0, 0, 0, 0.20) 0 1px 1px !default;
+// Hard dropshadow on page header
+$page-header-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.10) !default;
+// Hard dropshadow found on outer cards
+$card-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.10) !default;
+$form-label-font-size: .75rem !default;
+$input-static-font-size: 0.875rem !default;
+$input-static-font-weight: 400 !default;
+// Use for active tab.
+$tabs-font-weight: 700 !default;
+// Use for active tab.
+$card-font-weight: 700 !default;
+$page-header-title-font-weight: 700 !default;
+$component-spacing-margin: 0.75rem !default;
+$component-spacing-padding: 1rem !default;
+$template-gutters: 0.75rem !default;
+$template-profile-gutters: 8rem 0.75rem 0.75rem !default;
+$table-cell-spacing: 0.25rem 0.5rem !default;
+$card-spacing-margin: 0.75rem !default;
+$card-footer-padding: 0.75rem 1rem !default;
+$card-footer-text-align: center !default;
+// Icon color on dark background
+$color-text-icon-inverse: rgb(255, 255, 255) !default;
+// Action label text color
+$color-text-action-label: rgb(62, 62, 60) !default;
+// Hovered icon color for a button that has a parent element that has a hover state
+$color-text-icon-inverse-hint-hover: rgba(255, 255, 255, 0.75) !default;
+// Input icon
+$color-text-input-icon: rgb(176, 173, 171) !default;
+// Action label active text color
+$color-text-action-label-active: rgb(8, 7, 7) !default;
+// Icon color on dark background - active state
+$color-text-icon-inverse-active: rgb(255, 255, 255) !default;
+// Icon color for a button that has a parent element that has a hover state on a dark background. This is the default text/icon color for that button before its parent has been hovered over.
+$color-text-icon-inverse-hint: rgba(255, 255, 255, 0.5) !default;
+// Color for disabled text in a tab group.
+$color-text-tab-label-disabled: rgb(236, 235, 234) !default;
+// Input disabled text
+$color-text-input-disabled: rgb(62, 62, 60) !default;
+// Tertiary body text color
+$color-text-tertiary: rgb(150, 148, 146) !default;
+// Default icon color - disabled state
+$color-text-icon-default-disabled: rgb(221, 219, 218) !default;
+// Body text color
+$color-text-default: rgb(8, 7, 7) !default;
+// Active state on a standalone link on a dark background.
+$color-text-inverse-active: rgb(94, 180, 255) !default;
+// Primary body text color
+$color-text-primary: rgb(8, 7, 7) !default;
+// Color for text that is purposefully de-emphasized to create visual hierarchy.
+$color-text-weak: rgb(62, 62, 60) !default;
+// Input placeholder text on dark backgrounds.
+$color-text-placeholder-inverse: rgb(236, 235, 234) !default;
+// Default icon color - hover state.
+$color-text-icon-default-hover: rgb(0, 112, 210) !default;
+// Icon color for a button that has a parent element that has a hover state. This is the default text/icon color for that button before its parent has been hovered over.
+$color-text-icon-default-hint-borderless: rgb(236, 235, 234) !default;
+// Link text (508)
+$color-text-link: rgb(0, 109, 204) !default;
+// Default icon color.
+$color-text-icon-default: rgb(112, 110, 107) !default;
+// Text color for default secondary button - disabled state
+$color-text-button-default-disabled: rgb(221, 219, 218) !default;
+// Color for text on toast messages.
+$color-text-toast: rgb(236, 235, 234) !default;
+// Color for disabled toggles
+$color-text-toggle-disabled: rgb(221, 219, 218) !default;
+// Default icon color - active state.
+$color-text-icon-default-active: rgb(0, 57, 107) !default;
+// Icon color for a button that has a parent element that has a hover state. This is the default text/icon color for that button before its parent has been hovered over.
+$color-text-icon-default-hint: rgb(176, 173, 171) !default;
+// Hover state on a standalone link on a dark background.
+$color-text-inverse-hover: rgb(176, 173, 171) !default;
+// Text color for a button that has a parent element that has a hover state. This is the default text/icon color for that button before its parent has been hovered over.
+$color-text-button-inverse: rgb(236, 235, 234) !default;
+// Modal header button text color
+$color-text-modal-button: rgb(62, 62, 60) !default;
+// Inverse text color for dark backgrounds
+$color-text-inverse: rgb(255, 255, 255) !default;
+// Icon color on dark background - disabled state
+$color-text-icon-inverse-disabled: rgba(255, 255, 255, 0.15) !default;
+// Text color for a button that has a parent element that has a hover state. This is the default text/icon color for that button before its parent has been hovered over.
+$color-text-button-default-hint: rgb(176, 173, 171) !default;
+// Color for interactive utility icons
+$color-text-icon-utility: rgb(176, 173, 171) !default;
+// Icon color on dark background - hover state
+$color-text-icon-inverse-hover: rgb(255, 255, 255) !default;
+// Input placeholder text.
+$color-text-placeholder: rgb(62, 62, 60) !default;
+// Weak inverse text color for dark backgrounds
+$color-text-inverse-weak: rgb(176, 173, 171) !default;
+// Secondary body text color
+$color-text-secondary: rgb(62, 62, 60) !default;
+// Text in stage left navigation.
+$color-text-stage-left: rgb(236, 235, 234) !default;
+// Text color for field labels.
+$color-text-label: rgb(62, 62, 60) !default;

@@ -1,0 +1,403 @@
+
+$duration-slide: 0.25s !default;
+$width-stage-left: 88% !default;
+// Tooltip square size
+$square-tooltip: 1.25rem !default;
+// Brand header. Phone 44px; Tablet 50px
+$height-header: 2.75rem !default;
+// Maximum width for action overflow menu so that it's not full-screen for tablet.
+$max-width-action-overflow-menu: 512px !default;
+// Maximum width for brand logos in header.
+$max-width-header-brand: 156px !default;
+// Tap target Size
+$square-tappable: 2.75rem !default;
+// Tooltip nubbin square size
+$square-tooltip-nubbin: 1rem !default;
+// Use squareIconLargeBoundary
+$square-record-anchor-pic: 3rem !default;
+// 2 Column Layout - Master
+$flex-master-panel: 7 !default;
+// Maximum height for photos and such in cards.
+$max-height-card-media: 144px !default;
+// Text input height
+$height-input: 1.875rem !default;
+// Maximum height for brand logos in header.
+$max-height-header-brand: 32px !default;
+// Action footer menu. Phone 44px; Tablet 50px
+$height-footer: 3.75rem !default;
+// Maximum width for action icons in action bar when there are only 2 items with labels.
+$max-width-action-bar-with-labels: 320px !default;
+// 2 Column Layout - Detail
+$flex-detail-panel: 3 !default;
+// Space above overflow menu before scrolling.
+$height-overflow-start: 144px !default;
+// White badge background color.
+$badge-color-background-lightest: rgb(255, 255, 255) !default;
+// Dark gray badge background color.
+$badge-color-background-inverse: rgb(112, 110, 107) !default;
+$brand-band-default-image: "" !default;
+$brand-band-color-background-primary: rgba(0, 0, 0, 0) !default;
+$brand-band-color-background-primary-transparent: rgba(0, 0, 0, 0) !default;
+$brand-band-color-background-secondary: rgba(0, 0, 0, 0) !default;
+$brand-band-color-background-secondary-transparent: rgba(0, 0, 0, 0) !default;
+$brand-band-image-height-small: 6rem !default;
+$brand-band-image-height-medium: 12.5rem !default;
+$brand-band-image-height-large: 18.75rem !default;
+$brand-band-scrim-height: 3.125rem !default;
+$template-gutters: 0 !default;
+$template-profile-gutters: 0 !default;
+$button-icon-color-border-primary: rgb(255, 255, 255) !default;
+$button-color-border-primary: rgb(216, 221, 230) !default;
+$button-color-border-brand-primary: rgb(0, 112, 210) !default;
+$button-color-border-secondary: rgba(255, 255, 255, 0.8) !default;
+$button-border-radius: .25rem !default;
+// Default secondary button - focus state
+$color-background-button-default-focus: rgb(244, 246, 249) !default;
+$button-color-background-brand-primary: rgb(0, 112, 210) !default;
+// Disabled button backgrounds on inverse/dark backgrounds
+$color-background-button-inverse-disabled: rgba(0, 0, 0, 0) !default;
+// Default secondary button - hover state
+$color-background-button-default-hover: rgb(244, 246, 249) !default;
+// Default secondary button
+$color-background-button-default: rgb(255, 255, 255) !default;
+// Background color for icon-only button - disabled state
+$color-background-button-icon-disabled: rgb(255, 255, 255) !default;
+// Background color for icon-only button - focus state
+$color-background-button-icon-focus: rgb(244, 246, 249) !default;
+$button-color-background-secondary: rgba(255, 255, 255, 0.8) !default;
+// Brandable primary button - disabled state
+$color-background-button-brand-disabled: rgb(224, 229, 238) !default;
+// Brandable primary button - hover state
+$color-background-button-brand-hover: rgb(0, 95, 178) !default;
+// Active button backgrounds on inverse backgrounds on mobile
+$color-background-button-inverse-active: rgba(0, 0, 0, 0.24) !default;
+// Background color for icon-only button - hover state
+$color-background-button-icon-hover: rgb(244, 246, 249) !default;
+// Brandable primary button
+$color-background-button-brand: rgb(0, 112, 210) !default;
+// Background color for icon-only button
+$color-background-button-icon: rgba(0, 0, 0, 0) !default;
+// Default secondary button - disabled state
+$color-background-button-default-disabled: rgb(255, 255, 255) !default;
+// Background color for icon-only button - active state
+$color-background-button-icon-active: rgb(238, 241, 246) !default;
+// Brandable primary button - active state
+$color-background-button-brand-active: rgb(0, 57, 107) !default;
+// Button backgrounds on inverse/dark backgrounds
+$color-background-button-inverse: rgba(0, 0, 0, 0) !default;
+$button-color-background-primary: rgb(255, 255, 255) !default;
+// Default secondary button - active state
+$color-background-button-default-active: rgb(238, 241, 246) !default;
+// Line heights for regular buttons
+$line-height-button: 1.875rem !default;
+// Line heights for small buttons
+$line-height-button-small: 1.75rem !default;
+$button-color-text-primary: rgb(255, 255, 255) !default;
+// Default Card component background color.
+$card-color-background: rgb(255, 255, 255) !default;
+$card-color-border: rgb(221, 219, 218) !default;
+$card-footer-color-border: rgba(0, 0, 0, 0) !default;
+$card-shadow: none !default;
+// Use for active tab.
+$card-font-weight: 400 !default;
+$card-footer-margin: 0.75rem !default;
+$card-body-padding: 0 1rem !default;
+$card-wrapper-spacing: 1rem !default;
+$card-header-padding: 0.75rem 1rem 0 !default;
+$card-spacing-large: 1.5rem !default;
+$card-header-margin: 0 0 0.75rem !default;
+// Use for vertical spacing between cards
+$card-spacing-margin: 1rem !default;
+$card-footer-padding: 0 1rem 0.75rem !default;
+$card-spacing-small: 0.75rem !default;
+$card-footer-text-align: right !default;
+// Default background for carousel card
+$carousel-color-background: rgb(255, 255, 255) !default;
+// Default background for carousel navigation indicators
+$carousel-indicator-color-background: rgb(255, 255, 255) !default;
+// Default hover background for carousel navigation indicators
+$carousel-indicator-color-background-hover: rgb(250, 250, 249) !default;
+// Default focus background for carousel navigation indicators
+$carousel-indicator-color-background-focus: rgb(0, 95, 178) !default;
+// Default background for active state on carousel navigation indicators
+$carousel-indicator-color-background-active: rgb(0, 112, 210) !default;
+// Default width for carousel indicator width
+$carousel-indicator-width: 1rem !default;
+// Inbound chat message background color.
+$chat-message-color-background-inbound: rgb(242, 242, 243) !default;
+// Outbound chat message background color.
+$chat-message-color-background-outbound: rgb(0, 95, 178) !default;
+// Outbound agent chat message background color.
+$chat-message-color-background-outbound-agent: rgb(107, 109, 112) !default;
+// Status chat message background color.
+$chat-message-color-background-status: rgb(255, 255, 255) !default;
+// Line heights for toggle buttons
+$line-height-toggle: 1.3rem !default;
+// Slider size for toggle.
+$square-toggle-slider: 1.25rem !default;
+// Slider width.
+$width-toggle: 3rem !default;
+// Slider height.
+$height-toggle: 1.5rem !default;
+$color-picker-slider-thumb-color-background: rgb(250, 250, 249) !default;
+$color-picker-slider-thumb-border-color: rgb(81, 79, 77) !default;
+$color-picker-swatch-shadow: inset 0 0 1px rgba(0,0,0,0.4) !default;
+$color-picker-input-custom-hex-font-size: 0.75rem !default;
+$color-picker-selector-width: 14rem !default;
+$color-picker-swatches-width: 13.3rem !default;
+$color-picker-range-height: 5rem !default;
+$color-picker-slider-height: 1.5rem !default;
+$color-picker-thumb-width: 0.375rem !default;
+$color-picker-range-indicator-size: 0.75rem !default;
+$color-picker-input-custom-hex-width: 4.2rem !default;
+$color-picker-swatch-size: 1.25rem !default;
+$table-color-background-stripes: rgb(250, 250, 249) !default;
+$table-color-background-header: rgb(255, 255, 255) !default;
+$table-color-background-header-hover: rgb(250, 250, 249) !default;
+$table-color-background-header-focus: rgb(255, 255, 255) !default;
+$table-border-radius: 0 !default;
+$table-cell-spacing: 0.5rem !default;
+$table-color-text-header: rgb(81, 79, 77) !default;
+// Docked panel header’s background color.
+$color-background-docked-panel-header: rgb(255, 255, 255) !default;
+// Docked panel’s background color when open.
+$color-background-docked-panel: rgb(255, 255, 255) !default;
+// Height of the docked bar.
+$height-docked-bar: 2.5rem !default;
+// Utility bar notifications badge background color.
+$utility-bar-color-background-notification-badge: rgb(212, 80, 76) !default;
+// Utility bar notifications focus background color.
+$utility-bar-color-background-notification-focus: rgb(201, 199, 197) !default;
+$drop-zone-slot-height: 0.25rem !default;
+// Default color for animated icon waffle for app switcher.
+$color-background-icon-waffle: rgb(112, 110, 107) !default;
+// Default background color for a typing icon dot.
+$typing-icon-dot-color-background-gray: rgb(221, 219, 218) !default;
+// Active background color for a typing icon dot when animcating.
+$typing-icon-dot-color-background-gray-dark: rgb(201, 199, 197) !default;
+// Brand fill color
+$global-action-fill-hover: rgb(0, 112, 210) !default;
+// Global action icon size
+$global-action-icon-size: 1.5rem !default;
+// Typing icon size
+$typing-icon-dot-size: .5rem !default;
+$einstein-header-background: "/assets/images/einstein-headers/einstein-header-background.svg" !default;
+$einstein-header-figure: "/assets/images/einstein-headers/einstein-figure.svg" !default;
+// Background color for Einstein header
+$einstein-header-background-color: rgb(149, 203, 252) !default;
+// Text shadow color for Einstein header background to make text more readable
+$einstein-header-text-shadow: #9EDAFF !default;
+$form-label-font-size: 0.75rem !default;
+// Global Header background color
+$global-header-color-background: rgb(255, 255, 255) !default;
+$brand-logo-image: "/assets/images/logo-noname.svg" !default;
+// Global identity icon size.
+$square-icon-global-identity-icon: 1.25rem !default;
+// Hovered context bar item background color.
+$color-background-context-bar-item-hover: rgb(255, 255, 255) !default;
+// Active context bar item background color.
+$color-background-context-bar-item-active: rgb(255, 255, 255) !default;
+// Default context bar background color.
+$color-background-context-bar: rgb(255, 255, 255) !default;
+// Context TAB bar item background color.
+$color-background-context-tab-bar-item: rgb(255, 255, 255) !default;
+// Hovered context bar item background color.
+$color-background-context-bar-inverse-item-hover: rgba(255, 255, 255, 0.2) !default;
+// A Gradient used for putting shadows on the bottom when box-shadow is not possible.
+$color-background-context-bar-shadow: linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0, rgba(0, 0, 0, 0) 100%) !default;
+// Active context bar item background color.
+$color-background-context-bar-inverse-item-active: rgba(255, 255, 255, 0.4) !default;
+// Brand color in context bar for default theme
+$color-background-context-bar-brand-accent: rgb(0, 161, 223) !default;
+// Highlight for context bar action (hover and focus states).
+$color-background-context-bar-action-highlight: rgba(255, 255, 255, 0.2) !default;
+// Divider in context bar
+$color-border-context-bar-divider: rgba(255, 255, 255, 0.2) !default;
+// Border color in context bar
+$color-border-context-bar-item: rgba(0, 0, 0, 0.2) !default;
+// Border color in context bar on dark background
+$color-border-context-bar-inverse-item: rgba(255, 255, 255, 0.2) !default;
+// Border color in context bar for default theme
+$color-border-context-bar-theme-default: rgb(0, 161, 223) !default;
+// Alternate border color in context bar for default theme
+$color-border-context-bar-theme-default-alt: rgb(243, 242, 242) !default;
+// Hovered border color in context bar for default theme
+$color-border-context-bar-theme-default-hover: rgb(11, 35, 153) !default;
+// Active border color in context bar for default theme
+$color-border-context-bar-theme-default-active: rgb(243, 242, 242) !default;
+// Context bar height.
+$height-context-bar: 2.5rem !default;
+// Context bar text color
+$color-text-context-bar: rgb(62, 62, 60) !default;
+// Context bar text color on a dark background
+$color-text-context-bar-inverse: rgb(255, 255, 255) !default;
+// Context bar action trigger text color
+$color-text-context-bar-action-trigger: rgba(255, 255, 255, 0.4) !default;
+// Primary color for illustrations
+$illustration-color-primary: rgb(140, 211, 248) !default;
+// Secondary color for illustrations
+$illustration-color-secondary: rgb(194, 232, 255) !default;
+$input-static-font-size: 0.8125rem !default;
+$input-static-font-weight: 400 !default;
+$input-readonly-font-weight: 400 !default;
+$input-static-color: rgb(8, 7, 7) !default;
+// Default Page Header background color
+$page-header-color-background: rgb(250, 250, 249) !default;
+// Secondary Page Header background color
+$page-header-color-background-alt: rgb(255, 255, 255) !default;
+// Use COLOR_BACKGROUND_PAGE_HEADER instead.
+$color-background-anchor: rgb(250, 250, 249) !default;
+// Page Header background color
+$color-background-page-header: rgb(255, 255, 255) !default;
+$page-header-color-border: rgba(0, 0, 0, 0) !default;
+$page-header-joined-color-border: rgb(221, 219, 218) !default;
+$page-header-border-radius: 0 !default;
+$page-header-shadow: none !default;
+$page-header-title-font-size: 1.125rem !default;
+$page-header-title-font-weight: 400 !default;
+// Page header Entity Icon size
+$page-header-icon-size: 2.25rem !default;
+$page-header-spacing-margin: 0 !default;
+$page-header-spacing-padding: 1rem !default;
+$page-header-spacing-row: 0.75rem 1rem !default;
+// Dropshadow found on docked UI panels when positioned to the left of a viewport
+$panel-docked-left-shadow: 1px 0 3px rgba(0,0,0,0.25) !default;
+// Dropshadow found on docked UI panels when positioned to the left of a viewport
+$panel-docked-right-shadow: -1px 0 3px 0 rgba(0,0,0,0.25) !default;
+// The hover background color for Salespath stages that have not been completed.
+$color-background-path-incomplete-hover: rgb(221, 219, 218) !default;
+// The background color for the step action arrow that are the active stage
+$color-background-path-step-action-active: rgb(6, 28, 63) !default;
+// The background color for Salespath stages that have not been completed.
+$color-background-path-incomplete: rgb(236, 235, 234) !default;
+// The hover background color for Salespath stages that are the active stage.
+$color-background-path-active-hover: rgb(0, 57, 107) !default;
+// The background color for the final stage of a Salespath when it has been lost.
+$color-background-path-lost: rgb(194, 57, 52) !default;
+// The background color for Salespath stages that are the active stage.
+$color-background-path-active: rgb(0, 95, 178) !default;
+// The background color for Salespath guidance coaching section.
+$color-background-guidance: rgb(255, 255, 255) !default;
+// The background color for the final stage of a Salespath when it has been lost.
+$color-background-path-won: rgb(4, 132, 75) !default;
+// The hover background color for Salespath stages that are the current stage.
+$color-background-path-current-hover: rgb(255, 255, 255) !default;
+// The background color for Salespath stages that are the current stage.
+$color-background-path-current: rgb(255, 255, 255) !default;
+// The hover background color for Salespath stages that are complete.
+$color-background-path-complete-hover: rgb(4, 132, 75) !default;
+// The background color for Salespath stages that are complete.
+$color-background-path-complete: rgb(75, 202, 129) !default;
+// The background color for the step action arrow that are the current stage
+$color-background-path-step-action-current: rgb(0, 95, 178) !default;
+// The background color for the overall Salespath coaching section.
+$color-background-path-expanded: rgb(255, 255, 255) !default;
+// Used as a separator between dark colors like the stages of salespath.
+$color-border-path-divider: rgb(255, 255, 255) !default;
+// Used as a border color for the active Path step.
+$color-border-path-current: rgb(0, 95, 178) !default;
+// Used as a border color for the current path step on hover.
+$color-border-path-current-hover: rgb(0, 57, 107) !default;
+// Line heights for salespath
+$line-height-salespath: 1.5rem !default;
+// Height of Path
+$height-sales-path: 2rem !default;
+// Width of action button to right
+$path-button-width-fixed: 13rem !default;
+// Border width of current stage for path item
+$width-path-border-current: 0.125rem !default;
+// Used as a text color for the active Path step.
+$color-text-path-current: rgb(0, 95, 178) !default;
+// Used as a text hover color for the active Path step.
+$color-text-path-current-hover: rgb(0, 57, 107) !default;
+// The default background color for Popover Walkthrough
+$popover-walkthrough-color-background: rgb(6, 28, 63) !default;
+// The default background color for Popover Walkthrough Header
+$popover-walkthrough-header-color-background: rgb(22, 50, 92) !default;
+// The default background color for alternative Popover Walkthrough
+$popover-walkthrough-color-background-alt: rgb(0, 112, 210) !default;
+$popover-walkthrough-header-image: "" !default;
+$popover-walkthrough-alt-image: "" !default;
+// The background color for nubbins on the bottom of alternate walkthrough popovers
+$popover-walkthrough-alt-nubbin-color-background: rgb(0, 112, 210) !default;
+// Text color for step counter in walkthrough variant of popovers
+$popover-color-text: rgb(217, 219, 221) !default;
+// The default background color for Progress Indicator
+$progress-color-background: rgb(255, 255, 255) !default;
+// The shaded background color for Progress Indicator
+$progress-color-background-shade: rgb(250, 250, 249) !default;
+// The background color for the Progress Bar
+$progress-bar-color-background: rgb(221, 219, 218) !default;
+// The background color of the fill for the Progress Bar
+$progress-bar-color-background-fill: rgb(94, 180, 255) !default;
+// The success background color of the fill for the Progress Bar
+$progress-bar-color-background-fill-success: rgb(75, 202, 129) !default;
+// Borders of each indicator item within the Progress Indicator
+$progress-color-border: rgb(255, 255, 255) !default;
+// Shaded borders of each indicator item within the Progress Indicator
+$progress-color-border-shade: rgb(250, 250, 249) !default;
+// Hovered border color of each indicator item within the Progress Indicator
+$progress-color-border-hover: rgb(0, 112, 210) !default;
+// Active border color of each indicator item within the Progress Indicator
+$progress-color-border-active: rgb(21, 137, 238) !default;
+// Height of the Progress Bar
+$progress-bar-height: 0.125rem !default;
+// Inner color for progress ring component
+$color-background-progress-ring-content: rgb(255, 255, 255) !default;
+// Thickness of the Progress Ring's ring
+$progress-ring-width: 0.1875rem !default;
+// Dark notification component background color.
+$notification-color-background-inverse: rgb(112, 110, 107) !default;
+$slider-handle-color-background: rgb(21, 137, 238) !default;
+$slider-handle-color-background-hover: rgb(0, 112, 210) !default;
+$slider-handle-color-background-focus: rgb(0, 112, 210) !default;
+$slider-handle-color-background-active: rgb(0, 112, 210) !default;
+$slider-track-color-background: rgb(236, 235, 234) !default;
+$slider-track-color-background-fill: rgb(21, 137, 238) !default;
+$slider-color-background-disabled: rgb(236, 235, 234) !default;
+$slider-handle-shadow: rgba(0, 0, 0, 0.16) 0 2px 3px !default;
+$slider-handle-size: 1rem !default;
+$slider-track-height: 4px !default;
+$slider-track-width: 100% !default;
+// Split View background color.
+$split-view-color-background: rgb(250, 250, 249) !default;
+// Split View background color on row hover.
+$split-view-color-background-row-hover: rgb(255, 255, 255) !default;
+// Row dividers in Split View list
+$split-view-color-border: rgb(221, 219, 218) !default;
+// Default width for split view container
+$split-view-width: 25rem !default;
+// Use for active tab.
+$tabs-font-weight: 400 !default;
+// Vertical navigation shaded background color on row hover.
+$vertical-navigation-color-background-shade-row-hover: rgb(243, 242, 242) !default;
+// Vertical navigation shaded background color on row active.
+$vertical-navigation-color-background-shade-row-active: rgb(236, 235, 234) !default;
+// Text color for the Info section
+$welcome-mat-text-color-info: rgb(0, 57, 107) !default;
+// Background Image Path for the Welcome Mat Info section
+$welcome-mat-background-image-info: "/assets/images/welcome-mat/bg-info@2x.png" !default;
+// Background overflow color for the Welcome Mat Info section
+$welcome-mat-background-color-info: rgb(202, 230, 241) !default;
+// Progress Bar background is white
+$welcome-mat-color-background-progress-bar: rgb(255, 255, 255) !default;
+// Box Shadow declaration
+$welcome-mat-color-action-shadow: rgba(0, 0, 0, 0.05) !default;
+// Completed icon color for the Welcome Mat Boxes
+$welcome-mat-color-icon-complete: rgb(201, 199, 197) !default;
+// Font size for the info title
+$welcome-mat-font-size-info-title: 2.625rem !default;
+// Welcome Mat Width
+$welcome-mat-width: 52.0625rem !default;
+// Min height for Overlay
+$welcome-mat-min-height: 25rem !default;
+// Max height for Overlay
+$welcome-mat-max-height: 37.5rem !default;
+// Welcome Mat Progress Bar width
+$welcome-mat-width-progress-bar: 12.5rem !default;
+// Size of the green completed check mark
+$welcome-mat-complete-icon-size: 1.25rem !default;
+// Size of the check mark in the green icon
+$welcome-mat-check-size: 0.625rem !default;
+// Bottom spacing (safe area) for background image
+$welcome-mat-spacing-info: 7.75rem !default;
