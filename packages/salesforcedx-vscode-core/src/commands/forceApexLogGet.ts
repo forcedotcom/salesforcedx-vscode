@@ -100,12 +100,18 @@ export type ApexDebugLogIdStartTime = {
   startTime: string;
 };
 
+export type ApexDebugLogUser = {
+  Name: string;
+};
+
 export type ApexDebugLogObject = {
   Id: string;
   StartTime: string;
   LogLength: number;
   Operation: string;
   Request: string;
+  Status: string;
+  LogUser: ApexDebugLogUser;
 };
 
 interface ApexDebugLogItem extends vscode.QuickPickItem {
@@ -124,10 +130,11 @@ export class LogFileSelector
         const icon = '$(file-text) ';
         return {
           id: logInfo.Id,
-          label: icon + logInfo.Operation,
-          detail: moment(new Date(logInfo.StartTime)).format(
-            'M/DD/YYYY, h:mm:s a'
-          ),
+          label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
+          detail:
+            moment(new Date(logInfo.StartTime)).format('M/DD/YYYY, h:mm:s a') +
+            ' - ' +
+            logInfo.Status.substr(0, 150),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });
