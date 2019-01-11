@@ -17,7 +17,11 @@ Before you set up this extension, make sure that you have these essentials.
 
 ## Set Up a Default Scratch Org
 
-To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). To create a scratch org and set it as your default org for development, run **SFDX: Authorize a Dev Hub** and then **SFDX: Create a Default Scratch Org**. Then, to push the source in your project to the scratch org, run **SFDX: Push Source to Default Scratch Org**. To open the org in your browser, run **SFDX: Open Default Org**. After you make changes in the Salesforce user interface, to pull those changes to your local project, run **SFDX: Pull Source from Default Scratch Org**.
+To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). Then:
+- To create a scratch org and set it as your default org for development, run **SFDX: Authorize a Dev Hub** and then **SFDX: Create a Default Scratch Org**.
+- To push the source in your project to the scratch org, run **SFDX: Push Source to Default Scratch Org**.
+- To open the org in your browser, run **SFDX: Open Default Org**.
+- After you make changes in the Salesforce user interface, to pull those changes to your local project, run **SFDX: Pull Source from Default Scratch Org**.
 
 ## Develop Against Any Org in Visual Studio Code (Beta)
 
@@ -33,23 +37,26 @@ To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or C
 
 - To log in to a sandbox or a DE org and set that org as the default org for your project, run **SFDX: Authorize an Org**.
 
-  NOTE: Before you authorize a sandbox org, edit your `sfdx-project.json` file and set your `sfdcLoginUrl` value to `https://test.salesforce.com`:
-
-  ```
-  "sfdcLoginUrl": "https://test.salesforce.com"
-  ```
-
 - To generate a project with a manifest (with a `package.xml` file) to develop against orgs without source tracking (orgs that aren’t scratch orgs), run **SFDX: Create Project with Manifest**.
 
-To retrieve source from an org without source tracking (from an org that’s not a scratch org), right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Retrieve Source from Org**. Or, right-click a file that’s open in the editor, and select **SFDX: Retrieve This Source File from Org**.
+- To retrieve source from an org without source tracking (from an org that’s not a scratch org), you can:
+  - Run **SFDX: Retrieve Source in Manifest from Org**.
+  - Right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Retrieve Source from Org**.
+  - Right-click a file that’s open in the editor, and select **SFDX: Retrieve This Source File from Org**.
 
-CAUTION: Retrieving source from an org overwrites your local versions of the source files.
+  CAUTION: Retrieving source from an org overwrites your local versions of the source files.
 
-To deploy source to an org without source tracking (to an org that’s not a scratch org), right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Deploy Source to Org**. Or, right-click a file that’s open in the editor, and select **SFDX: Deploy This Source File to Org**.
+- To deploy source to an org without source tracking (to an org that’s not a scratch org), you can:
+  - Run **SFDX: Deploy Source in Manifest to Org**.
+  - Right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Deploy Source to Org**.
+  - Right-click a file that’s open in the editor, and select **SFDX: Deploy This Source File to Org**.
+  - Deploy files each time you save them by setting the user or workspace setting `salesforcedx-vscode-core.push-or-deploy-on-save.enabled` to `true`.
 
-CAUTION: Deploying source to an org overwrites the metadata in your org with your local versions of the source files.
+  CAUTION: Deploying source to an org overwrites the metadata in your org with your local versions of the source files.
 
-To delete source from your project and from your non-source-tracked org, right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Delete from Project and Org**. Or, right-click a file that’s open in the editor, and select **SFDX: Delete This from Project and Org**.
+- To delete source from your project and from your non-source-tracked org, you can:
+  - Right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Delete from Project and Org**.
+  - Right-click a file that’s open in the editor, and select **SFDX: Delete This from Project and Org**.
 
 ## View Your Default Org
 
@@ -93,11 +100,13 @@ These Salesforce CLI commands are available:
 - `force:project:create --manifest ...`: **SFDX: Create Project with Manifest**
 - `force:source:delete`: **SFDX: Delete from Project and Org** (beta)
 - `force:source:deploy`: **SFDX: Deploy Source to Org** (beta)
+- `force:source:deploy --manifest ...`: **SFDX: Deploy Source in Manifest to Org** (beta)
 - `force:source:pull`: **SFDX: Pull Source from Default Scratch Org**
 - `force:source:pull --forceoverwrite`: **SFDX: Pull Source from Default Scratch Org and Override Conflicts**
 - `force:source:push`: **SFDX: Push Source to Default Scratch Org**
 - `force:source:push --forceoverwrite`: **SFDX: Push Source to Default Scratch Org and Override Conflicts**
 - `force:source:retrieve`: **SFDX: Retrieve Source from Org** (beta)
+- `force:source:retrieve --manifest ...`: **SFDX: Retrieve Source in Manifest from Org** (beta)
 - `force:source:status`: **SFDX: View All Changes (Local and in Default Scratch Org)**
 - `force:source:status --local`: **SFDX: View Local Changes**
 - `force:source:status --remote`: **SFDX: View Changes in Default Scratch Org**
@@ -141,6 +150,8 @@ To retrieve code coverage results when you run Apex tests, edit your workspace s
 To edit your workspace settings, select **Code** > **Preferences** > **Settings** (macOS) or **File** > **Preferences** > **Settings** (Windows and Linux).
 
 To stop Salesforce CLI success messages from showing as pop-up information messages, click **Show Only in Status Bar** in a success message. This button overrides the `salesforcedx-vscode-core.show-cli-success-msg` value in your Default Settings. It changes the Workspace Settings value to `false`. Setting this value to `false` makes the success messages appear in the status bar (in VS Code’s footer) instead of as information messages. If you decide that you liked the information messages after all, change the value back to `true`.
+
+To see the other settings for this extension pack, search the settings for `salesforcedx-vscode`.
 
 ## Activate Demo Mode
 

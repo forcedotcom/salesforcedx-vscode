@@ -1,10 +1,56 @@
+## 44.15.0 - January 10, 2019
+
+### Added
+
+#### salesforcedx-vscode
+
+- Add [Code of Conduct](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/CODE_OF_CONDUCT.md) ([PR #846](https://github.com/forcedotcom/salesforcedx-vscode/pull/846))
+
+#### salesforcedx-vscode-apex
+
+- Display results in Apex Tests sidebar for tests executed using code lens, Apex Tests sidebar, or command palette commands ([PR #800](https://github.com/forcedotcom/salesforcedx-vscode/pull/800))
+
+- Show different options in Apex Tests sidebar’s right-click menu based on test status: **Go to Definition** for passing tests or **Display Error** for failing tests ([PR #811](https://github.com/forcedotcom/salesforcedx-vscode/pull/811))
+
+#### salesforcedx-vscode-core
+
+- Allow selecting a domain (production, sandbox, or custom) when running `SFDX: Authorize an Org` ([PR #818](https://github.com/forcedotcom/salesforcedx-vscode/pull/818), [Issue #610](https://github.com/forcedotcom/salesforcedx-vscode/issues/610))
+
+- Push or deploy code on save when `salesforcedx-vscode-core.push-or-deploy-on-save.enabled` setting is `true` ([PR #822](https://github.com/forcedotcom/salesforcedx-vscode/pull/822), [Issue #577](https://github.com/forcedotcom/salesforcedx-vscode/issues/577), [Issue #662](https://github.com/forcedotcom/salesforcedx-vscode/issues/662))
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Enable multi-line SOQL query selection for `SFDX: Execute SOQL Query with Currently Selected Text` ([PR #833](https://github.com/forcedotcom/salesforcedx-vscode/pull/833/files), [Issue #816](https://github.com/forcedotcom/salesforcedx-vscode/issues/816))—Contribution by [@boxfoot](https://github.com/boxfoot)
+
+- Fix syntax highlighting for manifest XML files ([PR #823](https://github.com/forcedotcom/salesforcedx-vscode/pull/823))
+
+## 44.11.0 - December 13, 2018
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Two new commands for working with manifest files (such as `package.xml`): `SFDX: Deploy Source in Manifest to Org` and `SFDX: Retrieve Source in Manifest from Org` ([PR #795](https://github.com/forcedotcom/salesforcedx-vscode/pull/795))
+
+- Set the duration of a scratch org when running `SFDX: Create a Default Scratch Org` ([PR #799](https://github.com/forcedotcom/salesforcedx-vscode/pull/799), [Issue #768](https://github.com/forcedotcom/salesforcedx-vscode/issues/768))—Contribution by [@renatoliveira](https://github.com/renatoliveira)
+
+- Include timestamps for command executions in Output view ([PR #780](https://github.com/forcedotcom/salesforcedx-vscode/pull/780), [Issue #759](https://github.com/forcedotcom/salesforcedx-vscode/issues/759))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Update Apex Test sidebar to use **Run Tests** hover text for whole classes ([PR #805](https://github.com/forcedotcom/salesforcedx-vscode/pull/805))
+
 ## 44.10.0 - December 6, 2018
 
 ### Fixed
 
 #### salesforcedx-vscode-apex
 
-- Alphabetically sort test classes displayed in Apex Tests sidebar ([PR #782](https://github.com/forcedotcom/salesforcedx-vscode/pull/782), [Issue #605](https://github.com/forcedotcom/salesforcedx-vscode/issues/605)). Contribution by [@0ff](https://github.com/0ff).
+- Alphabetically sort test classes displayed in Apex Tests sidebar ([PR #782](https://github.com/forcedotcom/salesforcedx-vscode/pull/782), [Issue #605](https://github.com/forcedotcom/salesforcedx-vscode/issues/605))—Contribution by [@0ff](https://github.com/0ff)
 
 ## 44.9.0 - November 29, 2018
 
@@ -54,7 +100,7 @@
 
 #### salesforcedx-vscode-core
 
-- Include deployment errors in the Problems view for `SFDX: Deploy This Source to Org` and `SFDX: Deploy Source to Org` commands ([PR #717](https://github.com/forcedotcom/salesforcedx-vscode/pull/717), [Issue #588](https://github.com/forcedotcom/salesforcedx-vscode/issues/588)). Contribution by [@ChuckJonas](https://github.com/ChuckJonas)
+- Include deployment errors in the Problems view for `SFDX: Deploy This Source to Org` and `SFDX: Deploy Source to Org` commands ([PR #717](https://github.com/forcedotcom/salesforcedx-vscode/pull/717), [Issue #588](https://github.com/forcedotcom/salesforcedx-vscode/issues/588))—Contribution by [@ChuckJonas](https://github.com/ChuckJonas)
 - Validate JSON schema for `sfdx-project.json` and `project-scratch-def.json` files ([PR #719](https://github.com/forcedotcom/salesforcedx-vscode/pull/719), [Issue #287](https://github.com/forcedotcom/salesforcedx-vscode/issues/287))
 
 ## 44.5.0 - November 1, 2018
@@ -75,7 +121,7 @@
 
 #### salesforcedx-vscode
 
-- Fix typo in scripts ([PR #682](https://github.com/forcedotcom/salesforcedx-vscode/pull/682)). Contribution by [@hasantayyar](https://github.com/hasantayyar)
+- Fix typo in scripts ([PR #682](https://github.com/forcedotcom/salesforcedx-vscode/pull/682))—Contribution by [@hasantayyar](https://github.com/hasantayyar)
 
 ## 44.3.0 - October 18, 2018
 
@@ -259,7 +305,7 @@
 
 #### salesforcedx-vscode-core
 
-- `salesforcedx-vscode-core.retrieve-test-code-coverage` setting to enable code coverage calculation and retrieval when running Apex tests ([PR #482](https://github.com/forcedotcom/salesforcedx-vscode/pull/482)). Contribution by [@dylanribb](https://github.com/dylanribb)
+- `salesforcedx-vscode-core.retrieve-test-code-coverage` setting to enable code coverage calculation and retrieval when running Apex tests ([PR #482](https://github.com/forcedotcom/salesforcedx-vscode/pull/482))—Contribution by [@dylanribb](https://github.com/dylanribb)
 - Quick pick to select which API (REST API or Tooling API) to use when running SOQL query commands ([PR #461](https://github.com/forcedotcom/salesforcedx-vscode/pull/461))
 
 ## 43.3.0 - June 14, 2018
