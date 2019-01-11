@@ -18,41 +18,9 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
   If you don’t already have the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 - **[Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later**
 
-## Documentation & Resources
+## Documentation
 
-Documentation for each extension as well as additional resources are listed below.
-
-### Extension Documentation
-
-- [Salesforce CLI Integration](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-core)  
-   This extension interacts with Salesforce CLI to provide core functionality.
-- [Apex](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex)  
-   This extension uses the Apex Language Server to provide features such as syntax highlighting and code completion.
-- [Apex Interactive Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger)  
-   This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs or to use ISV Customer Debugger for your subscribers’ orgs.
-- [Apex Replay Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-replay-debugger)  
-   This extension enables VS Code to replay Apex execution from Apex debug logs.
-- [Aura Components](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-lightning)  
-   This extension supports Aura component bundles. It uses the HTML language server from VS Code.
-- [Visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
-   This extension supports Visualforce pages and components. It uses the Visualforce Language Server and the HTML language server from VS Code.
-
-### Additional Documentation
-
-- Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
-- Tutorial: [Develop Against Any Org](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Develop-Against-Any-Org-in-Visual-Studio-Code)
-- Tutorial: [Migrate From Forcecom IDE to Visual Studio Code](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Migrate-From-Forcecom-IDE-to-Visual-Studio-Code)
-- [Tips and Tricks](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Tips-and-Tricks)
-- [Troubleshooting](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Troubleshooting)
-- [Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
-- [Recommended Extension](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Recommended-Extensions)
-
-### Dreamforce Session Videos
-
-- [Salesforce Development with Visual Studio Code](https://www.youtube.com/watch?v=lQ-ZpCRKYM0)
-- [Be An Efficient Salesforce Developer with VS Code](https://www.youtube.com/watch?v=hw9LBvjo4PQ)
-- [Moving to Visual Studio Code for Force.com IDE Developers](https://www.youtube.com/watch?v=J-9ILFRqcwg)
+All documentation is found on the [Salesforce Extensions for Visual Studio Code Documentation](https://forcedotcom.github.io/salesforcedx-vscode) site.
 
 ### Open Source
 

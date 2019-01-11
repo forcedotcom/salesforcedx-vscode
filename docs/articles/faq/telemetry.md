@@ -1,5 +1,5 @@
 ---
-title: Telemetry
+title: 'FAQ: Telemetry'
 ---
 
 ## Why data is collected?
@@ -10,7 +10,7 @@ Salesforce collects usage data and metrics to help us improve the Saleforce Exte
 
 Salesforce collects anonymous information related to the usage of the extensions such as which commands were run as well as performance and error data.
 
-## How to disable telemetry reporting
+## How to disable telemetry reporting?
 
 If you don't wish to send usage data to Salesforce, you can set the `salesforcedx-vscode-core.telemetry.enabled` setting to `false`.
 

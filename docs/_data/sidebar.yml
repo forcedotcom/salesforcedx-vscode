@@ -1,8 +1,10 @@
 - title: Get Started
   baseUrl: /articles/getting-started/
   children:
-    - title: Introduction
-      url: /articles/getting-started/introduction
+    - title: Install
+      url: /articles/getting-started/install
+    - title: First Project
+      url: /articles/getting-started/first-project
     - title: Extensions
       url: /articles/getting-started/recommended-extensions
     - title: Tips & Tricks
