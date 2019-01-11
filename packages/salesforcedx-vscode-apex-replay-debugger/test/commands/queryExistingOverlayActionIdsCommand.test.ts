@@ -15,7 +15,7 @@ import * as sinon from 'sinon';
 import {
   QueryExistingOverlayActionIdsCommand,
   QueryOverlayActionIdsSuccessResult
-} from '../../../src/commands/queryExistingOverlayActionIdsCommand';
+} from '../../src/commands/queryExistingOverlayActionIdsCommand';
 import { createExpectedXHROptions } from './apexExecutionOverlayActionCommand.test';
 
 describe('QueryExistingOverlayActionIdsCommand command', () => {
