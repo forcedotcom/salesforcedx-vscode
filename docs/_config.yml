@@ -26,6 +26,10 @@ github_username: jekyll
 
 # Build settings
 markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter_opts:
+    disable: true
 theme: minima
 plugins:
   - jekyll-feed
@@ -38,7 +42,6 @@ defaults:
       path: '' # an empty string here means all files in the project
     values:
       layout: 'default'
-
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
