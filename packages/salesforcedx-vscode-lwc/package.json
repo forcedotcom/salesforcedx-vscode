@@ -64,7 +64,7 @@
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
     "test:insiders":
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit":
+    "test:vscode-integration":
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
