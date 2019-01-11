@@ -15,8 +15,7 @@
     "vscode-languageserver-protocol": "3.4.2",
     "vscode-languageserver-types": "3.4.0",
     "vscode-nls": "2.0.2",
-    "vscode-uri": "1.0.1",
-    "typescript": "3.1.6"
+    "vscode-uri": "1.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.38",
