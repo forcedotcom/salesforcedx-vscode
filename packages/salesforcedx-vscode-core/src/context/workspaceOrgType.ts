@@ -37,7 +37,7 @@ export async function setupWorkspaceOrgType() {
     setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
     setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
   } catch (e) {
-    telemetryService.sendError(e.message);
+    telemetryService.sendErrorEvent(e.message, e.stack);
     switch (e.name) {
       case 'NamedOrgNotFound':
         // If the info for a default username cannot be found,
