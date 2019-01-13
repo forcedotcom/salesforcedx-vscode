@@ -134,6 +134,35 @@ describe('getWorkspaceOrgType', () => {
       authInfoStub.restore();
     }
   });
+
+  it('throws an error when the cli has no configuration', async () => {
+    const getConfigStub = getGetConfigStub(
+      new Map([['defaultusername', 'testUsername']])
+    );
+    const aliasesStub = getAliasesFetchStub('test@org.com');
+
+    const error = new Error();
+    error.name = 'GenericKeychainServiceError';
+    error.stack =
+      'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
+    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+
+    let errorWasThrown = false;
+    try {
+      await getWorkspaceOrgType();
+    } catch (error) {
+      errorWasThrown = true;
+      expect(error.name).to.equal('GenericKeychainServiceError');
+      expect(error.stack).to.equal(
+        'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...'
+      );
+    } finally {
+      expect(errorWasThrown).to.be.true;
+      getConfigStub.restore();
+      aliasesStub.restore();
+      authInfoStub.restore();
+    }
+  });
 });
 
 describe('setupWorkspaceOrgType', () => {
@@ -227,6 +256,28 @@ describe('setupWorkspaceOrgType', () => {
     aliasesStub.restore();
     authInfoCreateStub.restore();
     executeCommandStub.restore();
+  });
+
+  it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to false for cli config error', async () => {
+    const getConfigStub = getGetConfigStub(new Map());
+    const aliasesSpy = sinon.spy(Aliases, 'fetch');
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+
+    const error = new Error();
+    error.name = 'GenericKeychainServiceError';
+    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+
+    await setupWorkspaceOrgType();
+
+    expect(aliasesSpy.called).to.be.false;
+    expect(executeCommandStub.calledTwice).to.be.true;
+    expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
+    expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
+
+    getConfigStub.restore();
+    aliasesSpy.restore();
+    executeCommandStub.restore();
+    authInfoStub.restore();
   });
 });
 
