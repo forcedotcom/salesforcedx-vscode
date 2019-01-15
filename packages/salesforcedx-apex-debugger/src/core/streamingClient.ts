@@ -69,12 +69,12 @@ export class StreamingClientInfo {
 }
 
 export class StreamingClientInfoBuilder {
-  public channel: string;
-  public timeout: number;
-  public errorHandler: (reason: string) => void;
-  public connectedHandler: () => void;
-  public disconnectedHandler: () => void;
-  public messageHandler: (message: any) => void;
+  public channel: string = '';
+  public timeout: number = DEFAULT_STREAMING_TIMEOUT_MS;
+  public errorHandler: (reason: string) => void = () => {};
+  public connectedHandler: () => void = () => {};
+  public disconnectedHandler: () => void = () => {};
+  public messageHandler: (message: any) => void = () => {};
 
   public forChannel(channel: string): StreamingClientInfoBuilder {
     this.channel = channel;

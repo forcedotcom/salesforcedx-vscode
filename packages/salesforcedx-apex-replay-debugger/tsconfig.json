@@ -11,7 +11,7 @@
     "outDir": "out",
     "preserveConstEnums": true,
     "strict": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": true
   },
   "exclude": ["node_modules", ".vscode-test", "out"]
 }

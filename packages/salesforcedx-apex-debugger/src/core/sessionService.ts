@@ -13,11 +13,11 @@ import {
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 
 export class SessionService {
-  private userFilter: string;
-  private requestFilter: string;
-  private entryFilter: string;
-  private project: string;
-  private sessionId: string;
+  private userFilter: string = '';
+  private requestFilter: string = '';
+  private entryFilter: string = '';
+  private project: string = '';
+  private sessionId: string = '';
   private connected = false;
   private readonly requestService: RequestService;
 
@@ -99,7 +99,7 @@ export class SessionService {
       new SfdxCommandBuilder()
         .withArg('force:data:record:update')
         .withFlag('--sobjecttype', 'ApexDebuggerSession')
-        .withFlag('--sobjectid', this.sessionId)
+        .withFlag('--sobjectid', this.sessionId || '')
         .withFlag('--values', "Status='Detach'")
         .withArg('--usetoolingapi')
         .withJson()

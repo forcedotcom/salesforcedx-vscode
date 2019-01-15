@@ -171,8 +171,8 @@ type SubResponse = { statusCode: number; result: SObject };
 type BatchResponse = { hasErrors: boolean; results: SubResponse[] };
 
 export class SObjectDescribe {
-  private accessToken: string;
-  private instanceUrl: string;
+  private accessToken: string | undefined;
+  private instanceUrl: string | undefined;
   private readonly servicesPath: string = 'services/data';
   // the targetVersion should be consistent with the Cli even if only using REST calls
   private targetVersion = '';

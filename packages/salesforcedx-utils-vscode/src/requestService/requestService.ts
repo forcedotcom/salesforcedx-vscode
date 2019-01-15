@@ -25,12 +25,12 @@ export enum RestHttpMethodEnum {
 }
 
 export class RequestService {
-  private _instanceUrl: string;
-  private _accessToken: string;
-  private _proxyUrl: string;
-  private _proxyStrictSSL: boolean;
-  private _proxyAuthorization: string;
-  private _connectionTimeoutMs: number;
+  private _instanceUrl: string | undefined;
+  private _accessToken: string = '';
+  private _proxyUrl: string | undefined;
+  private _proxyStrictSSL: boolean = false;
+  private _proxyAuthorization: string = '';
+  private _connectionTimeoutMs: number = DEFAULT_CONNECTION_TIMEOUT_MS;
 
   public getEnvVars(): any {
     const envVars = Object.assign({}, process.env);
@@ -50,11 +50,11 @@ export class RequestService {
     return envVars;
   }
 
-  public get instanceUrl(): string {
+  public get instanceUrl(): string | undefined {
     return this._instanceUrl;
   }
 
-  public set instanceUrl(instanceUrl: string) {
+  public set instanceUrl(instanceUrl: string | undefined) {
     this._instanceUrl = instanceUrl;
   }
 
@@ -66,11 +66,11 @@ export class RequestService {
     this._accessToken = accessToken;
   }
 
-  public get proxyUrl(): string {
+  public get proxyUrl(): string | undefined {
     return this._proxyUrl;
   }
 
-  public set proxyUrl(proxyUrl: string) {
+  public set proxyUrl(proxyUrl: string | undefined) {
     this._proxyUrl = proxyUrl;
   }
 
@@ -104,7 +104,7 @@ export class RequestService {
     restHttpMethodEnum: RestHttpMethodEnum = RestHttpMethodEnum.Post
   ): Promise<string> {
     if (this.proxyUrl) {
-      configure(this._proxyUrl, this._proxyStrictSSL);
+      configure(this._proxyUrl || '', this._proxyStrictSSL);
     }
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
     const requestUrl =

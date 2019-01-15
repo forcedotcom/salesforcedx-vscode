@@ -123,10 +123,10 @@ export interface SetExceptionBreakpointsArguments {
 export class ApexDebugStackFrameInfo {
   public readonly requestId: string;
   public readonly frameNumber: number;
-  public globals: Value[];
-  public statics: Value[];
-  public locals: LocalValue[];
-  public references: Reference[];
+  public globals: Value[] = [];
+  public statics: Value[] = [];
+  public locals: LocalValue[] = [];
+  public references: Reference[] = [];
   constructor(requestId: string, frameNumber: number) {
     this.requestId = requestId;
     this.frameNumber = frameNumber;
@@ -528,10 +528,10 @@ export class MapTupleContainer implements VariableContainer {
 
 export class ApexDebug extends LoggingDebugSession {
   protected myRequestService = new RequestService();
-  protected mySessionService: SessionService;
-  protected myBreakpointService: BreakpointService;
+  protected mySessionService!: SessionService;
+  protected myBreakpointService!: BreakpointService;
   protected myStreamingService = StreamingService.getInstance();
-  protected sfdxProject: string;
+  protected sfdxProject: string = '';
   protected requestThreads: Map<number, string>;
   protected threadId: number;
 
@@ -540,7 +540,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected variableContainerReferenceByApexId = new Map<number, number>();
 
   private static LINEBREAK = `${os.EOL}`;
-  private initializedResponse: DebugProtocol.InitializeResponse;
+  private initializedResponse: DebugProtocol.InitializeResponse | undefined;
 
   private trace: string[] | undefined;
   private traceAll = false;
