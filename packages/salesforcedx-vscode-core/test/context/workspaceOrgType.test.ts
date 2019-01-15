@@ -266,7 +266,6 @@ describe('setupWorkspaceOrgType', () => {
     const getConfigStub = getGetConfigStub(
       new Map([['defaultusername', username]])
     );
-    expect(await getDefaultUsernameOrAlias()).to.equal(username);
 
     const error = new Error();
     error.name = 'GenericKeychainServiceError';
@@ -274,17 +273,21 @@ describe('setupWorkspaceOrgType', () => {
       'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
     const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
 
-    await setupWorkspaceOrgType();
+    try {
+      expect(await getDefaultUsernameOrAlias()).to.equal(username);
 
-    expect(aliasesSpy.called).to.be.false;
-    expect(executeCommandStub.calledTwice).to.be.true;
-    expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
-    expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
+      await setupWorkspaceOrgType();
 
-    getConfigStub.restore();
-    aliasesSpy.restore();
-    executeCommandStub.restore();
-    authInfoStub.restore();
+      expect(aliasesSpy.called).to.be.true;
+      expect(executeCommandStub.calledTwice).to.be.true;
+      expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
+      expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
+    } finally {
+      getConfigStub.restore();
+      aliasesSpy.restore();
+      executeCommandStub.restore();
+      authInfoStub.restore();
+    }
   });
 });
 
