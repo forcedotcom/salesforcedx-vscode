@@ -147,6 +147,16 @@ export class TelemetryService {
     }
   }
 
+  public sendErrorEvent(errorMsg: string, callstack: string): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('error', {
+        extensionName: EXTENSION_NAME,
+        errorMessage: errorMsg,
+        errorStack: callstack
+      });
+    }
+  }
+
   public dispose(): void {
     if (this.reporter !== undefined) {
       this.reporter.dispose().catch(err => console.log(err));
