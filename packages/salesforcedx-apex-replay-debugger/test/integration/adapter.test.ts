@@ -56,7 +56,7 @@ describe('Replay debugger adapter - integration', function() {
 
   after(async () => {
     if (dc) {
-      dc.stop();
+      await dc.stop();
     }
   });
 
@@ -149,7 +149,7 @@ describe('Replay debugger adapter - integration', function() {
         classBValidLines
       );
 
-      dc.configurationDoneRequest({});
+      await dc.configurationDoneRequest({});
 
       // Verify stopped on the first line of debug log
       const stackTraceResponse = await dc.assertStoppedLocation('entry', {
@@ -234,7 +234,7 @@ describe('Replay debugger adapter - integration', function() {
         classStaticVarsAValidLines
       );
 
-      dc.configurationDoneRequest({});
+      await dc.configurationDoneRequest({});
 
       // Verify stopped on the first line of debug log
       const stackTraceResponse = await dc.assertStoppedLocation('entry', {

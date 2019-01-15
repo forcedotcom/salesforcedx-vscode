@@ -106,7 +106,7 @@ export async function activate(context: ExtensionContext) {
 
   let disposable = client.start();
   toDispose.push(disposable);
-  client.onReady().then(() => {
+  await client.onReady().then(() => {
     disposable = languages.registerColorProvider(documentSelector, {
       provideDocumentColors(
         document: TextDocument

@@ -7,6 +7,6 @@
     "member-ordering": false,
     "no-string-based-set-timeout": false,
     "semicolon": [true, "always", "ignore-bound-class-methods"],
-    "no-floating-promises": false
+    "no-floating-promises": true
   }
 }
