@@ -99,7 +99,7 @@ export class SessionService {
       new SfdxCommandBuilder()
         .withArg('force:data:record:update')
         .withFlag('--sobjecttype', 'ApexDebuggerSession')
-        .withFlag('--sobjectid', this.sessionId || '')
+        .withFlag('--sobjectid', this.sessionId)
         .withFlag('--values', "Status='Detach'")
         .withArg('--usetoolingapi')
         .withJson()
