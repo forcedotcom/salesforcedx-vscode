@@ -69,7 +69,7 @@ export class StreamingClientInfo {
 }
 
 export class StreamingClientInfoBuilder {
-  public channel: string = '';
+  public channel!: string;
   public timeout: number = DEFAULT_STREAMING_TIMEOUT_MS;
   public errorHandler: (reason: string) => void = () => {};
   public connectedHandler: () => void = () => {};

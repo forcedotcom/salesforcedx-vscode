@@ -108,7 +108,7 @@ describe('Debugger session service', () => {
       } catch (error) {
         expect(error).to.equal('{"result":{"id":"FAKE"}}');
         expect(service.isConnected()).to.equal(false);
-        expect(service.getSessionId()).to.equal('');
+        expect(service.getSessionId()).to.be.an('undefined');
       }
     });
 
@@ -121,7 +121,7 @@ describe('Debugger session service', () => {
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
         expect(service.isConnected()).to.equal(false);
-        expect(service.getSessionId()).to.equal('');
+        expect(service.getSessionId()).to.be.an('undefined');
       }
     });
 
@@ -142,7 +142,7 @@ describe('Debugger session service', () => {
           '{"message":"There was an error", "action":"Try again"}'
         );
         expect(service.isConnected()).to.equal(false);
-        expect(service.getSessionId()).to.equal('');
+        expect(service.getSessionId()).to.be.an('undefined');
       }
     });
   });
@@ -180,7 +180,7 @@ describe('Debugger session service', () => {
 
       expect(cmdOutput).to.equal('07aFAKE');
       expect(service.isConnected()).to.equal(false);
-      expect(service.getSessionId()).to.equal('');
+      expect(service.getSessionId()).to.be.an('undefined');
     });
 
     it('Should build command', async () => {
@@ -224,7 +224,7 @@ describe('Debugger session service', () => {
       } catch (error) {
         expect(error).to.equal('{"result":{"id":"FAKE"}}');
         expect(service.isConnected()).to.equal(true);
-        expect(service.getSessionId()).to.equal('');
+        expect(service.getSessionId()).to.be.an('undefined');
       }
     });
 
@@ -237,7 +237,7 @@ describe('Debugger session service', () => {
       } catch (error) {
         expect(error).to.equal('{"result":{"notid":"FAKE"}}');
         expect(service.isConnected()).to.equal(true);
-        expect(service.getSessionId()).to.equal('');
+        expect(service.getSessionId()).to.be.an('undefined');
       }
     });
 
@@ -258,7 +258,7 @@ describe('Debugger session service', () => {
           '{"message":"There was an error", "action":"Try again"}'
         );
         expect(service.isConnected()).to.equal(false);
-        expect(service.getSessionId()).to.equal('');
+        expect(service.getSessionId()).to.be.an('undefined');
       }
     });
 
@@ -269,7 +269,7 @@ describe('Debugger session service', () => {
       service.forceStop();
 
       expect(service.isConnected()).to.equal(false);
-      expect(service.getSessionId()).to.equal('');
+      expect(service.getSessionId()).to.be.an('undefined');
     });
   });
 });

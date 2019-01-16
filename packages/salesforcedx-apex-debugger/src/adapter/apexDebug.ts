@@ -531,7 +531,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected mySessionService!: SessionService;
   protected myBreakpointService!: BreakpointService;
   protected myStreamingService = StreamingService.getInstance();
-  protected sfdxProject: string = '';
+  protected sfdxProject!: string;
   protected requestThreads: Map<number, string>;
   protected threadId: number;
 

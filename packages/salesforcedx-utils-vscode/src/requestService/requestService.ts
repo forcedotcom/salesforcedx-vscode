@@ -25,11 +25,11 @@ export enum RestHttpMethodEnum {
 }
 
 export class RequestService {
-  private _instanceUrl: string | undefined;
-  private _accessToken: string = '';
-  private _proxyUrl: string | undefined;
+  private _instanceUrl!: string;
+  private _accessToken!: string;
+  private _proxyUrl!: string;
   private _proxyStrictSSL: boolean = false;
-  private _proxyAuthorization: string = '';
+  private _proxyAuthorization!: string;
   private _connectionTimeoutMs: number = DEFAULT_CONNECTION_TIMEOUT_MS;
 
   public getEnvVars(): any {
@@ -50,11 +50,11 @@ export class RequestService {
     return envVars;
   }
 
-  public get instanceUrl(): string | undefined {
+  public get instanceUrl(): string {
     return this._instanceUrl;
   }
 
-  public set instanceUrl(instanceUrl: string | undefined) {
+  public set instanceUrl(instanceUrl: string) {
     this._instanceUrl = instanceUrl;
   }
 
@@ -66,11 +66,11 @@ export class RequestService {
     this._accessToken = accessToken;
   }
 
-  public get proxyUrl(): string | undefined {
+  public get proxyUrl(): string {
     return this._proxyUrl;
   }
 
-  public set proxyUrl(proxyUrl: string | undefined) {
+  public set proxyUrl(proxyUrl: string) {
     this._proxyUrl = proxyUrl;
   }
 
