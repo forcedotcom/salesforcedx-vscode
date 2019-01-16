@@ -7,7 +7,7 @@
 
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
-import { validateTextDocument } from '../src/server/index';
+import { validateTextDocument } from '../../src/server/index';
 
 describe('SLDS Linter Language Server', () => {
   let args: any;
