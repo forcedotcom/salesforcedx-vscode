@@ -100,7 +100,7 @@ export class StreamingService {
     return Promise.resolve(this.isReady());
   }
 
-  private removeTrailingSlashURL(instanceUrl: string | undefined) {
+  private removeTrailingSlashURL(instanceUrl?: string) {
     return instanceUrl ? instanceUrl.replace(/\/+$/, '') : '';
   }
 

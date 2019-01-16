@@ -540,7 +540,7 @@ export class ApexDebug extends LoggingDebugSession {
   protected variableContainerReferenceByApexId = new Map<number, number>();
 
   private static LINEBREAK = `${os.EOL}`;
-  private initializedResponse: DebugProtocol.InitializeResponse | undefined;
+  private initializedResponse?: DebugProtocol.InitializeResponse;
 
   private trace: string[] | undefined;
   private traceAll = false;

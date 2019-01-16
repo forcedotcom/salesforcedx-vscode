@@ -104,7 +104,7 @@ export class RequestService {
     restHttpMethodEnum: RestHttpMethodEnum = RestHttpMethodEnum.Post
   ): Promise<string> {
     if (this.proxyUrl) {
-      configure(this._proxyUrl || '', this._proxyStrictSSL);
+      configure(this._proxyUrl, this._proxyStrictSSL);
     }
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
     const requestUrl =
