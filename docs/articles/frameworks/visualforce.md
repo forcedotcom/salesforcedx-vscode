@@ -20,6 +20,6 @@ title: Visualforce
 
   ![Colored syntax highlighting in a .page file](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_syntax.png)
 
-- Outline view (invoke using Cmd+Shift+O on macOS, or Ctrl+Shift+O on Windows and Linux)
+- Outline view (invoke using Ctrl+Shift+O on Windows or Linux, or Cmd+Shift+O on macOS)
 
   ![List of symbols in a .page file](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-visualforce/images/visualforce_outline.png)

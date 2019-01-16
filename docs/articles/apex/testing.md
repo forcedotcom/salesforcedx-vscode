@@ -4,7 +4,7 @@ title: Apex Testing
 
 You can run Apex tests from within a file or from the Apex Tests sidebar. The sidebar provides other useful features for working with your tests.
 
-### Explore Your Apex Tests
+## Explore Your Apex Tests
 
 The Apex Tests sidebar provides several features. Here, you can see all your Apex tests at a glance. You can run one test method, the test methods in one class, or all your tests. You can view the results of your last test run. And you can jump from those results to the corresponding lines in your code. To access this sidebar, click the beaker icon (hover text: Test) in the view bar on the left side of the VS Code window. (If you don’t see this icon, make sure that the project you have open in VS Code contains an `sfdx-project.json` file in its root directory.)
 
@@ -16,12 +16,12 @@ To jump to the definition of a test class, a test method that passed, or a metho
 
 To clear your test results, click the refresh icon at the top of the sidebar (hover text: Refresh Tests).
 
-### Run Apex Tests from Within a File
+## Run Apex Tests from Within a File
 
 To run Apex tests, in your `.cls` file, click **Run Test** or **Run All Tests** above the definition of an Apex test method or class.  
 ![Running Apex tests using the Run Test and Run All Tests code lenses](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)
 
-Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Cmd (macOS) or Ctrl (Windows and Linux) and click that stack trace.
+Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Ctrl (Windows or Linux) or Cmd (macOS) and click that stack trace.
 
 After you run Apex tests, two new commands are available in the command palette: **SFDX: Re-Run Last Invoked Apex Test Class** and **SFDX: Re-Run Last Invoked Apex Test Method**.
 

@@ -50,6 +50,8 @@
       url: /articles/faq/general
     - title: Telemetry
       url: /articles/faq/telemetry
+    - title: Usage
+      url: /articles/faq/usage
 - title: Troubleshooting
   baseUrl: /articles/troubleshooting/
   children:

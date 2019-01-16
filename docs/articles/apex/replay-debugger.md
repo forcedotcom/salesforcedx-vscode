@@ -44,20 +44,17 @@ Before you generate a debug log for replay debugging, set breakpoints and checkp
 
     1.  Set checkpoints on up to five lines in Apex classes or triggers.
     1.  Click the line of code where you want to set the checkpoint.
-    1.  Open the command palette (press Cmd+Shift+P on macOS or Ctrl+Shift+P on Windows or Linux).
+    1.  Open the command palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
     1.  Run **SFDX: Toggle Checkpoint**.
-
-            - Or, right-click in the gutter to the left of the line numbers, select **Add Conditional Breakpoint** | **Expression**, and set the expression to `Checkpoint`.
-
-            - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** | **Expression**. Set the expression to `Checkpoint`.
-
+        - Or, right-click in the gutter to the left of the line numbers, select **Add Conditional Breakpoint** \| **Expression**, and set the expression to `Checkpoint`.
+        - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** \| **Expression**. Set the expression to `Checkpoint`.
     1.  To upload your checkpoints to your org to collect heap dump information, open the command palette, and run **SFDX: Update Checkpoints in Org**.
 
 ### Set Up an Apex Replay Debugger Session for a Scratch Org or a Default Development Org
 
 If you’re debugging an issue in a scratch org, or in a sandbox or DE org that you’ve set as your default org in VS Code, we provide tools to generate a debug log to replay. Enable logging, reproduce your issue, get your debug log from the org, and then start a debugging session.
 
-1. To enable logging, from VS Code, open the command palette (Cmd+Shift+P on macOS, or Ctrl+Shift+P on Windows or Linux) and run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
+1. To enable logging, from VS Code, open the command palette (Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS) and run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
 1. Reproduce the scenario you want to debug. You can do this by:
    - Running **SFDX: Invoke Apex Tests**
    - Running **SFDX: Execute Anonymous Apex with Currently Selected Text**
@@ -90,7 +87,7 @@ Replay your debug log and inspect your variables’ values.
 
 Keep these considerations and known issues in mind when working with Apex Replay Debugger.
 
-- You can use this debugger only in your orgs. ISV customer debugging is unavailable in Apex Replay Debugger. To debug customers’ orgs, use [ISV Customer Debugger](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-apex-debugger).
+- You can use this debugger only in your orgs. ISV customer debugging is unavailable in Apex Replay Debugger. To debug customers’ orgs, use [ISV Customer Debugger](interactive-debugger#isv-customer-debugger).
 - You can replay only one debug log at a time. This limitation can make it difficult to debug asynchronous Apex, which produces multiple debug logs.
 - Be sure to start a session soon after uploading your checkpoints, because checkpoints expire after 30 minutes.
 - Be sure to debug your code soon after starting the session, because heap dumps expire about a day after you generate them.

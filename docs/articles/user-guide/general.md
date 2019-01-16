@@ -1,13 +1,13 @@
 ## Set Up a Default Scratch Org
 
-To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). Then:
+To access the Visual Studio Code command palette, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS). Then:
 
 - To create a scratch org and set it as your default org for development, run **SFDX: Authorize a Dev Hub** and then **SFDX: Create a Default Scratch Org**.
 - To push the source in your project to the scratch org, run **SFDX: Push Source to Default Scratch Org**.
 - To open the org in your browser, run **SFDX: Open Default Org**.
 - After you make changes in the Salesforce user interface, to pull those changes to your local project, run **SFDX: Pull Source from Default Scratch Org**.
 
-To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux). Then run these commands as needed.
+To access the Visual Studio Code command palette, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS). Then run these commands as needed.
 
 - To log in to a sandbox or a DE org and set that org as the default org for your project, run **SFDX: Authorize an Org**.
 
@@ -41,7 +41,7 @@ A badge in the footer shows your default development org. It uses the org’s au
 
 ## Run Salesforce CLI Commands
 
-To run a command from Salesforce Extensions for VS Code, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux) and type **SFDX** in the command palette.  
+To run a command from Salesforce Extensions for VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) and type **SFDX** in the command palette.  
 ![Command palette, filtered to show SFDX commands](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/sfdx_commands.png)
 
 When a command finishes running (due to success, failure, or cancellation), a notification displays at the top of the window.  
@@ -96,7 +96,7 @@ To check your running tasks, expand the Running Tasks view in the Explorer.
 
 ## Edit Your Workspace Settings
 
-To edit your workspace settings, select **Code** > **Preferences** > **Settings** (macOS) or **File** > **Preferences** > **Settings** (Windows and Linux).
+To edit your workspace settings, select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 
 To stop Salesforce CLI success messages from showing as pop-up information messages, click **Show Only in Status Bar** in a success message. This button overrides the `salesforcedx-vscode-core.show-cli-success-msg` value in your Default Settings. It changes the Workspace Settings value to `false`. Setting this value to `false` makes the success messages appear in the status bar (in VS Code’s footer) instead of as information messages. If you decide that you liked the information messages after all, change the value back to `true`.
 
