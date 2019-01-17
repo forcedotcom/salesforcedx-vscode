@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "44.11.0",
+  "version": "44.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,8 +24,8 @@
   "categories": ["Other"],
   "dependencies": {
     "@salesforce/core": "1.1.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "44.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.11.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "44.15.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.15.0",
     "adm-zip": "0.4.7",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -40,7 +40,6 @@
     "@types/glob": "^5.0.30",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
-    "@types/path-exists": "^1.0.29",
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
@@ -119,10 +118,6 @@
           "command": "sfdx.force.source.delete.current.file",
           "when":
             "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
-        },
-        {
-          "command": "sfdx.force.org.picker.status.bar",
-          "when": "sfdx:project_opened"
         }
       ],
       "explorer/context": [
