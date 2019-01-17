@@ -116,6 +116,7 @@ export type ApexDebugLogObject = {
 
 interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;
+  startTime: string;
 }
 
 export class LogFileSelector
@@ -131,6 +132,9 @@ export class LogFileSelector
         return {
           id: logInfo.Id,
           label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
+          startTime: moment(new Date(logInfo.StartTime)).format(
+            'M/DD/YYYY, h:mm:s a'
+          ),
           detail:
             moment(new Date(logInfo.StartTime)).format('M/DD/YYYY, h:mm:s a') +
             ' - ' +
@@ -146,7 +150,7 @@ export class LogFileSelector
       if (logItem) {
         return {
           type: 'CONTINUE',
-          data: { id: logItem.id, startTime: logItem.detail! }
+          data: { id: logItem.id, startTime: logItem.startTime! }
         };
       }
     } else {
