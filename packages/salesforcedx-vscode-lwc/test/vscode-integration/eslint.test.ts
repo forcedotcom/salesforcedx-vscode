@@ -9,8 +9,8 @@
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { ExtensionContext, WorkspaceConfiguration } from 'vscode';
-import { LWC_EXTENSION_NAME } from '../src/constants';
-import { populateEslintSettingIfNecessary } from '../src/index';
+import { LWC_EXTENSION_NAME } from '../../src/constants';
+import { populateEslintSettingIfNecessary } from '../../src/index';
 
 describe('LWC ESlint Unit Tests', () => {
   const mContext = {
