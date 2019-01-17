@@ -6,7 +6,7 @@
  */
 import { assert, match, SinonStub, stub } from 'sinon';
 import TelemetryReporter from 'vscode-extension-telemetry';
-import { TelemetryService } from '../../src/telemetry/telemetry';
+import { TelemetryService } from '../../../src/telemetry/telemetry';
 
 describe('Telemetry', () => {
   let reporter: TelemetryReporter;
