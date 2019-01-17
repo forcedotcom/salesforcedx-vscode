@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Add Username to Apex Debug Log entry list ([PR #864](https://github.com/forcedotcom/salesforcedx-vscode/pull/864), [Issue #834](https://github.com/forcedotcom/salesforcedx-vscode/issues/834))—Contribution by [@maaaaarco](https://github.com/maaaaarco)
+- Add username to Apex debug log entry list ([PR #864](https://github.com/forcedotcom/salesforcedx-vscode/pull/864), [Issue #834](https://github.com/forcedotcom/salesforcedx-vscode/issues/834))—Contribution by [@maaaaarco](https://github.com/maaaaarco)
 
 ### Fixed
 
