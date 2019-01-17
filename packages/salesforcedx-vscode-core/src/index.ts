@@ -77,7 +77,7 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { updateOrgList } from './orgPicker/orgList';
+import { setDefaultOrg, showOrg } from './orgPicker/orgList';
 import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
@@ -316,9 +316,9 @@ function registerCommands(
     forceApexLogGet
   );
 
-  const forceOrgPickerStatusBar = vscode.commands.registerCommand(
-    'sfdx.force.org.picker.status.bar',
-    updateOrgList
+  const forceSetDefaultOrg = vscode.commands.registerCommand(
+    'sfdx.force.set.default.org',
+    setDefaultOrg
   );
 
   return vscode.Disposable.from(
@@ -375,7 +375,7 @@ function registerCommands(
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
-    forceOrgPickerStatusBar
+    forceSetDefaultOrg
   );
 }
 
@@ -475,6 +475,10 @@ export async function activate(context: vscode.ExtensionContext) {
   // Set context for defaultusername org
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
+
+  // Set display for defaultusername org
+  showOrg();
+  // displayDefaultUsername();
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();

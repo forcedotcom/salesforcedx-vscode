@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../../src/messages';
+import { displayDefaultUsername } from '../orgPicker/orgList';
 
 export enum OrgType {
   SourceTracked,
@@ -109,6 +110,11 @@ export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   }
 }
 
+function onSfdxConfigEvent() {
+  setupWorkspaceOrgType();
+  displayDefaultUsername();
+}
+
 export function registerDefaultUsernameWatcher(
   context: vscode.ExtensionContext
 ) {
@@ -123,9 +129,9 @@ export function registerDefaultUsernameWatcher(
         'sfdx-config.json'
       )
     );
-    sfdxConfigWatcher.onDidChange(uri => setupWorkspaceOrgType());
-    sfdxConfigWatcher.onDidCreate(uri => setupWorkspaceOrgType());
-    sfdxConfigWatcher.onDidDelete(uri => setupWorkspaceOrgType());
+    sfdxConfigWatcher.onDidChange(uri => onSfdxConfigEvent());
+    sfdxConfigWatcher.onDidCreate(uri => onSfdxConfigEvent());
+    sfdxConfigWatcher.onDidDelete(uri => onSfdxConfigEvent());
     context.subscriptions.push(sfdxConfigWatcher);
   }
 }

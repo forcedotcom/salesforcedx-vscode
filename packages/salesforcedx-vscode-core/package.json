@@ -594,6 +594,10 @@
       {
         "command": "sfdx.force.source.delete.current.file",
         "title": "%force_source_delete_this_source_text%"
+      },
+      {
+        "command": "sfdx.force.set.default.org",
+        "title": "SFDX: Set Default Org"
       }
     ],
     "configuration": {
