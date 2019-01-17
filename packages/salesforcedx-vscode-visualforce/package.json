@@ -54,7 +54,7 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ../../scripts/run-test-with-top-level-extensions",
+    "test": "npm run test:vscode-integration",
     "test:insiders":
       "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
     "test:vscode-integration":
