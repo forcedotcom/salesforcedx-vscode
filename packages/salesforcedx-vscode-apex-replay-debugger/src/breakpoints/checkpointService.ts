@@ -78,7 +78,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     BaseNode | undefined
   > = new EventEmitter<BaseNode | undefined>();
   private myRequestService: RequestService;
-  private orgInfo: OrgInfo;
+  private orgInfo!: OrgInfo;
   private sfdxProject: string | null = null;
 
   public readonly onDidChangeTreeData: Event<BaseNode | undefined> = this

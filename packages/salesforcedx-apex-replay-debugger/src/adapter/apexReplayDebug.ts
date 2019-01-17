@@ -203,11 +203,11 @@ export class ScopeContainer extends VariableContainer {
 
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
-  protected logContext: LogContext;
-  protected heapDumpService: HeapDumpService;
+  protected logContext!: LogContext;
+  protected heapDumpService!: HeapDumpService;
   protected trace: string[] = [];
   protected traceAll = false;
-  private initializedResponse: DebugProtocol.InitializeResponse;
+  private initializedResponse!: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
   protected projectPath: string | undefined;
 
