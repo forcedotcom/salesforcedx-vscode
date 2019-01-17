@@ -11,7 +11,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { workspace } from 'vscode';
-import { JAVA_HOME_KEY } from '../src/requirements';
+import { JAVA_HOME_KEY } from '../../src/requirements';
 
 describe('Java Requirements Test', () => {
   it('The jar should be signed', () => {
