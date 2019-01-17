@@ -24,7 +24,7 @@ import {
   parseCheckpointInfoFromBreakpoint,
   processBreakpointChangedForCheckpoints,
   sfdxToggleCheckpoint
-} from '../../src/breakpoints/checkpointService';
+} from '../../../src/breakpoints/checkpointService';
 
 describe('Checkpoint Service - unit', () => {
   const breakpointId = '6c1d848c-fake-4c2c-8b90-5fabe1740da4';
@@ -682,7 +682,7 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
 });
 
 describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
-  const cpService = require('../../src/breakpoints/checkpointService');
+  const cpService = require('../../../src/breakpoints/checkpointService');
 
   const breakpointEnabled = true;
   const uriInput = vscode.Uri.parse('file:///bar.cls');

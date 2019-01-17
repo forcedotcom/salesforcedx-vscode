@@ -21,7 +21,7 @@ import {
   ApexExecutionOverlayActionCommand,
   ApexExecutionOverlayFailureResult,
   ApexExecutionOverlaySuccessResult
-} from '../../src/commands/apexExecutionOverlayActionCommand';
+} from '../../../src/commands/apexExecutionOverlayActionCommand';
 
 // These tests are going to be calling a mocked RequestService. The checkpointService utilizes the
 // ApexExecutionOverlayActionCommand under the covers. The presense or absence of an actionObjectId

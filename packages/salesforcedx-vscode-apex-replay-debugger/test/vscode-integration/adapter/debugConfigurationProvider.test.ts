@@ -20,9 +20,9 @@ import {
   Uri,
   WorkspaceFolder
 } from 'vscode';
-import { DebugConfigurationProvider } from '../../src/adapter/debugConfigurationProvider';
-import { updateLastOpened } from '../../src/index';
-import { nls } from '../../src/messages';
+import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
+import { updateLastOpened } from '../../../src/index';
+import { nls } from '../../../src/messages';
 import { MockApexExtension } from './MockApexExtension';
 
 // tslint:disable:no-unused-expression
