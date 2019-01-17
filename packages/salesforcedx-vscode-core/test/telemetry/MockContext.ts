@@ -31,7 +31,7 @@ export class MockContext implements ExtensionContext {
     this.globalState = new MockMemento(mm);
   }
   public subscriptions: Array<{ dispose(): any }> = [];
-  public workspaceState: Memento;
+  public workspaceState!: Memento;
   public globalState: Memento;
   public extensionPath: string = 'myExtensionPath';
   public asAbsolutePath(relativePath: string): string {

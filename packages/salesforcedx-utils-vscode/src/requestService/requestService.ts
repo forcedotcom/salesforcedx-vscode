@@ -25,12 +25,12 @@ export enum RestHttpMethodEnum {
 }
 
 export class RequestService {
-  private _instanceUrl: string;
-  private _accessToken: string;
-  private _proxyUrl: string;
-  private _proxyStrictSSL: boolean;
-  private _proxyAuthorization: string;
-  private _connectionTimeoutMs: number;
+  private _instanceUrl!: string;
+  private _accessToken!: string;
+  private _proxyUrl!: string;
+  private _proxyStrictSSL: boolean = false;
+  private _proxyAuthorization!: string;
+  private _connectionTimeoutMs: number = DEFAULT_CONNECTION_TIMEOUT_MS;
 
   public getEnvVars(): any {
     const envVars = Object.assign({}, process.env);
