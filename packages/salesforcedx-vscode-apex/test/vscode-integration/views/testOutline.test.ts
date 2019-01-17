@@ -11,16 +11,16 @@ import * as events from 'events';
 import * as fs from 'fs';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import { APEX_GROUP_RANGE } from '../../src/constants';
-import { nls } from '../../src/messages';
-import { ApexTestMethod } from '../../src/views/lspConverter';
+import { APEX_GROUP_RANGE } from '../../../src/constants';
+import { nls } from '../../../src/messages';
+import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
   ApexTestNode,
   ApexTestOutlineProvider,
   TestNode
-} from '../../src/views/testOutlineProvider';
-import { ApexTestRunner } from '../../src/views/testRunner';
+} from '../../../src/views/testOutlineProvider';
+import { ApexTestRunner } from '../../../src/views/testRunner';
 import {
   jsonSummaryMultipleFiles,
   jsonSummaryOneFilePass

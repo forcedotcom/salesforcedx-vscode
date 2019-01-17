@@ -9,7 +9,7 @@
 
 import { expect } from 'chai';
 import { Uri } from 'vscode';
-import { code2ProtocolConverter } from '../src/languageServer';
+import { code2ProtocolConverter } from '../../src/languageServer';
 
 describe('Apex Language Server Client', () => {
   describe('Should properly handle sending URI to server on Windows', () => {

@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { ReadableApexTestRunExecutor } from '../../src/views/readableApexTestRunExecutor';
+import { ReadableApexTestRunExecutor } from '../../../src/views/readableApexTestRunExecutor';
 
 describe('Apex Test Run - Sidebar', () => {
   describe('Command builder - Test Class', () => {
