@@ -19,8 +19,8 @@ import {
   getExceptionBreakpointCache,
   mergeExceptionBreakpointInfos,
   updateExceptionBreakpointCache
-} from '../src/index';
-import { nls } from '../src/messages';
+} from '../../src/index';
+import { nls } from '../../src/messages';
 
 describe('Extension Setup', () => {
   describe('Exception breakpoint', () => {

@@ -12,8 +12,8 @@ import {
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { DebugConfiguration, extensions, Uri, WorkspaceFolder } from 'vscode';
-import { DebugConfigurationProvider } from '../../src/adapter/debugConfigurationProvider';
-import { nls } from '../../src/messages';
+import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
+import { nls } from '../../../src/messages';
 import { MockApexExtension } from './MockApexExtension';
 
 // tslint:disable:no-unused-expression
