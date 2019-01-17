@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import { expect } from 'chai';
 import * as vscode from 'vscode';
-import { getDebuggerType } from '../src/index';
+import { getDebuggerType } from '../../src/index';
 
 describe('Extension Setup', () => {
   describe('Custom request', () => {

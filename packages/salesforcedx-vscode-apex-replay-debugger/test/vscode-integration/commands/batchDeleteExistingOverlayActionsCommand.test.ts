@@ -21,7 +21,7 @@ import {
   BatchDeleteResponse,
   BatchRequest,
   BatchRequests
-} from '../../src/commands/batchDeleteExistingOverlayActionsCommand';
+} from '../../../src/commands/batchDeleteExistingOverlayActionsCommand';
 import { createExpectedXHROptions } from './apexExecutionOverlayActionCommand.test';
 
 let sendRequestSpy: sinon.SinonStub;
