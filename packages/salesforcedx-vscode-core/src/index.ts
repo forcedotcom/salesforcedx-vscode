@@ -4,6 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import {
+  SFDX_DIR,
+  SOBJECTS_DIR,
+  TOOLS_DIR
+} from '@salesforce/salesforcedx-sobjects-faux-generator/src/constants';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
@@ -74,6 +80,7 @@ import {
   setupWorkspaceOrgType
 } from './context';
 import * as decorators from './decorators';
+import { registerClassGeneratorOnFieldEdits } from './generator/objectFileWatcher';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -471,6 +478,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
+  await registerClassGeneratorOnFieldEdits();
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);

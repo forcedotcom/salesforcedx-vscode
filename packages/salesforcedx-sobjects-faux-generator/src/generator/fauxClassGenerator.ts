@@ -12,6 +12,13 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
 import {
+  CUSTOMOBJECTS_DIR,
+  SFDX_DIR,
+  SOBJECTS_DIR,
+  STANDARDOBJECTS_DIR,
+  TOOLS_DIR
+} from '../constants';
+import {
   ChildRelationship,
   Field,
   SObject,
@@ -24,11 +31,12 @@ export interface CancellationToken {
   isCancellationRequested: boolean;
 }
 
-const SFDX_DIR = '.sfdx';
-const TOOLS_DIR = 'tools';
-const SOBJECTS_DIR = 'sobjects';
-const STANDARDOBJECTS_DIR = 'standardObjects';
-const CUSTOMOBJECTS_DIR = 'customObjects';
+export interface ObjectFieldMap {
+  name: string;
+  fields: {
+    [key: string]: string;
+  };
+}
 
 export class FauxClassGenerator {
   // the empty string is used to represent the need for a special case
@@ -74,6 +82,71 @@ export class FauxClassGenerator {
   constructor(emitter: EventEmitter, cancellationToken?: CancellationToken) {
     this.emitter = emitter;
     this.cancellationToken = cancellationToken;
+  }
+
+  public updateSobjectDefinitions(
+    projectPath: string,
+    sobject: ObjectFieldMap
+  ) {
+    const sobjectsFolderPath = path.join(
+      projectPath,
+      SFDX_DIR,
+      TOOLS_DIR,
+      SOBJECTS_DIR
+    );
+    const dir = sobject.name.endsWith('__c')
+      ? CUSTOMOBJECTS_DIR
+      : STANDARDOBJECTS_DIR;
+    const filePath = path.join(sobjectsFolderPath, dir, `${sobject.name}.cls`);
+    const classContent = fs.readFileSync(filePath).toString();
+
+    classContent
+      .split('\n')
+      .filter(line => line.endsWith(';') && !line.includes('__c'))
+      .map(line =>
+        line
+          .trimLeft()
+          .replace(';', '')
+          .split(' ')
+      )
+      .forEach(lineParts => {
+        sobject.fields[lineParts[2]] = lineParts[1];
+      });
+    this.generateFauxClass2(filePath, sobject);
+    // console.log(sobject);
+    // return fieldMap;
+  }
+
+  public generateFauxClass2(fauxClassPath: string, sobject: ObjectFieldMap) {
+    // if (!fs.existsSync(folderPath)) {
+    //   fs.mkdirSync(folderPath);
+    // }
+    // const fauxClassPath = path.join(folderPath, sobject.sobjectName + '.cls');
+    // console.log(this.generateFauxClassText2(sobject));
+    fs.writeFileSync(fauxClassPath, this.generateFauxClassText2(sobject), {
+      mode: 0o444
+    });
+  }
+
+  public generateFauxClassText2(sobject: ObjectFieldMap) {
+    const { name } = sobject;
+    const indentAndModifier = '    global ';
+    const classDeclaration = `global class ${name} {${EOL}`;
+
+    const declarations = Object.keys(sobject.fields)
+      .sort()
+      .map(fieldName => {
+        return `${sobject.fields[fieldName]} ${fieldName}`;
+      });
+
+    const declarationLines = declarations.join(`;${EOL}${indentAndModifier}`);
+    const classConstructor = `${indentAndModifier}${name} () ${EOL}    {${EOL}    }${EOL}`;
+
+    const generatedClass = `${nls.localize(
+      'class_header_generated_comment'
+    )}${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
+
+    return generatedClass;
   }
 
   public async generate(
