@@ -18,8 +18,8 @@ export class StreamingService {
   public static DEFAULT_TIMEOUT = 14400;
   private static instance: StreamingService;
   private readonly apiVersion = '41.0';
-  private systemEventClient: StreamingClient;
-  private userEventClient: StreamingClient;
+  private systemEventClient!: StreamingClient;
+  private userEventClient!: StreamingClient;
 
   public static getInstance() {
     if (!StreamingService.instance) {
@@ -100,7 +100,7 @@ export class StreamingService {
     return Promise.resolve(this.isReady());
   }
 
-  private removeTrailingSlashURL(instanceUrl: string) {
+  private removeTrailingSlashURL(instanceUrl?: string) {
     return instanceUrl ? instanceUrl.replace(/\/+$/, '') : '';
   }
 
