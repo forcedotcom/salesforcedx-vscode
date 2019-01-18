@@ -215,6 +215,6 @@
     "path-exists": "3.0.0",
     "shelljs": "^0.8.1",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "3.5.1"
+    "vscode-languageclient": "5.1.1"
   }
 }
