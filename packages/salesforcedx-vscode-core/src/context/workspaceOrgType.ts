@@ -9,7 +9,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { nls } from '../../src/messages';
 import { displayDefaultUsername } from '../orgPicker/orgList';
 
 export enum OrgType {

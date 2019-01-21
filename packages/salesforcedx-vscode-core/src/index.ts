@@ -26,6 +26,7 @@ import {
   forceAuthLogoutAll,
   forceAuthWebLogin,
   forceConfigList,
+  forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceGenerateFauxClassesCreate,
@@ -316,9 +317,13 @@ function registerCommands(
     forceApexLogGet
   );
 
-  const forceSetDefaultOrg = vscode.commands.registerCommand(
+  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
     setDefaultOrg
+  );
+  const forceConfigSetCmd = vscode.commands.registerCommand(
+    'sfdx.force.config.set',
+    forceConfigSet
   );
 
   return vscode.Disposable.from(
@@ -375,7 +380,8 @@ function registerCommands(
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
-    forceSetDefaultOrg
+    forceSetDefaultOrgCmd,
+    forceConfigSetCmd
   );
 }
 
