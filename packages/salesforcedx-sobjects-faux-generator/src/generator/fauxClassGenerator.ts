@@ -123,6 +123,7 @@ export class FauxClassGenerator {
     // }
     // const fauxClassPath = path.join(folderPath, sobject.sobjectName + '.cls');
     // console.log(this.generateFauxClassText2(sobject));
+    rm('-f', fauxClassPath);
     fs.writeFileSync(fauxClassPath, this.generateFauxClassText2(sobject), {
       mode: 0o444
     });
@@ -149,9 +150,25 @@ export class FauxClassGenerator {
     return generatedClass;
   }
 
-  public async generate(
+  public async generateByCategory(
     projectPath: string,
     type: SObjectCategory
+  ): Promise<string> {
+    let sobjects: string[] = [];
+    const describe = new SObjectDescribe();
+    try {
+      sobjects = await describe.describeGlobal(projectPath, type);
+    } catch (e) {
+      return this.errorExit(
+        nls.localize('failure_fetching_sobjects_list_text', e)
+      );
+    }
+    return this.generate(projectPath, sobjects);
+  }
+
+  public async generate(
+    projectPath: string,
+    sobjects: string[]
   ): Promise<string> {
     const sobjectsFolderPath = path.join(
       projectPath,
@@ -182,14 +199,14 @@ export class FauxClassGenerator {
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
     let fetchedSObjects: SObject[] = [];
-    let sobjects: string[] = [];
-    try {
-      sobjects = await describe.describeGlobal(projectPath, type);
-    } catch (e) {
-      return this.errorExit(
-        nls.localize('failure_fetching_sobjects_list_text', e)
-      );
-    }
+    // let sobjects: string[] = [];
+    // try {
+    //   sobjects = await describe.describeGlobal(projectPath, type);
+    // } catch (e) {
+    //   return this.errorExit(
+    //     nls.localize('failure_fetching_sobjects_list_text', e)
+    //   );
+    // }
     let j = 0;
     while (j < sobjects.length) {
       try {

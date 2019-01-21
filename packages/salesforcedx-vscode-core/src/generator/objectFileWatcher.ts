@@ -127,6 +127,8 @@ function doSobjectRefresh(filesForRefresh: vscode.Uri[]) {
       const fauxClassPath = path.join(sobjectsDir, typeDir, `${name}.cls`);
       if (fs.existsSync(fauxClassPath)) {
         // local refresh
+        const generator = new FauxClassGenerator(new EventEmitter());
+        generator.updateSobjectDefinitions(sfdxProjectPath, sobject);
         console.log('DO LOCAL REFRESH: ' + name);
       } else {
         remoteRefreshObjects.push(name);
@@ -134,6 +136,10 @@ function doSobjectRefresh(filesForRefresh: vscode.Uri[]) {
     });
     if (remoteRefreshObjects.length > 0) {
       // remote refresh
+      vscode.commands.executeCommand(
+        'sfdx.force.internal.refreshsobjects',
+        remoteRefreshObjects
+      );
       console.log('DO REMOTE REFRESH: ' + remoteRefreshObjects.toString());
     }
   }

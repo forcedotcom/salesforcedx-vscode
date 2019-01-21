@@ -79,7 +79,10 @@ describe('Generate faux classes for SObjects', function() {
     let result = '';
     const generator = getGenerator();
     cancellationTokenSource.cancel();
-    result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+    result = await generator.generateByCategory(
+      projectPath,
+      SObjectCategory.CUSTOM
+    );
     expect(result).to.contain(nls.localize('faux_generation_cancelled_text'));
   });
 
@@ -88,7 +91,10 @@ describe('Generate faux classes for SObjects', function() {
     const generator = getGenerator();
     invalidateProject(projectPath);
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      result = await generator.generateByCategory(
+        projectPath,
+        SObjectCategory.CUSTOM
+      );
     } catch (e) {
       expect(e).to.contain(nls.localize('no_generate_if_not_in_project', ''));
       return;
@@ -111,7 +117,7 @@ describe('Generate faux classes for SObjects', function() {
     });
     invalidateProject(projectPath);
     try {
-      await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      await generator.generateByCategory(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
       rejectOutput = e;
     } finally {
@@ -135,7 +141,7 @@ describe('Generate faux classes for SObjects', function() {
     });
     invalidateProject(projectPath);
     try {
-      await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      await generator.generateByCategory(projectPath, SObjectCategory.CUSTOM);
     } catch (e) {
       rejectOutput = e;
     } finally {
@@ -157,7 +163,10 @@ describe('Generate faux classes for SObjects', function() {
       exitCode = data;
     });
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      result = await generator.generateByCategory(
+        projectPath,
+        SObjectCategory.CUSTOM
+      );
     } catch (e) {
       expect.fail(e, 'undefined', 'generator should not have thrown an error');
     }
@@ -173,7 +182,10 @@ describe('Generate faux classes for SObjects', function() {
       stdoutInfo = data;
     });
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      result = await generator.generateByCategory(
+        projectPath,
+        SObjectCategory.CUSTOM
+      );
     } catch (e) {
       expect.fail(e, 'undefined', 'generator should not have thrown an error');
     }

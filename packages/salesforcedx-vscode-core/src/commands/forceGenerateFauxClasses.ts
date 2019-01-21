@@ -12,7 +12,10 @@ import {
   LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
@@ -21,6 +24,19 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+
+class SobjectNameGatherer implements ParametersGatherer<string[]> {
+  private sobjectNames: string[];
+  public constructor(sobjectNames: string[]) {
+    this.sobjectNames = sobjectNames;
+  }
+  public async gather(): Promise<ContinueResponse<string[]>> {
+    return {
+      type: 'CONTINUE',
+      data: this.sobjectNames
+    };
+  }
+}
 
 class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
@@ -54,7 +70,12 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     try {
-      const result = await gen.generate(projectPath, SObjectCategory.ALL);
+      let result: string;
+      if (response.data instanceof Array) {
+        result = await gen.generate(projectPath, response.data);
+      } else {
+        result = await gen.generateByCategory(projectPath, SObjectCategory.ALL);
+      }
       console.log('Generate success ' + result);
     } catch (e) {
       console.log('Generate error ' + e);
@@ -67,8 +88,10 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
-  const parameterGatherer = new EmptyParametersGatherer();
+export async function forceGenerateFauxClassesCreate(sobjectNames?: string[]) {
+  const parameterGatherer = sobjectNames
+    ? new SobjectNameGatherer(sobjectNames)
+    : new EmptyParametersGatherer();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
