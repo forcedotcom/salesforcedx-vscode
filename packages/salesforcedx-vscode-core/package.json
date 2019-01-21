@@ -26,7 +26,7 @@
     "@salesforce/core": "1.1.1",
     "@salesforce/salesforcedx-sobjects-faux-generator": "44.16.0",
     "@salesforce/salesforcedx-utils-vscode": "44.16.0",
-    "adm-zip": "0.4.7",
+    "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
     "moment": "2.20.1",
