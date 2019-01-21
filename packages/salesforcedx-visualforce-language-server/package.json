@@ -30,15 +30,14 @@
     "source-map-support": "^0.4.15"
   },
   "scripts": {
-    "compile": "tsc -p ./ && shx cp -R test/fixtures out/test",
+    "compile": "tsc -p ./ && shx cp -R test/unit/fixtures out/test/unit",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "test": "npm run test:unit",
     "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]

@@ -16,6 +16,7 @@
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "decache": "^4.1.0",
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",
@@ -35,8 +36,11 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "test:unit": "node ./node_modules/vscode/bin/test"
+    "test": "npm run test:vscode-integration",
+    "test:vscode-integration":
+      "node ../../scripts/run-vscode-integration-tests",
+    "test:vscode-insiders-integration":
+      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]

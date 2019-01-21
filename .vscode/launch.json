@@ -55,7 +55,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX Utils Tests",
+      "name": "Launch Salesforce DX Utils Unit Tests",
       "program":
         "${workspaceRoot}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
       "args": [
@@ -65,7 +65,7 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-utils-vscode/out/test"
+        "${workspaceRoot}/packages/salesforcedx-utils-vscode/out/test/unit"
       ],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
@@ -73,14 +73,14 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Salesforce DX VS Code Core Tests",
+      "name": "Launch Salesforce DX VS Code Core VSCode-Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-core/out/test"
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-core/out/test/vscode-integration"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
@@ -88,28 +88,14 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch Salesforce DX VS Code Apex Tests",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test"
-      ],
-      "stopOnEntry": false,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
-      "preLaunchTask": "Compile"
-    },
-    {
-      "name": "Launch Salesforce DX VS Code Lightning Tests",
+      "name": "Launch Salesforce DX VS Code Apex VSCode-Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lightning/out/test"
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test/vscode-integration"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
@@ -117,14 +103,14 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch Salesforce DX VS Code LWC Tests",
+      "name": "Launch Salesforce DX VS Code Lightning VSCode-Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lwc/out/test"
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
@@ -132,13 +118,29 @@
       "preLaunchTask": "Compile"
     },
     {
-      "name": "Launch Salesforce DX VS Code Visualforce Tests",
+      "name": "Launch Salesforce DX VS Code LWC VSCode-Integration Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
+        "--extensionDevelopmentPath=${workspaceRoot}/packages",
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-lwc/out/test/vscode-integration"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
+      "preLaunchTask": "Compile"
+    },
+    {
+      "name":
+        "Launch Salesforce DX VS Code Visualforce VSCode-Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-visualforce/out/test"
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-visualforce/out/test/vscode-integration"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
@@ -148,7 +150,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX Visualforce Language Server Tests",
+      "name": "Launch Salesforce DX Visualforce Language Server Unit Tests",
       "program":
         "${workspaceRoot}/packages/salesforcedx-visualforce-language-server/node_modules/mocha/bin/_mocha",
       "args": [
@@ -156,7 +158,7 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-visualforce-language-server/out/test"
+        "${workspaceRoot}/packages/salesforcedx-visualforce-language-server/out/test/unit"
       ],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
@@ -166,7 +168,8 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX Visualforce Markup Language Server Tests",
+      "name":
+        "Launch Salesforce DX Visualforce Markup Language Server Unit Tests",
       "program":
         "${workspaceRoot}/packages/salesforcedx-visualforce-markup-language-server/node_modules/mocha/bin/_mocha",
       "args": [
@@ -174,7 +177,7 @@
         "999999",
         "--colors",
         "--recursive",
-        "${workspaceRoot}/packages/salesforcedx-visualforce-markup-language-server/out/test"
+        "${workspaceRoot}/packages/salesforcedx-visualforce-markup-language-server/out/test/unit"
       ],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
@@ -182,13 +185,14 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Salesforce DX VS Code SLDS Linter Tests",
+      "name":
+        "Launch Salesforce DX VS Code SLDS Linter VSCode-Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-slds-linter/out/test"
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-slds-linter/out/test/vscode-integration"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
@@ -244,13 +248,13 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Apex Debugger Extension Tests",
+      "name": "Launch Apex Debugger Extension VSCode-Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/test"
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/test/vscode-integration"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
@@ -384,13 +388,13 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Replay Debugger Extension Tests",
+      "name": "Launch Replay Debugger Extension VSCode-Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceRoot}/packages",
-        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex-replay-debugger/out/test"
+        "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex-replay-debugger/out/test/vscode-integration"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
