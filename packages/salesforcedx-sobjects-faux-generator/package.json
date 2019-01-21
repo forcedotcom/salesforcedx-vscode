@@ -3,14 +3,14 @@
   "displayName": "Salesforce SObject Faux Generator",
   "description":
     "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
-  "version": "44.15.0",
+  "version": "44.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.15.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.16.0",
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
     "request-light": "0.2.1",
@@ -41,8 +41,7 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "test": "npm run test:unit && npm run test:integration",
     "test:unit":
       "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
     "test:integration":

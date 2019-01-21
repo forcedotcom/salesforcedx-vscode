@@ -1,6 +1,5 @@
 import {
   Command,
-  ForceConfigSet,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 

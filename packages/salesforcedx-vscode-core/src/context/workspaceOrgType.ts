@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { displayDefaultUsername } from '../orgPicker/orgList';
+import { telemetryService } from '../telemetry';
 
 export enum OrgType {
   SourceTracked,
@@ -37,6 +38,7 @@ export async function setupWorkspaceOrgType() {
     setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
     setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
   } catch (e) {
+    telemetryService.sendErrorEvent(e.message, e.stack);
     switch (e.name) {
       case 'NamedOrgNotFound':
         // If the info for a default username cannot be found,
@@ -49,7 +51,8 @@ export async function setupWorkspaceOrgType() {
         setDefaultUsernameHasNoChangeTracking(false);
         break;
       default:
-        throw e;
+        setDefaultUsernameHasChangeTracking(true);
+        setDefaultUsernameHasNoChangeTracking(true);
     }
   }
 }
@@ -64,6 +67,7 @@ async function isAScratchOrg(username: string): Promise<boolean> {
   } catch (e) {
     // If the info for a username cannot be found,
     // then the name of the exception will be 'NamedOrgNotFound'
+    telemetryService.sendError(e.message);
     throw e;
   }
 }
