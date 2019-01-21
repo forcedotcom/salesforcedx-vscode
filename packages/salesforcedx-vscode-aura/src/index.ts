@@ -1,7 +1,6 @@
 import * as path from 'path';
-import * as fs from 'fs';
-import { workspace, ExtensionContext, Uri, commands } from 'vscode';
-import { window, QuickPickItem } from 'vscode';
+import { commands, ExtensionContext, Uri, workspace } from 'vscode';
+
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -33,17 +32,17 @@ async function timeout(ms: number) {
 }
 
 export async function activate(context: ExtensionContext) {
-  let serverModule = context.asAbsolutePath(
+  const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'aura-language-server', 'lib', 'server.js')
   );
 
   // The debug options for the server
-  let debugOptions = { execArgv: ['--nolazy', '--inspect=6020'] };
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6020'] };
   // let debugOptions = { };
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
-  let serverOptions: ServerOptions = {
+  const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: {
       module: serverModule,
@@ -52,7 +51,7 @@ export async function activate(context: ExtensionContext) {
     }
   };
 
-  let clientOptions: LanguageClientOptions = {
+  const clientOptions: LanguageClientOptions = {
     outputChannelName: 'Aura LSP Debug',
     documentSelector: ['html', 'javascript'],
     synchronize: {

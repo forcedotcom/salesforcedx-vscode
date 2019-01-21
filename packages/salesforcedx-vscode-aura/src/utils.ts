@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { window, OutputChannel } from 'vscode';
+import { OutputChannel, window } from 'vscode';
 
 const OUTPUT_CHANNEL_NAME = 'Aura VSCode Extension';
 
