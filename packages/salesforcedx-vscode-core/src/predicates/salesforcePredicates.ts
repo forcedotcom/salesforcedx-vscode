@@ -34,3 +34,22 @@ export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
     }
   }
 }
+
+export class IsInSfdxPackageDirectory implements Predicate<string> {
+  private packageDirectoryPaths: string[];
+  constructor(packageDirectoryPaths: string[]) {
+    this.packageDirectoryPaths = packageDirectoryPaths;
+  }
+  public apply(filePath: string): PredicateResponse {
+    let filePathIsInPackageDirectory = false;
+    for (const packageDirectoryPath of this.packageDirectoryPaths) {
+      if (filePath.startsWith(packageDirectoryPath)) {
+        filePathIsInPackageDirectory = true;
+        break;
+      }
+    }
+    return filePathIsInPackageDirectory
+      ? PredicateResponse.true()
+      : PredicateResponse.false();
+  }
+}

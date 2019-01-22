@@ -8,3 +8,5 @@
 import { IsSfdxProjectOpened } from './salesforcePredicates';
 
 export const isSfdxProjectOpened = new IsSfdxProjectOpened();
+
+export { IsInSfdxPackageDirectory } from './salesforcePredicates';

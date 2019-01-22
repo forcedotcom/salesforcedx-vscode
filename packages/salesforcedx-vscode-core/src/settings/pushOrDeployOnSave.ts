@@ -9,25 +9,19 @@ import { channelService } from '../channels';
 import { getWorkspaceOrgType, OrgType } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { IsInSfdxPackageDirectory } from '../predicates';
 import { sfdxCoreSettings } from '../settings';
-
 import { SfdxProjectJsonParser } from '../sfdxProject';
 
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-export enum FileEventType {
-  Create,
-  Change,
-  Delete
-}
-
 const WAIT_TIME_IN_MS = 3000;
 
 export async function registerPushOrDeployOnSave() {
   if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
-    const packageDirectories = await getPackageDirectoriesPaths();
+    const packageDirectoryPaths = await getPackageDirectoryPaths();
     const savedFiles: Set<vscode.Uri> = new Set();
     let savedFilesTimeout: NodeJS.Timer;
     vscode.workspace.onDidSaveTextDocument(
@@ -35,7 +29,7 @@ export async function registerPushOrDeployOnSave() {
         console.log(`saved: ${path.basename(textDocument.uri.fsPath)}`);
         if (
           sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-          !ignorePath(textDocument.uri, packageDirectories)
+          !ignorePath(textDocument.uri, packageDirectoryPaths)
         ) {
           savedFiles.add(textDocument.uri);
           clearTimeout(savedFilesTimeout);
@@ -79,18 +73,14 @@ export async function pushOrDeploy(filesToDeploy: vscode.Uri[]): Promise<void> {
   }
 }
 
-export async function getPackageDirectoriesPaths(): Promise<string[]> {
+export async function getPackageDirectoryPaths(): Promise<string[]> {
   try {
     const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
     const sfdxProjectJsonParser = new SfdxProjectJsonParser();
-    const packageDirectoryPaths: string[] = await sfdxProjectJsonParser.getPackageDirectoryPaths(
+    const packageDirectoryPaths: string[] = await sfdxProjectJsonParser.getPackageDirectoryFullPaths(
       sfdxProjectPath
     );
-    const absolutePackageDirectoryPaths = packageDirectoryPaths.map(
-      relativePackageDirPath =>
-        path.join(sfdxProjectPath, relativePackageDirPath)
-    );
-    return Promise.resolve(absolutePackageDirectoryPaths);
+    return Promise.resolve(packageDirectoryPaths);
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':
@@ -113,27 +103,23 @@ function displayError(message: string) {
   channelService.showChannelOutput();
 }
 
-function pathIsInPackageDirectory(
-  documentUri: vscode.Uri,
-  packageDirectoryPaths: string[]
-): boolean {
-  const documentPath = documentUri.fsPath;
-  let sourcePathIsInPackageDirectory = false;
-  for (const packagePath of packageDirectoryPaths) {
-    if (documentPath.startsWith(packagePath)) {
-      sourcePathIsInPackageDirectory = true;
-      break;
-    }
-  }
-  return sourcePathIsInPackageDirectory;
-}
-
 function ignorePath(uri: vscode.Uri, packageDirectories: string[]) {
   return (
     isDotFile(uri) ||
     isDirectory(uri) ||
     !pathIsInPackageDirectory(uri, packageDirectories)
   );
+}
+
+function pathIsInPackageDirectory(
+  documentUri: vscode.Uri,
+  packageDirectoryPaths: string[]
+): boolean {
+  const documentPath = documentUri.fsPath;
+  const isInSfdxPackageDirectory = new IsInSfdxPackageDirectory(
+    packageDirectoryPaths
+  ).apply(documentPath);
+  return isInSfdxPackageDirectory.result;
 }
 
 function isDotFile(uri: vscode.Uri) {

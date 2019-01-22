@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 
-import { SfdxProjectJsonParser } from '../../../src/util';
+import { SfdxProjectJsonParser } from '../../../src/sfdxProject';
 
 const SFDX_PROJECT_PATH = 'fakeSfdxProjectPath';
 

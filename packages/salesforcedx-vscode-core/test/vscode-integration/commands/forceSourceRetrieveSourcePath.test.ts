@@ -21,7 +21,7 @@ import {
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxProjectJsonParser } from '../../../src/util';
+import { SfdxProjectJsonParser } from '../../../src/sfdxProject';
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
   it('Should build the source retrieve command', () => {
