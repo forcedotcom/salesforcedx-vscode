@@ -163,50 +163,50 @@ export class FauxClassGenerator {
         nls.localize('failure_fetching_sobjects_list_text', e)
       );
     }
+    const sobjectFolder = this.getSobjectsFolder(projectPath, type);
+    this.cleanupSObjectFolders(sobjectFolder);
     return this.generate(projectPath, sobjects);
+  }
+
+  public getSobjectsFolder(
+    projectPath: string,
+    type?: SObjectCategory
+  ): string {
+    let sobjectFolder = path.join(
+      projectPath,
+      SFDX_DIR,
+      TOOLS_DIR,
+      SOBJECTS_DIR
+    );
+    if (type === SObjectCategory.CUSTOM) {
+      sobjectFolder = path.join(sobjectFolder, CUSTOMOBJECTS_DIR);
+    } else if (type === SObjectCategory.STANDARD) {
+      sobjectFolder = path.join(sobjectFolder, STANDARDOBJECTS_DIR);
+    }
+    return sobjectFolder;
   }
 
   public async generate(
     projectPath: string,
     sobjects: string[]
   ): Promise<string> {
-    const sobjectsFolderPath = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR
-    );
-    const standardSObjectsFolderPath = path.join(
-      sobjectsFolderPath,
-      STANDARDOBJECTS_DIR
-    );
-    const customSObjectsFolderPath = path.join(
-      sobjectsFolderPath,
-      CUSTOMOBJECTS_DIR
-    );
-
     if (
       !fs.existsSync(projectPath) ||
       !fs.existsSync(path.join(projectPath, SFDX_PROJECT_FILE))
     ) {
       return this.errorExit(
-        nls.localize('no_generate_if_not_in_project', sobjectsFolderPath)
+        nls.localize(
+          'no_generate_if_not_in_project',
+          this.getSobjectsFolder(projectPath)
+        )
       );
     }
-    this.cleanupSObjectFolders(sobjectsFolderPath);
 
     const describe = new SObjectDescribe();
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
     let fetchedSObjects: SObject[] = [];
-    // let sobjects: string[] = [];
-    // try {
-    //   sobjects = await describe.describeGlobal(projectPath, type);
-    // } catch (e) {
-    //   return this.errorExit(
-    //     nls.localize('failure_fetching_sobjects_list_text', e)
-    //   );
-    // }
+
     let j = 0;
     while (j < sobjects.length) {
       try {
@@ -239,13 +239,21 @@ export class FauxClassGenerator {
     this.logFetchedObjects(standardSObjects, customSObjects);
 
     try {
-      this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
+      const standardFolderPath = this.getSobjectsFolder(
+        projectPath,
+        SObjectCategory.STANDARD
+      );
+      this.generateFauxClasses(standardSObjects, standardFolderPath);
     } catch (e) {
       return this.errorExit(e);
     }
 
     try {
-      this.generateFauxClasses(customSObjects, customSObjectsFolderPath);
+      const customFolderPath = this.getSobjectsFolder(
+        projectPath,
+        SObjectCategory.CUSTOM
+      );
+      this.generateFauxClasses(customSObjects, customFolderPath);
     } catch (e) {
       return this.errorExit(e);
     }

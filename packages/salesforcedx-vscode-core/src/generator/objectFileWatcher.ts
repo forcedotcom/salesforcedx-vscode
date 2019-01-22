@@ -31,7 +31,7 @@ export async function registerClassGeneratorOnFieldEdits() {
   if (sourceFileWatcher) {
     setupFileCreateListener(sourceFileWatcher);
     setupFileChangeListener(sourceFileWatcher);
-    // setupFileDeleteListener(sourceFileWatcher);
+    setupFileDeleteListener(sourceFileWatcher);
   }
 }
 
@@ -54,13 +54,14 @@ function setupFileChangeListener(sourceFileWatcher: vscode.FileSystemWatcher) {
   sourceFileWatcher.onDidChange(async uri => {
     if (!ignorePath(uri)) {
       doSobjectRefresh([uri]);
-      // const objectFields = getObjectFields([uri]);
-      // if (objectFields.length > 0) {
-      //   const generator = new FauxClassGenerator(new EventEmitter());
-      //   const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri
-      //     .fsPath;
-      //   generator.updateSobjectDefinitions(sfdxProjectPath, objectFields[0]);
-      // }
+    }
+  });
+}
+
+function setupFileDeleteListener(sourceFileWatcher: vscode.FileSystemWatcher) {
+  sourceFileWatcher.onDidDelete(async uri => {
+    if (!ignorePath(uri)) {
+      doSobjectRefresh([uri]);
     }
   });
 }
@@ -80,25 +81,29 @@ async function createSourceFileWatcher(): Promise<vscode.FileSystemWatcher | nul
 
 function getObjectFields(filesForRefresh: vscode.Uri[]): ObjectFieldMap[] {
   const objectsAndFields: ObjectFieldMap[] = [];
-  const pattern = /\/objects\/(\w+)\/fields\/(\w+__c).field-meta.xml/; // windows?
-
+  const sobjectNames = new Set<string>(); // used to filter duplicate sobjects
   filesForRefresh.forEach(uri => {
-    const matches = uri.path.match(pattern);
-    if (matches && matches.length === 3) {
-      const sobjectName = matches[1];
-      const fieldDir = path.dirname(uri.fsPath);
-      const objectFieldMap: ObjectFieldMap = { name: sobjectName, fields: {} };
-      fs.readdirSync(fieldDir).forEach(fieldName => {
-        const nameAndTypePattern = /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/;
-        const fieldContents = fs
-          .readFileSync(path.join(fieldDir, fieldName))
-          .toString();
-        const nameAndType = fieldContents.match(nameAndTypePattern);
-        if (objectFieldMap && nameAndType && nameAndType.length === 3) {
-          objectFieldMap.fields[nameAndType[1]] = nameAndType[2];
+    const matches = uri.path.match(/.+\/objects\/(\w+)/);
+    if (matches && matches.length === 2) {
+      const name = matches[1];
+      if (!sobjectNames.has(name)) {
+        const objectFieldMap: ObjectFieldMap = { name, fields: {} };
+        const fieldDir = path.join(matches[0], 'fields');
+        if (fs.existsSync(fieldDir)) {
+          fs.readdirSync(fieldDir).forEach(fieldName => {
+            const nameAndTypePattern = /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/;
+            const fieldContents = fs
+              .readFileSync(path.join(fieldDir, fieldName))
+              .toString();
+            const nameAndType = fieldContents.match(nameAndTypePattern);
+            if (objectFieldMap && nameAndType && nameAndType.length === 3) {
+              objectFieldMap.fields[nameAndType[1]] = nameAndType[2];
+            }
+          });
         }
-      });
-      objectsAndFields.push(objectFieldMap);
+        objectsAndFields.push(objectFieldMap);
+        sobjectNames.add(name);
+      }
     }
   });
 
@@ -156,7 +161,7 @@ export async function getPackageDirectoriesRelativePattern(): Promise<
     );
     const relativePattern = new vscode.RelativePattern(
       sfdxProjectPath,
-      `{${packageDirectoryPaths.join(',')}}/**/objects/**/fields/**.xml`
+      `{${packageDirectoryPaths.join(',')}}/**/objects/**`
     );
     return Promise.resolve(relativePattern);
   } catch (error) {
