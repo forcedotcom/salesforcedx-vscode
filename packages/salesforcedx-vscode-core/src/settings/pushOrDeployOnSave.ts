@@ -11,7 +11,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { IsInSfdxPackageDirectory } from '../predicates';
 import { sfdxCoreSettings } from '../settings';
-import { SfdxProjectJsonParser } from '../sfdxProject';
+import { SfdxProjectJsonParser } from '../util';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -21,28 +21,32 @@ const WAIT_TIME_IN_MS = 3000;
 
 export async function registerPushOrDeployOnSave() {
   if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
-    const packageDirectoryPaths = await getPackageDirectoryPaths();
-    const savedFiles: Set<vscode.Uri> = new Set();
-    let savedFilesTimeout: NodeJS.Timer;
-    vscode.workspace.onDidSaveTextDocument(
-      (textDocument: vscode.TextDocument) => {
-        console.log(`saved: ${path.basename(textDocument.uri.fsPath)}`);
-        if (
-          sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-          !ignorePath(textDocument.uri, packageDirectoryPaths)
-        ) {
-          savedFiles.add(textDocument.uri);
-          clearTimeout(savedFilesTimeout);
+    try {
+      const packageDirectoryPaths = await getPackageDirectoryPaths();
+      const savedFiles: Set<vscode.Uri> = new Set();
+      let savedFilesTimeout: NodeJS.Timer;
+      vscode.workspace.onDidSaveTextDocument(
+        (textDocument: vscode.TextDocument) => {
+          console.log(`saved: ${path.basename(textDocument.uri.fsPath)}`);
+          if (
+            sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
+            !ignorePath(textDocument.uri, packageDirectoryPaths)
+          ) {
+            savedFiles.add(textDocument.uri);
+            clearTimeout(savedFilesTimeout);
 
-          savedFilesTimeout = setTimeout(async () => {
-            const files = Array.from(savedFiles);
-            savedFiles.clear();
-            console.log('files are: ', files);
-            await pushOrDeploy(files);
-          }, WAIT_TIME_IN_MS);
+            savedFilesTimeout = setTimeout(async () => {
+              const files = Array.from(savedFiles);
+              savedFiles.clear();
+              console.log('files are: ', files);
+              await pushOrDeploy(files);
+            }, WAIT_TIME_IN_MS);
+          }
         }
-      }
-    );
+      );
+    } catch (error) {
+      displayError(error.message);
+    }
   }
 }
 

@@ -20,8 +20,8 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { IsInSfdxPackageDirectory } from '../predicates';
-import { SfdxProjectJsonParser } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
+import { SfdxProjectJsonParser } from '../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,

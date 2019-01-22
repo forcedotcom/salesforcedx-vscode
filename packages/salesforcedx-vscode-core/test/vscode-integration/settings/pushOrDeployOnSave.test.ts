@@ -1,236 +1,164 @@
-// /*
-//  * Copyright (c) 2018, salesforce.com, inc.
-//  * All rights reserved.
-//  * Licensed under the BSD 3-Clause license.
-//  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-//  */
-// import { expect } from 'chai';
-// import * as path from 'path';
-// import { SinonStub, stub } from 'sinon';
-// import * as vscode from 'vscode';
-// import * as context from '../../../src/context';
+/*
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { expect } from 'chai';
+import * as path from 'path';
+import { SinonStub, stub } from 'sinon';
+import * as vscode from 'vscode';
+import * as context from '../../../src/context';
 
-// import { channelService } from '../../../src/channels';
-// import { nls } from '../../../src/messages';
-// import { notificationService } from '../../../src/notifications';
-// import {
-//   FileEventType,
-//   getPackageDirectoriesRelativePattern,
-//   pushOrDeploy
-// } from '../../../src/settings/pushOrDeployOnSave';
-// import { SfdxProjectJsonParser } from '../../../src/util';
+import { channelService } from '../../../src/channels';
+import { nls } from '../../../src/messages';
+import { notificationService } from '../../../src/notifications';
+import {
+  getPackageDirectoryPaths,
+  pushOrDeploy
+} from '../../../src/settings/pushOrDeployOnSave';
+import { SfdxProjectJsonParser } from '../../../src/util';
 
-// const OrgType = context.OrgType;
-// /* tslint:disable:no-unused-expression */
-// describe('getPackageDirectoriesRelativePattern', () => {
-//   it('should return a glob string with one package directory', async () => {
-//     const getPackageDirectoriesStub = stub(
-//       SfdxProjectJsonParser.prototype,
-//       'getPackageDirectoryPaths'
-//     ).returns(['force-app']);
+const OrgType = context.OrgType;
+/* tslint:disable:no-unused-expression */
+describe('getPackageDirectoryPaths', () => {
+  it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
+    const error = new Error();
+    error.name = 'NoPackageDirectoriesFound';
+    const getPackageDirectoriesStub = stub(
+      SfdxProjectJsonParser.prototype,
+      'getPackageDirectoryFullPaths'
+    ).throws(error);
+    let errorWasThrown = false;
 
-//     const relativePattern = await getPackageDirectoriesRelativePattern();
+    try {
+      await getPackageDirectoryPaths();
+    } catch (e) {
+      errorWasThrown = true;
+      expect(e.message).to.equal(
+        nls.localize('error_no_package_directories_found_text')
+      );
+    } finally {
+      expect(errorWasThrown).to.be.true;
+      getPackageDirectoriesStub.restore();
+    }
+  });
 
-//     expect(relativePattern.pattern).to.equal('{force-app}/**');
-//     getPackageDirectoriesStub.restore();
-//   });
+  it('should throw an error if packageDirectories does not specify any paths', async () => {
+    const error = new Error();
+    error.name = 'NoPackageDirectoryPathsFound';
+    const getPackageDirectoriesStub = stub(
+      SfdxProjectJsonParser.prototype,
+      'getPackageDirectoryFullPaths'
+    ).throws(error);
+    let errorWasThrown = false;
+    try {
+      await getPackageDirectoryPaths();
+    } catch (error) {
+      errorWasThrown = true;
+      expect(error.message).to.equal(
+        nls.localize('error_no_package_directories_paths_found_text')
+      );
+    } finally {
+      expect(errorWasThrown).to.be.true;
+      getPackageDirectoriesStub.restore();
+    }
+  });
+});
 
-//   it('should return a glob string with multiple package directories', async () => {
-//     const getPackageDirectoriesStub = stub(
-//       SfdxProjectJsonParser.prototype,
-//       'getPackageDirectoryPaths'
-//     ).returns(['package1', 'package2', 'package3']);
+describe('pushOrDeploy', () => {
+  let appendLineStub: SinonStub;
+  let showErrorMessageStub: SinonStub;
+  beforeEach(() => {
+    appendLineStub = stub(channelService, 'appendLine');
+    showErrorMessageStub = stub(notificationService, 'showErrorMessage');
+  });
 
-//     const relativePattern = await getPackageDirectoriesRelativePattern();
+  afterEach(() => {
+    appendLineStub.restore();
+    showErrorMessageStub.restore();
+  });
+  describe('when it is not possible to determine the org type', () => {
+    it('should display an error to the user when the defaultusername org info cannot be found', async () => {
+      const namedOrgNotFoundError = new Error();
+      namedOrgNotFoundError.name = 'NamedOrgNotFound';
+      const getWorkspaceOrgTypeStub = stub(
+        context,
+        'getWorkspaceOrgType'
+      ).throws(namedOrgNotFoundError);
 
-//     expect(relativePattern.pattern).to.equal('{package1,package2,package3}/**');
-//     getPackageDirectoriesStub.restore();
-//   });
+      await pushOrDeploy([]);
 
-//   it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
-//     const error = new Error();
-//     error.name = 'NoPackageDirectoriesFound';
-//     const getPackageDirectoriesStub = stub(
-//       SfdxProjectJsonParser.prototype,
-//       'getPackageDirectoryPaths'
-//     ).throws(error);
-//     let errorWasThrown = false;
+      const error = nls.localize('error_fetching_auth_info_text');
+      expect(showErrorMessageStub.calledOnce).to.be.true;
+      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
+      expect(appendLineStub.calledOnce).to.be.true;
+      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
+      getWorkspaceOrgTypeStub.restore();
+    });
 
-//     try {
-//       await getPackageDirectoriesRelativePattern();
-//     } catch (e) {
-//       errorWasThrown = true;
-//       expect(e.message).to.equal(
-//         nls.localize('error_no_package_directories_found_text')
-//       );
-//     } finally {
-//       expect(errorWasThrown).to.be.true;
-//       getPackageDirectoriesStub.restore();
-//     }
-//   });
+    it('should display an error to the user when no defaultusername is set', async () => {
+      const noDefaultUsernameSetError = new Error();
+      noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
+      const getWorkspaceOrgTypeStub = stub(
+        context,
+        'getWorkspaceOrgType'
+      ).throws(noDefaultUsernameSetError);
 
-//   it('should throw an error if packageDirectories does not specify any paths', async () => {
-//     const error = new Error();
-//     error.name = 'NoPackageDirectoryPathsFound';
-//     const getPackageDirectoriesStub = stub(
-//       SfdxProjectJsonParser.prototype,
-//       'getPackageDirectoryPaths'
-//     ).throws(error);
-//     let errorWasThrown = false;
-//     try {
-//       await getPackageDirectoriesRelativePattern();
-//     } catch (error) {
-//       errorWasThrown = true;
-//       expect(error.message).to.equal(
-//         nls.localize('error_no_package_directories_paths_found_text')
-//       );
-//     } finally {
-//       expect(errorWasThrown).to.be.true;
-//       getPackageDirectoriesStub.restore();
-//     }
-//   });
-// });
+      await pushOrDeploy([]);
 
-// describe('pushOrDeploy', () => {
-//   let appendLineStub: SinonStub;
-//   let showErrorMessageStub: SinonStub;
-//   beforeEach(() => {
-//     appendLineStub = stub(channelService, 'appendLine');
-//     showErrorMessageStub = stub(notificationService, 'showErrorMessage');
-//   });
+      const error = nls.localize(
+        'error_push_or_deploy_on_save_no_default_username'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.true;
+      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
+      expect(appendLineStub.calledOnce).to.be.true;
+      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
+      getWorkspaceOrgTypeStub.restore();
+    });
+  });
 
-//   afterEach(() => {
-//     appendLineStub.restore();
-//     showErrorMessageStub.restore();
-//   });
-//   describe('when it is not possible to determine the org type', () => {
-//     it('should display an error to the user when the defaultusername org info cannot be found', async () => {
-//       const namedOrgNotFoundError = new Error();
-//       namedOrgNotFoundError.name = 'NamedOrgNotFound';
-//       const getWorkspaceOrgTypeStub = stub(
-//         context,
-//         'getWorkspaceOrgType'
-//       ).throws(namedOrgNotFoundError);
+  describe('orgs with sourceTracking', () => {
+    it('should call force:source:push', async () => {
+      const getWorkspaceOrgTypeStub = stub(
+        context,
+        'getWorkspaceOrgType'
+      ).returns(OrgType.SourceTracked);
+      const executeCommandStub = stub(vscode.commands, 'executeCommand');
 
-//       await pushOrDeploy(FileEventType.Create);
+      await pushOrDeploy([]);
 
-//       const error = nls.localize('error_fetching_auth_info_text');
-//       expect(showErrorMessageStub.calledOnce).to.be.true;
-//       expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
-//       expect(appendLineStub.calledOnce).to.be.true;
-//       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
-//       getWorkspaceOrgTypeStub.restore();
-//     });
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.getCall(0).args[0]).to.eql(
+        'sfdx.force.source.push'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.false;
+      expect(appendLineStub.calledOnce).to.be.false;
 
-//     it('should display an error to the user when no defaultusername is set', async () => {
-//       const noDefaultUsernameSetError = new Error();
-//       noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
-//       const getWorkspaceOrgTypeStub = stub(
-//         context,
-//         'getWorkspaceOrgType'
-//       ).throws(noDefaultUsernameSetError);
+      getWorkspaceOrgTypeStub.restore();
+      executeCommandStub.restore();
+    });
+  });
 
-//       await pushOrDeploy(FileEventType.Create);
+  describe('orgs without sourceTracking', () => {
+    it('should call force:source:deploy on multiple paths', async () => {
+      const getWorkspaceOrgTypeStub = stub(
+        context,
+        'getWorkspaceOrgType'
+      ).returns(Promise.resolve(OrgType.NonSourceTracked));
+      const executeCommandStub = stub(vscode.commands, 'executeCommand');
 
-//       const error = nls.localize(
-//         'error_push_or_deploy_on_save_no_default_username'
-//       );
-//       expect(showErrorMessageStub.calledOnce).to.be.true;
-//       expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
-//       expect(appendLineStub.calledOnce).to.be.true;
-//       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
-//       getWorkspaceOrgTypeStub.restore();
-//     });
-//   });
+      await pushOrDeploy([]);
 
-//   describe('orgs with sourceTracking', () => {
-//     let getWorkspaceOrgTypeStub: SinonStub;
-//     let executeCommandStub: SinonStub;
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.getCall(0).args[0]).to.eql(
+        'sfdx.force.source.deploy.multiple.source.paths'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.false;
+      expect(appendLineStub.calledOnce).to.be.false;
 
-//     beforeEach(() => {
-//       getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType').returns(
-//         OrgType.SourceTracked
-//       );
-//       executeCommandStub = stub(vscode.commands, 'executeCommand');
-//     });
-
-//     afterEach(() => {
-//       getWorkspaceOrgTypeStub.restore();
-//       executeCommandStub.restore();
-//     });
-
-//     const testPushOn = async (fileEvent: FileEventType) => {
-//       await pushOrDeploy(fileEvent);
-
-//       expect(executeCommandStub.calledOnce).to.be.true;
-//       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-//         'sfdx.force.source.push'
-//       );
-//       expect(showErrorMessageStub.calledOnce).to.be.false;
-//       expect(appendLineStub.calledOnce).to.be.false;
-//     };
-
-//     it('should call force:source:push on file creation', async () => {
-//       await testPushOn(FileEventType.Create);
-//     });
-
-//     it('should call force:source:push on file change', async () => {
-//       await testPushOn(FileEventType.Change);
-//     });
-
-//     it('should call force:source:push on file deletion', async () => {
-//       await testPushOn(FileEventType.Delete);
-//     });
-//   });
-
-//   describe('orgs without sourceTracking', () => {
-//     let getWorkspaceOrgTypeStub: SinonStub;
-//     let executeCommandStub: SinonStub;
-//     beforeEach(() => {
-//       getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType').returns(
-//         Promise.resolve(OrgType.NonSourceTracked)
-//       );
-//       executeCommandStub = stub(vscode.commands, 'executeCommand');
-//     });
-
-//     afterEach(() => {
-//       getWorkspaceOrgTypeStub.restore();
-//       executeCommandStub.restore();
-//     });
-
-//     it('should call force:source:deploy on multiple paths for file creations', async () => {
-//       await pushOrDeploy(FileEventType.Create, []);
-
-//       expect(executeCommandStub.calledOnce).to.be.true;
-//       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-//         'sfdx.force.source.deploy.multiple.source.paths'
-//       );
-//       expect(showErrorMessageStub.calledOnce).to.be.false;
-//       expect(appendLineStub.calledOnce).to.be.false;
-//     });
-
-//     it('should call force:source:deploy on a single path for file changes', async () => {
-//       await pushOrDeploy(FileEventType.Change, []);
-
-//       expect(executeCommandStub.calledOnce).to.be.true;
-//       expect(executeCommandStub.getCall(0).args[0]).to.eql(
-//         'sfdx.force.source.deploy.source.path'
-//       );
-//       expect(showErrorMessageStub.calledOnce).to.be.false;
-//       expect(appendLineStub.calledOnce).to.be.false;
-//     });
-
-//     it('should display an error to the user for file deletions', async () => {
-//       await pushOrDeploy(FileEventType.Delete);
-
-//       const error = nls.localize(
-//         'error_deploy_delete_on_save_not_supported_text'
-//       );
-//       expect(executeCommandStub.called).to.be.false;
-//       expect(showErrorMessageStub.calledOnce).to.be.true;
-//       expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
-//       expect(appendLineStub.calledOnce).to.be.true;
-//       expect(appendLineStub.getCall(0).args[0]).to.equal(error);
-//     });
-//   });
-// });
+      getWorkspaceOrgTypeStub.restore();
+      executeCommandStub.restore();
+    });
+  });
+});
