@@ -56,7 +56,7 @@ describe('Replay debugger adapter - integration', function() {
 
   after(async () => {
     if (dc) {
-      dc.stop();
+      await dc.stop();
     }
   });
 
@@ -148,9 +148,8 @@ describe('Replay debugger adapter - integration', function() {
         classBPath,
         classBValidLines
       );
-
+      // tslint:disable-next-line:no-floating-promises
       dc.configurationDoneRequest({});
-
       // Verify stopped on the first line of debug log
       const stackTraceResponse = await dc.assertStoppedLocation('entry', {
         path: logFilePath,
@@ -234,6 +233,7 @@ describe('Replay debugger adapter - integration', function() {
         classStaticVarsAValidLines
       );
 
+      // tslint:disable-next-line:no-floating-promises
       dc.configurationDoneRequest({});
 
       // Verify stopped on the first line of debug log
@@ -251,6 +251,7 @@ describe('Replay debugger adapter - integration', function() {
         classStaticVarsAPath,
         classStaticVarsAValidLines[0]
       );
+
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
       expect(disconnectResponse.success).to.equal(true);

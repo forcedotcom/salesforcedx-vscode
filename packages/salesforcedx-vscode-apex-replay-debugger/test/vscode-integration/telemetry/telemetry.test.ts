@@ -17,9 +17,9 @@ describe('Telemetry', () => {
     sendEvent = stub(reporter, 'sendTelemetryEvent');
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     sendEvent.restore();
-    reporter.dispose();
+    await reporter.dispose();
   });
 
   it('Should send telemetry data', async () => {
