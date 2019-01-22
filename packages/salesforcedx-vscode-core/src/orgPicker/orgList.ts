@@ -20,13 +20,13 @@ export interface FileInfo {
 }
 const readFileAsync = promisify(fs.readFile);
 export class OrgList {
-  public authFileObjects: FileInfo[];
-
   public async getAuthInfoObjects() {
     const authFilesArray = await AuthInfo.listAllAuthFiles();
 
     if (authFilesArray === null || authFilesArray.length === 0) {
-      return Promise.reject(new Error('No previous authorizations found.'));
+      return Promise.reject(
+        new Error(nls.localize('error_retrieving_previous_authorizations'))
+      );
     }
     const authInfoObjects = Promise.all(
       authFilesArray.map(fileName => {
@@ -120,6 +120,6 @@ export async function displayDefaultUsername() {
   if (defaultUsernameorAlias) {
     statusBarItem.text = defaultUsernameorAlias;
   } else {
-    statusBarItem.text = 'No default org set';
+    statusBarItem.text = nls.localize('missing_default_org');
   }
 }
