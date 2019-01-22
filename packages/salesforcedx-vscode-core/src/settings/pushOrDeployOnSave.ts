@@ -11,7 +11,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 
-import { SfdxProjectJsonParser } from '../util';
+import { SfdxProjectJsonParser } from '../sfdxProject';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -75,36 +75,6 @@ export async function pushOrDeploy(filesToDeploy: vscode.Uri[]): Promise<void> {
         break;
       default:
         displayError(e.message);
-    }
-  }
-}
-
-export async function getPackageDirectoriesRelativePattern(): Promise<
-  vscode.RelativePattern
-> {
-  try {
-    const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-    const sfdxProjectJsonParser = new SfdxProjectJsonParser();
-    const packageDirectoryPaths: string[] = await sfdxProjectJsonParser.getPackageDirectoryPaths(
-      sfdxProjectPath
-    );
-    const relativePattern = new vscode.RelativePattern(
-      sfdxProjectPath,
-      `{${packageDirectoryPaths.join(',')}}/**`
-    );
-    return Promise.resolve(relativePattern);
-  } catch (error) {
-    switch (error.name) {
-      case 'NoPackageDirectoriesFound':
-        throw new Error(
-          nls.localize('error_no_package_directories_found_text')
-        );
-      case 'NoPackageDirectoryPathsFound':
-        throw new Error(
-          nls.localize('error_no_package_directories_paths_found_text')
-        );
-      default:
-        throw error;
     }
   }
 }

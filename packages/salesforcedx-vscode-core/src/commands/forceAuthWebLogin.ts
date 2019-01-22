@@ -27,8 +27,8 @@ import {
   notificationService,
   ProgressNotification
 } from '../notifications/index';
+import { SfdxProjectJsonParser } from '../sfdxProject';
 import { taskViewService } from '../statuses/index';
-import { SfdxProjectJsonParser } from '../util/sfdxProjectJsonParser';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
