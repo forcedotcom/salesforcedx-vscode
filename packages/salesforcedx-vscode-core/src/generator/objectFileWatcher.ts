@@ -5,7 +5,10 @@ import {
   STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
-import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import {
+  FauxClassGenerator,
+  RefreshStatus
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator/fauxClassGenerator';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -26,6 +29,12 @@ interface ObjectFieldMap {
   };
 }
 
+export enum FileEventType {
+  Create,
+  Change,
+  Delete
+}
+
 export async function registerClassGeneratorOnFieldEdits() {
   const sourceFileWatcher = await createSourceFileWatcher();
   if (sourceFileWatcher) {
@@ -44,7 +53,7 @@ function setupFileCreateListener(sourceFileWatcher: vscode.FileSystemWatcher) {
       clearTimeout(createdFilesTimeout);
 
       createdFilesTimeout = setTimeout(async () => {
-        doSobjectRefresh(createdFiles);
+        doSobjectRefresh(createdFiles, FileEventType.Create);
       }, WAIT_TIME_IN_MS);
     }
   });
@@ -53,7 +62,7 @@ function setupFileCreateListener(sourceFileWatcher: vscode.FileSystemWatcher) {
 function setupFileChangeListener(sourceFileWatcher: vscode.FileSystemWatcher) {
   sourceFileWatcher.onDidChange(async uri => {
     if (!ignorePath(uri)) {
-      doSobjectRefresh([uri]);
+      doSobjectRefresh([uri], FileEventType.Change);
     }
   });
 }
@@ -61,7 +70,7 @@ function setupFileChangeListener(sourceFileWatcher: vscode.FileSystemWatcher) {
 function setupFileDeleteListener(sourceFileWatcher: vscode.FileSystemWatcher) {
   sourceFileWatcher.onDidDelete(async uri => {
     if (!ignorePath(uri)) {
-      doSobjectRefresh([uri]);
+      doSobjectRefresh([uri], FileEventType.Delete);
     }
   });
 }
@@ -79,71 +88,79 @@ async function createSourceFileWatcher(): Promise<vscode.FileSystemWatcher | nul
   return Promise.resolve(null);
 }
 
-function getObjectFields(filesForRefresh: vscode.Uri[]): ObjectFieldMap[] {
-  const objectsAndFields: ObjectFieldMap[] = [];
-  const sobjectNames = new Set<string>(); // used to filter duplicate sobjects
-  filesForRefresh.forEach(uri => {
-    const matches = uri.path.match(/.+\/objects\/(\w+)/);
-    if (matches && matches.length === 2) {
-      const name = matches[1];
-      if (!sobjectNames.has(name)) {
-        const objectFieldMap: ObjectFieldMap = { name, fields: {} };
-        const fieldDir = path.join(matches[0], 'fields');
-        if (fs.existsSync(fieldDir)) {
-          fs.readdirSync(fieldDir).forEach(fieldName => {
-            const nameAndTypePattern = /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/;
-            const fieldContents = fs
-              .readFileSync(path.join(fieldDir, fieldName))
-              .toString();
-            const nameAndType = fieldContents.match(nameAndTypePattern);
-            if (objectFieldMap && nameAndType && nameAndType.length === 3) {
-              objectFieldMap.fields[nameAndType[1]] = nameAndType[2];
-            }
-          });
-        }
-        objectsAndFields.push(objectFieldMap);
-        sobjectNames.add(name);
-      }
-    }
-  });
+// function getObjectFields(filesForRefresh: vscode.Uri[]): ObjectFieldMap[] {
+//   const objectsAndFields: ObjectFieldMap[] = [];
+//   const sobjectNames = new Set<string>(); // used to filter duplicate sobjects
+//   filesForRefresh.forEach(uri => {
+//     const matches = uri.path.match(/.+\/objects\/(\w+)/);
+//     if (matches && matches.length === 2) {
+//       const name = matches[1];
+//       if (!sobjectNames.has(name)) {
+//         const objectFieldMap: ObjectFieldMap = { name, fields: {} };
+//         const fieldDir = path.join(matches[0], 'fields');
+//         if (fs.existsSync(fieldDir)) {
+//           fs.readdirSync(fieldDir).forEach(fieldName => {
+//             const nameAndTypePattern = /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/;
+//             const fieldContents = fs
+//               .readFileSync(path.join(fieldDir, fieldName))
+//               .toString();
+//             const nameAndType = fieldContents.match(nameAndTypePattern);
+//             if (objectFieldMap && nameAndType && nameAndType.length === 3) {
+//               objectFieldMap.fields[nameAndType[1]] = nameAndType[2];
+//             }
+//           });
+//         }
+//         objectsAndFields.push(objectFieldMap);
+//         sobjectNames.add(name);
+//       }
+//     }
+//   });
 
-  return objectsAndFields;
-}
+//   return objectsAndFields;
+// }
 
-function doSobjectRefresh(filesForRefresh: vscode.Uri[]) {
-  const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-  const sobjectsDir = path.join(
-    sfdxProjectPath,
-    SFDX_DIR,
-    TOOLS_DIR,
-    SOBJECTS_DIR
-  );
-  if (!fs.existsSync(sobjectsDir)) {
+// function generateField(fieldPath: string) {
+//   const fieldContents = fs.readFileSync(fieldPath).toString();
+//   const nameAndTypePattern = /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/;
+//   const nameAndType = fieldContents.match(nameAndTypePattern);
+//   if (nameAndType && nameAndType.length === 3) {
+//     const type = nameAndType[2];
+//     if (type === 'Lookup' || type === 'MasterDetail') {
+//       const referenceToMatch = fieldContents.match(/<referenceTo>(\w+)<\/referenceTo>/);
+//       if (referenceToMatch && referenceToMatch.length === 2) {
+
+//       }
+//     }
+//   }
+// }
+
+function doSobjectRefresh(
+  filesForRefresh: vscode.Uri[],
+  fileEventType: FileEventType
+) {
+  const generator = new FauxClassGenerator(new EventEmitter());
+  const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
+  const sobjectsPath = generator.getSobjectsFolder(projectPath);
+
+  if (!fs.existsSync(sobjectsPath) && fileEventType !== FileEventType.Delete) {
     // do a first time setup describe. Long running...
     vscode.commands.executeCommand('sfdx.force.internal.refreshsobjects');
   } else {
-    const objectFields = getObjectFields(filesForRefresh);
-    const remoteRefreshObjects: string[] = [];
-    objectFields.forEach(sobject => {
-      const { name } = sobject;
-      const typeDir = name.endsWith('__c')
-        ? CUSTOMOBJECTS_DIR
-        : STANDARDOBJECTS_DIR;
-      const fauxClassPath = path.join(sobjectsDir, typeDir, `${name}.cls`);
-      if (fs.existsSync(fauxClassPath)) {
-        // local refresh
-        const generator = new FauxClassGenerator(new EventEmitter());
-        generator.updateSobjectDefinitions(sfdxProjectPath, sobject);
-        console.log('DO LOCAL REFRESH: ' + name);
-      } else {
-        remoteRefreshObjects.push(name);
+    const remoteRefreshObjects: Set<string> = new Set<string>();
+    filesForRefresh.map(uri => uri.fsPath).forEach(fsPath => {
+      const status = generator.updateFauxClass(projectPath, fsPath);
+      if (status && !status.localRefresh) {
+        remoteRefreshObjects.add(status.sobjectName);
       }
     });
-    if (remoteRefreshObjects.length > 0) {
+    if (
+      remoteRefreshObjects.size > 0 &&
+      fileEventType !== FileEventType.Delete
+    ) {
       // remote refresh
       vscode.commands.executeCommand(
         'sfdx.force.internal.refreshsobjects',
-        remoteRefreshObjects
+        Array.from(remoteRefreshObjects)
       );
       console.log('DO REMOTE REFRESH: ' + remoteRefreshObjects.toString());
     }
