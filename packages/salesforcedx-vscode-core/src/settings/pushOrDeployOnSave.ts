@@ -17,7 +17,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-const WAIT_TIME_IN_MS = 3000;
+const WAIT_TIME_IN_MS = 4500;
 
 export async function registerPushOrDeployOnSave() {
   if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
