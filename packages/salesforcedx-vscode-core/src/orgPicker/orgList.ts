@@ -126,7 +126,7 @@ export async function showOrg() {
     statusBarItem.hide();
     return;
   }
-  displayDefaultUsername();
+  await displayDefaultUsername();
 }
 
 export async function displayDefaultUsername() {

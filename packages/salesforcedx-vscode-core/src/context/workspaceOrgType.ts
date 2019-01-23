@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Aliases, AuthInfo } from '@salesforce/core';
+import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
-
-import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { displayDefaultUsername } from '../orgPicker/orgList';
+import { displayDefaultUsername } from '../orgPicker';
 import { telemetryService } from '../telemetry';
 
 export enum OrgType {
@@ -113,9 +112,9 @@ export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   }
 }
 
-function onSfdxConfigEvent() {
-  setupWorkspaceOrgType();
-  displayDefaultUsername();
+async function onSfdxConfigEvent() {
+  await setupWorkspaceOrgType();
+  await displayDefaultUsername();
 }
 
 export function registerDefaultUsernameWatcher(

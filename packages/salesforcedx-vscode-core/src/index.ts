@@ -482,7 +482,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
-  showOrg();
+  await showOrg();
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
