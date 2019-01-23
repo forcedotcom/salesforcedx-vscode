@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import {
   Command,
   SfdxCommandBuilder
@@ -11,18 +17,18 @@ import {
 } from './commands';
 
 export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
-  private arg: string;
+  private usernameOrAlias: string;
 
-  public constructor(arg: string) {
+  public constructor(usernameOrAlias: string) {
     super();
-    this.arg = arg;
+    this.usernameOrAlias = usernameOrAlias;
   }
 
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription('SFDX: Set a Default Org')
       .withArg('force:config:set')
-      .withArg('defaultusername=' + this.arg)
+      .withArg(`defaultusername=${this.usernameOrAlias}`)
       .build();
   }
 }
@@ -30,11 +36,11 @@ export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceConfigSet(arg: string) {
+export async function forceConfigSet(usernameOrAlias: string) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceConfigSetExecutor(arg)
+    new ForceConfigSetExecutor(usernameOrAlias)
   );
   await commandlet.run();
 }

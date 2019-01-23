@@ -78,7 +78,7 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { setDefaultOrg, showOrg } from './orgPicker/orgList';
+import { setDefaultOrg, showOrg } from './orgPicker';
 import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
