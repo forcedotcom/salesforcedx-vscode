@@ -12,7 +12,10 @@ import { SinonStub, stub } from 'sinon';
 import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import { isSfdxProjectOpened } from '../../../src/predicates';
+import {
+  IsInSfdxPackageDirectory,
+  isSfdxProjectOpened
+} from '../../../src/predicates';
 
 // tslint:disable:no-unused-expression
 describe('SFDX project predicate', () => {
@@ -44,5 +47,34 @@ describe('SFDX project predicate', () => {
 
     const response = isSfdxProjectOpened.apply(workspace);
     expect(response.result).to.be.true;
+  });
+});
+
+describe('IsInSfdxPackageDirectory predicate', () => {
+  const projectPath = path.join('path', 'to', 'project');
+  const packageDirNames = ['package1', 'package2', 'package3'];
+  const packageDirFullPaths = packageDirNames.map(packageDirName =>
+    path.join(projectPath, packageDirName)
+  );
+  it('Should pass predicate when the given file is inside of a package directory', () => {
+    const filePath = path.join(
+      projectPath,
+      packageDirNames[0],
+      'example-source-file'
+    );
+    const isInSfdxPackageDirectory = new IsInSfdxPackageDirectory(
+      packageDirFullPaths
+    );
+    const response = isInSfdxPackageDirectory.apply(filePath);
+    expect(response.result).to.be.true;
+  });
+
+  it('Should fail predicate when the given file is not inside of a package directory', () => {
+    const filePath = path.join(projectPath, 'not-a-source-file');
+    const isInSfdxPackageDirectory = new IsInSfdxPackageDirectory(
+      packageDirFullPaths
+    );
+    const response = isInSfdxPackageDirectory.apply(filePath);
+    expect(response.result).to.be.false;
   });
 });

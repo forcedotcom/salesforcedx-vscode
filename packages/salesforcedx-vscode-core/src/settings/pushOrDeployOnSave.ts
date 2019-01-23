@@ -27,7 +27,6 @@ export async function registerPushOrDeployOnSave() {
       let savedFilesTimeout: NodeJS.Timer;
       vscode.workspace.onDidSaveTextDocument(
         (textDocument: vscode.TextDocument) => {
-          console.log(`saved: ${path.basename(textDocument.uri.fsPath)}`);
           if (
             sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
             !ignorePath(textDocument.uri, packageDirectoryPaths)
@@ -38,7 +37,6 @@ export async function registerPushOrDeployOnSave() {
             savedFilesTimeout = setTimeout(async () => {
               const files = Array.from(savedFiles);
               savedFiles.clear();
-              console.log('files are: ', files);
               await pushOrDeploy(files);
             }, WAIT_TIME_IN_MS);
           }

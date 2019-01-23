@@ -34,7 +34,6 @@ export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
     }
   }
 }
-
 export class IsInSfdxPackageDirectory implements Predicate<string> {
   private packageDirectoryPaths: string[];
   constructor(packageDirectoryPaths: string[]) {
