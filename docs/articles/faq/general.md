@@ -4,7 +4,7 @@ title: 'FAQ: General'
 
 ## Is Salesforce Extensions for VS Code officially supported by Salesforce?
 
-Yes, you can use your normal support channels to receive support from Salesforce. We also accept bugs and feature requests through the [GitHub Repository](https://github.com/forcedotcom/salesforcedx-vscode/issues).
+Yes, you can use your normal support channels to receive support from Salesforce. We also accept bugs and feature requests through the [GitHub repository](https://github.com/forcedotcom/salesforcedx-vscode/issues).
 
 However, Salesforce does not provide support for Visual Studio Code itself. This product is created by Microsoft. You can learn more about Visual Studio Code through [their documentation](https://code.visualstudio.com/docs).
 

@@ -6,10 +6,10 @@ Here’s some information on how to get past roadblocks that you might encounter
 
 ## SFDX Commands Aren’t Available
 
-If you don’t see any SFDX commands in the command palette, make sure that you’re working on a Salesforce DX project and that you have the latest version of the Salesforce CLI.
+If you don’t see any SFDX commands in the command palette, make sure that you’re working on a Salesforce DX project and that you have the latest version of Salesforce CLI.
 
-1. Make sure that the root directory you have open in VS Code contains an `sfdx-project.json` file. If you haven’t set up a Salesforce DX project, check out the [Project Setup](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_.
-2. [Update the CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_update_cli.htm), as described in the _Salesforce DX Setup Guide_.
+1. Make sure that the root directory you have open in VS Code contains an `sfdx-project.json` file. If you haven’t set up a Salesforce DX project, check out [Project Setup](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_.
+2. [Update Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_update_cli.htm), as described in the _Salesforce DX Setup Guide_.
 
 ## Extensions Malfunction After Update
 
@@ -20,7 +20,7 @@ VS Code doesn’t provide us with a way to specify which order the extensions up
 First, try reloading the Salesforce Extensions for VS Code extension pack.
 
 1. Open the Extensions view.
-1. Search for **Salesforce Extensions for VS Code**.
+1. Search for **Salesforce Extension Pack**.
 1. If a **Reload** button is available, click it.
 
 If a Reload button isn’t available, or if reloading the extension pack doesn’t solve your problem, try removing the `Code` folder that stores your application data.
@@ -34,7 +34,7 @@ If a Reload button isn’t available, or if reloading the extension pack doesn�
 
 If neither of the previous solutions solves your problem, try to identify which extension in the extension pack is malfunctioning. Then, delete the problematic extension and reinstall it.
 
-1. Read about the features supplied by each extension by visiting the docs that are listed in the "Documentation for Included Extensions" section of the [Salesforce Extensions for VS Code docs](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode). Identify the extension (or extensions) whose features aren’t working properly.
+1. For a list of extensions in the extension pack, see [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) on the Visual Studio Marketplace. Identify the extension (or extensions) whose features aren’t working properly.
 1. Close VS Code.
 1. To delete the malfunctioning extension, delete `~/.vscode/extensions/<folderOfProblematicExtension>`.
 1. Relaunch VS Code.
