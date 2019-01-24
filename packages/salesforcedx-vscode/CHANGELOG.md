@@ -1,3 +1,11 @@
+## 44.17.0 - January 24, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs.
+
 ## 44.16.0 - January 17, 2019
 
 ### Added
