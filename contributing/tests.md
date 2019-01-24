@@ -1,4 +1,6 @@
-# Introduction
+# Tests
+
+## Introduction
 
 There are several kinds of tests for the VS Code Extensions. This document
 describes them and gives pointers on how to run/debug them.
@@ -123,6 +125,8 @@ There are some optional environment variables to configure the test runner:
 | `CODE_TESTS_PATH`      | Location of the tests to execute (default is `process.cwd()/out/test` or `process.cwd()/test`) |
 | `CODE_EXTENSIONS_PATH` | Location of the extensions to load (default is `proces.cwd()`)                                 |
 | `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance (default is CODE_TESTS_PATH)             |
+
+If you are running this from the top-level root folder, you can issue `npm run test:without-system-tests`.
 
 See VS Code's doc
 [site](https://code.visualstudio.com/docs/extensions/testing-extensions#_running-tests-automatically-on-travis-ci-build-machines)
