@@ -1,34 +1,17 @@
 import {
-  CUSTOMOBJECTS_DIR,
-  SFDX_DIR,
-  SOBJECTS_DIR,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
-import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
-import {
   FauxClassGenerator,
   GeneratorUtil
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
 import { SfdxProjectJsonParser } from '../util';
 
 const WAIT_TIME_IN_MS = 50;
-
-interface ObjectFieldMap {
-  name: string;
-  fields: {
-    [key: string]: string;
-  };
-}
 
 export enum FileEventType {
   Create,
@@ -103,18 +86,15 @@ function doSObjectRefresh(
   } else {
     const remoteRefreshObjects: Set<string> = new Set<string>();
     filesForRefresh.map(uri => uri.fsPath).forEach(modifiedFilePath => {
-      const sobjectName = generator.doLocalRefresh(
+      const objectsToRemote = generator.doLocalRefresh(
         projectPath,
         modifiedFilePath
       );
-      if (!!sobjectName) {
-        remoteRefreshObjects.add(sobjectName);
+      if (!!objectsToRemote) {
+        objectsToRemote.forEach(sobject => remoteRefreshObjects.add(sobject));
       }
     });
-    if (
-      remoteRefreshObjects.size > 0 &&
-      fileEventType !== FileEventType.Delete
-    ) {
+    if (remoteRefreshObjects.size > 0) {
       // remote refresh
       vscode.commands.executeCommand(
         'sfdx.force.internal.refreshsobjects',

@@ -8,10 +8,31 @@ import {
   STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '../constants';
-import { ChildRelationship, SObjectCategory } from '../describe';
+import { ChildRelationship, Field, SObjectCategory } from '../describe';
 import { FauxClassGenerator } from './fauxClassGenerator';
 
 export class GeneratorUtil {
+  public static getFieldsFromFauxClass(
+    fauxClassPath: string,
+    filter: (line: string) => any
+  ) {
+    const fields: Field[] = [];
+    const classContent = fs.readFileSync(fauxClassPath).toString();
+    classContent
+      .split('\n')
+      .filter(filter)
+      .map(line =>
+        line
+          .trimLeft()
+          .replace(';', '')
+          .split(' ')
+      )
+      .forEach(lineParts => {
+        fields.push({ name: lineParts[2], type: lineParts[1] });
+      });
+    return fields;
+  }
+
   public static getSObjectsFolder(
     projectPath: string,
     type?: SObjectCategory

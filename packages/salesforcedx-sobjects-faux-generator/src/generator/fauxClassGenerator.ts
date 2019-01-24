@@ -11,20 +11,7 @@ import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
-import {
-  CUSTOMOBJECTS_DIR,
-  SFDX_DIR,
-  SOBJECTS_DIR,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
-} from '../constants';
-import {
-  ChildRelationship,
-  Field,
-  SObject,
-  SObjectCategory,
-  SObjectDescribe
-} from '../describe';
+import { Field, SObject, SObjectCategory, SObjectDescribe } from '../describe';
 import { nls } from '../messages';
 import { GeneratorUtil } from './fauxClassGeneratorUtil';
 
@@ -93,21 +80,18 @@ export class FauxClassGenerator {
   public doLocalRefresh(
     projectPath: string,
     modifiedFilePath: string
-  ): string | undefined {
+  ): string[] | undefined {
     const pattern = /(.+(?:\/|\\)objects(?:\/|\\)\w+)((?:\/|\\)fields(?:\/|\\)\w+.field-meta.xml)?/;
     const matches = modifiedFilePath.match(pattern);
-    if (matches && matches.length >= 2) {
+    if (matches && matches[1]) {
       const objectPath = matches[1];
       const name = path.basename(objectPath);
 
-      if (matches.length === 3) {
+      if (matches[2]) {
         // This is a path to a custom field. Check if it's a type that requires remote refresh
         const modifiedField = this.getCustomField(matches[0]);
-        if (
-          modifiedField &&
-          FauxClassGenerator.remoteRefreshTypes.has(modifiedField.type)
-        ) {
-          return name;
+        if (modifiedField && modifiedField.referenceTo) {
+          return [name, modifiedField.referenceTo[0]];
         }
       }
 
@@ -121,13 +105,24 @@ export class FauxClassGenerator {
 
       const fauxClassPath = path.join(sobjectsPath, `${name}.cls`);
       if (!fs.existsSync(fauxClassPath)) {
-        return name;
+        return [name];
       }
 
-      let fields = this.getStandardFieldsAndRelationships(fauxClassPath);
+      let fields = this.getStandardFields(fauxClassPath);
+      const referenceFields = this.getReferenceFields(fauxClassPath);
       const customFields = this.getCustomFields(objectPath);
-      if (!customFields) {
-        return name;
+      const zombieRefObjects: string[] = [];
+      referenceFields.forEach(rField => {
+        const rBaseName = rField.name.replace('__r', '');
+        const refIsZombie = !customFields.some(
+          cField => rBaseName === cField.name.replace('__c', '')
+        );
+        if (refIsZombie) {
+          zombieRefObjects.push(rField.type, name);
+        }
+      });
+      if (zombieRefObjects.length > 0) {
+        return zombieRefObjects;
       }
       fields = fields.concat(customFields);
 
@@ -135,37 +130,29 @@ export class FauxClassGenerator {
     }
   }
 
-  private getStandardFieldsAndRelationships(fauxClassPath: string): Field[] {
-    const fields: Field[] = [];
-    const classContent = fs.readFileSync(fauxClassPath).toString();
-    classContent
-      .split('\n')
-      .filter(
-        line =>
-          line.endsWith(';') && !line.includes('__c') && !line.includes('__s')
-      )
-      .map(line =>
-        line
-          .trimLeft()
-          .replace(';', '')
-          .split(' ')
-      )
-      .forEach(lineParts => {
-        fields.push({ name: lineParts[2], type: lineParts[1] });
-      });
-
-    return fields;
+  private getStandardFields(fauxClassPath: string): Field[] {
+    return GeneratorUtil.getFieldsFromFauxClass(
+      fauxClassPath,
+      line => line.endsWith(';') && !line.includes('__')
+    );
   }
 
-  private getCustomFields(objectMetadataPath: string): Field[] | undefined {
+  private getReferenceFields(fauxClassPath: string): Field[] {
+    return GeneratorUtil.getFieldsFromFauxClass(fauxClassPath, line =>
+      line.endsWith('__r;')
+    );
+  }
+
+  private getCustomFields(objectMetadataPath: string): Field[] {
     const fields: Field[] = [];
     const fieldsPath = path.join(objectMetadataPath, 'fields');
     if (fs.existsSync(fieldsPath)) {
       fs.readdirSync(fieldsPath).forEach(fieldName => {
         const fieldPath = path.join(fieldsPath, fieldName);
         const field = this.getCustomField(fieldPath);
-        if (field && !FauxClassGenerator.remoteRefreshTypes.has(field.type)) {
-          if (field.type === 'Location') {
+        if (field) {
+          const { type } = field;
+          if (type === 'Location') {
             // The only compound field to worry about
             const { name } = field;
             const longName = name.replace('__c', '__longitude__s');
@@ -189,8 +176,15 @@ export class FauxClassGenerator {
       const nameAndType = fileContents.match(
         /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/
       );
-      if (nameAndType && nameAndType.length === 3) {
-        return { name: nameAndType[1], type: nameAndType[2] };
+      if (nameAndType && nameAndType[1] && nameAndType[2]) {
+        const field: Field = { name: nameAndType[1], type: nameAndType[2] };
+        const refMatch = fileContents.match(
+          /<referenceTo>(\w+)<\/referenceTo>/
+        );
+        if (refMatch && refMatch[1]) {
+          field.referenceTo = [refMatch[1]];
+        }
+        return field;
       }
     }
   }
