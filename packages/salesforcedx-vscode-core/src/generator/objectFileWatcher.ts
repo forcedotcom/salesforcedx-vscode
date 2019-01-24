@@ -38,6 +38,7 @@ function setupFileCreateListener(sourceFileWatcher: vscode.FileSystemWatcher) {
 
       createdFilesTimeout = setTimeout(async () => {
         doSObjectRefresh(createdFiles, FileEventType.Create);
+        createdFiles.length = 0;
       }, WAIT_TIME_IN_MS);
     }
   });
@@ -81,7 +82,6 @@ function doSObjectRefresh(
   const sobjectsPath = GeneratorUtil.getSObjectsFolder(projectPath);
 
   if (!fs.existsSync(sobjectsPath) && fileEventType !== FileEventType.Delete) {
-    // do a first time setup describe. Long running...
     vscode.commands.executeCommand('sfdx.force.internal.refreshsobjects');
   } else {
     const remoteRefreshObjects: Set<string> = new Set<string>();
@@ -95,12 +95,10 @@ function doSObjectRefresh(
       }
     });
     if (remoteRefreshObjects.size > 0) {
-      // remote refresh
       vscode.commands.executeCommand(
         'sfdx.force.internal.refreshsobjects',
         Array.from(remoteRefreshObjects)
       );
-      console.log('DO REMOTE REFRESH: ' + remoteRefreshObjects.toString());
     }
   }
 }

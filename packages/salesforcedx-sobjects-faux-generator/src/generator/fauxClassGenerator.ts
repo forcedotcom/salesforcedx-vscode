@@ -62,9 +62,6 @@ export class FauxClassGenerator {
     ['autonumber', 'Double']
   ]);
 
-  // If these field types are modified, force a remote refresh
-  private static remoteRefreshTypes = new Set(['Lookup', 'MasterDetail']);
-
   private static fieldName(decl: string): string {
     return decl.substr(decl.indexOf(' ') + 1);
   }
@@ -108,24 +105,28 @@ export class FauxClassGenerator {
         return [name];
       }
 
-      let fields = this.getStandardFields(fauxClassPath);
+      // if there are any __r fields missing a corresponding __c field
+      // in the faux class, remote refresh the two objects of the relationship
       const referenceFields = this.getReferenceFields(fauxClassPath);
       const customFields = this.getCustomFields(objectPath);
       const zombieRefObjects: string[] = [];
-      referenceFields.forEach(rField => {
-        const rBaseName = rField.name.replace('__r', '');
-        const refIsZombie = !customFields.some(
-          cField => rBaseName === cField.name.replace('__c', '')
-        );
-        if (refIsZombie) {
-          zombieRefObjects.push(rField.type, name);
-        }
-      });
+      referenceFields
+        .filter(rField => !rField.type.startsWith('List'))
+        .forEach(rField => {
+          const rBaseName = rField.name.replace('__r', '');
+          const refIsZombie = !customFields.some(
+            cField => rBaseName === cField.name.replace('__c', '')
+          );
+          if (refIsZombie) {
+            zombieRefObjects.push(rField.type, name);
+          }
+        });
       if (zombieRefObjects.length > 0) {
         return zombieRefObjects;
       }
-      fields = fields.concat(customFields);
 
+      let fields = this.getStandardFields(fauxClassPath);
+      fields = fields.concat(customFields);
       this.generateFauxClass(sobjectsPath, { name, fields });
     }
   }
