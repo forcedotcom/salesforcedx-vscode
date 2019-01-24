@@ -1,18 +1,19 @@
 {
   "name": "@salesforce/salesforcedx-apex-replay-debugger",
   "displayName": "Apex Replay Debug Adapter",
-  "description":
-    "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
-  "version": "44.16.0",
+  "description": "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
+  "version": "44.17.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.16.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.17.0",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-uri": "1.0.1"
@@ -38,15 +39,15 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
-    "test:integration":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "test:integration": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }
