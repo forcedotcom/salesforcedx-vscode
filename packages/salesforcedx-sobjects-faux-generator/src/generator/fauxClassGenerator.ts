@@ -26,32 +26,16 @@ import {
   SObjectDescribe
 } from '../describe';
 import { nls } from '../messages';
+import { GeneratorUtil } from './fauxClassGeneratorUtil';
 
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
 
-export interface LocalSObject {
-  name: string;
-  fields: {
-    [key: string]: string;
-  };
-}
-
-interface LocalField {
-  name: string;
-  type: string;
-}
-
-export interface RefreshStatus {
-  sobjectName: string;
-  localRefresh: boolean;
-}
-
 export class FauxClassGenerator {
   // the empty string is used to represent the need for a special case
   // usually multiple fields with specialized names
-  private static typeMapping: Map<string, string> = new Map([
+  public static typeMapping: Map<string, string> = new Map([
     ['string', 'String'],
     ['double', 'Double'],
     ['reference', ''],
@@ -79,15 +63,20 @@ export class FauxClassGenerator {
     // TBD what are these mapped to and how to create them
     // ['calculated', 'xxx'],
     // ['masterrecord', 'xxx'],
-    ['complexvalue', 'Object']
+    ['complexvalue', 'Object'],
+    // These mappings are for metadata "types" specifically
+    ['number', 'Double'],
+    ['checkbox', 'Boolean'],
+    ['encryptedtext', 'String'],
+    ['multiselectpicklist', 'String'],
+    ['text', 'String'],
+    ['longtextarea', 'String'],
+    ['summary', 'Double'],
+    ['autonumber', 'Double']
   ]);
 
   // If these field types are modified, force a remote refresh
-  private static remoteRefreshTypes = new Set([
-    'Geolocation',
-    'Lookup',
-    'MasterDetail'
-  ]);
+  private static remoteRefreshTypes = new Set(['Lookup', 'MasterDetail']);
 
   private static fieldName(decl: string): string {
     return decl.substr(decl.indexOf(' ') + 1);
@@ -101,15 +90,60 @@ export class FauxClassGenerator {
     this.cancellationToken = cancellationToken;
   }
 
-  private getStandardFieldsAndRelationships(
-    fauxClassPath: string
-  ): LocalField[] {
-    const classContent = fs.readFileSync(fauxClassPath).toString();
+  public doLocalRefresh(
+    projectPath: string,
+    modifiedFilePath: string
+  ): string | undefined {
+    const pattern = /(.+(?:\/|\\)objects(?:\/|\\)\w+)((?:\/|\\)fields(?:\/|\\)\w+.field-meta.xml)?/;
+    const matches = modifiedFilePath.match(pattern);
+    if (matches && matches.length >= 2) {
+      const objectPath = matches[1];
+      const name = path.basename(objectPath);
 
-    const fields: LocalField[] = [];
+      if (matches.length === 3) {
+        // This is a path to a custom field. Check if it's a type that requires remote refresh
+        const modifiedField = this.getCustomField(matches[0]);
+        if (
+          modifiedField &&
+          FauxClassGenerator.remoteRefreshTypes.has(modifiedField.type)
+        ) {
+          return name;
+        }
+      }
+
+      const category = name.endsWith('__c')
+        ? SObjectCategory.CUSTOM
+        : SObjectCategory.STANDARD;
+      const sobjectsPath = GeneratorUtil.getSObjectsFolder(
+        projectPath,
+        category
+      );
+
+      const fauxClassPath = path.join(sobjectsPath, `${name}.cls`);
+      if (!fs.existsSync(fauxClassPath)) {
+        return name;
+      }
+
+      let fields = this.getStandardFieldsAndRelationships(fauxClassPath);
+      const customFields = this.getCustomFields(objectPath);
+      if (!customFields) {
+        return name;
+      }
+      fields = fields.concat(customFields);
+
+      this.generateFauxClass(sobjectsPath, { name, fields });
+    }
+  }
+
+  private getStandardFieldsAndRelationships(fauxClassPath: string): Field[] {
+    const fields: Field[] = [];
+    const classContent = fs.readFileSync(fauxClassPath).toString();
     classContent
       .split('\n')
-      .filter(line => line.endsWith(';') && !line.includes('__c'))
+      .filter(
+        line =>
+          line.endsWith(';') && !line.includes('__c') && !line.includes('__s')
+      )
       .map(line =>
         line
           .trimLeft()
@@ -123,127 +157,42 @@ export class FauxClassGenerator {
     return fields;
   }
 
-  private getCustomFields(fieldsPath: string): LocalField[] | undefined {
-    const fields: LocalField[] = [];
-    fs.readdirSync(fieldsPath).forEach(fieldName => {
-      const nameAndTypePattern = /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/;
-      const fieldContents = fs
-        .readFileSync(path.join(fieldsPath, fieldName))
-        .toString();
-      const nameAndType = fieldContents.match(nameAndTypePattern);
-      if (nameAndType && nameAndType.length === 3) {
-        const type = nameAndType[2];
-        if (FauxClassGenerator.remoteRefreshTypes.has(type)) {
-          return undefined;
+  private getCustomFields(objectMetadataPath: string): Field[] | undefined {
+    const fields: Field[] = [];
+    const fieldsPath = path.join(objectMetadataPath, 'fields');
+    if (fs.existsSync(fieldsPath)) {
+      fs.readdirSync(fieldsPath).forEach(fieldName => {
+        const fieldPath = path.join(fieldsPath, fieldName);
+        const field = this.getCustomField(fieldPath);
+        if (field && !FauxClassGenerator.remoteRefreshTypes.has(field.type)) {
+          if (field.type === 'Location') {
+            // The only compound field to worry about
+            const { name } = field;
+            const longName = name.replace('__c', '__longitude__s');
+            const latName = name.replace('__c', '__latitude__s');
+            fields.push(
+              { name: longName, type: 'double' },
+              { name: latName, type: 'double' }
+            );
+          } else {
+            fields.push(field);
+          }
         }
-        fields.push({ name: nameAndType[1], type });
-      }
-    });
+      });
+    }
     return fields;
   }
 
-  public updateFauxClass(
-    projectPath: string,
-    modifiedFilePath: string
-  ): RefreshStatus | undefined {
-    const matches = modifiedFilePath.match(/.+(?:\/|\\)objects(?:\/|\\)(\w+)/);
-    if (matches && matches.length === 2) {
-      const name = matches[1];
-      const refreshStatus = { sobjectName: name, localRefresh: false };
-      const category = name.endsWith('__c')
-        ? SObjectCategory.CUSTOM
-        : SObjectCategory.STANDARD;
-      const sobjectsPath = this.getSobjectsFolder(projectPath, category);
-      const fauxClassPath = path.join(sobjectsPath, `${name}.cls`);
-
-      if (!fs.existsSync(fauxClassPath)) {
-        return refreshStatus;
-      }
-
-      let fields = this.getStandardFieldsAndRelationships(fauxClassPath);
-      const customFieldsPath = path.join(matches[0], 'fields');
-      if (fs.existsSync(customFieldsPath)) {
-        const customFields = this.getCustomFields(customFieldsPath);
-        if (!customFields) {
-          return refreshStatus;
-        }
-        fields = fields.concat(customFields);
-      }
-
-      rm('-f', fauxClassPath);
-      fs.writeFileSync(
-        fauxClassPath,
-        this.generateFauxClassText2(name, fields),
-        {
-          mode: 0o444
-        }
+  private getCustomField(fieldPath: string): Field | undefined {
+    if (fs.existsSync(fieldPath)) {
+      const fileContents = fs.readFileSync(fieldPath).toString();
+      const nameAndType = fileContents.match(
+        /<fullName>(\w+__c)<\/fullName>(?:.|\n)*<type>(\w+)<\/type>/
       );
-
-      refreshStatus.localRefresh = true;
-      return refreshStatus;
+      if (nameAndType && nameAndType.length === 3) {
+        return { name: nameAndType[1], type: nameAndType[2] };
+      }
     }
-  }
-
-  // public updateSobjectDefinitions(projectPath: string, sobject: LocalSObject) {
-  //   const sobjectsFolderPath = path.join(
-  //     projectPath,
-  //     SFDX_DIR,
-  //     TOOLS_DIR,
-  //     SOBJECTS_DIR
-  //   );
-  //   const dir = sobject.name.endsWith('__c')
-  //     ? CUSTOMOBJECTS_DIR
-  //     : STANDARDOBJECTS_DIR;
-  //   const filePath = path.join(sobjectsFolderPath, dir, `${sobject.name}.cls`);
-  //   const classContent = fs.readFileSync(filePath).toString();
-
-  //   classContent
-  //     .split('\n')
-  //     .filter(line => line.endsWith(';') && !line.includes('__c'))
-  //     .map(line =>
-  //       line
-  //         .trimLeft()
-  //         .replace(';', '')
-  //         .split(' ')
-  //     )
-  //     .forEach(lineParts => {
-  //       sobject.fields[lineParts[2]] = lineParts[1];
-  //     });
-  //   this.generateFauxClass2(filePath, sobject);
-  //   // console.log(sobject);
-  //   // return fieldMap;
-  // }
-
-  // public generateFauxClass2(fauxClassPath: string, sobject: LocalSObject) {
-  //   // if (!fs.existsSync(folderPath)) {
-  //   //   fs.mkdirSync(folderPath);
-  //   // }
-  //   // const fauxClassPath = path.join(folderPath, sobject.sobjectName + '.cls');
-  //   // console.log(this.generateFauxClassText2(sobject));
-  //   rm('-f', fauxClassPath);
-  //   fs.writeFileSync(fauxClassPath, this.generateFauxClassText2(sobject), {
-  //     mode: 0o444
-  //   });
-  // }
-
-  public generateFauxClassText2(sobjectName: string, fields: LocalField[]) {
-    const indentAndModifier = '    global ';
-    const classDeclaration = `global class ${sobjectName} {${EOL}`;
-
-    const declarations = fields
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map(field => {
-        return `${field.type} ${field.name}`;
-      });
-
-    const declarationLines = declarations.join(`;${EOL}${indentAndModifier}`);
-    const classConstructor = `${indentAndModifier}${sobjectName} () ${EOL}    {${EOL}    }${EOL}`;
-
-    const generatedClass = `${nls.localize(
-      'class_header_generated_comment'
-    )}${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
-
-    return generatedClass;
   }
 
   public async generateByCategory(
@@ -259,27 +208,9 @@ export class FauxClassGenerator {
         nls.localize('failure_fetching_sobjects_list_text', e)
       );
     }
-    const sobjectFolder = this.getSobjectsFolder(projectPath, type);
-    this.cleanupSObjectFolders(sobjectFolder);
+    const sobjectFolder = GeneratorUtil.getSObjectsFolder(projectPath, type);
+    GeneratorUtil.cleanupSObjectFolders(sobjectFolder);
     return this.generate(projectPath, sobjects);
-  }
-
-  public getSobjectsFolder(
-    projectPath: string,
-    type?: SObjectCategory
-  ): string {
-    let sobjectFolder = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR
-    );
-    if (type === SObjectCategory.CUSTOM) {
-      sobjectFolder = path.join(sobjectFolder, CUSTOMOBJECTS_DIR);
-    } else if (type === SObjectCategory.STANDARD) {
-      sobjectFolder = path.join(sobjectFolder, STANDARDOBJECTS_DIR);
-    }
-    return sobjectFolder;
   }
 
   public async generate(
@@ -293,7 +224,7 @@ export class FauxClassGenerator {
       return this.errorExit(
         nls.localize(
           'no_generate_if_not_in_project',
-          this.getSobjectsFolder(projectPath)
+          GeneratorUtil.getSObjectsFolder(projectPath)
         )
       );
     }
@@ -335,7 +266,7 @@ export class FauxClassGenerator {
     this.logFetchedObjects(standardSObjects, customSObjects);
 
     try {
-      const standardFolderPath = this.getSobjectsFolder(
+      const standardFolderPath = GeneratorUtil.getSObjectsFolder(
         projectPath,
         SObjectCategory.STANDARD
       );
@@ -345,7 +276,7 @@ export class FauxClassGenerator {
     }
 
     try {
-      const customFolderPath = this.getSobjectsFolder(
+      const customFolderPath = GeneratorUtil.getSObjectsFolder(
         projectPath,
         SObjectCategory.CUSTOM
       );
@@ -369,6 +300,9 @@ export class FauxClassGenerator {
       fs.mkdirSync(folderPath);
     }
     const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
+    if (fs.existsSync(fauxClassPath)) {
+      rm('-f', fauxClassPath);
+    }
     fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
       mode: 0o444
     });
@@ -406,56 +340,31 @@ export class FauxClassGenerator {
     return Promise.resolve(nls.localize('faux_generation_cancelled_text'));
   }
 
-  private stripId(name: string): string {
-    if (name.endsWith('Id')) {
-      return name.slice(0, name.length - 2);
-    } else {
-      return name;
-    }
-  }
-
-  private capitalize(input: string): string {
-    return input.charAt(0).toUpperCase() + input.slice(1);
-  }
-
-  private getTargetType(describeType: string): string {
-    const gentype = FauxClassGenerator.typeMapping.get(describeType) as string;
-    return gentype ? gentype : this.capitalize(describeType);
-  }
-
-  private getReferenceName(relationshipName: string, name: string): string {
-    return relationshipName ? relationshipName : this.stripId(name);
-  }
-
-  private generateChildRelationship(rel: ChildRelationship): string {
-    const nameToUse = this.getReferenceName(rel.relationshipName, rel.field);
-    return `List<${rel.childSObject}> ${nameToUse}`;
-  }
-
   private generateField(field: Field): string[] {
     const decls: string[] = [];
     let genType = '';
-    if (field.referenceTo.length === 0) {
+    const { name, referenceTo, extraTypeInfo } = field;
+    if (!referenceTo || referenceTo.length === 0) {
       // should be a normal field EXCEPT for external lookup & metadata relationship
       // which is a reference, but no referenceTo targets
-      if (field.extraTypeInfo === 'externallookup') {
+      if (extraTypeInfo && extraTypeInfo === 'externallookup') {
         genType = 'String';
       } else {
-        genType = this.getTargetType(field.type);
+        genType = GeneratorUtil.getTargetType(field.type);
       }
-      decls.push(`${genType} ${field.name}`);
+      decls.push(`${genType} ${name}`);
     } else {
-      const nameToUse = this.getReferenceName(
-        field.relationshipName,
-        field.name
+      const nameToUse = GeneratorUtil.getReferenceName(
+        field.relationshipName!,
+        name
       );
-      if (field.referenceTo.length > 1) {
+      if (referenceTo.length > 1) {
         decls.push(`SObject ${nameToUse}`);
       } else {
-        decls.push(`${field.referenceTo} ${nameToUse}`);
+        decls.push(`${referenceTo} ${nameToUse}`);
       }
       // field.type will be "reference", but the actual type is an Id for Apex
-      decls.push(`Id ${field.name}`);
+      decls.push(`Id ${name}`);
     }
     return decls;
   }
@@ -487,7 +396,7 @@ export class FauxClassGenerator {
     if (sobject.childRelationships) {
       for (const rel of sobject.childRelationships) {
         if (rel.relationshipName) {
-          const decl: string = this.generateChildRelationship(rel);
+          const decl: string = GeneratorUtil.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }
@@ -496,13 +405,14 @@ export class FauxClassGenerator {
       for (const rel of sobject.childRelationships) {
         // handle the odd childRelationships last (without relationshipName)
         if (!rel.relationshipName) {
-          const decl: string = this.generateChildRelationship(rel);
+          const decl: string = GeneratorUtil.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }
         }
       }
     }
+
     return declarations;
   }
 
@@ -547,12 +457,6 @@ export class FauxClassGenerator {
       return fs.existsSync(folderPath);
     }
     return true;
-  }
-
-  private cleanupSObjectFolders(baseSObjectsFolder: string) {
-    if (fs.existsSync(baseSObjectsFolder)) {
-      rm('-rf', baseSObjectsFolder);
-    }
   }
 
   private logSObjects(sobjectKind: string, fetchedLength: number) {

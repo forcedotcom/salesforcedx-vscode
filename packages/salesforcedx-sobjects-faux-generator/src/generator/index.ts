@@ -6,3 +6,4 @@
  */
 
 export { FauxClassGenerator } from './fauxClassGenerator';
+export { GeneratorUtil } from './fauxClassGeneratorUtil';
