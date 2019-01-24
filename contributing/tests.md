@@ -1,10 +1,14 @@
-# Tests
+# Introduction
 
 There are several kinds of tests for the VS Code Extensions. This document
-describes them and give pointers on how to run/debug them.
+describes them and gives pointers on how to run/debug them.
 
-These tests are described in the order in which we prefer to write them. Always
-prefer unit tests, integration tests, and system tests, in that order.
+The test types from most preferred to least preferred are:
+
+1. Unit Tests
+1. Vscode-integration Tests
+1. Integration Tests
+1. System Tests
 
 Ensure that you have set a default dev hub through the `sfdx force:auth:*` commands,
 passing in `--setdefaultdevhubusername`.
@@ -18,7 +22,32 @@ We have several modules that do not have any dependencies on VS Code. For
 instance, the salesforce-apex-debugger and salesforce-utils-vscode modules. You
 would write such tests using Mocha and Chai as you normally would for NPM modules.
 
-## VS Code Tests
+### Unit Tests
+
+Place your strict unit tests in the `test/unit` directory of your package and create an npm
+script in your package.json like `"test:unit": "./node_modules/.bin/_mocha --recursive out/test/unit"`
+for running the tests. Check out the `"test:unit"` scripts in the package.json files for the
+salesforce-apex-debugger and salesforce-utils-vscode packages to see examples of how to configure
+code coverage reporting when running the tests.
+
+These tests should not require a VS Code instance or a Salesforce server connection, and
+can be run using `npm run test:unit`.
+
+### Integration Tests that require the Salesforce server
+
+There are tests that require integration with the Salesforce server. These tests
+require prior authentication to have occurred and a default devhub to be set.
+These show up in several packages. These tests are put under `test/integration`
+and are named in the standard `*.test.ts` pattern. The package.json should have an
+entry like `"test:integration": "./node_modules/.bin/_mocha --recursive out/test/integration"`.
+Check out the `"test:integration"` scripts in the package.json files for the
+salesforce-apex-debugger and salesforce-utils-vscode packages to see how to additionally
+configure code coverage reporting.
+
+These can be run in the same way from the terminal using `npm run test:integration`.
+Running `npm run test` will also run these.
+
+## VS Code Integration Tests
 
 VS Code provides its own special way to run tests that require access to the
 extension development host. Basically, it launches your test in another instance
@@ -34,13 +63,13 @@ More information can be found at the doc
 While the test runner is highly configurable, there are certain assumptions that
 will help make writing the tests easier.
 
-1. Ensure that your tests go into the `test` folder.
-1. Ensure that you have an index.ts file in the test folder that follows what is
+1. Ensure that your tests go into the `test/vscode-integration` folder.
+1. Ensure that you have an index.ts file in the `test/vscode-integration` folder that follows what is
    in the standard configuration (copy from an existing one if you don't have
    it).
 1. Ensure that your test files are named like <something>.test.ts. The .test. in
    the middle is essential
-1. Ensure that your .js test files are compiled into the out/test directory.
+1. Ensure that your .js test files are compiled into the `out/test/vscode-integration` directory.
 
 ### Running interactively
 
@@ -49,18 +78,18 @@ There are configurations already created for you at the top level
 
 ```json
 {
-  "name": "Launch Salesforce DX VS Code Apex Tests",
+  "name": "Launch Salesforce DX VS Code Apex Vscode-Integration Tests",
   "type": "extensionHost",
   "request": "launch",
   "runtimeExecutable": "${execPath}",
   "args": [
-    //<path-to-a-folder>
+    "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
     "--extensionDevelopmentPath=${workspaceRoot}/packages",
-    "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test"
+    "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test/vscode-integration"
   ],
   "stopOnEntry": false,
   "sourceMaps": true,
-  "outFiles": ["${workspaceRoot}/packages/*/out/test/**/*.js"],
+  "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
   "preLaunchTask": "Compile"
 }
 ```
@@ -69,17 +98,18 @@ The important args are:
 
 - The first, optional, parameter is a location to a folder that will serve as
   the workspace to run the tests. If you omit this, it just uses a clean
-  workspace (which is usually what you want).
+  workspace.
 - `--extensionDevelopmentPath` - This governs what extensions are loaded
-- `--extensionTestsPath` - This governs what tests are actually run. This seems
-  to be a specific folder so you cannot add a wildcard.
+- `--extensionTestsPath` - This governs what tests are actually run. This must be an
+  absolute path and cannot be a wildcard.
 
 ### Running through the CLI
 
-You should add an entry like `"test": "node ./node_modules/vscode/bin/test"` to
+You should add an entry like `"test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions"`
+or `"test:vscode-integration": "node ../../scripts/run-vscode-integration-tests"` to
 your package.json.
 
-When you run `npm test` it will actually go ahead and fetch an instance of code
+When you run `npm test:vscode-integration` it will actually go ahead and fetch an instance of code
 into the .vscode-test folder and run your tests with that instance. Thus, the
 .vscode-test folder should be put into your .gitignore (and other .ignore files
 such as .npmignore and .vscodeignore)
@@ -94,8 +124,6 @@ There are some optional environment variables to configure the test runner:
 | `CODE_EXTENSIONS_PATH` | Location of the extensions to load (default is `proces.cwd()`)                                 |
 | `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance (default is CODE_TESTS_PATH)             |
 
-If you are running this from the top-level root folder, you can issue `npm run test:without-system-tests`.
-
 See VS Code's doc
 [site](https://code.visualstudio.com/docs/extensions/testing-extensions#_running-tests-automatically-on-travis-ci-build-machines)
 for more information.
@@ -104,41 +132,23 @@ See this
 [repository](https://github.com/Microsoft/vscode-extension-vscode/blob/master/bin/test)
 for the actual vscode/bin/test source.
 
-## Integration Tests that require the Salesforce server
+### Running the tests against VS Code Insiders
 
-There are tests that require integration with the Salesforce server. These tests
-require prior authentication to have occurred and a default devhub to be set.
-These show up in several packages. These tests are put under test/integration
-and named in the standard .test.ts pattern. The package.json should have an
-entry like `"test:integration": "node ./node_modules/vscode/bin/test/integration"`.
-
-These can be run in the same way from the CLI using `npm run test:integration`.
-Running `npm run test` will also run these.
-
-## Unit Tests
-
-A module can also have an entry like `"test:unit": "node ./node_modules/vscode/bin/test/unit"`. This is used for pure unit tests and for
-VS Code based tests discussed above. It is a good pattern to have an entry of
-`"test:unit": "node ./node_modules/vscode/bin/test"` in the package.json for
-modules that don't have separate integration tests.
-
-These can be run using `npm run test:unit` for quick testing that doesn't
-require the scratch org and server.
-
-Modules that have separate unit & integration tests can provide top level launch
-configurations for running those tests as well. See the examples in launch.json
-for Apex Debugger configurations.
+To test your extension with the upcoming version of VS Code, add another entry to your
+package.json scripts to run your vscode-integration tests in VS Code - Insiders. The entry
+should look like:
+`"test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"`
 
 ## Test Results
 
 Since some modules have a dependency on VSCode and others do not, the way the tests
 are ran for them are different. The ones without a dependency on VSCode will run mocha
-directly while the VSCode packages runs the tests programmatically. In order to produce
+directly while the vscode-integration tests are run programmatically. In order to produce
 the junit and xunit files, we have to configure mocha to use mocha-multi-reporters
 and the mocha-junit-reporter packages. For the packages running mocha directly,
 they are configured by pointing the config file option to the top level mocha config file.
-For the VSCode packages, the `testrunner.ts` file will set the reporters if they have not
-already been set.
+For the vscode integration tests inside of the `test/vscode-integration` directory,
+the `testrunner.ts` file will set the reporters if they have not already been set.
 
 ### Uploading Test Results
 
@@ -179,6 +189,9 @@ together to minimize the setup time.
 
 From the top-level folder, execute `npm run test:system-tests` to execute _only_
 the system tests.
+
+System tests can also be run against VS Code - Insiders. To do so, execute
+`npm run test:vscode-insiders-system-tests`
 
 ## Debugging System Tests
 
