@@ -8,7 +8,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
+import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -26,7 +26,7 @@ export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
 
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription('SFDX: Set a Default Org')
+      .withDescription(nls.localize('force_config_set_org_text'))
       .withArg('force:config:set')
       .withArg(`defaultusername=${this.usernameOrAlias}`)
       .build();

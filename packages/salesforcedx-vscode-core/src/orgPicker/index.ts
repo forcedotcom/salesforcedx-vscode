@@ -8,7 +8,6 @@
 export {
   OrgList,
   FileInfo,
-  updateOrgList,
   setDefaultOrg,
   showOrg,
   displayDefaultUsername

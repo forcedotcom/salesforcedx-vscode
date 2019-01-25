@@ -13,24 +13,24 @@ import { Aliases, AuthInfo } from '@salesforce/core';
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   getDefaultUsernameOrAlias,
-  getUsername,
   getWorkspaceOrgType,
   OrgType,
   setupWorkspaceOrgType
 } from '../../../src/context';
+import { OrgAuthInfo } from '../../../src/util';
 
 describe('getUsername', () => {
   it('should return the username when given a username', async () => {
     const username = 'test@org.com';
     const aliasesStub = getAliasesFetchStub(undefined);
-    expect(await getUsername(username)).to.equal(username);
+    expect(await OrgAuthInfo.getUsername(username)).to.equal(username);
     aliasesStub.restore();
   });
 
   it('should return the username when given an alias', async () => {
     const username = 'test@org.com';
     const aliasesStub = getAliasesFetchStub(username);
-    expect(await getUsername('orgAlias')).to.equal(username);
+    expect(await OrgAuthInfo.getUsername('orgAlias')).to.equal(username);
     aliasesStub.restore();
   });
 });

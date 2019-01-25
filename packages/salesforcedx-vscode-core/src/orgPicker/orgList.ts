@@ -9,20 +9,20 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { readFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import fs = require('fs');
-import { isNullOrUndefined, promisify } from 'util';
-import { getDefaultUsernameOrAlias } from '../context/workspaceOrgType';
 import { nls } from '../messages';
+import { OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
   isDevHub?: boolean;
   username: string;
+  devHubUsername?: string;
 }
-const readFileAsync = promisify(fs.readFile);
 export class OrgList {
   public async getAuthInfoObjects() {
     const authFilesArray = await AuthInfo.listAllAuthFiles().catch(err => null);
@@ -30,14 +30,16 @@ export class OrgList {
     if (authFilesArray === null || authFilesArray.length === 0) {
       return null;
     }
-    const authInfoObjects = Promise.all(
-      authFilesArray.map(fileName => {
-        const filePath = path.join(os.homedir(), '.sfdx', fileName);
-        return readFileAsync(filePath, 'utf8')
-          .then(fileData => JSON.parse(fileData))
-          .catch(err => console.log(err));
-      })
-    );
+    const authInfoObjects: FileInfo[] = [];
+    for (const username of authFilesArray) {
+      try {
+        const filePath = path.join(os.homedir(), '.sfdx', username);
+        const fileData = readFileSync(filePath, 'utf8');
+        authInfoObjects.push(JSON.parse(fileData));
+      } catch (e) {
+        console.log(e);
+      }
+    }
     return authInfoObjects;
   }
 
@@ -45,6 +47,20 @@ export class OrgList {
     authInfoObjects = authInfoObjects.filter(fileData =>
       isNullOrUndefined(fileData.scratchAdminUsername)
     );
+
+    const defaultDevHubUsernameorAlias = await getDefaultDevHubUsernameorAlias();
+    if (defaultDevHubUsernameorAlias) {
+      const defaultDevHubUsername = await OrgAuthInfo.getUsername(
+        defaultDevHubUsernameorAlias
+      );
+      authInfoObjects = authInfoObjects.filter(
+        fileData =>
+          isNullOrUndefined(fileData.devHubUsername) ||
+          (!isNullOrUndefined(fileData.devHubUsername) &&
+            fileData.devHubUsername === defaultDevHubUsername)
+      );
+    }
+
     const authUsernames = authInfoObjects.map(file => file.username);
     const aliases = await Aliases.create(Aliases.getDefaultOptions());
     const authList = [];
@@ -58,19 +74,18 @@ export class OrgList {
     }
     return authList;
   }
+
+  public async updateOrgList() {
+    const authInfoObjects = await this.getAuthInfoObjects();
+    if (isNullOrUndefined(authInfoObjects)) {
+      return null;
+    }
+    const authUsernameList = await this.filterAuthInfo(authInfoObjects);
+    return authUsernameList;
+  }
 }
 
 let statusBarItem: vscode.StatusBarItem;
-
-export async function updateOrgList() {
-  const orgList = new OrgList();
-  const authInfoObjects = await orgList.getAuthInfoObjects();
-  if (isNullOrUndefined(authInfoObjects)) {
-    return null;
-  }
-  const authUsernameList = await orgList.filterAuthInfo(authInfoObjects);
-  return authUsernameList;
-}
 
 export async function setDefaultOrg(): Promise<
   CancelResponse | ContinueResponse<{}>
@@ -79,17 +94,25 @@ export async function setDefaultOrg(): Promise<
     '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
     '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
   ];
-  const orgList = await updateOrgList();
-  if (!isNullOrUndefined(orgList)) {
-    quickPickList = quickPickList.concat(orgList);
+  const defaultDevHubUsernameorAlias = await getDefaultDevHubUsernameorAlias();
+  if (isNullOrUndefined(defaultDevHubUsernameorAlias)) {
+    quickPickList.push(
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
+    );
   }
+  const orgList = new OrgList();
+  const authInfoList = await orgList.updateOrgList();
+  if (!isNullOrUndefined(authInfoList)) {
+    quickPickList = quickPickList.concat(authInfoList);
+  }
+
   const selection = await vscode.window.showQuickPick(quickPickList, {
     placeHolder: nls.localize('org_select_text')
   });
+
   if (!selection) {
     return { type: 'CANCEL' };
   }
-
   if (
     selection ===
     '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text')
@@ -99,6 +122,12 @@ export async function setDefaultOrg(): Promise<
       type: 'CONTINUE',
       data: {}
     };
+  } else if (
+    selection ===
+    '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
+  ) {
+    vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
+    return { type: 'CONTINUE', data: {} };
   } else if (
     selection ===
     '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
@@ -116,7 +145,7 @@ export async function showOrg() {
   if (!statusBarItem) {
     statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      50
+      49
     );
     statusBarItem.command = 'sfdx.force.set.default.org';
     statusBarItem.show();
@@ -130,10 +159,31 @@ export async function showOrg() {
 }
 
 export async function displayDefaultUsername() {
-  const defaultUsernameorAlias = await getDefaultUsernameOrAlias();
+  let defaultUsernameorAlias: string | undefined;
+  if (
+    vscode.workspace.workspaceFolders instanceof Array &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+      vscode.workspace.workspaceFolders[0].uri.fsPath
+    );
+  }
   if (defaultUsernameorAlias) {
-    statusBarItem.text = `$(briefcase) ${defaultUsernameorAlias}`;
+    statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
   } else {
     statusBarItem.text = nls.localize('missing_default_org');
+  }
+}
+
+export async function getDefaultDevHubUsernameorAlias(): Promise<
+  string | undefined
+> {
+  if (
+    vscode.workspace.workspaceFolders instanceof Array &&
+    vscode.workspace.workspaceFolders.length > 0
+  ) {
+    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+      vscode.workspace.workspaceFolders[0].uri.fsPath
+    );
   }
 }
