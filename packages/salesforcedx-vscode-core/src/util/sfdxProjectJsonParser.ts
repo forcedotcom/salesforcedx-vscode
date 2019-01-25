@@ -20,9 +20,8 @@ export class SfdxProjectJsonParser {
   }
 
   public async getPackageDirectoryPaths(
-    workspacePath: string
+    sfdxProjectPath: string
   ): Promise<string[]> {
-    const sfdxProjectPath = workspacePath;
     const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
     const sfdxProjectJson = await sfdxProject.resolveProjectConfig();
     const packageDirectories = sfdxProjectJson.packageDirectories as JsonArray;
@@ -52,5 +51,16 @@ export class SfdxProjectJsonParser {
       error.name = 'NoPackageDirectoriesFound';
       throw error;
     }
+  }
+
+  public async getPackageDirectoryFullPaths(
+    sfdxProjectPath: string
+  ): Promise<string[]> {
+    const packageDirectoryPaths = await this.getPackageDirectoryPaths(
+      sfdxProjectPath
+    );
+    return packageDirectoryPaths.map(packageDirectoryPath =>
+      path.join(sfdxProjectPath, packageDirectoryPath)
+    );
   }
 }

@@ -130,4 +130,27 @@ describe('SFDX Project JSON Parser', () => {
       }
     });
   });
+
+  describe('getPackageDirectoryFullPaths', () => {
+    it('returns the full paths to the package directories', async () => {
+      const testPackage = 'testPackage';
+      const anotherTestPackage = 'anotherTestPackage';
+
+      const getPackageDirectoryPathsStub = stub(
+        SfdxProjectJsonParser.prototype,
+        'getPackageDirectoryPaths'
+      ).returns([testPackage, anotherTestPackage]);
+
+      const fullPaths = await parser.getPackageDirectoryFullPaths(
+        SFDX_PROJECT_PATH
+      );
+
+      expect(fullPaths.length).to.equal(2);
+      expect(fullPaths[0]).to.equal(path.join(SFDX_PROJECT_PATH, testPackage));
+      expect(fullPaths[1]).to.equal(
+        path.join(SFDX_PROJECT_PATH, anotherTestPackage)
+      );
+      getPackageDirectoryPathsStub.restore();
+    });
+  });
 });
