@@ -13,7 +13,6 @@ import { IsInSfdxPackageDirectory } from '../predicates';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxProjectJsonParser } from '../util';
 
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -106,11 +105,7 @@ function displayError(message: string) {
 }
 
 function ignorePath(uri: vscode.Uri, packageDirectories: string[]) {
-  return (
-    isDotFile(uri) ||
-    isDirectory(uri) ||
-    !pathIsInPackageDirectory(uri, packageDirectories)
-  );
+  return isDotFile(uri) || !pathIsInPackageDirectory(uri, packageDirectories);
 }
 
 function pathIsInPackageDirectory(
@@ -126,11 +121,4 @@ function pathIsInPackageDirectory(
 
 function isDotFile(uri: vscode.Uri) {
   return path.basename(uri.fsPath).startsWith('.');
-}
-
-function isDirectory(uri: vscode.Uri) {
-  if (fs.existsSync(uri.fsPath)) {
-    return fs.lstatSync(uri.fsPath).isDirectory();
-  }
-  return false;
 }
