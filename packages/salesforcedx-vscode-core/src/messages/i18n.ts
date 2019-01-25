@@ -213,8 +213,6 @@ export const messages = {
   auth_invalid_url: 'URL must begin with http:// or https://',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
-  error_deploy_delete_on_save_not_supported_text:
-    'Error deleting source from your org: When you delete source from your file system, the corresponding metadata isn\'t deleted from non-source-tracked orgs during deployments. Open your org and delete the metadata manually, or remove the deleted source from your recycling bin and then run "SFDX: Delete Source from Project and Org".',
   error_no_package_directories_found_on_setup_text:
     'Error setting up push or deploy on save: Your sfdx-project.json file doesn\'t contain a "packageDirectories" property. Add this property, or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
   error_no_package_directories_paths_found_text:

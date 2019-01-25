@@ -14,50 +14,25 @@ import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {
-  FileEventType,
-  getPackageDirectoriesRelativePattern,
+  getPackageDirectoryPaths,
   pushOrDeploy
 } from '../../../src/settings/pushOrDeployOnSave';
 import { SfdxProjectJsonParser } from '../../../src/util';
 
 const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */
-describe('getPackageDirectoriesRelativePattern', () => {
-  it('should return a glob string with one package directory', async () => {
-    const getPackageDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
-    ).returns(['force-app']);
-
-    const relativePattern = await getPackageDirectoriesRelativePattern();
-
-    expect(relativePattern.pattern).to.equal('{force-app}/**');
-    getPackageDirectoriesStub.restore();
-  });
-
-  it('should return a glob string with multiple package directories', async () => {
-    const getPackageDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
-    ).returns(['package1', 'package2', 'package3']);
-
-    const relativePattern = await getPackageDirectoriesRelativePattern();
-
-    expect(relativePattern.pattern).to.equal('{package1,package2,package3}/**');
-    getPackageDirectoriesStub.restore();
-  });
-
+describe('getPackageDirectoryPaths', () => {
   it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
     const error = new Error();
     error.name = 'NoPackageDirectoriesFound';
     const getPackageDirectoriesStub = stub(
       SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
+      'getPackageDirectoryFullPaths'
     ).throws(error);
     let errorWasThrown = false;
 
     try {
-      await getPackageDirectoriesRelativePattern();
+      await getPackageDirectoryPaths();
     } catch (e) {
       errorWasThrown = true;
       expect(e.message).to.equal(
@@ -74,11 +49,11 @@ describe('getPackageDirectoriesRelativePattern', () => {
     error.name = 'NoPackageDirectoryPathsFound';
     const getPackageDirectoriesStub = stub(
       SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
+      'getPackageDirectoryFullPaths'
     ).throws(error);
     let errorWasThrown = false;
     try {
-      await getPackageDirectoriesRelativePattern();
+      await getPackageDirectoryPaths();
     } catch (error) {
       errorWasThrown = true;
       expect(error.message).to.equal(
@@ -112,7 +87,7 @@ describe('pushOrDeploy', () => {
         'getWorkspaceOrgType'
       ).throws(namedOrgNotFoundError);
 
-      await pushOrDeploy(FileEventType.Create);
+      await pushOrDeploy([]);
 
       const error = nls.localize('error_fetching_auth_info_text');
       expect(showErrorMessageStub.calledOnce).to.be.true;
@@ -130,7 +105,7 @@ describe('pushOrDeploy', () => {
         'getWorkspaceOrgType'
       ).throws(noDefaultUsernameSetError);
 
-      await pushOrDeploy(FileEventType.Create);
+      await pushOrDeploy([]);
 
       const error = nls.localize(
         'error_push_or_deploy_on_save_no_default_username'
@@ -144,23 +119,14 @@ describe('pushOrDeploy', () => {
   });
 
   describe('orgs with sourceTracking', () => {
-    let getWorkspaceOrgTypeStub: SinonStub;
-    let executeCommandStub: SinonStub;
+    it('should call force:source:push', async () => {
+      const getWorkspaceOrgTypeStub = stub(
+        context,
+        'getWorkspaceOrgType'
+      ).returns(OrgType.SourceTracked);
+      const executeCommandStub = stub(vscode.commands, 'executeCommand');
 
-    beforeEach(() => {
-      getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType').returns(
-        OrgType.SourceTracked
-      );
-      executeCommandStub = stub(vscode.commands, 'executeCommand');
-    });
-
-    afterEach(() => {
-      getWorkspaceOrgTypeStub.restore();
-      executeCommandStub.restore();
-    });
-
-    const testPushOn = async (fileEvent: FileEventType) => {
-      await pushOrDeploy(fileEvent);
+      await pushOrDeploy([]);
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
@@ -168,38 +134,21 @@ describe('pushOrDeploy', () => {
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
-    };
 
-    it('should call force:source:push on file creation', async () => {
-      await testPushOn(FileEventType.Create);
-    });
-
-    it('should call force:source:push on file change', async () => {
-      await testPushOn(FileEventType.Change);
-    });
-
-    it('should call force:source:push on file deletion', async () => {
-      await testPushOn(FileEventType.Delete);
+      getWorkspaceOrgTypeStub.restore();
+      executeCommandStub.restore();
     });
   });
 
   describe('orgs without sourceTracking', () => {
-    let getWorkspaceOrgTypeStub: SinonStub;
-    let executeCommandStub: SinonStub;
-    beforeEach(() => {
-      getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType').returns(
-        Promise.resolve(OrgType.NonSourceTracked)
-      );
-      executeCommandStub = stub(vscode.commands, 'executeCommand');
-    });
+    it('should call force:source:deploy on multiple paths', async () => {
+      const getWorkspaceOrgTypeStub = stub(
+        context,
+        'getWorkspaceOrgType'
+      ).returns(Promise.resolve(OrgType.NonSourceTracked));
+      const executeCommandStub = stub(vscode.commands, 'executeCommand');
 
-    afterEach(() => {
-      getWorkspaceOrgTypeStub.restore();
-      executeCommandStub.restore();
-    });
-
-    it('should call force:source:deploy on multiple paths for file creations', async () => {
-      await pushOrDeploy(FileEventType.Create, []);
+      await pushOrDeploy([]);
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.getCall(0).args[0]).to.eql(
@@ -207,30 +156,9 @@ describe('pushOrDeploy', () => {
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
-    });
 
-    it('should call force:source:deploy on a single path for file changes', async () => {
-      await pushOrDeploy(FileEventType.Change, []);
-
-      expect(executeCommandStub.calledOnce).to.be.true;
-      expect(executeCommandStub.getCall(0).args[0]).to.eql(
-        'sfdx.force.source.deploy.source.path'
-      );
-      expect(showErrorMessageStub.calledOnce).to.be.false;
-      expect(appendLineStub.calledOnce).to.be.false;
-    });
-
-    it('should display an error to the user for file deletions', async () => {
-      await pushOrDeploy(FileEventType.Delete);
-
-      const error = nls.localize(
-        'error_deploy_delete_on_save_not_supported_text'
-      );
-      expect(executeCommandStub.called).to.be.false;
-      expect(showErrorMessageStub.calledOnce).to.be.true;
-      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
-      expect(appendLineStub.calledOnce).to.be.true;
-      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
+      getWorkspaceOrgTypeStub.restore();
+      executeCommandStub.restore();
     });
   });
 });
