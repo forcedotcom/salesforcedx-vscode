@@ -119,7 +119,9 @@ describe('getWorkspaceOrgType', () => {
 
     const error = new Error();
     error.name = 'NamedOrgNotFound';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
 
     let errorWasThrown = false;
     try {
@@ -131,7 +133,7 @@ describe('getWorkspaceOrgType', () => {
       expect(errorWasThrown).to.be.true;
       getConfigStub.restore();
       aliasesStub.restore();
-      authInfoStub.restore();
+      orgAuthInfoStub.restore();
     }
   });
 
@@ -145,7 +147,9 @@ describe('getWorkspaceOrgType', () => {
     error.name = 'GenericKeychainServiceError';
     error.stack =
       'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
 
     let errorWasThrown = false;
     try {
@@ -160,7 +164,7 @@ describe('getWorkspaceOrgType', () => {
       expect(errorWasThrown).to.be.true;
       getConfigStub.restore();
       aliasesStub.restore();
-      authInfoStub.restore();
+      orgAuthInfoStub.restore();
     }
   });
 });
@@ -191,7 +195,9 @@ describe('setupWorkspaceOrgType', () => {
 
     const error = new Error();
     error.name = 'NamedOrgNotFound';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
     await setupWorkspaceOrgType();
@@ -202,7 +208,7 @@ describe('setupWorkspaceOrgType', () => {
 
     getConfigStub.restore();
     aliasesStub.restore();
-    authInfoStub.restore();
+    orgAuthInfoStub.restore();
     executeCommandStub.restore();
   });
 
@@ -271,7 +277,9 @@ describe('setupWorkspaceOrgType', () => {
     error.name = 'GenericKeychainServiceError';
     error.stack =
       'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
 
     try {
       expect(await getDefaultUsernameOrAlias()).to.equal(username);
@@ -286,7 +294,7 @@ describe('setupWorkspaceOrgType', () => {
       getConfigStub.restore();
       aliasesSpy.restore();
       executeCommandStub.restore();
-      authInfoStub.restore();
+      orgAuthInfoStub.restore();
     }
   });
 });

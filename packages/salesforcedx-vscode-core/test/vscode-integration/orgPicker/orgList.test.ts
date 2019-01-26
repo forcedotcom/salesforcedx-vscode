@@ -6,10 +6,10 @@
  */
 import { AuthInfo } from '@salesforce/core';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as sinon from 'sinon';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import fs = require('fs');
 import { nls } from '../../../src/messages';
 import { OrgList, setDefaultOrg } from '../../../src/orgPicker';
 
@@ -113,6 +113,20 @@ describe('Set Default Org', () => {
     expect(response.type).to.equal('CONTINUE');
     const commandResult = expect(
       executeCommandStub.calledWith('sfdx.force.org.create')
+    ).to.be.true;
+    executeCommandStub.restore();
+  });
+
+  it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
+    orgListStub.returns(orgList);
+    quickPickStub.returns(
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
+    );
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+    const response = await setDefaultOrg();
+    expect(response.type).to.equal('CONTINUE');
+    const commandResult = expect(
+      executeCommandStub.calledWith('sfdx.force.auth.dev.hub')
     ).to.be.true;
     executeCommandStub.restore();
   });
