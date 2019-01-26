@@ -1,4 +1,4 @@
-# Salesforce Extensions for Visual Studio Code
+# Salesforce Extensions for Visual Studio Code 
 
 This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
 
