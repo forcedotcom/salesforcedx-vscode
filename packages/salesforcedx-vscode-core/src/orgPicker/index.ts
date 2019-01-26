@@ -9,6 +9,6 @@ export {
   OrgList,
   FileInfo,
   setDefaultOrg,
-  showOrg,
+  showDefaultOrg,
   displayDefaultUsername
 } from './orgList';

@@ -4,13 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo } from '@salesforce/core';
+import { Aliases, AuthInfo, AuthInfoConfig } from '@salesforce/core';
 import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { readFileSync } from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
@@ -33,7 +32,11 @@ export class OrgList {
     const authInfoObjects: FileInfo[] = [];
     for (const username of authFilesArray) {
       try {
-        const filePath = path.join(os.homedir(), '.sfdx', username);
+        const filePath = path.join(
+          await AuthInfoConfig.resolveRootFolder(true),
+          '.sfdx',
+          username
+        );
         const fileData = readFileSync(filePath, 'utf8');
         authInfoObjects.push(JSON.parse(fileData));
       } catch (e) {
@@ -141,7 +144,7 @@ export async function setDefaultOrg(): Promise<
   }
 }
 
-export async function showOrg() {
+export async function showDefaultOrg() {
   if (!statusBarItem) {
     statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,

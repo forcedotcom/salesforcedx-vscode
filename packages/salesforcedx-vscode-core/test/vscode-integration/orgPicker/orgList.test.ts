@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo } from '@salesforce/core';
+import { AuthInfo } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import fs = require('fs');
 import { nls } from '../../../src/messages';
-import { FileInfo, OrgList, setDefaultOrg } from '../../../src/orgPicker';
+import { OrgList, setDefaultOrg } from '../../../src/orgPicker';
 
 describe('getAuthInfoObjects', () => {
   it('should return a list of FileInfo objects when given an array of file names', async () => {
@@ -64,47 +64,6 @@ describe('getAuthInfoObjects', () => {
       .stub(AuthInfo, 'listAllAuthFiles')
       .returns(Promise.resolve(returnValue));
 });
-
-/*describe('filterAuthInfo', async () => {
-  const aliasCreateStub = (returnValue: any) =>
-    sinon.stub(Aliases, 'create').returns(Promise.resolve(returnValue));
-  const aliasKeysStub = (returnValue: any) =>
-    sinon.stub(Aliases.prototype, 'getKeysByValue').returns(returnValue);
-  it('should return list of usernames when no aliases are present', async () => {
-    const authInfoObjects: FileInfo[] = [
-      JSON.parse(
-        JSON.stringify({
-          orgId: '000',
-          accessToken: '000',
-          refreshToken: '000',
-          instanceUrl: '000',
-          loginUrl: '000',
-          username: 'test-username1@gmail.com'
-        })
-      ),
-      JSON.parse(
-        JSON.stringify({
-          orgId: '111',
-          accessToken: '111',
-          refreshToken: '111',
-          instanceUrl: '111',
-          loginUrl: '111',
-          username: 'test-username2@gmail.com'
-        })
-      )
-    ];
-    const aliasListStub = await aliasCreateStub([]);
-    const aliasKeyListStub = await aliasKeysStub([]);
-    const orgList = new OrgList();
-    const authList = await orgList.filterAuthInfo(authInfoObjects);
-    expect(authList).to.equal([
-      'test-username1@gmail.com',
-      'test-username2@gmail.com'
-    ]);
-    aliasListStub.restore();
-    aliasKeyListStub.restore();
-  });
-});*/
 
 describe('Set Default Org', () => {
   let orgListStub: sinon.SinonStub;

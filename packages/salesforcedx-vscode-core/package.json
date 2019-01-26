@@ -596,7 +596,7 @@
       },
       {
         "command": "sfdx.force.set.default.org",
-        "title": "SFDX: Set Default Org"
+        "title": "%force_config_set_org_text%"
       }
     ],
     "configuration": {
