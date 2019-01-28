@@ -64,6 +64,23 @@ You can find all references to user-defined Apex:
 
 To find references to an item, right-click the item and select **Find All References**, or press Shift+F12.
 
+## Rename refactoring
+
+You can perform a rename refactoring on any valid Apex Symbol defined in your source. To perform a rename, right-click
+on the symbol to rename and select **Rename Symbol** option to perform the refactoring.
+
+![Rename Demo](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-demo.gif)
+
+Validation of the new symbol name would be performed before applying rename and if a validation fails then you would
+see an appropriate error message specifying the reason the rename refactoring could not be applied. Validation may fail
+if the new name is not a valid Apex identifier or if the new name conflicts with an existing identifier name and may
+either result in compiler error or a runtime behavior change if rename is applied.
+
+In some cases, if the new name conflicts with an existing identifier name, then we may fully qualify the references
+to the existing identifier name in contexts where the conflicts exists.
+
+![Rename conflict demo](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-conflict.gif)
+
 ## Check Syntax Errors in Your Code
 
 If you leave out a `;`, `}`, or `)`, the syntax error is marked with a red squiggly line in the editor.
