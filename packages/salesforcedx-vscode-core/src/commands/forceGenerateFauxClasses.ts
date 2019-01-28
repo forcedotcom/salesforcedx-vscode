@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  SFDX_DIR,
+  SOBJECTS_DIR,
+  TOOLS_DIR
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
 import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
@@ -13,7 +18,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
+import { getDefaultUsernameOrAlias } from '../context';
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
@@ -75,4 +83,20 @@ export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
     new ForceGenerateFauxClassesExecutor()
   );
   await commandlet.run();
+}
+
+export async function initSObjectDefinitions(projectPath: string) {
+  const hasDefaultUsernameSet =
+    (await getDefaultUsernameOrAlias()) !== undefined;
+  if (projectPath && hasDefaultUsernameSet) {
+    const sobjectFolder = path.join(
+      projectPath,
+      SFDX_DIR,
+      TOOLS_DIR,
+      SOBJECTS_DIR
+    );
+    if (!fs.existsSync(sobjectFolder)) {
+      vscode.commands.executeCommand('sfdx.force.internal.refreshsobjects');
+    }
+  }
 }

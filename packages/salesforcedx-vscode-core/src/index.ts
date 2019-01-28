@@ -4,9 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import {
+  SFDX_DIR,
+  SOBJECTS_DIR,
+  TOOLS_DIR
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
+import * as fs from 'fs';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -59,6 +65,7 @@ import {
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
+import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import {
   isvDebugBootstrap,
@@ -73,6 +80,7 @@ import {
   registerDefaultUsernameWatcher,
   setupWorkspaceOrgType
 } from './context';
+import { getDefaultUsernameOrAlias } from './context/workspaceOrgType';
 import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
@@ -492,6 +500,10 @@ export async function activate(context: vscode.ExtensionContext) {
   if (vscode.workspace.rootPath && isDemoMode()) {
     decorators.showDemoMode();
   }
+
+  // Refresh SObject definitions if there aren't any faux classes
+  const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
+  initSObjectDefinitions(projectPath);
 
   const api: any = {
     ProgressNotification,
