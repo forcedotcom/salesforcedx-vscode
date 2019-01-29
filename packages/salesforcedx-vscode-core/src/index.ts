@@ -88,6 +88,7 @@ import { notificationService, ProgressNotification } from './notifications';
 import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
+import { SObjectRefreshSource } from './telemetry/telemetry';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -503,7 +504,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-  initSObjectDefinitions(projectPath);
+  const refreshed = await initSObjectDefinitions(projectPath);
+  if (refreshed) {
+    telemetryService.sendAutomaticSObjectRefreshEvent(
+      SObjectRefreshSource.STARTUP
+    );
+  }
 
   const api: any = {
     ProgressNotification,

@@ -349,7 +349,8 @@ export abstract class SfdxCommandletExecutor<T>
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
-    cancellationToken: vscode.CancellationToken
+    cancellationToken: vscode.CancellationToken,
+    progressLocation?: vscode.ProgressLocation
   ) {
     channelService.streamCommandOutput(execution);
 
@@ -361,7 +362,11 @@ export abstract class SfdxCommandletExecutor<T>
       execution,
       cancellationToken
     );
-    ProgressNotification.show(execution, cancellationTokenSource);
+    ProgressNotification.show(
+      execution,
+      cancellationTokenSource,
+      progressLocation
+    );
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 

@@ -36,32 +36,36 @@ describe('Generate Faux Classes', () => {
     executeCommandStub.restore();
   });
 
-  it('Should execute sobject refresh if no sobjects folder is present', () => {
+  it('Should execute sobject refresh if no sobjects folder is present', async () => {
     existsSyncStub.returns(false);
     getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
 
-    initSObjectDefinitions(projectPath);
+    const refreshed = await initSObjectDefinitions(projectPath);
+    console.log(executeCommandStub);
 
+    expect(refreshed).to.be.true;
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
     expect(executeCommandStub.calledOnce).to.be.true;
   });
 
-  it('Should not execute sobject refresh if sobjects folder is present', () => {
+  it('Should not execute sobject refresh if sobjects folder is present', async () => {
     existsSyncStub.returns(true);
     getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
 
-    initSObjectDefinitions(projectPath);
+    const refreshed = await initSObjectDefinitions(projectPath);
 
+    expect(refreshed).to.be.false;
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
     expect(executeCommandStub.notCalled).to.be.true;
   });
 
-  it('Should not execute sobject refresh if no default username set', () => {
+  it('Should not execute sobject refresh if no default username set', async () => {
     existsSyncStub.returns(false);
     getConfigStub.returns(new Map([['defaultusername', undefined]]));
 
-    initSObjectDefinitions(projectPath);
+    const refreshed = await initSObjectDefinitions(projectPath);
 
+    expect(refreshed).to.be.false;
     expect(executeCommandStub.notCalled).to.be.true;
   });
 });

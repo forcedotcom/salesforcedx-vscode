@@ -53,7 +53,12 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
 
     const execution = new LocalCommandExecution(this.build(response.data));
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    this.attachExecution(
+      execution,
+      cancellationTokenSource,
+      cancellationToken,
+      vscode.ProgressLocation.Window
+    );
 
     const projectPath: string = vscode.workspace.rootPath as string;
     const gen: FauxClassGenerator = new FauxClassGenerator(
@@ -85,7 +90,10 @@ export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
   await commandlet.run();
 }
 
-export async function initSObjectDefinitions(projectPath: string) {
+export async function initSObjectDefinitions(
+  projectPath: string
+): Promise<boolean> {
+  let refreshed = false;
   const hasDefaultUsernameSet =
     (await getDefaultUsernameOrAlias()) !== undefined;
   if (projectPath && hasDefaultUsernameSet) {
@@ -97,6 +105,8 @@ export async function initSObjectDefinitions(projectPath: string) {
     );
     if (!fs.existsSync(sobjectFolder)) {
       vscode.commands.executeCommand('sfdx.force.internal.refreshsobjects');
+      refreshed = true;
     }
   }
+  return refreshed;
 }

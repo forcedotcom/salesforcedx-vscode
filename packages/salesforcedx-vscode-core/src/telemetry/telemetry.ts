@@ -15,6 +15,10 @@ import TelemetryReporter from './telemetryReporter';
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
+export enum SObjectRefreshSource {
+  STARTUP = 'STARTUP'
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private context: vscode.ExtensionContext | undefined;
@@ -104,6 +108,14 @@ export class TelemetryService {
           }
         });
       this.setTelemetryMessageShowed();
+    }
+  }
+
+  public sendAutomaticSObjectRefreshEvent(source: SObjectRefreshSource) {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('automaticSObjectRefresh', {
+        source
+      });
     }
   }
 
