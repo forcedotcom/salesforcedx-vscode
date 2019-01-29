@@ -4,14 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo } from '@salesforce/core';
+import { Aliases, AuthInfo } from '@salesforce/core';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { OrgList, setDefaultOrg } from '../../../src/orgPicker';
+import { FileInfo, OrgList, setDefaultOrg } from '../../../src/orgPicker';
+import { OrgAuthInfo } from '../../../src/util';
 
 describe('getAuthInfoObjects', () => {
   it('should return a list of FileInfo objects when given an array of file names', async () => {
@@ -63,6 +64,103 @@ describe('getAuthInfoObjects', () => {
     sinon
       .stub(AuthInfo, 'listAllAuthFiles')
       .returns(Promise.resolve(returnValue));
+});
+
+describe('Filter Authorization Info', async () => {
+  let defaultDevHubStub: sinon.SinonStub;
+  let aliasCreateStub: sinon.SinonStub;
+  let aliasKeysStub: sinon.SinonStub;
+  const orgList = new OrgList();
+  beforeEach(() => {
+    defaultDevHubStub = sinon.stub(
+      OrgAuthInfo,
+      'getDefaultDevHubUsernameOrAlias'
+    );
+    aliasCreateStub = sinon.stub(Aliases, 'create');
+    aliasKeysStub = sinon.stub(Aliases.prototype, 'getKeysByValue');
+  });
+  afterEach(() => {
+    defaultDevHubStub.restore();
+    aliasCreateStub.restore();
+    aliasKeysStub.restore();
+  });
+  it('should filter the list for users other than admins when scratchadminusername field is present', async () => {
+    const authInfoObjects: FileInfo[] = [
+      JSON.parse(
+        JSON.stringify({
+          orgId: '000',
+          accessToken: '000',
+          refreshToken: '000',
+          scratchAdminUsername: 'nonadmin@user.com',
+          username: 'test-username1@gmail.com'
+        })
+      ),
+      JSON.parse(
+        JSON.stringify({
+          orgId: '111',
+          accessToken: '111',
+          refreshToken: '111',
+          username: 'test-username2@gmail.com'
+        })
+      )
+    ];
+    defaultDevHubStub.returns(null);
+    aliasCreateStub.returns(Aliases.prototype);
+    aliasKeysStub.returns([]);
+    const authList = await orgList.filterAuthInfo(authInfoObjects);
+    expect(authList[0]).to.equal('test-username2@gmail.com');
+  });
+
+  it('should filter the list to only show scratch orgs associated with current default dev hub', async () => {
+    const authInfoObjects: FileInfo[] = [
+      JSON.parse(
+        JSON.stringify({
+          orgId: '000',
+          username: 'test-scratchorg1@gmail.com',
+          devHubUsername: 'test-devhub1@gmail.com'
+        })
+      ),
+      JSON.parse(
+        JSON.stringify({
+          orgId: '111',
+          username: 'test-scratchorg2@gmail.com',
+          devHubUsername: 'test-devhub2@gmail.com'
+        })
+      )
+    ];
+    defaultDevHubStub.returns('test-devhub1@gmail.com');
+    aliasCreateStub.returns(Aliases.prototype);
+    aliasKeysStub.returns([]);
+    const authList = await orgList.filterAuthInfo(authInfoObjects);
+    expect(authList[0]).to.equal('test-scratchorg1@gmail.com');
+  });
+
+  it('should display alias with username when alias is available', async () => {
+    const authInfoObjects: FileInfo[] = [
+      JSON.parse(
+        JSON.stringify({
+          orgId: '000',
+          accessToken: '000',
+          refreshToken: '000',
+          username: 'test-username1@gmail.com'
+        })
+      ),
+      JSON.parse(
+        JSON.stringify({
+          orgId: '111',
+          accessToken: '111',
+          refreshToken: '111',
+          username: 'test-username2@gmail.com'
+        })
+      )
+    ];
+    defaultDevHubStub.returns(null);
+    aliasCreateStub.returns(Aliases.prototype);
+    aliasKeysStub.onFirstCall().returns(['alias1']);
+    aliasKeysStub.returns([]);
+    const authList = await orgList.filterAuthInfo(authInfoObjects);
+    expect(authList[0]).to.equal('alias1 - test-username1@gmail.com');
+  });
 });
 
 describe('Set Default Org', () => {
