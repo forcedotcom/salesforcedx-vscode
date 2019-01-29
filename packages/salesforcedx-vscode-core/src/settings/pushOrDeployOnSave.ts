@@ -78,7 +78,7 @@ async function ignorePath(uri: vscode.Uri) {
   return isDotFile(uri) || !await pathIsInPackageDirectory(uri);
 }
 
-async function pathIsInPackageDirectory(
+export async function pathIsInPackageDirectory(
   documentUri: vscode.Uri
 ): Promise<boolean> {
   const documentPath = documentUri.fsPath;
@@ -87,15 +87,18 @@ async function pathIsInPackageDirectory(
   } catch (error) {
     switch (error.name) {
       case 'NoPackageDirectoriesFound':
-        error.message = nls.localize('error_no_package_directories_found_text');
+        error.message = nls.localize(
+          'error_no_package_directories_found_on_setup_text'
+        );
+        break;
       case 'NoPackageDirectoryPathsFound':
         error.message = nls.localize(
           'error_no_package_directories_paths_found_text'
         );
-      default:
-        displayError(error.message);
-        throw error;
+        break;
     }
+    displayError(error.message);
+    throw error;
   }
 }
 
