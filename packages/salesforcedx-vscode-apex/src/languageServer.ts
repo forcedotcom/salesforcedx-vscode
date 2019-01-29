@@ -120,7 +120,6 @@ function protocol2CodeConverter(value: string) {
 export async function createLanguageServer(
   context: vscode.ExtensionContext
 ): Promise<LanguageClient> {
-  const isInsiders: boolean = /insiders/i.test(vscode.env.appName);
   const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
     documentSelector: [{ language: 'apex', scheme: 'file' }],
