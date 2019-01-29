@@ -18,10 +18,10 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { initSObjectDefinitions } from '../../src/commands/forceGenerateFauxClasses';
 
-describe('Generate Faux Classes', () => {
-  const existsSyncStub = sinon.stub(fs, 'existsSync');
-  const getConfigStub = sinon.stub(ForceConfigGet.prototype, 'getConfig');
-  const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+describe('Generate faux classes with initSObjectDefinitions', () => {
+  let existsSyncStub: sinon.SinonStub;
+  let getConfigStub: sinon.SinonStub;
+  let executeCommandStub: sinon.SinonStub;
   const projectPath = path.join('sample', 'path');
   const sobjectsPath = path.join(
     projectPath,
@@ -29,6 +29,12 @@ describe('Generate Faux Classes', () => {
     TOOLS_DIR,
     SOBJECTS_DIR
   );
+
+  beforeEach(() => {
+    existsSyncStub = sinon.stub(fs, 'existsSync');
+    getConfigStub = sinon.stub(ForceConfigGet.prototype, 'getConfig');
+    executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+  });
 
   afterEach(() => {
     existsSyncStub.restore();
@@ -40,10 +46,9 @@ describe('Generate Faux Classes', () => {
     existsSyncStub.returns(false);
     getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
 
-    const refreshed = await initSObjectDefinitions(projectPath);
-    console.log(executeCommandStub);
+    const isRefreshing = await initSObjectDefinitions(projectPath);
 
-    expect(refreshed).to.be.true;
+    expect(isRefreshing).to.be.true;
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
     expect(executeCommandStub.calledOnce).to.be.true;
   });
@@ -52,9 +57,9 @@ describe('Generate Faux Classes', () => {
     existsSyncStub.returns(true);
     getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
 
-    const refreshed = await initSObjectDefinitions(projectPath);
+    const isRefreshing = await initSObjectDefinitions(projectPath);
 
-    expect(refreshed).to.be.false;
+    expect(isRefreshing).to.be.false;
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
     expect(executeCommandStub.notCalled).to.be.true;
   });
@@ -63,9 +68,9 @@ describe('Generate Faux Classes', () => {
     existsSyncStub.returns(false);
     getConfigStub.returns(new Map([['defaultusername', undefined]]));
 
-    const refreshed = await initSObjectDefinitions(projectPath);
+    const isRefreshing = await initSObjectDefinitions(projectPath);
 
-    expect(refreshed).to.be.false;
+    expect(isRefreshing).to.be.false;
     expect(executeCommandStub.notCalled).to.be.true;
   });
 });

@@ -504,8 +504,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-  const refreshed = await initSObjectDefinitions(projectPath);
-  if (refreshed) {
+  const isRefreshing = await initSObjectDefinitions(projectPath);
+  if (isRefreshing) {
     telemetryService.sendAutomaticSObjectRefreshEvent(
       SObjectRefreshSource.STARTUP
     );

@@ -93,7 +93,7 @@ export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
 export async function initSObjectDefinitions(
   projectPath: string
 ): Promise<boolean> {
-  let refreshed = false;
+  let isRefreshing = false;
   const hasDefaultUsernameSet =
     (await getDefaultUsernameOrAlias()) !== undefined;
   if (projectPath && hasDefaultUsernameSet) {
@@ -105,8 +105,8 @@ export async function initSObjectDefinitions(
     );
     if (!fs.existsSync(sobjectFolder)) {
       vscode.commands.executeCommand('sfdx.force.internal.refreshsobjects');
-      refreshed = true;
+      isRefreshing = true;
     }
   }
-  return refreshed;
+  return isRefreshing;
 }
