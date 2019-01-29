@@ -30,10 +30,9 @@ export default class SfdxProjectConfig {
       const fileWatcher = vscode.workspace.createFileSystemWatcher(
         path.join(sfdxProjectPath, SFDX_PROJECT_FILE)
       );
-      fileWatcher.onDidChange(async () => {
-        SfdxProjectConfig.instance.read();
-        console.log('SFDX Project Config Object', SfdxProjectConfig.instance);
-      });
+      fileWatcher.onDidChange(
+        async () => await SfdxProjectConfig.instance.read()
+      );
     }
   }
 

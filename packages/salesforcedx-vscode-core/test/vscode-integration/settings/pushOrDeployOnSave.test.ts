@@ -14,57 +14,57 @@ import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {
-  getPackageDirectoryPaths,
+  // getPackageDirectoryPaths,
   pushOrDeploy
 } from '../../../src/settings/pushOrDeployOnSave';
 import { SfdxProjectJsonParser } from '../../../src/util';
 
 const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */
-describe('getPackageDirectoryPaths', () => {
-  it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
-    const error = new Error();
-    error.name = 'NoPackageDirectoriesFound';
-    const getPackageDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryFullPaths'
-    ).throws(error);
-    let errorWasThrown = false;
+// describe('getPackageDirectoryPaths', () => {
+//   it('should throw an error if no package directories are found in the sfdx-project.json', async () => {
+//     const error = new Error();
+//     error.name = 'NoPackageDirectoriesFound';
+//     const getPackageDirectoriesStub = stub(
+//       SfdxProjectJsonParser.prototype,
+//       'getPackageDirectoryFullPaths'
+//     ).throws(error);
+//     let errorWasThrown = false;
 
-    try {
-      await getPackageDirectoryPaths();
-    } catch (e) {
-      errorWasThrown = true;
-      expect(e.message).to.equal(
-        nls.localize('error_no_package_directories_found_text')
-      );
-    } finally {
-      expect(errorWasThrown).to.be.true;
-      getPackageDirectoriesStub.restore();
-    }
-  });
+//     try {
+//       await getPackageDirectoryPaths();
+//     } catch (e) {
+//       errorWasThrown = true;
+//       expect(e.message).to.equal(
+//         nls.localize('error_no_package_directories_found_text')
+//       );
+//     } finally {
+//       expect(errorWasThrown).to.be.true;
+//       getPackageDirectoriesStub.restore();
+//     }
+//   });
 
-  it('should throw an error if packageDirectories does not specify any paths', async () => {
-    const error = new Error();
-    error.name = 'NoPackageDirectoryPathsFound';
-    const getPackageDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryFullPaths'
-    ).throws(error);
-    let errorWasThrown = false;
-    try {
-      await getPackageDirectoryPaths();
-    } catch (error) {
-      errorWasThrown = true;
-      expect(error.message).to.equal(
-        nls.localize('error_no_package_directories_paths_found_text')
-      );
-    } finally {
-      expect(errorWasThrown).to.be.true;
-      getPackageDirectoriesStub.restore();
-    }
-  });
-});
+//   it('should throw an error if packageDirectories does not specify any paths', async () => {
+//     const error = new Error();
+//     error.name = 'NoPackageDirectoryPathsFound';
+//     const getPackageDirectoriesStub = stub(
+//       SfdxProjectJsonParser.prototype,
+//       'getPackageDirectoryFullPaths'
+//     ).throws(error);
+//     let errorWasThrown = false;
+//     try {
+//       await getPackageDirectoryPaths();
+//     } catch (error) {
+//       errorWasThrown = true;
+//       expect(error.message).to.equal(
+//         nls.localize('error_no_package_directories_paths_found_text')
+//       );
+//     } finally {
+//       expect(errorWasThrown).to.be.true;
+//       getPackageDirectoriesStub.restore();
+//     }
+//   });
+// });
 
 describe('pushOrDeploy', () => {
   let appendLineStub: SinonStub;
