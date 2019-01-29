@@ -64,24 +64,19 @@ You can find all references to user-defined Apex:
 
 To find references to an item, right-click the item and select **Find All References**, or press Shift+F12.
 
-## Rename refactoring
+## Refactor: Rename
 
-You can perform a rename refactoring on any valid Apex Symbol defined in your source. To perform a rename, right-click
-on the symbol to rename and select **Rename Symbol** option.
+You can rename any valid Apex symbol defined in your source: methods, local or class variables, constructors, or types (classes, triggers, or enums). To perform a rename, right-click the symbol that you want to rename and select **Rename Symbol**.
 
-![Rename Demo](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-demo.gif)
+![GIF showing the symbol renaming process](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-demo.gif)
 
-Validation of the new symbol name would be performed before applying rename and if a validation fails then you would
-see an appropriate error message specifying the reason the rename refactoring could not be applied. Validation may fail
-if the new name is not a valid Apex identifier or if the new name conflicts with an existing identifier name which may
-either result in compiler error or a runtime behavior change if rename is applied.
+Validation of the new symbol name is performed before applying the rename. If the validation fails, an error message explains the reason why the rename refactoring could not be applied. Validation fails if the new name is not a valid Apex identifier or, sometimes, if the new name conflicts with an existing identifier name. (If these situations were allowed, a compiler error or a runtime behavior change could result.)
 
-![Rename Error Demo](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-error.gif)
+![GIF showing a renaming error](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-error.gif)
 
-In some cases, if the new name conflicts with an existing identifier name, then we may fully qualify the references
-to the existing identifier name in contexts where the conflicts exists.
+If the new name conflicts with an existing identifier name, we try to fully qualify the references to the existing name in contexts where the conflicts exist.
 
-![Rename conflict demo](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-conflict.gif)
+![GIF showing a renaming conflict](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex-rename-conflict.gif)
 
 ## Check Syntax Errors in Your Code
 
