@@ -47,4 +47,20 @@ describe('Progress Notification', () => {
     });
     withProgressStub.restore();
   });
+
+  it('Should display progress based on given progress location', () => {
+    const progressLocation = vscode.ProgressLocation.Window;
+    const withProgressStub = sinon
+      .stub(vscode.window, 'withProgress')
+      .returns(Promise.resolve());
+
+    ProgressNotification.show(execution, tokenSource, progressLocation);
+
+    expect(withProgressStub.getCall(0).args[0]).to.eql({
+      title: nls.localize('progress_notification_text', execution.command),
+      location: progressLocation,
+      cancellable: true
+    });
+    withProgressStub.restore();
+  });
 });

@@ -7,6 +7,7 @@
 
 import * as util from 'util';
 import vscode = require('vscode');
+import { SObjectRefreshSource } from '../commands/forceGenerateFauxClasses';
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
@@ -14,10 +15,6 @@ import TelemetryReporter from './telemetryReporter';
 
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
-
-export enum SObjectRefreshSource {
-  STARTUP = 'STARTUP'
-}
 
 export class TelemetryService {
   private static instance: TelemetryService;

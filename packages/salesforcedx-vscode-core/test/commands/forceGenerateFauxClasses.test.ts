@@ -16,12 +16,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { initSObjectDefinitions } from '../../src/commands/forceGenerateFauxClasses';
+import {
+  initSObjectDefinitions,
+  SObjectRefreshSource
+} from '../../src/commands/forceGenerateFauxClasses';
 
 describe('Generate faux classes with initSObjectDefinitions', () => {
   let existsSyncStub: sinon.SinonStub;
   let getConfigStub: sinon.SinonStub;
   let executeCommandStub: sinon.SinonStub;
+  const commandName = 'sfdx.force.internal.refreshsobjects';
   const projectPath = path.join('sample', 'path');
   const sobjectsPath = path.join(
     projectPath,
@@ -46,20 +50,22 @@ describe('Generate faux classes with initSObjectDefinitions', () => {
     existsSyncStub.returns(false);
     getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
 
-    const isRefreshing = await initSObjectDefinitions(projectPath);
+    await initSObjectDefinitions(projectPath);
 
-    expect(isRefreshing).to.be.true;
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
     expect(executeCommandStub.calledOnce).to.be.true;
+    expect(executeCommandStub.getCall(0).args).to.eqls([
+      commandName,
+      SObjectRefreshSource.STARTUP
+    ]);
   });
 
   it('Should not execute sobject refresh if sobjects folder is present', async () => {
     existsSyncStub.returns(true);
     getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
 
-    const isRefreshing = await initSObjectDefinitions(projectPath);
+    await initSObjectDefinitions(projectPath);
 
-    expect(isRefreshing).to.be.false;
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
     expect(executeCommandStub.notCalled).to.be.true;
   });
@@ -68,9 +74,8 @@ describe('Generate faux classes with initSObjectDefinitions', () => {
     existsSyncStub.returns(false);
     getConfigStub.returns(new Map([['defaultusername', undefined]]));
 
-    const isRefreshing = await initSObjectDefinitions(projectPath);
+    await initSObjectDefinitions(projectPath);
 
-    expect(isRefreshing).to.be.false;
     expect(executeCommandStub.notCalled).to.be.true;
   });
 });

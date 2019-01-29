@@ -17,18 +17,44 @@ import {
   LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { getDefaultUsernameOrAlias } from '../context';
 import { nls } from '../messages';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
+import { telemetryService } from '../telemetry';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+
+export enum SObjectRefreshSource {
+  MANUAL = 'MANUAL',
+  STARTUP = 'STARTUP'
+}
+
+class SObjectRefreshGatherer
+  implements ParametersGatherer<SObjectRefreshSource> {
+  private source: SObjectRefreshSource | undefined;
+  public constructor(source?: SObjectRefreshSource) {
+    this.source = source;
+  }
+  public async gather(): Promise<ContinueResponse<SObjectRefreshSource>> {
+    return {
+      type: 'CONTINUE',
+      data: this.source || SObjectRefreshSource.MANUAL
+    };
+  }
+}
 
 class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
@@ -40,7 +66,9 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  public async execute(response: ContinueResponse<{}>): Promise<void> {
+  public async execute(
+    response: ContinueResponse<SObjectRefreshSource>
+  ): Promise<void> {
     if (ForceGenerateFauxClassesExecutor.isActive) {
       vscode.window.showErrorMessage(
         nls.localize('force_sobjects_no_refresh_if_already_active_error_text')
@@ -50,15 +78,30 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     ForceGenerateFauxClassesExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-
     const execution = new LocalCommandExecution(this.build(response.data));
 
-    this.attachExecution(
+    channelService.streamCommandOutput(execution);
+
+    if (this.showChannelOutput) {
+      channelService.showChannelOutput();
+    }
+
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
+
+    let progressLocation = vscode.ProgressLocation.Notification;
+    if (response.data !== SObjectRefreshSource.MANUAL) {
+      progressLocation = vscode.ProgressLocation.Window;
+    }
+    ProgressNotification.show(
       execution,
       cancellationTokenSource,
-      cancellationToken,
-      vscode.ProgressLocation.Window
+      progressLocation
     );
+
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
     const projectPath: string = vscode.workspace.rootPath as string;
     const gen: FauxClassGenerator = new FauxClassGenerator(
@@ -74,14 +117,17 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     }
     ForceGenerateFauxClassesExecutor.isActive = false;
     this.logMetric(execution.command.logName);
+    telemetryService.sendAutomaticSObjectRefreshEvent(response.data);
     return;
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
-  const parameterGatherer = new EmptyParametersGatherer();
+export async function forceGenerateFauxClassesCreate(
+  source?: SObjectRefreshSource
+) {
+  const parameterGatherer = new SObjectRefreshGatherer(source);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
@@ -90,10 +136,7 @@ export async function forceGenerateFauxClassesCreate(explorerDir?: any) {
   await commandlet.run();
 }
 
-export async function initSObjectDefinitions(
-  projectPath: string
-): Promise<boolean> {
-  let isRefreshing = false;
+export async function initSObjectDefinitions(projectPath: string) {
   const hasDefaultUsernameSet =
     (await getDefaultUsernameOrAlias()) !== undefined;
   if (projectPath && hasDefaultUsernameSet) {
@@ -104,9 +147,10 @@ export async function initSObjectDefinitions(
       SOBJECTS_DIR
     );
     if (!fs.existsSync(sobjectFolder)) {
-      vscode.commands.executeCommand('sfdx.force.internal.refreshsobjects');
-      isRefreshing = true;
+      vscode.commands.executeCommand(
+        'sfdx.force.internal.refreshsobjects',
+        SObjectRefreshSource.STARTUP
+      );
     }
   }
-  return isRefreshing;
 }

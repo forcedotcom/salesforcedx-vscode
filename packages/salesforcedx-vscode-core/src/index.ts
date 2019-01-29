@@ -4,12 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  SFDX_DIR,
-  SOBJECTS_DIR,
-  TOOLS_DIR
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
-import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigurationTarget } from 'vscode';
 import * as vscode from 'vscode';
@@ -80,7 +74,6 @@ import {
   registerDefaultUsernameWatcher,
   setupWorkspaceOrgType
 } from './context';
-import { getDefaultUsernameOrAlias } from './context/workspaceOrgType';
 import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
@@ -88,7 +81,6 @@ import { notificationService, ProgressNotification } from './notifications';
 import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { SObjectRefreshSource } from './telemetry/telemetry';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -504,12 +496,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-  const isRefreshing = await initSObjectDefinitions(projectPath);
-  if (isRefreshing) {
-    telemetryService.sendAutomaticSObjectRefreshEvent(
-      SObjectRefreshSource.STARTUP
-    );
-  }
+  initSObjectDefinitions(projectPath);
 
   const api: any = {
     ProgressNotification,
