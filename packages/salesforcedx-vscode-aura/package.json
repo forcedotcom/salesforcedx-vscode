@@ -25,13 +25,13 @@
   "dependencies": {
     "lwc-language-server": "1.8.3",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "3.5.1"
+    "vscode-languageclient": "3.5.1",
+    "vscode": "1.1.17"
   },
   "devDependencies": {
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
-    "typescript": "2.6.2",
-    "vscode": "1.1.17"
+    "typescript": "2.6.2"
   },
   "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
