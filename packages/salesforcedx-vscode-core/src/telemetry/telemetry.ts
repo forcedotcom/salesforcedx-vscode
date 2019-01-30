@@ -125,16 +125,23 @@ export class TelemetryService {
     }
   }
 
-  public sendCommandEvent(commandName?: string): void {
+  public sendCommandEvent(
+    commandName?: string,
+    measurements?: { [key: string]: number }
+  ): void {
     if (
       this.reporter !== undefined &&
       this.isTelemetryEnabled() &&
       commandName
     ) {
-      this.reporter.sendTelemetryEvent('commandExecution', {
-        extensionName: EXTENSION_NAME,
-        commandName
-      });
+      this.reporter.sendTelemetryEvent(
+        'commandExecution',
+        {
+          extensionName: EXTENSION_NAME,
+          commandName
+        },
+        measurements
+      );
     }
   }
 
