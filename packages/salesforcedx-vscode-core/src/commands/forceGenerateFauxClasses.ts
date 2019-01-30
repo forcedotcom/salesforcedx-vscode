@@ -92,8 +92,10 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     let progressLocation = vscode.ProgressLocation.Notification;
-    if (response.data !== SObjectRefreshSource.MANUAL) {
+    const refreshSource = response.data;
+    if (refreshSource !== SObjectRefreshSource.MANUAL) {
       progressLocation = vscode.ProgressLocation.Window;
+      telemetryService.sendAutomaticSObjectRefreshEvent(refreshSource);
     }
     ProgressNotification.show(
       execution,
@@ -117,7 +119,7 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
     }
     ForceGenerateFauxClassesExecutor.isActive = false;
     this.logMetric(execution.command.logName);
-    telemetryService.sendAutomaticSObjectRefreshEvent(response.data);
+
     return;
   }
 }
