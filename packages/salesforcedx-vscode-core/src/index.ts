@@ -496,7 +496,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-  initSObjectDefinitions(projectPath);
+  await initSObjectDefinitions(projectPath);
 
   const api: any = {
     ProgressNotification,
