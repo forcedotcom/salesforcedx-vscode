@@ -73,6 +73,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       );
       return;
     }
+    const startTime = process.hrtime();
     ForceGenerateFauxClassesExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
