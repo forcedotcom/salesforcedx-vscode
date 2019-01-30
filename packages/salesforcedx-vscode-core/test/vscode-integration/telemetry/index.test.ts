@@ -7,6 +7,7 @@
 import { expect } from 'chai';
 import { assert, match, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
+import { SObjectRefreshSource } from '../../../src/commands/forceGenerateFauxClasses';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 import TelemetryReporter from '../../../src/telemetry/telemetryReporter';
@@ -200,6 +201,24 @@ describe('Telemetry', () => {
         commandName: 'create_apex_class_command'
       };
       assert.calledWith(reporter, 'commandExecution', expectedData);
+    });
+
+    it('Should send correct data format on sendAutomaticSObjectRefreshEvent', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
+
+      telemetryService.sendAutomaticSObjectRefreshEvent(
+        SObjectRefreshSource.STARTUP
+      );
+      assert.calledOnce(reporter);
+
+      const expectedData = {
+        source: SObjectRefreshSource.STARTUP
+      };
+      assert.calledWith(reporter, 'automaticSObjectRefresh', expectedData);
     });
   });
 });

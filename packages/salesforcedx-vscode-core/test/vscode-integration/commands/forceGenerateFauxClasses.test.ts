@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import {
   initSObjectDefinitions,
   SObjectRefreshSource
-} from '../../src/commands/forceGenerateFauxClasses';
+} from '../../../src/commands/forceGenerateFauxClasses';
 
 describe('Generate faux classes with initSObjectDefinitions', () => {
   let existsSyncStub: sinon.SinonStub;
