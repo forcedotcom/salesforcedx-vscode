@@ -120,13 +120,6 @@ function protocol2CodeConverter(value: string) {
 export async function createLanguageServer(
   context: vscode.ExtensionContext
 ): Promise<LanguageClient> {
-  const isInsiders: boolean = /insiders/i.test(vscode.env.appName);
-  const enableApexRename: boolean = isInsiders
-    ? true
-    : vscode.workspace
-        .getConfiguration()
-        .get<boolean>('salesforcedx-vscode-apex.enable-rename', false);
-
   const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
     documentSelector: [{ language: 'apex', scheme: 'file' }],
@@ -143,12 +136,6 @@ export async function createLanguageServer(
       protocol2Code: protocol2CodeConverter
     }
   };
-
-  if (enableApexRename) {
-    clientOptions['initializationOptions'] = {
-      enableRename: true
-    };
-  }
 
   const server = await createServer(context);
   const client = new LanguageClient(
