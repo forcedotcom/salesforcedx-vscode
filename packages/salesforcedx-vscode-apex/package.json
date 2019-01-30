@@ -151,16 +151,16 @@
         "command": "sfdx.force.test.view.runClassTests",
         "title": "%run_tests_title%",
         "icon": {
-          "light": "resources/light/play-side.svg",
-          "dark": "resources/dark/play-side.svg"
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
         }
       },
       {
         "command": "sfdx.force.test.view.runSingleTest",
         "title": "%run_single_test_title%",
         "icon": {
-          "light": "resources/light/play-side.svg",
-          "dark": "resources/dark/play-side.svg"
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
         }
       }
     ],
