@@ -1,8 +1,8 @@
 ---
-title: Apex
+title: Write Apex Code
 ---
 
-View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. The Apex extension is powered by the [Apex Language Server](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Language-Server).
+View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. The Apex extension is powered by the [Apex Language Server](language-server).
 
 ## View Code-Completion Suggestions
 

@@ -23,7 +23,7 @@
 - title: Apex
   baseUrl: /articles/apex/
   children:
-    - title: Apex Language
+    - title: Writing
       url: /articles/apex/introduction
     - title: Testing
       url: /articles/apex/testing
@@ -33,6 +33,8 @@
       url: /articles/apex/interactive-debugger
     - title: Replay Debugger
       url: /articles/apex/replay-debugger
+    - title: Language Server
+      url: /articles/apex/language-server
 - title: Frameworks
   baseUrl: /articles/frameworks
   children:

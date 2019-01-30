@@ -1,5 +1,5 @@
 ---
-title: Apex Debugger
+title: Apex Interactive Debugger
 ---
 
 ## Introduction

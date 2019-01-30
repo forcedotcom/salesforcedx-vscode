@@ -1,5 +1,5 @@
 ---
-title: Apex Testing
+title: Apex Tests
 ---
 
 You can run Apex tests from within a file or from the Apex Tests sidebar. The sidebar provides other useful features for working with your tests.

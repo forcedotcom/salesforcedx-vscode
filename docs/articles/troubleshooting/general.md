@@ -13,9 +13,7 @@ If you don’t see any SFDX commands in the command palette, make sure that you�
 
 ## Other Resources
 
-For Apex Debugger troubleshooting information, see this wiki’s [Apex Debugger](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Debugger) page.
-
-For information on troubleshooting issues with code smartness for the Apex language, see this wiki’s [Apex Language Server](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Language-Server) page.
+For Apex Debugger troubleshooting information, [Apex Interactive Debugger](../apex/interactive-debugger).
 
 For general information about VS Code, see the [Visual Studio Code docs](https://code.visualstudio.com/docs).
 
