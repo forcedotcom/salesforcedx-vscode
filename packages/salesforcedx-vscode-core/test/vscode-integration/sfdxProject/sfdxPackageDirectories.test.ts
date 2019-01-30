@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import {
@@ -139,6 +145,16 @@ describe('SFDX Package Directories', () => {
       );
       expect(await SfdxPackageDirectories.isInPackageDirectory(filePath)).to.be
         .true;
+    });
+
+    it('should return false if the filePath is not in a package directory', async () => {
+      const filePath = path.join(PROJECT_PATH, '.forceignore');
+      getPackageDirectoryFullPathsStub = stub(
+        SfdxPackageDirectories,
+        'getPackageDirectoryFullPaths'
+      ).returns([path.join(PROJECT_PATH, 'force-app')]);
+      expect(await SfdxPackageDirectories.isInPackageDirectory(filePath)).to.be
+        .false;
     });
   });
 });

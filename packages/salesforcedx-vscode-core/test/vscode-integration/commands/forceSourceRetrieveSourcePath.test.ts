@@ -21,7 +21,10 @@ import {
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import {
+  SfdxPackageDirectories,
+  SfdxProjectPath
+} from '../../../src/sfdxProject';
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
   it('Should build the source retrieve command', () => {
@@ -42,7 +45,7 @@ describe('SourcePathChecker', () => {
   let appendLineSpy: SinonStub;
   let showErrorMessageSpy: SinonStub;
   beforeEach(() => {
-    workspacePath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
+    workspacePath = SfdxProjectPath.getPath();
     appendLineSpy = stub(channelService, 'appendLine');
     showErrorMessageSpy = stub(notificationService, 'showErrorMessage');
   });
