@@ -10,9 +10,16 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { SFDX_PROJECT_FILE } from '../constants';
+import { nls } from '../messages';
+import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { SfdxProjectPath } from '../sfdxProject';
+import { telemetryService } from '../telemetry';
 
+/**
+ * Class representing the local sfdx-project.json file.
+ * Does not contain global values.
+ */
 export default class SfdxProjectConfig {
   private static instance: SfdxProjectJson;
   private constructor() {
@@ -22,18 +29,43 @@ export default class SfdxProjectConfig {
   }
 
   private static async initializeSfdxProjectConfig() {
-    if (isSfdxProjectOpened.apply(vscode.workspace).result) {
+    if (
+      !SfdxProjectConfig.instance &&
+      isSfdxProjectOpened.apply(vscode.workspace).result
+    ) {
       const sfdxProjectPath = SfdxProjectPath.getPath();
-      const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
-      SfdxProjectConfig.instance = await sfdxProject.retrieveSfdxProjectJson();
+      try {
+        const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
+        SfdxProjectConfig.instance = await sfdxProject.retrieveSfdxProjectJson();
+        const fileWatcher = vscode.workspace.createFileSystemWatcher(
+          path.join(sfdxProjectPath, SFDX_PROJECT_FILE)
+        );
+        fileWatcher.onDidChange(async () => {
+          try {
+            await SfdxProjectConfig.instance.read();
+          } catch (error) {
+            SfdxProjectConfig.handleError(error);
+            throw error;
+          }
+        });
+      } catch (error) {
+        SfdxProjectConfig.handleError(error);
+        throw error;
+      }
+    }
+  }
 
-      const fileWatcher = vscode.workspace.createFileSystemWatcher(
-        path.join(sfdxProjectPath, SFDX_PROJECT_FILE)
-      );
-      fileWatcher.onDidChange(
-        async () => await SfdxProjectConfig.instance.read()
+  private static handleError(error: any) {
+    let errorMessage = error.message;
+    if (error.name === 'JsonParseError') {
+      errorMessage = nls.localize(
+        'error_parsing_sfdx_project_file',
+        error.path,
+        error.message
       );
     }
+    notificationService.showErrorMessage(errorMessage);
+    telemetryService.sendError(errorMessage);
   }
 
   public static async getInstance(): Promise<SfdxProjectJson> {

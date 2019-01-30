@@ -223,5 +223,7 @@ export const messages = {
     'Error deploying or retrieving source: The file or directory that you tried to deploy or retrieve isn\'t in a package directory that\'s specified in your sfdx-project.json file. Add this location to your "packageDirectories" value, or deploy or retrieve a different file or directory. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
   org_select_text: 'Select an org to set as default',
   missing_default_org: 'No Default Org Set',
-  force_config_set_org_text: 'SFDX: Set a Default Org'
+  force_config_set_org_text: 'SFDX: Set a Default Org',
+  error_parsing_sfdx_project_file:
+    'Sfdx project file seems invalid. Unable to parse %s. %s'
 };

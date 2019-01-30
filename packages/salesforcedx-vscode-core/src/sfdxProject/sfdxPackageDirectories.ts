@@ -11,7 +11,7 @@ import { SfdxProjectConfig, SfdxProjectPath } from '../sfdxProject';
 import * as path from 'path';
 
 export default class SfdxPackageDirectories {
-  private static async getPackageDirectoryPaths(): Promise<string[]> {
+  public static async getPackageDirectoryPaths(): Promise<string[]> {
     const packageDirectories = (await SfdxProjectConfig.getValue(
       'packageDirectories'
     )) as JsonArray;
