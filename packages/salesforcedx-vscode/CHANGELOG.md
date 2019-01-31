@@ -1,4 +1,16 @@
-## 44.17.0 - January 24, 2018
+## 44.18.0 - January 31, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Make push-or-deploy-on-save feature less overzealous, by pushing or deploying files only when they are saved ([PR #895](https://github.com/forcedotcom/salesforcedx-vscode/pull/895), [Issue #883](https://github.com/forcedotcom/salesforcedx-vscode/issues/883))
+
+#### salesforcedx-vscode-apex
+
+- Fix Apex Language Server to make it update stale references in files that have errors when the files are edited ([PR #905](https://github.com/forcedotcom/salesforcedx-vscode/pull/905))
+
+## 44.17.0 - January 24, 2019
 
 ### Fixed
 
