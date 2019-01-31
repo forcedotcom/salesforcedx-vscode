@@ -1,3 +1,25 @@
+## 44.17.0 - January 24, 2018
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs.
+
+## 44.16.0 - January 17, 2019
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Add username to Apex debug log entry list ([PR #864](https://github.com/forcedotcom/salesforcedx-vscode/pull/864), [Issue #834](https://github.com/forcedotcom/salesforcedx-vscode/issues/834))—Contribution by [@maaaaarco](https://github.com/maaaaarco)
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Handle errors during extension activation that caused SFDX commands to fail when executed ([PR #868](https://github.com/forcedotcom/salesforcedx-vscode/pull/868), [Issue #742](https://github.com/forcedotcom/salesforcedx-vscode/issues/742))
+
 ## 44.15.0 - January 10, 2019
 
 ### Added

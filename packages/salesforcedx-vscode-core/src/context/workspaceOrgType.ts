@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo } from '@salesforce/core';
 import * as path from 'path';
 import * as vscode from 'vscode';
-
-import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { nls } from '../../src/messages';
+import { displayDefaultUsername } from '../orgPicker';
+import { telemetryService } from '../telemetry';
+import { OrgAuthInfo } from '../util';
 
 export enum OrgType {
   SourceTracked,
@@ -21,8 +20,10 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
   const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
 
   if (defaultUsernameIsSet) {
-    const username = await getUsername(defaultUsernameOrAlias!);
-    const isScratchOrg = await isAScratchOrg(username);
+    const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
+    const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
+      telemetryService.sendError(err)
+    );
     return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
   }
 
@@ -37,6 +38,7 @@ export async function setupWorkspaceOrgType() {
     setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
     setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
   } catch (e) {
+    telemetryService.sendErrorEvent(e.message, e.stack);
     switch (e.name) {
       case 'NamedOrgNotFound':
         // If the info for a default username cannot be found,
@@ -49,35 +51,10 @@ export async function setupWorkspaceOrgType() {
         setDefaultUsernameHasNoChangeTracking(false);
         break;
       default:
-        throw e;
+        setDefaultUsernameHasChangeTracking(true);
+        setDefaultUsernameHasNoChangeTracking(true);
     }
   }
-}
-
-async function isAScratchOrg(username: string): Promise<boolean> {
-  try {
-    const authInfo = await AuthInfo.create({ username });
-    const authInfoFields = authInfo.getFields();
-    return Promise.resolve(
-      typeof authInfoFields.devHubUsername !== 'undefined'
-    );
-  } catch (e) {
-    // If the info for a username cannot be found,
-    // then the name of the exception will be 'NamedOrgNotFound'
-    throw e;
-  }
-}
-
-/**
- * Returns the non-aliased username
- * @param usernameOrAlias
- */
-export async function getUsername(usernameOrAlias: string): Promise<string> {
-  const username = await Aliases.fetch(usernameOrAlias);
-  if (username) {
-    return Promise.resolve(username);
-  }
-  return Promise.resolve(usernameOrAlias);
 }
 
 function setDefaultUsernameHasChangeTracking(val: boolean) {
@@ -101,12 +78,15 @@ export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
   ) {
-    const forceConfig = await new ForceConfigGet().getConfig(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      'defaultusername'
+    return await OrgAuthInfo.getDefaultUsernameOrAlias(
+      vscode.workspace.workspaceFolders[0].uri.fsPath
     );
-    return forceConfig.get('defaultusername');
   }
+}
+
+async function onSfdxConfigEvent() {
+  await setupWorkspaceOrgType();
+  await displayDefaultUsername();
 }
 
 export function registerDefaultUsernameWatcher(
@@ -123,9 +103,9 @@ export function registerDefaultUsernameWatcher(
         'sfdx-config.json'
       )
     );
-    sfdxConfigWatcher.onDidChange(uri => setupWorkspaceOrgType());
-    sfdxConfigWatcher.onDidCreate(uri => setupWorkspaceOrgType());
-    sfdxConfigWatcher.onDidDelete(uri => setupWorkspaceOrgType());
+    sfdxConfigWatcher.onDidChange(uri => onSfdxConfigEvent());
+    sfdxConfigWatcher.onDidCreate(uri => onSfdxConfigEvent());
+    sfdxConfigWatcher.onDidDelete(uri => onSfdxConfigEvent());
     context.subscriptions.push(sfdxConfigWatcher);
   }
 }

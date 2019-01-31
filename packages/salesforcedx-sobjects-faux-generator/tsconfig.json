@@ -10,8 +10,7 @@
     "rootDir": ".",
     "outDir": "out",
     "preserveConstEnums": true,
-    "strict": true,
-    "strictPropertyInitialization": false
+    "strict": true
   },
   "exclude": ["node_modules", "out"]
 }

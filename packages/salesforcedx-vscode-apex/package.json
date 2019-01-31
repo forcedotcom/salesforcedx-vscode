@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.15.0",
+  "version": "44.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -50,10 +50,11 @@
     "clean":
       "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ../../scripts/run-test-with-top-level-extensions",
-    "test:insiders":
-      "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
+    "test": "npm run test:vscode-integration",
+    "test:vscode-integration":
+      "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
+    "test:vscode-insiders-integration":
+      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
@@ -150,16 +151,16 @@
         "command": "sfdx.force.test.view.runClassTests",
         "title": "%run_tests_title%",
         "icon": {
-          "light": "resources/light/play-side.svg",
-          "dark": "resources/dark/play-side.svg"
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
         }
       },
       {
         "command": "sfdx.force.test.view.runSingleTest",
         "title": "%run_single_test_title%",
         "icon": {
-          "light": "resources/light/play-side.svg",
-          "dark": "resources/dark/play-side.svg"
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
         }
       }
     ],
@@ -171,11 +172,6 @@
           "type": ["string", "null"],
           "default": null,
           "description": "%java_home_description%"
-        },
-        "salesforcedx-vscode-apex.enable-rename": {
-          "type": ["boolean"],
-          "default": false,
-          "description": "%apex_rename_description%"
         },
         "salesforcedx-vscode-apex.enable-semantic-errors": {
           "type": ["boolean"],
@@ -209,12 +205,12 @@
   },
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.15.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.17.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
     "shelljs": "^0.8.1",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "3.5.1"
+    "vscode-languageclient": "5.1.1"
   }
 }

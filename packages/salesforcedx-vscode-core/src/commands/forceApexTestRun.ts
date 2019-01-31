@@ -87,7 +87,7 @@ export class ForceApexTestRunCommandFactory {
   private data: ApexTestQuickPickItem;
   private getCodeCoverage: boolean;
   private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
-  private testRunExecutorCommand: Command;
+  private testRunExecutorCommand!: Command;
   private outputToJson: string;
 
   constructor(
