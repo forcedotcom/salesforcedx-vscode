@@ -116,31 +116,29 @@ export async function setDefaultOrg(): Promise<
   if (!selection) {
     return { type: 'CANCEL' };
   }
-  if (
-    selection ===
-    '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text')
-  ) {
-    vscode.commands.executeCommand('sfdx.force.auth.web.login');
-    return {
-      type: 'CONTINUE',
-      data: {}
-    };
-  } else if (
-    selection ===
-    '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
-  ) {
-    vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
-    return { type: 'CONTINUE', data: {} };
-  } else if (
-    selection ===
-    '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
-  ) {
-    vscode.commands.executeCommand('sfdx.force.org.create');
-    return { type: 'CONTINUE', data: {} };
-  } else {
-    const usernameOrAlias = selection.split(' ', 1);
-    vscode.commands.executeCommand('sfdx.force.config.set', usernameOrAlias);
-    return { type: 'CONTINUE', data: {} };
+  switch (selection) {
+    case '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'): {
+      vscode.commands.executeCommand('sfdx.force.auth.web.login');
+      return {
+        type: 'CONTINUE',
+        data: {}
+      };
+    }
+    case '$(plus) ' +
+      nls.localize('force_auth_web_login_authorize_dev_hub_text'): {
+      vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
+      return { type: 'CONTINUE', data: {} };
+    }
+    case '$(plus) ' +
+      nls.localize('force_org_create_default_scratch_org_text'): {
+      vscode.commands.executeCommand('sfdx.force.org.create');
+      return { type: 'CONTINUE', data: {} };
+    }
+    default: {
+      const usernameOrAlias = selection.split(' ', 1);
+      vscode.commands.executeCommand('sfdx.force.config.set', usernameOrAlias);
+      return { type: 'CONTINUE', data: {} };
+    }
   }
 }
 
