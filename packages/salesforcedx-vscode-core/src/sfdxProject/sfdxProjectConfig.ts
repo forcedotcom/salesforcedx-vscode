@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
-import { AnyJson, JsonMap } from '@salesforce/ts-types';
+import { AnyJson } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
