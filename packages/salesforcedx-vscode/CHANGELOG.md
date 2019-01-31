@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-core
 
-- Update deploy on save feature to exclusively trigger a code push or deploy when a file is saved ([PR #895](https://github.com/forcedotcom/salesforcedx-vscode/pull/895), [Issue #883](https://github.com/forcedotcom/salesforcedx-vscode/issues/883))
+- Make push-or-deploy-on-save feature less overzealous, by pushing or deploying files only when they are saved ([PR #895](https://github.com/forcedotcom/salesforcedx-vscode/pull/895), [Issue #883](https://github.com/forcedotcom/salesforcedx-vscode/issues/883))
 
 #### salesforcedx-vscode-apex
 
-- Fix Apex LSP to update field references when they are renamed ([PR #905](https://github.com/forcedotcom/salesforcedx-vscode/pull/905))
+- Fix Apex Language Server to make it update stale references in files that have errors when the files are edited ([PR #905](https://github.com/forcedotcom/salesforcedx-vscode/pull/905))
 
 ## 44.17.0 - January 24, 2019
 
