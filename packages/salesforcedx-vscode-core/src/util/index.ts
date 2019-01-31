@@ -6,3 +6,4 @@
  */
 
 export { SfdxProjectJsonParser } from './sfdxProjectJsonParser';
+export { OrgAuthInfo } from './authInfo';

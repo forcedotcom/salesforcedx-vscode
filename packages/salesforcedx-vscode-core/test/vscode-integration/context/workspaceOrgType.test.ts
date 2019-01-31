@@ -13,24 +13,24 @@ import { Aliases, AuthInfo } from '@salesforce/core';
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   getDefaultUsernameOrAlias,
-  getUsername,
   getWorkspaceOrgType,
   OrgType,
   setupWorkspaceOrgType
 } from '../../../src/context';
+import { OrgAuthInfo } from '../../../src/util';
 
 describe('getUsername', () => {
   it('should return the username when given a username', async () => {
     const username = 'test@org.com';
     const aliasesStub = getAliasesFetchStub(undefined);
-    expect(await getUsername(username)).to.equal(username);
+    expect(await OrgAuthInfo.getUsername(username)).to.equal(username);
     aliasesStub.restore();
   });
 
   it('should return the username when given an alias', async () => {
     const username = 'test@org.com';
     const aliasesStub = getAliasesFetchStub(username);
-    expect(await getUsername('orgAlias')).to.equal(username);
+    expect(await OrgAuthInfo.getUsername('orgAlias')).to.equal(username);
     aliasesStub.restore();
   });
 });
@@ -119,7 +119,9 @@ describe('getWorkspaceOrgType', () => {
 
     const error = new Error();
     error.name = 'NamedOrgNotFound';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
 
     let errorWasThrown = false;
     try {
@@ -131,7 +133,7 @@ describe('getWorkspaceOrgType', () => {
       expect(errorWasThrown).to.be.true;
       getConfigStub.restore();
       aliasesStub.restore();
-      authInfoStub.restore();
+      orgAuthInfoStub.restore();
     }
   });
 
@@ -145,7 +147,9 @@ describe('getWorkspaceOrgType', () => {
     error.name = 'GenericKeychainServiceError';
     error.stack =
       'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
 
     let errorWasThrown = false;
     try {
@@ -160,7 +164,7 @@ describe('getWorkspaceOrgType', () => {
       expect(errorWasThrown).to.be.true;
       getConfigStub.restore();
       aliasesStub.restore();
-      authInfoStub.restore();
+      orgAuthInfoStub.restore();
     }
   });
 });
@@ -191,7 +195,9 @@ describe('setupWorkspaceOrgType', () => {
 
     const error = new Error();
     error.name = 'NamedOrgNotFound';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
     await setupWorkspaceOrgType();
@@ -202,7 +208,7 @@ describe('setupWorkspaceOrgType', () => {
 
     getConfigStub.restore();
     aliasesStub.restore();
-    authInfoStub.restore();
+    orgAuthInfoStub.restore();
     executeCommandStub.restore();
   });
 
@@ -271,7 +277,9 @@ describe('setupWorkspaceOrgType', () => {
     error.name = 'GenericKeychainServiceError';
     error.stack =
       'GenericKeychainServiceError: The service and acount specified in key.json do not match the version of the toolbelt ...';
-    const authInfoStub = sinon.stub(AuthInfo, 'create').throws(error);
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
 
     try {
       expect(await getDefaultUsernameOrAlias()).to.equal(username);
@@ -286,7 +294,7 @@ describe('setupWorkspaceOrgType', () => {
       getConfigStub.restore();
       aliasesSpy.restore();
       executeCommandStub.restore();
-      authInfoStub.restore();
+      orgAuthInfoStub.restore();
     }
   });
 });
