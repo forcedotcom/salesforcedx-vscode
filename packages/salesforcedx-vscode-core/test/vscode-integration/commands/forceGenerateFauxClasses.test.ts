@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
+  forceGenerateFactory,
   initSObjectDefinitions,
   SObjectRefreshSource
 } from '../../../src/commands/forceGenerateFauxClasses';
@@ -24,8 +25,7 @@ import {
 describe('Generate faux classes with initSObjectDefinitions', () => {
   let existsSyncStub: sinon.SinonStub;
   let getConfigStub: sinon.SinonStub;
-  let executeCommandStub: sinon.SinonStub;
-  const commandName = 'sfdx.force.internal.refreshsobjects';
+  let forceGenerateStub: sinon.SinonStub;
   const projectPath = path.join('sample', 'path');
   const sobjectsPath = path.join(
     projectPath,
@@ -37,13 +37,16 @@ describe('Generate faux classes with initSObjectDefinitions', () => {
   beforeEach(() => {
     existsSyncStub = sinon.stub(fs, 'existsSync');
     getConfigStub = sinon.stub(ForceConfigGet.prototype, 'getConfig');
-    executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+    forceGenerateStub = sinon.stub(
+      forceGenerateFactory,
+      'forceGenerateFauxClassesCreate'
+    );
   });
 
   afterEach(() => {
     existsSyncStub.restore();
     getConfigStub.restore();
-    executeCommandStub.restore();
+    forceGenerateStub.restore();
   });
 
   it('Should execute sobject refresh if no sobjects folder is present', async () => {
@@ -53,11 +56,10 @@ describe('Generate faux classes with initSObjectDefinitions', () => {
     await initSObjectDefinitions(projectPath);
 
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-    expect(executeCommandStub.calledOnce).to.be.true;
-    expect(executeCommandStub.getCall(0).args).to.eqls([
-      commandName,
-      SObjectRefreshSource.STARTUP
-    ]);
+    expect(forceGenerateStub.calledOnce).to.be.true;
+    expect(forceGenerateStub.getCall(0).args[0]).to.eql(
+      SObjectRefreshSource.Startup
+    );
   });
 
   it('Should not execute sobject refresh if sobjects folder is present', async () => {
@@ -67,7 +69,7 @@ describe('Generate faux classes with initSObjectDefinitions', () => {
     await initSObjectDefinitions(projectPath);
 
     expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-    expect(executeCommandStub.notCalled).to.be.true;
+    expect(forceGenerateStub.notCalled).to.be.true;
   });
 
   it('Should not execute sobject refresh if no default username set', async () => {
@@ -76,6 +78,6 @@ describe('Generate faux classes with initSObjectDefinitions', () => {
 
     await initSObjectDefinitions(projectPath);
 
-    expect(executeCommandStub.notCalled).to.be.true;
+    expect(forceGenerateStub.notCalled).to.be.true;
   });
 });

@@ -108,14 +108,6 @@ export class TelemetryService {
     }
   }
 
-  public sendAutomaticSObjectRefreshEvent(source: SObjectRefreshSource) {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('automaticSObjectRefresh', {
-        source
-      });
-    }
-  }
-
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);

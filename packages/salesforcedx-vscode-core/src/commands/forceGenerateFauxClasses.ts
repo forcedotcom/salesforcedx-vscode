@@ -38,8 +38,8 @@ import {
 } from './commands';
 
 export enum SObjectRefreshSource {
-  MANUAL = 'MANUAL',
-  STARTUP = 'STARTUP'
+  Manual = 'manual',
+  Startup = 'startup'
 }
 
 class SObjectRefreshGatherer
@@ -51,7 +51,7 @@ class SObjectRefreshGatherer
   public async gather(): Promise<ContinueResponse<SObjectRefreshSource>> {
     return {
       type: 'CONTINUE',
-      data: this.source || SObjectRefreshSource.MANUAL
+      data: this.source || SObjectRefreshSource.Manual
     };
   }
 }
@@ -93,9 +93,8 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
 
     let progressLocation = vscode.ProgressLocation.Notification;
     const refreshSource = response.data;
-    if (refreshSource !== SObjectRefreshSource.MANUAL) {
+    if (refreshSource !== SObjectRefreshSource.Manual) {
       progressLocation = vscode.ProgressLocation.Window;
-      telemetryService.sendAutomaticSObjectRefreshEvent(refreshSource);
     }
     ProgressNotification.show(
       execution,
@@ -118,7 +117,12 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
       console.log('Generate error ' + e);
     }
     ForceGenerateFauxClassesExecutor.isActive = false;
-    this.logMetric(execution.command.logName);
+
+    let { logName } = execution.command;
+    if (refreshSource !== SObjectRefreshSource.Manual) {
+      logName += '_' + refreshSource;
+    }
+    this.logMetric(logName);
 
     return;
   }
@@ -149,10 +153,17 @@ export async function initSObjectDefinitions(projectPath: string) {
       SOBJECTS_DIR
     );
     if (!fs.existsSync(sobjectFolder)) {
-      vscode.commands.executeCommand(
-        'sfdx.force.internal.refreshsobjects',
-        SObjectRefreshSource.STARTUP
-      );
+      forceGenerateFactory
+        .forceGenerateFauxClassesCreate(SObjectRefreshSource.Startup)
+        .catch(e => {
+          throw e;
+        });
     }
   }
 }
+
+// for testing
+export const forceGenerateFactory = {
+  initSObjectDefinitions,
+  forceGenerateFauxClassesCreate
+};

@@ -202,23 +202,5 @@ describe('Telemetry', () => {
       };
       assert.calledWith(reporter, 'commandExecution', expectedData);
     });
-
-    it('Should send correct data format on sendAutomaticSObjectRefreshEvent', async () => {
-      // create vscode extensionContext
-      mockContext = new MockContext(true);
-
-      const telemetryService = TelemetryService.getInstance();
-      telemetryService.initializeService(mockContext, machineId);
-
-      telemetryService.sendAutomaticSObjectRefreshEvent(
-        SObjectRefreshSource.STARTUP
-      );
-      assert.calledOnce(reporter);
-
-      const expectedData = {
-        source: SObjectRefreshSource.STARTUP
-      };
-      assert.calledWith(reporter, 'automaticSObjectRefresh', expectedData);
-    });
   });
 });
