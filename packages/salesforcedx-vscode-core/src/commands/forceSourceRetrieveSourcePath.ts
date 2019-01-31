@@ -19,9 +19,8 @@ import {
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { IsInSfdxPackageDirectory } from '../predicates';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { SfdxProjectJsonParser } from '../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -48,16 +47,11 @@ export class SourcePathChecker implements PostconditionChecker<string> {
   ): Promise<ContinueResponse<string> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
       const sourcePath = inputs.data;
-      const sfdxProjectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-      const sfdxProjectJsonParser = new SfdxProjectJsonParser();
       try {
-        const packageDirectoryPaths = await sfdxProjectJsonParser.getPackageDirectoryFullPaths(
-          sfdxProjectPath
+        const isInSfdxPackageDirectory = await SfdxPackageDirectories.isInPackageDirectory(
+          sourcePath
         );
-        const isInSfdxPackageDirectory = new IsInSfdxPackageDirectory(
-          packageDirectoryPaths
-        ).apply(sourcePath);
-        if (isInSfdxPackageDirectory.result) {
+        if (isInSfdxPackageDirectory) {
           return inputs;
         }
       } catch (error) {

@@ -1,30 +1,20 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfdxProject } from '@salesforce/core';
-import { AnyJson, JsonArray, JsonMap } from '@salesforce/ts-types';
+
+import { JsonArray, JsonMap } from '@salesforce/ts-types';
+import { SfdxProjectConfig, SfdxProjectPath } from '../sfdxProject';
 
 import * as path from 'path';
 
-export class SfdxProjectJsonParser {
-  public async getValue(
-    workspacePath: string,
-    key: string
-  ): Promise<AnyJson | undefined> {
-    const sfdxProject = await SfdxProject.resolve(workspacePath);
-    const sfdxProjectJson = await sfdxProject.resolveProjectConfig();
-    return Promise.resolve(sfdxProjectJson[key]);
-  }
-
-  public async getPackageDirectoryPaths(
-    sfdxProjectPath: string
-  ): Promise<string[]> {
-    const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
-    const sfdxProjectJson = await sfdxProject.resolveProjectConfig();
-    const packageDirectories = sfdxProjectJson.packageDirectories as JsonArray;
+export default class SfdxPackageDirectories {
+  public static async getPackageDirectoryPaths(): Promise<string[]> {
+    const packageDirectories = (await SfdxProjectConfig.getValue(
+      'packageDirectories'
+    )) as JsonArray;
     if (packageDirectories) {
       const packageDirectoryPaths: string[] = [];
       packageDirectories.forEach(packageDir => {
@@ -53,14 +43,23 @@ export class SfdxProjectJsonParser {
     }
   }
 
-  public async getPackageDirectoryFullPaths(
-    sfdxProjectPath: string
-  ): Promise<string[]> {
-    const packageDirectoryPaths = await this.getPackageDirectoryPaths(
-      sfdxProjectPath
-    );
+  public static async getPackageDirectoryFullPaths(): Promise<string[]> {
+    const packageDirectoryPaths = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const sfdxProjectPath = SfdxProjectPath.getPath();
     return packageDirectoryPaths.map(packageDirectoryPath =>
       path.join(sfdxProjectPath, packageDirectoryPath)
     );
+  }
+
+  public static async isInPackageDirectory(filePath: string): Promise<boolean> {
+    let filePathIsInPackageDirectory = false;
+    const packageDirectoryPaths = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+    for (const packageDirectoryPath of packageDirectoryPaths) {
+      if (filePath.startsWith(packageDirectoryPath)) {
+        filePathIsInPackageDirectory = true;
+        break;
+      }
+    }
+    return filePathIsInPackageDirectory;
   }
 }
