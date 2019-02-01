@@ -42,9 +42,8 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 
 ## Resources
 
-- Doc: [Lightning Web Components Developer Guide](http://developer.salesfore.com/docs/component-library/documentation/lwc) (available after December 17th)
-- Trailhead: [Lightning Web Components Quick Start]
-(https://trailhead.salesforce.com/content/learn/projects/quick-start-lightning-web-components/)
+- Doc: [Lightning Web Components Developer Guide](https://component-library-dev.herokuapp.com/docs/component-library/documentation/lwc)
+- Trailhead: [Lightning Web Components Quick Start](https://trailhead.salesforce.com/content/learn/projects/quick-start-lightning-web-components/)
 - Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 - Doc: [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
 - Doc: [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/)
