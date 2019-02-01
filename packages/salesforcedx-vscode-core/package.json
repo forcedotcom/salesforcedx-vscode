@@ -644,7 +644,7 @@
       },
       {
         "id": "json",
-        "filenamePatterns": ["*.wdash", "*.wdf", "*.wdpr", "*.wlens"]
+        "filenamePatterns": ["*.wdash", "*.wdf", "*.wdpr", "*.wlens", "*.orchestration"]
       },
       {
         "id": "forcesourcemanifest",
