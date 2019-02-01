@@ -60,6 +60,7 @@ import {
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
+import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import {
   isvDebugBootstrap,
@@ -80,6 +81,7 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave } from './settings';
+import { SfdxProjectPath } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -507,6 +509,11 @@ export async function activate(context: vscode.ExtensionContext) {
   if (vscode.workspace.rootPath && isDemoMode()) {
     decorators.showDemoMode();
   }
+
+  // Refresh SObject definitions if there aren't any faux classes
+  initSObjectDefinitions(SfdxProjectPath.getPath()).catch(e =>
+    telemetryService.sendErrorEvent(e.message, e.stack)
+  );
 
   const api: any = {
     ProgressNotification,

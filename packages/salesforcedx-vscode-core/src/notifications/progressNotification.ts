@@ -12,12 +12,13 @@ import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/
 export class ProgressNotification {
   public static show(
     execution: CommandExecution,
-    token: vscode.CancellationTokenSource
+    token: vscode.CancellationTokenSource,
+    progressLocation?: vscode.ProgressLocation
   ) {
     return vscode.window.withProgress(
       {
         title: nls.localize('progress_notification_text', execution.command),
-        location: vscode.ProgressLocation.Notification,
+        location: progressLocation || vscode.ProgressLocation.Notification,
         cancellable: true
       },
       (progress, cancellationToken) => {
