@@ -27,8 +27,8 @@ import {
   notificationService,
   ProgressNotification
 } from '../notifications/index';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { taskViewService } from '../statuses/index';
-import { SfdxProjectJsonParser } from '../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -135,12 +135,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   };
 
   public async getProjectLoginUrl(): Promise<string | undefined> {
-    const projectConfig = new SfdxProjectJsonParser();
-    const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-    return (await projectConfig.getValue(
-      projectPath,
-      'sfdcLoginUrl'
-    )) as string;
+    return (await SfdxProjectConfig.getValue('sfdcLoginUrl')) as string;
   }
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
