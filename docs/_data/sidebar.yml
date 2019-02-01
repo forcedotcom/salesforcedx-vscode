@@ -24,7 +24,7 @@
   baseUrl: /articles/apex/
   children:
     - title: Writing
-      url: /articles/apex/introduction
+      url: /articles/apex/writing
     - title: Testing
       url: /articles/apex/testing
     - title: Refactoring
