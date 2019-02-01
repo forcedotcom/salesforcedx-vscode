@@ -10,74 +10,131 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
+import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import * as vscode from 'vscode';
+import { ProgressLocation } from 'vscode';
+import { SfdxCommandlet } from '../../../src/commands';
 import {
-  forceGenerateFactory,
+  ForceGenerateFauxClassesExecutor,
   initSObjectDefinitions,
   SObjectRefreshSource
 } from '../../../src/commands/forceGenerateFauxClasses';
+import { ProgressNotification } from '../../../src/notifications';
 
-describe('Generate faux classes with initSObjectDefinitions', () => {
-  let existsSyncStub: sinon.SinonStub;
-  let getConfigStub: sinon.SinonStub;
-  let forceGenerateStub: sinon.SinonStub;
-  const projectPath = path.join('sample', 'path');
-  const sobjectsPath = path.join(
-    projectPath,
-    SFDX_DIR,
-    TOOLS_DIR,
-    SOBJECTS_DIR
-  );
-
-  beforeEach(() => {
-    existsSyncStub = sinon.stub(fs, 'existsSync');
-    getConfigStub = sinon.stub(ForceConfigGet.prototype, 'getConfig');
-    forceGenerateStub = sinon.stub(
-      forceGenerateFactory,
-      'forceGenerateFauxClassesCreate'
+describe('ForceGenerateFauxClasses', () => {
+  describe('initSObjectDefinitions', () => {
+    let existsSyncStub: sinon.SinonStub;
+    let getConfigStub: sinon.SinonStub;
+    let commandletSpy: sinon.SinonSpy;
+    const projectPath = path.join('sample', 'path');
+    const sobjectsPath = path.join(
+      projectPath,
+      SFDX_DIR,
+      TOOLS_DIR,
+      SOBJECTS_DIR
     );
+
+    beforeEach(() => {
+      existsSyncStub = sinon.stub(fs, 'existsSync');
+      getConfigStub = sinon.stub(ForceConfigGet.prototype, 'getConfig');
+      commandletSpy = sinon.stub(SfdxCommandlet.prototype, 'run');
+    });
+
+    afterEach(() => {
+      existsSyncStub.restore();
+      getConfigStub.restore();
+      commandletSpy.restore();
+    });
+
+    it('Should execute sobject refresh if no sobjects folder is present', async () => {
+      existsSyncStub.returns(false);
+      getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
+
+      await initSObjectDefinitions(projectPath);
+
+      expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
+      expect(commandletSpy.calledOnce).to.be.true;
+
+      // validates the commandlet ran with the correct source
+      expect(commandletSpy.thisValues[0].gatherer).to.eqls({
+        source: SObjectRefreshSource.Startup
+      });
+    });
+
+    it('Should not execute sobject refresh if sobjects folder is present', async () => {
+      existsSyncStub.returns(true);
+      getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
+
+      await initSObjectDefinitions(projectPath);
+
+      expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
+      expect(commandletSpy.notCalled).to.be.true;
+    });
+
+    it('Should not execute sobject refresh if no default username set', async () => {
+      existsSyncStub.returns(false);
+      getConfigStub.returns(new Map([['defaultusername', undefined]]));
+
+      await initSObjectDefinitions(projectPath);
+
+      expect(commandletSpy.notCalled).to.be.true;
+    });
   });
 
-  afterEach(() => {
-    existsSyncStub.restore();
-    getConfigStub.restore();
-    forceGenerateStub.restore();
-  });
+  describe('ForceGenerateFauxClassesExecutor', () => {
+    let generatorStub: sinon.SinonStub;
+    let progressStub: sinon.SinonStub;
+    let logStub: sinon.SinonStub;
 
-  it('Should execute sobject refresh if no sobjects folder is present', async () => {
-    existsSyncStub.returns(false);
-    getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
+    beforeEach(() => {
+      progressStub = sinon.stub(ProgressNotification, 'show');
+      generatorStub = sinon.stub(FauxClassGenerator.prototype, 'generate');
+      logStub = sinon.stub(
+        ForceGenerateFauxClassesExecutor.prototype,
+        'logMetric'
+      );
+    });
 
-    await initSObjectDefinitions(projectPath);
+    afterEach(() => {
+      progressStub.restore();
+      generatorStub.restore();
+      logStub.restore();
+    });
 
-    expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-    expect(forceGenerateStub.calledOnce).to.be.true;
-    expect(forceGenerateStub.getCall(0).args[0]).to.eql(
-      SObjectRefreshSource.Startup
-    );
-  });
+    it('Should show progress on the status bar for non-manual refresh source', async () => {
+      await executeWithSource(SObjectRefreshSource.Startup);
+      expect(progressStub.getCall(0).args[2]).to.eq(ProgressLocation.Window);
+    });
 
-  it('Should not execute sobject refresh if sobjects folder is present', async () => {
-    existsSyncStub.returns(true);
-    getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
+    it('Should show progress as notification for manual refresh source', async () => {
+      await executeWithSource(SObjectRefreshSource.Manual);
+      expect(progressStub.getCall(0).args[2]).to.eq(
+        ProgressLocation.Notification
+      );
+    });
 
-    await initSObjectDefinitions(projectPath);
+    it('Should append refresh source to log name if not manual', async () => {
+      const source = SObjectRefreshSource.Startup;
+      await executeWithSource(source);
+      expect(logStub.getCall(0).args[0].endsWith(`_${source}`)).to.be.true;
+    });
 
-    expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-    expect(forceGenerateStub.notCalled).to.be.true;
-  });
+    it('Should not append refresh source to log name if manual', async () => {
+      const source = SObjectRefreshSource.Manual;
+      await executeWithSource(source);
+      expect(logStub.getCall(0).args[0].endsWith(`_${source}`)).to.be.false;
+    });
 
-  it('Should not execute sobject refresh if no default username set', async () => {
-    existsSyncStub.returns(false);
-    getConfigStub.returns(new Map([['defaultusername', undefined]]));
-
-    await initSObjectDefinitions(projectPath);
-
-    expect(forceGenerateStub.notCalled).to.be.true;
+    async function executeWithSource(source: SObjectRefreshSource) {
+      const executor = new ForceGenerateFauxClassesExecutor();
+      await executor.execute({
+        type: 'CONTINUE',
+        data: source
+      });
+    }
   });
 });

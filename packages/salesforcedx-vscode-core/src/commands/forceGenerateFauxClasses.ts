@@ -42,7 +42,7 @@ export enum SObjectRefreshSource {
   Startup = 'startup'
 }
 
-class SObjectRefreshGatherer
+export class SObjectRefreshGatherer
   implements ParametersGatherer<SObjectRefreshSource> {
   private source: SObjectRefreshSource | undefined;
   public constructor(source?: SObjectRefreshSource) {
@@ -56,7 +56,7 @@ class SObjectRefreshGatherer
   }
 }
 
-class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
@@ -153,17 +153,9 @@ export async function initSObjectDefinitions(projectPath: string) {
       SOBJECTS_DIR
     );
     if (!fs.existsSync(sobjectFolder)) {
-      forceGenerateFactory
-        .forceGenerateFauxClassesCreate(SObjectRefreshSource.Startup)
-        .catch(e => {
-          throw e;
-        });
+      forceGenerateFauxClassesCreate(SObjectRefreshSource.Startup).catch(e => {
+        throw e;
+      });
     }
   }
 }
-
-// for testing
-export const forceGenerateFactory = {
-  initSObjectDefinitions,
-  forceGenerateFauxClassesCreate
-};
