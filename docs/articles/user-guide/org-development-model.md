@@ -4,7 +4,7 @@ title: Org Development Model with VS Code
 
 When you use the Org Development Model, you track your changes manually and deploy sets of changes to sandboxes and then to your production org. (The Package Development Model, in contrast, involves working with source-tracked orgs and moving your changes between orgs using packaged sets of metadata.) For details, see the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
 
-This article describes how to work with orgs that don’t have source tracking, such as sandboxes and Developer Edition (DE) orgs, in VS Code.
+This article describes how to work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in VS Code.
 
 ![Demo](/images/changeset-demo.gif)
 
@@ -45,9 +45,11 @@ To delete source from your project and from your non-source-tracked org, you can
 
 ## Source Format
 
-Note, that the format of the source code is in the new "source" format. This means that you cannot open your existing code from Force.com IDE in VS Code. You either need to convert your code to source format or create a new project and retrieve the code from your org using your existing manifest (`package.xml`) file.
+These commands assume that your files are in source format (rather than metadata format). Source format is optimized for working with version control systems. For details, see [Salesforce DX Project Structure and Source Format](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_source_file_format.htm) in the _Salesforce DX Developer Guide_.
 
-For information on converting to source format and maintaining git history see [this blog post](https://ntotten.com/2018/05/11/convert-metadata-to-source-format-while-maintain-git-history/).
+Because Force.com IDE used metadata format, you can’t open your Force.com IDE projects in VS Code. To work with the commands described in this article, either convert your metadata to source format (using `sfdx force:mdapi:convert`) or create a new project and then retrieve the metadata from your org using the manifest (`package.xml` file) that you used in your previous IDE.
+
+For information about converting to source format and maintaining Git history, see [this blog post](https://ntotten.com/2018/05/11/convert-metadata-to-source-format-while-maintain-git-history/).
 
 ## Bugs and Feedback
 
