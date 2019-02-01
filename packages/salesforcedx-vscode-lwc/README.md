@@ -17,7 +17,7 @@ Before you set up this extension
 * Notification of HTML and JavaScript file errors or compiler warnings
 
 * ESLint configuration for Lightning web components
-    * Errors and warnings appear in JavaScript files
+    * See errors and warnings appear in JavaScript files
     * Hover over code to display warning messages
     * Click the displayed message for available code actions
   
@@ -47,6 +47,7 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 (https://trailhead.salesforce.com/content/learn/projects/quick-start-lightning-web-components/)
 - Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
 - Doc: [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
+- Doc: [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/)
 
 
 ---
