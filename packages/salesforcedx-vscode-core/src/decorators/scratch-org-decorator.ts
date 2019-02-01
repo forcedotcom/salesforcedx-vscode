@@ -40,7 +40,7 @@ function displayDefaultUserName(configPath: string) {
     if (!err) {
       const config = JSON.parse(data.toString());
       if (config['defaultusername']) {
-        statusBarItem.text = `$(browser) ${config['defaultusername']}`;
+        statusBarItem.text = `$(browser)`;
       }
     }
   });

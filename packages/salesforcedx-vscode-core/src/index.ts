@@ -26,6 +26,7 @@ import {
   forceAuthLogoutAll,
   forceAuthWebLogin,
   forceConfigList,
+  forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceGenerateFauxClassesCreate,
@@ -78,6 +79,7 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
@@ -316,6 +318,15 @@ function registerCommands(
     forceApexLogGet
   );
 
+  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
+    'sfdx.force.set.default.org',
+    setDefaultOrg
+  );
+  const forceConfigSetCmd = vscode.commands.registerCommand(
+    'sfdx.force.config.set',
+    forceConfigSet
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -369,7 +380,9 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd
+    forceApexLogGetCmd,
+    forceSetDefaultOrgCmd,
+    forceConfigSetCmd
   );
 }
 
@@ -469,6 +482,8 @@ export async function activate(context: vscode.ExtensionContext) {
   // Set context for defaultusername org
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
+
+  await showDefaultOrg();
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
