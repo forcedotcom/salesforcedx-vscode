@@ -7,7 +7,6 @@
 import { expect } from 'chai';
 import { assert, match, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
-import { SObjectRefreshSource } from '../../../src/commands/forceGenerateFauxClasses';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 import TelemetryReporter from '../../../src/telemetry/telemetryReporter';

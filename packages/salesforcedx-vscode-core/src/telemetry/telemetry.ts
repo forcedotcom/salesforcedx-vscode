@@ -7,7 +7,6 @@
 
 import * as util from 'util';
 import vscode = require('vscode');
-import { SObjectRefreshSource } from '../commands/forceGenerateFauxClasses';
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';

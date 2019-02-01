@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import { ConfigurationTarget } from 'vscode';
 import * as vscode from 'vscode';
+import { ConfigurationTarget } from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -81,6 +81,7 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave } from './settings';
+import { SfdxProjectPath } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -510,8 +511,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Refresh SObject definitions if there aren't any faux classes
-  const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-  initSObjectDefinitions(projectPath).catch(e =>
+  initSObjectDefinitions(SfdxProjectPath.getPath()).catch(e =>
     telemetryService.sendErrorEvent(e.message, e.stack)
   );
 

@@ -29,9 +29,7 @@ import { getDefaultUsernameOrAlias } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
-import { telemetryService } from '../telemetry';
 import {
-  EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
