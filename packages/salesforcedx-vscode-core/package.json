@@ -643,6 +643,10 @@
         "filenames": [".forceignore"]
       },
       {
+        "id": "json",
+        "filenamePatterns": ["*.wdash", "*.wdf", "*.wdpr", "*.wlens", "*.orchestration"]
+      },
+      {
         "id": "forcesourcemanifest",
         "aliases": ["ForceSourceManifest", "forcesourcemanifest"],
         "filenamePatterns": ["**/manifest/**/*.xml"]
