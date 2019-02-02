@@ -16,11 +16,45 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 
+import { ConfigAggregator, ConfigFile } from '@salesforce/core';
+
 export async function setupGlobalDefaultUserIsvAuth() {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
   ) {
+
+    const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath + '/';
+    /* const opts = {
+      isGlobal: false,
+      isState: true,
+      rootFolder: rootPath,
+      filename: 'sfdx-config.json'
+    };
+    const aggregator = await ConfigAggregator.create(opts);
+    const locals = aggregator.getLocation(ConfigAggregator.Location.LOCAL);
+
+    // Display the default user info
+    console.log('devhub', aggregator.getInfo('defaultdevhubusername'));
+    console.log('user', aggregator.getInfo('defaultusername'));
+    console.log('waaa', aggregator.getPropertyValue('defaultusername')); */
+
+    const myLocalConfig = await ConfigFile.create({
+      isGlobal: false,
+      rootFolder: rootPath + '.sfdx/',
+      filename: 'sfdx-config.json'
+    });
+
+    await myLocalConfig.read();
+    const content = myLocalConfig.getContents();
+    const obj = myLocalConfig.toObject();
+    console.log('content', content);
+    console.log('obj', obj);
+    console.log('myConfig', myLocalConfig);
+    content['myVar'] = 'wwaaaaaaaa';
+    // doing this write creates a weird loop
+    // myLocalConfig.write(content);
+
     const forceConfig = await new ForceConfigGet().getConfig(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
       SFDX_CONFIG_ISV_DEBUGGER_SID,
