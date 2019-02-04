@@ -20,6 +20,8 @@
       url: /articles/user-guide/migrate-from-forcecom-ide
     - title: Deploy on Save
       url: /articles/user-guide/deploy-on-save
+    - title: Source Format
+      url: /articles/user-guide/source-format
 - title: Apex
   baseUrl: /articles/apex/
   children:
@@ -44,7 +46,6 @@
       url: /articles/frameworks/lwc
     - title: Visualforce
       url: /articles/frameworks/visualforce
-
 - title: FAQ
   baseUrl: /articles/faq/
   children:
@@ -59,3 +60,5 @@
   children:
     - title: General
       url: /articles/troubleshooting/general
+- title: Bugs and Feedback
+  url: /articles/bugs-and-feedback

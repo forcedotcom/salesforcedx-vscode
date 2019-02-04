@@ -2,14 +2,11 @@
 title: Package Development Model with VS Code
 ---
 
-When you use the Package Development Model, using an org with source tracking, the changes that you make on your local workstation and in your default development org are tracked for you. You move changes between orgs using packaged sets of metadata. 
-(The Org Development Model, in contrast, involves tracking your changes manually and deploying only your changed metadata to other orgs.) For details, see the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.
+When you employ the Package Development Model, developing against an org with source tracking, the changes that you make on your local workstation and in your default development org are tracked for you. You move changes between orgs using packaged sets of metadata. (The Org Development Model, in contrast, involves tracking your changes manually and deploying only your changed metadata to other orgs.) For details, see the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.
 
-This article describes how to work with orgs that have source tracking, such as scratch orgs.
+This article describes how to work with orgs that have source tracking, such as scratch orgs, in Visual Studio Code.
 
-![Demo](/images/changeset-demo.gif)
-
-## Getting Started
+## Get Started
 
 First, open VS Code and open or create a project: 
 - If you are starting a new project, open the command palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS) and run **SFDX: Create Project**.
@@ -18,3 +15,13 @@ First, open VS Code and open or create a project:
 Next, authorize a Dev Hub and create a scratch org.
 1. To authorize a Dev Hub, open the command palette and run **SFDX: Authorize a Dev Hub**. If you don’t have a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_ for information about setting one up.
 1. To create a scratch org and set it as your default org for development, run **SFDX: Create a Default Scratch Org**.
+
+## Deploy and Retrieve Source
+
+To push your source to the new scratch org, run **SFDX: Push Source to Default Org**.
+
+To open your default org so that you can test your changes or use declaritive tools, run **SFDX: Open Default Org** or click the browser icon ({% octicon browser %}) in the footer.
+
+After you make changes on your local workstation, to push all your changes to the org, run **SFDX: Push Source to Default Org** again.
+
+After you make changes in your browser, run **SFDX: Pull Source from Default Scratch Org** to update your project.

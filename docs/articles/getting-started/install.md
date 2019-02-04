@@ -2,9 +2,9 @@
 title: Install Salesforce Extensions for VS Code
 ---
 
-Before you get started, install the required software on your machine.
+Before you get started, install the required software on your computer.
 
-## Install Visual Studio Code
+## Visual Studio Code
 
 Visual Studio Code can be installed on any computer running macOS, Windows, or Linux. VS Code’s [system requirements](https://code.visualstudio.com/docs/supporting/requirements) are fairly small, so it should run well on most computers.
 
@@ -16,7 +16,7 @@ Some features in Salesforce Extensions for VS Code depend upon the Java 8 Platfo
 
 If you don’t already have version 8 of the JDK installed, install the latest version of the Java 8 JDK from [Java SE Development Kit 8 Downloads](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 
-## Install Salesforce CLI
+## Salesforce CLI
 
 Salesforce CLI is used to execute commands against Salesforce orgs and work with source files on your local machine. Salesforce Extensions for VS Code uses Salesforce CLI behind the scenes, so even if you don’t want to use the CLI directly you need to install it on your machine.
 
