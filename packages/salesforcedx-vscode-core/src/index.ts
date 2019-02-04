@@ -79,7 +79,7 @@ import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { setDefaultOrg, showDefaultOrg } from './orgPicker';
-import { registerPushOrDeployOnSave } from './settings';
+import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -517,6 +517,7 @@ export async function activate(context: vscode.ExtensionContext) {
     SelectStrictDirPath,
     SfdxCommandlet,
     SfdxCommandletExecutor,
+    sfdxCoreSettings,
     SfdxWorkspaceChecker,
     channelService,
     notificationService,

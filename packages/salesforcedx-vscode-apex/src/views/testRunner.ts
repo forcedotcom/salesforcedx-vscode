@@ -107,21 +107,6 @@ export class ApexTestRunner {
     }
   }
 
-  public async runTestOrTestClass(test: TestNode) {
-    const tmpFolder = this.getTempFolder();
-    const builder = new ReadableApexTestRunExecutor(
-      [test.name],
-      false,
-      tmpFolder
-    );
-    const commandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
-      new EmptyParametersGatherer(),
-      builder
-    );
-    await commandlet.run();
-  }
-
   public async runAllApexTests(): Promise<void> {
     const tests = Array.from(this.testOutline.testStrings.values());
     await this.runApexTests(tests);
@@ -129,9 +114,7 @@ export class ApexTestRunner {
 
   public async runApexTests(tests: string[]) {
     const tmpFolder = this.getTempFolder();
-    const getCodeCoverage: boolean = sfdxCoreSettings
-      .getConfiguration()
-      .get('retrieve-test-code-coverage') as boolean;
+    const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
     const builder = new ReadableApexTestRunExecutor(
       tests,
       getCodeCoverage,

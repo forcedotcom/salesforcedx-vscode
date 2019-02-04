@@ -130,14 +130,14 @@ async function registerTestView(
   testViewItems.push(
     vscode.commands.registerCommand(
       'sfdx.force.test.view.runClassTests',
-      test => testRunner.runApexTests([test])
+      test => testRunner.runApexTests([test.name])
     )
   );
   // Run Single Test command
   testViewItems.push(
     vscode.commands.registerCommand(
       'sfdx.force.test.view.runSingleTest',
-      test => testRunner.runApexTests([test])
+      test => testRunner.runApexTests([test.name])
     )
   );
   // Refresh Test View command

@@ -9,16 +9,16 @@
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
-import { SinonStub, stub } from 'sinon';
+import { SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
+import { ReadableApexTestRunExecutor } from '../../../src/views/readableApexTestRunExecutor';
 import {
   ApexTestGroupNode,
   ApexTestNode,
-  ApexTestOutlineProvider,
-  TestNode
+  ApexTestOutlineProvider
 } from '../../../src/views/testOutlineProvider';
 import { ApexTestRunner } from '../../../src/views/testRunner';
 import {
@@ -53,6 +53,21 @@ describe('TestView', () => {
     };
     apexTestInfo.push(testInfo);
   }
+
+  it('Should honor code coverage setting', () => {
+    const coreExports = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-core'
+    )!.exports;
+    const commandletStub = spy(coreExports.SfdxCommandlet.prototype, 'run');
+    const getCoverageStub = stub(coreExports.sfdxCoreSettings, 'getRetrieveTestCodeCoverage');
+    getCoverageStub.returns(true);
+
+    const testRunner = new ApexTestRunner(testOutline);
+    testRunner.runApexTests(['MyTest']);
+
+    console.log(commandletStub.thisValue);
+    commandletStub.restore();
+  });
 
   describe('Get Tests and Create Tree', () => {
     it('Should add no tests', () => {
