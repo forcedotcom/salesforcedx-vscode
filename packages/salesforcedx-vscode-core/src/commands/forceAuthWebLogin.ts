@@ -68,7 +68,7 @@ export abstract class ForceAuthDemoModeExecutor<
       cwd: workspace.rootPath
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(async data => {
+    execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
     });
 

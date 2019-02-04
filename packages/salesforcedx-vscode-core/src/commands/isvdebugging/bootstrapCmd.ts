@@ -512,7 +512,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const result = new CommandOutput().getCmdResult(execution);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    execution.processExitSubject.subscribe(async data => {
+    execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
     });
     return result;

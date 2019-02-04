@@ -56,7 +56,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       this.cancellationToken
     );
 
-    executionWrapper.processExitSubject.subscribe(async data => {
+    executionWrapper.processExitSubject.subscribe(() => {
       this.logMetric(executionWrapper.command.logName, startTime);
     });
 

@@ -96,7 +96,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     }).execute(cancellationToken);
 
     const resultPromise = new CommandOutput().getCmdResult(execution);
-    execution.processExitSubject.subscribe(async data => {
+    execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
     });
     channelService.streamCommandOutput(execution);
