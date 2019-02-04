@@ -46,6 +46,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
+    const startTime = process.hrtime();
     const executionWrapper = new CompositeCliCommandExecutor(
       this.build()
     ).execute(this.cancellationToken);
@@ -55,7 +56,10 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       this.cancellationToken
     );
 
-    this.logMetric(executionWrapper.command.logName);
+    executionWrapper.processExitSubject.subscribe(async data => {
+      this.logMetric(executionWrapper.command.logName, startTime);
+    });
+
     try {
       // query traceflag
       let resultJson = await this.subExecute(new ForceQueryTraceFlag().build());

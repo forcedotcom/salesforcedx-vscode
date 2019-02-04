@@ -46,8 +46,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      const elapsed = process.hrtime(startTime);
-      this.logMetric(execution.command.logName, elapsed);
+      this.logMetric(execution.command.logName, startTime);
       if (exitCode !== 0) {
         try {
           const deployErrorParser = new ForceDeployErrorParser();

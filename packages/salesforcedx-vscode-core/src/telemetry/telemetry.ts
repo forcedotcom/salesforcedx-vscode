@@ -125,22 +125,16 @@ export class TelemetryService {
     }
   }
 
-  public sendCommandEvent(
-    commandName?: string,
-    measurements?: { [key: string]: number }
-  ): void {
-    if (
-      this.reporter !== undefined &&
-      this.isTelemetryEnabled() &&
-      commandName
-    ) {
+  public sendCommandEvent(commandName?: string, hrstart?: [number, number]): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled() && commandName && hrstart) {
+      const executionTime = this.getEndHRTime(hrstart);
       this.reporter.sendTelemetryEvent(
         'commandExecution',
         {
           extensionName: EXTENSION_NAME,
-          commandName
-        },
-        measurements
+          commandName,
+          executionTime
+        }
       );
     }
   }

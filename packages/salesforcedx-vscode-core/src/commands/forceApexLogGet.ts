@@ -63,13 +63,18 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   public async execute(
     response: ContinueResponse<ApexDebugLogIdStartTime>
   ): Promise<void> {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: vscode.workspace.rootPath
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    this.logMetric(execution.command.logName);
+
+    execution.processExitSubject.subscribe(async data => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0) {

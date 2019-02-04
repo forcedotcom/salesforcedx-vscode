@@ -121,8 +121,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
     if (refreshSource !== SObjectRefreshSource.Manual) {
       logName += '_' + refreshSource;
     }
-    this.logMetric(logName);
-
+    this.logMetric(logName, startTime);
     return;
   }
 }

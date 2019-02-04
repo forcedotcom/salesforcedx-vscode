@@ -365,12 +365,8 @@ export abstract class SfdxCommandletExecutor<T>
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public logMetric(logName?: string, executionTime?: [number, number]) {
-    const measurements: { [key: string]: number } = {};
-    if (executionTime) {
-      measurements['executionTime'] = executionTime[0] * 1e9 + executionTime[1];
-    }
-    telemetryService.sendCommandEvent(logName, measurements);
+  public logMetric(logName: string|undefined, executionTime: [number, number]) {
+    telemetryService.sendCommandEvent(logName, executionTime);
   }
 
   public execute(response: ContinueResponse<T>): void {
@@ -382,8 +378,7 @@ export abstract class SfdxCommandletExecutor<T>
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(() => {
-      const elapsed = process.hrtime(startTime);
-      this.logMetric(execution.command.logName, elapsed);
+      this.logMetric(execution.command.logName, startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
