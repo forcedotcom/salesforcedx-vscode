@@ -9,12 +9,11 @@
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
-import { SinonStub, spy, stub } from 'sinon';
+import { SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
-import { ReadableApexTestRunExecutor } from '../../../src/views/readableApexTestRunExecutor';
 import {
   ApexTestGroupNode,
   ApexTestNode,
@@ -54,19 +53,38 @@ describe('TestView', () => {
     apexTestInfo.push(testInfo);
   }
 
-  it('Should honor code coverage setting', () => {
+  describe('Code Coverage', () => {
     const coreExports = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-core'
     )!.exports;
-    const commandletStub = spy(coreExports.SfdxCommandlet.prototype, 'run');
-    const getCoverageStub = stub(coreExports.sfdxCoreSettings, 'getRetrieveTestCodeCoverage');
-    getCoverageStub.returns(true);
+    let commandletSpy: SinonSpy;
+    let getCoverageStub: SinonStub;
 
-    const testRunner = new ApexTestRunner(testOutline);
-    testRunner.runApexTests(['MyTest']);
+    beforeEach(() => {
+      commandletSpy = spy(coreExports.SfdxCommandlet.prototype, 'run');
+      getCoverageStub = stub(coreExports.sfdxCoreSettings, 'getRetrieveTestCodeCoverage');
+    });
 
-    console.log(commandletStub.thisValue);
-    commandletStub.restore();
+    afterEach(() => {
+      commandletSpy.restore();
+      getCoverageStub.restore();
+    });
+
+    it('Should honor code coverage setting set to true', async () => {
+      getCoverageStub.returns(true);
+      const testRunner = new ApexTestRunner(testOutline);
+      await testRunner.runApexTests(['MyTest']);
+      const { executor } = commandletSpy.getCall(0).thisValue;
+      expect(executor.shouldGetCodeCoverage).to.be.true;
+    });
+
+    it('Should honor code coverage setting set to false', async () => {
+      getCoverageStub.returns(false);
+      const testRunner = new ApexTestRunner(testOutline);
+      await testRunner.runApexTests(['MyTest']);
+      const { executor } = commandletSpy.getCall(0).thisValue;
+      expect(executor.shouldGetCodeCoverage).to.be.false;
+    });
   });
 
   describe('Get Tests and Create Tree', () => {
