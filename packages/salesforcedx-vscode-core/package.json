@@ -69,6 +69,9 @@
     "test:vscode-insiders-integration":
       "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
+  "nyc": {
+    "reporter": ["text-summary", "lcov"]
+  },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
     "onCommand:sfdx.force.project.create",
