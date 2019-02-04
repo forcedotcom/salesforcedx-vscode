@@ -42,7 +42,8 @@
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
     "typescript": "3.1.6",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "nyc": "^11.0.2"
   },
   "extensionDependencies": [
     "dbaeumer.vscode-eslint",
@@ -65,6 +66,9 @@
       "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration":
       "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+  },
+  "nyc": {
+    "reporter": ["text-summary", "lcov"]
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
