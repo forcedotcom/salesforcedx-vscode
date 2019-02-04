@@ -4,62 +4,28 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { IsvContextUtil } from '@salesforce/salesforcedx-apex-debugger/out/src/context';
 import * as vscode from 'vscode';
 
 export async function setupGlobalDefaultUserIsvAuth() {
+  const isvUtil = new IsvContextUtil();
   if (
-    vscode.workspace.workspaceFolders instanceof Array &&
-    vscode.workspace.workspaceFolders.length > 0
+    vscode.workspace &&
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders[0]
   ) {
+    const isvDebugProject = await isvUtil.setIsvDebuggerContext(vscode.workspace.workspaceFolders[0].uri.fsPath);
 
-  }
-/*
-    const forceConfig = await new ForceConfigGet().getConfig(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      SFDX_CONFIG_ISV_DEBUGGER_SID,
-      SFDX_CONFIG_ISV_DEBUGGER_URL
+    vscode.commands.executeCommand(
+      'setContext',
+      'sfdx:isv_debug_project',
+      isvDebugProject
     );
-    const isvDebuggerSid = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_SID);
-    const isvDebuggerUrl = forceConfig.get(SFDX_CONFIG_ISV_DEBUGGER_URL);
-    if (
-      typeof isvDebuggerSid !== 'undefined' &&
-      typeof isvDebuggerUrl !== 'undefined'
-    ) {
-      // set auth context
-      GlobalCliEnvironment.environmentVariables.set(
-        ENV_SFDX_DEFAULTUSERNAME,
-        isvDebuggerSid
-      );
-      GlobalCliEnvironment.environmentVariables.set(
-        ENV_SFDX_INSTANCE_URL,
-        isvDebuggerUrl
-      );
-      // enable ISV project
-      vscode.commands.executeCommand(
-        'setContext',
-        'sfdx:isv_debug_project',
-        true
-      );
-      console.log(
-        `Configured ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL} for ISV Project Authentication`
-      );
-      return;
-    } else {
-      // disable ISV project
-      vscode.commands.executeCommand(
-        'setContext',
-        'sfdx:isv_debug_project',
-        false
-      );
-      console.log('Project is not for ISV Debugger');
-    }
+
+    const isvDebugMsg = isvDebugProject ? 'Configured ISV Project Authentication' : 'Project is not for ISV Debugger';
+    console.log(isvDebugMsg);
   }
 
   // reset any auth
-  GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_DEFAULTUSERNAME);
-  GlobalCliEnvironment.environmentVariables.delete(ENV_SFDX_INSTANCE_URL);
-  console.log(
-    `Deleted environment variables ${ENV_SFDX_DEFAULTUSERNAME} and ${ENV_SFDX_INSTANCE_URL}`
-  ); */
+  isvUtil.resetCliEnvironmentVars();
 }

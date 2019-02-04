@@ -16,7 +16,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 export class IsvContextUtil {
-
   public async setIsvDebuggerContext(projectWorkspacePath: string) {
     let isvDebugProject = false;
     if (projectWorkspacePath) {
