@@ -6,7 +6,8 @@
  */
 export {
   getDefaultUsernameOrAlias,
-  getUsername,
+  getWorkspaceOrgType,
+  OrgType,
   registerDefaultUsernameWatcher,
   setupWorkspaceOrgType
 } from './workspaceOrgType';

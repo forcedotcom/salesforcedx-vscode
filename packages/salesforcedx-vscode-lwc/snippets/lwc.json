@@ -1,0 +1,223 @@
+{
+  "lwc-event": {
+    "prefix": "lwc-event",
+    "description": "Creates an event without custom details",
+    "body": [
+      "this.dispatchEvent(new CustomEvent('${2:event-name}'));"
+    ]
+  },
+  "lwc-event-data": {
+    "prefix": "lwc-event-details",
+    "description": "Creates a standard event for custom details",
+    "body": [
+      "const ${1:event} = new CustomEvent('${2:event-name}', {",
+      "    detail: { $0 }",
+      "});",
+      "this.dispatchEvent(${1:event});"
+    ]
+  },
+  "lwc-event-listener": {
+    "prefix": "lwc-event-listener",
+    "description": "Creates an event listener",
+    "body": [
+      "this.template.addEventListener('${1:event-name}', this.${2:local-method-name}.bind(this));"
+    ]
+  },
+  "lwc-wire-apex-property": {
+    "prefix": "lwc-wire-apex-property",
+    "description": "Creates a @wire'd property for Apex",
+    "body": [
+      "@wire(${1:apex-method-name}, {$0})",
+      "${2:apex-property-name}"
+    ]
+  },
+  "lwc-wire-get-record-property": {
+    "prefix": "lwc-wire-get-record-property",
+    "description": "Creates a @wire'd property for getRecord",
+    "body": [
+      "@api recordId;",
+      "",
+      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
+      "${2:record-property-name}"
+    ]
+  },
+  "lwc-wire-get-record-function": {
+    "prefix": "lwc-wire-get-record-function",
+    "description": "Creates a @wire'd function for getRecord",
+    "body": [
+      "@api recordId;",
+      "",
+      "@wire(getRecord, { recordId: '\\$recordId', fields: [ $0 ] } )",
+      "${2:record-function-name} ({error, data}) {",
+      "    if (error) {",
+      "        // TODO: Error handling",
+      "    } else if (data) {",
+      "        // TODO: Data handling",
+      "    }",
+      "}"
+    ]
+  },
+  "lwc-wire-apex-function": {
+    "prefix": "lwc-wire-apex-function",
+    "description": "Creates a @wire'd function for Apex with data modification",
+    "body": [
+      "@wire(${1:apex-method-name}, {$0})",
+      "${2:apex-function-name} ({error, data}) {",
+      "    if (error) {",
+      "        // TODO: Error handling",
+      "    } else if (data) {",
+      "        // TODO: Data handling",
+      "    }",
+      "}"
+    ]
+  },
+  "lwc-nav-lightning-component": {
+    "prefix": "lwc-nav-lightning-component",
+    "description": "Navigation to a custom Lightning component",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__component',",
+      "    attributes: {",
+      "        componentName: \"c__${1:component name}\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-knowledge-article": {
+    "prefix": "lwc-nav-knowledge-article",
+    "description": "Navigation to a Knowledge Article",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__knowledgeArticlePage',",
+      "    attributes: {",
+      "        articleType: \"${1:The articleType API name of the Knowledge Article record.}\",",
+      "        urlName: \"${2:The value of the urlName field on the target KnowledgeArticleVersion record. The urlName is the article's URL.}\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-page": {
+    "prefix": "lwc-nav-page",
+    "description": "Navigation to a named page",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__namedPage',",
+      "    attributes: {",
+      "        pageName: \"${1:home, chatter, today, dataAssessment, or filePreview}\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-item-page": {
+    "prefix": "lwc-nav-item-page",
+    "description": "Navigation to a CustomTab",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__navItemPage',",
+      "    attributes: {",
+      "        apiName: \"${1:The unique name of the CustomTab.}\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-object-page": {
+    "prefix": "lwc-nav-object-page",
+    "description": "Navigation to an object page",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__objectPage',",
+      "    attributes: {",
+      "        actionName: \"${1:home, list, or new}\",",
+      "        objectApiName: \"${2:The API name of the standard or custom object. }\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-record-page": {
+    "prefix": "lwc-nav-record-page",
+    "description": "Navigation to a record page",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__recordPage',",
+      "    attributes: {",
+      "        actionName: \"${1:clone, edit, or view}\",",
+      "        recordId: \"${2:recordId}\",",
+      "        objectApiName: \"${3:The API name of the record’s object. Optional for lookups.}\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-record-relationship-page": {
+    "prefix": "lwc-nav-record-relationship-page",
+    "description": "Navigation to a record relationship page",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__recordRelationshipPage',",
+      "    attributes: {",
+      "        actionName: \"view\",",
+      "        recordId: \"${1:recordId}\",",
+      "        objectApiName: \"${2:The API name of the record’s object. Optional for lookups.}\",",
+      "        relationshipApiName: \"${3:The API name of the object’s relationship field (optional).}\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-nav-web-page": {
+    "prefix": "lwc-nav-web-page",
+    "description": "Navigation to an external URL",
+    "body": [
+      "this[NavigationMixin.Navigate]({",
+      "    type: 'standard__webPage',",
+      "    attributes: {",
+      "       url: \"${1:The URL of the page you are navigating to.}\"",
+      "    }",
+      "});"
+    ]
+  },
+  "lwc-toast": {
+    "prefix": "lwc-toast",
+    "description": "Creates toast success function",
+    "body": [
+      "this.dispatchEvent(new ShowToastEvent({",
+      "    title: '${1:title}',",
+      "    message: '${2:message}',",
+      "    variant: 'success'",
+      "}));"
+    ]
+  },
+  "lwc-toast-error": {
+    "prefix": "lwc-toast-error",
+    "description": "Creates toast error function",
+    "body": [
+      "this.dispatchEvent(new ShowToastEvent({",
+      "    title: '${1:title}',",
+      "    message: '${2:message}',",
+      "    variant: 'error'",
+      "}));"
+    ]
+  },
+  "lwc-toast-warning": {
+    "prefix": "lwc-toast-warning",
+    "description": "Creates toast warning function",
+    "body": [
+      "this.dispatchEvent(new ShowToastEvent({",
+      "    title: '${1:title}',",
+      "    message: '${2:message}',",
+      "    variant: 'warning'",
+      "}));"
+    ]
+  },
+  "lwc-imperative-apex": {
+    "prefix": "lwc-imperative-apex",
+    "description": "Creates an imperative Apex call",
+    "body": [
+      "${1:method name}()",
+      "    .then(result => {",
+      "        ${0}",
+      "    })",
+      "    .catch(error => {",
+      "        // TODO Error handling",
+      "    });"
+    ]
+  }
+}

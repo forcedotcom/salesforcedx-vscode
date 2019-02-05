@@ -115,7 +115,7 @@ describe.skip('Interactive debugger adapter - integration', function() {
     }
     rimraf.sync(projectPath);
     if (dc) {
-      dc.stop();
+      await dc.stop();
     }
   });
 

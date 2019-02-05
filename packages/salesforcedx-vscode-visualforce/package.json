@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.10.0",
+  "version": "44.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -22,16 +22,15 @@
   },
   "categories": ["Languages"],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "44.10.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "44.10.0",
-    "typescript": "2.6.2",
+    "@salesforce/salesforcedx-visualforce-language-server": "44.18.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "44.18.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "3.4.2",
     "vscode-languageserver-protocol": "3.4.2",
     "vscode-languageserver-types": "3.4.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.18.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
@@ -40,6 +39,7 @@
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
+    "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
   "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
@@ -54,10 +54,11 @@
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ../../scripts/run-test-with-top-level-extensions",
-    "test:insiders":
-      "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
+    "test": "npm run test:vscode-integration",
+    "test:vscode-integration":
+      "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
+    "test:vscode-insiders-integration":
+      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src/extension",

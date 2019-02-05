@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.10.0",
+  "version": "44.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -34,7 +34,7 @@
     "mocha": "3.2.0",
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
-    "typescript": "2.6.2",
+    "typescript": "3.1.6",
     "vscode": "1.1.17",
     "vscode-extension-telemetry": "0.0.17"
   },
@@ -50,10 +50,11 @@
     "clean":
       "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ../../scripts/run-test-with-top-level-extensions",
-    "test:insiders":
-      "cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit": "node ../../scripts/run-test-with-top-level-extensions"
+    "test": "npm run test:vscode-integration",
+    "test:vscode-integration":
+      "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
+    "test:vscode-insiders-integration":
+      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": ["workspaceContains:sfdx-project.json"],
   "main": "./out/src",
@@ -92,11 +93,23 @@
       "view/item/context": [
         {
           "command": "sfdx.force.test.view.showError",
-          "when": "view == sfdx.force.test.view"
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
+        },
+        {
+          "command": "sfdx.force.test.view.goToDefinition",
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
+        },
+        {
+          "command": "sfdx.force.test.view.runClassTests",
+          "when": "view == sfdx.force.test.view && viewItem =~ /apexTestGroup/",
+          "group": "inline"
         },
         {
           "command": "sfdx.force.test.view.runSingleTest",
-          "when": "view == sfdx.force.test.view",
+          "when":
+            "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
       ]
@@ -127,11 +140,27 @@
         }
       },
       {
+        "command": "sfdx.force.test.view.goToDefinition",
+        "title": "%go_to_definition_title%",
+        "icon": {
+          "light": "resources/light/document/notRun.svg",
+          "dark": "resources/dark/document/notRun.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.runClassTests",
+        "title": "%run_tests_title%",
+        "icon": {
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
+        }
+      },
+      {
         "command": "sfdx.force.test.view.runSingleTest",
         "title": "%run_single_test_title%",
         "icon": {
-          "light": "resources/light/play-side.svg",
-          "dark": "resources/dark/play-side.svg"
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
         }
       }
     ],
@@ -144,11 +173,6 @@
           "default": null,
           "description": "%java_home_description%"
         },
-        "salesforcedx-vscode-apex.enable-rename": {
-          "type": ["boolean"],
-          "default": false,
-          "description": "%apex_rename_description%"
-        },
         "salesforcedx-vscode-apex.enable-semantic-errors": {
           "type": ["boolean"],
           "default": false,
@@ -160,13 +184,25 @@
       {
         "id": "apex",
         "aliases": ["Apex", "apex"],
-        "extensions": [".cls", ".trigger", ".apex"],
+        "extensions": [".cls", ".trigger"],
+        "configuration": "./syntaxes/apex.configuration.json"
+      },
+      {
+        "id": "apex-anon",
+        "aliases": ["Anonymous Apex"],
+        "extensions": [".apex"],
         "configuration": "./syntaxes/apex.configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "apex",
+        "scopeName": "source.apex",
+        "path":
+          "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+      },
+      {
+        "language": "apex-anon",
         "scopeName": "source.apex",
         "path":
           "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
@@ -181,12 +217,12 @@
   },
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.18.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
     "shelljs": "^0.8.1",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "3.5.1"
+    "vscode-languageclient": "5.1.1"
   }
 }

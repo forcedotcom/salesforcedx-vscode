@@ -7,7 +7,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import fs = require('fs');
-import ospath = require('path');
 import {
   APEX_GROUP_RANGE,
   DARK_BLUE_BUTTON,
@@ -111,6 +110,22 @@ export class ApexTestOutlineProvider
     this.onDidChangeTestData.fire();
   }
 
+  public async onResultFileCreate(
+    apexTestPath: string,
+    testResultFile: string
+  ) {
+    const testRunIdFile = path.join(apexTestPath, 'test-run-id.txt');
+    const testRunId = fs.readFileSync(testRunIdFile);
+    const testResultFilePath = path.join(
+      apexTestPath,
+      'test-result-' + testRunId + '.json'
+    );
+    if (testResultFile === testResultFilePath) {
+      await this.refresh();
+      this.readJSONFile(testResultFile);
+    }
+  }
+
   private getAllApexTests(): TestNode {
     if (this.rootNode == null) {
       // Starting Out
@@ -148,18 +163,14 @@ export class ApexTestOutlineProvider
     return this.rootNode;
   }
 
-  public readJSONFile(folderName: string) {
-    const jsonSummary = this.getJSONFileOutput(folderName);
+  public readJSONFile(testResultFilePath: string) {
+    const jsonSummary = this.getJSONFileOutput(testResultFilePath);
     this.updateTestsFromJSON(jsonSummary);
     this.onDidChangeTestData.fire();
   }
 
-  private getJSONFileOutput(fullFolderName: string): FullTestResult {
-    const testRunIdFile = path.join(fullFolderName, 'test-run-id.txt');
-    const testRunId = fs.readFileSync(testRunIdFile);
-    let testResultFilePath = 'test-result-' + testRunId + '.json';
-    testResultFilePath = ospath.join(fullFolderName, testResultFilePath);
-    const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
+  private getJSONFileOutput(testResultFileName: string): FullTestResult {
+    const testResultOutput = fs.readFileSync(testResultFileName, 'utf8');
     const jsonSummary = JSON.parse(testResultOutput) as FullTestResult;
     return jsonSummary;
   }
@@ -180,7 +191,7 @@ export class ApexTestOutlineProvider
       ) as ApexTestNode;
       if (apexTest) {
         apexTest.outcome = testResult.Outcome;
-        apexTest.updateIcon();
+        apexTest.updateOutcome();
         if (testResult.Outcome === 'Fail') {
           apexTest.errorMessage = testResult.Message;
           apexTest.stackTrace = testResult.StackTrace;
@@ -226,7 +237,7 @@ export abstract class TestNode extends vscode.TreeItem {
     return this.description;
   }
 
-  public updateIcon(outcome: string) {
+  public updateOutcome(outcome: string) {
     if (outcome === 'Pass') {
       // Passed Test
       this.iconPath = {
@@ -246,6 +257,9 @@ export abstract class TestNode extends vscode.TreeItem {
         dark: DARK_ORANGE_BUTTON
       };
     }
+
+    const nodeType = this.contextValue.split('_')[0];
+    this.contextValue = `${nodeType}_${outcome}`;
   }
 
   public abstract contextValue: string;
@@ -278,19 +292,19 @@ export class ApexTestGroupNode extends TestNode {
 
     if (this.passing + this.failing + this.skipping === this.children.length) {
       if (this.failing !== 0) {
-        this.updateIcon('Fail');
+        this.updateOutcome('Fail');
       } else {
-        this.updateIcon('Pass');
+        this.updateOutcome('Pass');
       }
     }
   }
 
-  public updateIcon(outcome: string) {
-    super.updateIcon(outcome);
+  public updateOutcome(outcome: string) {
+    super.updateOutcome(outcome);
     if (outcome === 'Pass') {
       this.children.forEach(child => {
         // Update all the children as well
-        child.updateIcon(outcome);
+        child.updateOutcome(outcome);
       });
     }
   }
@@ -305,8 +319,8 @@ export class ApexTestNode extends TestNode {
     super(label, vscode.TreeItemCollapsibleState.None, location);
   }
 
-  public updateIcon() {
-    super.updateIcon(this.outcome);
+  public updateOutcome() {
+    super.updateOutcome(this.outcome);
     if (this.outcome === 'Pass') {
       this.errorMessage = '';
     }

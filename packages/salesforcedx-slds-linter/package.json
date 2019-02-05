@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-slds-linter",
   "displayName": "SFDX SLDS Linting for VS Code",
   "description": "Provides linting for deprecated SLDS class names",
-  "version": "44.10.0",
+  "version": "44.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": ["Other"],
@@ -16,6 +16,7 @@
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
+    "cross-env": "^5.0.5",
     "decache": "^4.1.0",
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",
@@ -26,7 +27,7 @@
     "remap-istanbul": "^0.9.5",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
-    "typescript": "2.6.2",
+    "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
   "scripts": {
@@ -35,14 +36,17 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test",
-    "test:unit": "node ./node_modules/vscode/bin/test"
+    "test": "npm run test:vscode-integration",
+    "test:vscode-integration":
+      "node ../../scripts/run-vscode-integration-tests",
+    "test:vscode-insiders-integration":
+      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.18.0",
     "vscode-languageclient": "3.5.1",
     "vscode-languageserver": "3.5.1"
   }

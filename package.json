@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@salesforce/dev-config": "1.1.0",
+    "@salesforce/dev-config": "1.4.1",
     "ajv": "6.1.1",
     "eslint": "4.13.1",
     "eslint-config-prettier": "2.9.0",
@@ -12,7 +12,7 @@
     "shx": "0.2.2",
     "snyk": "^1.82.1",
     "tslint": "5.5.0",
-    "typescript": "2.6.2",
+    "typescript": "3.1.6",
     "vsce": "^1.36.3"
   },
   "scripts": {
@@ -26,17 +26,19 @@
     "publish": "node scripts/publish.js",
     "prepush": "npm run lint",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test",
-    "test:insiders":
-      "lerna exec --concurrency 1 --stream --bail=false -- npm run test:insiders",
     "test:unit":
       "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
+    "test:vscode-integration":
+      "lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-integration",
+    "test:vscode-insiders-integration":
+      "lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-insiders-integration",
     "test:without-system-tests":
       "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test",
-    "test:insiders-without-system-tests":
-      "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:insiders",
     "test:system-tests":
       "lerna run test --scope system-tests --concurrency 1 --stream",
+    "test:vscode-insiders-system-tests":
+      "lerna run test:vscode-insiders-system-tests --scope system-tests --concurrency 1 --stream",
     "coverage:system-tests":
       "lerna run coverage --scope system-tests --concurrency 1 --stream",
     "vscode:package":

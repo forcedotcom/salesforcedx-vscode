@@ -29,10 +29,15 @@ export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
 export { forceSourceDelete } from './forceSourceDelete';
-export { forceSourceDeploy } from './forceSourceDeploy';
+export { forceSourceDeployManifest } from './forceSourceDeployManifest';
+export {
+  forceSourceDeployMultipleSourcePaths,
+  forceSourceDeploySourcePath
+} from './forceSourceDeploySourcePath';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
-export { forceSourceRetrieve } from './forceSourceRetrieve';
+export { forceSourceRetrieveSourcePath } from './forceSourceRetrieveSourcePath';
+export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './forceApexClassCreate';
@@ -63,3 +68,4 @@ export { forceApexLogGet } from './forceApexLogGet';
 export { forceAuthLogoutAll } from './forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
+export { forceConfigSet } from './forceConfigSet';

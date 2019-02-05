@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "44.10.0",
+  "version": "44.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -23,7 +23,7 @@
     "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
     "source-map-support": "^0.4.15",
-    "typescript": "2.6.2"
+    "typescript": "3.1.6"
   },
   "dependencies": {
     "vscode-languageserver-types": "3.4.0",
@@ -36,10 +36,9 @@
     "watch": "tsc -watch -p .",
     "clean":
       "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "test": "npm run test:unit",
     "test:unit":
-      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
+      "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
   },
   "nyc": {
     "reporter": ["text-summary", "lcov"]

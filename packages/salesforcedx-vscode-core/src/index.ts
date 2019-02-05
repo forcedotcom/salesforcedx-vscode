@@ -26,6 +26,7 @@ import {
   forceAuthLogoutAll,
   forceAuthWebLogin,
   forceConfigList,
+  forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceGenerateFauxClassesCreate,
@@ -39,10 +40,13 @@ import {
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
-  forceSourceDeploy,
+  forceSourceDeployManifest,
+  forceSourceDeployMultipleSourcePaths,
+  forceSourceDeploySourcePath,
   forceSourcePull,
   forceSourcePush,
-  forceSourceRetrieve,
+  forceSourceRetrieveManifest,
+  forceSourceRetrieveSourcePath,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -56,6 +60,7 @@ import {
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
+import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import {
   isvDebugBootstrap,
@@ -74,6 +79,9 @@ import * as decorators from './decorators';
 import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { setDefaultOrg, showDefaultOrg } from './orgPicker';
+import { registerPushOrDeployOnSave } from './settings';
+import { SfdxProjectPath } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -109,17 +117,21 @@ function registerCommands(
     'sfdx.force.source.delete.current.file',
     forceSourceDelete
   );
-  const forceSourceDeployCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy',
-    forceSourceDeploy
-  );
-  const forceSourceDeployCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.deploy.current.file',
-    forceSourceDeploy
+  const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.current.source.file',
+    forceSourceDeploySourcePath
   );
   const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.in.manifest',
-    forceSourceDeploy
+    forceSourceDeployManifest
+  );
+  const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.multiple.source.paths',
+    forceSourceDeployMultipleSourcePaths
+  );
+  const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.deploy.source.path',
+    forceSourceDeploySourcePath
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -140,16 +152,16 @@ function registerCommands(
     { flag: '--forceoverwrite' }
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve',
-    forceSourceRetrieve
+    'sfdx.force.source.retrieve.source.path',
+    forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve.current.file',
-    forceSourceRetrieve
+    'sfdx.force.source.retrieve.current.source.file',
+    forceSourceRetrieveSourcePath
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.in.manifest',
-    forceSourceRetrieve
+    forceSourceRetrieveManifest
   );
   const forceSourceStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status',
@@ -307,6 +319,15 @@ function registerCommands(
     forceApexLogGet
   );
 
+  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
+    'sfdx.force.set.default.org',
+    setDefaultOrg
+  );
+  const forceConfigSetCmd = vscode.commands.registerCommand(
+    'sfdx.force.config.set',
+    forceConfigSet
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -326,9 +347,10 @@ function registerCommands(
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
-    forceSourceDeployCmd,
-    forceSourceDeployCurrentFileCmd,
+    forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
+    forceSourceDeployMultipleSourcePathsCmd,
+    forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
     forceSourcePushCmd,
@@ -359,7 +381,9 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd
+    forceApexLogGetCmd,
+    forceSetDefaultOrgCmd,
+    forceConfigSetCmd
   );
 }
 
@@ -383,13 +407,12 @@ function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SFDX CLI Extension Activated');
-
+  const extensionHRStart = process.hrtime();
   // Telemetry
   const machineId =
     vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
   telemetryService.initializeService(context, machineId);
   telemetryService.showTelemetryMessage();
-  telemetryService.sendExtensionActivationEvent();
 
   // Context
   let sfdxProjectOpened = false;
@@ -461,6 +484,10 @@ export async function activate(context: vscode.ExtensionContext) {
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
 
+  await showDefaultOrg();
+
+  // Register filewatcher for push or deploy on save
+  await registerPushOrDeployOnSave();
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
@@ -483,6 +510,11 @@ export async function activate(context: vscode.ExtensionContext) {
     decorators.showDemoMode();
   }
 
+  // Refresh SObject definitions if there aren't any faux classes
+  initSObjectDefinitions(SfdxProjectPath.getPath()).catch(e =>
+    telemetryService.sendErrorEvent(e.message, e.stack)
+  );
+
   const api: any = {
     ProgressNotification,
     CompositeParametersGatherer,
@@ -500,6 +532,7 @@ export async function activate(context: vscode.ExtensionContext) {
     getUserId
   };
 
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return api;
 }
 
