@@ -6,6 +6,13 @@ src/**
 **/*.map
 .gitignore
 tsconfig.json
+
+# salesforcedx-utils-vscode files to ignore 
 node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
 node_modules/@salesforce/salesforcedx-utils-vscode/src/**
 node_modules/@salesforce/salesforcedx-utils-vscode/test/**
+node_modules/@salesforce/salesforcedx-utils-vscode/.vscode
+node_modules/@salesforce/salesforcedx-utils-vscode/.vscodeignore
+node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
+node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
+node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
