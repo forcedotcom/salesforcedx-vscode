@@ -1,6 +1,5 @@
 import * as path from 'path';
-import { commands, ExtensionContext, Uri, workspace } from 'vscode';
-
+import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -8,7 +7,8 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 
-import { logger } from './utils';
+import {createQuickOpenCommand} from './commands/quickpick/quickpick';
+import {ComponentTreeProvider} from './views/component-tree-provider';
 
 let client: LanguageClient;
 
@@ -32,6 +32,9 @@ async function timeout(ms: number) {
 }
 
 export async function activate(context: ExtensionContext) {
+
+  // UI customizations
+
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'aura-language-server', 'lib', 'server.js')
   );
@@ -52,15 +55,29 @@ export async function activate(context: ExtensionContext) {
   };
 
   const clientOptions: LanguageClientOptions = {
-    outputChannelName: 'Aura LSP Debug',
-    documentSelector: ['html', 'javascript'],
+    outputChannelName: 'Aura Language Server',
+    documentSelector: [
+      {
+        language: 'html',
+        scheme: 'file'
+      },
+      {
+        language: 'html',
+        scheme: 'untitled'
+      },
+      { language: 'javascript', scheme: 'file' },
+      { language: 'javascript', scheme: 'untitled' }
+    ],
     synchronize: {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.resource'),
         workspace.createFileSystemWatcher(
           '**/labels/CustomLabels.labels-meta.xml'
         ),
-        workspace.createFileSystemWatcher('**/lightningcomponents/**/*.js'),
+        workspace.createFileSystemWatcher('**/aura/*/*.{cmp,app,intf,evt,js}'),
+        workspace.createFileSystemWatcher(
+          '**/components/*/*/*.{cmp,app,intf,evt,lib,js}'
+        ),
         // need to watch for directory deletions as no events are created for contents or deleted directories
         workspace.createFileSystemWatcher('**/', true, true, false)
       ]
@@ -78,7 +95,14 @@ export async function activate(context: ExtensionContext) {
     serverOptions,
     clientOptions
   );
+  // UI customizations
+  context.subscriptions.push(commands.registerCommand('salesforce-lightning-quickopen', createQuickOpenCommand(client)));
+  const componentProvider = new ComponentTreeProvider(client, context);
+  window.registerTreeDataProvider('salesforce-lightning-components', componentProvider);
+
+  // do this last
   client.start();
+
 }
 
 export function deactivate(): Thenable<void> {

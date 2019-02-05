@@ -21,40 +21,65 @@
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": ["Programming Languages"],
+  "categories": [
+    "Programming Languages"
+  ],
   "dependencies": {
+    "chalk": "^2.4.2",
+    "change-case": "^3.1.0",
+    "lightning-lsp-common": "1.0.4",
     "lwc-language-server": "1.8.3",
+    "vscode": "1.1.17",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "3.5.1",
-    "vscode": "1.1.17"
+    "vscode-languageclient": "^3.5.1"
   },
   "devDependencies": {
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "typescript": "2.6.2"
   },
-  "extensionDependencies": ["salesforce.salesforcedx-vscode-core"],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "postinstall": "node ./node_modules/vscode/bin/install",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "postinstall": "node node_modules/.bin/vscode-install",
     "pretest": "node ../../scripts/download-vscode-for-system-tests",
-    "test":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
-    "test:insiders":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
-    "test:unit":
-      "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
+    "test": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions",
+    "test:insiders": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && cross-env CODE_VERSION=insiders node ../../scripts/run-test-with-top-level-extensions",
+    "test:unit": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-test-with-top-level-extensions"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onLanguage:html"
+    "workspaceContains:**/core/workspace-user.xml"
   ],
   "main": "./out/src",
-  "contributes": {}
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "salesforce-lightning-explorer",
+          "title": "Lightning Explorer",
+          "icon": "resources/lightning.svg"
+        }
+      ]
+    },
+    "views": {
+      "salesforce-lightning-explorer": [
+        {
+          "id": "salesforce-lightning-components",
+          "name": "Lightning Components"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "salesforce-lightning-quickopen",
+        "title": "Lightning: Open Component",
+        "category": "Lightning Components"
+      }
+    ]
+  }
 }

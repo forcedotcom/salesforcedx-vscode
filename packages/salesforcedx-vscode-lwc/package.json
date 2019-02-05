@@ -18,7 +18,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.30.0"
   },
   "categories": ["Programming Languages"],
   "dependencies": {
@@ -27,10 +27,10 @@
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
     "lwc-language-server": "1.8.3",
-    "lightning-lsp-common": "^1.0.3",
+    "lightning-lsp-common": "1.0.4",
     "rxjs": "^5.4.1",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "3.5.1"
+    "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -41,13 +41,8 @@
     "cross-env": "5.2.0",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "typescript": "3.1.6",
-    "vscode": "1.1.17"
+    "typescript": "3.1.6"
   },
-  "extensionDependencies": [
-    "dbaeumer.vscode-eslint",
-    "salesforce.salesforcedx-vscode-core"
-  ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -63,7 +58,10 @@
     "test:vscode-integration": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
-  "activationEvents": ["workspaceContains:sfdx-project.json"],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json",
+    "workspaceContains:**/core/workspace-user.xml"
+  ],
   "main": "./out/src",
   "contributes": {
     "menus": {

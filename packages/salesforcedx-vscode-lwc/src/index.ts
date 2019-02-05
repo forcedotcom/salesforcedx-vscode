@@ -142,6 +142,7 @@ function startLWCLanguageServer(
           '**/contentassets/*.asset-meta.xml'
         ),
         vscode.workspace.createFileSystemWatcher('**/lwc/*/*.js'),
+        vscode.workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
         // need to watch for directory deletions as no events are created for contents or deleted directories
         vscode.workspace.createFileSystemWatcher('**/', false, true, false)
       ]

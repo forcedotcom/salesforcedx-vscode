@@ -8,6 +8,7 @@
     "**/.vscode-test": true
   },
   "search.exclude": {
+    "**/node_modules": false,
     "**/out": true
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
