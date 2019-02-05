@@ -59,7 +59,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
   public build(data: {}): Command {
     let logName = 'force_generate_faux_classes_create';
     if (data !== SObjectRefreshSource.Manual) {
-      logName += '_' + data;
+      logName += `_${data}`;
     }
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))
