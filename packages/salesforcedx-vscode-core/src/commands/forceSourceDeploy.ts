@@ -29,6 +29,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   );
 
   public execute(response: ContinueResponse<string>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = vscode.workspace.workspaceFolders
@@ -45,6 +46,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(execution.command.logName, startTime);
       if (exitCode !== 0) {
         try {
           const deployErrorParser = new ForceDeployErrorParser();
@@ -67,6 +69,5 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     });
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    this.logMetric(execution.command.logName);
   }
 }
