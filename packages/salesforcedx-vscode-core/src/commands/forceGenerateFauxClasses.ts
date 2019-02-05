@@ -57,10 +57,14 @@ export class SObjectRefreshGatherer
 export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
   public build(data: {}): Command {
+    let logName = 'force_generate_faux_classes_create';
+    if (data !== SObjectRefreshSource.Manual) {
+      logName += `_${data}`;
+    }
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))
       .withArg('sobject definitions refresh')
-      .withLogName('force_generate_faux_classes_create')
+      .withLogName(logName)
       .build();
   }
 
@@ -73,10 +77,15 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       );
       return;
     }
+    const startTime = process.hrtime();
     ForceGenerateFauxClassesExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new LocalCommandExecution(this.build(response.data));
+
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
 
     channelService.streamCommandOutput(execution);
 
@@ -115,13 +124,6 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       console.log('Generate error ' + e);
     }
     ForceGenerateFauxClassesExecutor.isActive = false;
-
-    let { logName } = execution.command;
-    if (refreshSource !== SObjectRefreshSource.Manual) {
-      logName += '_' + refreshSource;
-    }
-    this.logMetric(logName);
-
     return;
   }
 }

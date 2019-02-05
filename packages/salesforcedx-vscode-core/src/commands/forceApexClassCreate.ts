@@ -47,6 +47,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
   }
 
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -55,6 +56,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
+      this.logMetric(execution.command.logName, startTime);
       if (
         data !== undefined &&
         data.toString() === '0' &&
@@ -77,7 +79,6 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
 
-    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
