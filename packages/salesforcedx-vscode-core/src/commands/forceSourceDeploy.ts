@@ -15,12 +15,6 @@ import { handleDiagnosticErrors } from '../diagnostics';
 import { telemetryService } from '../telemetry';
 import { SfdxCommandletExecutor } from './commands';
 
-vscode.workspace.onDidChangeTextDocument(e => {
-  if (ForceSourceDeployExecutor.errorCollection.has(e.document.uri)) {
-    ForceSourceDeployExecutor.errorCollection.delete(e.document.uri);
-  }
-});
-
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   string
 > {
@@ -65,6 +59,8 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
             'Error while creating diagnostics for vscode problem view.'
           );
         }
+      } else {
+        ForceSourceDeployExecutor.errorCollection.clear();
       }
     });
 
