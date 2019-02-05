@@ -22,5 +22,7 @@ export const messages = {
   always_break_text: 'Always break',
   never_break_text: 'Never break',
   language_client_not_ready:
-    'Unable to retrieve breakpoint info from language server, language server is not ready'
+    'Unable to retrieve breakpoint info from language server, language server is not ready',
+  isv_debug_config_environment_error:
+    'Salesforce Extensions for VS Code encountered a problem while configuring your environment. Some features might not work. For details, click Help > Toggle Developer Tools or check the Salesforce CLI logs in ~/.sfdx/sfdx.log.'
 };
