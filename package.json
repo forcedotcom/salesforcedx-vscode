@@ -11,13 +11,19 @@
     "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
     "snyk": "^1.82.1",
+    "ts-loader": "^4.4.2",
     "tslint": "5.5.0",
     "typescript": "3.1.6",
-    "vsce": "^1.36.3"
+    "vsce": "^1.36.3",
+    "webpack": "^4.29.1",
+    "webpack-cli": "^3.1.0"
   },
   "scripts": {
-    "postinstall": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
-    "bootstrap": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+    "build:webpack": "lerna run build:webpack",
+    "postinstall":
+      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+    "bootstrap":
+      "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",

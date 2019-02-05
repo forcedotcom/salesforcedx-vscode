@@ -5,9 +5,9 @@
   "version": "46.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": [
-    "Other"
-  ],
+  "categories": ["Other"],
+  "files": ["out"],
+  "main": "./out/src",
   "dependencies": {
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
@@ -43,6 +43,7 @@
     "vscode": "^1.32.0"
   },
   "scripts": {
+    "build:webpack": "webpack --mode production",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
