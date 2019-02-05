@@ -70,19 +70,17 @@ describe('TestView', () => {
       getCoverageStub.restore();
     });
 
-    it('Should honor code coverage setting set to true', async () => {
-      getCoverageStub.returns(true);
+    it('Should honor code coverage setting', async () => {
       const testRunner = new ApexTestRunner(testOutline);
-      await testRunner.runApexTests(['MyTest']);
-      const { executor } = commandletSpy.getCall(0).thisValue;
-      expect(executor.shouldGetCodeCoverage).to.be.true;
-    });
+      getCoverageStub.onFirstCall().returns(true);
+      getCoverageStub.onSecondCall().returns(false);
 
-    it('Should honor code coverage setting set to false', async () => {
-      getCoverageStub.returns(false);
-      const testRunner = new ApexTestRunner(testOutline);
-      await testRunner.runApexTests(['MyTest']);
-      const { executor } = commandletSpy.getCall(0).thisValue;
+      await testRunner.runApexTests(['MyTestTrue']);
+      let { executor } = commandletSpy.getCall(0).thisValue;
+      expect(executor.shouldGetCodeCoverage).to.be.true;
+
+      await testRunner.runApexTests(['MyTestFalse']);
+      executor = commandletSpy.getCall(1).thisValue.executor;
       expect(executor.shouldGetCodeCoverage).to.be.false;
     });
   });
