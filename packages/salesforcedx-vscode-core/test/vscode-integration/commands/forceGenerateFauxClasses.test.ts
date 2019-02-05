@@ -11,7 +11,7 @@ import {
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
 import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
-import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { Command, ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -119,14 +119,20 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should append refresh source to log name if not manual', async () => {
       const source = SObjectRefreshSource.Startup;
-      await executeWithSource(source);
-      expect(logStub.getCall(0).args[0].endsWith(`_${source}`)).to.be.true;
+      const builder = buildWithSource(source);
+      expect(builder.logName).to.not.be.undefined;
+      if (builder.logName) {
+        expect(builder.logName.endsWith(`_${source}`)).to.be.true;
+      }
     });
 
     it('Should not append refresh source to log name if manual', async () => {
       const source = SObjectRefreshSource.Manual;
-      await executeWithSource(source);
-      expect(logStub.getCall(0).args[0].endsWith(`_${source}`)).to.be.false;
+      const builder = buildWithSource(source);
+      expect(builder.logName).to.not.be.undefined;
+      if (builder.logName) {
+        expect(builder.logName.endsWith(`_${source}`)).to.be.false;
+      }
     });
 
     async function executeWithSource(source: SObjectRefreshSource) {
@@ -135,6 +141,11 @@ describe('ForceGenerateFauxClasses', () => {
         type: 'CONTINUE',
         data: source
       });
+    }
+
+    function buildWithSource(source: SObjectRefreshSource): Command {
+      const executor = new ForceGenerateFauxClassesExecutor();
+      return executor.build(source);
     }
   });
 });

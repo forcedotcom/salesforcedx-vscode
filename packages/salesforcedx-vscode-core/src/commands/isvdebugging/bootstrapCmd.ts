@@ -503,6 +503,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ): Promise<string> {
+    const startTime = process.hrtime();
     // do not inherit global env because we are setting our own auth
     const execution = new CliCommandExecutor(command, options, false).execute(
       cancellationToken
@@ -511,7 +512,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     const result = new CommandOutput().getCmdResult(execution);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    this.logMetric(execution.command.logName);
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
     return result;
   }
 

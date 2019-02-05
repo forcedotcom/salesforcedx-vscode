@@ -33,6 +33,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
   }
 
   public execute(response: ContinueResponse<{}>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -41,8 +42,8 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    this.logMetric(execution.command.logName);
     execution.processExitSubject.subscribe(async data => {
+      this.logMetric(execution.command.logName, startTime);
       if (data !== undefined && data.toString() === '0') {
         developerLogTraceFlag.turnOffLogging();
         hideTraceFlagExpiration();

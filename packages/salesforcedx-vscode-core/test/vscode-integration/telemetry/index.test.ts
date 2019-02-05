@@ -148,7 +148,7 @@ describe('Telemetry', () => {
       const telemetryEnabled = telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(false);
 
-      telemetryService.sendCommandEvent('create_apex_class_command');
+      telemetryService.sendCommandEvent('create_apex_class_command', [0, 678]);
       assert.notCalled(reporter);
     });
 
@@ -192,14 +192,15 @@ describe('Telemetry', () => {
       const telemetryService = TelemetryService.getInstance();
       telemetryService.initializeService(mockContext, machineId);
 
-      telemetryService.sendCommandEvent('create_apex_class_command');
+      telemetryService.sendCommandEvent('create_apex_class_command', [0, 678]);
       assert.calledOnce(reporter);
 
       const expectedData = {
         extensionName: 'salesforcedx-vscode-core',
-        commandName: 'create_apex_class_command'
+        commandName: 'create_apex_class_command',
+        executionTime: match.string
       };
-      assert.calledWith(reporter, 'commandExecution', expectedData);
+      assert.calledWith(reporter, 'commandExecution', match(expectedData));
     });
   });
 });
