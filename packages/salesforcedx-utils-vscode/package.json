@@ -6,8 +6,6 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": ["Other"],
-  "files": ["out"],
-  "main": "./out/src",
   "dependencies": {
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
@@ -44,7 +42,7 @@
   },
   "scripts": {
     "build:webpack": "webpack --mode production",
-    "compile": "tsc -p ./",
+    "compile": "webpack --mode development",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",

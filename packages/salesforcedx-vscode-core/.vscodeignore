@@ -6,3 +6,6 @@ src/**
 **/*.map
 .gitignore
 tsconfig.json
+node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
+node_modules/@salesforce/salesforcedx-utils-vscode/src/**
+node_modules/@salesforce/salesforcedx-utils-vscode/test/**

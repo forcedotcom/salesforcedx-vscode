@@ -18,11 +18,13 @@ module.exports = {
   output: {
       path: DIST,
       filename: '[name].js',
+      libraryTarget: 'commonjs',
   },
   devtool: 'source-map',
   externals: {
-      vscode: "commonjs vscode" // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
-  },
+      // vscode: 'commonjs vscode',
+      'vscode-nls': 'commonjs vscode-nls',
+    },
   resolve: {
       extensions: ['.ts', '.js']
   },
