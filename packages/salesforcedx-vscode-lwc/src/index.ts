@@ -15,25 +15,31 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
-import { nls } from './messages';
+
+import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
+import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
 
-const coreDependency = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
+async function registerCommands(
+  activateDX: boolean
+): Promise<vscode.Disposable | undefined> {
+  try {
+    await waitForDX(activateDX);
+    const {
+      forceLightningLwcCreate
+    } = require('./commands/forceLightningLwcCreate');
 
-function registerCommands(): vscode.Disposable {
-  const {
-    forceLightningLwcCreate
-  } = require('./commands/forceLightningLwcCreate');
+    // Customer-facing commands
+    const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.create',
+      forceLightningLwcCreate
+    );
 
-  // Customer-facing commands
-  const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.lwc.create',
-    forceLightningLwcCreate
-  );
-
-  return vscode.Disposable.from(forceLightningLwcCreateCmd);
+    return vscode.Disposable.from(forceLightningLwcCreateCmd);
+  } catch (ignore) {
+    // ignore
+    return undefined;
+  }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -50,6 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const workspaceType = lwcLanguageServer.detectWorkspaceType(
     vscode.workspace.workspaceFolders[0].uri.fsPath
   );
+  const sfdxWorkspace = workspaceType === WorkspaceType.SFDX;
 
   // Check if ran from a LWC project
   if (!lwcLanguageServer.isLWC(workspaceType)) {
@@ -70,27 +77,11 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Commands
-  const commands = registerCommands();
-  context.subscriptions.push(commands);
-
-  // Telemetry
-  if (coreDependency && coreDependency.exports) {
-    coreDependency.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      coreDependency.exports.telemetryService.getReporter(),
-      coreDependency.exports.telemetryService.isTelemetryEnabled()
-    );
-  } else {
-    vscode.window.showErrorMessage(
-      nls.localize('salesforcedx_vscode_core_not_installed_text')
-    );
-    console.log(
-      'salesforce.salesforcedx-vscode-core not installed or activated, exiting extension'
-    );
-    return;
-  }
-
+  registerCommands(sfdxWorkspace).then(disposable => {
+    if (disposable) {
+      context.subscriptions.push(disposable);
+    }
+  });
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
