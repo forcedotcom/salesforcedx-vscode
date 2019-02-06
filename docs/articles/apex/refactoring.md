@@ -15,7 +15,3 @@ Validation of the new symbol name is performed before applying the rename. If th
 If the new name conflicts with an existing identifier name, we try to fully qualify the references to the existing name in contexts where the conflicts exist.
 
 ![GIF showing a renaming conflict](../../images/apex-rename-conflict.gif)
-
-## Bugs and Feedback
-
-To report issues with this feature (or with anything else related to Salesforce Extensions for VS Code), open a [bug on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md). If you would like to suggest a feature, create a [feature request on GitHub](https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md).

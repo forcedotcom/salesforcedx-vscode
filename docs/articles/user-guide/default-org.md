@@ -2,6 +2,8 @@
 title: Change or Open Your Default Org
 ---
 
-To open your default org in your browser, in the VS Code footer, click the browser icon ({% octicon browser %}).
+Salesforce Extensions for VS Code runs commands against the org that you’ve set as your default org for development. In the [Package Development Model](package/development-model), your default org is typically a scratch org. In the [Org Development Model](org-development-model), it’s typically a sandbox, a Developer Edition (DE) org, or a Trailhead Playground.
 
-To change the org that you’re developing against, click the org’s name or the briefcase icon ({% octicon briefcase %}). Then, select a different org or choose **SFDX: Set a Default Org** to authorize a new org.
+To set or change the org that you’re developing against, in the VS Code footer, click the org’s name or the briefcase icon ({% octicon briefcase %}). Then, select a different org, or choose **SFDX: Set a Default Org** to authorize a new org. Or, open the command palette and run **SFDX: Authorize an Org** or **SFDX: Create a Default Scratch Org**.
+
+To open your default org so that you can test your changes or use declaritive tools, click the browser icon ({% octicon browser %}) in the footer. Or, open the command palette and run **SFDX: Open Default Org**.

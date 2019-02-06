@@ -1,11 +1,13 @@
 - title: Get Started
   baseUrl: /articles/getting-started/
   children:
-    - title: Install
+    - title: Installation
       url: /articles/getting-started/install
     - title: First Project
       url: /articles/getting-started/first-project
-    - title: Extensions
+    - title: 'Migrate: Force.com IDE'
+      url: /articles/getting-started/migrate-from-forcecom-ide
+    - title: Recommended Extensions
       url: /articles/getting-started/recommended-extensions
     - title: Tips & Tricks
       url: /articles/getting-started/tips-and-tricks
@@ -16,10 +18,6 @@
       url: /articles/user-guide/org-development-model
     - title: Package Development
       url: /articles/user-guide/package-development-model
-    - title: 'Migrate: Force.com IDE'
-      url: /articles/user-guide/migrate-from-forcecom-ide
-    - title: Deploy on Save
-      url: /articles/user-guide/deploy-on-save
     - title: Source Format
       url: /articles/user-guide/source-format
     - title: Default Org
@@ -33,10 +31,12 @@
       url: /articles/apex/testing
     - title: Refactoring
       url: /articles/apex/refactoring
-    - title: Interactive Debugger
-      url: /articles/apex/interactive-debugger
     - title: Replay Debugger
       url: /articles/apex/replay-debugger
+    - title: Interactive Debugger
+      url: /articles/apex/interactive-debugger
+    - title: ISV Debugger
+      url: /articles/apex/isv-debugger
     - title: Language Server
       url: /articles/apex/language-server
 - title: Frameworks
@@ -55,12 +55,7 @@
       url: /articles/faq/general
     - title: Telemetry
       url: /articles/faq/telemetry
-    - title: Usage
-      url: /articles/faq/usage
 - title: Troubleshooting
-  baseUrl: /articles/troubleshooting/
-  children:
-    - title: General
-      url: /articles/troubleshooting/general
+  url: /articles/troubleshooting
 - title: Bugs and Feedback
   url: /articles/bugs-and-feedback
