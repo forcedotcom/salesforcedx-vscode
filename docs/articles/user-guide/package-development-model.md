@@ -1,5 +1,5 @@
 ---
-title: package development model with VS Code
+title: Package Development Model with VS Code
 ---
 
 When you employ the package development model, developing against an org with source tracking, the changes that you make on your local workstation and in your default development org are tracked for you. You move changes between orgs using packaged sets of metadata. (The org development model, in contrast, involves tracking your changes manually and deploying only your changed metadata to other orgs.) For details, see the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.

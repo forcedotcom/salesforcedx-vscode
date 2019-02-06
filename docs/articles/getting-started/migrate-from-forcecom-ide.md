@@ -8,7 +8,7 @@ You can develop against any org using the same workflows you are accustomed to u
 
 ## Why You Need to Migrate
 
-Before you begin your migration, it's important to understand the difference between the project structure of a Force.com IDE project and a VS Code project. There are two primary differences that affect you: the Salesforce DX project file and the format of your local source.
+Before you begin your migration, it’s important to understand the difference between the project structure of a Force.com IDE project and a VS Code project. There are two primary differences that affect you: the Salesforce DX project file and the format of your local source.
 
 ### 1. Project File
 
@@ -89,7 +89,7 @@ The second option for migrating your project is an in-place conversion. This opt
    $ mv ../tempproj/config ./config
    ```
 
-   > NOTICE: If you are using source control, you'll likely want to make commits at various steps along the way.
+   > NOTICE: If you are using source control, you’ll likely want to make commits at various steps along the way.
 
 1. The default `sfdx-project.json` file assumes that your source code is in the `force-app` directory. You can use this default option, but in our case the source files live in `src`. To store your files in the `src` directory, change the following in the `sfdx-project.json`.
 
@@ -138,7 +138,7 @@ The second option for migrating your project is an in-place conversion. This opt
 
 ### Version Control Considerations
 
-One thing worth noting when you are converting your metadata to source format is that your version control system might require some configuration or scripting to follow the massing renames. Git, for example, tracks only a small number of file renames at a time by default. To fix this, change the following setting.
+One thing worth noting when you are converting your metadata to source format is that your version control system might require some configuration or scripting to follow the mass renames. Git, for example, tracks only a small number of file renames at a time by default. To fix this, change the following setting.
 
 ```bash
 $ git config merge.renameLimit 999999
