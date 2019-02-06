@@ -61,6 +61,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
   }
 
   public execute(response: ContinueResponse<ProjectNameAndPath>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -69,6 +70,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
+      this.logMetric(execution.command.logName, startTime);
       if (data !== undefined && data.toString() === '0') {
         await vscode.commands.executeCommand(
           'vscode.openFolder',
@@ -83,7 +85,6 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    this.logMetric(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
