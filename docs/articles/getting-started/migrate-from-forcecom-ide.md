@@ -94,7 +94,6 @@ The second option for migrating your project is an in-place conversion. This opt
 1. The default `sfdx-project.json` file assumes that your source code is in the `force-app` directory. You can use this default option, but in our case the source files live in `src`. To store your files in the `src` directory, change the following in the `sfdx-project.json`.
 
    ```json
-   {
     "packageDirectories": [
         {
             "path": "src",
