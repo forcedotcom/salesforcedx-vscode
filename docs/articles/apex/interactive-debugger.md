@@ -2,7 +2,7 @@
 title: Apex Interactive Debugger
 ---
 
-Apex Debugger allows customers to debug their Apex code on sandbox instances (including in scratch orgs), in real time, using VS Code as the client. You can use it to:
+Apex Debugger allows customers to debug their Apex code on sandbox instances and scratch orgs, in real time, using VS Code as the client. You can use it to:
 
 - Set breakpoints in Apex classes and triggers.
 - View variables, including sObject types, collections, and Apex System types.
@@ -53,7 +53,7 @@ The first time that you use Apex Debugger in VS Code, complete these setup steps
       ```
    1. Save your `launch.json` file. Each project needs only one `launch.json` file, even if you work with multiple scratch orgs. This file lives in the project’s `.vscode` directory.
 
-> NOTE: There is an unofficial debugger extension that conflicts with ours: https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug. Please disable that extension while using ours.
+> NOTE: There is an unofficial debugger extension that conflicts with ours: https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug. Disable that extension while using ours.
 
 ## Debug Your Code
 

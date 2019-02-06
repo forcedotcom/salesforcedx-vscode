@@ -6,7 +6,7 @@ Before you get started, install the required software on your computer.
 
 ## Visual Studio Code
 
-Visual Studio Code can be installed on any computer running macOS, Windows, or Linux. VS Code’s [system requirements](https://code.visualstudio.com/docs/supporting/requirements) are fairly small, so it should run well on most computers.
+Install Visual Studio Code on any computer running macOS, Windows, or Linux. VS Code’s [system requirements](https://code.visualstudio.com/docs/supporting/requirements) are fairly small, so it should run well on most computers.
 
 To install Visual Studio Code visit <https://code.visualstudio.com> and click the big green **Download** button. After the download finishes, open the installer and follow the steps to complete the installation.
 
@@ -26,8 +26,8 @@ For information about installing Salesforce CLI, see the _[Salesforce DX Setup G
 
 After you’ve installed Salesforce Extensions for VS Code’s dependencies, install the Salesforce Extension Pack extension from the Visual Studio Marketplace. The extension pack contains everything you need to develop Salesforce apps using Visual Studio Code.
 
-To install the extensions, visit <https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode> and click the green **Install** button. This will prompt you to open Visual Studio Code. After Visual Studio Code opens, a dialog box will open in the lower right corner, asking you to install the extension. Click **Install** to proceed.
+To install the extensions, visit <https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode> and click the green **Install** button. The installation process prompts you to open Visual Studio Code. After Visual Studio Code opens, a dialog box opens in the lower right corner, asking you to install the extension. Click **Install** to proceed.
 
 ![Install Extension](/images/install-salesforce-extensions-dialog.png)
 
-After the extensions are installed, you will see a blue **Reload** button. To reload Visual Studio Code and finish the installation, click the button (or close and reopen Visual Studio Code).
+After the extensions are installed, you see a blue **Reload** button. To reload Visual Studio Code and finish the installation, click the button (or close and reopen Visual Studio Code).

@@ -4,7 +4,7 @@ title: Tips and Tricks
 
 ## Organize Your VS Code Extensions by Development Task
 
-Organizing your VS Code extensions by development task helps avoid having extensions providing functionality that’s not useful for the task at hand. Having only the extensions that you need helps minimize the VS Code startup time and ensures that shortcut keys don’t interfere with one another. Here’s how to set up VS Code to launch with only the extensions for working with Salesforce.
+Organizing your VS Code extensions by development task can help to avoid having extensions provide functionality that’s not useful for the task at hand. Having only the extensions that you need helps minimize the VS Code startup time and ensures that shortcut keys don’t interfere with one another. Here’s how to set up VS Code to launch with only the extensions for working with Salesforce.
 
 1.  Add a `code-sfdx` alias to your shell’s startup script.
 
@@ -37,7 +37,7 @@ Organizing your VS Code extensions by development task helps avoid having extens
     `source .zshrc`
 
 1.  From the terminal, run `code-sfdx` to launch an instance of VS Code that has only your extensions.
-    > NOTE: The first time you launch `code-sfdx`, it has no extensions! That is expected because this is a fresh instance VS Code.
+    > NOTE: The first time you launch `code-sfdx`, it has no extensions because it's a fresh instance VS Code.
 
 1.  Select **View** > **Extensions**.
 

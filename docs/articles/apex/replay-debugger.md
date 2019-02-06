@@ -68,7 +68,7 @@ If you’re debugging an issue in a scratch org, or in a sandbox or DE org that 
 
 If you’re not using a scratch org or an org that you’ve set as your default org for development in VS Code, download a debug log from your org before you start debugging. Open that log in VS Code and then start a debugging session.
 
-1. In VS Code, open the debug log that you want to analyze. The log must be generated with a log level of `FINER` or `FINEST` for `VISUALFORCE` and a log level of `FINEST` for `APEX_CODE`.
+1. In VS Code, open the debug log that you want to analyze. Generate the log with a log level of `FINER` or `FINEST` for `VISUALFORCE` and a log level of `FINEST` for `APEX_CODE`.
 1. Run **SFDX: Launch Apex Replay Debugger with Current File**.
 
 TIP: If your log file is part of your Salesforce DX project, you don’t need to open the log file and then run a separate command. Instead, you can find a log file in the Explorer view, right-click it, and select **Launch Apex Replay Debugger with Current File**.
