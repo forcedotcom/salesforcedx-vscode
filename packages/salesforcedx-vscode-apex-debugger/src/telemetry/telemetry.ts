@@ -66,3 +66,7 @@ export class TelemetryService {
     return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);
   }
 }
+
+export function hello(): string {
+  return 'Hello World!';
+}
