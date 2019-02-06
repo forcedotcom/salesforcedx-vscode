@@ -2,13 +2,13 @@
 title: Org Development Model with VS Code
 ---
 
-When you employ the Org Development Model, you track your changes manually and deploy sets of changes to sandboxes and then to your production org. (The Package Development Model, in contrast, involves working with source-tracked orgs and moving your changes between orgs using packaged sets of metadata.) For details, see the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
+When you employ the org development model, you track your changes manually and deploy sets of changes to sandboxes and then to your production org. (The package development model, in contrast, involves working with source-tracked orgs and moving your changes between orgs using packaged sets of metadata.) For details, see the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
 
 This article describes how to work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in Visual Studio Code.
 
 ![Demo](/images/changeset-demo.gif)
 
-> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, please [open a GitHub issue](../bugs-and-feedback).
+> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
 
 ## Get Started
 
@@ -24,11 +24,11 @@ After you select a login URL and give your project a name, your browser opens an
 
 ## The Manifest (`package.xml`) File
 
-If you are connected to a sandbox, DE org, or Trailhead Playground, the easiest way to retrieve all the metadata you want to work with from your org is by using a `package.xml` file. If you don’t already have one, create a `package.xml` file in the `manifests` directory.
+If you are connected to a sandbox, DE org, or Trailhead Playground, the easiest way to retrieve all the metadata you want to work with from your org is by using a `package.xml` file. If you don’t already have one, update the provided file, or create a `package.xml` file in the `manifests` directory.
 
 Add the various metadata types you want to retrieve to this file. For information about the `package.xml` file, see in [Sample package.xml Manifest Files](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm) in the _Metadata API Developer Guide_.
 
-After you [retrieve your source](#retrieve-source), your project structure will look something like this.
+After you [retrieve your source](#retrieve-source), your project structure looks something like this.
 
 ```text
 your-app
@@ -50,9 +50,9 @@ your-app
 
 ## Retrieve Source
 
-After you authorize an org, retrieve your source from it. After you make changes in the Salesforce user interface, retrieve those changes from your default org. (Be sure to keep track of those changes; when you use the Org Development Model, your changes aren’t tracked automatically.)
+After you authorize an org, retrieve your source from it. After you make changes in the Salesforce user interface, retrieve those changes from your default org. (Be sure to keep track of those changes; when you use the org development model, your changes aren’t tracked automatically.)
 
-> CAUTION: Retrieving source from an org overwrites your local versions of the source files.
+> CAUTION: Retrieving source from an org overwrites the local versions of the source files.
 
 ![Retrieve source from org](/images/retrieve-source-from-org.png)
 
@@ -66,7 +66,7 @@ To retrieve source from an org without source tracking (from an org that’s not
 
 After you make code changes, deploy these changes to your org. 
 
-> CAUTION: Deploying source to an org overwrites the metadata in your org with your local versions of the source files.
+> CAUTION: Deploying source to an org overwrites the metadata in your org with the local versions of the source files.
 
 ![Deploy source to org](/images/deploy-source-to-org.png)
 

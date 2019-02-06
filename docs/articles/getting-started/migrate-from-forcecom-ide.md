@@ -4,19 +4,19 @@ title: Migrate from Force.com IDE to Salesforce Extensions for VS Code
 
 You can develop against any org using the same workflows you are accustomed to using with Force.com IDE. This article walks through two techniques for migrating your existing project from Force.com IDE to VS Code.
 
-> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, please [open a GitHub issue](../bugs-and-feedback).
+> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
 
 ## Why You Need to Migrate
 
-Before you begin your migration, it is important to understand the difference between the project structure of a Force.com IDE project and a VS Code project. There are two primary differences that will affect you.
+Before you begin your migration, it’s important to understand the difference between the project structure of a Force.com IDE project and a VS Code project. There are two primary differences that affect you: the Salesforce DX project file and the format of your local source.
 
 ### 1. Project File
 
-Every Salesforce project in VS Code must include a `sfdx-project.json` file. This file specifies various project-level options such as which type of org you are working against (production, sandbox, etc.) and where your source code is stored on your local workstation. For information about the `sfdx-project.json` file, see [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_.
+Every Salesforce project in VS Code must include a `sfdx-project.json` file. This file specifies various project-level options, such as which type of org you are working against (production, sandbox, etc.) and where your source code is stored on your local workstation. For information about the `sfdx-project.json` file, see [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_.
 
 ### 2. Source Format
 
-Salesforce projects in VS Code use a new format and directory structure for storing metadata. This is called the [source format](Source-Format). This format is optimized for working with version control. It has characteristics such as objects that are expanded into multiple directories and files, and the ability to work directly with static resources. However, this also means you can’t just open your existing project in VS Code and expect it to work. You need to convert it to the new format.
+Salesforce projects use a new format and directory structure for local metadata called [source format](Source-Format). This format is optimized for working with version control. It has characteristics such as objects that are expanded into multiple directories and files, and the ability to work directly with static resources. However, this also means you can’t just open your existing project in VS Code and expect it to work. You need to convert it to the new format.
 
 ## Decide Which Migration Process to Use
 
@@ -32,7 +32,7 @@ The second approach, which allows you to convert existing projects, is more comp
 
 If you already have a `package.xml` file in your Force.com IDE project, you can easily move that project to a new VS Code project in just a few steps. Before you begin, ensure that you have your machine configured correctly for [Salesforce Development with VS Code](../getting-started/install).
 
-1. Open VS Code and create a project. From the start screen of VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to bring up the command palette. To search for the project-creation command, start typing `SFDX: Create Project with Manifest`. Press enter when you’ve selected the command.
+1. Open VS Code and create a project. From the start screen of VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to bring up the command palette. To search for the project-creation command, start typing `SFDX: Create Project with Manifest`. Press Enter when you’ve selected the command.
 
    ![Create Project With Manifest](/images/create-project-with-manifest.png)
 
@@ -40,9 +40,9 @@ If you already have a `package.xml` file in your Force.com IDE project, you can 
 1. Next, copy the contents of the `package.xml` file that you used in your Force.com IDE project.
 1. In VS Code, expand the `manifest` directory and open the `package.xml` file.
 1. Replace the contents of the `package.xml` file with the contents you copied from the Force.com IDE project’s file.
-1. Next, authorize your org. Using the command palette (Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS), select the command **SFDX: Authorize an Org**. This opens the Salesforce login page. Log in and accept the prompt.
+1. Next, authorize your org. Using the command palette (Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS), select the command **SFDX: Authorize an Org**. This command opens the Salesforce login page. Log in and accept the prompt.
 
-   > NOTICE: If you’ll typically want to connect to sandbox orgs, edit your `sfdx-project.json` file to set `sfdcLoginUrl` to `https://test.salesforce.com` before you authorize the org.
+   > NOTICE: If you typically connect to sandbox orgs, edit your `sfdx-project.json` file to set `sfdcLoginUrl` to `https://test.salesforce.com` before you authorize the org.
 
 1. Close the browser tab and return to VS Code.
 1. In the VS Code editor, right-click inside the `package.xml` file and select **SFDX: Retrieve Source in Manifest from Org**.
@@ -89,9 +89,9 @@ The second option for migrating your project is an in-place conversion. This opt
    $ mv ../tempproj/config ./config
    ```
 
-   > NOTICE: If you are using source control, you will likely want to make commits at various steps along the way.
+   > NOTICE: If you are using source control, you’ll likely want to make commits at various steps along the way.
 
-1. The default `sfdx-project.json` file assumes that your source code is in the `force-app` directory. You can use this, but in our case we are assuming `src`. To store your files in the `src` directory, change the following in the `sfdx-project.json`.
+1. The default `sfdx-project.json` file assumes that your source code is in the `force-app` directory. You can use this default option, but in our case the source files live in `src`. To store your files in the `src` directory, change the following in the `sfdx-project.json`.
 
    ```json
    {
@@ -117,14 +117,14 @@ The second option for migrating your project is an in-place conversion. This opt
    $ mkdir ./src/main/default
    ```
 
-1. Now that you’ve set up your project, it’s time to convert your metadata to the new [source format](Source-Format). To convert, run the following command.
+1. Now that you’ve set up your project, it’s time to convert your metadata to [source format](Source-Format). To convert, run the following command.
 
 
     ```bash
     $ sfdx force:mdapi:convert --rootdir ./src --outputdir ./tmpsrc
     ```
 
-1. With the source in the new format and the directory structure set up, you can copy the new metadata into the correct place.
+1. Now that your files are in source format and the directory structure is set up, you can copy the metadata into the correct place.
 
    ```bash
    $ mv ./tmpsrc ./src/main/default
@@ -138,7 +138,7 @@ The second option for migrating your project is an in-place conversion. This opt
 
 ### Version Control Considerations
 
-One thing worth noting when you are converting your metadata to the new format is that your version control system may require some configuration or scripting in order to follow the massing renames. Git, for example, tracks only a small number of file renames at a time by default. In order to fix this, change the following setting.
+One thing worth noting when you are converting your metadata to source format is that your version control system might require some configuration or scripting to follow the mass renames. Git, for example, tracks only a small number of file renames at a time by default. To fix this, change the following setting.
 
 ```bash
 $ git config merge.renameLimit 999999
@@ -150,4 +150,4 @@ When you are done with your rename and have everything committed, you can restor
 $ git config --unset merge.renameLimit
 ```
 
-Additionally, you may need to do the moving or renaming in chunks. For more information, see [this blog post](https://ntotten.com/2018/05/11/convert-metadata-to-source-format-while-maintain-git-history/).
+Additionally, you can do the moving or renaming in chunks. For more information, see [this blog post](https://ntotten.com/2018/05/11/convert-metadata-to-source-format-while-maintain-git-history/).

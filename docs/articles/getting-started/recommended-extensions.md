@@ -32,6 +32,6 @@ This extension makes working with GitHub even easier.
 
 ## GitLens
 
-Supercharge the Git capabilities built into Visual Studio Code: Visualize code authorship at a glance via Git blame annotations and code lenses, navigate and explore Git repositories, gain valuable insights via powerful comparison commands, and more.
+Supercharge the Git capabilities built into VS Code: Visualize code authorship at a glance via Git blame annotations and code lenses, navigate and explore Git repositories, gain valuable insights via powerful comparison commands, and more.
 
 <https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens>
