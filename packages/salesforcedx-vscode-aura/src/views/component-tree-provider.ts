@@ -1,6 +1,85 @@
 import { commands, Event, EventEmitter, ExtensionContext, Position, Range, Selection, TreeDataProvider, TreeItemCollapsibleState, Uri, window } from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
+import { LanguageClient, NotificationType } from 'vscode-languageclient';
 import { LwcNode, NodeType } from './lwc-node';
+
+interface TagParams {
+    taginfo: any;
+}
+
+const tagAdded: NotificationType<TagParams, void> = new NotificationType<TagParams, void>('salesforce/tagAdded');
+const tagDeleted: NotificationType<string, void> = new NotificationType<string, void>('salesforce/tagDeleted');
+const tagsCleared: NotificationType<void, void> = new NotificationType<void, void>('salesforce/tagsCleared');
+
+let loadNamespacesPromise: Promise<Map<string, LwcNode>>;
+
+async function loadNamespaces(client: LanguageClient) {
+    if (!loadNamespacesPromise) {
+        loadNamespacesPromise = client
+            .onReady()
+            .then(() => client.sendRequest('salesforce/listComponents', {}))
+            .then((data: any) => {
+                let namespaces: Map<string, LwcNode> = new Map();
+
+                const tags: Map<string, any> = new Map(JSON.parse(data));
+                for (const key of tags.keys()) {
+                    const value = tags.get(key);
+
+                    const ns = key.split(':')[0];
+                    let node = namespaces.get(ns);
+                    if (!node) {
+                        node = new LwcNode(ns, '', NodeType.Namespace, TreeItemCollapsibleState.Collapsed);
+                        namespaces.set(ns, node);
+                    }
+                    const hasChildren = value.attributes.length > 0;
+                    const uriString = value.location && value.location.uri;
+                    const uri = uriString ? Uri.parse(uriString) : undefined;
+                    const componentType = value.lwc ? NodeType.WebComponent : NodeType.Component;
+                    const openCmd = uri
+                        ? {
+                              command: 'salesforce-open-component',
+                              title: '',
+                              arguments: [uri]
+                          }
+                        : undefined;
+                    const cmp = new LwcNode(
+                        key,
+                        value.documentation,
+                        componentType,
+                        hasChildren ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None,
+                        uri,
+                        openCmd
+                    );
+
+                    node.children.push(cmp);
+
+                    for (const attr of value.attributes) {
+                        const attributeStringUri = attr.location && attr.location.uri;
+                        const attributeUri = attributeStringUri ? Uri.parse(attributeStringUri) : undefined;
+                        const attributeRange = (attr.location && attr.location.range) || undefined;
+                        const openAttributeCommand = attributeUri
+                            ? {
+                                  command: 'salesforce-open-component',
+                                  title: '',
+                                  arguments: [attributeUri, attributeRange]
+                              }
+                            : undefined;
+                        cmp.children.push(
+                            new LwcNode(attr.name, attr.detail, NodeType.Attribute, TreeItemCollapsibleState.None, attributeUri, openAttributeCommand)
+                        );
+                    }
+                }
+
+                namespaces = new Map([...namespaces].sort((a, b) => (a[0] > b[0] ? 1 : -1)));
+
+                return namespaces;
+            })
+            .catch(err => {
+                console.error('Could not request lwc/listComponents' + err);
+                return new Map();
+            });
+    }
+    return loadNamespacesPromise;
+}
 
 export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
     public readonly onDidChangeTreeData: Event<LwcNode | undefined>;
@@ -12,6 +91,23 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
         this.onDidChangeTreeData = this.internalOnDidChangeTreeData.event;
         this.client = client;
         this.context = context;
+
+        client.onReady().then(() => {
+            this.client.onNotification(tagAdded, (params: TagParams) => {
+                // TODO the nuclear option
+                loadNamespacesPromise = null;
+                this.internalOnDidChangeTreeData.fire();
+            });
+            this.client.onNotification(tagDeleted, (tag: string) => {
+                // TODO the nuclear option
+                loadNamespacesPromise = null;
+                this.internalOnDidChangeTreeData.fire();
+            });
+            this.client.onNotification(tagsCleared, () => {
+                loadNamespacesPromise = null;
+                this.internalOnDidChangeTreeData.fire();
+            });
+        });
 
         commands.registerCommand('salesforce-open-component', (uri, range) => {
             commands.executeCommand('vscode.open', uri);
@@ -26,65 +122,14 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
                 }
             }
         });
-
-        client
-            .onReady()
-            .then(() => {
-                client.sendRequest('salesforce/listComponents', {}).then(
-                    (data: string) => {
-                        const tags: Map<string, any> = new Map(JSON.parse(data));
-                        for (const key of tags.keys()) {
-                            const value = tags.get(key);
-
-                            const ns = key.split(':')[0];
-                            let node = this.namespaces.get(ns);
-                            if (!node) {
-                                node = new LwcNode(ns, '', NodeType.Namespace, TreeItemCollapsibleState.Collapsed);
-                                this.namespaces.set(ns, node);
-                            }
-                            const uri = (value.location && value.location.uri) || '';
-                            const componentType = value.lwc ? NodeType.WebComponent : NodeType.Component;
-                            const cmp = new LwcNode(key, value.documentation, componentType, TreeItemCollapsibleState.Collapsed, Uri.parse(uri), {
-                                command: 'salesforce-open-component',
-                                title: '',
-                                arguments: [Uri.parse(uri)]
-                            });
-
-                            node.children.push(cmp);
-
-                            for (const attr of value.attributes) {
-                                const attributeUri = (attr.location && attr.location.uri) || '';
-                                const attributeRange = (attr.location && attr.location.range) || undefined;
-                                cmp.children.push(
-                                    new LwcNode(attr.name, attr.detail, NodeType.Attribute, TreeItemCollapsibleState.None, Uri.parse(attributeUri), {
-                                        command: 'salesforce-open-component',
-                                        title: '',
-                                        arguments: [Uri.parse(attributeUri), attributeRange]
-                                    })
-                                );
-                            }
-                        }
-
-                        this.namespaces = new Map([...this.namespaces].sort( (a, b) => a[0] > b[0] ? 1 : -1));
-                        this.internalOnDidChangeTreeData.fire();
-                    },
-                    err => {
-                        console.error('Could not request lwc/listComponents - is the LSP the correct version?');
-                        console.error(err);
-                    }
-                );
-            })
-            .catch(err => {
-                console.error('LSP not ready');
-                console.error(err);
-            });
     }
 
-    public getChildren(node?: LwcNode): Thenable<LwcNode[]> {
+    public async getChildren(node?: LwcNode): Promise<LwcNode[]> {
         if (node) {
-            return Promise.resolve(node.children);
+            const sorted = node.children.sort((a, b) => (a.label < b.label ? -1 : 1));
+            return Promise.resolve(sorted);
         } else {
-            return Promise.resolve([...this.namespaces.values()]);
+            return [...(await loadNamespaces(this.client)).values()];
         }
     }
 

@@ -1,4 +1,4 @@
-import {paramCase} from 'change-case';
+import { paramCase } from 'change-case';
 import { Command, TreeItem, TreeItemCollapsibleState, Uri } from 'vscode';
 
 import * as path from 'path';
@@ -28,6 +28,13 @@ export class LwcNode extends TreeItem {
         super(getLabel(label, type), collapsibleState);
         this.tooltip = tooltip;
         this.type = type;
+    }
+
+    get contextValue() {
+        if ((this.type === NodeType.Component || this.type === NodeType.WebComponent) && !this.uri) {
+            return 'external';
+        }
+        return undefined;
     }
 
     get iconPath() {

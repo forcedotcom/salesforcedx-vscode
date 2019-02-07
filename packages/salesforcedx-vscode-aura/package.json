@@ -29,11 +29,13 @@
     "change-case": "^3.1.0",
     "lightning-lsp-common": "1.0.4",
     "lwc-language-server": "1.8.3",
+    "opn": "^5.4.0",
     "vscode": "1.1.17",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1"
   },
   "devDependencies": {
+    "@types/opn": "^5.1.0",
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "typescript": "2.6.2"
@@ -74,11 +76,21 @@
         }
       ]
     },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "salesforce-lightning-quickopen",
+          "when": "view == salesforce-lightning-components && viewItem == external",
+          "group": "inline"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "salesforce-lightning-quickopen",
         "title": "Lightning: Open Component",
-        "category": "Lightning Components"
+        "category": "Lightning Components",
+        "icon": "resources/open.svg"
       }
     ]
   }
