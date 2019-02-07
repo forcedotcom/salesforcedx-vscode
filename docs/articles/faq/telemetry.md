@@ -1,5 +1,5 @@
 ---
-title: "FAQ: Telemetry"
+title: 'FAQ: Telemetry'
 ---
 
 ## Why do you collect data?
@@ -16,7 +16,7 @@ If you don’t wish to send usage data to Salesforce, you can set the `salesforc
 
 On Windows or Linux, select **File** > **Preferences** > **Settings**. On macOS, select **Code** > **Preferences** > **Settings**. Then, to silence all telemetry events from the VS Code shell and disable telemetry reporting, add the following option.
 
-```
+```json
 "salesforcedx-vscode-core.telemetry.enabled": false
 ```
 

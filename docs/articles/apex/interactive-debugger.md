@@ -41,14 +41,14 @@ The first time that you use Apex Debugger in VS Code, complete these setup steps
    1. To open the Debug view, in the VS Code Activity Bar, click the bug icon (hover text: Debug).
    1. To create a `launch.json` file, click the gear icon (hover text: Configure or Fix launch.json) and then select **Apex Debugger**. (If you’ve already created this file, clicking the gear icon opens the file.)
    1. Within the `"configurations"` array, add a `"Launch Apex Debugger"` configuration. The minimum information it should contain:
-      ```
+      ```json
       "configurations": [
-          {
-              "name": "Launch Apex Debugger",
-              "type": "apex",
-              "request": "launch",
-              "sfdxProject": "${workspaceRoot}"
-          }
+        {
+          "name": "Launch Apex Debugger",
+          "type": "apex",
+          "request": "launch",
+          "sfdxProject": "${workspaceRoot}"
+        }
       ]
       ```
    1. Save your `launch.json` file. Each project needs only one `launch.json` file, even if you work with multiple scratch orgs. This file lives in the project’s `.vscode` directory.
@@ -81,18 +81,18 @@ To filter which requests are debugged, edit your `launch.json` file to set up wh
 
 Add filters to the `"Launch Apex Debugger"` configuration:
 
-```
-    "configurations": [
-        {
-            "name": "Launch Apex Debugger",
-            "type": "apex",
-            "request": "launch",
-            "sfdxProject": "${workspaceRoot}"
-            "userIdFilter": [],
-            "requestTypeFilter": [],
-            "entryPointFilter": ""
-        }
-    ]
+```json
+"configurations": [
+  {
+    "name": "Launch Apex Debugger",
+    "type": "apex",
+    "request": "launch",
+    "sfdxProject": "${workspaceRoot}"
+    "userIdFilter": [],
+    "requestTypeFilter": [],
+    "entryPointFilter": ""
+  }
+]
 ```
 
 To auto-complete potential request type values for `"requestTypeFilter"`, press Ctrl+Space.
@@ -148,7 +148,7 @@ These entry points aren’t supported:
 - You can’t drill into the instance variables of Apex library objects. To view these objects’ contents, use their `toString` methods.
 - Variables declared within a loop are visible outside of the loop.
 - Drill into variables to see their children’s values. For example, if you run the query `[SELECT Id, ContactId, Contact.accountId, Contact.Account.ownerId FROM Case]`, your results are nested as follows.
-  ```
+  ```text
   Case
   --> Contact
   -----> contactId
