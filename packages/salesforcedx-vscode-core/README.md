@@ -58,10 +58,11 @@ To access the Visual Studio Code command palette, press Cmd+Shift+P (macOS) or C
   - Right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Delete from Project and Org**.
   - Right-click a file that’s open in the editor, and select **SFDX: Delete This from Project and Org**.
 
-## View Your Default Org
+## Change or Open Your Default Org
 
-A badge in the footer shows your default development org. It uses the org’s auto-generated username or the alias that you chose for the org. To open the org in your browser, click this badge.  
-![Username for default scratch org, displayed in footer](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/active_scratch_org.png)
+To set or change the org that you’re developing against, in the VS Code footer, click the org’s name or the briefcase icon. Then, select a different org, or choose **SFDX: Set a Default Org** to authorize a new org. Or, open the command palette and run **SFDX: Authorize an Org** or **SFDX: Create a Default Scratch Org**.
+
+To open your default org so that you can test your changes or use declarative tools, click the browser icon in the footer. Or, open the command palette and run **SFDX: Open Default Org**.
 
 ## Run Salesforce CLI Commands
 
