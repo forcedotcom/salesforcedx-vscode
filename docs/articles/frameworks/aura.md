@@ -2,29 +2,25 @@
 title: Aura Framework
 ---
 
-## Features Provided by This Extension
+## Features Provided by the Aura Components Extension
 
 - Syntax highlighting in some sections of various files (`.page`, `.component`, `.app`, and so on)
-
   - HTML portions
   - Embedded CSS and JavaScript portions
 
-  ![Colored syntax highlighting in a .js file from a Lightning bundle](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-lightning/images/lightning_syntax.png)
+  ![Colored syntax highlighting in a .js file from an Aura bundle](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-lightning/images/lightning_syntax.png)
 
 - Code completion (invoke using Ctrl+Space)
-
   - HTML tags
   - CSS
   - JavaScript
 
-  ![Code-completion options in a .js file from a Lightning bundle](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-lightning/images/lightning_completion.png)
+  ![Code-completion options in a .js file from an Aura bundle](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-lightning/images/lightning_completion.png)
 
-- Outline view (invoke using Cmd+Shift+O on macOS, or Ctrl+Shift+O on Windows and Linux)
-
-  ![List of symbols in a .js file from a Lightning bundle](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-lightning/images/lightning_outline.png)
+- Outline view (invoke using Ctrl+Shift+O on Windows or Linux, or Cmd+Shift+O on macOS)
+  ![List of symbols in a .js file from an Aura bundle](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-lightning/images/lightning_outline.png)
 
 - Salesforce Lightning Design System Linter
-
   - Detects deprecated BEM syntax (`--`) for Salesforce Lightning Design System class names in HTML files
   - Warning message displays on hover
   - Code actions are available on click

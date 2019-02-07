@@ -1,8 +1,8 @@
 ---
-title: Apex
+title: Write Apex Code
 ---
 
-View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. This extension is powered by the [Apex Language Server](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Language-Server).
+View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. The Apex extension is powered by the [Apex Language Server](language-server).
 
 ## View Code-Completion Suggestions
 
@@ -31,9 +31,9 @@ You can preview, view, or go to definitions of:
   - Fields
   - Object definitions
 
-(See the "Enable Code Smartness for SObjects" section of this README for information on working with standard and custom objects.)
+(See the [Enable Code Smartness for SObjects](#enable-code-smartness-for-sobjects) section of this topic for information on working with standard and custom objects.)
 
-To preview a definition, hold down Cmd (macOS) or Ctrl (Windows or Linux) and hover over the item whose definition you want to see.
+To preview a definition, hold down Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.
 
 To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
 
@@ -62,12 +62,12 @@ The Problems view in the bottom pane also lists the syntax errors. Double-click 
 
 ## View an Outline of Your Apex Class or Trigger
 
-The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Cmd+Shift+O (macOS) or Ctrl+Shift+O (Windows or Linux). To jump to one of the symbols, select it in the list.  
+The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Ctrl+Shift+O (Windows or Linux) or Cmd+Shift+O (macOS). To jump to one of the symbols, select it in the list.  
 ![Outline view, showing the symbols in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_outline.png)
 
 ## Enable Code Smartness for SObjects
 
-To activate this extension’s code smartness features for standard and custom objects and their fields, including for custom fields on standard objects, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Windows or Linux), and then select **SFDX: Refresh SObject Definitions** from the command palette.
+To activate the Apex extension’s code smartness features for standard and custom objects and their fields, including for custom fields on standard objects, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS), and then select **SFDX: Refresh SObject Definitions** from the command palette.
 
 When you refresh your sObject definitions, VS Code uses your default org to generate faux Apex classes. These faux classes represent the standard and custom objects that the admin user has access to for your default scratch org, or the logged-in user of your sandbox or DE org. The classes are stored in a hidden directory on your local workstation. Don’t edit the faux classes! They are deleted and regenerated each time that you refresh your sObject definitions. To modify your sObjects, either modify the objects’ `.object-meta.xml` and `.field-meta.xml` files (and then run **SFDX: Push Source to Default Scratch Org** or **SFDX: Deploy Source to Org**), or make changes declaratively in your org (and then run **SFDX: Pull Source from Default Scratch Org** or **SFDX: Retrieve Source from Org**). Your user doesn’t automatically gain access to new custom objects, so be sure to assign new permissions to the user as necessary. To assign permissions from the command line, run `sfdx force:user:permset:assign -n YourPermSetName`.
 
