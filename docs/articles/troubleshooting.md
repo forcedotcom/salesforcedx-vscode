@@ -17,7 +17,7 @@ By default, VS Code attempts to locate your local Java installation by looking f
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 1. Search for `apex`.
-1. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do  **not** set it to the Java executable itself.  For example, on macOS, set it to `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home` and **not** `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/bin/java.`
+1. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself. For example, on macOS, set it to `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home` and **not** `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/bin/java.`
 
 ![Apex Java Setting](../../images/apex-java-home-setting.png)
 
@@ -27,7 +27,7 @@ The Apex Language Server is an implementation of the [Language Server Protocol](
 
 ## Activate the Apex Language Server
 
-If the Apex features aren’t available, activate the Apex Language Server. In the VS Code menu bar, select **View** > **Output** and select **Apex Language Server** from the drop-down list on the right. If you don't see an "Apex Language Server" entry, the language server didn’t activate. 
+If the Apex features aren’t available, activate the Apex Language Server. In the VS Code menu bar, select **View** > **Output** and select **Apex Language Server** from the drop-down list on the right. If you don't see an "Apex Language Server" entry, the language server didn’t activate.
 
 If the Apex Language Server didn’t activate, ensure that you've:
 

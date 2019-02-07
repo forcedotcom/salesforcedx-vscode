@@ -1,5 +1,5 @@
 ---
-title: 'FAQ: General'
+title: "FAQ: General"
 ---
 
 ## Is Salesforce Extensions for VS Code officially supported by Salesforce?

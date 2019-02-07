@@ -9,6 +9,7 @@ Organizing your VS Code extensions by development task can help you avoid having
 1.  Add a `code-sfdx` alias to your shell’s startup script.
 
     - Windows
+
       1. When you install VS Code, install `code` as part of your prompt. See [Visual Studio Code on Windows](https://code.visualstudio.com/docs/setup/windows#_installation) in the Visual Studio Code docs for details.
       1. Open Git Bash. (Git Bash is installed as part of Salesforce CLI.)
       1. Check whether you have a .bashrc file. If you don’t, create it by running:  
@@ -17,6 +18,7 @@ Organizing your VS Code extensions by development task can help you avoid having
          `alias code-sfdx='code --extensions-dir ~/.sfdx-code'`
 
     - macOS or Linux
+
       1.  Open VS Code.
       1.  To open the command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Linux).
       1.  Run the command **Shell command: Install 'code' command in PATH**.
@@ -37,6 +39,7 @@ Organizing your VS Code extensions by development task can help you avoid having
     `source .zshrc`
 
 1.  From the terminal, run `code-sfdx` to launch an instance of VS Code that has only your extensions.
+
     > NOTE: The first time you launch `code-sfdx`, it has no extensions because it’s a fresh instance VS Code.
 
 1.  Select **View** > **Extensions**.

@@ -1,11 +1,19 @@
 <section class="site site-sidebar slds-order_2">
   <div class="site-banner">
     <div class="site-skip-content">
-      <a href="#site-main-content" class="slds-assistive-text slds-assistive-text_focus">Skip to Content</a>
+      <a
+        href="#site-main-content"
+        class="slds-assistive-text slds-assistive-text_focus"
+        >Skip to Content</a
+      >
     </div>
     <div class="site-logo">
-      <a href="/"><span class="site-logo__graphic"><span class="slds-assistive-text">Salesforce</span>
-        </span>Salesforce Extensions for Visual Studio Code</a></div>
+      <a href="/"
+        ><span class="site-logo__graphic"
+          ><span class="slds-assistive-text">Salesforce</span> </span
+        >Salesforce Extensions for Visual Studio Code</a
+      >
+    </div>
     <!-- <form class="slds-grid site-search slds-grid_vertical-align-center" novalidate="">
       <div role="search" class="site-searchbox__wrapper slds-col"><label for="search-landing-nav" class="slds-assistive-text">Search</label><span
           class="algolia-autocomplete" style="position: relative; display: inline-block; direction: ltr;"><input type="text"
@@ -16,27 +24,43 @@
           type="submit" class="slds-assistive-text" tabindex="-1">Submit your search query</button></div>
     </form> -->
   </div>
-  <div id="site-navigation" class="site site-navigation site-navigation--has-search">
-    <nav id="navigation" role="navigation" tabindex="-1" aria-label="Main navigation">
+  <div
+    id="site-navigation"
+    class="site site-navigation site-navigation--has-search"
+  >
+    <nav
+      id="navigation"
+      role="navigation"
+      tabindex="-1"
+      aria-label="Main navigation"
+    >
       <ul class="slds-list_vertical slds-has-block-links">
-        {% assign page_url = page.url|replace:'.html', '/' %}
-        {% for item in site.data.sidebar %}
-        {% if page.url contains item.baseUrl %}
+        {% assign page_url = page.url|replace:'.html', '/' %} {% for item in
+        site.data.sidebar %} {% if page.url contains item.baseUrl %}
         <li class="list__item slds-is-open slds-is-selected">
           <button class="slds-button_reset" aria-expanded="true">
             <span class="slds-media slds-media--center">
-              <span class="slds-media__body">{{ item.title }}</span><span class="slds-media__figure--reverse">
-                <svg class="slds-icon slds-icon__svg slds-icon-utility-right slds-icon--small" aria-hidden="true" style="transform: rotate(90deg);">
-                  <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#right"></use>
+              <span class="slds-media__body">{{ item.title }}</span
+              ><span class="slds-media__figure--reverse">
+                <svg
+                  class="slds-icon slds-icon__svg slds-icon-utility-right slds-icon--small"
+                  aria-hidden="true"
+                  style="transform: rotate(90deg);"
+                >
+                  <use
+                    xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#right"
+                  ></use>
                 </svg>
               </span>
             </span>
-            </a>
           </button>
           <ul class="slds-list_vertical slds-has-block-links slds-is-nested">
-            {% for entry in item.children %}
-            {% assign entry_url = entry.url|append:'/' %}
-            <li class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"><a href="{{ entry.url }}">
+            {% for entry in item.children %} {% assign entry_url =
+            entry.url|append:'/' %}
+            <li
+              class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
+            >
+              <a href="{{ entry.url }}">
                 <span class="slds-media slds-media--center">
                   <span class="slds-media__body">{{ entry.title }}</span>
                 </span>
@@ -45,9 +69,11 @@
             {% endfor %}
           </ul>
         </li>
-        {% else %}
-        {% if item.url %}
-        <li class="list__item {% if page_url == item.url %}slds-is-selected slds-is-active{% endif %}"><a href="{{ item.url }}">
+        {% else %} {% if item.url %}
+        <li
+          class="list__item {% if page_url == item.url %}slds-is-selected slds-is-active{% endif %}"
+        >
+          <a href="{{ item.url }}">
             <span class="slds-media slds-media--center">
               <span class="slds-media__body">{{ item.title }}</span>
             </span>
@@ -61,9 +87,7 @@
             </span>
           </a>
         </li>
-        {% endif %}
-        {% endif %}
-        {% endfor %}
+        {% endif %} {% endif %} {% endfor %}
       </ul>
     </nav>
   </div>

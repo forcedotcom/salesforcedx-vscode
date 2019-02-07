@@ -57,20 +57,22 @@ After you authorize an org, retrieve your source from it. After you make changes
 ![Retrieve source from org](/images/retrieve-source-from-org.png)
 
 To retrieve source from an org without source tracking (from an org that’s not a scratch org), you can:
+
 - Right-click a manifest, in the Visual Studio Code explorer or the editor, then select **SFDX: Retrieve Source in Manifest from Org**.
 - In the Visual Studio Code explorer, right-click a source file or a directory. Select **SFDX: Retrieve Source from Org**.
-> NOTE: The retrieval occurs only on metadata that’s nested (in the file tree) under the item you select. For example, if you right-click the `classes` folder, all Apex classes that **currently exist in that directory** are retrieved or deployed. Running a retrieve operation on a directory like `classes` doesn’t retrieve all Apex classes on the org; it retrieves updates only to classes that already exist in the folder. If you want to retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve your source using the manifest file. (Or, you can use a terminal to run `sfdx force:source:retrieve --metadata ApexClass:YourApexClass`.)
+  > NOTE: The retrieval occurs only on metadata that’s nested (in the file tree) under the item you select. For example, if you right-click the `classes` folder, all Apex classes that **currently exist in that directory** are retrieved or deployed. Running a retrieve operation on a directory like `classes` doesn’t retrieve all Apex classes on the org; it retrieves updates only to classes that already exist in the folder. If you want to retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve your source using the manifest file. (Or, you can use a terminal to run `sfdx force:source:retrieve --metadata ApexClass:YourApexClass`.)
 - In a source file that’s open in the editor, right-click anywhere in the editing pane. Select **SFDX: Retrieve This Source File from Org**.
 
 ## Deploy Source
 
-After you make code changes, deploy these changes to your org. 
+After you make code changes, deploy these changes to your org.
 
 > CAUTION: Deploying source to an org overwrites the metadata in your org with the local versions of the source files.
 
 ![Deploy source to org](/images/deploy-source-to-org.png)
 
 To deploy source to an org without source tracking (to an org that’s not a scratch org), you can:
+
 - Right-click a manifest, in the Visual Studio Code explorer or the editor, then select **SFDX: Deploy Source in Manifest to Org**.
 - In the Visual Studio Code explorer, right-click a source file or a directory. Select **SFDX: Deploy Source to Org**.
 - In a source file that’s open in the editor, right-click anywhere in the editing pane. Select **SFDX: Deploy This Source File to Org**.
@@ -79,5 +81,6 @@ To deploy source to an org without source tracking (to an org that’s not a scr
 ## Delete Source
 
 To delete source from your project and from your non-source-tracked org, you can:
+
 - Right-click a manifest, a source file, or a directory in the Visual Studio Code explorer. Select **SFDX: Delete from Project and Org**.
 - Right-click a file that’s open in the editor, and select **SFDX: Delete This from Project and Org**.

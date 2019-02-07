@@ -1,5 +1,5 @@
 ---
-title: 'FAQ: Telemetry'
+title: "FAQ: Telemetry"
 ---
 
 ## Why do you collect data?
