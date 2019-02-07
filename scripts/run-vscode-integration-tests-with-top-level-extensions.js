@@ -26,5 +26,5 @@ shell.exec(
     'out',
     'test',
     'vscode-integration'
-  )}' node ./node_modules/vscode/bin/test`
+  )}' node ./node_modules/vscode/bin/test ./node_modules/.bin/_mocha --exit`
 );
