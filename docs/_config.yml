@@ -34,6 +34,7 @@ theme: minima
 plugins:
   - jekyll-feed
   - jekyll-octicons
+  - jekyll-sitemap
 
 sass:
   style: compressed
