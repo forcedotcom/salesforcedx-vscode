@@ -16,7 +16,7 @@ Keeping your code consistent and nicely formatted is important in any programmin
 
 <https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode>
 
-> NOTE: Unfortunately, Prettier doesn’t support Apex (yet, maybe [somebody](https://github.com/nchursin/prettier-apex) will build it ;) ).
+> NOTE: Unfortunately, Prettier doesn’t support Apex (a member of the community is [working on it](https://github.com/dangmai/prettier-plugin-apex) though).
 
 ## XML
 
