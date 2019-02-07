@@ -1147,7 +1147,7 @@ html {
 
 @media (min-width: 64em) {
   .site.site-masthead {
-    height: 7.25rem;
+    min-height: 7.25rem;
   }
 
   .site.site-masthead h1 {
