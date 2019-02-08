@@ -18,9 +18,11 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.31.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
     "@salesforce/salesforcedx-apex-replay-debugger": "44.18.0",
     "async-lock": "1.0.0",
@@ -39,7 +41,7 @@
     "cross-env": "^5.0.5",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "vscode": "1.1.17"
+    "vscode": "^1.1.29"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -53,14 +55,11 @@
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
-    "test:vscode-integration":
-      "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration":
-      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
     "onDebugResolve:apex",
@@ -77,8 +76,13 @@
     "languages": [
       {
         "id": "apexlog",
-        "aliases": ["ApexLog", "DebugLog"],
-        "extensions": [".log"],
+        "aliases": [
+          "ApexLog",
+          "DebugLog"
+        ],
+        "extensions": [
+          ".log"
+        ],
         "firstLine": "^\\d{2}.*APEX_CODE,FINEST;.*VISUALFORCE,(FINER|FINEST);.*"
       }
     ],
@@ -124,8 +128,7 @@
       "explorer/context": [
         {
           "command": "sfdx.launch.replay.debugger.logfile",
-          "when":
-            "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
+          "when": "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
         }
       ]
     },
@@ -165,10 +168,11 @@
       {
         "type": "apex-replay",
         "label": "Apex Replay Debugger",
-        "program":
-          "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "program": "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
         "runtime": "node",
-        "languages": ["apex"],
+        "languages": [
+          "apex"
+        ],
         "variables": {
           "AskForLogFileName": "extension.replay-debugger.getLogFileName"
         },
@@ -189,7 +193,9 @@
         "configurationAttributes": {
           "launch": {
             "properties": {
-              "required": ["logFile"],
+              "required": [
+                "logFile"
+              ],
               "logFile": {
                 "type": "string",
                 "description": "%logfile_text%",
@@ -201,7 +207,10 @@
                 "default": true
               },
               "trace": {
-                "type": ["boolean", "string"],
+                "type": [
+                  "boolean",
+                  "string"
+                ],
                 "description": "%trace_text%",
                 "default": false
               }

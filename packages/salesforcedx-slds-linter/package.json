@@ -5,9 +5,11 @@
   "version": "44.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.31.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -28,7 +30,7 @@
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
     "typescript": "3.1.6",
-    "vscode": "1.1.17"
+    "vscode": "^1.1.29"
   },
   "scripts": {
     "compile": "tsc -p ./",
@@ -37,13 +39,14 @@
     "clean": "shx rm -rf node_modules",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
-    "test:vscode-integration":
-      "node ../../scripts/run-vscode-integration-tests",
-    "test:vscode-insiders-integration":
-      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests",
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "44.18.0",

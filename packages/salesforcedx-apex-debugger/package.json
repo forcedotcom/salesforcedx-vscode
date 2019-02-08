@@ -6,9 +6,11 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.31.0"
   },
-  "categories": ["Debuggers"],
+  "categories": [
+    "Debuggers"
+  ],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "44.18.0",
     "async-lock": "1.0.0",
@@ -33,22 +35,22 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.6",
     "typescript": "3.1.6",
-    "vscode": "1.1.17",
+    "vscode": "^1.1.29",
     "vscode-debugadapter-testsupport": "1.28.0"
   },
   "scripts": {
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
-    "clean":
-      "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
-    "test:integration":
-      "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json",
+    "test:integration": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaConfig.json"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   }
 }

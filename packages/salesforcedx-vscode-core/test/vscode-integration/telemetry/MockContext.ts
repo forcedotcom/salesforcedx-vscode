@@ -30,10 +30,12 @@ export class MockContext implements ExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
   }
+  public extensionPath: string = 'myExtensionPath';
+  public globalState: Memento;
+  public globalStoragePath: string = 'myGlobalStoragePath';
+  public logPath: string = 'myLogPath';
   public subscriptions: Array<{ dispose(): any }> = [];
   public workspaceState!: Memento;
-  public globalState: Memento;
-  public extensionPath: string = 'myExtensionPath';
   public asAbsolutePath(relativePath: string): string {
     return path.join('../../../package.json'); // this should point to the src/package.json
   }
