@@ -14,23 +14,28 @@ import * as path from 'path';
 import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
   public apply(item: typeof workspace): PredicateResponse {
-    if (!workspace.rootPath) {
-      return PredicateResponse.of(
-        false,
-        nls.localize('predicates_no_folder_opened_text')
-      );
-    } else if (
-      !fs.existsSync(path.join(workspace.rootPath, SFDX_PROJECT_FILE))
-    ) {
+    if (hasRootWorkspace(item)) {
+      const uri = path.join(item.workspaceFolders![0].uri.path, SFDX_PROJECT_FILE);
+      const exists = fs.existsSync(uri);
+      if (
+        !exists
+      ) {
+        return PredicateResponse.of(
+          false,
+          nls.localize('predicates_no_sfdx_project_found_text')
+        );
+      } else {
+        return PredicateResponse.true();
+      }
+    } else {
       return PredicateResponse.of(
         false,
         nls.localize('predicates_no_sfdx_project_found_text')
       );
-    } else {
-      return PredicateResponse.true();
     }
   }
 }

@@ -30,6 +30,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 const LIGHTNING_INT_EXTENSION = '.intf';
 
@@ -51,19 +52,19 @@ class ForceLightningInterfaceCreateExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
       if (
         data !== undefined &&
         data.toString() === '0' &&
-        vscode.workspace.rootPath
+        hasRootWorkspace()
       ) {
         vscode.workspace
           .openTextDocument(
             path.join(
-              vscode.workspace.rootPath,
+              getRootWorkspacePath(),
               response.data.outputdir,
               // fileName is also used to create a subdirectory for the interface in the aura directory
               response.data.fileName,

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -82,6 +82,7 @@ import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
+import { getRootWorkspacePath, hasRootWorkspace } from './util';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -391,7 +392,7 @@ function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
     vscode.workspace.workspaceFolders.length > 0
   ) {
     const configPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      getRootWorkspacePath(),
       '.sfdx',
       'sfdx-config.json'
     );
@@ -414,9 +415,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Context
   let sfdxProjectOpened = false;
-  if (vscode.workspace.rootPath) {
-    const files = await vscode.workspace.findFiles('**/sfdx-project.json');
-    sfdxProjectOpened = files && files.length > 0;
+  if (true) { // @todo Theia hasRootWorkspace() === false due to theia's eager plugin activation, the workspace is not yet populated.
+    const findFiles1 = await vscode.workspace.findFiles('sfdx-project.json'); // @todo Theia - this one works in theia
+    const findFiles2 = await vscode.workspace.findFiles('**/sfdx-project.json'); // @todo Theia - this one works in vscode
+    const files = [...findFiles1, ...findFiles2];
+    sfdxProjectOpened = files.length > 0;
   }
 
   let replayDebuggerExtensionInstalled = false;
@@ -435,10 +438,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Set environment variable to add logging for VSCode API calls
   process.env[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
-  const config = vscode.workspace.getConfiguration();
+  const config = vscode.workspace.getConfiguration(); // @todo Theia this returns an empty config, also likely due to eager activation.
 
   TERMINAL_INTEGRATED_ENVS.forEach(env => {
-    const section: { [k: string]: any } = config.get(env)!;
+    const section: { [k: string]: any } = config.get(env) || {}; // @todo Theia - protect against environment issues, see .theia/settings.json, eager activation.
     section[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
     config.update(env, section, ConfigurationTarget.Workspace);
   });
@@ -498,13 +501,13 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(treeDataProvider);
 
   // Scratch Org Decorator
-  if (vscode.workspace.rootPath) {
+  if (hasRootWorkspace()) {
     decorators.showOrg();
     decorators.monitorOrgConfigChanges();
   }
 
   // Demo mode Decorator
-  if (vscode.workspace.rootPath && isDemoMode()) {
+  if (hasRootWorkspace() && isDemoMode()) {
     decorators.showDemoMode();
   }
 

@@ -28,7 +28,7 @@ import {
   ProgressNotification
 } from '../notifications/index';
 import { taskViewService } from '../statuses/index';
-import { SfdxProjectJsonParser } from '../util';
+import { getRootWorkspacePath, SfdxProjectJsonParser } from '../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -64,7 +64,7 @@ export abstract class ForceAuthDemoModeExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     notificationService.reportExecutionError(

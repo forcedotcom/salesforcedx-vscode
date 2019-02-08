@@ -30,6 +30,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 const APEX_TRIGGER_EXTENSION = '.trigger';
 
@@ -51,19 +52,19 @@ export class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
       if (
         data !== undefined &&
         data.toString() === '0' &&
-        vscode.workspace.rootPath
+        hasRootWorkspace()
       ) {
         vscode.workspace
           .openTextDocument(
             path.join(
-              vscode.workspace.rootPath,
+              getRootWorkspacePath(),
               response.data.outputdir,
               response.data.fileName + APEX_TRIGGER_EXTENSION
             )

@@ -17,6 +17,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getRootWorkspacePath } from '../util';
 import {
   CompositeParametersGatherer,
   FileSelection,
@@ -33,7 +34,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 > {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
-      vscode.workspace.rootPath!, // this is safe because of workspaceChecker
+      getRootWorkspacePath(), // this is safe because of workspaceChecker
       data.file
     );
     return new SfdxCommandBuilder()

@@ -21,6 +21,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { getRootWorkspacePath } from '../util';
 
 class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
@@ -47,7 +48,7 @@ class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
 
-    const projectPath: string = vscode.workspace.rootPath as string;
+    const projectPath: string = getRootWorkspacePath();
     const gen: FauxClassGenerator = new FauxClassGenerator(
       execution.cmdEmitter,
       cancellationToken

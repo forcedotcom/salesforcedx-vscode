@@ -26,6 +26,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { getRootWorkspacePath } from '../util';
 
 interface QueryResponse {
   status: number;
@@ -91,7 +92,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     const resultPromise = new CommandOutput().getCmdResult(execution);

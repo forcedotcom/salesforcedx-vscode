@@ -27,6 +27,7 @@ import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath } from '../util';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -230,7 +231,7 @@ export abstract class SelectDirPath
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ outputdir: string }>
   > {
-    const rootPath = vscode.workspace.rootPath;
+    const rootPath = getRootWorkspacePath();
     let outputdir;
     if (rootPath) {
       if (
@@ -373,7 +374,7 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
