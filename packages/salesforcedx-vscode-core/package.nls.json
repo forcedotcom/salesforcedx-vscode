@@ -83,5 +83,6 @@
     "SFDX: Deploy Source in Manifest to Org",
   "force_source_delete_text": "SFDX: Delete from Project and Org",
   "force_source_delete_this_source_text":
-    "SFDX: Delete This from Project and Org"
+    "SFDX: Delete This from Project and Org",
+  "force_config_set_org_text": "SFDX: Set a Default Org"
 }

@@ -21,7 +21,10 @@ import {
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxProjectJsonParser } from '../../../src/util';
+import {
+  SfdxPackageDirectories,
+  SfdxProjectPath
+} from '../../../src/sfdxProject';
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
   it('Should build the source retrieve command', () => {
@@ -42,7 +45,7 @@ describe('SourcePathChecker', () => {
   let appendLineSpy: SinonStub;
   let showErrorMessageSpy: SinonStub;
   beforeEach(() => {
-    workspacePath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
+    workspacePath = SfdxProjectPath.getPath();
     appendLineSpy = stub(channelService, 'appendLine');
     showErrorMessageSpy = stub(notificationService, 'showErrorMessage');
   });
@@ -52,67 +55,30 @@ describe('SourcePathChecker', () => {
     showErrorMessageSpy.restore();
   });
 
-  it('Should continue when source path is a package directory', async () => {
-    const getProjectDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
-    ).returns(['package1', 'package2']);
+  it('Should continue when source path is in a package directory', async () => {
+    const isInPackageDirectoryStub = stub(
+      SfdxPackageDirectories,
+      'isInPackageDirectory'
+    ).returns(true);
     const pathChecker = new SourcePathChecker();
-    const sourcePath = path.join(workspacePath, 'package1');
+    const sourcePath = path.join(workspacePath, 'package');
     const continueResponse = (await pathChecker.check({
       type: 'CONTINUE',
       data: sourcePath
     })) as ContinueResponse<string>;
 
+    expect(isInPackageDirectoryStub.getCall(0).args[0]).to.equal(sourcePath);
     expect(continueResponse.type).to.equal('CONTINUE');
     expect(continueResponse.data).to.equal(sourcePath);
 
-    getProjectDirectoriesStub.restore();
-  });
-
-  it('Should continue when source path is inside one of a few package directories', async () => {
-    const packagePath = 'package1';
-    const getProjectDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
-    ).returns([packagePath, 'package2']);
-    const pathChecker = new SourcePathChecker();
-    const sourcePath = path.join(workspacePath, packagePath, 'source', 'path');
-    const continueResponse = (await pathChecker.check({
-      type: 'CONTINUE',
-      data: sourcePath
-    })) as ContinueResponse<string>;
-
-    expect(continueResponse.type).to.equal('CONTINUE');
-    expect(continueResponse.data).to.equal(sourcePath);
-
-    getProjectDirectoriesStub.restore();
-  });
-
-  it('Should continue when source path is inside of the only package directory', async () => {
-    const packagePath = 'package1';
-    const getProjectDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
-    ).returns([packagePath]);
-    const pathChecker = new SourcePathChecker();
-    const sourcePath = path.join(workspacePath, packagePath, 'source', 'path');
-    const continueResponse = (await pathChecker.check({
-      type: 'CONTINUE',
-      data: sourcePath
-    })) as ContinueResponse<string>;
-
-    expect(continueResponse.type).to.equal('CONTINUE');
-    expect(continueResponse.data).to.equal(sourcePath);
-
-    getProjectDirectoriesStub.restore();
+    isInPackageDirectoryStub.restore();
   });
 
   it('Should notify user and cancel when source path is not inside of a package directory', async () => {
-    const getProjectDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
-    ).returns(['package1', 'package2']);
+    const isInPackageDirectoryStub = stub(
+      SfdxPackageDirectories,
+      'isInPackageDirectory'
+    ).returns(false);
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
@@ -125,13 +91,13 @@ describe('SourcePathChecker', () => {
     expect(appendLineSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(cancelResponse.type).to.equal('CANCEL');
-    getProjectDirectoriesStub.restore();
+    isInPackageDirectoryStub.restore();
   });
 
   it('Should cancel and notify user if an error occurs when fetching the package directories', async () => {
-    const getProjectDirectoriesStub = stub(
-      SfdxProjectJsonParser.prototype,
-      'getPackageDirectoryPaths'
+    const isInPackageDirectoryStub = stub(
+      SfdxPackageDirectories,
+      'isInPackageDirectory'
     ).throws(new Error());
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
@@ -145,6 +111,6 @@ describe('SourcePathChecker', () => {
     expect(appendLineSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(cancelResponse.type).to.equal('CANCEL');
-    getProjectDirectoriesStub.restore();
+    isInPackageDirectoryStub.restore();
   });
 });

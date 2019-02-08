@@ -15,13 +15,23 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.17.0",
+  "version": "44.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
   },
-  "categories": ["Languages"],
+  "categories": ["Programming Languages"],
+  "dependencies": {
+    "@salesforce/apex-tmlanguage": "1.1.0",
+    "@salesforce/salesforcedx-utils-vscode": "44.18.0",
+    "expand-home-dir": "0.0.3",
+    "find-java-home": "0.2.0",
+    "path-exists": "3.0.0",
+    "shelljs": "^0.8.1",
+    "vscode-extension-telemetry": "0.0.17",
+    "vscode-languageclient": "5.1.1"
+  },
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
@@ -184,13 +194,25 @@
       {
         "id": "apex",
         "aliases": ["Apex", "apex"],
-        "extensions": [".cls", ".trigger", ".apex"],
+        "extensions": [".cls", ".trigger"],
+        "configuration": "./syntaxes/apex.configuration.json"
+      },
+      {
+        "id": "apex-anon",
+        "aliases": ["Anonymous Apex"],
+        "extensions": [".apex"],
         "configuration": "./syntaxes/apex.configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "apex",
+        "scopeName": "source.apex",
+        "path":
+          "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
+      },
+      {
+        "language": "apex-anon",
         "scopeName": "source.apex",
         "path":
           "./node_modules/@salesforce/apex-tmlanguage/grammars/apex.tmLanguage"
@@ -202,15 +224,5 @@
         "path": "./snippets/apex.json"
       }
     ]
-  },
-  "dependencies": {
-    "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-utils-vscode": "44.17.0",
-    "expand-home-dir": "0.0.3",
-    "find-java-home": "0.2.0",
-    "path-exists": "3.0.0",
-    "shelljs": "^0.8.1",
-    "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "5.1.1"
   }
 }

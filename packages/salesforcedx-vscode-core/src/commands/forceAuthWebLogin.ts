@@ -27,8 +27,8 @@ import {
   notificationService,
   ProgressNotification
 } from '../notifications/index';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { taskViewService } from '../statuses/index';
-import { SfdxProjectJsonParser } from '../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -60,6 +60,7 @@ export abstract class ForceAuthDemoModeExecutor<
   T
 > extends SfdxCommandletExecutor<T> {
   public async execute(response: ContinueResponse<T>): Promise<void> {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -67,11 +68,15 @@ export abstract class ForceAuthDemoModeExecutor<
       cwd: workspace.rootPath
     }).execute(cancellationToken);
 
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+
     notificationService.reportExecutionError(
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    this.logMetric(execution.command.logName);
+
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
@@ -135,12 +140,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   };
 
   public async getProjectLoginUrl(): Promise<string | undefined> {
-    const projectConfig = new SfdxProjectJsonParser();
-    const projectPath = vscode.workspace!.workspaceFolders![0].uri.fsPath;
-    return (await projectConfig.getValue(
-      projectPath,
-      'sfdcLoginUrl'
-    )) as string;
+    return (await SfdxProjectConfig.getValue('sfdcLoginUrl')) as string;
   }
 
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
