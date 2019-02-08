@@ -4,32 +4,32 @@
 
 #### salesforcedx-vscode
 
-- Adding LWC extension to Salesforce Extension Pack ([PR #1015](https://github.com/forcedotcom/salesforcedx-vscode/pull/1015))
+- Include LWC extension in Salesforce Extension Pack ([PR #1015](https://github.com/forcedotcom/salesforcedx-vscode/pull/1015))
 
 #### salesforcedx-vscode-apex
 
-- Apex Rename Refactor generally available ([PR #984](https://github.com/forcedotcom/salesforcedx-vscode/pull/984), [PR #980](https://github.com/forcedotcom/salesforcedx-vscode/pull/980))
+- Apex Refactor: Rename is generally available ([PR #984](https://github.com/forcedotcom/salesforcedx-vscode/pull/984), [PR #980](https://github.com/forcedotcom/salesforcedx-vscode/pull/980))
 
 #### salesforcedx-vscode-core
 
-- Org Picker UI ([PR #890](https://github.com/forcedotcom/salesforcedx-vscode/pull/890), [Issue #944](https://github.com/forcedotcom/salesforcedx-vscode/issues/944))
-- Automatically refresh SObject definitions on extension activation ([PR #986](https://github.com/forcedotcom/salesforcedx-vscode/pull/986))
-- Include execution time on command execution telemetry ([PR #989](https://github.com/forcedotcom/salesforcedx-vscode/pull/989))
-- Syntax highlighting for Wave and IoT files ([PR #1003](https://github.com/forcedotcom/salesforcedx-vscode/pull/1003), [Issue #1002](https://github.com/forcedotcom/salesforcedx-vscode/issues/1002))
+- Change your default org from the VS Code footer ([PR #890](https://github.com/forcedotcom/salesforcedx-vscode/pull/890), [Issue #944](https://github.com/forcedotcom/salesforcedx-vscode/issues/944))
+- Automatically refresh sObject definitions on extension activation ([PR #986](https://github.com/forcedotcom/salesforcedx-vscode/pull/986))
+- Include execution time in command execution telemetry ([PR #989](https://github.com/forcedotcom/salesforcedx-vscode/pull/989))
+- Add syntax highlighting for Einstein Analytics and IoT files ([PR #1003](https://github.com/forcedotcom/salesforcedx-vscode/pull/1003), [Issue #1002](https://github.com/forcedotcom/salesforcedx-vscode/issues/1002))
 
 ### Fixed
 
 #### salesforcedx-vscode-apex
 
-- Update test run icon in Apex Tests sidebar to be consistent with vscode official icons ([PR #988](https://github.com/forcedotcom/salesforcedx-vscode/pull/988))
-- Prevent Apex LSP from running in Anonymous Apex files (`.apex`) ([PR #1001](https://github.com/forcedotcom/salesforcedx-vscode/pull/1001), [Issue #929](https://github.com/forcedotcom/salesforcedx-vscode/issues/929))
-- Fix Apex Rename and codelens exceptions and update rename error messages ([PR #1014](https://github.com/forcedotcom/salesforcedx-vscode/pull/1014))
+- Update test run icon in Apex Tests sidebar to be consistent with official VS Code icons ([PR #988](https://github.com/forcedotcom/salesforcedx-vscode/pull/988))
+- Prevent Apex Language Server from running in anonymous Apex (`.apex`) files ([PR #1001](https://github.com/forcedotcom/salesforcedx-vscode/pull/1001), [Issue #929](https://github.com/forcedotcom/salesforcedx-vscode/issues/929))
+- Fix Apex rename and codelens exceptions and update rename error messages ([PR #1014](https://github.com/forcedotcom/salesforcedx-vscode/pull/1014))
 
 #### salesforcedx-vscode-core
 
-- Speed up activation time ([PR #889](https://github.com/forcedotcom/salesforcedx-vscode/pull/889))
-- Fix Deploy on Save not respecting new packageDirectories added to `sfdx-project.json` ([PR #987](https://github.com/forcedotcom/salesforcedx-vscode/pull/987))
-- Keep errors in Problem View until next deploy ([PR #1016](https://github.com/forcedotcom/salesforcedx-vscode/pull/1016))
+- Speed up extension activation time ([PR #889](https://github.com/forcedotcom/salesforcedx-vscode/pull/889))
+- Make push-or-deploy-on-save feature respect new `packageDirectories` values added to `sfdx-project.json` ([PR #987](https://github.com/forcedotcom/salesforcedx-vscode/pull/987))
+- Keep errors in Problems view until next deployment ([PR #1016](https://github.com/forcedotcom/salesforcedx-vscode/pull/1016))
 
 ## 44.18.0 - January 31, 2019
 
