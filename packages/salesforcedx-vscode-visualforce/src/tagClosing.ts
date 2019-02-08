@@ -1,8 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
 import {
   Disposable,
@@ -30,7 +29,7 @@ export function activateTagClosing(
   updateEnabledState();
   window.onDidChangeActiveTextEditor(updateEnabledState, null, disposables);
 
-  let timeout: NodeJS.Timer | undefined = void 0;
+  let timeout: NodeJS.Timer | undefined;
 
   function updateEnabledState() {
     isEnabled = false;
@@ -43,7 +42,9 @@ export function activateTagClosing(
       return;
     }
     if (
-      !workspace.getConfiguration(void 0, document.uri).get<boolean>(configName)
+      !workspace
+        .getConfiguration(undefined, document.uri)
+        .get<boolean>(configName)
     ) {
       return;
     }
@@ -82,28 +83,31 @@ export function activateTagClosing(
       );
       tagProvider(document, position).then(text => {
         if (text && isEnabled) {
-          const activeEditor = window.activeTextEditor!;
-          const currentDocument = activeEditor && activeEditor.document;
-          if (
-            document === currentDocument &&
-            currentDocument.version === version
-          ) {
-            const selections = activeEditor.selections;
+          const activeEditor = window.activeTextEditor;
+          if (activeEditor) {
+            // tslint:disable-next-line:no-shadowed-variable
+            const activeDocument = activeEditor.document;
             if (
-              selections.length &&
-              selections.some(s => s.active.isEqual(position))
+              document === activeDocument &&
+              activeDocument.version === version
             ) {
-              activeEditor.insertSnippet(
-                new SnippetString(text),
-                selections.map(s => s.active)
-              );
-            } else {
-              activeEditor.insertSnippet(new SnippetString(text), position);
+              const selections = activeEditor.selections;
+              if (
+                selections.length &&
+                selections.some(s => s.active.isEqual(position))
+              ) {
+                activeEditor.insertSnippet(
+                  new SnippetString(text),
+                  selections.map(s => s.active)
+                );
+              } else {
+                activeEditor.insertSnippet(new SnippetString(text), position);
+              }
             }
           }
         }
       });
-      timeout = void 0;
+      timeout = undefined;
     }, 100);
   }
   return Disposable.from(...disposables);

@@ -1,26 +1,36 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
-import { getCSSLanguageService, Stylesheet } from 'vscode-css-languageservice';
-import { Position, TextDocument } from 'vscode-languageserver-types';
+import {
+  FoldingRange,
+  getCSSLanguageService,
+  Stylesheet
+} from 'vscode-css-languageservice';
+import { Color } from 'vscode-languageserver';
+import {
+  CompletionList,
+  Position,
+  Range,
+  TextDocument
+} from 'vscode-languageserver-types';
 import {
   getLanguageModelCache,
   LanguageModelCache
 } from '../languageModelCache';
 import { CSS_STYLE_RULE, HTMLDocumentRegions } from './embeddedSupport';
-import { ColorInformation, LanguageMode, Settings } from './languageModes';
+import { LanguageMode, Workspace } from './languageModes';
 
 export function getCSSMode(
-  documentRegions: LanguageModelCache<HTMLDocumentRegions>
+  documentRegions: LanguageModelCache<HTMLDocumentRegions>,
+  workspace: Workspace
 ): LanguageMode {
   const cssLanguageService = getCSSLanguageService();
-  const embeddedCSSDocuments = getLanguageModelCache<
-    TextDocument
-  >(10, 60, document =>
-    documentRegions.get(document).getEmbeddedDocument('css')
+  const embeddedCSSDocuments = getLanguageModelCache<TextDocument>(
+    10,
+    60,
+    document => documentRegions.get(document).getEmbeddedDocument('css')
   );
   const cssStylesheets = getLanguageModelCache<Stylesheet>(10, 60, document =>
     cssLanguageService.parseStylesheet(document)
@@ -30,10 +40,7 @@ export function getCSSMode(
     getId() {
       return 'css';
     },
-    configure(options: any) {
-      cssLanguageService.configure(options && options.css);
-    },
-    doValidation(document: TextDocument, settings: Settings) {
+    doValidation(document: TextDocument, settings = workspace.settings) {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.doValidation(
         embedded,
@@ -41,12 +48,16 @@ export function getCSSMode(
         settings && settings.css
       );
     },
-    doComplete(document: TextDocument, position: Position) {
+    doComplete(
+      document: TextDocument,
+      position: Position,
+      _settings = workspace.settings
+    ) {
       const embedded = embeddedCSSDocuments.get(document);
-      return cssLanguageService.doComplete(
-        embedded,
-        position,
-        cssStylesheets.get(embedded)
+      const stylesheet = cssStylesheets.get(embedded);
+      return (
+        cssLanguageService.doComplete(embedded, position, stylesheet) ||
+        CompletionList.create()
       );
     },
     doHover(document: TextDocument, position: Position) {
@@ -94,13 +105,18 @@ export function getCSSMode(
         cssStylesheets.get(embedded)
       );
     },
-    getColorPresentations(document: TextDocument, colorInfo: ColorInformation) {
+    getColorPresentations(document: TextDocument, color: Color, range: Range) {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.getColorPresentations(
         embedded,
         cssStylesheets.get(embedded),
-        colorInfo
+        color,
+        range
       );
+    },
+    getFoldingRanges(document: TextDocument): FoldingRange[] {
+      const embedded = embeddedCSSDocuments.get(document);
+      return cssLanguageService.getFoldingRanges(embedded, {});
     },
     onDocumentRemoved(document: TextDocument) {
       embeddedCSSDocuments.onDocumentRemoved(document);

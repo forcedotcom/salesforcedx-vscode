@@ -1,8 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
 import {
   FormattingOptions,
@@ -12,16 +11,15 @@ import {
   TextEdit
 } from 'vscode-languageserver-types';
 import { pushAll } from '../utils/arrays';
-import { applyEdits } from '../utils/edits';
 import { isEOL } from '../utils/strings';
-import { LanguageModes, Settings } from './languageModes';
+import { LanguageModeRange, LanguageModes, Settings } from './languageModes';
 
 export function format(
   languageModes: LanguageModes,
   document: TextDocument,
   formatRange: Range,
   formattingOptions: FormattingOptions,
-  settings: Settings,
+  settings: Settings | undefined,
   enabledModes: { [mode: string]: boolean }
 ) {
   const result: TextEdit[] = [];
@@ -58,9 +56,12 @@ export function format(
   const allRanges = languageModes.getModesInRange(document, formatRange);
   let i = 0;
   let startPos = formatRange.start;
-  while (i < allRanges.length && allRanges[i].mode.getId() !== 'html') {
+  const isHTML = (range: LanguageModeRange) =>
+    range.mode && range.mode.getId() === 'html';
+
+  while (i < allRanges.length && !isHTML(allRanges[i])) {
     const range = allRanges[i];
-    if (!range.attributeValue && range.mode.format) {
+    if (!range.attributeValue && range.mode && range.mode.format) {
       const edits = range.mode.format(
         document,
         Range.create(startPos, range.end),
@@ -79,14 +80,14 @@ export function format(
   formatRange = Range.create(startPos, formatRange.end);
 
   // perform a html format and apply changes to a new document
-  const htmlMode = languageModes.getMode('html');
-  const htmlEdits = htmlMode.format(
+  const htmlMode = languageModes.getMode('html')!;
+  const htmlEdits = htmlMode.format!(
     document,
     formatRange,
     formattingOptions,
     settings
   );
-  const htmlFormattedContent = applyEdits(document, htmlEdits);
+  const htmlFormattedContent = TextDocument.applyEdits(document, htmlEdits);
   const newDocument = TextDocument.create(
     document.uri + '.tmp',
     document.languageId,
@@ -131,7 +132,7 @@ export function format(
     }
 
     // apply all embedded format edits and create a single edit for all changes
-    const resultContent = applyEdits(newDocument, embeddedEdits);
+    const resultContent = TextDocument.applyEdits(newDocument, embeddedEdits);
     const resultReplaceText = resultContent.substring(
       document.offsetAt(formatRange.start),
       resultContent.length - afterFormatRangeLength

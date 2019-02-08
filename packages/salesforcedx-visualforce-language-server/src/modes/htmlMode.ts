@@ -1,8 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
 import {
   DocumentContext,
@@ -10,15 +9,22 @@ import {
   HTMLDocument,
   HTMLFormatConfiguration,
   LanguageService as HTMLLanguageService
-} from '@salesforce/salesforcedx-visualforce-markup-language-server';
-import { Position, Range, TextDocument } from 'vscode-languageserver-types';
+} from 'vscode-html-languageservice';
+import {
+  CompletionItem,
+  FoldingRange,
+  Position,
+  Range,
+  TextDocument
+} from 'vscode-languageserver-types';
 import { getLanguageModelCache } from '../languageModelCache';
-import { LanguageMode, Settings } from './languageModes';
+import { LanguageMode, Workspace } from './languageModes';
+import { getPathCompletionParticipant } from './pathCompletion';
 
 export function getHTMLMode(
-  htmlLanguageService: HTMLLanguageService
+  htmlLanguageService: HTMLLanguageService,
+  workspace: Workspace
 ): LanguageMode {
-  let globalSettings: Settings = {};
   const htmlDocuments = getLanguageModelCache<HTMLDocument>(10, 60, document =>
     htmlLanguageService.parseHTMLDocument(document)
   );
@@ -26,29 +32,39 @@ export function getHTMLMode(
     getId() {
       return 'html';
     },
-    configure(options: any) {
-      globalSettings = options;
+    doSelection(document: TextDocument, position: Position): Range[] {
+      return htmlLanguageService.getSelectionRanges(document, position);
     },
     doComplete(
       document: TextDocument,
       position: Position,
-      settings: Settings = globalSettings
+      settings = workspace.settings
     ) {
-      const options =
-        settings && settings.visualforce && settings.visualforce.suggest;
+      const options = settings && settings.html && settings.html.suggest;
       const doAutoComplete =
-        settings &&
-        settings.visualforce &&
-        settings.visualforce.autoClosingTags;
+        settings && settings.html && settings.html.autoClosingTags;
       if (doAutoComplete) {
         options.hideAutoCompleteProposals = true;
       }
-      return htmlLanguageService.doComplete(
+      const pathCompletionProposals: CompletionItem[] = [];
+      const participants = [
+        getPathCompletionParticipant(
+          document,
+          workspace.folders,
+          pathCompletionProposals
+        )
+      ];
+      htmlLanguageService.setCompletionParticipants(participants);
+
+      const htmlDocument = htmlDocuments.get(document);
+      const completionList = htmlLanguageService.doComplete(
         document,
         position,
-        htmlDocuments.get(document),
+        htmlDocument,
         options
       );
+      completionList.items.push(...pathCompletionProposals);
+      return completionList;
     },
     doHover(document: TextDocument, position: Position) {
       return htmlLanguageService.doHover(
@@ -80,10 +96,10 @@ export function getHTMLMode(
       document: TextDocument,
       range: Range,
       formatParams: FormattingOptions,
-      settings: Settings = globalSettings
+      settings = workspace.settings
     ) {
       let formatSettings: HTMLFormatConfiguration =
-        settings && settings.visualforce && settings.visualforce.format;
+        settings && settings.html && settings.html.format;
       if (formatSettings) {
         formatSettings = merge(formatSettings, {});
       } else {
@@ -97,6 +113,9 @@ export function getHTMLMode(
       }
       formatSettings = merge(formatParams, formatSettings);
       return htmlLanguageService.format(document, range, formatSettings);
+    },
+    getFoldingRanges(document: TextDocument): FoldingRange[] {
+      return htmlLanguageService.getFoldingRanges(document);
     },
     doAutoClose(document: TextDocument, position: Position) {
       const offset = document.offsetAt(position);

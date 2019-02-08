@@ -1,8 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
 import { TextDocument } from 'vscode-languageserver';
 
@@ -27,7 +26,7 @@ export function getLanguageModelCache<T>(
   } = {};
   let nModels = 0;
 
-  let cleanupInterval = void 0;
+  let cleanupInterval: NodeJS.Timer | undefined;
   if (cleanupIntervalTimeInSec > 0) {
     cleanupInterval = setInterval(() => {
       const cutoffTime = Date.now() - cleanupIntervalTimeInSec * 1000;
@@ -71,10 +70,11 @@ export function getLanguageModelCache<T>(
         let oldestUri = null;
         // tslint:disable-next-line:forin
         for (const uri in languageModels) {
-          const localLanguageModelInfo = languageModels[uri];
-          if (localLanguageModelInfo.cTime < oldestTime) {
+          // tslint:disable-next-line:no-shadowed-variable
+          const languageModelInfo = languageModels[uri];
+          if (languageModelInfo.cTime < oldestTime) {
             oldestUri = uri;
-            oldestTime = localLanguageModelInfo.cTime;
+            oldestTime = languageModelInfo.cTime;
           }
         }
         if (oldestUri) {
@@ -94,7 +94,7 @@ export function getLanguageModelCache<T>(
     dispose() {
       if (typeof cleanupInterval !== 'undefined') {
         clearInterval(cleanupInterval);
-        cleanupInterval = void 0;
+        cleanupInterval = undefined;
         languageModels = {};
         nModels = 0;
       }

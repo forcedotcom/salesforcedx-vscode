@@ -1,8 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
 
 import {
   CompletionItem,
@@ -13,6 +12,8 @@ import {
   DiagnosticSeverity,
   DocumentHighlight,
   DocumentHighlightKind,
+  FoldingRange,
+  FoldingRangeKind,
   FormattingOptions,
   Hover,
   Location,
@@ -40,12 +41,19 @@ import {
 import { HTMLDocumentRegions } from './embeddedSupport';
 import { LanguageMode, Settings } from './languageModes';
 
+import { join } from 'path';
 import * as ts from 'typescript';
 
 const FILE_NAME = 'vscode://javascript/1'; // the same 'file' is used for all contents
 const JS_WORD_REGEX = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
-export function getJavascriptMode(
+// tslint:disable-next-line:variable-name
+let jquery_d_ts = join(__dirname, '../lib/jquery.d.ts'); // when packaged
+if (!ts.sys.fileExists(jquery_d_ts)) {
+  jquery_d_ts = join(__dirname, '../../lib/jquery.d.ts'); // from source
+}
+
+export function getJavaScriptMode(
   documentRegions: LanguageModelCache<HTMLDocumentRegions>
 ): LanguageMode {
   const jsDocuments = getLanguageModelCache<TextDocument>(10, 60, document =>
@@ -60,7 +68,7 @@ export function getJavascriptMode(
     moduleResolution: ts.ModuleResolutionKind.Classic
   };
   let currentTextDocument: TextDocument;
-  let scriptFileVersion = 0;
+  let scriptFileVersion: number = 0;
   function updateCurrentTextDocument(doc: TextDocument) {
     if (
       !currentTextDocument ||
@@ -73,13 +81,13 @@ export function getJavascriptMode(
   }
   const host: ts.LanguageServiceHost = {
     getCompilationSettings: () => compilerOptions,
-    getScriptFileNames: () => [FILE_NAME],
+    getScriptFileNames: () => [FILE_NAME, jquery_d_ts],
     getScriptKind: () => ts.ScriptKind.JS,
     getScriptVersion: (fileName: string) => {
       if (fileName === FILE_NAME) {
         return String(scriptFileVersion);
       }
-      return '1';
+      return '1'; // default lib an jquery.d.ts are static
     },
     getScriptSnapshot: (fileName: string) => {
       let text = '';
@@ -93,7 +101,7 @@ export function getJavascriptMode(
       return {
         getText: (start, end) => text.substring(start, end),
         getLength: () => text.length,
-        getChangeRange: () => void 0
+        getChangeRange: () => undefined
       };
     },
     getCurrentDirectory: () => '',
@@ -101,32 +109,30 @@ export function getJavascriptMode(
   };
   const jsLanguageService = ts.createLanguageService(host);
 
-  let globalSettings: Settings = {};
+  const globalSettings: Settings = {};
 
   return {
     getId() {
       return 'javascript';
     },
-    configure(options: any) {
-      globalSettings = options;
-    },
     doValidation(document: TextDocument): Diagnostic[] {
       updateCurrentTextDocument(document);
-      const syntaxDiagnostics = jsLanguageService.getSyntacticDiagnostics(
+      const syntaxDiagnostics: ts.Diagnostic[] = jsLanguageService.getSyntacticDiagnostics(
         FILE_NAME
       );
       const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(
         FILE_NAME
       );
-      return syntaxDiagnostics
-        .concat(semanticDiagnostics)
-        .map((diag): Diagnostic => {
+      return syntaxDiagnostics.concat(semanticDiagnostics).map(
+        (diag: ts.Diagnostic): Diagnostic => {
           return {
             range: convertRange(currentTextDocument, diag),
             severity: DiagnosticSeverity.Error,
+            source: 'js',
             message: ts.flattenDiagnosticMessageText(diag.messageText, '\n')
           };
-        });
+        }
+      );
     },
     doComplete(document: TextDocument, position: Position): CompletionList {
       updateCurrentTextDocument(document);
@@ -134,7 +140,10 @@ export function getJavascriptMode(
       const completions = jsLanguageService.getCompletionsAtPosition(
         FILE_NAME,
         offset,
-        { includeExternalModuleExports: false }
+        {
+          includeExternalModuleExports: false,
+          includeInsertTextCompletions: false
+        }
       );
       if (!completions) {
         return { isIncomplete: false, items: [] };
@@ -180,7 +189,7 @@ export function getJavascriptMode(
       }
       return item;
     },
-    doHover(document: TextDocument, position: Position): Hover {
+    doHover(document: TextDocument, position: Position): Hover | null {
       updateCurrentTextDocument(document);
       const info = jsLanguageService.getQuickInfoAtPosition(
         FILE_NAME,
@@ -195,7 +204,10 @@ export function getJavascriptMode(
       }
       return null;
     },
-    doSignatureHelp(document: TextDocument, position: Position): SignatureHelp {
+    doSignatureHelp(
+      document: TextDocument,
+      position: Position
+    ): SignatureHelp | null {
       updateCurrentTextDocument(document);
       const signHelp = jsLanguageService.getSignatureHelpItems(
         FILE_NAME,
@@ -211,7 +223,7 @@ export function getJavascriptMode(
         signHelp.items.forEach(item => {
           const signature: SignatureInformation = {
             label: '',
-            documentation: null,
+            documentation: undefined,
             parameters: []
           };
 
@@ -223,7 +235,7 @@ export function getJavascriptMode(
               documentation: ts.displayPartsToString(p.documentation)
             };
             signature.label += label;
-            signature.parameters.push(parameter);
+            signature.parameters!.push(parameter);
             if (i < a.length - 1) {
               signature.label += ts.displayPartsToString(
                 item.separatorDisplayParts
@@ -256,14 +268,14 @@ export function getJavascriptMode(
           };
         });
       }
-      return null;
+      return [];
     },
     findDocumentSymbols(document: TextDocument): SymbolInformation[] {
       updateCurrentTextDocument(document);
       const items = jsLanguageService.getNavigationBarItems(FILE_NAME);
       if (items) {
         const result: SymbolInformation[] = [];
-        const existing = {};
+        const existing = Object.create(null);
         const collectSymbols = (
           item: ts.NavigationBarItem,
           containerLabel?: string
@@ -294,21 +306,26 @@ export function getJavascriptMode(
         items.forEach(item => collectSymbols(item));
         return result;
       }
-      return null;
+      return [];
     },
-    findDefinition(document: TextDocument, position: Position): Definition {
+    findDefinition(
+      document: TextDocument,
+      position: Position
+    ): Definition | null {
       updateCurrentTextDocument(document);
       const definition = jsLanguageService.getDefinitionAtPosition(
         FILE_NAME,
         currentTextDocument.offsetAt(position)
       );
       if (definition) {
-        return definition.filter(d => d.fileName === FILE_NAME).map(d => {
-          return {
-            uri: document.uri,
-            range: convertRange(currentTextDocument, d.textSpan)
-          };
-        });
+        return definition
+          .filter(d => d.fileName === FILE_NAME)
+          .map(d => {
+            return {
+              uri: document.uri,
+              range: convertRange(currentTextDocument, d.textSpan)
+            };
+          });
       }
       return null;
     },
@@ -319,14 +336,16 @@ export function getJavascriptMode(
         currentTextDocument.offsetAt(position)
       );
       if (references) {
-        return references.filter(d => d.fileName === FILE_NAME).map(d => {
-          return {
-            uri: document.uri,
-            range: convertRange(currentTextDocument, d.textSpan)
-          };
-        });
+        return references
+          .filter(d => d.fileName === FILE_NAME)
+          .map(d => {
+            return {
+              uri: document.uri,
+              range: convertRange(currentTextDocument, d.textSpan)
+            };
+          });
       }
-      return null;
+      return [];
     },
     format(
       document: TextDocument,
@@ -356,12 +375,13 @@ export function getJavascriptMode(
       let end = currentTextDocument.offsetAt(range.end);
       let lastLineRange = null;
       if (
-        range.end.character === 0 ||
-        isWhitespaceOnly(
-          currentTextDocument
-            .getText()
-            .substr(end - range.end.character, range.end.character)
-        )
+        range.end.line > range.start.line &&
+        (range.end.character === 0 ||
+          isWhitespaceOnly(
+            currentTextDocument
+              .getText()
+              .substr(end - range.end.character, range.end.character)
+          ))
       ) {
         end -= range.end.character;
         lastLineRange = Range.create(
@@ -396,7 +416,30 @@ export function getJavascriptMode(
         }
         return result;
       }
-      return null;
+      return [];
+    },
+    getFoldingRanges(document: TextDocument): FoldingRange[] {
+      updateCurrentTextDocument(document);
+      const spans = jsLanguageService.getOutliningSpans(FILE_NAME);
+      const ranges: FoldingRange[] = [];
+      for (const span of spans) {
+        const curr = convertRange(currentTextDocument, span.textSpan);
+        const startLine = curr.start.line;
+        const endLine = curr.end.line;
+        if (startLine < endLine) {
+          const foldingRange: FoldingRange = { startLine, endLine };
+          const match = document
+            .getText(curr)
+            .match(/^\s*\/(?:(\/\s*#(?:end)?region\b)|(\*|\/))/);
+          if (match) {
+            foldingRange.kind = match[1]
+              ? FoldingRangeKind.Region
+              : FoldingRangeKind.Comment;
+          }
+          ranges.push(foldingRange);
+        }
+      }
+      return ranges;
     },
     onDocumentRemoved(document: TextDocument) {
       jsDocuments.onDocumentRemoved(document);
@@ -410,10 +453,14 @@ export function getJavascriptMode(
 
 function convertRange(
   document: TextDocument,
-  span: { start: number; length: number }
+  span: { start: number | undefined; length: number | undefined }
 ): Range {
+  if (typeof span.start === 'undefined') {
+    const pos = document.positionAt(0);
+    return Range.create(pos, pos);
+  }
   const startPosition = document.positionAt(span.start);
-  const endPosition = document.positionAt(span.start + span.length);
+  const endPosition = document.positionAt(span.start + (span.length || 0));
   return Range.create(startPosition, endPosition);
 }
 

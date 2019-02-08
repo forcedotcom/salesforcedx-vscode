@@ -1,10 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-// tslint:disable:quotemark
-
-'use strict';
 
 import {
   LanguageService,
@@ -12,10 +9,10 @@ import {
   Range,
   TextDocument,
   TokenType
-} from '@salesforce/salesforcedx-visualforce-markup-language-server';
+} from 'vscode-html-languageservice';
 
 export interface LanguageRange extends Range {
-  languageId: string;
+  languageId: string | undefined;
   attributeValue?: boolean;
 }
 
@@ -25,7 +22,7 @@ export interface HTMLDocumentRegions {
     ignoreAttributeValues?: boolean
   ): TextDocument;
   getLanguageRanges(range: Range): LanguageRange[];
-  getLanguageAtPosition(position: Position): string;
+  getLanguageAtPosition(position: Position): string | undefined;
   getLanguagesInDocument(): string[];
   getImportedScripts(): string[];
 }
@@ -33,7 +30,7 @@ export interface HTMLDocumentRegions {
 export const CSS_STYLE_RULE = '__';
 
 interface EmbeddedRegion {
-  languageId: string;
+  languageId: string | undefined;
   start: number;
   end: number;
   attributeValue?: boolean;
@@ -45,10 +42,10 @@ export function getDocumentRegions(
 ): HTMLDocumentRegions {
   const regions: EmbeddedRegion[] = [];
   const scanner = languageService.createScanner(document.getText());
-  let lastTagName: string;
-  let lastAttributeName: string;
-  let languageIdFromType: string;
-  const importedScripts = [];
+  let lastTagName: string = '';
+  let lastAttributeName: string | null = null;
+  let languageIdFromType: string | undefined;
+  const importedScripts: string[] = [];
 
   let token = scanner.scan();
   while (token !== TokenType.EOS) {
@@ -96,10 +93,10 @@ export function getDocumentRegions(
           ) {
             languageIdFromType = 'javascript';
           } else {
-            languageIdFromType = void 0;
+            languageIdFromType = undefined;
           }
         } else {
-          const attributeLanguageId = getAttributeLanguage(lastAttributeName);
+          const attributeLanguageId = getAttributeLanguage(lastAttributeName!);
           if (attributeLanguageId) {
             let start = scanner.getTokenOffset();
             let end = scanner.getTokenEnd();
@@ -181,7 +178,7 @@ function getLanguageRanges(
 }
 
 function getLanguagesInDocument(
-  document: TextDocument,
+  _document: TextDocument,
   regions: EmbeddedRegion[]
 ): string[] {
   const result = [];
@@ -201,7 +198,7 @@ function getLanguageAtPosition(
   document: TextDocument,
   regions: EmbeddedRegion[],
   position: Position
-): string {
+): string | undefined {
   const offset = document.offsetAt(position);
   for (const region of regions) {
     if (region.start <= offset) {
@@ -305,7 +302,6 @@ function substituteWithWhitespace(
   return result;
 }
 
-// tslint:disable:no-bitwise
 function append(result: string, str: string, n: number): string {
   while (n > 0) {
     if (n & 1) {
@@ -316,9 +312,8 @@ function append(result: string, str: string, n: number): string {
   }
   return result;
 }
-// tslint:enable:no-bitwise
 
-function getAttributeLanguage(attributeName: string): string {
+function getAttributeLanguage(attributeName: string): string | null {
   const match = attributeName.match(/^(style)$|^(on\w+)$/i);
   if (!match) {
     return null;
