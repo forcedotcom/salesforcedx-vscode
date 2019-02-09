@@ -19,6 +19,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
+import { OrgAuthInfo } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -26,7 +27,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-import { getDefaultUsernameOrAlias, getUsername } from '../context';
+import { getDefaultUsernameOrAlias } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
@@ -45,6 +46,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
+    const startTime = process.hrtime();
     const executionWrapper = new CompositeCliCommandExecutor(
       this.build()
     ).execute(this.cancellationToken);
@@ -54,7 +56,10 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       this.cancellationToken
     );
 
-    this.logMetric(executionWrapper.command.logName);
+    executionWrapper.processExitSubject.subscribe(() => {
+      this.logMetric(executionWrapper.command.logName, startTime);
+    });
+
     try {
       // query traceflag
       let resultJson = await this.subExecute(new ForceQueryTraceFlag().build());
@@ -109,7 +114,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 
 export async function getUserId(projectPath: string): Promise<string> {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  const username = await getUsername(defaultUsernameOrAlias!);
+  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
   const execution = new CliCommandExecutor(
     new ForceQueryUser(username).build(),
     {

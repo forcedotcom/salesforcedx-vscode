@@ -6,7 +6,6 @@
  */
 export {
   getDefaultUsernameOrAlias,
-  getUsername,
   getWorkspaceOrgType,
   OrgType,
   registerDefaultUsernameWatcher,

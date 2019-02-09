@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
+
 import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
 import { channelService } from './channels';
@@ -26,6 +26,7 @@ import {
   forceAuthLogoutAll,
   forceAuthWebLogin,
   forceConfigList,
+  forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceGenerateFauxClassesCreate,
@@ -59,11 +60,9 @@ import {
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
+import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
-import {
-  isvDebugBootstrap,
-  setupGlobalDefaultUserIsvAuth
-} from './commands/isvdebugging/bootstrapCmd';
+import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import {
   CLIENT_ID,
   SFDX_CLIENT_ENV_VAR,
@@ -74,10 +73,11 @@ import {
   setupWorkspaceOrgType
 } from './context';
 import * as decorators from './decorators';
-import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave } from './settings';
+import { SfdxProjectPath } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 
@@ -315,6 +315,15 @@ function registerCommands(
     forceApexLogGet
   );
 
+  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
+    'sfdx.force.set.default.org',
+    setDefaultOrg
+  );
+  const forceConfigSetCmd = vscode.commands.registerCommand(
+    'sfdx.force.config.set',
+    forceConfigSet
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -368,26 +377,10 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd
+    forceApexLogGetCmd,
+    forceSetDefaultOrgCmd,
+    forceConfigSetCmd
   );
-}
-
-function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
-  if (
-    vscode.workspace.workspaceFolders instanceof Array &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
-    const configPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      '.sfdx',
-      'sfdx-config.json'
-    );
-    const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
-    isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
-    context.subscriptions.push(isvAuthWatcher);
-  }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -436,38 +429,11 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  const sfdxApexDebuggerExtension = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-apex-debugger'
-  );
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:apex_debug_extension_installed',
-    sfdxApexDebuggerExtension && sfdxApexDebuggerExtension.id
-  );
-  if (
-    sfdxProjectOpened &&
-    sfdxApexDebuggerExtension &&
-    sfdxApexDebuggerExtension.id
-  ) {
-    console.log('Setting up ISV Debugger environment variables');
-    // register watcher for ISV authentication and setup default user for CLI
-    // this is done in core because it shares access to GlobalCliEnvironment with the commands
-    // (VS Code does not seem to allow sharing npm modules between extensions)
-    try {
-      registerIsvAuthWatcher(context);
-      console.log('Configured file watcher for .sfdx/sfdx-config.json');
-      await setupGlobalDefaultUserIsvAuth();
-    } catch (e) {
-      console.error(e);
-      vscode.window.showWarningMessage(
-        nls.localize('isv_debug_config_environment_error')
-      );
-    }
-  }
-
   // Set context for defaultusername org
   await setupWorkspaceOrgType();
   registerDefaultUsernameWatcher(context);
+
+  await showDefaultOrg();
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
@@ -492,6 +458,11 @@ export async function activate(context: vscode.ExtensionContext) {
   if (vscode.workspace.rootPath && isDemoMode()) {
     decorators.showDemoMode();
   }
+
+  // Refresh SObject definitions if there aren't any faux classes
+  initSObjectDefinitions(SfdxProjectPath.getPath()).catch(e =>
+    telemetryService.sendErrorEvent(e.message, e.stack)
+  );
 
   const api: any = {
     ProgressNotification,

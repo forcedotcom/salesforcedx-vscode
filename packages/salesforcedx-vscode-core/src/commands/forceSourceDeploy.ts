@@ -15,12 +15,6 @@ import { handleDiagnosticErrors } from '../diagnostics';
 import { telemetryService } from '../telemetry';
 import { SfdxCommandletExecutor } from './commands';
 
-vscode.workspace.onDidChangeTextDocument(e => {
-  if (ForceSourceDeployExecutor.errorCollection.has(e.document.uri)) {
-    ForceSourceDeployExecutor.errorCollection.delete(e.document.uri);
-  }
-});
-
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   string
 > {
@@ -29,6 +23,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   );
 
   public execute(response: ContinueResponse<string>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = vscode.workspace.workspaceFolders
@@ -45,6 +40,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(execution.command.logName, startTime);
       if (exitCode !== 0) {
         try {
           const deployErrorParser = new ForceDeployErrorParser();
@@ -63,10 +59,11 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
             'Error while creating diagnostics for vscode problem view.'
           );
         }
+      } else {
+        ForceSourceDeployExecutor.errorCollection.clear();
       }
     });
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    this.logMetric(execution.command.logName);
   }
 }
