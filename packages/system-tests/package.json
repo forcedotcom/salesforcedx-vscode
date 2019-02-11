@@ -1,7 +1,7 @@
 {
   "name": "system-tests",
   "description": "System tests for Salesforce DX Extensions for VS Code",
-  "version": "44.18.0",
+  "version": "45.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "./out/src",
@@ -9,7 +9,7 @@
     "vscode": "^1.17.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.18.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.1.0",
     "@types/chai": "^4.0.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "2.2.38",
@@ -41,7 +41,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
+    "pretest": "npm run compile && cross-env CODE_VERSION='1.30.0' node ../../scripts/download-vscode-for-system-tests",
     "test": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node out/src/main.js",
     "test:vscode-insiders-system-tests": "cross-env CODE_VERSION=insiders npm run pretest && node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && CODE_VERSION=insiders node out/src/main.js",
     "coverage": "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
