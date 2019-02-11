@@ -128,6 +128,7 @@ function pathToSuggestion(
   fullValue: string,
   range: Range
 ): CompletionItem {
+  // tslint:disable-next-line:no-shadowed-variable
   const isDir = p[p.length - 1] === '/';
 
   let replaceRange: Range;

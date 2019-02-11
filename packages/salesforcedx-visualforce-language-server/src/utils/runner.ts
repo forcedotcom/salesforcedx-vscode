@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-  ResponseError,
+  CancellationToken,
   ErrorCodes,
-  CancellationToken
+  ResponseError
 } from 'vscode-languageserver';
 
 export function formatError(message: string, err: any): string {
   if (err instanceof Error) {
-    let error = <Error>err;
+    const error = err as Error;
     return `${message}: ${error.message}\n${error.stack}`;
   } else if (typeof err === 'string') {
     return `${message}: ${err}`;
@@ -62,7 +62,7 @@ export function runSafe<T, E>(
         resolve(cancelValue());
       } else {
         try {
-          let result = func();
+          const result = func();
           if (token.isCancellationRequested) {
             resolve(cancelValue());
             return;
