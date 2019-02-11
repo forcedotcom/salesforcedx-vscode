@@ -1,4 +1,4 @@
-# Introduction
+# Publishing
 
 This is a guide for publishing to the Visual Studio Code Marketplace. Most
 contributors will not need to worry about publishing. However, it might be
@@ -11,10 +11,10 @@ The goal of publishing is to take the extensions under /packages, bundle them as
 .vsix files, and push them to the [Visual Studio Code
 Marketplace](https://marketplace.visualstudio.com/vscode).
 
-For more information about publishing take a look at 
+For more information about publishing take a look at
 
-* [Publishing VS Code Extensions][publish_vscode_ext]
-* [Managing
+- [Publishing VS Code Extensions][publish_vscode_ext]
+- [Managing
   Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
 
 # Steps
@@ -37,8 +37,8 @@ It is possible to run each step manually as illustrated below.
 
 ### Prerequisite
 
-* Lerna is properly installed (`npm install -g lerna@2.4.0`).
-* All tests have been run prior to publishing. We don't run the tests during the
+- Lerna is properly installed (`npm install -g lerna@2.4.0`).
+- All tests have been run prior to publishing. We don't run the tests during the
   publishing cycle since it generates artifacts that we do not want to include
   in the packaged extensions.
 
@@ -64,11 +64,12 @@ https://developer.salesforce.com/media/vscode/SHA256
 
 ### Prerequisite
 
-* You have access to our S3 bucket at s3://dfc-data-production/media/vscode
-* You have the [AWS CLI](https://aws.amazon.com/cli/) installed and configured
+- You have access to our S3 bucket at s3://dfc-data-production/media/vscode
+- You have the [AWS CLI](https://aws.amazon.com/cli/) installed and configured
   via `aws configure` or have the `AWS_ACCESS_KEY_ID` and
   `AWS_SECRET_ACCESS_KEY` exported as environment variables.
-* Verify you have access to our S3 bucket:
+- Verify you have access to our S3 bucket:
+
 ```
 $ aws s3 ls s3://dfc-data-production/media/vscode/
 ```
@@ -85,10 +86,11 @@ $ aws s3 ls s3://dfc-data-production/media/vscode/
 
 ### Prerequisite
 
-* You have a personal access token that for the salesforce publisher id that is
+- You have a personal access token that for the salesforce publisher id that is
   exported as `VSCE_PERSONAL_ACCESS_TOKEN`. Go to [Publishing VS Code Extensions][publish_vscode_ext] for steps on getting your personal access token.
-* Or, you have vsce installed and configured with the salesforce publisher id.
-* Verify you have access to publish:
+- Or, you have vsce installed and configured with the salesforce publisher id.
+- Verify you have access to publish:
+
 ```
 $ vsce login (publisher name)
 ```
@@ -105,7 +107,7 @@ SHA256 match. If you were to repackage, the SHA256 would be different.
 
 ### Prerequisite
 
-* Artifacts have been published.
+- Artifacts have been published.
 
 ### Steps
 
@@ -127,24 +129,23 @@ from Atlassian on the flow. These steps are manual because you might encounter m
 # Tips
 
 1. After publishing, you will need to run `npm run bootstrap` again to continue
-   development. This is because the `npm run vscode:package` step does a `npm
-   prune --production`. This is required due to the way Lerna does symlinking.
+   development. This is because the `npm run vscode:package` step does a `npm prune --production`. This is required due to the way Lerna does symlinking.
    See [vscode-vsce#52](https://github.com/Microsoft/vscode-vsce/issues/52) for
    more information.
 
-1. In order to make a previously unpublished extension publishable there are a 
-   few things that need to get updated: 
+1. In order to make a previously unpublished extension publishable there are a
+   few things that need to get updated:
    1. In packages/salesforcedx-vscode/package.json the extension needs to get added
-   to the list of `extensionDependencies`
-   2. In the extension's package.json ensure that `bugs` and `repository` both have 
-   their `url` attributes set. 
-   For `bugs` the url is `https://github.com/forcedotcom/salesforcedx-vscode/issues`
-   For `repository` the url is `https://github.com/forcedotcom/salesforcedx-vscode`
-   3. In the extension's package.json, under `scripts` the following attributes need 
-   to be defined:
-    `"vscode:prepublish": "npm prune --production"`
-    `"vscode:package": "vsce package"`
-    `"vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"`
-    `"vscode:publish": "node ../../scripts/publish-vsix.js"`
+      to the list of `extensionDependencies`
+   2. In the extension's package.json ensure that `bugs` and `repository` both have
+      their `url` attributes set.
+      For `bugs` the url is `https://github.com/forcedotcom/salesforcedx-vscode/issues`
+      For `repository` the url is `https://github.com/forcedotcom/salesforcedx-vscode`
+   3. In the extension's package.json, under `scripts` the following attributes need
+      to be defined:
+      `"vscode:prepublish": "npm prune --production"`
+      `"vscode:package": "vsce package"`
+      `"vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"`
+      `"vscode:publish": "node ../../scripts/publish-vsix.js"`
 
 [publish_vscode_ext]: https://code.visualstudio.com/docs/extensions/publish-extension

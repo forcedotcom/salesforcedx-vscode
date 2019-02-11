@@ -1,3 +1,5 @@
+# Developing
+
 ## Pre-requisites
 
 1.  We are using Node 8. If you need to work with multiple versions of Node, you
@@ -99,8 +101,7 @@ launch configuration would be like the following.
   "type": "node",
   "request": "launch",
   "cwd": "${workspaceRoot}",
-  "program":
-    "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/adapter/apexDebug.js",
+  "program": "${workspaceRoot}/packages/salesforcedx-vscode-apex-debugger/out/src/adapter/apexDebug.js",
   "args": ["--server=4711"],
   "sourceMaps": true,
   "outFiles": [

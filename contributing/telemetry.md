@@ -1,3 +1,5 @@
+# Telemetry
+
 Similar to what vscode does, we are reporting on certain events that happen in the extensions in order to provide visibility on its usage.
 
 ## How it works
