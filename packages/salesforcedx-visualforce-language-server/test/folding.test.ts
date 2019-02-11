@@ -14,7 +14,7 @@ interface ExpectedIndentRange {
   endLine: number;
   kind?: string;
 }
-// tslint:disable:only-arrow-functions
+
 function assertRanges(
   lines: string[],
   expected: ExpectedIndentRange[],

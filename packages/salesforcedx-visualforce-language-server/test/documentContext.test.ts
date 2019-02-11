@@ -5,9 +5,8 @@
 import * as assert from 'assert';
 import { getDocumentContext } from '../src/utils/documentContext';
 
-// tslint:disable:only-arrow-functions
 suite('HTML Document Context', () => {
-  test('Context', function(): any {
+  test('Context', (): any => {
     const docURI = 'file:///users/test/folder/test.html';
     const rootFolders = [{ name: '', uri: 'file:///users/test/' }];
 

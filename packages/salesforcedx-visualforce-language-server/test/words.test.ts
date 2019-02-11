@@ -5,8 +5,6 @@
 import * as assert from 'assert';
 import * as words from '../src/utils/strings';
 
-// tslint:disable:only-arrow-functions
-
 suite('HTML Words', () => {
   const wordRegex = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
@@ -20,7 +18,7 @@ suite('HTML Words', () => {
     assert.equal(value.substr(actualRange.start, actualRange.length), expected);
   }
 
-  test('Basic', function(): any {
+  test('Basic', (): any => {
     assertWord('|var x1 = new F<A>(a, b);', 'var');
     assertWord('v|ar x1 = new F<A>(a, b);', 'var');
     assertWord('var| x1 = new F<A>(a, b);', 'var');
@@ -35,7 +33,7 @@ suite('HTML Words', () => {
     assertWord('var x1 = |  new F<A>(a, b)|;|', '');
   });
 
-  test('Multiline', function(): any {
+  test('Multiline', (): any => {
     assertWord('console.log("hello");\n|var x1 = new F<A>(a, b);', 'var');
     assertWord('console.log("hello");\n|\nvar x1 = new F<A>(a, b);', '');
     assertWord('console.log("hello");\n\r |var x1 = new F<A>(a, b);', 'var');

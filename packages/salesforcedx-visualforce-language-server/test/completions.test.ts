@@ -14,7 +14,6 @@ import {
 import Uri from 'vscode-uri';
 import { getLanguageModes } from '../src/modes/languageModes';
 
-// tslint:disable:only-arrow-functions
 export interface ItemDescription {
   label: string;
   documentation?: string;
@@ -108,7 +107,7 @@ export function testCompletionFor(
 }
 
 suite('HTML Completion', () => {
-  test('HTML JavaScript Completions', function(): any {
+  test('HTML JavaScript Completions', (): any => {
     testCompletionFor('<html><script>window.|</script></html>', {
       items: [
         {

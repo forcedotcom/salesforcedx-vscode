@@ -8,7 +8,6 @@ import { getLanguageService } from 'vscode-html-languageservice';
 import { TextDocument } from 'vscode-languageserver-types';
 import * as embeddedSupport from '../src/modes/embeddedSupport';
 
-// tslint:disable:only-arrow-functions
 suite('HTML Embedded Support', () => {
   const htmlLanguageService = getLanguageService();
 
@@ -57,7 +56,7 @@ suite('HTML Embedded Support', () => {
     assert.equal(content.getText(), expectedContent);
   }
 
-  test('Styles', function(): any {
+  test('Styles', (): any => {
     assertLanguageId('|<html><style>foo { }</style></html>', 'html');
     assertLanguageId('<html|><style>foo { }</style></html>', 'html');
     assertLanguageId('<html><st|yle>foo { }</style></html>', 'html');
@@ -67,13 +66,13 @@ suite('HTML Embedded Support', () => {
     assertLanguageId('<html><style>foo { }</sty|le></html>', 'html');
   });
 
-  test('Styles - Incomplete HTML', function(): any {
+  test('Styles - Incomplete HTML', (): any => {
     assertLanguageId('|<html><style>foo { }', 'html');
     assertLanguageId('<html><style>fo|o { }', 'css');
     assertLanguageId('<html><style>foo { }|', 'css');
   });
 
-  test('Style in attribute', function(): any {
+  test('Style in attribute', (): any => {
     assertLanguageId('<div id="xy" |style="color: red"/>', 'html');
     assertLanguageId('<div id="xy" styl|e="color: red"/>', 'html');
     assertLanguageId('<div id="xy" style=|"color: red"/>', 'html');
@@ -89,7 +88,7 @@ suite('HTML Embedded Support', () => {
     assertLanguageId('<div id="xy" style=color:red/|>', 'html');
   });
 
-  test('Style content', function(): any {
+  test('Style content', (): any => {
     assertEmbeddedLanguageContent(
       '<html><style>foo { }</style></html>',
       'css',
@@ -123,7 +122,7 @@ suite('HTML Embedded Support', () => {
     );
   });
 
-  test('Scripts', function(): any {
+  test('Scripts', (): any => {
     assertLanguageId('|<html><script>var i = 0;</script></html>', 'html');
     assertLanguageId('<html|><script>var i = 0;</script></html>', 'html');
     assertLanguageId('<html><scr|ipt>var i = 0;</script></html>', 'html');
@@ -158,7 +157,7 @@ suite('HTML Embedded Support', () => {
     );
   });
 
-  test('Scripts in attribute', function(): any {
+  test('Scripts in attribute', (): any => {
     assertLanguageId('<div |onKeyUp="foo()" onkeydown=\'bar()\'/>', 'html');
     assertLanguageId('<div onKeyUp=|"foo()" onkeydown=\'bar()\'/>', 'html');
     assertLanguageId(
@@ -196,7 +195,7 @@ suite('HTML Embedded Support', () => {
     assertLanguageId('<label on="|Checkbox"/>', 'html');
   });
 
-  test('Script content', function(): any {
+  test('Script content', (): any => {
     assertEmbeddedLanguageContent(
       '<html><script>var i = 0;</script></html>',
       'javascript',

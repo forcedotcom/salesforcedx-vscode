@@ -15,7 +15,7 @@ import {
 import { getLanguageModes } from '../src/modes/languageModes';
 
 import { format } from '../src/modes/formatting';
-// tslint:disable:only-arrow-functions
+
 suite('HTML Embedded Formatting', () => {
   function assertFormat(
     value: string,
@@ -90,7 +90,7 @@ suite('HTML Embedded Formatting', () => {
     assertFormat(input, expected, options, formatOptions, expectedPath);
   }
 
-  test('HTML only', function(): any {
+  test('HTML only', (): any => {
     assertFormat(
       '<html><body><p>Hello</p></body></html>',
       '<html>\n\n<body>\n  <p>Hello</p>\n</body>\n\n</html>'
@@ -105,7 +105,7 @@ suite('HTML Embedded Formatting', () => {
     );
   });
 
-  test('HTML & Scripts', function(): any {
+  test('HTML & Scripts', (): any => {
     assertFormat(
       '<html><head><script></script></head></html>',
       '<html>\n\n<head>\n  <script></script>\n</head>\n\n</html>'
@@ -132,7 +132,7 @@ suite('HTML Embedded Formatting', () => {
     );
   });
 
-  test('HTLM & Scripts - Fixtures', function() {
+  test('HTLM & Scripts - Fixtures', () => {
     assertFormatWithFixture('19813.html', '19813.html');
     assertFormatWithFixture(
       '19813.html',
@@ -149,28 +149,28 @@ suite('HTML Embedded Formatting', () => {
     assertFormatWithFixture('21634.html', '21634.html');
   });
 
-  test('Script end tag', function(): any {
+  test('Script end tag', (): any => {
     assertFormat(
       '<html>\n<head>\n  <script>\nvar x  =  0;\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    var x = 0;\n  </script>\n</head>\n\n</html>'
     );
   });
 
-  test('HTML & Multiple Scripts', function(): any {
+  test('HTML & Multiple Scripts', (): any => {
     assertFormat(
       '<html><head>\n<script>\nif(x){\nbar(); }\n</script><script>\nfunction(x){    }\n</script></head></html>',
       '<html>\n\n<head>\n  <script>\n    if (x) {\n      bar();\n    }\n  </script>\n  <script>\n    function(x) {}\n  </script>\n</head>\n\n</html>'
     );
   });
 
-  test('HTML & Styles', function(): any {
+  test('HTML & Styles', (): any => {
     assertFormat(
       '<html><head>\n<style>\n.foo{display:none;}\n</style></head></html>',
       '<html>\n\n<head>\n  <style>\n    .foo {\n      display: none;\n    }\n  </style>\n</head>\n\n</html>'
     );
   });
 
-  test('EndWithNewline', function(): any {
+  test('EndWithNewline', (): any => {
     const options = {
       html: {
         format: {
@@ -195,7 +195,7 @@ suite('HTML Embedded Formatting', () => {
     );
   });
 
-  test('Inside script', function(): any {
+  test('Inside script', (): any => {
     assertFormat(
       '<html><head>\n  <script>\n|var x=6;|\n</script></head></html>',
       '<html><head>\n  <script>\n  var x = 6;\n</script></head></html>'
@@ -206,21 +206,21 @@ suite('HTML Embedded Formatting', () => {
     );
   });
 
-  test('Range after new line', function(): any {
+  test('Range after new line', (): any => {
     assertFormat(
       '<html><head>\n  |<script>\nvar x=6;\n</script>\n|</head></html>',
       '<html><head>\n  <script>\n    var x = 6;\n  </script>\n</head></html>'
     );
   });
 
-  test('bug 36574', function(): any {
+  test('bug 36574', (): any => {
     assertFormat(
       '<script src="/js/main.js"> </script>',
       '<script src="/js/main.js"> </script>'
     );
   });
 
-  test('bug 48049', function(): any {
+  test('bug 48049', (): any => {
     assertFormat(
       [
         '<html>',
