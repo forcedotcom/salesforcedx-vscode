@@ -262,9 +262,8 @@ connection.onDidChangeConfiguration(change => {
     if (enableFormatter) {
       if (!formatterRegistration) {
         const documentSelector: DocumentSelector = [
-          { language: 'html' },
-          { language: 'handlebars' }
-        ]; // don't register razor, the formatter does more harm than good
+          { language: 'visualforce' }
+        ];
         formatterRegistration = connection.client.register(
           DocumentRangeFormattingRequest.type,
           { documentSelector }

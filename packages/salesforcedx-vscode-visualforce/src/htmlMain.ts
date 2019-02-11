@@ -84,7 +84,7 @@ export function activate(
     }
   };
 
-  const documentSelector = ['html', 'handlebars', 'razor'];
+  const documentSelector = ['html'];
   const embeddedLanguages = { css: true, javascript: true };
 
   const dataPaths = [
@@ -106,7 +106,7 @@ export function activate(
 
   // Create the language client and start the client.
   const client = new LanguageClient(
-    'html',
+    'visualforce',
     localize('visualforce.languageserver', 'Visualforce Language Server'),
     serverOptions,
     clientOptions
@@ -125,7 +125,7 @@ export function activate(
     };
     disposable = activateTagClosing(
       tagRequestor,
-      { html: true, handlebars: true, razor: true },
+      { html: true },
       'html.autoClosingTags'
     );
     toDispose.push(disposable);
@@ -172,56 +172,6 @@ export function activate(
       decreaseIndentPattern: /^\s*(<\/(?!html)[-_\.A-Za-z0-9]+\b[^>]*>|-->|\})/
     },
     wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
-    onEnterRules: [
-      {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
-        afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>/i,
-        action: { indentAction: IndentAction.IndentOutdent }
-      },
-      {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
-        action: { indentAction: IndentAction.Indent }
-      }
-    ]
-  });
-
-  languages.setLanguageConfiguration('handlebars', {
-    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
-    onEnterRules: [
-      {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
-        afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>/i,
-        action: { indentAction: IndentAction.IndentOutdent }
-      },
-      {
-        beforeText: new RegExp(
-          `<(?!(?:${EMPTY_ELEMENTS.join(
-            '|'
-          )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
-          'i'
-        ),
-        action: { indentAction: IndentAction.Indent }
-      }
-    ]
-  });
-
-  languages.setLanguageConfiguration('razor', {
-    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
     onEnterRules: [
       {
         beforeText: new RegExp(
