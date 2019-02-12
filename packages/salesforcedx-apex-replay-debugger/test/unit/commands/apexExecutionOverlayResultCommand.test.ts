@@ -7,7 +7,7 @@
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-utils-vscode/out/src/constants';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/index';
 import {
   RequestService,
   RestHttpMethodEnum
