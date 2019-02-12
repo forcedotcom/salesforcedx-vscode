@@ -16,7 +16,6 @@
   },
   "version": "45.1.0",
   "publisher": "salesforce",
-  "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.26.0"
