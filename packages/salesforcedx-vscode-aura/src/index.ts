@@ -1,9 +1,11 @@
 import * as path from 'path';
 import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, NotificationType, ServerOptions, TransportKind } from 'vscode-languageclient';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient';
 
 import { createQuickOpenCommand } from './commands/quickpick/quickpick';
 import { ComponentTreeProvider } from './views/component-tree-provider';
+
+import { ProgressLocation } from 'vscode';
 
 let client: LanguageClient;
 
@@ -20,10 +22,6 @@ export function code2ProtocolConverter(value: Uri): string {
 
 function protocol2CodeConverter(value: string): Uri {
     return Uri.parse(value);
-}
-
-async function timeout(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export async function activate(context: ExtensionContext) {
@@ -89,8 +87,39 @@ export async function activate(context: ExtensionContext) {
     const componentProvider = new ComponentTreeProvider(client, context);
     window.registerTreeDataProvider('salesforce-lightning-components', componentProvider);
 
+    client.onReady().then(() => {
+        this.client.onNotification('salesforce/indexingStarted', startIndexing);
+        this.client.onNotification('salesforce/indexingEnded', endIndexing);
+    });
+
     // do this last
     client.start();
+}
+
+let indexingResolve: any;
+
+function startIndexing(): void {
+    const indexingPromise: Promise<void> = new Promise(resolve => {
+        indexingResolve = resolve;
+    });
+    reportIndexing(indexingPromise);
+}
+
+function endIndexing(): void {
+    indexingResolve(undefined);
+}
+
+function reportIndexing(indexingPromise: Promise<void>) {
+    window.withProgress(
+        {
+            location: ProgressLocation.Window,
+            title: 'Indexing Lightning Components',
+            cancellable: true
+        },
+        () => {
+            return indexingPromise;
+        }
+    );
 }
 
 export function deactivate(): Thenable<void> {

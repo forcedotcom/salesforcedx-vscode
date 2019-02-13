@@ -22,8 +22,11 @@ async function loadNamespaces(client: LanguageClient) {
 
                 const tags: Map<string, any> = new Map(JSON.parse(data));
                 for (const key of tags.keys()) {
+                    // safety
+                    if (!key) {
+                        continue;
+                    }
                     const value = tags.get(key);
-
                     const ns = key.split(':')[0];
                     let node = namespaces.get(ns);
                     if (!node) {
@@ -74,11 +77,25 @@ async function loadNamespaces(client: LanguageClient) {
                 return namespaces;
             })
             .catch(err => {
-                console.error('Could not request lwc/listComponents' + err);
+                console.error('Could not request lwc/listComponents', err);
                 return new Map();
             });
     }
     return loadNamespacesPromise;
+}
+function debounce(fn: any, wait: number) {
+    return function _debounce() {
+        // @ts-ignore
+        if (!_debounce.pending) {
+            // @ts-ignore
+            _debounce.pending = true;
+            setTimeout(() => {
+                fn();
+                // @ts-ignore
+                _debounce.pending = false;
+            }, wait);
+        }
+    };
 }
 
 export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
@@ -86,6 +103,7 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
 
     private internalOnDidChangeTreeData: EventEmitter<LwcNode | undefined> = new EventEmitter<LwcNode | undefined>();
     private namespaces: Map<string, LwcNode> = new Map();
+    private refreshTree = debounce(this.fullRefresh.bind(this), 1000);
 
     constructor(public client: LanguageClient, public context: ExtensionContext) {
         this.onDidChangeTreeData = this.internalOnDidChangeTreeData.event;
@@ -93,20 +111,9 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
         this.context = context;
 
         client.onReady().then(() => {
-            this.client.onNotification(tagAdded, (params: TagParams) => {
-                // TODO the nuclear option
-                loadNamespacesPromise = null;
-                this.internalOnDidChangeTreeData.fire();
-            });
-            this.client.onNotification(tagDeleted, (tag: string) => {
-                // TODO the nuclear option
-                loadNamespacesPromise = null;
-                this.internalOnDidChangeTreeData.fire();
-            });
-            this.client.onNotification(tagsCleared, () => {
-                loadNamespacesPromise = null;
-                this.internalOnDidChangeTreeData.fire();
-            });
+            this.client.onNotification(tagAdded, this.refreshTree);
+            this.client.onNotification(tagDeleted, this.refreshTree);
+            this.client.onNotification(tagsCleared, this.refreshTree);
         });
 
         commands.registerCommand('salesforce-open-component', (uri, range) => {
@@ -135,5 +142,10 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
 
     public getTreeItem(node: LwcNode): LwcNode {
         return node;
+    }
+    private fullRefresh(params: TagParams) {
+        // TODO the nuclear option
+        loadNamespacesPromise = null;
+        this.internalOnDidChangeTreeData.fire();
     }
 }
