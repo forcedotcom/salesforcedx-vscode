@@ -5,7 +5,9 @@
   "version": "45.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "engines": {
     "vscode": "^1.26.0"
   },
@@ -28,7 +30,8 @@
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
     "typescript": "3.1.6",
-    "vscode": "1.1.17"
+    "vscode": "1.1.17",
+    "@salesforce/dev-scripts": "0.3.12"
   },
   "scripts": {
     "compile": "tsc -p ./",
@@ -37,14 +40,25 @@
     "clean": "shx rm -rf node_modules",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
-    "test:vscode-integration":
-      "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration":
-      "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
+    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "coverage": "node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov", "json"]
+    "extends": "@salesforce/dev-config/nyc",
+    "include": [
+      "src/**/*.ts"
+    ],
+    "all": true,
+    "cache": false,
+    "sourceMap": true,
+    "instrument": true,
+    "require": [
+      "ts-node/register"
+    ],
+    "extension": [
+      ".ts"
+    ]
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "45.1.0",

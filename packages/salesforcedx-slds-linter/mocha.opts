@@ -1,0 +1,8 @@
+--compilers ts-node/register
+--require source-map-support/register
+--watch-extensions ts
+--recursive
+--reporter spec
+--full-trace
+--bail
+src/**/*.test.ts
