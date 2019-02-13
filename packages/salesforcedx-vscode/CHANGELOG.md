@@ -1,3 +1,21 @@
+## 45.2.0 - February 14, 2019
+
+### Added
+
+#### salesforcedx-vscode
+
+- New GitHub Pages replaces the project's wiki ([PR #853](https://github.com/forcedotcom/salesforcedx-vscode/pull/853))
+
+#### salesforcedx-vscode-apex
+
+- Update Standard Apex Symbols according to v45.0 ([PR #1037](https://github.com/forcedotcom/salesforcedx-vscode/pull/1037))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Prevent using Apex Rename on System symbols ([PR #1037](https://github.com/forcedotcom/salesforcedx-vscode/pull/1037))
+
 ## 45.1.0 - February 9, 2019
 
 ### Added
