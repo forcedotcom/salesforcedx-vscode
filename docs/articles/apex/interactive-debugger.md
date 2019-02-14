@@ -112,7 +112,7 @@ Keep these limitations and known issues in mind when working with Apex Debugger.
 - Eval functionality isn’t available.
 - Hot swapping isn’t permitted. These actions kill your debugging session:
   - Installing or uninstalling a package
-  - Saving changes that cause your org’s metadata to recompile.
+  - Saving changes that cause your org’s metadata to recompile
 - You can’t save changes to these items during a debugging session:
   - Apex classes or triggers
   - Visualforce pages or components
