@@ -21,7 +21,7 @@
     "vscode": "^1.17.0"
   },
   "categories": [
-    "Languages"
+    "Programming Languages"
   ],
   "dependencies": {
     "@salesforce/salesforcedx-visualforce-language-server": "45.3.0",

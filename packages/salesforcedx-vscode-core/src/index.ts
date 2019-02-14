@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigurationTarget } from 'vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -63,11 +62,6 @@ import {
 import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import {
-  CLIENT_ID,
-  SFDX_CLIENT_ENV_VAR,
-  TERMINAL_INTEGRATED_ENVS
-} from './constants';
 import {
   registerDefaultUsernameWatcher,
   setupWorkspaceOrgType
@@ -411,16 +405,6 @@ export async function activate(context: vscode.ExtensionContext) {
     'sfdx:replay_debugger_extension',
     replayDebuggerExtensionInstalled
   );
-
-  // Set environment variable to add logging for VSCode API calls
-  process.env[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
-  const config = vscode.workspace.getConfiguration();
-
-  TERMINAL_INTEGRATED_ENVS.forEach(env => {
-    const section: { [k: string]: any } = config.get(env)!;
-    section[SFDX_CLIENT_ENV_VAR] = CLIENT_ID;
-    config.update(env, section, ConfigurationTarget.Workspace);
-  });
 
   vscode.commands.executeCommand(
     'setContext',
