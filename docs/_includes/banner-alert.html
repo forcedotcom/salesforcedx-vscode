@@ -8,7 +8,10 @@
     title="Description of icon when needed"
     ><svg class="slds-icon slds-icon_x-small" aria-hidden="true">
       <use
-        xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#warning"
+        xlink:href="{{
+          '/assets/icons/utility-sprite/svg/symbols.svg#warning'
+            | prepend: site.baseurl
+        }}"
       ></use></svg></span
   ><span
     >You are currently viewing a sandbox preview version of Winter '19. View

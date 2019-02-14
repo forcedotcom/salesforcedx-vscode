@@ -16,7 +16,7 @@ We recommend that you install the [Salesforce Extension Pack](https://marketplac
 
 ## Usage
 
-See [Apex](introduction).
+See [Apex](writing).
 
 ## Clear the Cache
 
