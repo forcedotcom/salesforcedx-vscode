@@ -8,7 +8,7 @@
       >
     </div>
     <div class="site-logo">
-      <a href="/"
+      <a href="{{ site.baseurl }}"
         ><span class="site-logo__graphic"
           ><span class="slds-assistive-text">Salesforce</span> </span
         >Salesforce Extensions for Visual Studio Code</a
@@ -73,7 +73,10 @@
                   style="transform: rotate(90deg);"
                 >
                   <use
-                    xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#right"
+                    xlink:href="{{
+                      '/assets/icons/utility-sprite/svg/symbols.svg#right'
+                        | prepend: site.baseurl
+                    }}"
                   ></use>
                 </svg>
               </span>
@@ -85,7 +88,7 @@
             <li
               class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
             >
-              <a href="{{ entry.url }}">
+              <a href="{{ entry.url | prepend: site.baseurl }}">
                 <span class="slds-media slds-media--center">
                   <span class="slds-media__body">{{ entry.title }}</span>
                 </span>
@@ -107,7 +110,7 @@
         </li>
         {% else %}
         <li class="list__item">
-          <a href="{{ item.children.first.url }}">
+          <a href="{{ item.children.first.url | prepend: site.baseurl }}">
             <span class="slds-media slds-media--center">
               <span class="slds-media__body">{{ item.title }}</span>
             </span>
@@ -121,7 +124,7 @@
             <li
               class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
             >
-              <a href="{{ entry.url }}">
+              <a href="{{ entry.url | prepend: site.baseurl }}">
                 <span class="slds-media slds-media--center">
                   <span class="slds-media__body">{{ entry.title }}</span>
                 </span>
