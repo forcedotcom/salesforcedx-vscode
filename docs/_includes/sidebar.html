@@ -102,7 +102,7 @@
         <li
           class="list__item {% if page_url == item_url %}slds-is-selected slds-is-active{% endif %}"
         >
-          <a href="{{ item.url | append: '/' | prepend: site.baseurl }}">
+          <a href="{{ item.url | prepend: site.baseurl }}">
             <span class="slds-media slds-media--center">
               <span class="slds-media__body">{{ item.title }}</span>
             </span>
@@ -119,8 +119,8 @@
             class="slds-list_vertical slds-has-block-links slds-is-nested"
             style="display: none;"
           >
-            {% for entry in item.children %} {% assign entry_url =
-            entry.url|append:'/' %}
+            {% for entry in item.children %} {% assign entry_url = entry.url |
+            append:'/' %}
             <li
               class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
             >
