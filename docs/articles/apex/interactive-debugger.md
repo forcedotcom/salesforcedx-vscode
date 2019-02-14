@@ -110,27 +110,22 @@ Keep these limitations and known issues in mind when working with Apex Debugger.
 - Your debugging session is orphaned when you close VS Code before stopping your session. If you have an orphaned session, you can’t start a new session. To stop your active session, in VS Code, run **SFDX: Stop Apex Debugger Session**. To manage your Dev Hub’s Apex Debugger sessions, go to Apex Debugger in Setup.
 
 - Eval functionality isn’t available.
-
 - Hot swapping isn’t permitted. These actions kill your debugging session:
   - Installing or uninstalling a package
   - Saving changes that cause your org’s metadata to recompile
-    ***
-    You can’t save changes to these items during a debugging session:
-    - Apex classes or triggers
-    - Visualforce pages or components
-    - Lightning resources
-    - Permissions or preferences
-    - Custom fields or custom objects
-    ***
+- You can’t save changes to these items during a debugging session:
+  - Apex classes or triggers
+  - Visualforce pages or components
+  - Lightning resources
+  - Permissions or preferences
+  - Custom fields or custom objects
 
 ### Considerations for Entry Points
 
 These entry points aren’t supported:
 
 - Asynchronously executed code, including asynchronous tests
-  ***
-  **Tip**: Code that’s between a pair of `startTest` and `stopTest` methods can run synchronously. To debug your asynchronous functionality, use these methods within your tests.
-  ***
+  > **Tip**: Code that’s between a pair of `startTest` and `stopTest` methods can run synchronously. To debug your asynchronous functionality, use these methods within your tests.
 - Batch, Queueable, and Scheduled Apex
 - Inbound email
 - Code with the `@future` annotation
