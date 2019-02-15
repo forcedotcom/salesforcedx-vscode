@@ -148,12 +148,12 @@ export class StreamingClient {
   public async subscribe(): Promise<void> {
     let subscribeAccept: () => void;
     let subscribeReject: () => void;
-    const returnPromise = new Promise<
-      void
-    >((resolve: () => void, reject: () => void) => {
-      subscribeAccept = resolve;
-      subscribeReject = reject;
-    });
+    const returnPromise = new Promise<void>(
+      (resolve: () => void, reject: () => void) => {
+        subscribeAccept = resolve;
+        subscribeReject = reject;
+      }
+    );
 
     this.client.on('transport:down', async () => {
       if (!this.connected) {
@@ -174,9 +174,9 @@ export class StreamingClient {
           } else {
             this.connected = false;
             this.clientInfo.errorHandler(
-              `${nls.localize(
-                'streaming_handshake_error_text'
-              )}:${os.EOL}${JSON.stringify(message)}${os.EOL}`
+              `${nls.localize('streaming_handshake_error_text')}:${
+                os.EOL
+              }${JSON.stringify(message)}${os.EOL}`
             );
             subscribeReject();
           }

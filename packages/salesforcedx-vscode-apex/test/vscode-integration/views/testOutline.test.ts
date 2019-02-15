@@ -36,7 +36,7 @@ describe('TestView', () => {
   for (let i = 0; i < 8; i++) {
     const methodName = 'test' + i;
     const definingType = 'file' + Math.floor(i / 2); // Parent is either file1, file2, file3, or file4
-    const line = i / 2 * 4 + 3;
+    const line = (i / 2) * 4 + 3;
     const startPos = new vscode.Position(line, 0);
     const endPos = new vscode.Position(line, 5);
     const file = '/bogus/path/to/' + definingType + '.cls';
@@ -62,7 +62,10 @@ describe('TestView', () => {
 
     beforeEach(() => {
       commandletSpy = spy(coreExports.SfdxCommandlet.prototype, 'run');
-      getCoverageStub = stub(coreExports.sfdxCoreSettings, 'getRetrieveTestCodeCoverage');
+      getCoverageStub = stub(
+        coreExports.sfdxCoreSettings,
+        'getRetrieveTestCodeCoverage'
+      );
     });
 
     afterEach(() => {

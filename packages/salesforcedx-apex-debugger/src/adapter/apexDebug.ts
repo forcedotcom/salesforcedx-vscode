@@ -793,9 +793,9 @@ export class ApexDebug extends LoggingDebugSession {
             );
           } else {
             this.errorToDebugConsole(
-              `${nls.localize(
-                'command_error_help_text'
-              )}:${os.EOL}${terminatedSessionId}`
+              `${nls.localize('command_error_help_text')}:${
+                os.EOL
+              }${terminatedSessionId}`
             );
           }
         } catch (error) {
@@ -966,7 +966,9 @@ export class ApexDebug extends LoggingDebugSession {
       const stateResponse = await this.lock.acquire('stacktrace', async () => {
         this.log(
           TRACE_CATEGORY_VARIABLES,
-          `stackTraceRequest: args threadId=${args.threadId} startFrame=${args.startFrame} levels=${args.levels}`
+          `stackTraceRequest: args threadId=${args.threadId} startFrame=${
+            args.startFrame
+          } levels=${args.levels}`
         );
         const responseString = await this.myRequestService.execute(
           new StateCommand(requestId)
@@ -1175,7 +1177,9 @@ export class ApexDebug extends LoggingDebugSession {
     scopes.forEach(scope => {
       this.log(
         TRACE_CATEGORY_VARIABLES,
-        `scopesRequest: scope name=${scope.name} variablesReference=${scope.variablesReference}`
+        `scopesRequest: scope name=${scope.name} variablesReference=${
+          scope.variablesReference
+        }`
       );
     });
 
@@ -1194,7 +1198,9 @@ export class ApexDebug extends LoggingDebugSession {
     if (!variablesContainer) {
       this.log(
         TRACE_CATEGORY_VARIABLES,
-        `variablesRequest: no container for variablesReference=${args.variablesReference}`
+        `variablesRequest: no container for variablesReference=${
+          args.variablesReference
+        }`
       );
       // no container found: return empty variables array
       response.body = { variables: [] };
@@ -1203,7 +1209,9 @@ export class ApexDebug extends LoggingDebugSession {
     } else {
       this.log(
         TRACE_CATEGORY_VARIABLES,
-        `variablesRequest: getting variable for variablesReference=${args.variablesReference} start=${args.start} count=${args.count}`
+        `variablesRequest: getting variable for variablesReference=${
+          args.variablesReference
+        } start=${args.start} count=${args.count}`
       );
     }
 
@@ -1304,7 +1312,9 @@ export class ApexDebug extends LoggingDebugSession {
         );
         this.log(
           TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new object reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+          `populateReferences: new object reference: ${variableReference} for ${
+            reference.id
+          } ${reference.nameForMessages}`
         );
       } else if (reference.type === 'list' || reference.type === 'set') {
         variableReference = this.variableHandles.create(
@@ -1312,7 +1322,11 @@ export class ApexDebug extends LoggingDebugSession {
         );
         this.log(
           TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new ${reference.type} reference: ${variableReference} for ${reference.id} ${reference.nameForMessages} with size ${reference.size}`
+          `populateReferences: new ${
+            reference.type
+          } reference: ${variableReference} for ${reference.id} ${
+            reference.nameForMessages
+          } with size ${reference.size}`
         );
       } else if (reference.type === 'map') {
         const mapContainer = new MapReferenceContainer(reference, requestId);
@@ -1327,7 +1341,9 @@ export class ApexDebug extends LoggingDebugSession {
         variableReference = this.variableHandles.create(mapContainer);
         this.log(
           TRACE_CATEGORY_VARIABLES,
-          `populateReferences: new map reference: ${variableReference} for ${reference.id} ${reference.nameForMessages}`
+          `populateReferences: new map reference: ${variableReference} for ${
+            reference.id
+          } ${reference.nameForMessages}`
         );
       } else {
         const referenceInfo = JSON.stringify(reference);
@@ -1503,9 +1519,9 @@ export class ApexDebug extends LoggingDebugSession {
         }
         if (errorObj.action) {
           this.errorToDebugConsole(
-            `${nls.localize(
-              'command_error_help_text'
-            )}:${os.EOL}${errorObj.action}`
+            `${nls.localize('command_error_help_text')}:${os.EOL}${
+              errorObj.action
+            }`
           );
         }
       } else {
