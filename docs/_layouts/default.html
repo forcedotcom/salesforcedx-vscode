@@ -2,12 +2,27 @@
   <head>
     <title>{{ page.title }}</title>
     <link
+      rel="icon"
+      href="{{ '/assets/images/favicon.ico' | prepend: site.baseurl }}"
+      type="image/x-icon"
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ '/assets/images/favicon.ico' | prepend: site.baseurl }}"
+      type="image/x-icon"
+    />
+
+    <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/design-system/2.7.5/styles/salesforce-lightning-design-system.min.css"
       integrity="sha256-uEb6lV80P7CRLMxd06oMeSuV8NFIk7ycbIwpGzwE0bM="
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" type="text/css" href="/assets/styles/docs.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ '/assets/styles/docs.css' | prepend: site.baseurl }}"
+    />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.15.6/min/vs/editor/editor.main.css"
@@ -112,7 +127,11 @@
       var elements = document.getElementsByTagName('pre');
       for (var i = 0; i < elements.length; i++) {
         var element = elements[i];
-        if (element.childNodes[0].nodeName === 'CODE') {
+        if (
+          element &&
+          element.childNodes &&
+          element.childNodes[0].nodeName === 'CODE'
+        ) {
           var code = element.childNodes[0];
           var lang = code.className.toString();
           // fix extra lines
