@@ -52,6 +52,7 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../forceProjectCreate';
+import { hasRootWorkspace, getRootWorkspacePath } from '../../util';
 
 export interface InstalledPackageInfo {
   id: string;
@@ -640,12 +641,9 @@ export async function isvDebugBootstrap() {
 }
 
 export async function setupGlobalDefaultUserIsvAuth() {
-  if (
-    vscode.workspace.workspaceFolders instanceof Array &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+  if ( hasRootWorkspace() ) {
     const forceConfig = await new ForceConfigGet().getConfig(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      getRootWorkspacePath(),
       SFDX_CONFIG_ISV_DEBUGGER_SID,
       SFDX_CONFIG_ISV_DEBUGGER_URL
     );

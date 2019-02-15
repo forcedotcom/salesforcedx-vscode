@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { telemetryService } from '../telemetry';
 import { SfdxCommandletExecutor } from './commands';
+import { getRootWorkspacePath } from '../util';
 
 vscode.workspace.onDidChangeTextDocument(e => {
   if (ForceSourceDeployExecutor.errorCollection.has(e.document.uri)) {
@@ -31,9 +32,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   public execute(response: ContinueResponse<string>): void {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const workspacePath = vscode.workspace.workspaceFolders
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : '';
+    const workspacePath = getRootWorkspacePath() || '';
     const execFilePathOrPaths = response.data;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath

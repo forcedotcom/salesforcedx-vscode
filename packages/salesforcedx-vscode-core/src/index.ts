@@ -387,10 +387,7 @@ function registerCommands(
 }
 
 function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
-  if (
-    vscode.workspace.workspaceFolders instanceof Array &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
+  if ( hasRootWorkspace() ) {
     const configPath = path.join(
       getRootWorkspacePath(),
       '.sfdx',

@@ -20,6 +20,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { hasRootWorkspace, getRootWorkspacePath } from '../util';
 
 function isEmpty(value: string): boolean {
   return !value || value.length === 0;
@@ -111,9 +112,9 @@ async function forceApexTestRunCodeAction(test: string) {
 }
 
 function getTempFolder(): string {
-  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+  if (hasRootWorkspace()) {
     const apexDir = new TestRunner().getTempFolder(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      getRootWorkspacePath(),
       'apex'
     );
     return apexDir;

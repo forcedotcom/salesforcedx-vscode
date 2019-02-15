@@ -27,7 +27,7 @@ import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -161,7 +161,7 @@ export class FilePathGatherer implements ParametersGatherer<string> {
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    if (vscode.workspace && vscode.workspace.workspaceFolders) {
+    if (hasRootWorkspace()) {
       return { type: 'CONTINUE', data: this.filePath };
     }
     return { type: 'CANCEL' };

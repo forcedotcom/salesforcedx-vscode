@@ -21,6 +21,7 @@ import { SfdxCommandlet, SfdxCommandletExecutor } from './commands';
 
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { hasRootWorkspace, getRootWorkspacePath } from '../util';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;
@@ -45,10 +46,9 @@ export class ManifestChecker implements PreconditionChecker {
 
   public check(): boolean {
     if (
-      vscode.workspace.workspaceFolders instanceof Array &&
-      vscode.workspace.workspaceFolders.length > 0
+      hasRootWorkspace()
     ) {
-      const workspaceRootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const workspaceRootPath = getRootWorkspacePath();
       const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {

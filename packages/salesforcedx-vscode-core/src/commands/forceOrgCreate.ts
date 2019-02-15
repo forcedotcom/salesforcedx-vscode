@@ -17,7 +17,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, getRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
   FileSelection,
@@ -56,10 +56,9 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;
     if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
+      hasRootWorkspace()
     ) {
-      defaultAlias = vscode.workspace.workspaceFolders[0].name.replace(
+      defaultAlias = getRootWorkspace().name.replace(
         /\W/g /* Replace all non-alphanumeric characters */,
         ''
       );

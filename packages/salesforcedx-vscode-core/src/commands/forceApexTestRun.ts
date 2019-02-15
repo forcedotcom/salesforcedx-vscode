@@ -25,6 +25,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { hasRootWorkspace, getRootWorkspacePath } from '../util';
 
 export enum TestType {
   All,
@@ -138,9 +139,9 @@ export class ForceApexTestRunCommandFactory {
 }
 
 function getTempFolder(): string {
-  if (vscode.workspace && vscode.workspace.workspaceFolders) {
+  if (hasRootWorkspace()) {
     const apexDir = new TestRunner().getTempFolder(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
+      getRootWorkspacePath(),
       'apex'
     );
     return apexDir;
