@@ -9,10 +9,24 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { channelService } from '.';
 
 export const DEFAULT_SFDX_CHANNEL = vscode.window.createOutputChannel(
   nls.localize('channel_name')
 );
+
+const COLUMN_SEPARATOR = '  ';
+const COLUMN_FILLER = ' ';
+const HEADER_FILLER = '─';
+
+export interface TableRow {
+  [column: string]: string;
+}
+
+export interface TableColumn {
+  key: string;
+  label: string;
+}
 
 export class ChannelService {
   private readonly channel: vscode.OutputChannel;
@@ -85,6 +99,48 @@ export class ChannelService {
     });
   }
 
+  public outputTable(rows: TableRow[], cols: TableColumn[]) {
+    const maxColWidths = new Map<string, number>();
+    cols.forEach(col => {
+      maxColWidths.set(col.key, 0);
+      rows.forEach(row => {
+        const maxColWidth = maxColWidths.get(col.key);
+        const cell = row[col.key];
+        if (maxColWidth !== undefined) {
+          if (cell.length > maxColWidth) {
+            maxColWidths.set(col.key, cell.length);
+          }
+        } else {
+          // throw error
+        }
+      });
+    });
+
+    // TODO: Can improve loops
+    let columnHeader = '';
+    let headerSeparator = '';
+    cols.forEach(col => {
+      const width = maxColWidths.get(col.key);
+      if (width) {
+        columnHeader += fillColumn(col.label, width, COLUMN_FILLER) + COLUMN_SEPARATOR;
+        headerSeparator += fillColumn('', width, HEADER_FILLER) + COLUMN_SEPARATOR;
+      }
+    });
+    channelService.appendLine(columnHeader);
+    channelService.appendLine(headerSeparator);
+
+    rows.forEach(row => {
+      let outputRow = '';
+      cols.forEach(col => {
+        const width = maxColWidths.get(col.key);
+        if (width) {
+          outputRow += fillColumn(row[col.key], width, COLUMN_FILLER) + COLUMN_SEPARATOR;
+        }
+      });
+      channelService.appendLine(outputRow);
+    });
+  }
+
   private getExecutionTime() {
     const d = new Date();
     const hr = this.ensureDoubleDigits(d.getHours());
@@ -105,4 +161,12 @@ export class ChannelService {
   public appendLine(text: string) {
     this.channel.appendLine(text);
   }
+}
+
+function fillColumn(label: string, width: number, filler: string): string {
+  let filled = label;
+  for (let i = 0; i < width - label.length; i++) {
+    filled += filler;
+  }
+  return filled;
 }

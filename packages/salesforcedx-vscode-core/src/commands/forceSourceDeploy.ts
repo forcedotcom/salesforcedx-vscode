@@ -7,13 +7,24 @@
 
 import {
   CliCommandExecutor,
-  ForceDeployErrorParser
+  ForceDeployErrorParser,
+  ForceSourceDeployErrorResult
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { TableColumn, TableRow } from '../channels/channelService';
 import { handleDiagnosticErrors } from '../diagnostics';
+import { nls } from '../messages';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { SfdxCommandletExecutor } from './commands';
+
+interface DeployErrorRow {
+  filePath: string;
+  error: string;
+}
 
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   string
@@ -34,6 +45,9 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       cwd: workspacePath
     }).execute(cancellationToken);
 
+    channelService.streamCommandStartStop(execution);
+    channelService.showChannelOutput();
+
     let stdErr = '';
     execution.stderrSubject.subscribe(realData => {
       stdErr += realData.toString();
@@ -51,6 +65,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
             execFilePathOrPaths,
             ForceSourceDeployExecutor.errorCollection
           );
+          this.outputErrors(fileErrors);
         } catch (e) {
           telemetryService.sendError(
             'Error while creating diagnostics for vscode problem view.'
@@ -64,6 +79,20 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       }
     });
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
+    ProgressNotification.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+
+  private outputErrors(errorResult: ForceSourceDeployErrorResult) {
+    const cols: TableColumn[] = [
+      { key: 'filePath', label: nls.localize('table_header_project_path')},
+      { key: 'error', label: nls.localize('table_header_errors')}
+    ];
+    const rows: TableRow[] = errorResult.result.map(({ error, filePath }) => ({ error, filePath }));
+    channelService.outputTable(rows, cols);
   }
 }

@@ -223,5 +223,7 @@ export const messages = {
   missing_default_org: 'No Default Org Set',
   force_config_set_org_text: 'SFDX: Set a Default Org',
   error_parsing_sfdx_project_file:
-    "Couldn't parse sfdx-project.json file (%s). Parse error: %s"
+    "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
+  table_header_errors: 'ERRORS',
+  table_header_project_path: 'PROJECT PATH'
 };
