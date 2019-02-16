@@ -63,8 +63,7 @@
     "pretest": "cross-env CODE_VERSION='1.30.0' node ../../scripts/download-vscode-for-system-tests",
     "test": "npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "coverage": "node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "nyc": {
     "reporter": [
