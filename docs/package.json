@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prettier": "prettier --write --config \"./.prettierrc\" \"**/*.{yml,json,html,css,js,md}\""
+    "reformat": "node ../scripts/reformat-docs-with-prettier.js"
   },
   "author": "",
   "license": "ISC"

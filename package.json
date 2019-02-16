@@ -22,7 +22,6 @@
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
-    "prepush": "npm run lint",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test",
     "test:unit": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
     "test:integration": "lerna run test:integration --concurrency 1 --stream",
@@ -49,5 +48,10 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "node": "10.2.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lint && npm run reformat"
+    }
   }
 }
