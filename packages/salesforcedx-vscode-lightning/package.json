@@ -39,7 +39,7 @@
     "sinon": "^2.3.6",
     "typescript": "3.1.6",
     "vscode": "1.1.17",
-    "nyc": "^11.0.2"
+    "nyc": "^13"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"

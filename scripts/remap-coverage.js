@@ -15,7 +15,10 @@ const remapIstanbulExecutable = path.join(
 );
 
 const coverageParentFolder = path.join(
-  process.cwd(),
+  __dirname,
+  '..',
+  'packages',
+  'system-tests',
   'coverage'
 );
 
