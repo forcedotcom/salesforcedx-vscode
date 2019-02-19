@@ -92,7 +92,9 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       { key: 'filePath', label: nls.localize('table_header_project_path')},
       { key: 'error', label: nls.localize('table_header_errors')}
     ];
-    const rows: TableRow[] = errorResult.result.map(({ error, filePath }) => ({ error, filePath }));
+    const rows: TableRow[] = errorResult.result.map(({filePath, error}) => ({
+      filePath, error
+    }));
     channelService.outputTable(rows, cols);
   }
 }

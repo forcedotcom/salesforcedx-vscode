@@ -100,35 +100,19 @@ export class ChannelService {
   }
 
   public outputTable(rows: TableRow[], cols: TableColumn[]) {
-    const maxColWidths = new Map<string, number>();
-    cols.forEach(col => {
-      maxColWidths.set(col.key, 0);
-      rows.forEach(row => {
-        const maxColWidth = maxColWidths.get(col.key);
-        const cell = row[col.key];
-        if (maxColWidth !== undefined) {
-          if (cell.length > maxColWidth) {
-            maxColWidths.set(col.key, cell.length);
-          }
-        } else {
-          // throw error
-        }
-      });
-    });
+    const maxColWidths = this.calculateMaxColumnWidths(rows, cols);
 
-    // TODO: Can improve loops
     let columnHeader = '';
     let headerSeparator = '';
     cols.forEach(col => {
       const width = maxColWidths.get(col.key);
       if (width) {
-        columnHeader += fillColumn(col.label, width, COLUMN_FILLER) + COLUMN_SEPARATOR;
+        columnHeader += fillColumn(col.label || col.key, width, COLUMN_FILLER) + COLUMN_SEPARATOR;
         headerSeparator += fillColumn('', width, HEADER_FILLER) + COLUMN_SEPARATOR;
       }
     });
-    channelService.appendLine(columnHeader);
-    channelService.appendLine(headerSeparator);
 
+    let outputTable = `${columnHeader}\n${headerSeparator}\n`;
     rows.forEach(row => {
       let outputRow = '';
       cols.forEach(col => {
@@ -137,8 +121,35 @@ export class ChannelService {
           outputRow += fillColumn(row[col.key], width, COLUMN_FILLER) + COLUMN_SEPARATOR;
         }
       });
-      channelService.appendLine(outputRow);
+      outputTable += outputRow + '\n';
     });
+
+    channelService.appendLine(outputTable);
+  }
+
+  private calculateMaxColumnWidths(rows: TableRow[], cols: TableColumn[]) {
+    const maxColWidths = new Map<string, number>();
+    cols.forEach(col => {
+      rows.forEach(row => {
+        const cell = row[col.key];
+        if (cell === undefined) {
+          if (col.key === undefined) {
+            throw Error('Missing \'key\' attribute in column definition');
+          }
+          throw Error(`Row is missing the attribute ${col.key}`);
+        }
+
+        let maxColWidth = maxColWidths.get(col.key);
+        if (maxColWidth === undefined) {
+          maxColWidth = 0;
+          maxColWidths.set(col.key, maxColWidth);
+        }
+        if (cell.length > maxColWidth) {
+          maxColWidths.set(col.key, cell.length);
+        }
+      });
+    });
+    return maxColWidths;
   }
 
   private getExecutionTime() {
