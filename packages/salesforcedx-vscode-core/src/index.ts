@@ -460,7 +460,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Refresh SObject definitions if there aren't any faux classes
-  if (sfdxCoreSettings.getInitialSObjectRefreshOnStartup()) {
+  if (sfdxCoreSettings.getEnableSObjectRefreshOnStartup()) {
     initSObjectDefinitions(SfdxProjectPath.getPath()).catch(e =>
       telemetryService.sendErrorEvent(e.message, e.stack)
     );
