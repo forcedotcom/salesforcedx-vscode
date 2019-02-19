@@ -35,7 +35,7 @@ Dreamforce 2018 session on how to use Visual Studio Code and Salesforce Extensio
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
-If you are interested in building the extensions locally, please take a look at the publishing [doc](docs/publishing.md).
+If you are interested in building the extensions locally, please take a look at the publishing [doc](contributing/publishing.md).
 
 You can find more information about developing Salesforce Extensions for VS Code in the [docs](docs) folder. If the docs don’t cover what you are looking for, please feel free to open an issue.
 
