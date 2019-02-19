@@ -23,3 +23,5 @@ export const TELEMETRY_OPT_OUT_LINK =
   'https://github.com/forcedotcom/salesforcedx-vscode/wiki/Telemetry';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
+export const INITIAL_SOBJECT_REFRESH_ON_STARTUP =
+  'initial-sobject-refresh-on-startup.enabled';

@@ -604,6 +604,13 @@
           ],
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
+        },
+        "salesforcedx-vscode-core.initial-sobject-refresh-on-startup.enabled": {
+          "type": [
+            "boolean"
+          ],
+          "default": false,
+          "description": "%initial_sobject_refresh_on_startup_description%"
         }
       }
     },
