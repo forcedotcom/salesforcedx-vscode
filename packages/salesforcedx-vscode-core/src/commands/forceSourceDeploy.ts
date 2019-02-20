@@ -10,21 +10,20 @@ import {
   ForceDeployErrorParser,
   ForceSourceDeployErrorResult
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  Column,
+  Row,
+  Table
+} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { TableColumn, TableRow } from '../channels/channelService';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { SfdxCommandletExecutor } from './commands';
-
-interface DeployErrorRow {
-  filePath: string;
-  error: string;
-}
 
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   string
@@ -88,13 +87,14 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   }
 
   private outputErrors(errorResult: ForceSourceDeployErrorResult) {
-    const cols: TableColumn[] = [
-      { key: 'filePath', label: nls.localize('table_header_project_path')},
-      { key: 'error', label: nls.localize('table_header_errors')}
+    const cols: Column[] = [
+      { key: 'filePath', label: nls.localize('table_header_project_path') },
+      { key: 'error', label: nls.localize('table_header_errors') }
     ];
-    const rows: TableRow[] = errorResult.result.map(({filePath, error}) => ({
-      filePath, error
+    const rows: Row[] = errorResult.result.map(({ filePath, error }) => ({
+      filePath,
+      error
     }));
-    channelService.outputTable(rows, cols);
+    channelService.appendLine(new Table().createTable(rows, cols));
   }
 }

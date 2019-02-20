@@ -9,24 +9,10 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { channelService } from '.';
 
 export const DEFAULT_SFDX_CHANNEL = vscode.window.createOutputChannel(
   nls.localize('channel_name')
 );
-
-const COLUMN_SEPARATOR = '  ';
-const COLUMN_FILLER = ' ';
-const HEADER_FILLER = '─';
-
-export interface TableRow {
-  [column: string]: string;
-}
-
-export interface TableColumn {
-  key: string;
-  label: string;
-}
 
 export class ChannelService {
   private readonly channel: vscode.OutputChannel;
@@ -99,59 +85,6 @@ export class ChannelService {
     });
   }
 
-  public outputTable(rows: TableRow[], cols: TableColumn[]) {
-    const maxColWidths = this.calculateMaxColumnWidths(rows, cols);
-
-    let columnHeader = '';
-    let headerSeparator = '';
-    cols.forEach(col => {
-      const width = maxColWidths.get(col.key);
-      if (width) {
-        columnHeader += fillColumn(col.label || col.key, width, COLUMN_FILLER) + COLUMN_SEPARATOR;
-        headerSeparator += fillColumn('', width, HEADER_FILLER) + COLUMN_SEPARATOR;
-      }
-    });
-
-    let outputTable = `${columnHeader}\n${headerSeparator}\n`;
-    rows.forEach(row => {
-      let outputRow = '';
-      cols.forEach(col => {
-        const width = maxColWidths.get(col.key);
-        if (width) {
-          outputRow += fillColumn(row[col.key], width, COLUMN_FILLER) + COLUMN_SEPARATOR;
-        }
-      });
-      outputTable += outputRow + '\n';
-    });
-
-    channelService.appendLine(outputTable);
-  }
-
-  private calculateMaxColumnWidths(rows: TableRow[], cols: TableColumn[]) {
-    const maxColWidths = new Map<string, number>();
-    cols.forEach(col => {
-      rows.forEach(row => {
-        const cell = row[col.key];
-        if (cell === undefined) {
-          if (col.key === undefined) {
-            throw Error('Missing \'key\' attribute in column definition');
-          }
-          throw Error(`Row is missing the attribute ${col.key}`);
-        }
-
-        let maxColWidth = maxColWidths.get(col.key);
-        if (maxColWidth === undefined) {
-          maxColWidth = 0;
-          maxColWidths.set(col.key, maxColWidth);
-        }
-        if (cell.length > maxColWidth) {
-          maxColWidths.set(col.key, cell.length);
-        }
-      });
-    });
-    return maxColWidths;
-  }
-
   private getExecutionTime() {
     const d = new Date();
     const hr = this.ensureDoubleDigits(d.getHours());
@@ -172,12 +105,4 @@ export class ChannelService {
   public appendLine(text: string) {
     this.channel.appendLine(text);
   }
-}
-
-function fillColumn(label: string, width: number, filler: string): string {
-  let filled = label;
-  for (let i = 0; i < width - label.length; i++) {
-    filled += filler;
-  }
-  return filled;
 }
