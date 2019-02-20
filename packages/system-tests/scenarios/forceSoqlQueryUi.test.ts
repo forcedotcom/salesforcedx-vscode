@@ -6,7 +6,7 @@
  */
 
 // tslint:disable:no-unused-expression
-import * as util from '@salesforce/salesforcedx-utils-vscode/out/src/test/orgUtils';
+import * as util from '@salesforce/salesforcedx-test-utils-vscode/out/src/test/orgUtils';
 import { expect } from 'chai';
 import * as path from 'path';
 import { CommonActions } from '../src/areas/common';

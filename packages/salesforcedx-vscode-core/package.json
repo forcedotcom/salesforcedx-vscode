@@ -37,6 +37,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
+    "@salesforce/salesforcedx-test-utils-vscode": "45.2.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",

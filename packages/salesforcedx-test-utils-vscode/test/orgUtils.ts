@@ -9,7 +9,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { cp } from 'shelljs';
 import * as util from 'util';
-import { CliCommandExecutor, CommandOutput, SfdxCommandBuilder } from '../cli';
+import {
+  CliCommandExecutor,
+  CommandOutput,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 // Used only for CI purposes. Must call delete if you call create
 export async function createSFDXProject(projectName: string): Promise<void> {
