@@ -80,21 +80,11 @@ There are configurations already created for you at the top level
 
 ```json
 {
-<<<<<<< HEAD
-<<<<<<< HEAD:docs/tests.md
   "name": "Launch Salesforce DX VS Code Apex Vscode-Integration Tests",
-=======
-  "name": "Launch Salesforce DX VS Code Apex Tests",
->>>>>>> initial docs site:contributing/tests.md
-=======
-  "name": "Launch Salesforce DX VS Code Apex Vscode-Integration Tests",
->>>>>>> Port doc changes made in 'docs/tests.md' to 'contributing/tests.md' (#897)
   "type": "extensionHost",
   "request": "launch",
   "runtimeExecutable": "${execPath}",
   "args": [
-<<<<<<< HEAD
-<<<<<<< HEAD:docs/tests.md
     "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
     "--extensionDevelopmentPath=${workspaceRoot}/packages",
     "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test/vscode-integration"
@@ -102,22 +92,6 @@ There are configurations already created for you at the top level
   "stopOnEntry": false,
   "sourceMaps": true,
   "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
-=======
-    //<path-to-a-folder>
-=======
-    "${workspaceRoot}/packages/system-tests/assets/sfdx-simple",
->>>>>>> Port doc changes made in 'docs/tests.md' to 'contributing/tests.md' (#897)
-    "--extensionDevelopmentPath=${workspaceRoot}/packages",
-    "--extensionTestsPath=${workspaceRoot}/packages/salesforcedx-vscode-apex/out/test/vscode-integration"
-  ],
-  "stopOnEntry": false,
-  "sourceMaps": true,
-<<<<<<< HEAD
-  "outFiles": ["${workspaceRoot}/packages/*/out/test/**/*.js"],
->>>>>>> initial docs site:contributing/tests.md
-=======
-  "outFiles": ["${workspaceRoot}/packages/*/out/**/*.js"],
->>>>>>> Port doc changes made in 'docs/tests.md' to 'contributing/tests.md' (#897)
   "preLaunchTask": "Compile"
 }
 ```
@@ -126,24 +100,10 @@ The important args are:
 
 - The first, optional, parameter is a location to a folder that will serve as
   the workspace to run the tests. If you omit this, it just uses a clean
-  <<<<<<< HEAD
-  <<<<<<< HEAD:docs/tests.md
   workspace.
 - `--extensionDevelopmentPath` - This governs what extensions are loaded
 - `--extensionTestsPath` - This governs what tests are actually run. This must be an
   absolute path and cannot be a wildcard.
-  =======
-  workspace (which is usually what you want).
-- `--extensionDevelopmentPath` - This governs what extensions are loaded
-- `--extensionTestsPath` - This governs what tests are actually run. This seems
-  to be a specific folder so you cannot add a wildcard.
-  > > > > > > > # initial docs site:contributing/tests.md
-  > > > > > > >
-  > > > > > > > workspace.
-- `--extensionDevelopmentPath` - This governs what extensions are loaded
-- `--extensionTestsPath` - This governs what tests are actually run. This must be an
-  absolute path and cannot be a wildcard.
-  > > > > > > > Port doc changes made in 'docs/tests.md' to 'contributing/tests.md' (#897)
 
 ### Running through the CLI
 
@@ -166,11 +126,7 @@ There are some optional environment variables to configure the test runner:
 | `CODE_EXTENSIONS_PATH` | Location of the extensions to load (default is `proces.cwd()`)                                 |
 | `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance (default is CODE_TESTS_PATH)             |
 
-# <<<<<<< HEAD:docs/tests.md
-
 If you are running this from the top-level root folder, you can issue `npm run test:without-system-tests`.
-
-> > > > > > > initial docs site:contributing/tests.md
 
 See VS Code's doc
 [site](https://code.visualstudio.com/docs/extensions/testing-extensions#_running-tests-automatically-on-travis-ci-build-machines)
@@ -182,17 +138,10 @@ for the actual vscode/bin/test source.
 
 ### Running the tests against VS Code Insiders
 
-<<<<<<< HEAD
-<<<<<<< HEAD:docs/tests.md
-=======
-
-> > > > > > > Port doc changes made in 'docs/tests.md' to 'contributing/tests.md' (#897)
-> > > > > > > To test your extension with the upcoming version of VS Code, add another entry to your
-> > > > > > > package.json scripts to run your vscode-integration tests in VS Code - Insiders. The entry
-> > > > > > > should look like:
-> > > > > > > `"test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"`
-
-# <<<<<<< HEAD
+To test your extension with the upcoming version of VS Code, add another entry to your
+package.json scripts to run your vscode-integration tests in VS Code - Insiders. The entry
+should look like:
+`"test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"`
 
 There are tests that require integration with the Salesforce server. These tests
 require prior authentication to have occurred and a default devhub to be set.
@@ -216,10 +165,6 @@ require the scratch org and server.
 Modules that have separate unit & integration tests can provide top level launch
 configurations for running those tests as well. See the examples in launch.json
 for Apex Debugger configurations.
-
-> > > > > > > # initial docs site:contributing/tests.md
-> > > > > > >
-> > > > > > > Port doc changes made in 'docs/tests.md' to 'contributing/tests.md' (#897)
 
 ## Test Results
 
