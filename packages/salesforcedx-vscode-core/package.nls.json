@@ -60,5 +60,5 @@
   "force_source_delete_text": "SFDX: Delete from Project and Org",
   "force_source_delete_this_source_text": "SFDX: Delete This from Project and Org",
   "force_config_set_org_text": "SFDX: Set a Default Org",
-  "enable_sobject_refresh_on_startup_description": "If a project has no SObject definitions, specifies whether to automatically refresh SObject definitions on extension activation (true) or not (false)."
+  "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false)."
 }
