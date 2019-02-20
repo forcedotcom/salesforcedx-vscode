@@ -278,9 +278,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
       if (
         this.projectPath &&
         this.logContext.scanLogForHeapDumpLines() &&
-        !await this.logContext.fetchOverlayResultsForApexHeapDumps(
+        !(await this.logContext.fetchOverlayResultsForApexHeapDumps(
           this.projectPath
-        )
+        ))
       ) {
         response.message = nls.localize('heap_dump_error_wrap_up_text');
         this.errorToDebugConsole(nls.localize('heap_dump_error_wrap_up_text'));
@@ -543,8 +543,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
       const uri = this.convertClientPathToDebugger(args.source.path);
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
-        `setBreakPointsRequest: path=${args.source
-          .path} uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
+        `setBreakPointsRequest: path=${
+          args.source.path
+        } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(
           args.breakpoints
         )}`
       );
@@ -560,15 +561,16 @@ export class ApexReplayDebug extends LoggingDebugSession {
           line: bp.line
         });
         if (isVerified) {
-          this.breakpoints.get(uri)!.push(
-            this.convertClientLineToDebugger(bp.line)
-          );
+          this.breakpoints
+            .get(uri)!
+            .push(this.convertClientLineToDebugger(bp.line));
         }
       }
       this.log(
         TRACE_CATEGORY_BREAKPOINTS,
-        `setBreakPointsRequest: path=${args.source
-          .path} verified lines=${this.breakpoints.get(uri)!.join(',')}`
+        `setBreakPointsRequest: path=${
+          args.source.path
+        } verified lines=${this.breakpoints.get(uri)!.join(',')}`
       );
     }
     response.success = true;

@@ -64,8 +64,9 @@ export class SessionService {
         .withFlag('--sobjecttype', 'ApexDebuggerSession')
         .withFlag(
           '--values',
-          `UserIdFilter='${this.userFilter}' EntryPointFilter='${this
-            .entryFilter}' RequestTypeFilter='${this.requestFilter}'`
+          `UserIdFilter='${this.userFilter}' EntryPointFilter='${
+            this.entryFilter
+          }' RequestTypeFilter='${this.requestFilter}'`
         )
         .withArg('--usetoolingapi')
         .withJson()

@@ -11,7 +11,10 @@ import {
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
 import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
-import { Command, ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  Command,
+  ForceConfigGet
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';

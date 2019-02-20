@@ -80,7 +80,9 @@ if (isInsiders) {
 const executable =
   process.platform === 'darwin'
     ? darwinExecutable
-    : process.platform === 'win32' ? windowsExecutable : linuxExecutable;
+    : process.platform === 'win32'
+    ? windowsExecutable
+    : linuxExecutable;
 process.env.VSCODE_BINARY_PATH = executable;
 
 if (!fs.existsSync(executable) || !fs.statSync(executable).isFile) {

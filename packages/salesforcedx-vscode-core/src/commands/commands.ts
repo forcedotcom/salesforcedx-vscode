@@ -365,7 +365,10 @@ export abstract class SfdxCommandletExecutor<T>
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public logMetric(logName: string|undefined, executionTime: [number, number]) {
+  public logMetric(
+    logName: string | undefined,
+    executionTime: [number, number]
+  ) {
     telemetryService.sendCommandEvent(logName, executionTime);
   }
 

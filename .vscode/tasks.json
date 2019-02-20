@@ -39,8 +39,7 @@
         "owner": "typescript",
         "fileLocation": "relative",
         "pattern": {
-          "regexp":
-            "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "regexp": "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
           "file": 2,
           "line": 3,
           "severity": 5,

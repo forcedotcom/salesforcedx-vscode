@@ -1,9 +1,9 @@
 /*
-* Copyright (c) 2017, salesforce.com, inc.
-* All rights reserved.
-* Licensed under the BSD 3-Clause license.
-* For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-*/
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { EventEmitter } from 'events';
@@ -318,12 +318,14 @@ export class FauxClassGenerator {
   ): string {
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort((first: string, second: string): number => {
-      return FauxClassGenerator.fieldName(first) >
-      FauxClassGenerator.fieldName(second)
-        ? 1
-        : -1;
-    });
+    declarations.sort(
+      (first: string, second: string): number => {
+        return FauxClassGenerator.fieldName(first) >
+          FauxClassGenerator.fieldName(second)
+          ? 1
+          : -1;
+      }
+    );
 
     declarations = declarations.filter(
       (value: string, index: number, array: string[]): boolean => {

@@ -14,7 +14,9 @@ export async function setupGlobalDefaultUserIsvAuth() {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    const isvDebugProject = await isvUtil.setIsvDebuggerContext(vscode.workspace.workspaceFolders[0].uri.fsPath);
+    const isvDebugProject = await isvUtil.setIsvDebuggerContext(
+      vscode.workspace.workspaceFolders[0].uri.fsPath
+    );
 
     vscode.commands.executeCommand(
       'setContext',
@@ -22,7 +24,9 @@ export async function setupGlobalDefaultUserIsvAuth() {
       isvDebugProject
     );
 
-    const isvDebugMsg = isvDebugProject ? 'Configured ISV Project Authentication' : 'Project is not for ISV Debugger';
+    const isvDebugMsg = isvDebugProject
+      ? 'Configured ISV Project Authentication'
+      : 'Project is not for ISV Debugger';
     console.log(isvDebugMsg);
   }
 

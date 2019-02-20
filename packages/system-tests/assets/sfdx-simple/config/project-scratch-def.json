@@ -2,9 +2,7 @@
   "country": "US",
   "edition": "Developer",
   "orgPreferences": {
-    "enabled": [
-      "S1DesktopEnabled"
-    ],
+    "enabled": ["S1DesktopEnabled"],
     "disabled": []
   },
   "orgName": "Your Company",

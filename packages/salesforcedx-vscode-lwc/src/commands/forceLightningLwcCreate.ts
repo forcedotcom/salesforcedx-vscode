@@ -131,10 +131,7 @@ const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
 export async function forceLightningLwcCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectStrictDirPath(
-    explorerDir,
-    'lwc'
-  );
+  const outputDirGatherer = new SelectStrictDirPath(explorerDir, 'lwc');
   const parameterGatherer = new CompositeParametersGatherer(
     outputDirGatherer,
     fileNameGatherer

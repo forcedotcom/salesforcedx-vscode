@@ -159,8 +159,9 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
       .withFlag('--sobjecttype', 'DebugLevel')
       .withFlag(
         '--values',
-        `developername=${this.developerName} MasterLabel=${this
-          .developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
+        `developername=${this.developerName} MasterLabel=${
+          this.developerName
+        } apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
       .withArg('--usetoolingapi')
       .withJson()
@@ -183,8 +184,9 @@ export class CreateTraceFlag extends SfdxCommandletExecutor<{}> {
       .withFlag('--sobjecttype', 'TraceFlag')
       .withFlag(
         '--values',
-        `tracedentityid='${this
-          .userId}' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()} StartDate='' ExpirationDate='${developerLogTraceFlag
+        `tracedentityid='${
+          this.userId
+        }' logtype=developer_log debuglevelid=${developerLogTraceFlag.getDebugLevelId()} StartDate='' ExpirationDate='${developerLogTraceFlag
           .getExpirationDate()
           .toUTCString()}`
       )

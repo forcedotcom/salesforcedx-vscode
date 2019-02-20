@@ -63,7 +63,10 @@ export class GetQueryAndApiInputs
         query = document.getText(editor.selection);
       }
     }
-    query = query!.replace('[', '').replace(']', '').replace(/(\r\n|\n)/g, ' ');
+    query = query!
+      .replace('[', '')
+      .replace(']', '')
+      .replace(/(\r\n|\n)/g, ' ');
 
     if (!query) {
       return { type: 'CANCEL' };

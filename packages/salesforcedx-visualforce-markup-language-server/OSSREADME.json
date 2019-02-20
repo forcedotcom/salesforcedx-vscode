@@ -25,7 +25,6 @@
       "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
     ],
     "version": "2.0.10",
-    "repositoryURL":
-      "https://github.com/Microsoft/vscode-html-languageservice/commit/a607328b6c1532b87cfb2ba532f27b297465d7e4"
+    "repositoryURL": "https://github.com/Microsoft/vscode-html-languageservice/commit/a607328b6c1532b87cfb2ba532f27b297465d7e4"
   }
 ]

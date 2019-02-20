@@ -116,9 +116,11 @@ export function getLanguageModes(supportedLanguages: {
   [languageId: string]: boolean;
 }): LanguageModes {
   const htmlLanguageService = getHTMLLanguageService();
-  const documentRegions = getLanguageModelCache<
-    HTMLDocumentRegions
-  >(10, 60, document => getDocumentRegions(htmlLanguageService, document));
+  const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(
+    10,
+    60,
+    document => getDocumentRegions(htmlLanguageService, document)
+  );
 
   let modelCaches: Array<LanguageModelCache<any>> = [];
   modelCaches.push(documentRegions);

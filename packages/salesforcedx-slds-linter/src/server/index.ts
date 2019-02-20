@@ -30,15 +30,17 @@ documents.listen(connection);
 
 // After the server has started the client sends an initialize request. The server receives
 // in the passed params the rootPath of the workspace plus the client capabilities.
-connection.onInitialize((params): InitializeResult => {
-  return {
-    capabilities: {
-      // Tell the client that the server works in FULL text document sync mode
-      textDocumentSync: documents.syncKind,
-      codeActionProvider: true
-    }
-  };
-});
+connection.onInitialize(
+  (params): InitializeResult => {
+    return {
+      capabilities: {
+        // Tell the client that the server works in FULL text document sync mode
+        textDocumentSync: documents.syncKind,
+        codeActionProvider: true
+      }
+    };
+  }
+);
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.

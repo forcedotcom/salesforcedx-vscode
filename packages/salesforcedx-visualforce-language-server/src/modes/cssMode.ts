@@ -17,10 +17,10 @@ export function getCSSMode(
   documentRegions: LanguageModelCache<HTMLDocumentRegions>
 ): LanguageMode {
   const cssLanguageService = getCSSLanguageService();
-  const embeddedCSSDocuments = getLanguageModelCache<
-    TextDocument
-  >(10, 60, document =>
-    documentRegions.get(document).getEmbeddedDocument('css')
+  const embeddedCSSDocuments = getLanguageModelCache<TextDocument>(
+    10,
+    60,
+    document => documentRegions.get(document).getEmbeddedDocument('css')
   );
   const cssStylesheets = getLanguageModelCache<Stylesheet>(10, 60, document =>
     cssLanguageService.parseStylesheet(document)
