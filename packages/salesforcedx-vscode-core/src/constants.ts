@@ -20,7 +20,7 @@ export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const TELEMETRY_OPT_OUT_LINK =
-  'https://github.com/forcedotcom/salesforcedx-vscode/wiki/Telemetry';
+  'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
