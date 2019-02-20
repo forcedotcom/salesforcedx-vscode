@@ -10,11 +10,11 @@ shell.set('+v');
  * 1. The script is running locally - it's not optimized for Travis workflow
  *    yet.
  * 2. The script is running in the right branch (e.g., release/vxx.y.z)
- * 
- * Instructions: 
+ *
+ * Instructions:
  * Run this script with SALESFORCEDX_VSCODE_VERSION as an environment variable
  * i.e. SALESFORCEDX_VSCODE_VERSION=x.y.z ./scripts/publish.js
- * 
+ *
  */
 
 // Checks that you are running this with Node v8.9.0 and above
