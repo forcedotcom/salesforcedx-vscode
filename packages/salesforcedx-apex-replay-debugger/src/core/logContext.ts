@@ -320,9 +320,9 @@ export class LogContext {
     } catch (error) {
       success = false;
       const result = JSON.parse(error) as OrgInfoError;
-      const errorMessage = `${nls.localize(
-        'unable_to_retrieve_org_info'
-      )} : ${result.message}`;
+      const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
+        result.message
+      }`;
       this.session.errorToDebugConsole(errorMessage);
     }
     return success;

@@ -8,11 +8,7 @@
 import * as path from 'path';
 import { nls } from '../messages';
 
-import {
-  commands,
-  ExtensionContext,
-  window
-} from 'vscode';
+import { commands, ExtensionContext, window } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -82,16 +78,17 @@ export function createLanguageServer(
         })
         .then(success => {
           if (!success) {
-            window.showErrorMessage(
-              nls.localize('fix_error')
-            );
+            window.showErrorMessage(nls.localize('fix_error'));
           }
         });
     }
   }
 
   context.subscriptions.push(
-    commands.registerCommand('sfdx.force.lightning.slds.fix.deprecated.class', applyTextEdit)
+    commands.registerCommand(
+      'sfdx.force.lightning.slds.fix.deprecated.class',
+      applyTextEdit
+    )
   );
 
   return client;

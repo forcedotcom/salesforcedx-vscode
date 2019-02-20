@@ -25,7 +25,7 @@ export async function registerPushOrDeployOnSave() {
       async (textDocument: vscode.TextDocument) => {
         if (
           sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-          !await ignorePath(textDocument.uri)
+          !(await ignorePath(textDocument.uri))
         ) {
           savedFiles.add(textDocument.uri);
           clearTimeout(savedFilesTimeout);
@@ -75,7 +75,7 @@ function displayError(message: string) {
 }
 
 async function ignorePath(uri: vscode.Uri) {
-  return isDotFile(uri) || !await pathIsInPackageDirectory(uri);
+  return isDotFile(uri) || !(await pathIsInPackageDirectory(uri));
 }
 
 export async function pathIsInPackageDirectory(

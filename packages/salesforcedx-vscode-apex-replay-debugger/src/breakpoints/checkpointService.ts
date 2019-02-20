@@ -253,8 +253,9 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             VSCodeWindowTypeEnum.Error
           );
         } else {
-          const errorMessage = `${result[0]
-            .message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+          const errorMessage = `${
+            result[0].message
+          }. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
           writeToDebuggerOutputWindow(
             errorMessage,
             true,
@@ -865,9 +866,9 @@ export async function sfdxCreateCheckpoints() {
           for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
             if (cpNode.isCheckpointEnabled()) {
               if (
-                !await checkpointService.executeCreateApexExecutionOverlayActionCommand(
+                !(await checkpointService.executeCreateApexExecutionOverlayActionCommand(
                   cpNode
-                )
+                ))
               ) {
                 updateError = true;
               }

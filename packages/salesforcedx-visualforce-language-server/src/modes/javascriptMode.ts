@@ -118,15 +118,15 @@ export function getJavascriptMode(
       const semanticDiagnostics = jsLanguageService.getSemanticDiagnostics(
         FILE_NAME
       );
-      return syntaxDiagnostics
-        .concat(semanticDiagnostics)
-        .map((diag): Diagnostic => {
+      return syntaxDiagnostics.concat(semanticDiagnostics).map(
+        (diag): Diagnostic => {
           return {
             range: convertRange(currentTextDocument, diag),
             severity: DiagnosticSeverity.Error,
             message: ts.flattenDiagnosticMessageText(diag.messageText, '\n')
           };
-        });
+        }
+      );
     },
     doComplete(document: TextDocument, position: Position): CompletionList {
       updateCurrentTextDocument(document);
@@ -303,12 +303,14 @@ export function getJavascriptMode(
         currentTextDocument.offsetAt(position)
       );
       if (definition) {
-        return definition.filter(d => d.fileName === FILE_NAME).map(d => {
-          return {
-            uri: document.uri,
-            range: convertRange(currentTextDocument, d.textSpan)
-          };
-        });
+        return definition
+          .filter(d => d.fileName === FILE_NAME)
+          .map(d => {
+            return {
+              uri: document.uri,
+              range: convertRange(currentTextDocument, d.textSpan)
+            };
+          });
       }
       return null;
     },
@@ -319,12 +321,14 @@ export function getJavascriptMode(
         currentTextDocument.offsetAt(position)
       );
       if (references) {
-        return references.filter(d => d.fileName === FILE_NAME).map(d => {
-          return {
-            uri: document.uri,
-            range: convertRange(currentTextDocument, d.textSpan)
-          };
-        });
+        return references
+          .filter(d => d.fileName === FILE_NAME)
+          .map(d => {
+            return {
+              uri: document.uri,
+              range: convertRange(currentTextDocument, d.textSpan)
+            };
+          });
       }
       return null;
     },
