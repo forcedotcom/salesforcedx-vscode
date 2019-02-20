@@ -2,10 +2,12 @@
   "name": "@salesforce/salesforcedx-slds-linter",
   "displayName": "SFDX SLDS Linting for VS Code",
   "description": "Provides linting for deprecated SLDS class names",
-  "version": "45.1.0",
+  "version": "45.2.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "engines": {
     "vscode": "^1.26.0"
   },
@@ -37,16 +39,17 @@
     "clean": "shx rm -rf node_modules",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
-    "test:vscode-integration":
-      "node ../../scripts/run-vscode-integration-tests",
-    "test:vscode-insiders-integration":
-      "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests",
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "nyc": {
-    "reporter": ["text-summary", "lcov"]
+    "reporter": [
+      "text-summary",
+      "lcov"
+    ]
   },
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "45.1.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.2.0",
     "vscode-languageclient": "3.5.1",
     "vscode-languageserver": "3.5.1"
   }

@@ -8,7 +8,7 @@
       >
     </div>
     <div class="site-logo">
-      <a href="/"
+      <a href="{{ site.baseurl }}"
         ><span class="site-logo__graphic"
           ><span class="slds-assistive-text">Salesforce</span> </span
         >Salesforce Extensions for Visual Studio Code</a
@@ -73,7 +73,10 @@
                   style="transform: rotate(90deg);"
                 >
                   <use
-                    xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#right"
+                    xlink:href="{{
+                      '/assets/icons/utility-sprite/svg/symbols.svg#right'
+                        | prepend: site.baseurl
+                    }}"
                   ></use>
                 </svg>
               </span>
@@ -85,7 +88,7 @@
             <li
               class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
             >
-              <a href="{{ entry.url }}">
+              <a href="{{ entry.url | prepend: site.baseurl }}">
                 <span class="slds-media slds-media--center">
                   <span class="slds-media__body">{{ entry.title }}</span>
                 </span>
@@ -99,7 +102,7 @@
         <li
           class="list__item {% if page_url == item_url %}slds-is-selected slds-is-active{% endif %}"
         >
-          <a href="{{ item.url | append: '/' }}" data-href="{{ page_url }}">
+          <a href="{{ item.url | prepend: site.baseurl }}">
             <span class="slds-media slds-media--center">
               <span class="slds-media__body">{{ item.title }}</span>
             </span>
@@ -107,7 +110,7 @@
         </li>
         {% else %}
         <li class="list__item">
-          <a href="{{ item.children.first.url }}">
+          <a href="{{ item.children.first.url | prepend: site.baseurl }}">
             <span class="slds-media slds-media--center">
               <span class="slds-media__body">{{ item.title }}</span>
             </span>
@@ -116,12 +119,12 @@
             class="slds-list_vertical slds-has-block-links slds-is-nested"
             style="display: none;"
           >
-            {% for entry in item.children %} {% assign entry_url =
-            entry.url|append:'/' %}
+            {% for entry in item.children %} {% assign entry_url = entry.url |
+            append:'/' %}
             <li
               class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
             >
-              <a href="{{ entry.url }}">
+              <a href="{{ entry.url | prepend: site.baseurl }}">
                 <span class="slds-media slds-media--center">
                   <span class="slds-media__body">{{ entry.title }}</span>
                 </span>
@@ -140,15 +143,8 @@
 <script src="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.js"></script>
 <script>
   docsearch({
-    // Your apiKey and indexName will be given to you once
-    // we create your config
-    appId: 'OCB7PNN0I4',
-    apiKey: '03f529d210751a01674a8180f1fffed6',
-    indexName: 'localhost',
-    // Replace inputSelector with a CSS selector
-    // matching your search input
-    inputSelector: '#search-landing-nav',
-    // Set debug to true if you want to inspect the dropdown
-    debug: true
+    apiKey: '354d0738c025be4feb1208d80033ecfc',
+    indexName: 'salesforce_vscode',
+    inputSelector: '#search-landing-nav'
   });
 </script>

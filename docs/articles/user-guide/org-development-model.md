@@ -6,7 +6,7 @@ When you employ the org development model, you track your changes manually and d
 
 This article describes how to work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in Visual Studio Code.
 
-![Demo](/images/changeset-demo.gif)
+![Demo](/salesforcedx-vscode/images/changeset-demo.gif)
 
 > NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
 
@@ -14,11 +14,11 @@ This article describes how to work with orgs that don’t have source tracking, 
 
 First, open VS Code and create a project. To create a project with a manifest, open the command palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS) and run **SFDX: Create Project with Manifest**.
 
-![Create project](/images/create-project-with-manifest.png)
+![Create project](/salesforcedx-vscode/images/create-project-with-manifest.png)
 
 Next, authorize the org you want to develop against. To start the login process, open the command palette and run **SFDX: Authorize an Org**.
 
-![Authorize an Org](/images/authorize-org-command.png)
+![Authorize an Org](/salesforcedx-vscode/images/authorize-org-command.png)
 
 After you select a login URL and give your project a name, your browser opens and you can log in to your org. After you finish logging in, close the browser and return to VS Code.
 
@@ -54,7 +54,7 @@ After you authorize an org, retrieve your source from it. After you make changes
 
 > CAUTION: Retrieving source from an org overwrites the local versions of the source files.
 
-![Retrieve source from org](/images/retrieve-source-from-org.png)
+![Retrieve source from org](/salesforcedx-vscode/images/retrieve-source-from-org.png)
 
 To retrieve source from an org without source tracking (from an org that’s not a scratch org), you can:
 
@@ -69,7 +69,7 @@ After you make code changes, deploy these changes to your org.
 
 > CAUTION: Deploying source to an org overwrites the metadata in your org with the local versions of the source files.
 
-![Deploy source to org](/images/deploy-source-to-org.png)
+![Deploy source to org](/salesforcedx-vscode/images/deploy-source-to-org.png)
 
 To deploy source to an org without source tracking (to an org that’s not a scratch org), you can:
 
