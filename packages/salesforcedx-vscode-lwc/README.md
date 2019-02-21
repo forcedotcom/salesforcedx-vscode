@@ -2,41 +2,12 @@
 
 This extension provides code-editing features for the Lightning Web Components programming model, which is part of the Lightning Component framework. It uses the default HTML language server from VS Code to provide syntax highlighting, code completion, an outline view of your files, and a Salesforce Lightning Design System (SLDS) linter.
 
-**Currently, this extension is not included in the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode).**
+**DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
-## Prerequisites
-
-Before you set up this extension
-
-- Make sure that you have [Visual Studio Code](https://code.visualstudio.com/download) v1.26 or later and the other prerequisites for the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode).
-
-- Install the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) to get the extensions that this one depends on.
 
 ## Documentation
 
-- Notification of HTML and JavaScript file errors or compiler warnings
-
-- ESLint configuration for Lightning web components
-
-  - See errors and warnings appear in JavaScript files
-  - Hover over code to display warning messages
-  - Click the displayed message for available code actions
-
-- Auto-completion for resources in JavaScript files
-
-  - Static resources
-  - Custom label imports
-  - Lightning web components imports from the core `lwc` module
-
-- Auto-completion for resources in HTML files
-
-  - Tags and attributes for standard `lightning` namespace Lightning web components
-  - Tags and attributes for custom `c` namespace Lightning web components
-  - Lightning web components directives in related HTML files
-
-- Help documentation when you hover over standard `lightning` namespace Lightning web components or attributes
-
-- Click navigation from HTML files to the main JavaScript file for custom `c` namespace Lightning web components and attributes
+For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://forcedotcom.github.io/salesforcedx-vscode) documentation site.
 
 ## Bugs and Feedback
 
