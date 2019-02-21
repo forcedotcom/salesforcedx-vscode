@@ -24,9 +24,9 @@ After you select a login URL and give your project a name, your browser opens an
 
 ## The Manifest (`package.xml`) File
 
-If you are connected to a sandbox, DE org, or Trailhead Playground, the easiest way to retrieve all the metadata you want to work with from your org is by using a `package.xml` file. If you don’t already have one, update the provided file, or create a `package.xml` file in the `manifests` directory.
+If you are connected to a sandbox, DE org, or Trailhead Playground, the easiest way to retrieve all the metadata you want to work with from your org is by using a `package.xml` file. If you don’t already have one, update the provided file, or create a `package.xml` file in the `manifest` directory.
 
-Add the various metadata types you want to retrieve to this file. For information about the `package.xml` file, see in [Sample package.xml Manifest Files](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm) in the _Metadata API Developer Guide_.
+Add the various metadata types you want to retrieve to this file. For information about the `package.xml` file, see [Sample package.xml Manifest Files](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm) in the _Metadata API Developer Guide_.
 
 After you [retrieve your source](#retrieve-source), your project structure looks something like this.
 
@@ -44,7 +44,7 @@ your-app
 |           ├── aura
 |           ├── classes
 |           └── objects
-└── manifests
+└── manifest
     └── package.xml
 ```
 
