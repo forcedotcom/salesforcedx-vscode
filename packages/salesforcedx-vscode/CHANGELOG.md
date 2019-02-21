@@ -1,4 +1,67 @@
-## 44.17.0 - January 24, 2018
+## 45.2.0 - February 14, 2019
+
+### Added
+
+#### salesforcedx-vscode
+
+- Replace the project’s wiki and the docs on the extensions’ Visual Studio Marketplace pages with a new [GitHub Pages site](https://forcedotcom.github.io/salesforcedx-vscode) ([PR #853](https://github.com/forcedotcom/salesforcedx-vscode/pull/853))
+
+#### salesforcedx-vscode-apex
+
+- Update standard Apex symbols to API v45.0 ([PR #1037](https://github.com/forcedotcom/salesforcedx-vscode/pull/1037))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Prevent using Apex Refactor: Rename on `System` symbols ([PR #1037](https://github.com/forcedotcom/salesforcedx-vscode/pull/1037))
+
+## 45.1.0 - February 9, 2019
+
+### Added
+
+#### salesforcedx-vscode
+
+- Include LWC extension in Salesforce Extension Pack ([PR #1015](https://github.com/forcedotcom/salesforcedx-vscode/pull/1015))
+
+#### salesforcedx-vscode-apex
+
+- Apex Refactor: Rename is generally available ([PR #984](https://github.com/forcedotcom/salesforcedx-vscode/pull/984), [PR #980](https://github.com/forcedotcom/salesforcedx-vscode/pull/980))
+
+#### salesforcedx-vscode-core
+
+- Change your default org from the VS Code footer ([PR #890](https://github.com/forcedotcom/salesforcedx-vscode/pull/890), [Issue #944](https://github.com/forcedotcom/salesforcedx-vscode/issues/944))
+- Automatically refresh sObject definitions on extension activation ([PR #986](https://github.com/forcedotcom/salesforcedx-vscode/pull/986))
+- Include execution time in command execution telemetry ([PR #989](https://github.com/forcedotcom/salesforcedx-vscode/pull/989))
+- Add syntax highlighting for Einstein Analytics and IoT files ([PR #1003](https://github.com/forcedotcom/salesforcedx-vscode/pull/1003), [Issue #1002](https://github.com/forcedotcom/salesforcedx-vscode/issues/1002))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Update test run icon in Apex Tests sidebar to be consistent with official VS Code icons ([PR #988](https://github.com/forcedotcom/salesforcedx-vscode/pull/988))
+- Prevent Apex Language Server from running in anonymous Apex (`.apex`) files ([PR #1001](https://github.com/forcedotcom/salesforcedx-vscode/pull/1001), [Issue #929](https://github.com/forcedotcom/salesforcedx-vscode/issues/929))
+- Fix Apex rename and codelens exceptions and update rename error messages ([PR #1014](https://github.com/forcedotcom/salesforcedx-vscode/pull/1014))
+
+#### salesforcedx-vscode-core
+
+- Speed up extension activation time ([PR #889](https://github.com/forcedotcom/salesforcedx-vscode/pull/889))
+- Make push-or-deploy-on-save feature respect new `packageDirectories` values added to `sfdx-project.json` ([PR #987](https://github.com/forcedotcom/salesforcedx-vscode/pull/987))
+- Keep errors in Problems view until next deployment ([PR #1016](https://github.com/forcedotcom/salesforcedx-vscode/pull/1016))
+
+## 44.18.0 - January 31, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Make push-or-deploy-on-save feature less overzealous, by pushing or deploying files only when they are saved ([PR #895](https://github.com/forcedotcom/salesforcedx-vscode/pull/895), [Issue #883](https://github.com/forcedotcom/salesforcedx-vscode/issues/883))
+
+#### salesforcedx-vscode-apex
+
+- Fix Apex Language Server to make it update stale references in files that have errors when the files are edited ([PR #905](https://github.com/forcedotcom/salesforcedx-vscode/pull/905))
+
+## 44.17.0 - January 24, 2019
 
 ### Fixed
 

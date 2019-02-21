@@ -24,6 +24,7 @@ const EmptyParametersGatherer = sfdxCoreExports.EmptyParametersGatherer;
 const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 const channelService = sfdxCoreExports.channelService;
+const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 export class ApexTestRunner {
   private testOutline: ApexTestOutlineProvider;
   private eventsEmitter: events.EventEmitter;
@@ -106,26 +107,17 @@ export class ApexTestRunner {
     }
   }
 
-  public async runTestOrTestClass(test: TestNode) {
-    const tmpFolder = this.getTempFolder();
-    const builder = new ReadableApexTestRunExecutor(
-      [test.name],
-      false,
-      tmpFolder
-    );
-    const commandlet = new SfdxCommandlet(
-      new SfdxWorkspaceChecker(),
-      new EmptyParametersGatherer(),
-      builder
-    );
-    await commandlet.run();
+  public async runAllApexTests(): Promise<void> {
+    const tests = Array.from(this.testOutline.testStrings.values());
+    await this.runApexTests(tests);
   }
 
-  public async runApexTests(): Promise<void> {
+  public async runApexTests(tests: string[]) {
     const tmpFolder = this.getTempFolder();
+    const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
     const builder = new ReadableApexTestRunExecutor(
-      Array.from(this.testOutline.testStrings.values()),
-      false,
+      tests,
+      getCodeCoverage,
       tmpFolder
     );
     const commandlet = new SfdxCommandlet(

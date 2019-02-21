@@ -34,10 +34,9 @@ describe('Frame entry event', () => {
   beforeEach(() => {
     map = new Map<string, Map<string, ApexVariable>>();
     map.set('previousClass', new Map<string, ApexVariable>());
-    map.get('previousClass')!.set(
-      'var1',
-      new ApexVariable('var1', '0', 'Integer')
-    );
+    map
+      .get('previousClass')!
+      .set('var1', new ApexVariable('var1', '0', 'Integer'));
     getUriFromSignatureStub = sinon
       .stub(LogContext.prototype, 'getUriFromSignature')
       .returns(uriFromSignature);

@@ -49,8 +49,9 @@ export class ApexHeapDump {
   }
   /* tslint:disable */
   public toString = (): string => {
-    return `HeapDumpId: ${this.heapDumpId}, ClassName: ${this
-      .className}, Namespace: ${this.namespace}, Line: ${this.line}`;
+    return `HeapDumpId: ${this.heapDumpId}, ClassName: ${
+      this.className
+    }, Namespace: ${this.namespace}, Line: ${this.line}`;
   }; /* This semi-colon is the reason for the tslint, formatting keeps adding it */
   /* tslint:enable */
 }

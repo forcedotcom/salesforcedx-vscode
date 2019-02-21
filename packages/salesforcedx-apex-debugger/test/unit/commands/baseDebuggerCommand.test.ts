@@ -8,7 +8,7 @@
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-utils-vscode/out/src/constants';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/index';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';

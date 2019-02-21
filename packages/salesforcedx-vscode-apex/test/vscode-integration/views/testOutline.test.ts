@@ -9,7 +9,7 @@
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
-import { SinonStub, stub } from 'sinon';
+import { SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
@@ -17,8 +17,7 @@ import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
   ApexTestNode,
-  ApexTestOutlineProvider,
-  TestNode
+  ApexTestOutlineProvider
 } from '../../../src/views/testOutlineProvider';
 import { ApexTestRunner } from '../../../src/views/testRunner';
 import {
@@ -37,7 +36,7 @@ describe('TestView', () => {
   for (let i = 0; i < 8; i++) {
     const methodName = 'test' + i;
     const definingType = 'file' + Math.floor(i / 2); // Parent is either file1, file2, file3, or file4
-    const line = i / 2 * 4 + 3;
+    const line = (i / 2) * 4 + 3;
     const startPos = new vscode.Position(line, 0);
     const endPos = new vscode.Position(line, 5);
     const file = '/bogus/path/to/' + definingType + '.cls';
@@ -53,6 +52,41 @@ describe('TestView', () => {
     };
     apexTestInfo.push(testInfo);
   }
+
+  describe('Code Coverage', () => {
+    const coreExports = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-core'
+    )!.exports;
+    let commandletSpy: SinonSpy;
+    let getCoverageStub: SinonStub;
+
+    beforeEach(() => {
+      commandletSpy = spy(coreExports.SfdxCommandlet.prototype, 'run');
+      getCoverageStub = stub(
+        coreExports.sfdxCoreSettings,
+        'getRetrieveTestCodeCoverage'
+      );
+    });
+
+    afterEach(() => {
+      commandletSpy.restore();
+      getCoverageStub.restore();
+    });
+
+    it('Should honor code coverage setting', async () => {
+      const testRunner = new ApexTestRunner(testOutline);
+      getCoverageStub.onFirstCall().returns(true);
+      getCoverageStub.onSecondCall().returns(false);
+
+      await testRunner.runApexTests(['MyTestTrue']);
+      let { executor } = commandletSpy.getCall(0).thisValue;
+      expect(executor.shouldGetCodeCoverage).to.be.true;
+
+      await testRunner.runApexTests(['MyTestFalse']);
+      executor = commandletSpy.getCall(1).thisValue.executor;
+      expect(executor.shouldGetCodeCoverage).to.be.false;
+    });
+  });
 
   describe('Get Tests and Create Tree', () => {
     it('Should add no tests', () => {

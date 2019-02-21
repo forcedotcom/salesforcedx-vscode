@@ -88,6 +88,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
   }
 
   public async execute(response: ContinueResponse<{}>): Promise<void> {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -96,7 +97,9 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     }).execute(cancellationToken);
 
     const resultPromise = new CommandOutput().getCmdResult(execution);
-    this.logMetric(execution.command.logName);
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     ProgressNotification.show(execution, cancellationTokenSource);

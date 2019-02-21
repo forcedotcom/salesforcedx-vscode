@@ -5,6 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { SfdxProjectJsonParser } from './sfdxProjectJsonParser';
 export { OrgAuthInfo } from './authInfo';
 export { getRootWorkspace, getRootWorkspaceFsPath, getRootWorkspacePath, hasRootWorkspace } from './rootWorkspace';

@@ -366,19 +366,25 @@ export abstract class SfdxCommandletExecutor<T>
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public logMetric(logName?: string) {
-    telemetryService.sendCommandEvent(logName);
+  public logMetric(
+    logName: string | undefined,
+    executionTime: [number, number]
+  ) {
+    telemetryService.sendCommandEvent(logName, executionTime);
   }
 
   public execute(response: ContinueResponse<T>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    this.logMetric(execution.command.logName);
   }
 
   public abstract build(data: T): Command;

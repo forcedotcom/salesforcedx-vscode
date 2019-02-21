@@ -1,0 +1,11 @@
+{
+  "name": "docs",
+  "version": "45.2.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "reformat": "node ../scripts/reformat-docs-with-prettier.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
