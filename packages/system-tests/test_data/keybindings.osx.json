@@ -460,26 +460,22 @@
   {
     "key": "shift+alt+f",
     "command": "editor.action.formatDocument",
-    "when":
-      "editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly"
+    "when": "editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly"
   },
   {
     "key": "cmd+k cmd+f",
     "command": "editor.action.formatSelection",
-    "when":
-      "editorHasDocumentSelectionFormattingProvider && editorHasSelection && editorTextFocus && !editorReadonly"
+    "when": "editorHasDocumentSelectionFormattingProvider && editorHasSelection && editorTextFocus && !editorReadonly"
   },
   {
     "key": "f12",
     "command": "editor.action.goToDeclaration",
-    "when":
-      "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
   },
   {
     "key": "cmd+f12",
     "command": "editor.action.goToImplementation",
-    "when":
-      "editorHasImplementationProvider && editorTextFocus && !isInEmbeddedEditor"
+    "when": "editorHasImplementationProvider && editorTextFocus && !isInEmbeddedEditor"
   },
   {
     "key": "shift+cmd+.",
@@ -574,8 +570,7 @@
   {
     "key": "cmd+k f12",
     "command": "editor.action.openDeclarationToTheSide",
-    "when":
-      "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+    "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
   },
   {
     "key": "cmd+[",
@@ -585,14 +580,12 @@
   {
     "key": "shift+cmd+f12",
     "command": "editor.action.peekImplementation",
-    "when":
-      "editorHasImplementationProvider && editorTextFocus && !isInEmbeddedEditor"
+    "when": "editorHasImplementationProvider && editorTextFocus && !isInEmbeddedEditor"
   },
   {
     "key": "alt+f12",
     "command": "editor.action.previewDeclaration",
-    "when":
-      "editorHasDefinitionProvider && editorTextFocus && !inReferenceSearchEditor && !isInEmbeddedEditor"
+    "when": "editorHasDefinitionProvider && editorTextFocus && !inReferenceSearchEditor && !isInEmbeddedEditor"
   },
   {
     "key": "shift+f3",
@@ -617,8 +610,7 @@
   {
     "key": "shift+f12",
     "command": "editor.action.referenceSearch.trigger",
-    "when":
-      "editorHasReferenceProvider && editorTextFocus && !inReferenceSearchEditor && !isInEmbeddedEditor"
+    "when": "editorHasReferenceProvider && editorTextFocus && !inReferenceSearchEditor && !isInEmbeddedEditor"
   },
   {
     "key": "cmd+k cmd+u",
@@ -676,8 +668,7 @@
   {
     "key": "ctrl+space",
     "command": "editor.action.triggerSuggest",
-    "when":
-      "editorHasCompletionItemProvider && editorTextFocus && !editorReadonly"
+    "when": "editorHasCompletionItemProvider && editorTextFocus && !editorReadonly"
   },
   {
     "key": "cmd+k cmd+x",
@@ -722,8 +713,7 @@
   {
     "key": "tab",
     "command": "editor.emmet.action.expandAbbreviation",
-    "when":
-      "config.emmet.triggerExpansionOnTab && editorTextFocus && !editorReadonly && !editorTabMovesFocus"
+    "when": "config.emmet.triggerExpansionOnTab && editorTextFocus && !editorReadonly && !editorTabMovesFocus"
   },
   {
     "key": "alt+cmd+[",
@@ -803,8 +793,7 @@
   {
     "key": "tab",
     "command": "insertSnippet",
-    "when":
-      "config.editor.tabCompletion && editorTextFocus && hasSnippetCompletions && !editorTabMovesFocus && !inSnippetMode"
+    "when": "config.editor.tabCompletion && editorTextFocus && hasSnippetCompletions && !editorTabMovesFocus && !inSnippetMode"
   },
   {
     "key": "enter",
@@ -959,38 +948,32 @@
   {
     "key": "ctrl+n",
     "command": "showNextParameterHint",
-    "when":
-      "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+    "when": "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
   },
   {
     "key": "alt+down",
     "command": "showNextParameterHint",
-    "when":
-      "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+    "when": "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
   },
   {
     "key": "down",
     "command": "showNextParameterHint",
-    "when":
-      "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+    "when": "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
   },
   {
     "key": "ctrl+p",
     "command": "showPrevParameterHint",
-    "when":
-      "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+    "when": "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
   },
   {
     "key": "alt+up",
     "command": "showPrevParameterHint",
-    "when":
-      "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+    "when": "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
   },
   {
     "key": "up",
     "command": "showPrevParameterHint",
-    "when":
-      "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+    "when": "editorTextFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
   },
   {
     "key": "tab",
@@ -1000,8 +983,7 @@
   {
     "key": "enter",
     "command": "acceptSelectedSuggestionOnEnter",
-    "when":
-      "acceptSuggestionOnEnter && editorTextFocus && suggestWidgetVisible && suggestionMakesTextEdit"
+    "when": "acceptSuggestionOnEnter && editorTextFocus && suggestWidgetVisible && suggestionMakesTextEdit"
   },
   {
     "key": "shift+escape",
@@ -1016,62 +998,52 @@
   {
     "key": "cmd+pagedown",
     "command": "selectNextPageSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "pagedown",
     "command": "selectNextPageSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "ctrl+n",
     "command": "selectNextSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "cmd+down",
     "command": "selectNextSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "down",
     "command": "selectNextSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "cmd+pageup",
     "command": "selectPrevPageSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "pageup",
     "command": "selectPrevPageSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "ctrl+p",
     "command": "selectPrevSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "cmd+up",
     "command": "selectPrevSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "up",
     "command": "selectPrevSuggestion",
-    "when":
-      "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
+    "when": "editorTextFocus && suggestWidgetMultipleSuggestions && suggestWidgetVisible"
   },
   {
     "key": "ctrl+space",

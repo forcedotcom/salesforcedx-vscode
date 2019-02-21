@@ -158,8 +158,9 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         }
       );
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0]
-          .fsPath}`
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
+          PROJECT_DIR[0].fsPath
+        }`
       );
       expect(createCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_step1_create_project')
@@ -230,7 +231,11 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectUri: PROJECT_DIR[0].fsPath
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --unpackaged ${builder.relativeApexPackageXmlPath} --targetusername ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve --retrievetargetdir ${
+          builder.relativeMetdataTempPath
+        } --unpackaged ${
+          builder.relativeApexPackageXmlPath
+        } --targetusername ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
@@ -288,7 +293,9 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageNames
       );
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --packagenames mypackage_abc,mpackage_def --targetusername ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve --retrievetargetdir ${
+          builder.relativeMetdataTempPath
+        } --packagenames mypackage_abc,mpackage_def --targetusername ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')

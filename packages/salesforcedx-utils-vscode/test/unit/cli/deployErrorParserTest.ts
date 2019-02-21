@@ -83,9 +83,11 @@ describe('force:source:deploy parser', () => {
 
     const errParser = new ForceDeployErrorParser();
     const errs = errParser.parse(
-      `sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/manifest/package.xml ${require('os')
-        .EOL} ${JSON.stringify(deployErrorResult)} ${require('os')
-        .EOL} sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/project/manifest/package.xml ended with exit code 1`
+      `sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/manifest/package.xml ${
+        require('os').EOL
+      } ${JSON.stringify(deployErrorResult)} ${
+        require('os').EOL
+      } sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/project/manifest/package.xml ended with exit code 1`
     );
 
     expect(errs.message).to.be.equals(deployErrorResult.message);
