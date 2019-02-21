@@ -228,5 +228,5 @@ export const messages = {
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
   table_header_full_name: 'FULL NAME',
-  table_header_project_state: 'STATE'
+  table_header_state: 'STATE'
 };

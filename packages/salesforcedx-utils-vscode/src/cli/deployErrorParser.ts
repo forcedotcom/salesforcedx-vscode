@@ -33,11 +33,11 @@ export interface ForceSourceDeployErrorResult {
 export interface ForceSourceDeploySuccessResult {
   status: number;
   result: {
-    deployedSource: DeploySuccess[]
+    deployedSource: DeploySuccess[];
   };
 }
 
-export class ForceDeployErrorParser {
+export class ForceDeployResultParser {
   private result: any;
 
   constructor(stdOut: string) {
@@ -51,10 +51,6 @@ export class ForceDeployErrorParser {
     throw new Error('No JSON found in response');
   }
 
-  // public parse(stdErr: string) {
-  //   return this.getDeployResultData(stdErr);
-  // }
-
   public getErrors(): ForceSourceDeployErrorResult | undefined {
     if (this.result.status === 1) {
       return this.result as ForceSourceDeployErrorResult;
@@ -66,30 +62,4 @@ export class ForceDeployErrorParser {
       return this.result as ForceSourceDeploySuccessResult;
     }
   }
-
-  // private getDeployResultData(stdErr: string): ForceSourceDeployResults {
-  //   const stdErrLines = stdErr.split(require('os').EOL);
-  //   for (const line of stdErrLines) {
-  //     if (line.trim().startsWith('{')) {
-  //       const result = JSON.parse(line);
-  //       if (result.status === 0) {
-  //         return {
-  //           successes: result.deployedSource as DeployResult[]
-  //         };
-  //       }
-
-  //       if (result instanceof Array) {
-  //         return {
-  //           successes: partialSuccess as DeployResult[],
-  //           errors: result as DeployResult
-  //         }
-  //       }
-  //       return {
-  //         successes: result.
-  //       }
-  //       // return JSON.parse(line) as ForceSourceDeployErrorResult;
-  //     }
-  //   }
-  //   throw new Error('No JSON found in response');
-  // }
 }

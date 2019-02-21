@@ -41,16 +41,33 @@ export class Table {
     let table = `${columnHeader}\n${headerSeparator}\n`;
     rows.forEach(row => {
       let outputRow = '';
-      cols.forEach((col, index, arr) => {
-        const width = maxColWidths.get(col.key);
-        if (width) {
-          outputRow += this.fillColumn(
-            row[col.key],
-            width,
-            COLUMN_FILLER,
-            index < arr.length - 1
-          );
-        }
+      cols.forEach((col, colIndex, arr) => {
+        const cell = row[col.key];
+        const isLastCol = colIndex < arr.length - 1;
+        const currentRowWidth = outputRow.length;
+        cell.split('\n').forEach((line, lineIndex) => {
+          const cellWidth = maxColWidths.get(col.key);
+          if (cellWidth) {
+            if (lineIndex === 0) {
+              outputRow += this.fillColumn(
+                line,
+                cellWidth,
+                COLUMN_FILLER,
+                isLastCol
+              );
+            } else {
+              outputRow +=
+                '\n' +
+                this.fillColumn('', currentRowWidth, COLUMN_FILLER, isLastCol) +
+                this.fillColumn(
+                  line,
+                  currentRowWidth,
+                  COLUMN_FILLER,
+                  isLastCol
+                );
+            }
+          }
+        });
       });
       table += outputRow + '\n';
     });
@@ -72,8 +89,14 @@ export class Table {
           maxColWidth = (col.label || col.key).length;
           maxColWidths.set(col.key, maxColWidth);
         }
-        if (cell.length > maxColWidth) {
-          maxColWidths.set(col.key, cell.length);
+
+        const longestLineWidth = cell
+          .split('\n')
+          .reduce((maxLine, line) =>
+            line.length > maxLine.length ? line : maxLine
+          ).length;
+        if (longestLineWidth > maxColWidth) {
+          maxColWidths.set(col.key, longestLineWidth);
         }
       });
     });

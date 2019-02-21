@@ -7,8 +7,9 @@
 
 import {
   CliCommandExecutor,
-  ForceDeployErrorParser,
-  ForceSourceDeployErrorResult
+  ForceDeployResultParser,
+  ForceSourceDeployErrorResult,
+  ForceSourceDeploySuccessResult
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   Column,
@@ -33,7 +34,6 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   );
 
   public execute(response: ContinueResponse<string>): void {
-    process.env.SFDX_JSON_TO_STDOUT = 'true';
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -42,7 +42,8 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       : '';
     const execFilePathOrPaths = response.data;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspacePath
+      cwd: workspacePath,
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
@@ -55,9 +56,9 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
-      if (exitCode !== 0) {
-        try {
-          const deployErrorParser = new ForceDeployErrorParser(stdOut);
+      try {
+        const deployErrorParser = new ForceDeployResultParser(stdOut);
+        if (exitCode !== 0) {
           const deployErrors = deployErrorParser.getErrors();
           if (deployErrors) {
             handleDiagnosticErrors(
@@ -66,19 +67,18 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
               execFilePathOrPaths,
               ForceSourceDeployExecutor.errorCollection
             );
-            this.outputResult(deployErrorParser);
           }
-
-        } catch (e) {
-          telemetryService.sendError(
-            'Error while creating diagnostics for vscode problem view.'
-          );
-          console.error(
-            'Error while creating diagnostics for vscode problem view.'
-          );
+        } else {
+          ForceSourceDeployExecutor.errorCollection.clear();
         }
-      } else {
-        ForceSourceDeployExecutor.errorCollection.clear();
+        this.outputResult(deployErrorParser);
+      } catch (e) {
+        telemetryService.sendError(
+          'Error while creating diagnostics for vscode problem view.'
+        );
+        console.error(
+          'Error while creating diagnostics for vscode problem view.'
+        );
       }
     });
 
@@ -90,13 +90,15 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  private outputResult(parser: ForceDeployErrorParser) {
+  private outputResult(parser: ForceDeployResultParser) {
     let cols: Column[];
     let rows: Row[];
     const table = new Table();
     const errors = parser.getErrors();
     const successes = parser.getSuccesses();
-    const deployedSource = (successes ? successes.result.deployedSource : undefined) || (errors ? errors.partialSuccess : undefined);
+    const deployedSource =
+      (successes ? successes.result.deployedSource : undefined) ||
+      (errors ? errors.partialSuccess : undefined);
 
     if (deployedSource) {
       cols = [
