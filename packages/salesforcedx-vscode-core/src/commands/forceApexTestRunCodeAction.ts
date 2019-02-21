@@ -14,13 +14,13 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { hasRootWorkspace, getRootWorkspacePath } from '../util';
 
 function isEmpty(value: string): boolean {
   return !value || value.length === 0;

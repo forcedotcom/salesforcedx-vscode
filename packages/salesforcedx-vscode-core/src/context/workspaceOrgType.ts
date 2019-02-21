@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { displayDefaultUsername } from '../orgPicker';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo, hasRootWorkspace, getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export enum OrgType {
   SourceTracked,

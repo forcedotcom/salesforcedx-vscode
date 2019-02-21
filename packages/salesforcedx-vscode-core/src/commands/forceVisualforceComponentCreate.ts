@@ -21,6 +21,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
@@ -30,7 +31,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 const VF_CMP_EXTENSION = '.component';
 

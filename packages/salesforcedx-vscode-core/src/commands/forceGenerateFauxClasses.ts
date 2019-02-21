@@ -29,12 +29,12 @@ import { getDefaultUsernameOrAlias } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { getRootWorkspacePath } from '../util';
 
 export enum SObjectRefreshSource {
   Manual = 'manual',

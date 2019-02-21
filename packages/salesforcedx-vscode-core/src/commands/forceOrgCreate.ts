@@ -17,7 +17,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { getRootWorkspacePath, hasRootWorkspace, getRootWorkspace } from '../util';
+import { getRootWorkspace, getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
   FileSelection,

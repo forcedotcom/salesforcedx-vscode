@@ -20,12 +20,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { hasRootWorkspace, getRootWorkspacePath } from '../util';
 
 export enum TestType {
   All,

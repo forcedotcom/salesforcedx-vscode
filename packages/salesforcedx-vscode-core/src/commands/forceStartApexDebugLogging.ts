@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
-import { OrgAuthInfo, getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, OrgAuthInfo } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,

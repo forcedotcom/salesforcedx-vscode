@@ -21,7 +21,7 @@ import { SfdxCommandlet, SfdxCommandletExecutor } from './commands';
 
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { hasRootWorkspace, getRootWorkspaceFsPath } from '../util';
+import { getRootWorkspaceFsPath, hasRootWorkspace } from '../util';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;

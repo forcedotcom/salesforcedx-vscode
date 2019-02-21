@@ -14,7 +14,7 @@ import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { OrgAuthInfo, hasRootWorkspace, getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;

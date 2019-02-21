@@ -6,9 +6,10 @@
  */
 import { expect } from 'chai';
 import { match, SinonStub, stub } from 'sinon';
-import { hasRootWorkspace, getRootWorkspace, getRootWorkspaceFsPath, getRootWorkspacePath } from '../../../src/util';
 import { workspace, WorkspaceFolder } from 'vscode';
+import { getRootWorkspace, getRootWorkspaceFsPath, getRootWorkspacePath, hasRootWorkspace } from '../../../src/util';
 
+// tslint:disable:no-unused-expression
 describe('RootWorkspace utils should', () => {
   const myFolder: WorkspaceFolder = {
       name: 'test',
@@ -34,7 +35,7 @@ describe('RootWorkspace utils should', () => {
     if (workspaceStub) {
       workspaceStub!.restore();
       workspaceStub = undefined;
-    };
+    }
   });
 
   it('correctly determine if there is a workspace', () => {
@@ -61,6 +62,6 @@ describe('RootWorkspace utils should', () => {
     stubWorkspace(myWorkspaces);
     expect(getRootWorkspace().name).to.equal(myFolder.name);
     expect(getRootWorkspacePath()).to.equal(myFolder.uri.path);
-    expect(getRootWorkspaceFsPath()).to.equal(myFolder.uri.fsPath)
+    expect(getRootWorkspaceFsPath()).to.equal(myFolder.uri.fsPath);
   });
 });

@@ -13,8 +13,8 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import * as vscode from 'vscode';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { telemetryService } from '../telemetry';
-import { SfdxCommandletExecutor } from './commands';
 import { getRootWorkspacePath } from '../util';
+import { SfdxCommandletExecutor } from './commands';
 
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   string
