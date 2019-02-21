@@ -43,7 +43,6 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../forceProjectCreate';
-import { hasRootWorkspace, getRootWorkspacePath } from '../../util';
 
 export interface InstalledPackageInfo {
   id: string;
