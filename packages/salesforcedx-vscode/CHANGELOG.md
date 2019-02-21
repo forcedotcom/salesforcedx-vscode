@@ -1,3 +1,25 @@
+## 45.3.0 - February 22, 2019
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Add flag to control initial sObject refresh ([PR #1079](https://github.com/forcedotcom/salesforcedx-vscode/pull/1079))
+
+### Fixed
+
+#### salesforcedx-vscode
+
+- Updates to search and analytics on the documentation site ([PR #1074](https://github.com/forcedotcom/salesforcedx-vscode/pull/1074))
+
+#### salesforcedx-vscode-core
+
+- Update telemetry documentation URL to the documentation site URL ([PR #1059](https://github.com/forcedotcom/salesforcedx-vscode/pull/1059))
+
+#### salesforcedx-vscode-apex
+
+- Apex LSP performance fix to updateTypeInfos which caused high CPU load ([PR #1093](https://github.com/forcedotcom/salesforcedx-vscode/pull/1093), [Issue #1047](https://github.com/forcedotcom/salesforcedx-vscode/issues/1047))
+
 ## 45.2.0 - February 14, 2019
 
 ### Added
