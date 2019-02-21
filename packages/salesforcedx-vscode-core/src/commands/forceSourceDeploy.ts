@@ -33,6 +33,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   );
 
   public execute(response: ContinueResponse<string>): void {
+    process.env.SFDX_JSON_TO_STDOUT = 'true';
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -47,24 +48,27 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     channelService.streamCommandStartStop(execution);
     channelService.showChannelOutput();
 
-    let stdErr = '';
-    execution.stderrSubject.subscribe(realData => {
-      stdErr += realData.toString();
+    let stdOut = '';
+    execution.stdoutSubject.subscribe(realData => {
+      stdOut += realData.toString();
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       if (exitCode !== 0) {
         try {
-          const deployErrorParser = new ForceDeployErrorParser();
-          const fileErrors = deployErrorParser.parse(stdErr);
-          handleDiagnosticErrors(
-            fileErrors,
-            workspacePath,
-            execFilePathOrPaths,
-            ForceSourceDeployExecutor.errorCollection
-          );
-          this.outputErrors(fileErrors);
+          const deployErrorParser = new ForceDeployErrorParser(stdOut);
+          const deployErrors = deployErrorParser.getErrors();
+          if (deployErrors) {
+            handleDiagnosticErrors(
+              deployErrors,
+              workspacePath,
+              execFilePathOrPaths,
+              ForceSourceDeployExecutor.errorCollection
+            );
+            this.outputResult(deployErrorParser);
+          }
+
         } catch (e) {
           telemetryService.sendError(
             'Error while creating diagnostics for vscode problem view.'
@@ -86,15 +90,42 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  private outputErrors(errorResult: ForceSourceDeployErrorResult) {
-    const cols: Column[] = [
-      { key: 'filePath', label: nls.localize('table_header_project_path') },
-      { key: 'error', label: nls.localize('table_header_errors') }
-    ];
-    const rows: Row[] = errorResult.result.map(({ filePath, error }) => ({
-      filePath,
-      error
-    }));
-    channelService.appendLine(new Table().createTable(rows, cols));
+  private outputResult(parser: ForceDeployErrorParser) {
+    let cols: Column[];
+    let rows: Row[];
+    const table = new Table();
+    const errors = parser.getErrors();
+    const successes = parser.getSuccesses();
+    const deployedSource = (successes ? successes.result.deployedSource : undefined) || (errors ? errors.partialSuccess : undefined);
+
+    if (deployedSource) {
+      cols = [
+        { key: 'state', label: nls.localize('table_header_state') },
+        { key: 'fullName', label: nls.localize('table_header_full_name') },
+        { key: 'type', label: nls.localize('table_header_type') },
+        { key: 'filePath', label: nls.localize('table_header_project_path') }
+      ];
+      rows = deployedSource.map(({ state, fullName, type, filePath }) => ({
+        state,
+        fullName,
+        type,
+        filePath
+      }));
+      channelService.appendLine('=== Deployed Source');
+      channelService.appendLine(table.createTable(rows, cols));
+    }
+
+    if (errors) {
+      cols = [
+        { key: 'filePath', label: nls.localize('table_header_project_path') },
+        { key: 'error', label: nls.localize('table_header_errors') }
+      ];
+      rows = errors.result.map(({ filePath, error }) => ({
+        filePath,
+        error
+      }));
+      channelService.appendLine('=== Deploy Errors');
+      channelService.appendLine(table.createTable(rows, cols));
+    }
   }
 }
