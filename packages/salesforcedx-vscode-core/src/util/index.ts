@@ -7,4 +7,4 @@
 
 export { SfdxProjectJsonParser } from './sfdxProjectJsonParser';
 export { OrgAuthInfo } from './authInfo';
-export { getRootWorkspace, getRootWorkspacePath, hasRootWorkspace } from './rootWorkspace';
+export { getRootWorkspace, getRootWorkspaceFsPath, getRootWorkspacePath, hasRootWorkspace } from './rootWorkspace';
