@@ -21,7 +21,7 @@ import { SfdxCommandlet, SfdxCommandletExecutor } from './commands';
 
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { getRootWorkspaceFsPath, hasRootWorkspace } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;
@@ -45,10 +45,8 @@ export class ManifestChecker implements PreconditionChecker {
   }
 
   public check(): boolean {
-    if (
-      hasRootWorkspace()
-    ) {
-      const workspaceRootPath = getRootWorkspaceFsPath();
+    if (hasRootWorkspace()) {
+      const workspaceRootPath = getRootWorkspacePath();
       const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {

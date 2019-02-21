@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { displayDefaultUsername } from '../orgPicker';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspaceFsPath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export enum OrgType {
   SourceTracked,
@@ -74,10 +74,8 @@ function setDefaultUsernameHasNoChangeTracking(val: boolean) {
 }
 
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
-  if ( hasRootWorkspace() ) {
-    return await OrgAuthInfo.getDefaultUsernameOrAlias(
-      getRootWorkspaceFsPath()
-    );
+  if (hasRootWorkspace()) {
+    return await OrgAuthInfo.getDefaultUsernameOrAlias(getRootWorkspacePath());
   }
 }
 
@@ -89,13 +87,9 @@ async function onSfdxConfigEvent() {
 export function registerDefaultUsernameWatcher(
   context: vscode.ExtensionContext
 ) {
-  if ( hasRootWorkspace() ) {
+  if (hasRootWorkspace()) {
     const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
-      path.join(
-        getRootWorkspaceFsPath(),
-        '.sfdx',
-        'sfdx-config.json'
-      )
+      path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
     );
     sfdxConfigWatcher.onDidChange(uri => onSfdxConfigEvent());
     sfdxConfigWatcher.onDidCreate(uri => onSfdxConfigEvent());

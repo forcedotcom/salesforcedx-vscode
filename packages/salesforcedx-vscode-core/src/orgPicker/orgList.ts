@@ -14,7 +14,7 @@ import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { getRootWorkspaceFsPath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -161,9 +161,9 @@ export async function showDefaultOrg() {
 
 export async function displayDefaultUsername() {
   let defaultUsernameorAlias: string | undefined;
-  if ( hasRootWorkspace() ) {
+  if (hasRootWorkspace()) {
     defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-      getRootWorkspaceFsPath()
+      getRootWorkspacePath()
     );
   }
   if (defaultUsernameorAlias) {
@@ -176,9 +176,7 @@ export async function displayDefaultUsername() {
 export async function getDefaultDevHubUsernameorAlias(): Promise<
   string | undefined
 > {
-  if ( hasRootWorkspace() ) {
-    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
-      getRootWorkspaceFsPath()
-    );
+  if (hasRootWorkspace()) {
+    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(getRootWorkspacePath());
   }
 }

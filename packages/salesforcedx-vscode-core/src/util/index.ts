@@ -6,4 +6,8 @@
  */
 
 export { OrgAuthInfo } from './authInfo';
-export { getRootWorkspace, getRootWorkspaceFsPath, getRootWorkspacePath, hasRootWorkspace } from './rootWorkspace';
+export {
+  getRootWorkspace,
+  getRootWorkspacePath,
+  hasRootWorkspace
+} from './rootWorkspace';
