@@ -22,16 +22,39 @@ export interface ForceSourceDeployErrorResult {
   warnings: any[];
 }
 
+export interface DeployResult {
+  type: string;
+  filePath: string;
+  fullName?: string;
+  state?: string;
+  error?: string;
+  columnNumber?: string;
+  lineNumber?: string;
+}
+
+export interface ForceSourceDeployResults {
+  successes?: DeployResult[];
+  failures?: DeployResult[];
+}
+
 export class ForceDeployErrorParser {
   public parse(stdErr: string) {
     return this.getDeployResultData(stdErr);
   }
 
-  private getDeployResultData(stdErr: string) {
+  private getDeployResultData(stdErr: string): ForceSourceDeployResults {
     const stdErrLines = stdErr.split(require('os').EOL);
     for (const line of stdErrLines) {
       if (line.trim().startsWith('{')) {
-        return JSON.parse(line) as ForceSourceDeployErrorResult;
+        const { status, result } = JSON.parse(line);
+        if (status === 0) {
+          return {
+            successes: result.deployedSource as DeployResult[]
+          };
+        }
+        if (result instanceof Array) {
+        }
+        // return JSON.parse(line) as ForceSourceDeployErrorResult;
       }
     }
     throw new Error('No JSON found in response');
