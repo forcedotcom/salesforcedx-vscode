@@ -34,7 +34,7 @@ The `sfdx-project.json` file contains useful configuration information for your 
 
 The most important parts of this file for getting started are the `sfdcLoginUrl` and `packageDirectories` properties.
 
-The `sfdcLoginUrl` specifies the default login URL to use when authorizing an org. For details, see [Authorize an Org](#authorize-an-org).
+The `sfdcLoginUrl` specifies the default login URL to use when authorizing an org.
 
 The `packageDirectories` filepath tells VS Code and Salesforce CLI where the metadata files for your project are stored. You need at least one package directory set in your file. The default setting is shown below. If you set the value of the `packageDirectories` property called `path` to `force-app`, by default your metadata goes in the `force-app` directory. If you want to change that directory to something like `src`, simply change the `path` value and make sure the directory you’re pointing to exists.
 
