@@ -18,24 +18,20 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
   public apply(item: typeof workspace): PredicateResponse {
-    if (hasRootWorkspace(item)) {
-      const uri = path.join(item.workspaceFolders![0].uri.path, SFDX_PROJECT_FILE);
-      const exists = fs.existsSync(uri);
-      if (
-        !exists
-      ) {
-        return PredicateResponse.of(
-          false,
-          nls.localize('predicates_no_sfdx_project_found_text')
-        );
-      } else {
-        return PredicateResponse.true();
-      }
-    } else {
+    if (!hasRootWorkspace()) {
+      return PredicateResponse.of(
+        false,
+        nls.localize('predicates_no_folder_opened_text')
+      );
+    } else if (
+      !fs.existsSync(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE))
+    ) {
       return PredicateResponse.of(
         false,
         nls.localize('predicates_no_sfdx_project_found_text')
       );
+    } else {
+      return PredicateResponse.true();
     }
   }
 }

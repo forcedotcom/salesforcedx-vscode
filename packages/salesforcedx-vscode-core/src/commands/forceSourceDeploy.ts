@@ -13,7 +13,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import * as vscode from 'vscode';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspaceFsPath } from '../util';
 import { SfdxCommandletExecutor } from './commands';
 
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
@@ -27,7 +27,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const workspacePath = getRootWorkspacePath() || '';
+    const workspacePath = getRootWorkspaceFsPath() || '';
     const execFilePathOrPaths = response.data;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath

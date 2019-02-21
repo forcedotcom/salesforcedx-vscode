@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
-import { getRootWorkspacePath, OrgAuthInfo } from '../util';
+import { getRootWorkspaceFsPath, OrgAuthInfo } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -86,7 +86,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
         developerLogTraceFlag.setDebugLevelId(debugLevelId);
 
         const userId = await getUserId(
-          getRootWorkspacePath()
+          getRootWorkspaceFsPath()
         );
         developerLogTraceFlag.validateDates();
         resultJson = await this.subExecute(new CreateTraceFlag(userId).build());
@@ -102,7 +102,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
   private async subExecute(command: Command) {
     if (!this.cancellationToken.isCancellationRequested) {
       const execution = new CliCommandExecutor(command, {
-        cwd: getRootWorkspacePath()
+        cwd: getRootWorkspaceFsPath()
       }).execute(this.cancellationToken);
       this.attachSubExecution(execution);
       const resultPromise = new CommandOutput().getCmdResult(execution);

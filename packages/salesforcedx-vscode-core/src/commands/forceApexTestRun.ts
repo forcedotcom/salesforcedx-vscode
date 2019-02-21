@@ -20,7 +20,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { getRootWorkspaceFsPath, hasRootWorkspace } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -141,7 +141,7 @@ export class ForceApexTestRunCommandFactory {
 function getTempFolder(): string {
   if (hasRootWorkspace()) {
     const apexDir = new TestRunner().getTempFolder(
-      getRootWorkspacePath(),
+      getRootWorkspaceFsPath(),
       'apex'
     );
     return apexDir;
