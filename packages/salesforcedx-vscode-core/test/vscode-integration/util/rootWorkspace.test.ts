@@ -28,7 +28,6 @@ describe('RootWorkspace utils should', () => {
   let workspaceStub: SinonStub | undefined;
 
   function stubWorkspace(stubObj: WorkspaceFolder[]) {
-    console.log('setting up stubWorkspace: ', JSON.stringify(stubObj));
     return (workspaceStub = stub(workspace, 'workspaceFolders').get(
       function getWorkspaceFolders() {
         return stubObj;
