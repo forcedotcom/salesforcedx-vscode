@@ -19,7 +19,7 @@ By default, VS Code attempts to locate your local Java installation by looking f
 1. Search for `apex`.
 1. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself. For example, on macOS, set it to `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home` and **not** `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/bin/java.`
 
-![Apex Java Setting](../../images/apex-java-home-setting.png)
+![Apex Java Setting](/salesforcedx-vscode/images/apex-java-home-setting.png)
 
 ## Monitor Apex Language Server Output
 

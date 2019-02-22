@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "45.2.0",
+  "version": "45.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,11 +24,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "45.2.0",
+    "@salesforce/salesforcedx-slds-linter": "45.3.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "45.2.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.3.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
