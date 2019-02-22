@@ -33,5 +33,5 @@ export {
   ForceSourceDeploySuccessResult,
   DeployError,
   DeploySuccess
-} from './deployErrorParser';
+} from './deployResultParser';
 export { TestRunner } from './testRunner';

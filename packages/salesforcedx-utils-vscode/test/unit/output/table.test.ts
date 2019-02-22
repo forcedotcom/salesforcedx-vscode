@@ -50,7 +50,28 @@ describe('Creating a Table string', () => {
     expect(table).to.eq(expectedTable);
   });
 
-  it('Should throw an error if a Row is missing the key of a given column', () => {
+  it('Should correctly format a multiline cell', () => {
+    const expectedTable =
+      'Column 1  Column 2                   \n' +
+      '────────  ───────────────────────────\n' +
+      'test1     first line                 \n' +
+      '          second line which is longer\n' +
+      'test2     test3                      \n';
+    const rows = [
+      { col1: 'test1', col2: 'first line\nsecond line which is longer' },
+      { col1: 'test2', col2: 'test3' }
+    ];
+    const cols = [
+      { key: 'col1', label: 'Column 1' },
+      { key: 'col2', label: 'Column 2' }
+    ];
+
+    const table = new Table().createTable(rows, cols);
+
+    expect(table).to.eq(expectedTable);
+  });
+
+  it('Should throw an error if a row is missing the key of a given column', () => {
     const rows = [
       { col1: 'test', col2: 'test2' },
       { col1: 'test3', col2: 'test4' }

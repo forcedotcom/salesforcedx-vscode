@@ -27,7 +27,6 @@ export interface ForceSourceDeployErrorResult {
   stack: string;
   status: number;
   warnings: any[];
-  partialSuccess?: DeploySuccess[];
 }
 
 export interface ForceSourceDeploySuccessResult {
@@ -58,8 +57,12 @@ export class ForceDeployResultParser {
   }
 
   public getSuccesses(): ForceSourceDeploySuccessResult | undefined {
-    if (this.result.status === 0) {
+    const { partialSuccess, status } = this.result;
+    if (status === 0) {
       return this.result as ForceSourceDeploySuccessResult;
+    }
+    if (partialSuccess) {
+      return { status, result: { deployedSource: partialSuccess } };
     }
   }
 }

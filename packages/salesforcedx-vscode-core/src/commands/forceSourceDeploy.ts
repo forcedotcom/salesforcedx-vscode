@@ -7,12 +7,9 @@
 
 import {
   CliCommandExecutor,
-  ForceDeployResultParser,
-  ForceSourceDeployErrorResult,
-  ForceSourceDeploySuccessResult
+  ForceDeployResultParser
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  Column,
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
@@ -58,16 +55,14 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime);
       try {
         const deployErrorParser = new ForceDeployResultParser(stdOut);
-        if (exitCode !== 0) {
-          const deployErrors = deployErrorParser.getErrors();
-          if (deployErrors) {
-            handleDiagnosticErrors(
-              deployErrors,
-              workspacePath,
-              execFilePathOrPaths,
-              ForceSourceDeployExecutor.errorCollection
-            );
-          }
+        const deployErrors = deployErrorParser.getErrors();
+        if (deployErrors) {
+          handleDiagnosticErrors(
+            deployErrors,
+            workspacePath,
+            execFilePathOrPaths,
+            ForceSourceDeployExecutor.errorCollection
+          );
         } else {
           ForceSourceDeployExecutor.errorCollection.clear();
         }
@@ -91,43 +86,29 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
   }
 
   private outputResult(parser: ForceDeployResultParser) {
-    let cols: Column[];
-    let rows: Row[];
     const table = new Table();
     const errors = parser.getErrors();
     const successes = parser.getSuccesses();
-    const deployedSource =
-      (successes ? successes.result.deployedSource : undefined) ||
-      (errors ? errors.partialSuccess : undefined);
+    const deployedSource = successes ? successes.result.deployedSource : undefined;
 
     if (deployedSource) {
-      cols = [
+      const outputTable = table.createTable(deployedSource as unknown as Row[], [
         { key: 'state', label: nls.localize('table_header_state') },
         { key: 'fullName', label: nls.localize('table_header_full_name') },
         { key: 'type', label: nls.localize('table_header_type') },
         { key: 'filePath', label: nls.localize('table_header_project_path') }
-      ];
-      rows = deployedSource.map(({ state, fullName, type, filePath }) => ({
-        state,
-        fullName,
-        type,
-        filePath
-      }));
+      ]);
       channelService.appendLine('=== Deployed Source');
-      channelService.appendLine(table.createTable(rows, cols));
+      channelService.appendLine(outputTable);
     }
 
     if (errors) {
-      cols = [
+      const outputTable = table.createTable(errors.result as unknown as Row[], [
         { key: 'filePath', label: nls.localize('table_header_project_path') },
         { key: 'error', label: nls.localize('table_header_errors') }
-      ];
-      rows = errors.result.map(({ filePath, error }) => ({
-        filePath,
-        error
-      }));
+      ]);
       channelService.appendLine('=== Deploy Errors');
-      channelService.appendLine(table.createTable(rows, cols));
+      channelService.appendLine(outputTable);
     }
   }
 }

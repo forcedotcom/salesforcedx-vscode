@@ -27,14 +27,14 @@ export class Table {
     cols.forEach((col, index, arr) => {
       const width = maxColWidths.get(col.key);
       if (width) {
-        const lastCol = index < arr.length - 1;
+        const isLastCol = index < arr.length - 1;
         columnHeader += this.fillColumn(
           col.label || col.key,
           width,
           COLUMN_FILLER,
-          lastCol
+          isLastCol
         );
-        headerSeparator += this.fillColumn('', width, HEADER_FILLER, lastCol);
+        headerSeparator += this.fillColumn('', width, HEADER_FILLER, isLastCol);
       }
     });
 
@@ -44,7 +44,7 @@ export class Table {
       cols.forEach((col, colIndex, arr) => {
         const cell = row[col.key];
         const isLastCol = colIndex < arr.length - 1;
-        const currentRowWidth = outputRow.length;
+        const rowWidth = outputRow.length;
         cell.split('\n').forEach((line, lineIndex) => {
           const cellWidth = maxColWidths.get(col.key);
           if (cellWidth) {
@@ -56,15 +56,11 @@ export class Table {
                 isLastCol
               );
             } else {
-              outputRow +=
-                '\n' +
-                this.fillColumn('', currentRowWidth, COLUMN_FILLER, isLastCol) +
-                this.fillColumn(
-                  line,
-                  currentRowWidth,
-                  COLUMN_FILLER,
-                  isLastCol
-                );
+              // If the cell is multiline, add an additional line to the tables
+              // and pad it to the beginning of the current column
+              outputRow += '\n' +
+                this.fillColumn('', rowWidth, COLUMN_FILLER, isLastCol) +
+                this.fillColumn(line, rowWidth, COLUMN_FILLER, isLastCol);
             }
           }
         });
@@ -90,6 +86,7 @@ export class Table {
           maxColWidths.set(col.key, maxColWidth);
         }
 
+        // if a cell is multiline, find the line that's the longest
         const longestLineWidth = cell
           .split('\n')
           .reduce((maxLine, line) =>
