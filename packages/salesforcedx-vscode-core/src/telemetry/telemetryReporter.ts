@@ -108,8 +108,10 @@ export default class TelemetryReporter extends vscode.Disposable {
   private getCommonProperties(): { [key: string]: string } {
     const commonProperties = Object.create(null);
     commonProperties['common.os'] = os.platform();
-    commonProperties['common.platformversion'] = (os.release() || '')
-      .replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3');
+    commonProperties['common.platformversion'] = (os.release() || '').replace(
+      /^(\d+)(\.\d+)?(\.\d+)?(.*)/,
+      '$1$2$3'
+    );
     commonProperties['common.extname'] = this.extensionId;
     commonProperties['common.extversion'] = this.extensionVersion;
     if (vscode && vscode.env) {

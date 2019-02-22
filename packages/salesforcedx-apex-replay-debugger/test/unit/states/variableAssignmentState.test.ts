@@ -79,9 +79,10 @@ describe('Variable assignment event', () => {
         'staticInteger'
       );
       expect(
-        context.getStaticVariablesClassMap().get('signature')!.get(
-          'staticInteger'
-        )
+        context
+          .getStaticVariablesClassMap()
+          .get('signature')!
+          .get('staticInteger')
       ).to.include({
         name: 'staticInteger',
         value: 'null'
@@ -92,9 +93,10 @@ describe('Variable assignment event', () => {
         'staticInteger'
       );
       expect(
-        context.getStaticVariablesClassMap().get('signature')!.get(
-          'staticInteger'
-        )
+        context
+          .getStaticVariablesClassMap()
+          .get('signature')!
+          .get('staticInteger')
       ).to.include({
         name: 'staticInteger',
         value: '5'

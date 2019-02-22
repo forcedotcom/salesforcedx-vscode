@@ -251,7 +251,6 @@ describe('Replay debugger adapter - integration', function() {
         classStaticVarsAPath,
         classStaticVarsAValidLines[0]
       );
-
     } finally {
       const disconnectResponse = await dc.disconnectRequest({});
       expect(disconnectResponse.success).to.equal(true);

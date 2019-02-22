@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "45.2.0",
+  "version": "45.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,8 +26,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "1.1.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "45.2.0",
-    "@salesforce/salesforcedx-utils-vscode": "45.2.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "45.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.3.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -604,6 +604,13 @@
           ],
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
+        },
+        "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
+          "type": [
+            "boolean"
+          ],
+          "default": false,
+          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },
