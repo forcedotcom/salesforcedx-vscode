@@ -8,11 +8,13 @@
 import { expect } from 'chai';
 import {
   ForceDeployResultParser,
-  ForceSourceDeployErrorResult
+  ForceSourceDeployErrorResult,
+  ForceSourceDeploySuccessResult
 } from '../../../src/cli';
 
 describe('force:source:deploy parser', () => {
   let deployErrorResult: ForceSourceDeployErrorResult;
+  let deploySuccessResult: ForceSourceDeploySuccessResult;
 
   beforeEach(() => {
     deployErrorResult = {
@@ -22,6 +24,10 @@ describe('force:source:deploy parser', () => {
       status: 1,
       warnings: [],
       result: []
+    };
+    deploySuccessResult = {
+      status: 0,
+      result: { deployedSource: [] }
     };
   });
 
@@ -55,7 +61,7 @@ describe('force:source:deploy parser', () => {
   });
 
   it('Should parse incomplete error info successfully', async () => {
-    const stdErr = {
+    const stdOut = {
       message:
         'The DocumentFolder named folder/image.png was not found in the workspace.',
       status: 1,
@@ -65,21 +71,21 @@ describe('force:source:deploy parser', () => {
       warnings: ['Some warning message from sfdx cli.']
     };
 
-    const parser = new ForceDeployResultParser(JSON.stringify(stdErr));
+    const parser = new ForceDeployResultParser(JSON.stringify(stdOut));
     const errs = parser.getErrors();
     if (errs) {
-      expect(errs.message).to.be.equals(stdErr.message);
-      expect(errs.name).to.be.equals(stdErr.name);
+      expect(errs.message).to.be.equals(stdOut.message);
+      expect(errs.name).to.be.equals(stdOut.name);
       expect(errs).to.not.have.property('result');
-      expect(errs.stack).to.be.equals(stdErr.stack);
-      expect(errs.status).to.be.equals(stdErr.status);
-      expect(errs.warnings).to.deep.equals(stdErr.warnings);
+      expect(errs.stack).to.be.equals(stdOut.stack);
+      expect(errs.status).to.be.equals(stdOut.status);
+      expect(errs.warnings).to.deep.equals(stdOut.warnings);
     } else {
       throw Error('Errors should be present but were not returned');
     }
   });
 
-  it('Should properly parse stderr amongst output that needs to be ignored', async () => {
+  it('Should properly parse stdOut amongst output that needs to be ignored', async () => {
     deployErrorResult.result.push({
       filePath: 'src/apexclasses/Testing.cls',
       error: 'Invalid dependency ...',
@@ -147,6 +153,54 @@ describe('force:source:deploy parser', () => {
       expect(errs.warnings).to.deep.equals(deployErrorResult.warnings);
     } else {
       throw Error('Errors should be present but were not returned');
+    }
+  });
+
+  it('Should parse success info successfully', () => {
+    deploySuccessResult.result.deployedSource.push({
+      state: 'Add',
+      type: 'ApexClass',
+      fullName: 'MyClass',
+      filePath: 'src/classes/MyClass.cls'
+    });
+
+    const parser = new ForceDeployResultParser(JSON.stringify(deploySuccessResult));
+    const successes = parser.getSuccesses();
+    if (successes) {
+      const parsedDeployedSource = successes.result.deployedSource;
+      const { deployedSource } = deploySuccessResult.result;
+      expect(parsedDeployedSource[0].type).to.be.equals(deployedSource[0].type);
+      expect(parsedDeployedSource[0].state).to.be.equals(deployedSource[0].state);
+      expect(parsedDeployedSource[0].fullName).to.be.equals(deployedSource[0].fullName);
+      expect(parsedDeployedSource[0].filePath).to.be.equals(deployedSource[0].filePath);
+    } else {
+      throw Error('Successes should be present but were not returned');
+    }
+  });
+
+  it('Should parse partial success info successfully', () => {
+    let response = {
+      partialSuccess: [{
+        state: 'Add',
+        type: 'ApexClass',
+        fullName: 'MyClass',
+        filePath: 'src/classes/MyClass.cls'
+      }]
+    };
+    response = Object.assign(response, deployErrorResult);
+
+    const parser = new ForceDeployResultParser(JSON.stringify(response));
+    const successes = parser.getSuccesses();
+    if (successes) {
+      const parsedDeployedSource = successes.result.deployedSource;
+      const { partialSuccess } = response;
+      expect(successes.status).to.be.equal(1);
+      expect(parsedDeployedSource[0].type).to.be.equals(partialSuccess[0].type);
+      expect(parsedDeployedSource[0].state).to.be.equals(partialSuccess[0].state);
+      expect(parsedDeployedSource[0].fullName).to.be.equals(partialSuccess[0].fullName);
+      expect(parsedDeployedSource[0].filePath).to.be.equals(partialSuccess[0].filePath);
+    } else {
+      throw Error('Successes should be present but were not returned');
     }
   });
 });

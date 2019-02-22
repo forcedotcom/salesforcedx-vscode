@@ -56,7 +56,7 @@ export class Table {
                 isLastCol
               );
             } else {
-              // If the cell is multiline, add an additional line to the tables
+              // If the cell is multiline, add an additional line to the table
               // and pad it to the beginning of the current column
               outputRow += '\n' +
                 this.fillColumn('', rowWidth, COLUMN_FILLER, isLastCol) +
