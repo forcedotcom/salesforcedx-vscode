@@ -54,11 +54,11 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
-        const deployErrorParser = new ForceDeployResultParser(stdOut);
-        const deployErrors = deployErrorParser.getErrors();
-        if (deployErrors) {
+        const deployParser = new ForceDeployResultParser(stdOut);
+        const errors = deployParser.getErrors();
+        if (errors) {
           handleDiagnosticErrors(
-            deployErrors,
+            errors,
             workspacePath,
             execFilePathOrPaths,
             ForceSourceDeployExecutor.errorCollection
@@ -66,7 +66,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
         } else {
           ForceSourceDeployExecutor.errorCollection.clear();
         }
-        this.outputResult(deployErrorParser);
+        this.outputResult(deployParser);
       } catch (e) {
         telemetryService.sendError(
           'Error while creating diagnostics for vscode problem view.'
