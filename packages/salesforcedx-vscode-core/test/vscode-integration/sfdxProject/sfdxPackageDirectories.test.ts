@@ -8,11 +8,11 @@ import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import {
   SfdxPackageDirectories,
-  SfdxProjectConfig,
-  SfdxProjectPath
+  SfdxProjectConfig
 } from '../../../src/sfdxProject';
 
 import * as path from 'path';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const PROJECT_PATH = path.join('sfdx', 'project', 'path');
 
@@ -90,9 +90,7 @@ describe('SFDX Package Directories', () => {
   describe('getPackageDirectoryFullPaths', () => {
     let sfdxProjectPathStub: SinonStub;
     beforeEach(() => {
-      sfdxProjectPathStub = stub(SfdxProjectPath, 'getPath').returns(
-        PROJECT_PATH
-      );
+      sfdxProjectPathStub = stub(getRootWorkspacePath).returns(PROJECT_PATH);
     });
 
     afterEach(() => {

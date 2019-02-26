@@ -77,10 +77,9 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
-import { SfdxProjectPath } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { hasRootWorkspace } from './util';
+import { getRootWorkspacePath, hasRootWorkspace } from './util';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -462,7 +461,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   if (sfdxCoreSettings.getEnableSObjectRefreshOnStartup()) {
-    initSObjectDefinitions(SfdxProjectPath.getPath()).catch(e =>
+    initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
       telemetryService.sendErrorEvent(e.message, e.stack)
     );
   }
