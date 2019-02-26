@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import { EOL } from 'os';
 import {
   ForceDeployResultParser,
   ForceSourceDeployErrorResult,
@@ -98,11 +99,9 @@ describe('force:source:deploy parser', () => {
     });
 
     const parser = new ForceDeployResultParser(
-      `sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/manifest/package.xml ${
-        require('os').EOL
-      } ${JSON.stringify(deployErrorResult)} ${
-        require('os').EOL
-      } sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/project/manifest/package.xml ended with exit code 1`
+      `sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/manifest/package.xml ${EOL} ${JSON.stringify(
+        deployErrorResult
+      )} ${EOL} sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/project/manifest/package.xml ended with exit code 1`
     );
     const errs = parser.getErrors();
 
