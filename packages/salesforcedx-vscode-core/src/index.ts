@@ -437,6 +437,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await showDefaultOrg();
   } else {
     showCLINotInstalledMessage();
+    telemetryService.sendError('Salesforce CLI is not installed');
   }
 
   // Register filewatcher for push or deploy on save
@@ -485,7 +486,8 @@ export async function activate(context: vscode.ExtensionContext) {
     notificationService,
     taskViewService,
     telemetryService,
-    getUserId
+    getUserId,
+    isCLIInstalled
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
