@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { EOL } from 'os';
+
 export interface DeployError {
   columnNumber?: string;
   error: string;
@@ -40,7 +42,7 @@ export class ForceDeployResultParser {
   private result: any;
 
   constructor(stdOut: string) {
-    const stdErrLines = stdOut.split(require('os').EOL);
+    const stdErrLines = stdOut.split(EOL);
     for (const line of stdErrLines) {
       if (line.trim().startsWith('{')) {
         this.result = JSON.parse(line);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -43,7 +43,9 @@ describe('force:source:deploy parser', () => {
 
     deployErrorResult.result.push(resultItem);
 
-    const parser = new ForceDeployResultParser(JSON.stringify(deployErrorResult));
+    const parser = new ForceDeployResultParser(
+      JSON.stringify(deployErrorResult)
+    );
     const errs = parser.getErrors();
     if (errs) {
       expect(errs.message).to.be.equals(deployErrorResult.message);
@@ -97,10 +99,11 @@ describe('force:source:deploy parser', () => {
 
     const parser = new ForceDeployResultParser(
       `sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/manifest/package.xml ${
-      require('os').EOL
-    } ${JSON.stringify(deployErrorResult)} ${
-      require('os').EOL
-    } sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/project/manifest/package.xml ended with exit code 1`);
+        require('os').EOL
+      } ${JSON.stringify(deployErrorResult)} ${
+        require('os').EOL
+      } sfdx force:source:deploy --json --loglevel fatal --manifest /Users/username/project/manifest/package.xml ended with exit code 1`
+    );
     const errs = parser.getErrors();
 
     if (errs) {
@@ -138,7 +141,9 @@ describe('force:source:deploy parser', () => {
       fullName: 'Testing'
     });
 
-    const parser = new ForceDeployResultParser(JSON.stringify(deployErrorResult));
+    const parser = new ForceDeployResultParser(
+      JSON.stringify(deployErrorResult)
+    );
     const errs = parser.getErrors();
     if (errs) {
       expect(errs.message).to.be.equals(deployErrorResult.message);
@@ -164,15 +169,23 @@ describe('force:source:deploy parser', () => {
       filePath: 'src/classes/MyClass.cls'
     });
 
-    const parser = new ForceDeployResultParser(JSON.stringify(deploySuccessResult));
+    const parser = new ForceDeployResultParser(
+      JSON.stringify(deploySuccessResult)
+    );
     const successes = parser.getSuccesses();
     if (successes) {
       const parsedDeployedSource = successes.result.deployedSource;
       const { deployedSource } = deploySuccessResult.result;
       expect(parsedDeployedSource[0].type).to.be.equals(deployedSource[0].type);
-      expect(parsedDeployedSource[0].state).to.be.equals(deployedSource[0].state);
-      expect(parsedDeployedSource[0].fullName).to.be.equals(deployedSource[0].fullName);
-      expect(parsedDeployedSource[0].filePath).to.be.equals(deployedSource[0].filePath);
+      expect(parsedDeployedSource[0].state).to.be.equals(
+        deployedSource[0].state
+      );
+      expect(parsedDeployedSource[0].fullName).to.be.equals(
+        deployedSource[0].fullName
+      );
+      expect(parsedDeployedSource[0].filePath).to.be.equals(
+        deployedSource[0].filePath
+      );
     } else {
       throw Error('Successes should be present but were not returned');
     }
@@ -180,12 +193,14 @@ describe('force:source:deploy parser', () => {
 
   it('Should parse partial success info successfully', () => {
     let response = {
-      partialSuccess: [{
-        state: 'Add',
-        type: 'ApexClass',
-        fullName: 'MyClass',
-        filePath: 'src/classes/MyClass.cls'
-      }]
+      partialSuccess: [
+        {
+          state: 'Add',
+          type: 'ApexClass',
+          fullName: 'MyClass',
+          filePath: 'src/classes/MyClass.cls'
+        }
+      ]
     };
     response = Object.assign(response, deployErrorResult);
 
@@ -196,9 +211,15 @@ describe('force:source:deploy parser', () => {
       const { partialSuccess } = response;
       expect(successes.status).to.be.equal(1);
       expect(parsedDeployedSource[0].type).to.be.equals(partialSuccess[0].type);
-      expect(parsedDeployedSource[0].state).to.be.equals(partialSuccess[0].state);
-      expect(parsedDeployedSource[0].fullName).to.be.equals(partialSuccess[0].fullName);
-      expect(parsedDeployedSource[0].filePath).to.be.equals(partialSuccess[0].filePath);
+      expect(parsedDeployedSource[0].state).to.be.equals(
+        partialSuccess[0].state
+      );
+      expect(parsedDeployedSource[0].fullName).to.be.equals(
+        partialSuccess[0].fullName
+      );
+      expect(parsedDeployedSource[0].filePath).to.be.equals(
+        partialSuccess[0].filePath
+      );
     } else {
       throw Error('Successes should be present but were not returned');
     }

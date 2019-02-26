@@ -89,26 +89,42 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     const table = new Table();
     const errors = parser.getErrors();
     const successes = parser.getSuccesses();
-    const deployedSource = successes ? successes.result.deployedSource : undefined;
+    const deployedSource = successes
+      ? successes.result.deployedSource
+      : undefined;
 
     if (deployedSource) {
-      const outputTable = table.createTable(deployedSource as unknown as Row[], [
-        { key: 'state', label: nls.localize('table_header_state') },
-        { key: 'fullName', label: nls.localize('table_header_full_name') },
-        { key: 'type', label: nls.localize('table_header_type') },
-        { key: 'filePath', label: nls.localize('table_header_project_path') }
-      ]);
+      const outputTable = table.createTable(
+        (deployedSource as unknown) as Row[],
+        [
+          { key: 'state', label: nls.localize('table_header_state') },
+          { key: 'fullName', label: nls.localize('table_header_full_name') },
+          { key: 'type', label: nls.localize('table_header_type') },
+          { key: 'filePath', label: nls.localize('table_header_project_path') }
+        ]
+      );
       channelService.appendLine('=== Deployed Source');
       channelService.appendLine(outputTable);
     }
 
     if (errors) {
-      const outputTable = table.createTable(errors.result as unknown as Row[], [
-        { key: 'filePath', label: nls.localize('table_header_project_path') },
-        { key: 'error', label: nls.localize('table_header_errors') }
-      ]);
-      channelService.appendLine('=== Deploy Errors');
-      channelService.appendLine(outputTable);
+      const { name, message, result } = errors;
+      if (result) {
+        const outputTable = table.createTable(
+          (errors.result as unknown) as Row[],
+          [
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            },
+            { key: 'error', label: nls.localize('table_header_errors') }
+          ]
+        );
+        channelService.appendLine('=== Deploy Errors');
+        channelService.appendLine(outputTable);
+      } else if (name && message) {
+        channelService.appendLine(`${name}: ${message}\n`);
+      }
     }
   }
 }

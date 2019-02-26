@@ -20,6 +20,12 @@ export interface Column {
 
 export class Table {
   public createTable(rows: Row[], cols: Column[]): string {
+    if (!rows) {
+      throw Error('rows cannot be undefined');
+    }
+    if (!cols) {
+      throw Error('columns cannot be undefined');
+    }
     const maxColWidths = this.calculateMaxColumnWidths(rows, cols);
 
     let columnHeader = '';
@@ -27,7 +33,7 @@ export class Table {
     cols.forEach((col, index, arr) => {
       const width = maxColWidths.get(col.key);
       if (width) {
-        const isLastCol = index < arr.length - 1;
+        const isLastCol = index === arr.length - 1;
         columnHeader += this.fillColumn(
           col.label || col.key,
           width,
@@ -43,7 +49,7 @@ export class Table {
       let outputRow = '';
       cols.forEach((col, colIndex, arr) => {
         const cell = row[col.key];
-        const isLastCol = colIndex < arr.length - 1;
+        const isLastCol = colIndex === arr.length - 1;
         const rowWidth = outputRow.length;
         cell.split('\n').forEach((line, lineIndex) => {
           const cellWidth = maxColWidths.get(col.key);
@@ -58,7 +64,8 @@ export class Table {
             } else {
               // If the cell is multiline, add an additional line to the table
               // and pad it to the beginning of the current column
-              outputRow += '\n' +
+              outputRow +=
+                '\n' +
                 this.fillColumn('', rowWidth, COLUMN_FILLER, isLastCol) +
                 this.fillColumn(line, rowWidth, COLUMN_FILLER, isLastCol);
             }
@@ -104,13 +111,13 @@ export class Table {
     label: string,
     width: number,
     filler: string,
-    lastCol: boolean
+    isLastCol: boolean
   ): string {
     let filled = label;
     for (let i = 0; i < width - label.length; i++) {
       filled += filler;
     }
-    if (lastCol) {
+    if (!isLastCol) {
       filled += COLUMN_SEPARATOR;
     }
     return filled;
