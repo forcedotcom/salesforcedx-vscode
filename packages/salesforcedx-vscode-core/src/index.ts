@@ -80,6 +80,7 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { SfdxProjectPath } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
+import { isCLIInstalled, showCLINotInstalledMessage } from './util';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -384,7 +385,6 @@ function registerCommands(
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.log('SFDX CLI Extension Activated');
   const extensionHRStart = process.hrtime();
   // Telemetry
   const machineId =
@@ -429,11 +429,15 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  // Set context for defaultusername org
-  await setupWorkspaceOrgType();
-  registerDefaultUsernameWatcher(context);
+  if (isCLIInstalled()) {
+    // Set context for defaultusername org
+    await setupWorkspaceOrgType();
+    registerDefaultUsernameWatcher(context);
 
-  await showDefaultOrg();
+    await showDefaultOrg();
+  } else {
+    showCLINotInstalledMessage();
+  }
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
@@ -485,6 +489,7 @@ export async function activate(context: vscode.ExtensionContext) {
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  console.log('SFDX CLI Extension Activated');
   return api;
 }
 

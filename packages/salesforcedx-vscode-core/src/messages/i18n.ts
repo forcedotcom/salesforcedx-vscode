@@ -224,6 +224,8 @@ export const messages = {
   force_config_set_org_text: 'SFDX: Set a Default Org',
   error_parsing_sfdx_project_file:
     "Couldn't parse sfdx-project.json file (%s). Parse error: %s",
+  sfdx_cli_not_found:
+    'The Salesforce CLI is not installed. Install it from [%s](%s)',
   table_header_errors: 'ERRORS',
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
