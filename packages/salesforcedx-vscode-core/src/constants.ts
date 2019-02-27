@@ -25,3 +25,5 @@ export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
+export const SFDX_CLI_DOWNLOAD_LINK =
+  'https://developer.salesforce.com/tools/sfdxcli';
