@@ -6,3 +6,4 @@
  */
 
 export { OrgAuthInfo } from './authInfo';
+export { isCLIInstalled, showCLINotInstalledMessage } from './cliConfiguration';
