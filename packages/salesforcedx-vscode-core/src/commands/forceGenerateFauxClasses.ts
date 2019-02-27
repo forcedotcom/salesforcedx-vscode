@@ -29,6 +29,7 @@ import { getDefaultUsernameOrAlias } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -111,7 +112,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
 
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
-    const projectPath: string = vscode.workspace.rootPath as string;
+    const projectPath: string = getRootWorkspacePath();
     const gen: FauxClassGenerator = new FauxClassGenerator(
       execution.cmdEmitter,
       cancellationToken

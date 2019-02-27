@@ -21,6 +21,7 @@ import { developerLogTraceFlag } from '.';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -38,7 +39,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -55,7 +56,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
 export async function turnOffLogging(): Promise<void> {
   if (developerLogTraceFlag.isActive()) {
     const execution = new CliCommandExecutor(deleteTraceFlag(), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute();
     telemetryService.sendCommandEvent(execution.command.logName);
     const resultPromise = new CommandOutput().getCmdResult(execution);

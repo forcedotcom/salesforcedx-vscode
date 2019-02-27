@@ -20,6 +20,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -92,7 +93,7 @@ export class StopActiveDebuggerSessionExecutor extends SfdxCommandletExecutor<{}
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     const resultPromise = new CommandOutput().getCmdResult(execution);

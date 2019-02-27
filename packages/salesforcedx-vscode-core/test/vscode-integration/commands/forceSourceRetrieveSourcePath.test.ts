@@ -21,10 +21,8 @@ import {
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectPath
-} from '../../../src/sfdxProject';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { getRootWorkspacePath } from '../../../src/util';
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
   it('Should build the source retrieve command', () => {
@@ -45,7 +43,7 @@ describe('SourcePathChecker', () => {
   let appendLineSpy: SinonStub;
   let showErrorMessageSpy: SinonStub;
   beforeEach(() => {
-    workspacePath = SfdxProjectPath.getPath();
+    workspacePath = getRootWorkspacePath();
     appendLineSpy = stub(channelService, 'appendLine');
     showErrorMessageSpy = stub(notificationService, 'showErrorMessage');
   });
