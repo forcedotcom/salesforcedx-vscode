@@ -28,8 +28,10 @@ export { ForceConfigGet } from './forceConfigGet';
 export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export { LocalCommandExecution } from './localCommandExecutor';
 export {
-  ForceDeployErrorParser,
+  ForceDeployResultParser,
   ForceSourceDeployErrorResult,
-  DeployError
-} from './deployErrorParser';
+  ForceSourceDeploySuccessResult,
+  DeployError,
+  DeploySuccess
+} from './deployResultParser';
 export { TestRunner } from './testRunner';
