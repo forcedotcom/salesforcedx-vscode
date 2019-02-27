@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
-import { workspace, WorkspaceFolder } from 'vscode';
+import { SinonStub } from 'sinon';
+import { WorkspaceFolder } from 'vscode';
 import {
   getRootWorkspace,
   getRootWorkspacePath,
   hasRootWorkspace
 } from '../../../src/util';
+import { stubWorkspace } from './rootWorkspace.test-util';
 
 // tslint:disable:no-unused-expression
 describe('RootWorkspace utils should', () => {
@@ -27,14 +28,6 @@ describe('RootWorkspace utils should', () => {
   const WORKSPACE_NAME = 'sfdx-simple';
   let workspaceStub: SinonStub | undefined;
 
-  function stubWorkspace(stubObj: WorkspaceFolder[]) {
-    return (workspaceStub = stub(workspace, 'workspaceFolders').get(
-      function getWorkspaceFolders() {
-        return stubObj;
-      }
-    ));
-  }
-
   afterEach(() => {
     if (workspaceStub) {
       workspaceStub!.restore();
@@ -44,7 +37,7 @@ describe('RootWorkspace utils should', () => {
 
   it('correctly determine if there is a workspace', () => {
     expect(hasRootWorkspace()).to.be.true;
-    stubWorkspace([]);
+    workspaceStub = stubWorkspace([]);
     expect(hasRootWorkspace()).to.be.false;
   });
 
@@ -55,13 +48,13 @@ describe('RootWorkspace utils should', () => {
   });
 
   it('return empty things ( not undefined ) if no root workspace', () => {
-    stubWorkspace([]);
+    workspaceStub = stubWorkspace([]);
     expect(getRootWorkspace()).to.be.empty;
     expect(getRootWorkspacePath()).to.be.empty;
   });
 
   it('return correct parts of the root workspace', () => {
-    stubWorkspace(myWorkspaces);
+    workspaceStub = stubWorkspace(myWorkspaces);
     expect(getRootWorkspace().name).to.equal(myFolder.name);
     expect(getRootWorkspacePath()).to.equal(myFolder.uri.fsPath);
   });

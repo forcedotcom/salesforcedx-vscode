@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import {
   SfdxPackageDirectories,
   SfdxProjectConfig
 } from '../../../src/sfdxProject';
-
-import * as path from 'path';
-import { getRootWorkspacePath } from '../../../src/util';
+import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 const PROJECT_PATH = path.join('sfdx', 'project', 'path');
 
@@ -88,13 +87,14 @@ describe('SFDX Package Directories', () => {
   });
 
   describe('getPackageDirectoryFullPaths', () => {
-    let sfdxProjectPathStub: SinonStub;
+    let workspaceStub: SinonStub;
+
     beforeEach(() => {
-      sfdxProjectPathStub = stub(getRootWorkspacePath).returns(PROJECT_PATH);
+      workspaceStub = stubRootWorkspace(PROJECT_PATH);
     });
 
     afterEach(() => {
-      sfdxProjectPathStub.restore();
+      workspaceStub!.restore();
     });
 
     it('should append the project path to the package directory path', async () => {
