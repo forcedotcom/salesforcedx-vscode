@@ -29,6 +29,7 @@ import {
 } from '../notifications/index';
 import { SfdxProjectConfig } from '../sfdxProject';
 import { taskViewService } from '../statuses/index';
+import { getRootWorkspacePath } from '../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -65,7 +66,7 @@ export abstract class ForceAuthDemoModeExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(() => {

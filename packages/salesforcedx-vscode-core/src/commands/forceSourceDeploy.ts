@@ -21,6 +21,7 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath } from '../util';
 import { SfdxCommandletExecutor } from './commands';
 
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
@@ -34,9 +35,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const workspacePath = vscode.workspace.workspaceFolders
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : '';
+    const workspacePath = getRootWorkspacePath() || '';
     const execFilePathOrPaths = response.data;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
 import { ConfigurationTarget } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   CompositeParametersGatherer,
@@ -77,10 +77,9 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
-import { SfdxProjectPath } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { isCLIInstalled, showCLINotInstalledMessage } from './util';
+import { getRootWorkspacePath, hasRootWorkspace, isCLIInstalled, showCLINotInstalledMessage } from './util';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -394,7 +393,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Context
   let sfdxProjectOpened = false;
-  if (vscode.workspace.rootPath) {
+  if (hasRootWorkspace()) {
     const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
   }
@@ -454,19 +453,19 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(treeDataProvider);
 
   // Scratch Org Decorator
-  if (vscode.workspace.rootPath) {
+  if (hasRootWorkspace()) {
     decorators.showOrg();
     decorators.monitorOrgConfigChanges();
   }
 
   // Demo mode Decorator
-  if (vscode.workspace.rootPath && isDemoMode()) {
+  if (hasRootWorkspace() && isDemoMode()) {
     decorators.showDemoMode();
   }
 
   // Refresh SObject definitions if there aren't any faux classes
   if (sfdxCoreSettings.getEnableSObjectRefreshOnStartup()) {
-    initSObjectDefinitions(SfdxProjectPath.getPath()).catch(e =>
+    initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
       telemetryService.sendErrorEvent(e.message, e.stack)
     );
   }

@@ -6,6 +6,5 @@
  */
 import SfdxPackageDirectories from './sfdxPackageDirectories';
 import SfdxProjectConfig from './sfdxProjectConfig';
-import SfdxProjectPath from './sfdxProjectPath';
 
-export { SfdxPackageDirectories, SfdxProjectConfig, SfdxProjectPath };
+export { SfdxPackageDirectories, SfdxProjectConfig };

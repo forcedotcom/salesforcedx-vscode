@@ -27,6 +27,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -79,7 +80,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0) {
       const logDir = path.join(
-        vscode.workspace.workspaceFolders![0].uri.fsPath,
+        getRootWorkspacePath(),
         '.sfdx',
         'tools',
         'debug',
@@ -179,7 +180,7 @@ export class ForceApexLogList {
         .withJson()
         .withLogName('force_apex_log_list')
         .build(),
-      { cwd: vscode.workspace.workspaceFolders![0].uri.fsPath }
+      { cwd: getRootWorkspacePath() }
     ).execute();
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);

@@ -21,6 +21,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
   LightningFilePathExistsChecker,
@@ -52,7 +53,7 @@ class ForceLightningComponentCreateExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
@@ -60,12 +61,12 @@ class ForceLightningComponentCreateExecutor extends SfdxCommandletExecutor<
       if (
         data !== undefined &&
         data.toString() === '0' &&
-        vscode.workspace.rootPath
+        hasRootWorkspace()
       ) {
         vscode.workspace
           .openTextDocument(
             path.join(
-              vscode.workspace.rootPath,
+              getRootWorkspacePath(),
               response.data.outputdir,
               // fileName is also used to create a subdirectory for the component in the aura directory
               response.data.fileName,

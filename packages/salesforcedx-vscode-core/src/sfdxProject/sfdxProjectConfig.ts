@@ -13,8 +13,8 @@ import { SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
-import { SfdxProjectPath } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath } from '../util';
 
 /**
  * Class representing the local sfdx-project.json file.
@@ -33,7 +33,7 @@ export default class SfdxProjectConfig {
       !SfdxProjectConfig.instance &&
       isSfdxProjectOpened.apply(vscode.workspace).result
     ) {
-      const sfdxProjectPath = SfdxProjectPath.getPath();
+      const sfdxProjectPath = getRootWorkspacePath();
       try {
         const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
         SfdxProjectConfig.instance = await sfdxProject.retrieveSfdxProjectJson();

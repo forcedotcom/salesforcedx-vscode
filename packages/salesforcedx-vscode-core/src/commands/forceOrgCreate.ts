@@ -17,6 +17,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getRootWorkspace, getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
   FileSelection,
@@ -33,7 +34,7 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 > {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
-      vscode.workspace.rootPath!, // this is safe because of workspaceChecker
+      getRootWorkspacePath(), // this is safe because of workspaceChecker
       data.file
     );
     return new SfdxCommandBuilder()
@@ -55,10 +56,9 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;
     if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
+      hasRootWorkspace()
     ) {
-      defaultAlias = vscode.workspace.workspaceFolders[0].name.replace(
+      defaultAlias = getRootWorkspace().name.replace(
         /\W/g /* Replace all non-alphanumeric characters */,
         ''
       );
