@@ -105,12 +105,12 @@ export async function activate(context: vscode.ExtensionContext) {
   };
 
   // Code coverage commands
-  context.subscriptions.push(registerCommands(context));
+  context.subscriptions.push(registerCodeCoverageCommands(context));
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
-function registerCommands(
+function registerCodeCoverageCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Colorize code coverage

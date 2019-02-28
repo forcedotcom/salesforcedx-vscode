@@ -6,20 +6,21 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
+import {
+  coveredLinesDecorationType,
+  uncoveredLinesDecorationType
+} from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-const lime = (opacity: number): string => `rgba(45, 121, 11, ${opacity})`;
-const red = (opacity: number): string => `rgba(253, 72, 73, ${opacity})`;
-
 export function getLineRange(
-  document: vscode.TextDocument,
+  document: TextDocument,
   lineNumber: number
-): vscode.Range {
+): Range {
   const adjustedLineNumber = lineNumber - 1;
   const firstLine = document.lineAt(adjustedLineNumber);
 
-  return new vscode.Range(
+  return new Range(
     adjustedLineNumber,
     firstLine.range.start.character,
     adjustedLineNumber,
@@ -28,7 +29,7 @@ export function getLineRange(
 }
 
 const apexDirPath = path.join(
-  vscode.workspace!.workspaceFolders![0].uri.fsPath,
+  workspace!.workspaceFolders![0].uri.fsPath,
   '.sfdx',
   'tools',
   'testresults',
@@ -57,79 +58,47 @@ function getApexMemberName(filePath: string): string {
 }
 export class CodeCoverage {
   private statusBar: StatusBarToggle;
-  public coveredLinesDecorationType: vscode.TextEditorDecorationType;
-  public uncoveredLinesCoverageDecorationType: vscode.TextEditorDecorationType;
 
   constructor(statusBar: StatusBarToggle) {
     this.statusBar = statusBar;
-    this.coveredLinesDecorationType = vscode.window.createTextEditorDecorationType(
-      {
-        backgroundColor: lime(0.5),
-        borderRadius: '.2em',
-        overviewRulerColor: lime(0.5)
-      }
-    );
-    this.uncoveredLinesCoverageDecorationType = vscode.window.createTextEditorDecorationType(
-      {
-        backgroundColor: red(0.5),
-        borderRadius: '.2em',
-        overviewRulerColor: red(0.5)
-      }
-    );
 
-    vscode.window.onDidChangeActiveTextEditor(
-      this.onDidChangeActiveTextEditor,
-      this
-    );
-    this.onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
+    window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this);
+    this.onDidChangeActiveTextEditor(window.activeTextEditor);
   }
 
-  public onDidChangeActiveTextEditor(editor?: vscode.TextEditor) {
+  public onDidChangeActiveTextEditor(editor?: TextEditor) {
     if (editor && this.statusBar.isHighlightingEnabled) {
-      console.log('this is the editor');
       getApexMemberName(editor.document.uri.fsPath);
       this.colorizer(editor);
     }
   }
 
   public showCoverage() {
-    console.log('This should show code coverage');
     this.statusBar.toggle(true);
-    this.colorizer(vscode.window.activeTextEditor);
+    this.colorizer(window.activeTextEditor);
   }
 
   public hideCoverage() {
-    console.log('This should hide code coverage');
     this.statusBar.toggle(false);
-    this.removeColor();
+    const editor = window.activeTextEditor;
+    if (editor) {
+      editor.setDecorations(coveredLinesDecorationType, []);
+      editor.setDecorations(uncoveredLinesDecorationType, []);
+    }
   }
 
-  private removeColor() {
-    console.log('what is up ??');
-    // disposing this prevents from further enabling/disabling code cov
-    // highlighting, need to do some sort of caching and just flush that
-    // OR query for the data every time we change apex classes/triggers
-    // this.coveredLinesDecorationType.dispose();
-    // this.uncoveredLinesCoverageDecorationType.dispose();
-  }
-
-  private colorizer(editor?: vscode.TextEditor) {
-    console.log('what is up ??');
-    // const editor = vscode.window.activeTextEditor;
+  private colorizer(editor?: TextEditor) {
     if (editor) {
       const jsonSummary = getCoverageData();
-      const coveredLines = Array<vscode.Range>();
-      const uncoveredLines = Array<vscode.Range>();
-      console.log('jsonSummary = ', jsonSummary);
+      const coveredLines = Array<Range>();
+      const uncoveredLines = Array<Range>();
       const convArray = jsonSummary.coverage.coverage;
+
       convArray.forEach((classCov: any) => {
         // can this be replaced by a find or map ?
         if (classCov.name === getApexMemberName(editor.document.uri.fsPath)) {
-          const x = classCov.lines;
-          console.log(x);
           for (const key in classCov.lines) {
             if (classCov.lines.hasOwnProperty(key)) {
-              console.log(key, classCov.lines[key]);
               if (classCov.lines[key] === 1) {
                 coveredLines.push(getLineRange(editor.document, Number(key)));
               } else {
@@ -140,11 +109,8 @@ export class CodeCoverage {
         }
       });
 
-      editor.setDecorations(this.coveredLinesDecorationType, coveredLines);
-      editor.setDecorations(
-        this.uncoveredLinesCoverageDecorationType,
-        uncoveredLines
-      );
+      editor.setDecorations(coveredLinesDecorationType, coveredLines);
+      editor.setDecorations(uncoveredLinesDecorationType, uncoveredLines);
     }
   }
 }
