@@ -31,7 +31,7 @@
     "rimraf": "^2.6.1",
     "shelljs": "0.8.3",
     "source-map-support": "^0.4.15",
-    "spectron": "^3.7.2",
+    "spectron": "5.0.0",
     "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
@@ -41,7 +41,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "pretest": "npm run compile && cross-env CODE_VERSION='1.30.0' node ../../scripts/download-vscode-for-system-tests",
+    "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
     "test": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node out/src/main.js",
     "test:vscode-insiders-system-tests": "cross-env CODE_VERSION=insiders npm run pretest && node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && CODE_VERSION=insiders node out/src/main.js",
     "coverage": "npm run pretest && node ../../scripts/instrument-salesforcedx-vscode-extensions && cross-env COLLECT_COVERAGE=1 npm run test && node ../../scripts/remap-coverage"
