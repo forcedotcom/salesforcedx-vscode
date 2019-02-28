@@ -157,7 +157,16 @@ export class EmptyParametersGatherer implements ParametersGatherer<{}> {
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
   public constructor(uri: vscode.Uri) {
-    this.filePath = uri.fsPath;
+    if (uri && uri.fsPath) {
+      this.filePath = uri.fsPath;
+    } else if (
+      vscode.window.activeTextEditor &&
+      vscode.window.activeTextEditor.document.uri.fsPath
+    ) {
+      this.filePath = vscode.window.activeTextEditor.document.uri.fsPath;
+    } else {
+      throw new Error('Cannot determine file path.');
+    }
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
