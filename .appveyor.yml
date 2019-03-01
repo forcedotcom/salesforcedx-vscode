@@ -44,22 +44,12 @@ build_script:
   - ps: $stopwatch.Start()
   - npm run compile
   - npm run lint
-<<<<<<< HEAD
-<<<<<<< HEAD
   - npm config set scripts-prepend-node-path true
-=======
-=======
-  - npm config set scripts-prepend-node-path true
->>>>>>> Added in changes from develop for autobuild failures
   - ps: |
       $stopwatch.Stop()
       Write-Host "Total Build Time - " $stopwatch.Elapsed
       "`n`n"
-<<<<<<< HEAD
->>>>>>> Added rollup time statements for appveyor
-=======
       $stopwatch.Reset()
->>>>>>> Changed stopwatch reset and start logic
 
 test_script:
   - ps: $stopwatch.Start()
