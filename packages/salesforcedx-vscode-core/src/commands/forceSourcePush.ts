@@ -9,16 +9,16 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
+  FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
-  FilePathGatherer
+  SfdxWorkspaceChecker
 } from './commands';
 import { ForceSourceDeployExecutor } from './forceSourceDeploy';
-import * as vscode from 'vscode';
 
 export class ForceSourcePushExecutor extends ForceSourceDeployExecutor {
   private flag: string | undefined;
