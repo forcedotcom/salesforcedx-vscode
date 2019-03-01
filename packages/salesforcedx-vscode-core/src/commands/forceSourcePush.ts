@@ -14,10 +14,13 @@ import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  FilePathGatherer
 } from './commands';
+import { ForceSourceDeployExecutor } from './forceSourceDeploy';
+import * as vscode from 'vscode';
 
-export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceSourcePushExecutor extends ForceSourceDeployExecutor {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -31,6 +34,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('force_source_push_default_scratch_org_text')
       )
       .withArg('force:source:push')
+      .withJson()
       .withLogName('force_source_push_default_scratch_org');
     if (this.flag === '--forceoverwrite') {
       builder.withArg(this.flag);
@@ -43,7 +47,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
+const parameterGatherer = new FilePathGatherer(vscode.Uri.file(''));
 
 export interface FlagParameter {
   flag: string;

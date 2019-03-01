@@ -59,8 +59,11 @@ export class ForceDeployResultParser {
   }
 
   public getSuccesses(): ForceSourceDeploySuccessResult | undefined {
-    const { partialSuccess, status } = this.result;
+    const { partialSuccess, pushedSource, status } = this.result;
     if (status === 0) {
+      if (pushedSource) {
+        return { status, result: { deployedSource: pushedSource } };
+      }
       return this.result as ForceSourceDeploySuccessResult;
     }
     if (partialSuccess) {
