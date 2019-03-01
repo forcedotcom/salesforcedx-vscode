@@ -17,8 +17,12 @@ environment:
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
   matrix:
-    - vscode: test:without-system-tests
-    #- vscode: test:insiders-without-system-tests
+    # Please note that order does matter. We do not want two long running test categories running on the same job.
+    # Job 1
+    - vscode: test:unit-without-system-tests
+    - vscode: coverage:system-tests
+    # Job 2
+    - vscode: test:integration-without-system-tests
 
 install:
   - ps: Install-Product node 10.2.0 x64
@@ -50,7 +54,6 @@ test_script:
       "--------------------------------------------"
   - cmd: npm run %vscode%
   - ps: |
-      npm run coverage:system-tests
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
       $NpmTestsExitCode = $LastExitCode
