@@ -11,14 +11,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { SfdxCommandlet, SfdxWorkspaceChecker } from './commands';
 import {
-  EmptyParametersGatherer,
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './commands';
-import { ForceSourceDeployExecutor } from './forceSourceDeploy';
+  DeployParamsGatherer,
+  ForceSourceDeployExecutor
+} from './forceSourceDeploy';
 
 export class ForceSourcePushExecutor extends ForceSourceDeployExecutor {
   private flag: string | undefined;
@@ -47,7 +44,7 @@ export class ForceSourcePushExecutor extends ForceSourceDeployExecutor {
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new FilePathGatherer(vscode.Uri.file(''));
+const parameterGatherer = new DeployParamsGatherer(true);
 
 export interface FlagParameter {
   flag: string;

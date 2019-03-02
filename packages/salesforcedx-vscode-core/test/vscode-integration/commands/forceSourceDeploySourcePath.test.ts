@@ -14,12 +14,17 @@ import { nls } from '../../../src/messages';
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
   it('Should build the source deploy command for', () => {
-    const sourcePath = path.join('path', 'to', 'sourceFile');
+    const deployParams = {
+      sourcePush: false,
+      sourcePaths: path.join('path', 'to', 'sourceFile')
+    };
     const sourceDeploy = new ForceSourceDeploySourcePathExecutor();
-    const sourceDeployCommand = sourceDeploy.build(sourcePath);
+    const sourceDeployCommand = sourceDeploy.build(deployParams);
 
     expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --sourcepath ${sourcePath} --json --loglevel fatal`
+      `sfdx force:source:deploy --sourcepath ${
+        deployParams.sourcePaths
+      } --json --loglevel fatal`
     );
     expect(sourceDeployCommand.description).to.equal(
       nls.localize('force_source_deploy_text')

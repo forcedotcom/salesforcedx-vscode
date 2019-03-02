@@ -19,7 +19,7 @@ export interface Column {
 }
 
 export class Table {
-  public createTable(rows: Row[], cols: Column[]): string {
+  public createTable(rows: Row[], cols: Column[], title?: string): string {
     if (!rows) {
       throw Error('rows cannot be undefined');
     }
@@ -27,6 +27,7 @@ export class Table {
       throw Error('columns cannot be undefined');
     }
     const maxColWidths = this.calculateMaxColumnWidths(rows, cols);
+    let table = title ? `=== ${title}` : '';
 
     let columnHeader = '';
     let headerSeparator = '';
@@ -44,7 +45,10 @@ export class Table {
       }
     });
 
-    let table = `${columnHeader}\n${headerSeparator}\n`;
+    if (columnHeader && headerSeparator) {
+      table += `\n${columnHeader}\n${headerSeparator}\n`;
+    }
+
     rows.forEach(row => {
       let outputRow = '';
       cols.forEach((col, colIndex, arr) => {

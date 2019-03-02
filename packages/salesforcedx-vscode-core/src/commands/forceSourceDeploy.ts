@@ -13,7 +13,10 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -24,19 +27,41 @@ import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { SfdxCommandletExecutor } from './commands';
 
+export interface DeployParams {
+  sourcePush: boolean;
+  sourcePaths: string;
+}
+
+export class DeployParamsGatherer implements ParametersGatherer<DeployParams> {
+  private sourcePush: boolean;
+  private uris: vscode.Uri[] | undefined;
+  public constructor(sourcePush: boolean, uris?: vscode.Uri[]) {
+    this.sourcePush = sourcePush;
+    this.uris = uris;
+  }
+  public async gather(): Promise<ContinueResponse<DeployParams>> {
+    const sourcePaths = this.uris
+      ? this.uris.map(uri => uri.fsPath).join(',')
+      : '';
+    return {
+      type: 'CONTINUE',
+      data: { sourcePush: this.sourcePush, sourcePaths }
+    };
+  }
+}
+
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
-  string
+  DeployParams
 > {
   public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
 
-  public execute(response: ContinueResponse<string>): void {
+  public execute(response: ContinueResponse<DeployParams>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = getRootWorkspacePath() || '';
-    const execFilePathOrPaths = response.data;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
@@ -53,19 +78,20 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
+        const { sourcePush, sourcePaths } = response.data;
         const deployParser = new ForceDeployResultParser(stdOut);
         const errors = deployParser.getErrors();
         if (errors) {
           handleDiagnosticErrors(
             errors,
             workspacePath,
-            execFilePathOrPaths,
+            sourcePaths,
             ForceSourceDeployExecutor.errorCollection
           );
         } else {
           ForceSourceDeployExecutor.errorCollection.clear();
         }
-        this.outputResult(deployParser);
+        this.outputResult(deployParser, sourcePush);
       } catch (e) {
         telemetryService.sendError(
           'Error while creating diagnostics for vscode problem view.'
@@ -84,8 +110,9 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  private outputResult(parser: ForceDeployResultParser) {
+  private outputResult(parser: ForceDeployResultParser, sourcePush: boolean) {
     const table = new Table();
+    const titleType = sourcePush ? 'push' : 'deploy';
     const errors = parser.getErrors();
     const successes = parser.getSuccesses();
     const deployedSource = successes
@@ -100,10 +127,13 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
           { key: 'fullName', label: nls.localize('table_header_full_name') },
           { key: 'type', label: nls.localize('table_header_type') },
           { key: 'filePath', label: nls.localize('table_header_project_path') }
-        ]
+        ],
+        nls.localize(`table_title_${titleType}ed_source`)
       );
-      channelService.appendLine('=== Deployed Source');
       channelService.appendLine(outputTable);
+      if (deployedSource.length === 0) {
+        channelService.appendLine(nls.localize('table_no_results_found'));
+      }
     }
 
     if (errors) {
@@ -117,9 +147,9 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
               label: nls.localize('table_header_project_path')
             },
             { key: 'error', label: nls.localize('table_header_errors') }
-          ]
+          ],
+          nls.localize(`table_title_${titleType}_errors`)
         );
-        channelService.appendLine('=== Deploy Errors');
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);

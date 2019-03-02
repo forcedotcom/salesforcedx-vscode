@@ -39,13 +39,13 @@ export interface ForceSourceDeploySuccessResult {
 }
 
 export class ForceDeployResultParser {
-  private result: any;
+  private response: any;
 
   constructor(stdOut: string) {
     const stdErrLines = stdOut.split(EOL);
     for (const line of stdErrLines) {
       if (line.trim().startsWith('{')) {
-        this.result = JSON.parse(line);
+        this.response = JSON.parse(line);
         return;
       }
     }
@@ -53,18 +53,19 @@ export class ForceDeployResultParser {
   }
 
   public getErrors(): ForceSourceDeployErrorResult | undefined {
-    if (this.result.status === 1) {
-      return this.result as ForceSourceDeployErrorResult;
+    if (this.response.status === 1) {
+      return this.response as ForceSourceDeployErrorResult;
     }
   }
 
   public getSuccesses(): ForceSourceDeploySuccessResult | undefined {
-    const { partialSuccess, pushedSource, status } = this.result;
+    const { status, result, partialSuccess } = this.response;
     if (status === 0) {
+      const { pushedSource } = result;
       if (pushedSource) {
         return { status, result: { deployedSource: pushedSource } };
       }
-      return this.result as ForceSourceDeploySuccessResult;
+      return this.response as ForceSourceDeploySuccessResult;
     }
     if (partialSuccess) {
       return { status, result: { deployedSource: partialSuccess } };
