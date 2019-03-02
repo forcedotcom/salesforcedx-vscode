@@ -132,7 +132,8 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       );
       channelService.appendLine(outputTable);
       if (deployedSource.length === 0) {
-        channelService.appendLine(nls.localize('table_no_results_found'));
+        const noResults = nls.localize('table_no_results_found') + '\n';
+        channelService.appendLine(noResults);
       }
     }
 
