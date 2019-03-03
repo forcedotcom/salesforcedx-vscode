@@ -19,8 +19,8 @@ environment:
   matrix:
     # Please note that order does matter. We do not want two long running test categories running on the same job.
     - vscode: coverage:system-tests
-    - vscode: test:unit-without-system-tests
     - vscode: test:integration-without-system-tests
+    - vscode: test:unit-without-system-tests
 
 install:
   - ps: Install-Product node 10.2.0 x64
