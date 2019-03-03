@@ -18,10 +18,8 @@ environment:
   SFDX_DOMAIN_RETRY: 300
   matrix:
     # Please note that order does matter. We do not want two long running test categories running on the same job.
-    # Job 1
-    - vscode: test:unit-without-system-tests
     - vscode: coverage:system-tests
-    # Job 2
+    - vscode: test:unit-without-system-tests
     - vscode: test:integration-without-system-tests
 
 install:
