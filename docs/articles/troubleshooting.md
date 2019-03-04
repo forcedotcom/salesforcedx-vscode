@@ -28,7 +28,7 @@ The Apex Language Server, shipped as part of the Salesforce Apex Extension for V
 - On Windows, set it to:
 
 ```
-"salesforcedx-vscode-apex.java.home":"C:\Program Files (x86)\Java\jdk1.8.0_131"
+"salesforcedx-vscode-apex.java.home":"C:\\Program Files\\Java\\jdk1.8.0_131"
 ```
 
 ![Apex Java Setting](/salesforcedx-vscode/images/apex-java-home-setting.png)
