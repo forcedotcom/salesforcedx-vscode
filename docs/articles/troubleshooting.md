@@ -13,11 +13,23 @@ If you donâ€™t see any SFDX commands in the command palette, make sure that youâ
 
 ## Set Your Java Version
 
-By default, VS Code attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If VS Code cannot find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
+The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code depends upon the Java 8 Platform, Standard Edition Development Kit (JDK). By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension cannot find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 1. Search for `apex`.
-1. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself. For example, on macOS, set it to `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home` and **not** `/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/bin/java.`
+1. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself.
+
+- On macOS, set it to:
+
+```
+"salesforcedx-vscode-apex.java.home":"/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home"
+```
+
+- On Windows, set it to:
+
+```
+"salesforcedx-vscode-apex.java.home":"C:\Program Files (x86)\Java\jdk1.8.0_131"
+```
 
 ![Apex Java Setting](/salesforcedx-vscode/images/apex-java-home-setting.png)
 
