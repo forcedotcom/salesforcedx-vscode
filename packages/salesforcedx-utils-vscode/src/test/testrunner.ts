@@ -65,7 +65,16 @@ function _mkDirIfExists(dir: string): void {
 }
 
 function _readCoverOptions(testsRoot: string): ITestRunnerOptions | undefined {
-  const coverConfigPath = paths.join(testsRoot, '..', '..', '..', 'coverconfig.json');
+  const coverConfigPath = paths.join(
+    testsRoot,
+    '..',
+    '..',
+    '..',
+    '..',
+    '..',
+    'config',
+    'coverconfig.json'
+  );
   let coverConfig: ITestRunnerOptions | undefined;
   if (fs.existsSync(coverConfigPath)) {
     const configContent = fs.readFileSync(coverConfigPath, 'utf-8');
@@ -301,7 +310,6 @@ class CoverageRunner {
     const reporter = new istanbul.Reporter(undefined, reportingDir);
     const reportTypes =
       self.options.reports instanceof Array ? self.options.reports : ['lcov'];
-    reportTypes.push('html');
     reporter.addAll(reportTypes);
     reporter.write(remappedCollector, true, () => {
       console.log(`reports written to ${reportingDir}`);
