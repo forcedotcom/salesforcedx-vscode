@@ -89,3 +89,5 @@ export const DARK_ORANGE_BUTTON = path.join(
 const startPos = new vscode.Position(0, 0);
 const endPos = new vscode.Position(0, 1);
 export const APEX_GROUP_RANGE = new vscode.Range(startPos, endPos);
+export const SET_JAVA_DOC_LINK =
+  'https://forcedotcom.github.io/salesforcedx-vscode/articles/troubleshooting#set-your-java-version';
