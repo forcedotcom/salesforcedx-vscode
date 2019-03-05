@@ -94,6 +94,7 @@ export async function activate(context: ExtensionContext) {
 
     // do this last
     client.start();
+    context.subscriptions.push(this.client);
 }
 
 let indexingResolve: any;
@@ -120,11 +121,4 @@ function reportIndexing(indexingPromise: Promise<void>) {
             return indexingPromise;
         }
     );
-}
-
-export function deactivate(): Thenable<void> {
-    if (!client) {
-        return Promise.resolve(undefined);
-    }
-    return client.stop();
 }

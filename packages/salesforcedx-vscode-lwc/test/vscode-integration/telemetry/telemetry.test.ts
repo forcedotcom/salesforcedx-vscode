@@ -9,73 +9,73 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 
 describe('Telemetry', () => {
-  let reporter: TelemetryReporter;
-  let sendEvent: SinonStub;
+    let reporter: TelemetryReporter;
+    let sendEvent: SinonStub;
 
-  beforeEach(() => {
-    reporter = new TelemetryReporter('salesforcedx-vscode', 'v1', 'test345390');
-    sendEvent = stub(reporter, 'sendTelemetryEvent');
-  });
+    beforeEach(() => {
+        reporter = new TelemetryReporter('salesforcedx-vscode', 'v1', 'test345390');
+        sendEvent = stub(reporter, 'sendTelemetryEvent');
+    });
 
-  afterEach(async () => {
-    sendEvent.restore();
-    await reporter.dispose();
-  });
+    afterEach(async () => {
+        sendEvent.restore();
+        await reporter.dispose();
+    });
 
-  it('Should send telemetry data', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    it('Should send telemetry data', async () => {
+        const telemetryService = TelemetryService.getInstance();
+        telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent([0, 678]);
-    assert.calledOnce(sendEvent);
-  });
+        await telemetryService.sendExtensionActivationEvent([0, 678]);
+        assert.calledOnce(sendEvent);
+    });
 
-  it('Should not send telemetry data', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, false);
+    it('Should not send telemetry data', async () => {
+        const telemetryService = TelemetryService.getInstance();
+        telemetryService.initializeService(reporter, false);
 
-    telemetryService.sendCommandEvent('force_lightning_lwc_component_create');
-    assert.notCalled(sendEvent);
-  });
+        await telemetryService.sendCommandEvent('force_lightning_lwc_component_create');
+        assert.notCalled(sendEvent);
+    });
 
-  it('Should send correct data format on sendCommandEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    it('Should send correct data format on sendCommandEvent', async () => {
+        const telemetryService = TelemetryService.getInstance();
+        telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendCommandEvent('force_lightning_lwc_component_create');
-    assert.calledOnce(sendEvent);
+        await telemetryService.sendCommandEvent('force_lightning_lwc_component_create');
+        assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-lwc',
-      commandName: 'force_lightning_lwc_component_create'
-    };
-    assert.calledWith(sendEvent, 'commandExecution', expectedData);
-  });
+        const expectedData = {
+            extensionName: 'salesforcedx-vscode-lwc',
+            commandName: 'force_lightning_lwc_component_create'
+        };
+        assert.calledWith(sendEvent, 'commandExecution', expectedData);
+    });
 
-  it('Should send correct data format on sendExtensionActivationEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    it('Should send correct data format on sendExtensionActivationEvent', async () => {
+        const telemetryService = TelemetryService.getInstance();
+        telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent([0, 678]);
-    assert.calledOnce(sendEvent);
+        await telemetryService.sendExtensionActivationEvent([0, 678]);
+        assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-lwc',
-      startupTime: match.string
-    };
-    assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
-  });
+        const expectedData = {
+            extensionName: 'salesforcedx-vscode-lwc',
+            startupTime: match.string
+        };
+        assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
+    });
 
-  it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
+    it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
+        const telemetryService = TelemetryService.getInstance();
+        telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionDeactivationEvent();
-    assert.calledOnce(sendEvent);
+        await telemetryService.sendExtensionDeactivationEvent();
+        assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-lwc'
-    };
-    assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
-  });
+        const expectedData = {
+            extensionName: 'salesforcedx-vscode-lwc'
+        };
+        assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
+    });
 });
