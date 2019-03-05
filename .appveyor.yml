@@ -46,7 +46,7 @@ test_script:
       "--------------------------------------------"
   - cmd: npm run %vscode%
   - ps: |
-      # npm run coverage:system-tests
+      npm run coverage:system-tests
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
       $NpmTestsExitCode = $LastExitCode
