@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
-const path = require('path');
 
 // Downloads an instance of VS Code for tests
 
@@ -11,10 +10,10 @@ if (shell.test('-e', '.vscode-test')) {
     'Using already downloaded instance in ' + shell.pwd() + '/.vscode-test'
   );
 } else {
-  const vscodePath = path.join('.', 'node_modules', 'vscode', 'bin', 'test');
-  console.log('vscodePath = ', vscodePath);
   shell.echo(
-    'Invoking ' + shell.pwd() + `${vscodePath} for downloading VS Code`
+    'Invoking ' +
+      shell.pwd() +
+      '/node_modules/vscode/bin/test for downloading VS Code'
   );
-  shell.exec(`node ${vscodePath}`, { silent: false });
+  shell.exec('node ./node_modules/vscode/bin/test', { silent: true });
 }

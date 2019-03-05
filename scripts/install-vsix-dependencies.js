@@ -2,6 +2,7 @@
 
 const path = require('path');
 const shell = require('shelljs');
+const fs = require('fs');
 
 // Installs a list of extensions passed on the command line
 var version = process.env.CODE_VERSION || '*';
@@ -50,6 +51,9 @@ if (process.platform === 'linux') {
   // Somehow the code executable doesn't have +x set on the autobuilds -- set it here
   shell.chmod('+x', `${executable}`);
 }
+
+console.log(`Install vsix, code executable = ${executable}`);
+console.log('Is vscode installed ?', fs.existsSync(executable));
 
 // We always invoke this script with 'node install-vsix-dependencies arg'
 // so position2 is where the first argument is
