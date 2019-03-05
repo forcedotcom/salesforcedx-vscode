@@ -49,7 +49,7 @@ export class Table {
       table += `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n`;
     }
 
-    rows.forEach((row, rowIndex, rowArr) => {
+    rows.forEach(row => {
       let outputRow = '';
       cols.forEach((col, colIndex, colArr) => {
         const cell = row[col.key];
@@ -76,7 +76,7 @@ export class Table {
           }
         });
       });
-      table += `${outputRow}${rowIndex < rowArr.length - 1 ? '\n' : ''}`;
+      table += outputRow + '\n';
     });
 
     return table;

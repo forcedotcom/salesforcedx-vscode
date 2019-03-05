@@ -83,7 +83,7 @@ describe('Correctly output deploy results', () => {
       ],
       nls.localize(`table_title_deploy_errors`)
     );
-    const expectedOutput = `${successTable}\n\n${errorTable}\n`;
+    const expectedOutput = `${successTable}\n${errorTable}\n`;
     expect(output).to.be.equal(expectedOutput);
   });
 
@@ -167,5 +167,18 @@ describe('Correctly output deploy results', () => {
     );
     const expectedOutput = `${successTable}\n${nls.localize('table_no_results_found')}\n\n`;
     expect(output).to.be.equal(expectedOutput);
+  });
+
+  it('Should show error name and message if there are no results', () => {
+    successesStub.returns(undefined);
+    errorsStub.returns({
+      status: 1,
+      name: 'Deploy Failed',
+      message: 'An error has occurred'
+    });
+
+    const executor = new ForceSourcePushExecutor();
+    executor.outputResult(new ForceDeployResultParser('{}'), false);
+    expect(output).to.be.equal('Deploy Failed: An error has occurred\n\n');
   });
 });

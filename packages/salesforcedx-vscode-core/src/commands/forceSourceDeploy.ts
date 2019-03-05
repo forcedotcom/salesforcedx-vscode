@@ -151,8 +151,7 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
           ],
           nls.localize(`table_title_${titleType}_errors`)
         );
-        const output = (deployedSource ? '\n' : '') + outputTable;
-        channelService.appendLine(output);
+        channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
       }
