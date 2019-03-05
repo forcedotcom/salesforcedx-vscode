@@ -11,10 +11,11 @@ import { Table } from '../../../src/output';
 describe('Creating a Table string', () => {
   it('Should create a string with the correct formatting and number of Rows and Columns', () => {
     const expectedTable =
+      '=== Sample Table\n'   +
       'Column 1  Column 2\n' +
       '────────  ────────\n' +
       'test      test2   \n' +
-      'test3     test4   \n';
+      'test3     test4   ';
 
     const rows = [
       { col1: 'test', col2: 'test2' },
@@ -25,7 +26,7 @@ describe('Creating a Table string', () => {
       { key: 'col2', label: 'Column 2' }
     ];
 
-    const table = new Table().createTable(rows, cols);
+    const table = new Table().createTable(rows, cols, 'Sample Table');
 
     expect(table).to.eq(expectedTable);
   });
@@ -35,7 +36,7 @@ describe('Creating a Table string', () => {
       'Column 1                   Column 2\n' +
       '─────────────────────────  ────────\n' +
       'test making a long column  test2   \n' +
-      'test3                      test4   \n';
+      'test3                      test4   ';
     const rows = [
       { col1: 'test making a long column', col2: 'test2' },
       { col1: 'test3', col2: 'test4' }
@@ -56,7 +57,7 @@ describe('Creating a Table string', () => {
       '────────  ───────────────────────────\n' +
       'test1     first line                 \n' +
       '          second line which is longer\n' +
-      'test2     test3                      \n';
+      'test2     test3                      ';
     const rows = [
       { col1: 'test1', col2: 'first line\nsecond line which is longer' },
       { col1: 'test2', col2: 'test3' }

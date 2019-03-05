@@ -223,4 +223,37 @@ describe('force:source:deploy parser', () => {
       throw Error('Successes should be present but were not returned');
     }
   });
+
+  it('Should parse source:push success successfully', () => {
+    const response = {
+      status: 0,
+      result: {
+        pushedSource: [{
+          state: 'Add',
+          type: 'ApexClass',
+          fullName: 'MyClass',
+          filePath: 'src/classes/MyClass.cls'
+        }]
+      }
+    };
+
+    const parser = new ForceDeployResultParser(JSON.stringify(response));
+    const successes = parser.getSuccesses();
+    if (successes) {
+      const parsedDeployedSource = successes.result.deployedSource;
+      const pushedSource = response.result.pushedSource;
+      expect(successes.status).to.be.equal(0);
+      expect(parsedDeployedSource.length).to.be.equals(1);
+      expect(parsedDeployedSource[0].type).to.be.equals(pushedSource[0].type);
+      expect(parsedDeployedSource[0].state).to.be.equals(
+        pushedSource[0].state
+      );
+      expect(parsedDeployedSource[0].fullName).to.be.equals(
+        pushedSource[0].fullName
+      );
+      expect(parsedDeployedSource[0].filePath).to.be.equals(
+        pushedSource[0].filePath
+      );
+    }
+  });
 });

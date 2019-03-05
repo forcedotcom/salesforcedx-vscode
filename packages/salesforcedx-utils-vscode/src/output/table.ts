@@ -46,14 +46,14 @@ export class Table {
     });
 
     if (columnHeader && headerSeparator) {
-      table += `\n${columnHeader}\n${headerSeparator}\n`;
+      table += `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n`;
     }
 
-    rows.forEach(row => {
+    rows.forEach((row, rowIndex, rowArr) => {
       let outputRow = '';
-      cols.forEach((col, colIndex, arr) => {
+      cols.forEach((col, colIndex, colArr) => {
         const cell = row[col.key];
-        const isLastCol = colIndex === arr.length - 1;
+        const isLastCol = colIndex === colArr.length - 1;
         const rowWidth = outputRow.length;
         cell.split('\n').forEach((line, lineIndex) => {
           const cellWidth = maxColWidths.get(col.key);
@@ -76,7 +76,7 @@ export class Table {
           }
         });
       });
-      table += outputRow + '\n';
+      table += `${outputRow}${rowIndex < rowArr.length - 1 ? '\n' : ''}`;
     });
 
     return table;

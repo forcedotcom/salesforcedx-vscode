@@ -17,7 +17,7 @@ import {
   DeployParamsGatherer,
   ForceSourceDeployExecutor
 } from './forceSourceDeploy';
-import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
+import { SourcePathDeployChecker } from './forceSourceRetrieveSourcePath';
 
 export class ForceSourceDeploySourcePathExecutor extends ForceSourceDeployExecutor {
   public build(deployParams: DeployParams): Command {
@@ -36,7 +36,7 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
     new SfdxWorkspaceChecker(),
     new DeployParamsGatherer(false, [sourceUri]),
     new ForceSourceDeploySourcePathExecutor(),
-    new SourcePathChecker()
+    new SourcePathDeployChecker()
   );
   await commandlet.run();
 }

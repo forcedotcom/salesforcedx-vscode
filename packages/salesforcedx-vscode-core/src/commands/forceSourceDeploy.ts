@@ -110,15 +110,14 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  private outputResult(parser: ForceDeployResultParser, sourcePush: boolean) {
+  public outputResult(parser: ForceDeployResultParser, sourcePush: boolean) {
     const table = new Table();
     const titleType = sourcePush ? 'push' : 'deploy';
-    const errors = parser.getErrors();
+
     const successes = parser.getSuccesses();
     const deployedSource = successes
       ? successes.result.deployedSource
       : undefined;
-
     if (deployedSource) {
       const outputTable = table.createTable(
         (deployedSource as unknown) as Row[],
@@ -137,11 +136,12 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       }
     }
 
+    const errors = parser.getErrors();
     if (errors) {
       const { name, message, result } = errors;
       if (result) {
         const outputTable = table.createTable(
-          (errors.result as unknown) as Row[],
+          (result as unknown) as Row[],
           [
             {
               key: 'filePath',
@@ -151,7 +151,8 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
           ],
           nls.localize(`table_title_${titleType}_errors`)
         );
-        channelService.appendLine(outputTable);
+        const output = (deployedSource ? '\n' : '') + outputTable;
+        channelService.appendLine(output);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
       }
