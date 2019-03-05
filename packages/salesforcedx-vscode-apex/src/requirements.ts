@@ -10,8 +10,8 @@
 
 import * as cp from 'child_process';
 import { workspace } from 'vscode';
+import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
-
 import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
@@ -56,7 +56,9 @@ function checkJavaRuntime(): Promise<string> {
     if (javaHome) {
       javaHome = expandHomeDir(javaHome) as string;
       if (!pathExists.sync(javaHome)) {
-        return reject(nls.localize('source_missing_text', source));
+        return reject(
+          nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
+        );
       }
       return resolve(javaHome);
     }
@@ -64,7 +66,9 @@ function checkJavaRuntime(): Promise<string> {
     // Last resort, try to automatically detect
     findJavaHome((err: Error, home: string) => {
       if (err) {
-        return reject(nls.localize('java_runtime_missing_text'));
+        return reject(
+          nls.localize('java_runtime_missing_text', SET_JAVA_DOC_LINK)
+        );
       } else {
         return resolve(home);
       }
@@ -85,7 +89,7 @@ function checkJavaVersion(javaHome: string): Promise<any> {
       {},
       (error, stdout, stderr) => {
         if (stderr.indexOf('1.8') < 0) {
-          reject(nls.localize('wrong_java_version_text'));
+          reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
         } else {
           resolve(true);
         }
