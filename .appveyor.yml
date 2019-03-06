@@ -17,17 +17,15 @@ environment:
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
   matrix:
-    # Please note that order does matter. We do not want two long running test categories running on the same job.
-    - vscode: coverage:system-tests
-    - vscode: test:integration-without-system-tests
-    - vscode: test:unit-without-system-tests
+    - vscode: test:unit-and-system-tests
+    - vscode: test:integration-tests-without-system-tests
 
 install:
   - ps: Install-Product node 10.2.0 x64
-  - appveyor-retry npm install
-  - npm install -g sfdx-cli
-  - npm install -g codecov
-  - npm install -g junit-merge
+  - Measure-Command { appveyor-retry npm install | Out-Host }
+  - Measure-Command { npm install -g sfdx-cli | Out-Host }
+  - Measure-Command { npm install -g codecov | Out-Host }
+  - Measure-Command { npm install -g junit-merge | Out-Host }
   # the JWT key should be stored base 64 encoded in AppVeyor settings. If you change this, it will take a few builds to propogate
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
   - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile C:\projects\devhub.key --setdefaultdevhubusername --setalias devhub
@@ -50,7 +48,7 @@ test_script:
   - cmd: echo Running npm run %vscode%
   - ps: |
       "--------------------------------------------"
-  - cmd: npm run %vscode%
+  - cmd: Measure-Command { npm run %vscode% | Out-Host }
   - ps: |
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
