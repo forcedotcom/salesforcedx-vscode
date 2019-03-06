@@ -27,7 +27,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { DeployParams } from './forceSourceDeploy';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -39,24 +38,6 @@ export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecuto
       .withFlag('--sourcepath', sourcePath)
       .withLogName('force_source_retrieve_with_sourcepath')
       .build();
-  }
-}
-
-export class SourcePathDeployChecker implements PostconditionChecker<DeployParams> {
-  public async check(
-    inputs: ContinueResponse<DeployParams> | CancelResponse
-  ): Promise<ContinueResponse<DeployParams> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      const checker = new SourcePathChecker();
-      const response = await checker.check({ type: inputs.type, data: inputs.data.sourcePaths });
-      if (response.type === 'CONTINUE') {
-        return {
-          type: response.type,
-          data: {sourcePush: inputs.data.sourcePush, sourcePaths: response.data}
-        };
-      }
-    }
-    return { type: 'CANCEL' };
   }
 }
 

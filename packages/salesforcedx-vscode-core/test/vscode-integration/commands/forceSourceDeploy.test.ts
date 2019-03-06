@@ -6,11 +6,16 @@
  */
 
 import { ForceDeployResultParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { Row, Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
+import {
+  Row,
+  Table
+} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { channelService } from '../../../src/channels';
+import { ForceSourceDeployExecutor } from '../../../src/commands/forceSourceDeploy';
 import { ForceSourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
+import { ForceSourceDeploySourcePathExecutor } from '../../../src/commands/forceSourceDeploySourcePath';
 import { ForceSourcePushExecutor } from '../../../src/commands/forceSourcePush';
 import { nls } from '../../../src/messages';
 
@@ -23,22 +28,26 @@ describe('Correctly output deploy results', () => {
   const deploySuccess = {
     status: 0,
     result: {
-      deployedSource: [{
-        state: 'Add',
-        type: 'ApexClass',
-        fullName: 'MyClass',
-        filePath: 'src/classes/MyClass.cls'
-      }]
+      deployedSource: [
+        {
+          state: 'Add',
+          type: 'ApexClass',
+          fullName: 'MyClass',
+          filePath: 'src/classes/MyClass.cls'
+        }
+      ]
     }
   };
   const deployError = {
     status: 1,
     name: 'Deploy Failed',
     message: 'There was a failure',
-    result: [{
+    result: [
+      {
         filePath: 'src/classes/MyClass2.cls',
         error: 'Some Error'
-    }]
+      }
+    ]
   };
 
   beforeEach(() => {
@@ -46,7 +55,7 @@ describe('Correctly output deploy results', () => {
     errorsStub = stub(ForceDeployResultParser.prototype, 'getErrors');
     successesStub = stub(ForceDeployResultParser.prototype, 'getSuccesses');
     channelServiceStub = stub(channelService, 'appendLine');
-    channelServiceStub.callsFake(line => output += line + '\n');
+    channelServiceStub.callsFake(line => (output += line + '\n'));
   });
 
   afterEach(() => {
@@ -56,11 +65,12 @@ describe('Correctly output deploy results', () => {
   });
 
   it('Should display correct headings and format for a deploy', () => {
+    const resultParser = new ForceDeployResultParser('{}');
     successesStub.returns(deploySuccess);
     errorsStub.returns(deployError);
 
-    const executor = new ForceSourceDeployManifestExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'), false);
+    let executor: ForceSourceDeployExecutor = new ForceSourceDeployManifestExecutor();
+    executor.outputResult(resultParser);
 
     const successTable = table.createTable(
       (deploySuccess.result.deployedSource as unknown) as Row[],
@@ -84,6 +94,13 @@ describe('Correctly output deploy results', () => {
       nls.localize(`table_title_deploy_errors`)
     );
     const expectedOutput = `${successTable}\n${errorTable}\n`;
+
+    expect(output).to.be.equal(expectedOutput);
+
+    // Let's make sure ForceSourceDeploySourcePath returns the right DeployType
+    output = '';
+    executor = new ForceSourceDeploySourcePathExecutor();
+    executor.outputResult(resultParser);
     expect(output).to.be.equal(expectedOutput);
   });
 
@@ -92,7 +109,7 @@ describe('Correctly output deploy results', () => {
     errorsStub.returns(deployError);
 
     const executor = new ForceSourceDeployManifestExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'), false);
+    executor.outputResult(new ForceDeployResultParser('{}'));
 
     const errorTable = table.createTable(
       (deployError.result as unknown) as Row[],
@@ -113,7 +130,7 @@ describe('Correctly output deploy results', () => {
     errorsStub.returns(undefined);
 
     const executor = new ForceSourceDeployManifestExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'), false);
+    executor.outputResult(new ForceDeployResultParser('{}'));
 
     const successTable = table.createTable(
       (deploySuccess.result.deployedSource as unknown) as Row[],
@@ -133,7 +150,7 @@ describe('Correctly output deploy results', () => {
     errorsStub.returns(undefined);
 
     const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'), true);
+    executor.outputResult(new ForceDeployResultParser('{}'));
 
     const successTable = table.createTable(
       (deploySuccess.result.deployedSource as unknown) as Row[],
@@ -149,11 +166,11 @@ describe('Correctly output deploy results', () => {
   });
 
   it('Should show no results found for source:push operation with no new source', () => {
-    successesStub.returns({ status: 0, result: { deployedSource: [] }});
+    successesStub.returns({ status: 0, result: { deployedSource: [] } });
     errorsStub.returns(undefined);
 
     const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'), true);
+    executor.outputResult(new ForceDeployResultParser('{}'));
 
     const successTable = table.createTable(
       [],
@@ -165,7 +182,9 @@ describe('Correctly output deploy results', () => {
       ],
       nls.localize('table_title_pushed_source')
     );
-    const expectedOutput = `${successTable}\n${nls.localize('table_no_results_found')}\n\n`;
+    const expectedOutput = `${successTable}\n${nls.localize(
+      'table_no_results_found'
+    )}\n\n`;
     expect(output).to.be.equal(expectedOutput);
   });
 
@@ -178,7 +197,7 @@ describe('Correctly output deploy results', () => {
     });
 
     const executor = new ForceSourcePushExecutor();
-    executor.outputResult(new ForceDeployResultParser('{}'), false);
+    executor.outputResult(new ForceDeployResultParser('{}'));
     expect(output).to.be.equal('Deploy Failed: An error has occurred\n\n');
   });
 });

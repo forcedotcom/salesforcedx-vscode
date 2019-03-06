@@ -27,41 +27,24 @@ import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { SfdxCommandletExecutor } from './commands';
 
-export interface DeployParams {
-  sourcePush: boolean;
-  sourcePaths: string;
-}
-
-export class DeployParamsGatherer implements ParametersGatherer<DeployParams> {
-  private sourcePush: boolean;
-  private uris: vscode.Uri[] | undefined;
-  public constructor(sourcePush: boolean, uris?: vscode.Uri[]) {
-    this.sourcePush = sourcePush;
-    this.uris = uris;
-  }
-  public async gather(): Promise<ContinueResponse<DeployParams>> {
-    const sourcePaths = this.uris
-      ? this.uris.map(uri => uri.fsPath).join(',')
-      : '';
-    return {
-      type: 'CONTINUE',
-      data: { sourcePush: this.sourcePush, sourcePaths }
-    };
-  }
+export enum DeployType {
+  Deploy = 'deploy',
+  Push = 'push'
 }
 
 export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
-  DeployParams
+  string
 > {
   public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
 
-  public execute(response: ContinueResponse<DeployParams>): void {
+  public execute(response: ContinueResponse<string>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = getRootWorkspacePath() || '';
+    const execFilePathOrPaths = response.data;
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
@@ -78,20 +61,19 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
-        const { sourcePush, sourcePaths } = response.data;
         const deployParser = new ForceDeployResultParser(stdOut);
         const errors = deployParser.getErrors();
         if (errors) {
           handleDiagnosticErrors(
             errors,
             workspacePath,
-            sourcePaths,
+            execFilePathOrPaths,
             ForceSourceDeployExecutor.errorCollection
           );
         } else {
           ForceSourceDeployExecutor.errorCollection.clear();
         }
-        this.outputResult(deployParser, sourcePush);
+        this.outputResult(deployParser);
       } catch (e) {
         telemetryService.sendError(
           'Error while creating diagnostics for vscode problem view.'
@@ -110,9 +92,11 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  public outputResult(parser: ForceDeployResultParser, sourcePush: boolean) {
+  protected abstract getDeployType(): DeployType;
+
+  public outputResult(parser: ForceDeployResultParser) {
     const table = new Table();
-    const titleType = sourcePush ? 'push' : 'deploy';
+    const titleType = this.getDeployType();
 
     const successes = parser.getSuccesses();
     const deployedSource = successes

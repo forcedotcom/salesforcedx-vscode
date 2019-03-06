@@ -14,16 +14,11 @@ import { nls } from '../../../src/messages';
 
 describe('Force Source Deploy Using Manifest Option', () => {
   it('Should build the source deploy command', () => {
-    const deployParams = {
-      sourcePush: false,
-      sourcePaths: path.join('path', 'to', 'manifest', 'package.xml')
-    };
+    const manifestPath = path.join('path', 'to', 'manifest', 'package.xml');
     const sourceDeploy = new ForceSourceDeployManifestExecutor();
-    const sourceDeployCommand = sourceDeploy.build(deployParams);
+    const sourceDeployCommand = sourceDeploy.build(manifestPath);
     expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --manifest ${
-        deployParams.sourcePaths
-      } --json --loglevel fatal`
+      `sfdx force:source:deploy --manifest ${manifestPath} --json --loglevel fatal`
     );
     expect(sourceDeployCommand.description).to.equal(
       nls.localize('force_source_deploy_text')

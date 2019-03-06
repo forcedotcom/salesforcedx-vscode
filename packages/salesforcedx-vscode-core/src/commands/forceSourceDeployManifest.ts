@@ -10,29 +10,33 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { SfdxCommandlet, SfdxWorkspaceChecker } from './commands';
 import {
-  DeployParams,
-  DeployParamsGatherer,
-  ForceSourceDeployExecutor
-} from './forceSourceDeploy';
+  FilePathGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from './commands';
+import { DeployType, ForceSourceDeployExecutor } from './forceSourceDeploy';
 
 export class ForceSourceDeployManifestExecutor extends ForceSourceDeployExecutor {
-  public build(deployParams: DeployParams): Command {
+  public build(manifestPath: string): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_deploy_text'))
       .withArg('force:source:deploy')
       .withLogName('force_source_deploy_with_manifest')
-      .withFlag('--manifest', deployParams.sourcePaths)
+      .withFlag('--manifest', manifestPath)
       .withJson();
     return commandBuilder.build();
+  }
+
+  protected getDeployType() {
+    return DeployType.Deploy;
   }
 }
 
 export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new DeployParamsGatherer(false, [manifestUri]),
+    new FilePathGatherer(manifestUri),
     new ForceSourceDeployManifestExecutor()
   );
   await commandlet.run();
