@@ -57,7 +57,7 @@ test_script:
       npm run %vscode%
       $stopWatch.Stop()
       "`n`n"
-      "Time taken for tests (seconds): " $stopWatch.Eclapsed.totalseconds
+      "Test Time (seconds): " $stopWatch.Elapsed.totalseconds
   - ps: |
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
