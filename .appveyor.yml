@@ -4,6 +4,9 @@ version: '{branch}-{build}'
 # Do not build on tags (GitHub and BitBucket)
 skip_tags: true
 
+# Limit the number of last commits when cloning the repo/branch
+clone_depth: 1
+
 # Do not build feature branch with open Pull Requests
 skip_branch_with_pr: true
 
