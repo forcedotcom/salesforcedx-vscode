@@ -18,27 +18,25 @@ import * as vscode from 'vscode';
 const WAIT_TIME_IN_MS = 4500;
 
 export async function registerPushOrDeployOnSave() {
-  if (sfdxCoreSettings.getPushOrDeployOnSaveEnabled()) {
-    const savedFiles: Set<vscode.Uri> = new Set();
-    let savedFilesTimeout: NodeJS.Timer;
-    vscode.workspace.onDidSaveTextDocument(
-      async (textDocument: vscode.TextDocument) => {
-        if (
-          sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-          !(await ignorePath(textDocument.uri))
-        ) {
-          savedFiles.add(textDocument.uri);
-          clearTimeout(savedFilesTimeout);
+  const savedFiles: Set<vscode.Uri> = new Set();
+  let savedFilesTimeout: NodeJS.Timer;
+  vscode.workspace.onDidSaveTextDocument(
+    async (textDocument: vscode.TextDocument) => {
+      if (
+        sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
+        !(await ignorePath(textDocument.uri))
+      ) {
+        savedFiles.add(textDocument.uri);
+        clearTimeout(savedFilesTimeout);
 
-          savedFilesTimeout = setTimeout(async () => {
-            const files = Array.from(savedFiles);
-            savedFiles.clear();
-            await pushOrDeploy(files);
-          }, WAIT_TIME_IN_MS);
-        }
+        savedFilesTimeout = setTimeout(async () => {
+          const files = Array.from(savedFiles);
+          savedFiles.clear();
+          await pushOrDeploy(files);
+        }, WAIT_TIME_IN_MS);
       }
-    );
-  }
+    }
+  );
 }
 
 export async function pushOrDeploy(filesToDeploy: vscode.Uri[]): Promise<void> {
