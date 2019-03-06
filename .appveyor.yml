@@ -52,7 +52,12 @@ test_script:
   - cmd: echo Running npm run %vscode%
   - ps: |
       "--------------------------------------------"
-  - cmd: (Measure-Command { npm run %vscode% }).totalseconds
+  - ps: |
+      $stopWatch = [Diagnostics.Stopwatch]::StartNew()
+      npm run %vscode%
+      $stopWatch.Stop()
+      "`n`n"
+      "Time taken for tests (seconds): " $stopWatch.Eclapsed.totalseconds
   - ps: |
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
