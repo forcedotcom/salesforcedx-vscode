@@ -15,7 +15,7 @@ describe('SLDS Deprecated Class Name', () => {
   let lightningExtension: vscode.Extension<any>;
 
   before(async () => {
-    if (vscode.workspace.rootPath) {
+    if (vscode.workspace.workspaceFolders![0]) {
       coreExtension = vscode.extensions.getExtension(
         'salesforce.salesforcedx-vscode-core'
       ) as vscode.Extension<any>;

@@ -13,8 +13,7 @@ shell.exec(
   `cross-env CODE_EXTENSIONS_PATH='${path.join(
     __dirname,
     '..',
-    'packages',
-    'salesforcedx-'
+    'packages'
   )}' CODE_TESTS_WORKSPACE='${path.join(
     __dirname,
     '..',
