@@ -7,7 +7,7 @@ const cwd = process.cwd();
 
 // Executes the tests in the out/test/vscode-integration directory
 shell.exec(
-  `cross-env CODE_TESTS_PATH='${path.join(
+  `CODE_TESTS_PATH='${path.join(
     cwd,
     'out',
     'test',

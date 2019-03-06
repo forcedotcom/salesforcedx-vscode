@@ -30,6 +30,7 @@ install:
 build_script:
   - npm run compile
   - npm run lint
+  - npm config set scripts-prepend-node-path true
 
 test_script:
   - node --version

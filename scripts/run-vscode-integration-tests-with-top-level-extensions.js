@@ -10,7 +10,7 @@ const cwd = process.cwd();
 // Executes the test, using the top-level packages as the CODE_EXTENSIONS_PATH
 
 shell.exec(
-  `cross-env CODE_EXTENSIONS_PATH='${path.join(
+  `CODE_EXTENSIONS_PATH='${path.join(
     __dirname,
     '..',
     'packages'
