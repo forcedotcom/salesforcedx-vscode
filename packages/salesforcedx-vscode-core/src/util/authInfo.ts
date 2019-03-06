@@ -4,9 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo } from '@salesforce/core';
+import {
+  Aliases,
+  AuthInfo,
+  ConfigAggregator,
+  ConfigFile
+} from '@salesforce/core';
 import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
+import * as vscode from 'vscode';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     vscodePath: string
@@ -18,14 +23,33 @@ export class OrgAuthInfo {
     return forceConfig.get('defaultusername');
   }
 
-  public static async getDefaultDevHubUsernameOrAlias(
-    vscodePath: string
-  ): Promise<string | undefined> {
+  public static async getDefaultDevHubUsernameOrAlias(): Promise<
+    string | undefined
+  > {
+    if (
+      vscode.workspace &&
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath + '/';
+      const myLocalConfig = await ConfigFile.create({
+        isGlobal: false,
+        rootFolder: rootPath + '.sfdx/',
+        filename: 'sfdx-config.json'
+      });
+      const devHubValue = myLocalConfig.get('defaultdevhubusername');
+      return JSON.stringify(devHubValue);
+    }
+
+    const aggregator = await ConfigAggregator.create();
+    const devhubvalue = aggregator.getPropertyValue('defaultdevhubusername');
+    return JSON.stringify(devhubvalue);
+    /*
     const forceConfig = await new ForceConfigGet().getConfig(
       vscodePath,
       'defaultdevhubusername'
     );
-    return forceConfig.get('defaultdevhubusername');
+    return forceConfig.get('defaultdevhubusername');*/
   }
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {

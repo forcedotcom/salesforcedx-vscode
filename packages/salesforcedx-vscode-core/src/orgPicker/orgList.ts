@@ -177,6 +177,6 @@ export async function getDefaultDevHubUsernameorAlias(): Promise<
   string | undefined
 > {
   if (hasRootWorkspace()) {
-    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(getRootWorkspacePath());
+    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias();
   }
 }
