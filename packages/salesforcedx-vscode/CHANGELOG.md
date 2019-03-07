@@ -1,3 +1,29 @@
+## 45.5.0 - March 7, 2019
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- Hover capability to show Apex Javadoc information when hovering on symbols ([PR #1106](https://github.com/forcedotcom/salesforcedx-vscode/pull/1106))
+
+### Fixed
+
+#### salesforcedx-vscode-docs
+
+- Fix manifest typos on Org Development Model documentation ([PR #1089](https://github.com/forcedotcom/salesforcedx-vscode/pull/1089))—Contribution by [@tet3](https://github.com/tet3)
+
+#### salesforcedx-vscode-apex
+
+- Fix Apex Language Server performance issue that caused high CPU load: handle document change requests queuing up ([PR #1086](https://github.com/forcedotcom/salesforcedx-vscode/pull/1086), [Issue #1047](https://github.com/forcedotcom/salesforcedx-vscode/issues/1047))
+- Include a link to our documentation on information messages shown when Java is not correctly set up ([PR #1116](https://github.com/forcedotcom/salesforcedx-vscode/pull/1116))
+- Fix Apex Language Server performance issue that caused high CPU load: compile only necessary files when running a refactoring operation ([PR #1118](https://github.com/forcedotcom/salesforcedx-vscode/pull/1118), [Issue #1100](https://github.com/forcedotcom/salesforcedx-vscode/issues/1100))
+
+#### salesforcedx-vscode-core
+
+- Remove information message asking to allow configuraton changes on terminal when opening a new sfdx project ([PR #1062](https://github.com/forcedotcom/salesforcedx-vscode/pull/1062))
+- Display human readable format for source:deploy messages in Output view ([PR #1085](https://github.com/forcedotcom/salesforcedx-vscode/pull/1085))
+- Allow extensions to activate when Salesforce CLI is not installed ([PR #1107](https://github.com/forcedotcom/salesforcedx-vscode/pull/1107))
+
 ## 45.3.0 - February 22, 2019
 
 ### Added
