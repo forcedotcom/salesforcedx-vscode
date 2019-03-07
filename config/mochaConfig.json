@@ -5,5 +5,8 @@
   },
   "mochaJunitReporterReporterOptions": {
     "mochaFile": "junit-custom.xml"
-  }
+  },
+  "colors": true,
+  "slow": 0,
+  "fullTrace": true
 }
