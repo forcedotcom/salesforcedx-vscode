@@ -18,7 +18,7 @@
     "@types/shelljs": "^0.7.4",
     "@types/webdriverio": "4.6.1",
     "chai": "^4.0.2",
-    "cross-env": "5.0.4",
+    "cross-env": "5.2.0",
     "decache": "^4.1.0",
     "electron": "^1.7.5",
     "glob": "^7.1.2",

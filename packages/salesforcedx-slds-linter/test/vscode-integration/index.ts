@@ -12,7 +12,9 @@ const testRunner = require('@salesforce/salesforcedx-utils-vscode/out/src/test/t
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
 testRunner.configure({
   ui: 'bdd', // the TDD UI is being used in extension.test.ts (suite, test, etc.)
-  useColors: true // colored output from test results
+  useColors: true, // colored output from test results
+  fullTrace: true,
+  slow: 0
 });
 
 module.exports = testRunner;
