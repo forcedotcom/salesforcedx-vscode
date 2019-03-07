@@ -6,3 +6,9 @@
  */
 
 export { OrgAuthInfo } from './authInfo';
+export {
+  getRootWorkspace,
+  getRootWorkspacePath,
+  hasRootWorkspace
+} from './rootWorkspace';
+export { isCLIInstalled, showCLINotInstalledMessage } from './cliConfiguration';
