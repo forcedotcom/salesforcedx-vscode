@@ -39,7 +39,7 @@
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
-    "cross-env": "^5.0.5",
+    "cross-env": "5.2.0",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
     "typescript": "3.1.6",
@@ -59,9 +59,8 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "pretest": "node ../../scripts/download-vscode-for-system-tests",
     "test": "npm run test:vscode-integration",
-    "test:vscode-integration": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
+    "test:vscode-integration": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
