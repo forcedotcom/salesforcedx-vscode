@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Show Apex Javadoc information when hovering on symbols ([PR #1106](https://github.com/forcedotcom/salesforcedx-vscode/pull/1106))
+- Show Apex block comment information when hovering on symbols ([PR #1106](https://github.com/forcedotcom/salesforcedx-vscode/pull/1106))
 
 ### Fixed
 
@@ -14,7 +14,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix Apex Language Server performance issues that caused high CPU load: 
+- Fix Apex Language Server performance issues that caused high CPU load:
   - Handle document change requests queuing up ([PR #1086](https://github.com/forcedotcom/salesforcedx-vscode/pull/1086), [Issue #1047](https://github.com/forcedotcom/salesforcedx-vscode/issues/1047))
   - Compile only necessary files when running a refactoring operation ([PR #1118](https://github.com/forcedotcom/salesforcedx-vscode/pull/1118), [Issue #1100](https://github.com/forcedotcom/salesforcedx-vscode/issues/1100))
 - Include a link to our documentation in the information messages that appear when Java isn’t set up correctly ([PR #1116](https://github.com/forcedotcom/salesforcedx-vscode/pull/1116))
