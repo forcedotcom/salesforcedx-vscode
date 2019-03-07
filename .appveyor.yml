@@ -38,9 +38,10 @@ install:
       $stopwatch.Stop()
       Write-Host "Total Installation Time - " $stopwatch.Elapsed
       "`n`n"
+      $stopwatch.Reset()
 
 build_script:
-  - ps: $stopwatch.Reset()
+  - ps: $stopwatch.Start()
   - npm run compile
   - npm run lint
 <<<<<<< HEAD
@@ -54,10 +55,14 @@ build_script:
       $stopwatch.Stop()
       Write-Host "Total Build Time - " $stopwatch.Elapsed
       "`n`n"
+<<<<<<< HEAD
 >>>>>>> Added rollup time statements for appveyor
+=======
+      $stopwatch.Reset()
+>>>>>>> Changed stopwatch reset and start logic
 
 test_script:
-  - ps: $stopwatch.Reset()
+  - ps: $stopwatch.Start()
   - node --version
   - npm --version
   - ps: |
