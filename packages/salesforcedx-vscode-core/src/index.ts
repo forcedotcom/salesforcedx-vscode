@@ -73,7 +73,12 @@ import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { getRootWorkspacePath, hasRootWorkspace, isCLIInstalled, showCLINotInstalledMessage } from './util';
+import {
+  getRootWorkspacePath,
+  hasRootWorkspace,
+  isCLIInstalled,
+  showCLINotInstalledMessage
+} from './util';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext

@@ -112,6 +112,16 @@ export default class TelemetryReporter extends vscode.Disposable {
       /^(\d+)(\.\d+)?(\.\d+)?(.*)/,
       '$1$2$3'
     );
+    const cpus = os.cpus();
+    if (cpus && cpus.length > 0) {
+      commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${
+        cpus[0].speed
+      })`;
+    }
+    commonProperties['common.systemmemory'] = `${(
+      os.totalmem() /
+      (1024 * 1024 * 1024)
+    ).toFixed(2)} GB`;
     commonProperties['common.extname'] = this.extensionId;
     commonProperties['common.extversion'] = this.extensionVersion;
     if (vscode && vscode.env) {
