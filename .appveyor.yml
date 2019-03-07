@@ -25,21 +25,35 @@ matrix:
   fast_finish: true
 
 install:
-  - ps: (Measure-Command { Install-Product node 10.2.0 x64 }).totalseconds
-  - ps: (Measure-Command { appveyor-retry npm install }).totalseconds
-  - ps: (Measure-Command { npm install -g sfdx-cli }).totalseconds
-  - ps: (Measure-Command { npm install -g codecov }).totalseconds
-  - ps: (Measure-Command { npm install -g junit-merge }).totalseconds
+  - ps: $stopwatch = [system.diagnostics.stopwatch]::StartNew()
+  - Install-Product node 10.2.0 x64
+  - appveyor-retry npm install
+  - npm install -g sfdx-cli
+  - npm install -g codecov
+  - npm install -g junit-merge
   # the JWT key should be stored base 64 encoded in AppVeyor settings. If you change this, it will take a few builds to propogate
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
   - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile C:\projects\devhub.key --setdefaultdevhubusername --setalias devhub
+  - ps: |
+      $stopwatch.Stop()
+      Write-Host "Total Installation Time - " $stopwatch.Elapsed
+      "`n`n"
 
 build_script:
+  - ps: $stopwatch.Reset()
   - npm run compile
   - npm run lint
+<<<<<<< HEAD
   - npm config set scripts-prepend-node-path true
+=======
+  - ps: |
+      $stopwatch.Stop()
+      Write-Host "Total Build Time - " $stopwatch.Elapsed
+      "`n`n"
+>>>>>>> Added rollup time statements for appveyor
 
 test_script:
+  - ps: $stopwatch.Reset()
   - node --version
   - npm --version
   - ps: |
@@ -52,12 +66,7 @@ test_script:
   - cmd: echo Running npm run %vscode%
   - ps: |
       "--------------------------------------------"
-  - ps: |
-      $stopWatch = [Diagnostics.Stopwatch]::StartNew()
-      npm run %vscode%
-      $stopWatch.Stop()
-      "`n`n"
-      Write-Host "Test Time (minutes) " $stopWatch.Elapsed.TotalMinutes
+  - cmd: npm run %vscode%
   - ps: |
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
@@ -70,6 +79,10 @@ test_script:
       # Upload results for AppVeyor test tab
       "Uploading Test Results:`n"
       (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)" , (Resolve-Path .\junit-aggregate.xml) )
+  - ps: |
+      $stopwatch.Stop()
+      Write-Host "Total Test Time - " $stopwatch.Elapsed
+      "`n`n"
 
 artifacts:
   - path: '**\*.vsix'
