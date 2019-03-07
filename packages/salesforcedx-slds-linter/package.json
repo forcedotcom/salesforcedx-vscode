@@ -18,7 +18,7 @@
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
-    "cross-env": "^5.0.5",
+    "cross-env": "5.2.0",
     "decache": "^4.1.0",
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",

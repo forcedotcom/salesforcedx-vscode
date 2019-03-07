@@ -26,7 +26,8 @@ testRunner.configure({
   ui: 'bdd', // the TDD UI is being used in extension.test.ts (suite, test, etc.)
   useColors: true, // colored output from test results
   timeout: 20000,
-  fullTrace: true
+  fullTrace: true,
+  slow: 0
 });
 
 module.exports = testRunner;
