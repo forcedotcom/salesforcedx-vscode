@@ -83,7 +83,7 @@ test_script:
       # Show status
       "`n`n"
       "Finalizing results`n"
-      $AllFiles = Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Select -ExpandProperty FullName
+      $AllFiles = Get-ChildItem -Path $ProjectRoot\packages\*\xunit*.xml -File | Select -ExpandProperty FullName
       "Test Results:`n$($AllFiles | Out-String)"
       # Upload results for AppVeyor test tab
       "Uploading Test Results:`n"
