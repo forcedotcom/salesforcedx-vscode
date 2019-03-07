@@ -10,17 +10,35 @@ import {
   ConfigAggregator,
   ConfigFile
 } from '@salesforce/core';
-import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     vscodePath: string
   ): Promise<string | undefined> {
-    const forceConfig = await new ForceConfigGet().getConfig(
+    if (
+      vscode.workspace &&
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath + '/';
+      const myLocalConfig = await ConfigFile.create({
+        isGlobal: false,
+        rootFolder: rootPath + '.sfdx/',
+        filename: 'sfdx-config.json'
+      });
+      const localDefault = myLocalConfig.get('defaultusername');
+      return JSON.stringify(localDefault);
+    }
+
+    const aggregator = await ConfigAggregator.create();
+    const globalDefault = aggregator.getPropertyValue('defaultusername');
+    return JSON.stringify(globalDefault);
+
+    /*const forceConfig = await new ForceConfigGet().getConfig(
       vscodePath,
       'defaultusername'
     );
-    return forceConfig.get('defaultusername');
+    return forceConfig.get('defaultusername');*/
   }
 
   public static async getDefaultDevHubUsernameOrAlias(): Promise<
@@ -37,13 +55,13 @@ export class OrgAuthInfo {
         rootFolder: rootPath + '.sfdx/',
         filename: 'sfdx-config.json'
       });
-      const devHubValue = myLocalConfig.get('defaultdevhubusername');
-      return JSON.stringify(devHubValue);
+      const localDefault = myLocalConfig.get('defaultdevhubusername');
+      return JSON.stringify(localDefault);
     }
 
     const aggregator = await ConfigAggregator.create();
-    const devhubvalue = aggregator.getPropertyValue('defaultdevhubusername');
-    return JSON.stringify(devhubvalue);
+    const globalDefault = aggregator.getPropertyValue('defaultdevhubusername');
+    return JSON.stringify(globalDefault);
     /*
     const forceConfig = await new ForceConfigGet().getConfig(
       vscodePath,

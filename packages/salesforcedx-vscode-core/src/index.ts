@@ -64,7 +64,7 @@ import {
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { setDefaultOrg, showDefaultOrg } from './orgPicker';
+import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
@@ -286,10 +286,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
-    'sfdx.force.set.default.org',
-    setDefaultOrg
-  );
   const forceConfigSetCmd = vscode.commands.registerCommand(
     'sfdx.force.config.set',
     forceConfigSet
@@ -343,9 +339,20 @@ function registerCommands(
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
-    forceSetDefaultOrgCmd,
     forceConfigSetCmd
   );
+}
+
+function registerOrgPickerCommands(
+  extensionContext: vscode.ExtensionContext
+): vscode.Disposable {
+  const orgList = new OrgList();
+  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
+    'sfdx.force.set.default.org',
+    () => orgList.setDefaultOrg()
+  );
+
+  return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -383,12 +390,12 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
+  context.subscriptions.push(registerOrgPickerCommands(context));
+
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
     registerDefaultUsernameWatcher(context);
-
-    await showDefaultOrg();
   } else {
     showCLINotInstalledMessage();
     telemetryService.sendError('Salesforce CLI is not installed');
