@@ -20,10 +20,6 @@ environment:
     - vscode: test:unit-and-system-tests
     - vscode: test:integration-tests-without-system-tests
 
-# If one of the jobs fails, fail the other job.
-matrix:
-  fast_finish: true
-
 install:
   - ps: $stopwatch = [system.diagnostics.stopwatch]::StartNew()
   - ps: Install-Product node 10.2.0 x64
