@@ -9,13 +9,15 @@ import { expect } from 'chai';
 import { EOL } from 'os';
 import {
   ForceDeployResultParser,
-  ForceSourceDeployErrorResult,
-  ForceSourceDeploySuccessResult
+  ForceSourceDeployErrorResponse,
+  ForceSourceDeploySuccessResponse
 } from '../../../src/cli';
+import { CONFLICT_ERROR_NAME } from '../../../src/cli/deployResultParser';
 
+// tslint:disable:no-unused-expression
 describe('force:source:deploy parser', () => {
-  let deployErrorResult: ForceSourceDeployErrorResult;
-  let deploySuccessResult: ForceSourceDeploySuccessResult;
+  let deployErrorResult: ForceSourceDeployErrorResponse;
+  let deploySuccessResult: ForceSourceDeploySuccessResponse;
 
   beforeEach(() => {
     deployErrorResult = {
@@ -257,5 +259,20 @@ describe('force:source:deploy parser', () => {
     } else {
       throw Error('Successes should be present but were not returned');
     }
+  });
+
+  it('Should detect source conflicts', () => {
+    deployErrorResult.name = CONFLICT_ERROR_NAME;
+    deployErrorResult.result.push({
+      filePath: 'src/apexclasses/Testing.cls',
+      type: 'ApexClass',
+      fullName: 'Testing',
+      state: 'Conflict'
+    });
+
+    const parser = new ForceDeployResultParser(
+      JSON.stringify(deployErrorResult)
+    );
+    expect(parser.hasConflicts()).to.be.true;
   });
 });
