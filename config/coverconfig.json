@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "relativeSourcePath": "../src",
+  "relativeSourcePath": "../../src",
   "relativeCoverageDir": "../../coverage",
   "ignorePatterns": ["**/node_modules/**"],
   "includePid": false,

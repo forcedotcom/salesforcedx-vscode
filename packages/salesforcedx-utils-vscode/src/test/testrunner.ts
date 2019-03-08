@@ -7,6 +7,7 @@
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as paths from 'path';
+import { isNullOrUndefined } from 'util';
 
 // tslint:disable:no-var-requires
 const istanbul = require('istanbul');
@@ -64,7 +65,16 @@ function _mkDirIfExists(dir: string): void {
 }
 
 function _readCoverOptions(testsRoot: string): ITestRunnerOptions | undefined {
-  const coverConfigPath = paths.join(testsRoot, '..', '..', 'coverconfig.json');
+  const coverConfigPath = paths.join(
+    testsRoot,
+    '..',
+    '..',
+    '..',
+    '..',
+    '..',
+    'config',
+    'coverconfig.json'
+  );
   let coverConfig: ITestRunnerOptions | undefined;
   if (fs.existsSync(coverConfigPath)) {
     const configContent = fs.readFileSync(coverConfigPath, 'utf-8');
@@ -81,9 +91,10 @@ function run(testsRoot: any, clb: any): any {
   const coverOptions: ITestRunnerOptions | undefined = _readCoverOptions(
     testsRoot
   );
+  let coverageRunner: CoverageRunner | undefined;
   if (coverOptions && coverOptions.enabled) {
     // Setup coverage pre-test, including post-test hook to report
-    const coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
+    coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
     coverageRunner.setupCoverage();
   }
 
@@ -127,6 +138,9 @@ function run(testsRoot: any, clb: any): any {
             (): void => {
               console.log(`Tests ended with ${failureCount} failure(s)`);
               clb(undefined, failureCount);
+              if (!isNullOrUndefined(coverageRunner)) {
+                coverageRunner.reportCoverage();
+              }
             }
           );
       } catch (error) {
@@ -180,13 +194,11 @@ class CoverageRunner {
       self.testsRoot,
       self.options.relativeSourcePath
     );
-
     // Glob source files
     const srcFiles = glob.sync('**/**.js', {
       cwd: sourceRoot,
       ignore: self.options.ignorePatterns
     });
-
     // Create a match function - taken from the run-with-cover.js in istanbul.
     const decache = require('decache');
     interface FileMap {

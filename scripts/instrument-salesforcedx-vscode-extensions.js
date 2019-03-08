@@ -11,7 +11,9 @@ const extensionsToInstrument = [
   'packages/salesforcedx-vscode-apex-debugger',
   'packages/salesforcedx-vscode-core',
   'packages/salesforcedx-vscode-lightning',
-  'packages/salesforcedx-vscode-visualforce'
+  'packages/salesforcedx-vscode-visualforce',
+  'packages/salesforcedx-vscode-apex-replay-debugger',
+  'packages/salesforcedx-vscode-lwc'
 ];
 
 const folderToInstrument = 'out';
