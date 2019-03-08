@@ -25,7 +25,7 @@
     "mocha": "^3.2.0",
     "mocha-junit-reporter": "^1.13.0",
     "mocha-multi-reporters": "^1.1.4",
-    "nyc": "^11.0.2",
+    "nyc": "^13",
     "remap-istanbul": "^0.9.5",
     "sinon": "^2.3.6",
     "source-map-support": "^0.4.15",
