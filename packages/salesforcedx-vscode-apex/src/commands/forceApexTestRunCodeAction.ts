@@ -12,15 +12,16 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
-import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './commands';
+
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const EmptyParametersGatherer = sfdxCoreExports.EmptyParametersGatherer;
+const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
+const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
+const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
+const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
+const notificationService = sfdxCoreExports.notificationService;
 
 function isEmpty(value: string): boolean {
   return !value || value.length === 0;
@@ -33,8 +34,8 @@ function isNotEmpty(value: string): boolean {
 // cache last test class and test method values to
 // enable re-running w/o command context via built-in LRU
 class ForceApexTestRunCacheService {
-  public lastClassTestParam: string;
-  public lastMethodTestParam: string;
+  private lastClassTestParam: string;
+  private lastMethodTestParam: string;
   private static instance: ForceApexTestRunCacheService;
 
   public static getInstance() {
@@ -49,6 +50,14 @@ class ForceApexTestRunCacheService {
     this.lastMethodTestParam = '';
   }
 
+  public getLastClassTestParam(): string {
+    return this.lastClassTestParam;
+  }
+
+  public getLastMethodTestParam(): string {
+    return this.lastMethodTestParam;
+  }
+
   public hasCachedClassTestParam() {
     return isNotEmpty(this.lastClassTestParam);
   }
@@ -56,9 +65,31 @@ class ForceApexTestRunCacheService {
   public hasCachedMethodTestParam() {
     return isNotEmpty(this.lastMethodTestParam);
   }
+
+  public async setCachedClassTestParam(test: string) {
+    // enable then run 'last executed' command so command
+    // added to 'recently used'
+    await vscode.commands.executeCommand(
+      'setContext',
+      'sfdx:has_cached_test_class',
+      true
+    );
+    this.lastClassTestParam = test;
+  }
+
+  public async setCachedMethodTestParam(test: string) {
+    // enable then run 'last executed' command so command
+    // added to 'recently used'
+    await vscode.commands.executeCommand(
+      'setContext',
+      'sfdx:has_cached_test_method',
+      true
+    );
+    this.lastMethodTestParam = test;
+  }
 }
 
-const forceApexTestRunCacheService = ForceApexTestRunCacheService.getInstance();
+export const forceApexTestRunCacheService = ForceApexTestRunCacheService.getInstance();
 
 // build force:apex:test:run w/ given test class or test method
 export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
@@ -110,9 +141,9 @@ async function forceApexTestRunCodeAction(test: string) {
 }
 
 function getTempFolder(): string {
-  if (hasRootWorkspace()) {
+  if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDir = new TestRunner().getTempFolder(
-      getRootWorkspacePath(),
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
       'apex'
     );
     return apexDir;
@@ -127,36 +158,29 @@ function getTempFolder(): string {
 export async function forceApexTestClassRunCodeActionDelegate(
   testClass: string
 ) {
-  // enable then run 'last executed' command so command
-  // added to 'recently used'
-  await vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:has_cached_test_class',
-    true
-  );
-
   vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
 }
 
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
-export function resolveTestClassParam(testClass: string): string {
+export async function resolveTestClassParam(
+  testClass: string
+): Promise<string> {
   if (isEmpty(testClass)) {
     // value not provided for re-run invocations
     // apply cached value, if available
     if (forceApexTestRunCacheService.hasCachedClassTestParam()) {
-      testClass = forceApexTestRunCacheService.lastClassTestParam;
+      testClass = forceApexTestRunCacheService.getLastClassTestParam();
     }
   } else {
-    forceApexTestRunCacheService.lastClassTestParam = testClass;
+    await forceApexTestRunCacheService.setCachedClassTestParam(testClass);
   }
-
   return testClass;
 }
 
 // invokes apex test run on all tests in a class
 export async function forceApexTestClassRunCodeAction(testClass: string) {
-  testClass = resolveTestClassParam(testClass);
+  testClass = await resolveTestClassParam(testClass);
   if (isEmpty(testClass)) {
     // test param not provided: show error and terminate
     notificationService.showErrorMessage(
@@ -174,28 +198,22 @@ export async function forceApexTestClassRunCodeAction(testClass: string) {
 export async function forceApexTestMethodRunCodeActionDelegate(
   testMethod: string
 ) {
-  // enable then run 'last executed' command so command
-  // added to 'recently used'
-  await vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:has_cached_test_method',
-    true
-  );
-
   vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
 }
 
 // evaluate test method param: if not provided, apply cached value
 // exported for testability
-export function resolveTestMethodParam(testMethod: string): string {
+export async function resolveTestMethodParam(
+  testMethod: string
+): Promise<string> {
   if (isEmpty(testMethod)) {
     // value not provided for re-run invocations
     // apply cached value, if available
     if (forceApexTestRunCacheService.hasCachedMethodTestParam()) {
-      testMethod = forceApexTestRunCacheService.lastMethodTestParam;
+      testMethod = forceApexTestRunCacheService.getLastMethodTestParam();
     }
   } else {
-    forceApexTestRunCacheService.lastMethodTestParam = testMethod;
+    await forceApexTestRunCacheService.setCachedMethodTestParam(testMethod);
   }
 
   return testMethod;
@@ -203,7 +221,7 @@ export function resolveTestMethodParam(testMethod: string): string {
 
 // invokes apex test run on a test method
 export async function forceApexTestMethodRunCodeAction(testMethod: string) {
-  testMethod = resolveTestMethodParam(testMethod);
+  testMethod = await resolveTestMethodParam(testMethod);
   if (isEmpty(testMethod)) {
     // test param not provided: show error and terminate
     notificationService.showErrorMessage(

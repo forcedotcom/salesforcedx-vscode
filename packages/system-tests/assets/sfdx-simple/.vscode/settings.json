@@ -1,3 +1,6 @@
 {
-  "extensions.autoUpdate": false
+    "extensions.autoUpdate": false,
+    "eslint.nodePath": "/home/jsuplizio/DevToolsGit/salesforcedx-vscode/packages/salesforcedx-vscode-lwc/node_modules",
+    "html.suggest.angular1": false,
+    "html.suggest.ionic": false
 }

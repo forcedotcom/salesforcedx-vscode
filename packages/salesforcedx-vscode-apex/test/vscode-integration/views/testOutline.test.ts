@@ -11,6 +11,7 @@ import * as events from 'events';
 import * as fs from 'fs';
 import { SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
+import { forceApexTestRunCacheService } from '../../../src/commands';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
@@ -19,7 +20,7 @@ import {
   ApexTestNode,
   ApexTestOutlineProvider
 } from '../../../src/views/testOutlineProvider';
-import { ApexTestRunner } from '../../../src/views/testRunner';
+import { ApexTestRunner, TestRunType } from '../../../src/views/testRunner';
 import {
   jsonSummaryMultipleFiles,
   jsonSummaryOneFilePass
@@ -78,13 +79,52 @@ describe('TestView', () => {
       getCoverageStub.onFirstCall().returns(true);
       getCoverageStub.onSecondCall().returns(false);
 
-      await testRunner.runApexTests(['MyTestTrue']);
+      await testRunner.runApexTests(['MyTestTrue'], TestRunType.Method);
       let { executor } = commandletSpy.getCall(0).thisValue;
       expect(executor.shouldGetCodeCoverage).to.be.true;
 
-      await testRunner.runApexTests(['MyTestFalse']);
+      await testRunner.runApexTests(['MyTestFalse'], TestRunType.Method);
       executor = commandletSpy.getCall(1).thisValue.executor;
       expect(executor.shouldGetCodeCoverage).to.be.false;
+    });
+  });
+
+  describe('Runtest caching for re-run', async () => {
+    // forceApexTestRunCacheService is a singleton which means the values need to be
+    // reset back to their default values otherwise they'll be set by the earlier
+    // calls testRunner.runApexTests in this test suite
+    await forceApexTestRunCacheService.setCachedClassTestParam('');
+    await forceApexTestRunCacheService.setCachedMethodTestParam('');
+    const testRunner = new ApexTestRunner(testOutline);
+    const testMethod = 'MyTestMethod';
+    const testClass = 'MyTestClass';
+    const testRunAll = 'RunAll';
+    it('Should cache the last run test method', async () => {
+      await testRunner.runApexTests([`${testMethod}`], TestRunType.Method);
+      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+        testMethod
+      );
+      // the test class value should remain unchanged
+      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq('');
+    });
+    it('Should cache the last run test class', async () => {
+      await testRunner.runApexTests([`${testClass}`], TestRunType.Class);
+      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq(
+        testClass
+      );
+      // the test method value should remain unchanged
+      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+        testMethod
+      );
+    });
+    it('Should not change last run class or method when all tests are selected', async () => {
+      await testRunner.runApexTests([`${testRunAll}`], TestRunType.All);
+      expect(forceApexTestRunCacheService.getLastClassTestParam()).to.eq(
+        testClass
+      );
+      expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
+        testMethod
+      );
     });
   });
 
