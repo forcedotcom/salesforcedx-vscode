@@ -57,10 +57,7 @@ import {
 import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import {
-  registerDefaultUsernameWatcher,
-  setupWorkspaceOrgType
-} from './context';
+import { setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -344,14 +341,13 @@ function registerCommands(
 }
 
 function registerOrgPickerCommands(
-  extensionContext: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext,
+  orgList: OrgList
 ): vscode.Disposable {
-  const orgList = new OrgList();
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
     () => orgList.setDefaultOrg()
   );
-
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
 
@@ -390,12 +386,14 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  context.subscriptions.push(registerOrgPickerCommands(context));
+  // register org picker commands and set up filewatcher for defaultusername
+  const orgList = new OrgList();
+  context.subscriptions.push(registerOrgPickerCommands(context, orgList));
+  await orgList.registerDefaultUsernameWatcher(context);
 
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
-    registerDefaultUsernameWatcher(context);
   } else {
     showCLINotInstalledMessage();
     telemetryService.sendError('Salesforce CLI is not installed');

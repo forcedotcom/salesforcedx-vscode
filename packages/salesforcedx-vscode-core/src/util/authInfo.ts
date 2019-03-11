@@ -27,12 +27,12 @@ export class OrgAuthInfo {
         filename: 'sfdx-config.json'
       });
       const localDefault = myLocalConfig.get('defaultusername');
-      return JSON.stringify(localDefault);
+      return JSON.stringify(localDefault).replace(/\"/g, '');
     }
 
     const aggregator = await ConfigAggregator.create();
     const globalDefault = aggregator.getPropertyValue('defaultusername');
-    return JSON.stringify(globalDefault);
+    return JSON.stringify(globalDefault).replace('""', '');
 
     /*const forceConfig = await new ForceConfigGet().getConfig(
       vscodePath,
@@ -56,12 +56,12 @@ export class OrgAuthInfo {
         filename: 'sfdx-config.json'
       });
       const localDefault = myLocalConfig.get('defaultdevhubusername');
-      return JSON.stringify(localDefault);
+      return JSON.stringify(localDefault).replace(/\"/g, '');
     }
 
     const aggregator = await ConfigAggregator.create();
     const globalDefault = aggregator.getPropertyValue('defaultdevhubusername');
-    return JSON.stringify(globalDefault);
+    return JSON.stringify(globalDefault).replace(/\"/g, '');
     /*
     const forceConfig = await new ForceConfigGet().getConfig(
       vscodePath,

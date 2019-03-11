@@ -13,6 +13,7 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
+import { setupWorkspaceOrgType } from '../context/index';
 import { nls } from '../messages';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
@@ -137,8 +138,7 @@ export class OrgList implements vscode.Disposable {
         '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
       );
     }
-    const orgList = new OrgList();
-    const authInfoList = await orgList.updateOrgList();
+    const authInfoList = await this.updateOrgList();
     if (!isNullOrUndefined(authInfoList)) {
       quickPickList = quickPickList.concat(authInfoList);
     }
@@ -188,5 +188,22 @@ export class OrgList implements vscode.Disposable {
 
   public dispose() {
     this.statusBarItem.dispose();
+  }
+
+  public async onSfdxConfigEvent() {
+    await setupWorkspaceOrgType();
+    await this.displayDefaultUsername();
+  }
+
+  public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {
+    if (hasRootWorkspace()) {
+      const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
+        path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
+      );
+      sfdxConfigWatcher.onDidChange(uri => this.onSfdxConfigEvent());
+      sfdxConfigWatcher.onDidCreate(uri => this.onSfdxConfigEvent());
+      sfdxConfigWatcher.onDidDelete(uri => this.onSfdxConfigEvent());
+      context.subscriptions.push(sfdxConfigWatcher);
+    }
   }
 }

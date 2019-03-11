@@ -4,9 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
 import * as vscode from 'vscode';
-import { displayDefaultUsername } from '../orgPicker';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
@@ -76,24 +74,5 @@ function setDefaultUsernameHasNoChangeTracking(val: boolean) {
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   if (hasRootWorkspace()) {
     return await OrgAuthInfo.getDefaultUsernameOrAlias(getRootWorkspacePath());
-  }
-}
-
-async function onSfdxConfigEvent() {
-  await setupWorkspaceOrgType();
-  await displayDefaultUsername();
-}
-
-export function registerDefaultUsernameWatcher(
-  context: vscode.ExtensionContext
-) {
-  if (hasRootWorkspace()) {
-    const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
-      path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
-    );
-    sfdxConfigWatcher.onDidChange(uri => onSfdxConfigEvent());
-    sfdxConfigWatcher.onDidCreate(uri => onSfdxConfigEvent());
-    sfdxConfigWatcher.onDidDelete(uri => onSfdxConfigEvent());
-    context.subscriptions.push(sfdxConfigWatcher);
   }
 }

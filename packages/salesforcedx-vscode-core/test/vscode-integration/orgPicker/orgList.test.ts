@@ -9,9 +9,9 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import { isNullOrUndefined } from 'util';
-import * as vscode from 'vscode';
-import { nls } from '../../../src/messages';
-import { FileInfo, OrgList, setDefaultOrg } from '../../../src/orgPicker';
+// import * as vscode from 'vscode';
+// import { nls } from '../../../src/messages';
+import { FileInfo, OrgList } from '../../../src/orgPicker';
 import { OrgAuthInfo } from '../../../src/util';
 
 describe('getAuthInfoObjects', () => {
@@ -163,7 +163,7 @@ describe('Filter Authorization Info', async () => {
   });
 });
 
-describe('Set Default Org', () => {
+/*describe('Set Default Org', () => {
   let orgListStub: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
   const orgList = [
@@ -261,4 +261,4 @@ describe('Set Default Org', () => {
       executeCommandStub.restore();
     }
   });
-});
+});*/
