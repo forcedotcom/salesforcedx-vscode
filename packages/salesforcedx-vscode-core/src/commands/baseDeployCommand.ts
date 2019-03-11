@@ -24,7 +24,12 @@ import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { SfdxCommandletExecutor } from './commands';
 
-export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
+export enum DeployType {
+  Deploy = 'deploy',
+  Push = 'push'
+}
+
+export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   string
 > {
   public static errorCollection = vscode.languages.createDiagnosticCollection(
@@ -36,7 +41,8 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = getRootWorkspacePath() || '';
-    const execFilePathOrPaths = response.data;
+    const execFilePathOrPaths =
+      this.getDeployType() === DeployType.Deploy ? response.data : '';
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
@@ -55,15 +61,15 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
       try {
         const deployParser = new ForceDeployResultParser(stdOut);
         const errors = deployParser.getErrors();
-        if (errors) {
+        if (errors && !deployParser.hasConflicts()) {
           handleDiagnosticErrors(
             errors,
             workspacePath,
             execFilePathOrPaths,
-            ForceSourceDeployExecutor.errorCollection
+            BaseDeployExecutor.errorCollection
           );
         } else {
-          ForceSourceDeployExecutor.errorCollection.clear();
+          BaseDeployExecutor.errorCollection.clear();
         }
         this.outputResult(deployParser);
       } catch (e) {
@@ -84,42 +90,56 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  private outputResult(parser: ForceDeployResultParser) {
+  protected abstract getDeployType(): DeployType;
+
+  public outputResult(parser: ForceDeployResultParser) {
     const table = new Table();
-    const errors = parser.getErrors();
+    const titleType = this.getDeployType();
+
     const successes = parser.getSuccesses();
+    const errors = parser.getErrors();
     const deployedSource = successes
       ? successes.result.deployedSource
       : undefined;
-
-    if (deployedSource) {
+    if (deployedSource || parser.hasConflicts()) {
+      const rows = deployedSource || (errors && errors.result);
+      const title = !parser.hasConflicts()
+        ? nls.localize(`table_title_${titleType}ed_source`)
+        : undefined;
       const outputTable = table.createTable(
-        (deployedSource as unknown) as Row[],
+        (rows as unknown) as Row[],
         [
           { key: 'state', label: nls.localize('table_header_state') },
           { key: 'fullName', label: nls.localize('table_header_full_name') },
           { key: 'type', label: nls.localize('table_header_type') },
           { key: 'filePath', label: nls.localize('table_header_project_path') }
-        ]
+        ],
+        title
       );
-      channelService.appendLine('=== Deployed Source');
+      if (parser.hasConflicts()) {
+        channelService.appendLine(nls.localize('push_conflicts_error') + '\n');
+      }
       channelService.appendLine(outputTable);
+      if (deployedSource && deployedSource.length === 0) {
+        const noResults = nls.localize('table_no_results_found') + '\n';
+        channelService.appendLine(noResults);
+      }
     }
 
-    if (errors) {
+    if (errors && !parser.hasConflicts()) {
       const { name, message, result } = errors;
       if (result) {
         const outputTable = table.createTable(
-          (errors.result as unknown) as Row[],
+          (result as unknown) as Row[],
           [
             {
               key: 'filePath',
               label: nls.localize('table_header_project_path')
             },
             { key: 'error', label: nls.localize('table_header_errors') }
-          ]
+          ],
+          nls.localize(`table_title_${titleType}_errors`)
         );
-        channelService.appendLine('=== Deploy Errors');
         channelService.appendLine(outputTable);
       } else if (name && message) {
         channelService.appendLine(`${name}: ${message}\n`);
