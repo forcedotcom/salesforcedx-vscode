@@ -7,8 +7,8 @@
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as events from 'events';
 import * as vscode from 'vscode';
-import { forceApexTestRunCacheService } from '../commands';
 import { nls } from '../messages';
+import { forceApexTestRunCacheService } from '../testRunCache';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
   ApexTestGroupNode,

@@ -11,9 +11,9 @@ import * as events from 'events';
 import * as fs from 'fs';
 import { SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
-import { forceApexTestRunCacheService } from '../../../src/commands';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
+import { forceApexTestRunCacheService } from '../../../src/testRunCache';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
@@ -89,17 +89,17 @@ describe('TestView', () => {
     });
   });
 
-  describe('Runtest caching for re-run', async () => {
-    // forceApexTestRunCacheService is a singleton which means the values need to be
-    // reset back to their default values otherwise they'll be set by the earlier
-    // calls testRunner.runApexTests in this test suite
-    await forceApexTestRunCacheService.setCachedClassTestParam('');
-    await forceApexTestRunCacheService.setCachedMethodTestParam('');
+  describe('Runtest caching for re-run', () => {
     const testRunner = new ApexTestRunner(testOutline);
     const testMethod = 'MyTestMethod';
     const testClass = 'MyTestClass';
     const testRunAll = 'RunAll';
     it('Should cache the last run test method', async () => {
+      // forceApexTestRunCacheService is a singleton which means the values need to be
+      // reset back to their default values otherwise they'll be set by the earlier
+      // calls testRunner.runApexTests in this test suite
+      await forceApexTestRunCacheService.setCachedClassTestParam('');
+      await forceApexTestRunCacheService.setCachedMethodTestParam('');
       await testRunner.runApexTests([`${testMethod}`], TestRunType.Method);
       expect(forceApexTestRunCacheService.getLastMethodTestParam()).to.eq(
         testMethod
