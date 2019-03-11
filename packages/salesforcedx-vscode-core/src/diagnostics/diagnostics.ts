@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourceDeployErrorResult } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
 export function handleDiagnosticErrors(
-  errors: ForceSourceDeployErrorResult,
+  errors: ForceSourceDeployErrorResponse,
   workspacePath: string,
   sourcePathOrPaths: string,
   errorCollection: vscode.DiagnosticCollection

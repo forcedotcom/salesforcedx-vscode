@@ -11,6 +11,7 @@ import { Table } from '../../../src/output';
 describe('Creating a Table string', () => {
   it('Should create a string with the correct formatting and number of Rows and Columns', () => {
     const expectedTable =
+      '=== Sample Table\n'   +
       'Column 1  Column 2\n' +
       '────────  ────────\n' +
       'test      test2   \n' +
@@ -25,7 +26,7 @@ describe('Creating a Table string', () => {
       { key: 'col2', label: 'Column 2' }
     ];
 
-    const table = new Table().createTable(rows, cols);
+    const table = new Table().createTable(rows, cols, 'Sample Table');
 
     expect(table).to.eq(expectedTable);
   });

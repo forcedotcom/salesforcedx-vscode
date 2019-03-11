@@ -10,14 +10,14 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../messages';
+import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 
-export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -31,6 +31,7 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize('force_source_push_default_scratch_org_text')
       )
       .withArg('force:source:push')
+      .withJson()
       .withLogName('force_source_push_default_scratch_org');
     if (this.flag === '--forceoverwrite') {
       builder.withArg(this.flag);
@@ -39,6 +40,10 @@ export class ForceSourcePushExecutor extends SfdxCommandletExecutor<{}> {
       );
     }
     return builder.build();
+  }
+
+  protected getDeployType() {
+    return DeployType.Push;
   }
 }
 

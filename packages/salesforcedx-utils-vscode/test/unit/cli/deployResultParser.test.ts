@@ -9,13 +9,15 @@ import { expect } from 'chai';
 import { EOL } from 'os';
 import {
   ForceDeployResultParser,
-  ForceSourceDeployErrorResult,
-  ForceSourceDeploySuccessResult
+  ForceSourceDeployErrorResponse,
+  ForceSourceDeploySuccessResponse
 } from '../../../src/cli';
+import { CONFLICT_ERROR_NAME } from '../../../src/cli/deployResultParser';
 
+// tslint:disable:no-unused-expression
 describe('force:source:deploy parser', () => {
-  let deployErrorResult: ForceSourceDeployErrorResult;
-  let deploySuccessResult: ForceSourceDeploySuccessResult;
+  let deployErrorResult: ForceSourceDeployErrorResponse;
+  let deploySuccessResult: ForceSourceDeploySuccessResponse;
 
   beforeEach(() => {
     deployErrorResult = {
@@ -222,5 +224,55 @@ describe('force:source:deploy parser', () => {
     } else {
       throw Error('Successes should be present but were not returned');
     }
+  });
+
+  it('Should parse source:push success successfully', () => {
+    const response = {
+      status: 0,
+      result: {
+        pushedSource: [
+          {
+            state: 'Add',
+            type: 'ApexClass',
+            fullName: 'MyClass',
+            filePath: 'src/classes/MyClass.cls'
+          }
+        ]
+      }
+    };
+
+    const parser = new ForceDeployResultParser(JSON.stringify(response));
+    const successes = parser.getSuccesses();
+    if (successes) {
+      const parsedDeployedSource = successes.result.deployedSource;
+      const pushedSource = response.result.pushedSource;
+      expect(successes.status).to.be.equal(0);
+      expect(parsedDeployedSource.length).to.be.equals(1);
+      expect(parsedDeployedSource[0].type).to.be.equals(pushedSource[0].type);
+      expect(parsedDeployedSource[0].state).to.be.equals(pushedSource[0].state);
+      expect(parsedDeployedSource[0].fullName).to.be.equals(
+        pushedSource[0].fullName
+      );
+      expect(parsedDeployedSource[0].filePath).to.be.equals(
+        pushedSource[0].filePath
+      );
+    } else {
+      throw Error('Successes should be present but were not returned');
+    }
+  });
+
+  it('Should detect source conflicts', () => {
+    deployErrorResult.name = CONFLICT_ERROR_NAME;
+    deployErrorResult.result.push({
+      filePath: 'src/apexclasses/Testing.cls',
+      type: 'ApexClass',
+      fullName: 'Testing',
+      state: 'Conflict'
+    });
+
+    const parser = new ForceDeployResultParser(
+      JSON.stringify(deployErrorResult)
+    );
+    expect(parser.hasConflicts()).to.be.true;
   });
 });
