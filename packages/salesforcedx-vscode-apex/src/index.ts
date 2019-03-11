@@ -11,6 +11,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
 import {
+  forceApexTestClassRunCodeAction,
+  forceApexTestClassRunCodeActionDelegate,
+  forceApexTestMethodRunCodeAction,
+  forceApexTestMethodRunCodeActionDelegate
+} from './commands';
+import {
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
@@ -21,7 +27,7 @@ import * as languageServer from './languageServer';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { ApexTestOutlineProvider } from './views/testOutlineProvider';
-import { ApexTestRunner } from './views/testRunner';
+import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -79,6 +85,10 @@ export async function activate(context: vscode.ExtensionContext) {
       telemetryService.sendApexLSPError(err);
     });
 
+  // Commands
+  const commands = registerCommands(context);
+  context.subscriptions.push(commands);
+
   context.subscriptions.push(await registerTestView(testOutlineProvider));
 
   const exportedApi = {
@@ -91,7 +101,43 @@ export async function activate(context: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
-
+function registerCommands(
+  extensionContext: vscode.ExtensionContext
+): vscode.Disposable {
+  // Customer-facing commands
+  const forceApexTestClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.class.run.delegate',
+    forceApexTestClassRunCodeActionDelegate
+  );
+  const forceApexTestLastClassRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.last.class.run',
+    forceApexTestClassRunCodeAction
+  );
+  const forceApexTestClassRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.class.run',
+    forceApexTestClassRunCodeAction
+  );
+  const forceApexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.method.run.delegate',
+    forceApexTestMethodRunCodeActionDelegate
+  );
+  const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.last.method.run',
+    forceApexTestMethodRunCodeAction
+  );
+  const forceApexTestMethodRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.method.run',
+    forceApexTestMethodRunCodeAction
+  );
+  return vscode.Disposable.from(
+    forceApexTestLastClassRunCmd,
+    forceApexTestClassRunCmd,
+    forceApexTestClassRunDelegateCmd,
+    forceApexTestLastMethodRunCmd,
+    forceApexTestMethodRunCmd,
+    forceApexTestMethodRunDelegateCmd
+  );
+}
 async function registerTestView(
   testOutlineProvider: ApexTestOutlineProvider
 ): Promise<vscode.Disposable> {
@@ -130,14 +176,14 @@ async function registerTestView(
   testViewItems.push(
     vscode.commands.registerCommand(
       'sfdx.force.test.view.runClassTests',
-      test => testRunner.runApexTests([test.name])
+      test => testRunner.runApexTests([test.name], TestRunType.Class)
     )
   );
   // Run Single Test command
   testViewItems.push(
     vscode.commands.registerCommand(
       'sfdx.force.test.view.runSingleTest',
-      test => testRunner.runApexTests([test.name])
+      test => testRunner.runApexTests([test.name], TestRunType.Method)
     )
   );
   // Refresh Test View command

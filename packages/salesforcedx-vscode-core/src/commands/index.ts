@@ -18,13 +18,6 @@ export { forceApexExecute } from './forceApexExecute';
 export { forceAuthWebLogin } from './forceAuthWebLogin';
 export { forceAuthDevHub } from './forceAuthDevHub';
 export { forceApexTestRun } from './forceApexTestRun';
-export {
-  forceApexTestClassRunCodeAction,
-  forceApexTestClassRunCodeActionDelegate,
-  forceApexTestMethodRunCodeAction,
-  forceApexTestMethodRunCodeActionDelegate,
-  ForceApexTestRunCodeActionExecutor
-} from './forceApexTestRunCodeAction';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';

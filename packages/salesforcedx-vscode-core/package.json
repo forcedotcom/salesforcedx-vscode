@@ -313,22 +313,6 @@
           "command": "sfdx.debug.isv.bootstrap"
         },
         {
-          "command": "sfdx.force.apex.test.last.class.run",
-          "when": "sfdx:project_opened && sfdx:has_cached_test_class"
-        },
-        {
-          "command": "sfdx.force.apex.test.last.method.run",
-          "when": "sfdx:project_opened && sfdx:has_cached_test_method"
-        },
-        {
-          "command": "sfdx.force.apex.test.class.run",
-          "when": "false"
-        },
-        {
-          "command": "sfdx.force.apex.test.method.run",
-          "when": "false"
-        },
-        {
           "command": "sfdx.force.apex.log.get",
           "when": "sfdx:project_opened"
         },
@@ -418,22 +402,6 @@
       {
         "command": "sfdx.force.apex.test.run",
         "title": "%force_apex_test_run_text%"
-      },
-      {
-        "command": "sfdx.force.apex.test.last.class.run",
-        "title": "%force_apex_test_last_class_run_text%"
-      },
-      {
-        "command": "sfdx.force.apex.test.last.method.run",
-        "title": "%force_apex_test_last_method_run_text%"
-      },
-      {
-        "command": "sfdx.force.apex.test.class.run",
-        "title": "%force_apex_test_class_run_text%"
-      },
-      {
-        "command": "sfdx.force.apex.test.method.run",
-        "title": "%force_apex_test_method_run_text%"
       },
       {
         "command": "sfdx.force.task.stop",

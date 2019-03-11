@@ -8,6 +8,7 @@ import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as events from 'events';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { forceApexTestRunCacheService } from '../testRunCache';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
   ApexTestGroupNode,
@@ -25,6 +26,13 @@ const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 const channelService = sfdxCoreExports.channelService;
 const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
+
+export enum TestRunType {
+  All,
+  Class,
+  Method
+}
+
 export class ApexTestRunner {
   private testOutline: ApexTestOutlineProvider;
   private eventsEmitter: events.EventEmitter;
@@ -109,12 +117,17 @@ export class ApexTestRunner {
 
   public async runAllApexTests(): Promise<void> {
     const tests = Array.from(this.testOutline.testStrings.values());
-    await this.runApexTests(tests);
+    await this.runApexTests(tests, TestRunType.All);
   }
 
-  public async runApexTests(tests: string[]) {
+  public async runApexTests(tests: string[], testRunType: TestRunType) {
     const tmpFolder = this.getTempFolder();
     const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+    if (testRunType === TestRunType.Class) {
+      await forceApexTestRunCacheService.setCachedClassTestParam(tests[0]);
+    } else if (testRunType === TestRunType.Method) {
+      await forceApexTestRunCacheService.setCachedMethodTestParam(tests[0]);
+    }
     const builder = new ReadableApexTestRunExecutor(
       tests,
       getCodeCoverage,

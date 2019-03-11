@@ -24,6 +24,11 @@ export const messages = {
     '%s points to a missing folder. For more information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
+  force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
+  force_apex_test_run_codeAction_no_class_test_param_text:
+    'Test class not provided. Run the code action on a class annotated with @isTest.',
+  force_apex_test_run_codeAction_no_method_test_param_text:
+    'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
   force_apex_test_run_description_text: 'Run Apex test(s)',
   force_test_view_loading_message: 'Loading Apex tests ...',
   force_test_view_no_tests_message: 'No Apex Tests Found',
