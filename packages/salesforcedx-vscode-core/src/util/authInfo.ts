@@ -10,20 +10,17 @@ import {
   ConfigAggregator,
   ConfigFile
 } from '@salesforce/core';
-import * as vscode from 'vscode';
+import * as path from 'path';
+import { getRootWorkspacePath, hasRootWorkspace } from './index';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     vscodePath: string
   ): Promise<string | undefined> {
-    if (
-      vscode.workspace &&
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath + '/';
+    if (hasRootWorkspace()) {
+      const rootPath = path.join(getRootWorkspacePath(), '/');
       const myLocalConfig = await ConfigFile.create({
         isGlobal: false,
-        rootFolder: rootPath + '.sfdx/',
+        rootFolder: path.join(rootPath, '.sfdx'),
         filename: 'sfdx-config.json'
       });
       const localDefault = myLocalConfig.get('defaultusername');
@@ -32,27 +29,17 @@ export class OrgAuthInfo {
 
     const aggregator = await ConfigAggregator.create();
     const globalDefault = aggregator.getPropertyValue('defaultusername');
-    return JSON.stringify(globalDefault).replace('""', '');
-
-    /*const forceConfig = await new ForceConfigGet().getConfig(
-      vscodePath,
-      'defaultusername'
-    );
-    return forceConfig.get('defaultusername');*/
+    return JSON.stringify(globalDefault).replace(/\"/g, '');
   }
 
   public static async getDefaultDevHubUsernameOrAlias(): Promise<
     string | undefined
   > {
-    if (
-      vscode.workspace &&
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath + '/';
+    if (hasRootWorkspace()) {
+      const rootPath = path.join(getRootWorkspacePath(), '/');
       const myLocalConfig = await ConfigFile.create({
         isGlobal: false,
-        rootFolder: rootPath + '.sfdx/',
+        rootFolder: path.join(rootPath + '.sfdx'),
         filename: 'sfdx-config.json'
       });
       const localDefault = myLocalConfig.get('defaultdevhubusername');
@@ -62,12 +49,6 @@ export class OrgAuthInfo {
     const aggregator = await ConfigAggregator.create();
     const globalDefault = aggregator.getPropertyValue('defaultdevhubusername');
     return JSON.stringify(globalDefault).replace(/\"/g, '');
-    /*
-    const forceConfig = await new ForceConfigGet().getConfig(
-      vscodePath,
-      'defaultdevhubusername'
-    );
-    return forceConfig.get('defaultdevhubusername');*/
   }
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {
