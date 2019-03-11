@@ -237,5 +237,5 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    "We couldn't complete the push operation due to conflicts. Verify that you want to keep the local versions, then run SFDX: Push Source to Default Scratch Org and Override Conflicts."
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".'
 };
