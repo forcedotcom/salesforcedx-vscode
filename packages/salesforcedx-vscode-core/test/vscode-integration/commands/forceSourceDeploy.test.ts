@@ -13,7 +13,7 @@ import {
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { channelService } from '../../../src/channels';
-import { ForceSourceDeployExecutor } from '../../../src/commands/forceSourceDeploy';
+import { BaseDeployExecutor } from '../../../src/commands/baseDeployCommand';
 import { ForceSourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
 import { ForceSourceDeploySourcePathExecutor } from '../../../src/commands/forceSourceDeploySourcePath';
 import { ForceSourcePushExecutor } from '../../../src/commands/forceSourcePush';
@@ -69,7 +69,7 @@ describe('Correctly output deploy results', () => {
     successesStub.returns(deploySuccess);
     errorsStub.returns(deployError);
 
-    let executor: ForceSourceDeployExecutor = new ForceSourceDeployManifestExecutor();
+    let executor: BaseDeployExecutor = new ForceSourceDeployManifestExecutor();
     executor.outputResult(resultParser);
 
     const successTable = table.createTable(

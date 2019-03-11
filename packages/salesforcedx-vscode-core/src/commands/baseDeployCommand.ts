@@ -13,10 +13,7 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import {
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -32,7 +29,7 @@ export enum DeployType {
   Push = 'push'
 }
 
-export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
+export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   string
 > {
   public static errorCollection = vscode.languages.createDiagnosticCollection(
@@ -68,10 +65,10 @@ export abstract class ForceSourceDeployExecutor extends SfdxCommandletExecutor<
             errors,
             workspacePath,
             execFilePathOrPaths,
-            ForceSourceDeployExecutor.errorCollection
+            BaseDeployExecutor.errorCollection
           );
         } else {
-          ForceSourceDeployExecutor.errorCollection.clear();
+          BaseDeployExecutor.errorCollection.clear();
         }
         this.outputResult(deployParser);
       } catch (e) {

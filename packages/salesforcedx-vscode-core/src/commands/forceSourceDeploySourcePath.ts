@@ -15,15 +15,15 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   FilePathGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './commands';
-import { DeployType, ForceSourceDeployExecutor } from './forceSourceDeploy';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 
-export class ForceSourceDeploySourcePathExecutor extends ForceSourceDeployExecutor {
+export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_deploy_text'))
