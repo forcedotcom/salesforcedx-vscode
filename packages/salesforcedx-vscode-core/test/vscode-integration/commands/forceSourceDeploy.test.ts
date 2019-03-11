@@ -7,6 +7,12 @@
 
 import { ForceDeployResultParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  CONFLICT_ERROR_NAME,
+  DeployResult,
+  ForceSourceDeployErrorResponse,
+  ForceSourceDeploySuccessResponse
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli/deployResultParser';
+import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
@@ -25,30 +31,8 @@ describe('Correctly output deploy results', () => {
   let channelServiceStub: sinon.SinonStub;
   let output = '';
   const table = new Table();
-  const deploySuccess = {
-    status: 0,
-    result: {
-      deployedSource: [
-        {
-          state: 'Add',
-          type: 'ApexClass',
-          fullName: 'MyClass',
-          filePath: 'src/classes/MyClass.cls'
-        }
-      ]
-    }
-  };
-  const deployError = {
-    status: 1,
-    name: 'Deploy Failed',
-    message: 'There was a failure',
-    result: [
-      {
-        filePath: 'src/classes/MyClass2.cls',
-        error: 'Some Error'
-      }
-    ]
-  };
+  let deploySuccess: ForceSourceDeploySuccessResponse;
+  let deployError: ForceSourceDeployErrorResponse;
 
   beforeEach(() => {
     output = '';
@@ -56,6 +40,32 @@ describe('Correctly output deploy results', () => {
     successesStub = stub(ForceDeployResultParser.prototype, 'getSuccesses');
     channelServiceStub = stub(channelService, 'appendLine');
     channelServiceStub.callsFake(line => (output += line + '\n'));
+    deploySuccess = {
+      status: 0,
+      result: {
+        deployedSource: [
+          {
+            state: 'Add',
+            type: 'ApexClass',
+            fullName: 'MyClass',
+            filePath: 'src/classes/MyClass.cls'
+          }
+        ]
+      }
+    };
+    deployError = {
+      status: 1,
+      name: 'Deploy Failed',
+      message: 'There was a failure',
+      stack: 'A stack',
+      warnings: ['A warning'],
+      result: [
+        {
+          filePath: 'src/classes/MyClass2.cls',
+          error: 'Some Error'
+        } as DeployResult
+      ]
+    };
   });
 
   afterEach(() => {
@@ -199,5 +209,40 @@ describe('Correctly output deploy results', () => {
     const executor = new ForceSourcePushExecutor();
     executor.outputResult(new ForceDeployResultParser('{}'));
     expect(output).to.be.equal('Deploy Failed: An error has occurred\n\n');
+  });
+
+  it('Should show deploy conflicts correctly', () => {
+    const hasConflictsStub = stub(
+      ForceDeployResultParser.prototype,
+      'hasConflicts'
+    ).returns(true);
+    deployError.name = CONFLICT_ERROR_NAME;
+    deployError.result = [
+      {
+        state: 'Conflict',
+        fullName: 'SomeClass',
+        type: 'ApexClass',
+        filePath: 'some/class/path'
+      }
+    ];
+    errorsStub.returns(deployError);
+    const conflictsTable = table.createTable(
+      (deployError.result as unknown) as Row[],
+      [
+        { key: 'state', label: nls.localize('table_header_state') },
+        { key: 'fullName', label: nls.localize('table_header_full_name') },
+        { key: 'type', label: nls.localize('table_header_type') },
+        { key: 'filePath', label: nls.localize('table_header_project_path') }
+      ]
+    );
+    const expectedOutput = `${nls.localize(
+      'push_conflicts_error'
+    )}\n\n${conflictsTable}\n`;
+    const executor = new ForceSourcePushExecutor();
+    executor.outputResult(new ForceDeployResultParser('{}'));
+
+    expect(output).to.be.equal(expectedOutput);
+
+    hasConflictsStub.restore();
   });
 });

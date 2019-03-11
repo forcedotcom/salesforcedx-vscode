@@ -41,7 +41,8 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const workspacePath = getRootWorkspacePath() || '';
-    const execFilePathOrPaths = response.data;
+    const execFilePathOrPaths =
+      this.getDeployType() === DeployType.Deploy ? response.data : '';
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspacePath,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
@@ -60,7 +61,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       try {
         const deployParser = new ForceDeployResultParser(stdOut);
         const errors = deployParser.getErrors();
-        if (errors) {
+        if (errors && !deployParser.hasConflicts()) {
           handleDiagnosticErrors(
             errors,
             workspacePath,
@@ -96,29 +97,36 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     const titleType = this.getDeployType();
 
     const successes = parser.getSuccesses();
+    const errors = parser.getErrors();
     const deployedSource = successes
       ? successes.result.deployedSource
       : undefined;
-    if (deployedSource) {
+    if (deployedSource || parser.hasConflicts()) {
+      const rows = deployedSource || (errors && errors.result);
+      const title = !parser.hasConflicts()
+        ? nls.localize(`table_title_${titleType}ed_source`)
+        : undefined;
       const outputTable = table.createTable(
-        (deployedSource as unknown) as Row[],
+        (rows as unknown) as Row[],
         [
           { key: 'state', label: nls.localize('table_header_state') },
           { key: 'fullName', label: nls.localize('table_header_full_name') },
           { key: 'type', label: nls.localize('table_header_type') },
           { key: 'filePath', label: nls.localize('table_header_project_path') }
         ],
-        nls.localize(`table_title_${titleType}ed_source`)
+        title
       );
+      if (parser.hasConflicts()) {
+        channelService.appendLine(nls.localize('push_conflicts_error') + '\n');
+      }
       channelService.appendLine(outputTable);
-      if (deployedSource.length === 0) {
+      if (deployedSource && deployedSource.length === 0) {
         const noResults = nls.localize('table_no_results_found') + '\n';
         channelService.appendLine(noResults);
       }
     }
 
-    const errors = parser.getErrors();
-    if (errors) {
+    if (errors && !parser.hasConflicts()) {
       const { name, message, result } = errors;
       if (result) {
         const outputTable = table.createTable(
