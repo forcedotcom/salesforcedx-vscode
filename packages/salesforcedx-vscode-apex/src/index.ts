@@ -70,8 +70,13 @@ export async function activate(context: vscode.ExtensionContext) {
   languageClient
     .onReady()
     .then(async () => {
+      if (languageClient) {
+        languageClient.onNotification(
+          'indexer/done',
+          async () => await testOutlineProvider.refresh()
+        );
+      }
       LanguageClientUtils.languageClientReady = true;
-      await testOutlineProvider.refresh();
       telemetryService.sendApexLSPActivationEvent(langClientHRStart);
     })
     .catch(err => {
