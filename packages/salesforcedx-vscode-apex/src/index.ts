@@ -71,10 +71,10 @@ export async function activate(context: vscode.ExtensionContext) {
     .onReady()
     .then(async () => {
       if (languageClient) {
-        languageClient.onNotification(
-          'indexer/done',
-          async () => await testOutlineProvider.refresh()
-        );
+        languageClient.onNotification('indexer/done', async () => {
+          LanguageClientUtils.indexing = false;
+          await testOutlineProvider.refresh();
+        });
       }
       LanguageClientUtils.languageClientReady = true;
       telemetryService.sendApexLSPActivationEvent(langClientHRStart);
@@ -147,9 +147,11 @@ async function registerTestView(
   );
   // Refresh Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () =>
-      testOutlineProvider.refresh()
-    )
+    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
+      if (!LanguageClientUtils.indexing) {
+        return testOutlineProvider.refresh();
+      }
+    })
   );
 
   return vscode.Disposable.from(...testViewItems);
