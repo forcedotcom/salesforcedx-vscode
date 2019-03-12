@@ -6,65 +6,71 @@
  */
 import { EOL } from 'os';
 
-export interface DeployError {
+export const CONFLICT_ERROR_NAME = 'sourceConflictDetected';
+
+export interface DeployResult {
   columnNumber?: string;
-  error: string;
+  error?: string;
   filePath: string;
   fullName?: string;
   lineNumber?: string;
+  state?: string;
   type: string;
 }
 
-export interface DeploySuccess {
-  state: string;
-  fullName: string;
-  type: string;
-  filePath: string;
-}
-
-export interface ForceSourceDeployErrorResult {
+export interface ForceSourceDeployErrorResponse {
   message: string;
   name: string;
-  result: DeployError[];
+  result: DeployResult[];
   stack: string;
   status: number;
   warnings: any[];
 }
 
-export interface ForceSourceDeploySuccessResult {
+export interface ForceSourceDeploySuccessResponse {
   status: number;
   result: {
-    deployedSource: DeploySuccess[];
+    deployedSource: DeployResult[];
   };
 }
 
 export class ForceDeployResultParser {
-  private result: any;
+  private response: any;
 
   constructor(stdOut: string) {
     const stdErrLines = stdOut.split(EOL);
     for (const line of stdErrLines) {
       if (line.trim().startsWith('{')) {
-        this.result = JSON.parse(line);
+        this.response = JSON.parse(line);
         return;
       }
     }
     throw new Error('No JSON found in response');
   }
 
-  public getErrors(): ForceSourceDeployErrorResult | undefined {
-    if (this.result.status === 1) {
-      return this.result as ForceSourceDeployErrorResult;
+  public getErrors(): ForceSourceDeployErrorResponse | undefined {
+    if (this.response.status === 1) {
+      return this.response as ForceSourceDeployErrorResponse;
     }
   }
 
-  public getSuccesses(): ForceSourceDeploySuccessResult | undefined {
-    const { partialSuccess, status } = this.result;
+  public getSuccesses(): ForceSourceDeploySuccessResponse | undefined {
+    const { status, result, partialSuccess } = this.response;
     if (status === 0) {
-      return this.result as ForceSourceDeploySuccessResult;
+      const { pushedSource } = result;
+      if (pushedSource) {
+        return { status, result: { deployedSource: pushedSource } };
+      }
+      return this.response as ForceSourceDeploySuccessResponse;
     }
     if (partialSuccess) {
       return { status, result: { deployedSource: partialSuccess } };
     }
+  }
+
+  public hasConflicts(): boolean {
+    return (
+      this.response.status === 1 && this.response.name === CONFLICT_ERROR_NAME
+    );
   }
 }

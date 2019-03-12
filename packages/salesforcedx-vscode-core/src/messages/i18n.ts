@@ -98,12 +98,6 @@ export const messages = {
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
 
-  force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
-  force_apex_test_run_codeAction_no_class_test_param_text:
-    'Test class not provided. Run the code action on a class annotated with @isTest.',
-  force_apex_test_run_codeAction_no_method_test_param_text:
-    'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
-
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
@@ -230,5 +224,12 @@ export const messages = {
   table_header_project_path: 'PROJECT PATH',
   table_header_type: 'TYPE',
   table_header_full_name: 'FULL NAME',
-  table_header_state: 'STATE'
+  table_header_state: 'STATE',
+  table_no_results_found: 'No results found',
+  table_title_deployed_source: 'Deployed Source',
+  table_title_deploy_errors: 'Deploy Errors',
+  table_title_pushed_source: 'Pushed Source',
+  table_title_push_errors: 'Push Errors',
+  push_conflicts_error:
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".'
 };

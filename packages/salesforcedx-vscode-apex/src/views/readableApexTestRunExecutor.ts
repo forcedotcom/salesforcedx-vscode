@@ -10,10 +10,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
+import { ForceApexTestRunCodeActionExecutor } from '../commands';
 import { nls } from '../messages';
-const ForceApexTestRunCodeActionExecutor = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports.ForceApexTestRunCodeActionExecutor;
 
 export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExecutor as {
   new (test: string, shouldGetCodeCoverage: boolean): any;

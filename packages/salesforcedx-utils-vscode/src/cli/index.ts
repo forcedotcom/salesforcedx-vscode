@@ -29,9 +29,8 @@ export { ForceOrgDisplay, OrgInfo } from './forceOrgDisplay';
 export { LocalCommandExecution } from './localCommandExecutor';
 export {
   ForceDeployResultParser,
-  ForceSourceDeployErrorResult,
-  ForceSourceDeploySuccessResult,
-  DeployError,
-  DeploySuccess
+  ForceSourceDeployErrorResponse,
+  ForceSourceDeploySuccessResponse,
+  DeployResult
 } from './deployResultParser';
 export { TestRunner } from './testRunner';
