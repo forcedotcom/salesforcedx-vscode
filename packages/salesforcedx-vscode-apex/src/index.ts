@@ -104,13 +104,10 @@ export async function activate(context: vscode.ExtensionContext) {
     getApexTests
   };
 
-  // Code coverage commands
-  context.subscriptions.push(registerCodeCoverageCommands(context));
-
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
-function registerCodeCoverageCommands(
+function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Colorize code coverage
@@ -118,12 +115,8 @@ function registerCodeCoverageCommands(
   const colorizer = new CodeCoverage(statusBarToggle);
 
   const colorizerCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.colorizer',
-    () => colorizer.showCoverage()
-  );
-  const colorizerCmdOff = vscode.commands.registerCommand(
-    'sfdx.force.apex.colorizer.off',
-    () => colorizer.hideCoverage()
+    'sfdx.force.apex.toggle.colorizer',
+    () => colorizer.toggleCoverage()
   );
 
   // Customer-facing commands
@@ -152,6 +145,7 @@ function registerCodeCoverageCommands(
     forceApexTestMethodRunCodeAction
   );
   return vscode.Disposable.from(
+    colorizerCmd,
     forceApexTestLastClassRunCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,

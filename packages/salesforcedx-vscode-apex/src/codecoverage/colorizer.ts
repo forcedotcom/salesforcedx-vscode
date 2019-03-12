@@ -46,12 +46,16 @@ export type CoverageItem = {
   lines: { [key: string]: number };
 };
 
-function getCoverageData(): CoverageItem[] {
+function getTestRunId() {
   const testRunIdFile = path.join(apexDirPath, 'test-run-id.txt');
   if (!fs.existsSync(testRunIdFile)) {
     throw new Error('No test run information was found for this project.');
   }
-  const testRunId = fs.readFileSync(testRunIdFile, 'utf8');
+  return fs.readFileSync(testRunIdFile, 'utf8');
+}
+
+function getCoverageData() {
+  const testRunId = getTestRunId();
   const testResultFilePath = path.join(
     apexDirPath,
     `test-result-${testRunId}.json`
@@ -59,12 +63,12 @@ function getCoverageData(): CoverageItem[] {
 
   if (!fs.existsSync(testResultFilePath)) {
     throw new Error(
-      `No code coverage information was found test run ${testRunId}`
+      `No code coverage information was found for test run ${testRunId}`
     );
   }
   const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
   const codeCoverage = JSON.parse(testResultOutput) as CoverageTestResult;
-  return codeCoverage.coverage.coverage;
+  return codeCoverage.coverage ? codeCoverage.coverage.coverage : '';
 }
 
 function isApexMetadata(filePath: string): boolean {
@@ -96,24 +100,30 @@ export class CodeCoverage {
     }
   }
 
-  public showCoverage() {
-    this.colorizer(window.activeTextEditor);
-    this.statusBar.toggle(true);
-  }
-
-  public hideCoverage() {
-    this.statusBar.toggle(false);
-    const editor = window.activeTextEditor;
-    if (editor) {
-      editor.setDecorations(coveredLinesDecorationType, []);
-      editor.setDecorations(uncoveredLinesDecorationType, []);
+  public toggleCoverage() {
+    if (this.statusBar.isHighlightingEnabled) {
+      this.statusBar.toggle(false);
+      const editor = window.activeTextEditor;
+      if (editor) {
+        editor.setDecorations(coveredLinesDecorationType, []);
+        editor.setDecorations(uncoveredLinesDecorationType, []);
+      }
+    } else {
+      this.colorizer(window.activeTextEditor);
+      this.statusBar.toggle(true);
     }
   }
 
   private colorizer(editor?: TextEditor) {
     try {
       if (editor && isApexMetadata(editor.document.uri.fsPath)) {
-        const codeCovArray = getCoverageData();
+        const codeCovArray = getCoverageData() as CoverageItem[];
+        if (codeCovArray === undefined || codeCovArray.length === 0) {
+          const testRunId = getTestRunId();
+          throw new Error(
+            `No code coverage information was found for test run ${testRunId}.`
+          );
+        }
         const coveredLines = Array<Range>();
         const uncoveredLines = Array<Range>();
         const codeCovItem = codeCovArray.find(
@@ -121,24 +131,24 @@ export class CodeCoverage {
             covItem.name === getApexMemberName(editor.document.uri.fsPath)
         );
 
-        if (codeCovItem) {
-          for (const key in codeCovItem.lines) {
-            if (codeCovItem.lines.hasOwnProperty(key)) {
-              if (codeCovItem.lines[key] === 1) {
-                coveredLines.push(getLineRange(editor.document, Number(key)));
-              } else {
-                uncoveredLines.push(getLineRange(editor.document, Number(key)));
-              }
-            }
-          }
-
-          editor.setDecorations(coveredLinesDecorationType, coveredLines);
-          editor.setDecorations(uncoveredLinesDecorationType, uncoveredLines);
-        } else {
-          window.showInformationMessage(
-            'Code coverage was not found for the current file.'
+        if (!codeCovItem) {
+          throw new Error(
+            'No code coverage information was found for the current file.'
           );
         }
+
+        for (const key in codeCovItem.lines) {
+          if (codeCovItem.lines.hasOwnProperty(key)) {
+            if (codeCovItem.lines[key] === 1) {
+              coveredLines.push(getLineRange(editor.document, Number(key)));
+            } else {
+              uncoveredLines.push(getLineRange(editor.document, Number(key)));
+            }
+          }
+        }
+
+        editor.setDecorations(coveredLinesDecorationType, coveredLines);
+        editor.setDecorations(uncoveredLinesDecorationType, uncoveredLines);
       }
     } catch (e) {
       // telemetry
