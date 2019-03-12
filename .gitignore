@@ -29,7 +29,13 @@ coverage
 # test results
 test-results.xml
 xunit.xml
+xunit-unitTests.xml
+xunit-integrationTests.xml
+xunit-vscodeIntegrationTests.xml
 junit-custom.xml
+junit-custom-unitTests.xml
+junit-custom-integrationTests.xml
+junit-custom-vscodeIntegrationTests.xml
 
 # nyc test coverage
 .nyc_output

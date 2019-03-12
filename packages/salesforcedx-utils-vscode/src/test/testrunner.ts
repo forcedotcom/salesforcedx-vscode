@@ -46,11 +46,13 @@ function configure(mochaOpts: any): void {
       reporterEnabled: 'mocha-junit-reporter, xunit, spec',
       mochaJunitReporterReporterOptions: {
         mochaFile: xmlPath
-          ? paths.join(xmlPath, 'junit-custom.xml')
-          : 'junit-custom.xml'
+          ? paths.join(xmlPath, 'junit-custom-vscodeIntegrationTests.xml')
+          : 'junit-custom-vscodeIntegrationTests.xml'
       },
       xunitReporterOptions: {
-        output: xmlPath ? paths.join(xmlPath, 'xunit.xml') : 'xunit.xml'
+        output: xmlPath
+          ? paths.join(xmlPath, 'xunit-vscodeIntegrationTests.xml')
+          : 'xunit-vscodeIntegrationTests.xml'
       }
     };
   }

@@ -17,10 +17,11 @@ environment:
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
   matrix:
-    - vscode: test:without-system-tests
-    #- vscode: test:insiders-without-system-tests
+    - vscode: test:unit-and-system-tests
+    - vscode: test:integration-tests-without-system-tests
 
 install:
+  - ps: $stopwatch = [system.diagnostics.stopwatch]::StartNew()
   - ps: Install-Product node 10.2.0 x64
   - appveyor-retry npm install
   - npm install -g sfdx-cli
@@ -29,13 +30,25 @@ install:
   # the JWT key should be stored base 64 encoded in AppVeyor settings. If you change this, it will take a few builds to propogate
   - ps: "[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:SFDX_CI_DEVHUB_JWTKEY)) | Out-File -Encoding \"ASCII\" C:\\projects\\devhub.key"
   - sfdx force:auth:jwt:grant --clientid %SFDX_CI_DEVHUB_CLIENTID% --username %SFDX_CI_DEVHUB_USERNAME% --jwtkeyfile C:\projects\devhub.key --setdefaultdevhubusername --setalias devhub
+  - ps: |
+      $stopwatch.Stop()
+      Write-Host "Total Installation Time - " $stopwatch.Elapsed
+      "`n`n"
+      $stopwatch.Reset()
 
 build_script:
+  - ps: $stopwatch.Start()
   - npm run compile
   - npm run lint
   - npm config set scripts-prepend-node-path true
+  - ps: |
+      $stopwatch.Stop()
+      Write-Host "Total Build Time - " $stopwatch.Elapsed
+      "`n`n"
+      $stopwatch.Reset()
 
 test_script:
+  - ps: $stopwatch.Start()
   - node --version
   - npm --version
   - ps: |
@@ -50,18 +63,21 @@ test_script:
       "--------------------------------------------"
   - cmd: npm run %vscode%
   - ps: |
-      npm run coverage:system-tests
       npm run aggregateJUnit
       junit-merge -d junit-aggregate -o junit-aggregate.xml
       $NpmTestsExitCode = $LastExitCode
       # Show status
       "`n`n"
       "Finalizing results`n"
-      $AllFiles = Get-ChildItem -Path $ProjectRoot\packages\*\xunit.xml -File | Select -ExpandProperty FullName
+      $AllFiles = Get-ChildItem -Path $ProjectRoot\packages\*\xunit*.xml -File | Select -ExpandProperty FullName
       "Test Results:`n$($AllFiles | Out-String)"
       # Upload results for AppVeyor test tab
       "Uploading Test Results:`n"
       (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)" , (Resolve-Path .\junit-aggregate.xml) )
+  - ps: |
+      $stopwatch.Stop()
+      Write-Host "Total Test Time - " $stopwatch.Elapsed
+      "`n`n"
 
 artifacts:
   - path: '**\*.vsix'
