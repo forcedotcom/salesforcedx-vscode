@@ -10,14 +10,14 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   FilePathGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './commands';
-import { ForceSourceDeployExecutor } from './forceSourceDeploy';
 
-export class ForceSourceDeployManifestExecutor extends ForceSourceDeployExecutor {
+export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   public build(manifestPath: string): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_deploy_text'))
@@ -26,6 +26,10 @@ export class ForceSourceDeployManifestExecutor extends ForceSourceDeployExecutor
       .withFlag('--manifest', manifestPath)
       .withJson();
     return commandBuilder.build();
+  }
+
+  protected getDeployType() {
+    return DeployType.Deploy;
   }
 }
 
