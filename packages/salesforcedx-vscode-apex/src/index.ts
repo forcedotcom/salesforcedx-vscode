@@ -76,8 +76,13 @@ export async function activate(context: vscode.ExtensionContext) {
   languageClient
     .onReady()
     .then(async () => {
+      if (languageClient) {
+        languageClient.onNotification('indexer/done', async () => {
+          LanguageClientUtils.indexing = false;
+          await testOutlineProvider.refresh();
+        });
+      }
       LanguageClientUtils.languageClientReady = true;
-      await testOutlineProvider.refresh();
       telemetryService.sendApexLSPActivationEvent(langClientHRStart);
     })
     .catch(err => {
@@ -188,9 +193,11 @@ async function registerTestView(
   );
   // Refresh Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () =>
-      testOutlineProvider.refresh()
-    )
+    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
+      if (!LanguageClientUtils.indexing) {
+        return testOutlineProvider.refresh();
+      }
+    })
   );
 
   return vscode.Disposable.from(...testViewItems);

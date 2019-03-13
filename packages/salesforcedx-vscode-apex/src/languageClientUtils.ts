@@ -17,6 +17,7 @@ import {
 
 export class LanguageClientUtils {
   private static instance: LanguageClient | undefined;
+  public static indexing = true;
   public static languageClientReady = false;
   public static getClientInstance(): LanguageClient | undefined {
     return LanguageClientUtils.instance;
