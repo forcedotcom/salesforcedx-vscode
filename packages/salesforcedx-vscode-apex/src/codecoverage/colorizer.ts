@@ -21,7 +21,10 @@ const apexDirPath = path.join(
   'apex'
 );
 
-function getLineRange(document: TextDocument, lineNumber: number): Range {
+export function getLineRange(
+  document: TextDocument,
+  lineNumber: number
+): Range {
   const adjustedLineNumber = lineNumber - 1;
   const firstLine = document.lineAt(adjustedLineNumber);
 
@@ -68,6 +71,11 @@ function getCoverageData() {
   }
   const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
   const codeCoverage = JSON.parse(testResultOutput) as CoverageTestResult;
+  if (codeCoverage.coverage === undefined) {
+    throw new Error(
+      `No code coverage information was found for test run ${testRunId}.`
+    );
+  }
   return codeCoverage.coverage ? codeCoverage.coverage.coverage : '';
 }
 
@@ -86,9 +94,13 @@ function getApexMemberName(filePath: string): string {
 
 export class CodeCoverage {
   private statusBar: StatusBarToggle;
+  public coveredLines: Range[];
+  public uncoveredLines: Range[];
 
   constructor(statusBar: StatusBarToggle) {
     this.statusBar = statusBar;
+    this.coveredLines = Array<Range>();
+    this.uncoveredLines = Array<Range>();
 
     window.onDidChangeActiveTextEditor(this.onDidChangeActiveTextEditor, this);
     this.onDidChangeActiveTextEditor(window.activeTextEditor);
@@ -103,10 +115,16 @@ export class CodeCoverage {
   public toggleCoverage() {
     if (this.statusBar.isHighlightingEnabled) {
       this.statusBar.toggle(false);
+      this.coveredLines = [];
+      this.uncoveredLines = [];
+
       const editor = window.activeTextEditor;
       if (editor) {
-        editor.setDecorations(coveredLinesDecorationType, []);
-        editor.setDecorations(uncoveredLinesDecorationType, []);
+        editor.setDecorations(coveredLinesDecorationType, this.coveredLines);
+        editor.setDecorations(
+          uncoveredLinesDecorationType,
+          this.uncoveredLines
+        );
       }
     } else {
       this.colorizer(window.activeTextEditor);
@@ -114,18 +132,10 @@ export class CodeCoverage {
     }
   }
 
-  private colorizer(editor?: TextEditor) {
+  public colorizer(editor?: TextEditor) {
     try {
       if (editor && isApexMetadata(editor.document.uri.fsPath)) {
         const codeCovArray = getCoverageData() as CoverageItem[];
-        if (codeCovArray === undefined || codeCovArray.length === 0) {
-          const testRunId = getTestRunId();
-          throw new Error(
-            `No code coverage information was found for test run ${testRunId}.`
-          );
-        }
-        const coveredLines = Array<Range>();
-        const uncoveredLines = Array<Range>();
         const codeCovItem = codeCovArray.find(
           covItem =>
             covItem.name === getApexMemberName(editor.document.uri.fsPath)
@@ -140,15 +150,22 @@ export class CodeCoverage {
         for (const key in codeCovItem.lines) {
           if (codeCovItem.lines.hasOwnProperty(key)) {
             if (codeCovItem.lines[key] === 1) {
-              coveredLines.push(getLineRange(editor.document, Number(key)));
+              this.coveredLines.push(
+                getLineRange(editor.document, Number(key))
+              );
             } else {
-              uncoveredLines.push(getLineRange(editor.document, Number(key)));
+              this.uncoveredLines.push(
+                getLineRange(editor.document, Number(key))
+              );
             }
           }
         }
 
-        editor.setDecorations(coveredLinesDecorationType, coveredLines);
-        editor.setDecorations(uncoveredLinesDecorationType, uncoveredLines);
+        editor.setDecorations(coveredLinesDecorationType, this.coveredLines);
+        editor.setDecorations(
+          uncoveredLinesDecorationType,
+          this.uncoveredLines
+        );
       }
     } catch (e) {
       // telemetry

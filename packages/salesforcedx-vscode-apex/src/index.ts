@@ -113,7 +113,6 @@ function registerCommands(
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
-
   const colorizerCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.toggle.colorizer',
     () => colorizer.toggleCoverage()
