@@ -4,14 +4,14 @@
 
 #### salesforcedx-vscode-core
 
-- Display `source:push` error messages in Problem view ([PR #1117](https://github.com/forcedotcom/salesforcedx-vscode/pull/1117))
+- Display `source:push` error messages in Problems view ([PR #1117](https://github.com/forcedotcom/salesforcedx-vscode/pull/1117))
 - Add CPUs and total system memory information to telemetry ([PR #1119](https://github.com/forcedotcom/salesforcedx-vscode/pull/1119))
 
 ### Fixed
 
 #### salesforcedx-vscode-apex
 
-- Enable `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` commands to work with Apex Test Sidebar ([PR #1135](https://github.com/forcedotcom/salesforcedx-vscode/pull/1135), [Issue #962](https://github.com/forcedotcom/salesforcedx-vscode/issues/962))
+- Enable `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` commands to work with Apex Tests sidebar ([PR #1135](https://github.com/forcedotcom/salesforcedx-vscode/pull/1135), [Issue #962](https://github.com/forcedotcom/salesforcedx-vscode/issues/962))
 
 #### salesforcedx-vscode-core
 
