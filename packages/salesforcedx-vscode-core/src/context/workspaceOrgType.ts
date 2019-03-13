@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export enum OrgType {
   SourceTracked,
@@ -73,6 +73,6 @@ function setDefaultUsernameHasNoChangeTracking(val: boolean) {
 
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   if (hasRootWorkspace()) {
-    return await OrgAuthInfo.getDefaultUsernameOrAlias(getRootWorkspacePath());
+    return await OrgAuthInfo.getDefaultUsernameOrAlias();
   }
 }

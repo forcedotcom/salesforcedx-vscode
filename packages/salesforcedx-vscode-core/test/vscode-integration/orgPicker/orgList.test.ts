@@ -9,8 +9,8 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import { isNullOrUndefined } from 'util';
-// import * as vscode from 'vscode';
-// import { nls } from '../../../src/messages';
+import * as vscode from 'vscode';
+import { nls } from '../../../src/messages';
 import { FileInfo, OrgList } from '../../../src/orgPicker';
 import { OrgAuthInfo } from '../../../src/util';
 
@@ -163,39 +163,45 @@ describe('Filter Authorization Info', async () => {
   });
 });
 
-/*describe('Set Default Org', () => {
+describe('Set Default Org', () => {
   let orgListStub: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
-  const orgList = [
+  let showDefaultOrgStub: sinon.SinonStub;
+  const orgsList = [
     'alias - test-username1@gmail.com',
     'test-username2@gmail.com'
   ];
+  const orgList = new OrgList();
 
   beforeEach(() => {
     orgListStub = sinon.stub(OrgList.prototype, 'updateOrgList');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+    showDefaultOrgStub = sinon
+      .stub(orgList, 'showDefaultOrg')
+      .returns(undefined);
   });
 
   it('should return Cancel if selection is undefined', async () => {
     try {
-      orgListStub.returns(orgList);
+      orgListStub.returns(orgsList);
       quickPickStub.returns(undefined);
-      const response = await setDefaultOrg();
+      const response = await orgList.setDefaultOrg();
       expect(response.type).to.equal('CANCEL');
     } finally {
       orgListStub.restore();
       quickPickStub.restore();
+      showDefaultOrgStub.restore();
     }
   });
 
   it('should return Continue and call force:auth:web:login command if SFDX: Authorize an Org is selected', async () => {
-    orgListStub.returns(orgList);
+    orgListStub.returns(orgsList);
     quickPickStub.returns(
       '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text')
     );
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
     try {
-      const response = await setDefaultOrg();
+      const response = await orgList.setDefaultOrg();
       expect(response.type).to.equal('CONTINUE');
       const commandResult = expect(
         executeCommandStub.calledWith('sfdx.force.auth.web.login')
@@ -204,17 +210,18 @@ describe('Filter Authorization Info', async () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
+      showDefaultOrgStub.restore();
     }
   });
 
   it('should return Continue and call force:org:create command if SFDX: Create a Default Scratch Org is selected', async () => {
-    orgListStub.returns(orgList);
+    orgListStub.returns(orgsList);
     quickPickStub.returns(
       '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
     );
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
     try {
-      const response = await setDefaultOrg();
+      const response = await orgList.setDefaultOrg();
       expect(response.type).to.equal('CONTINUE');
       const commandResult = expect(
         executeCommandStub.calledWith('sfdx.force.org.create')
@@ -223,17 +230,18 @@ describe('Filter Authorization Info', async () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
+      showDefaultOrgStub.restore();
     }
   });
 
   it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
-    orgListStub.returns(orgList);
+    orgListStub.returns(orgsList);
     quickPickStub.returns(
       '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
     );
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
     try {
-      const response = await setDefaultOrg();
+      const response = await orgList.setDefaultOrg();
       expect(response.type).to.equal('CONTINUE');
       const commandResult = expect(
         executeCommandStub.calledWith('sfdx.force.auth.dev.hub')
@@ -242,15 +250,16 @@ describe('Filter Authorization Info', async () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
+      showDefaultOrgStub.restore();
     }
   });
 
   it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
-    orgListStub.returns(orgList);
-    quickPickStub.returns('$(plus)' + orgList[0].split(' ', 1));
+    orgListStub.returns(orgsList);
+    quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
     try {
-      const response = await setDefaultOrg();
+      const response = await orgList.setDefaultOrg();
       expect(response.type).to.equal('CONTINUE');
       const commandResult = expect(
         executeCommandStub.calledWith('sfdx.force.config.set')
@@ -259,6 +268,7 @@ describe('Filter Authorization Info', async () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
+      showDefaultOrgStub.restore();
     }
   });
-});*/
+});

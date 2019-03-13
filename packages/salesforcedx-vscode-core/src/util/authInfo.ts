@@ -13,11 +13,9 @@ import {
 import * as path from 'path';
 import { getRootWorkspacePath, hasRootWorkspace } from './index';
 export class OrgAuthInfo {
-  public static async getDefaultUsernameOrAlias(
-    vscodePath: string
-  ): Promise<string | undefined> {
-    if (hasRootWorkspace()) {
-      const rootPath = path.join(getRootWorkspacePath(), '/');
+  public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
+    try {
+      const rootPath = getRootWorkspacePath();
       const myLocalConfig = await ConfigFile.create({
         isGlobal: false,
         rootFolder: path.join(rootPath, '.sfdx'),
@@ -25,30 +23,36 @@ export class OrgAuthInfo {
       });
       const localDefault = myLocalConfig.get('defaultusername');
       return JSON.stringify(localDefault).replace(/\"/g, '');
+    } catch {
+      this.getGlobalDefaults('defaultusername');
     }
+  }
 
-    const aggregator = await ConfigAggregator.create();
-    const globalDefault = aggregator.getPropertyValue('defaultusername');
-    return JSON.stringify(globalDefault).replace(/\"/g, '');
+  private static async getGlobalDefaults(usernameType: string) {
+    try {
+      const aggregator = await ConfigAggregator.create();
+      const globalDefault = aggregator.getPropertyValue(usernameType);
+      return JSON.stringify(globalDefault).replace(/\"/g, '');
+    } catch {
+      throw new Error('No ' + usernameType + ' found.');
+    }
   }
 
   public static async getDefaultDevHubUsernameOrAlias(): Promise<
     string | undefined
   > {
-    if (hasRootWorkspace()) {
-      const rootPath = path.join(getRootWorkspacePath(), '/');
+    try {
+      const rootPath = getRootWorkspacePath();
       const myLocalConfig = await ConfigFile.create({
         isGlobal: false,
-        rootFolder: path.join(rootPath + '.sfdx'),
+        rootFolder: path.join(rootPath, '.sfdx'),
         filename: 'sfdx-config.json'
       });
       const localDefault = myLocalConfig.get('defaultdevhubusername');
       return JSON.stringify(localDefault).replace(/\"/g, '');
+    } catch {
+      this.getGlobalDefaults('defaultdevhubusername');
     }
-
-    const aggregator = await ConfigAggregator.create();
-    const globalDefault = aggregator.getPropertyValue('defaultdevhubusername');
-    return JSON.stringify(globalDefault).replace(/\"/g, '');
   }
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {
