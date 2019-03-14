@@ -1,3 +1,22 @@
+## 45.6.0 - March 14, 2019
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Display `source:push` error messages in Problems view ([PR #1117](https://github.com/forcedotcom/salesforcedx-vscode/pull/1117))
+- Add CPUs and total system memory information to telemetry ([PR #1119](https://github.com/forcedotcom/salesforcedx-vscode/pull/1119))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Enable `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` commands to work with Apex Tests sidebar ([PR #1135](https://github.com/forcedotcom/salesforcedx-vscode/pull/1135), [Issue #962](https://github.com/forcedotcom/salesforcedx-vscode/issues/962))
+
+#### salesforcedx-vscode-core
+
+- Enabling or disabling push-or-deploy-on-save feature does not require reloading VS Code ([PR #1129](https://github.com/forcedotcom/salesforcedx-vscode/pull/1129))
+
 ## 45.5.0 - March 7, 2019
 
 ### Added
