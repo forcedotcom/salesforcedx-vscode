@@ -17,13 +17,13 @@ shell.set('+v');
  *
  */
 
-// Checks that you are running this with Node v8.9.0 and above
+// Checks that you are running this with Node v10.2.0 and above
 const [version, major, minor, patch] = process.version.match(
   /^v(\d+)\.?(\d+)\.?(\*|\d+)$/
 );
-if (parseInt(major) !== 8 || parseInt(minor) < 9) {
+if (parseInt(major) !== 10 || parseInt(minor) < 2) {
   console.log(
-    'You do not have the right version of node. We require version 8.9.0.'
+    'You do not have the right version of node. We require version 10.2.0.'
   );
   process.exit(-1);
 }
@@ -121,12 +121,6 @@ shell.exec(`git add SHA256.md`);
 
 // Git commit
 shell.exec(`git commit -m "Updated SHA256"`);
-
-// Add formatting changes
-shell.exec(`git add .`);
-
-// Commit back changes after reformatting
-shell.exec(`git commit -m "Reformat for lerna"`);
 
 // Publish to VS Code Marketplace
 shell.exec(`npm run vscode:publish`);
