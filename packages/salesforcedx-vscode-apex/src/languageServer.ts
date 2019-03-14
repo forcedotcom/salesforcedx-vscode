@@ -144,5 +144,10 @@ export async function createLanguageServer(
     server,
     clientOptions
   );
+
+  client.onTelemetry(data =>
+    telemetryService.sendApexLSPLog(data.properties, data.measures)
+  );
+
   return client;
 }
