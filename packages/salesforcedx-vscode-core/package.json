@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "45.5.0",
+  "version": "45.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,8 +26,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "1.1.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "45.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "45.5.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "45.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.6.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
