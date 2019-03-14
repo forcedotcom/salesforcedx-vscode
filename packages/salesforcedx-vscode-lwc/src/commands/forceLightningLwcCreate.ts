@@ -20,7 +20,6 @@ import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -70,12 +69,9 @@ export class LightningFilePathExistsChecker
   }
 }
 
-class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
-  new (): any;
-}) {
-  constructor() {
-    super();
-  }
+class ForceLightningLwcCreateExecutor extends SfdxCommandletExecutor<
+  DirFileNameSelection
+> {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_create_text'))
@@ -88,6 +84,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
   }
 
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -96,6 +93,7 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
+      this.logMetric(execution.command.logName, startTime);
       if (
         data !== undefined &&
         data.toString() === '0' &&
@@ -119,7 +117,6 @@ class ForceLightningLwcCreateExecutor extends (SfdxCommandletExecutor as {
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    telemetryService.sendCommandEvent(execution.command.logName);
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
