@@ -388,12 +388,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // register org picker commands and set up filewatcher for defaultusername
   const orgList = new OrgList();
+  await orgList.showDefaultOrg(vscode.window.activeTextEditor);
   context.subscriptions.push(registerOrgPickerCommands(context, orgList));
-  await orgList.registerDefaultUsernameWatcher(context);
 
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
+    await orgList.registerDefaultUsernameWatcher(context);
   } else {
     showCLINotInstalledMessage();
     telemetryService.sendError('Salesforce CLI is not installed');

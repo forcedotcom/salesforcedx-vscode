@@ -166,7 +166,6 @@ describe('Filter Authorization Info', async () => {
 describe('Set Default Org', () => {
   let orgListStub: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
-  let showDefaultOrgStub: sinon.SinonStub;
   const orgsList = [
     'alias - test-username1@gmail.com',
     'test-username2@gmail.com'
@@ -176,9 +175,6 @@ describe('Set Default Org', () => {
   beforeEach(() => {
     orgListStub = sinon.stub(OrgList.prototype, 'updateOrgList');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
-    showDefaultOrgStub = sinon
-      .stub(orgList, 'showDefaultOrg')
-      .returns(undefined);
   });
 
   it('should return Cancel if selection is undefined', async () => {
@@ -190,7 +186,6 @@ describe('Set Default Org', () => {
     } finally {
       orgListStub.restore();
       quickPickStub.restore();
-      showDefaultOrgStub.restore();
     }
   });
 
@@ -210,7 +205,6 @@ describe('Set Default Org', () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
-      showDefaultOrgStub.restore();
     }
   });
 
@@ -230,7 +224,6 @@ describe('Set Default Org', () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
-      showDefaultOrgStub.restore();
     }
   });
 
@@ -250,7 +243,6 @@ describe('Set Default Org', () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
-      showDefaultOrgStub.restore();
     }
   });
 
@@ -268,7 +260,6 @@ describe('Set Default Org', () => {
       orgListStub.restore();
       quickPickStub.restore();
       executeCommandStub.restore();
-      showDefaultOrgStub.restore();
     }
   });
 });

@@ -33,9 +33,6 @@ export class OrgList implements vscode.Disposable {
     );
     this.statusBarItem.command = 'sfdx.force.set.default.org';
     this.statusBarItem.show();
-    const editor = vscode.window.activeTextEditor;
-    // need to figure out how to handle this promise rejection error
-    this.showDefaultOrg(editor);
   }
 
   public async showDefaultOrg(editor?: vscode.TextEditor) {

@@ -24,7 +24,7 @@ export class OrgAuthInfo {
       const localDefault = myLocalConfig.get('defaultusername');
       return JSON.stringify(localDefault).replace(/\"/g, '');
     } catch {
-      this.getGlobalDefaults('defaultusername');
+      await this.getGlobalDefaults('defaultusername');
     }
   }
 
@@ -34,7 +34,7 @@ export class OrgAuthInfo {
       const globalDefault = aggregator.getPropertyValue(usernameType);
       return JSON.stringify(globalDefault).replace(/\"/g, '');
     } catch {
-      throw new Error('No ' + usernameType + ' found.');
+      console.error('No ' + usernameType + ' found.');
     }
   }
 
@@ -51,7 +51,7 @@ export class OrgAuthInfo {
       const localDefault = myLocalConfig.get('defaultdevhubusername');
       return JSON.stringify(localDefault).replace(/\"/g, '');
     } catch {
-      this.getGlobalDefaults('defaultdevhubusername');
+      await this.getGlobalDefaults('defaultdevhubusername');
     }
   }
 
