@@ -93,23 +93,23 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Cached Test Class', () => {
     const testClass = 'MyTests';
     const testClass2 = 'MyTests2';
-    it('Should return cached value', () => {
-      let resolvedTestClass = resolveTestClassParam(getUndefined());
+    it('Should return cached value', async () => {
+      let resolvedTestClass = await resolveTestClassParam(getUndefined());
       expect(resolvedTestClass).to.equal(undefined);
 
-      resolvedTestClass = resolveTestClassParam(testClass);
+      resolvedTestClass = await resolveTestClassParam(testClass);
       expect(resolvedTestClass).to.equal(testClass);
 
-      resolvedTestClass = resolveTestClassParam('');
+      resolvedTestClass = await resolveTestClassParam('');
       expect(resolvedTestClass).to.equal(testClass);
 
-      resolvedTestClass = resolveTestClassParam(getUndefined());
+      resolvedTestClass = await resolveTestClassParam(getUndefined());
       expect(resolvedTestClass).to.equal(testClass);
 
-      resolvedTestClass = resolveTestClassParam(testClass2);
+      resolvedTestClass = await resolveTestClassParam(testClass2);
       expect(resolvedTestClass).to.equal(testClass2);
 
-      resolvedTestClass = resolveTestClassParam('');
+      resolvedTestClass = await resolveTestClassParam('');
       expect(resolvedTestClass).to.equal(testClass2);
     });
   });
@@ -117,23 +117,23 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Cached Test Method', () => {
     const testMethod = 'MyTests.testMe';
     const testMethod2 = 'MyTests.testMe2';
-    it('Should return cached value', () => {
-      let resolvedTestMethod = resolveTestMethodParam(getUndefined());
+    it('Should return cached value', async () => {
+      let resolvedTestMethod = await resolveTestMethodParam(getUndefined());
       expect(resolvedTestMethod).to.equal(undefined);
 
-      resolvedTestMethod = resolveTestMethodParam(testMethod);
+      resolvedTestMethod = await resolveTestMethodParam(testMethod);
       expect(resolvedTestMethod).to.equal(testMethod);
 
-      resolvedTestMethod = resolveTestMethodParam('');
+      resolvedTestMethod = await resolveTestMethodParam('');
       expect(resolvedTestMethod).to.equal(testMethod);
 
-      resolvedTestMethod = resolveTestMethodParam(getUndefined());
+      resolvedTestMethod = await resolveTestMethodParam(getUndefined());
       expect(resolvedTestMethod).to.equal(testMethod);
 
-      resolvedTestMethod = resolveTestMethodParam(testMethod2);
+      resolvedTestMethod = await resolveTestMethodParam(testMethod2);
       expect(resolvedTestMethod).to.equal(testMethod2);
 
-      resolvedTestMethod = resolveTestMethodParam('');
+      resolvedTestMethod = await resolveTestMethodParam('');
       expect(resolvedTestMethod).to.equal(testMethod2);
     });
   });

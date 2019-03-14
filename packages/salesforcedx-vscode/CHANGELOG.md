@@ -1,3 +1,49 @@
+## 45.6.0 - March 14, 2019
+
+### Added
+
+#### salesforcedx-vscode-core
+
+- Display `source:push` error messages in Problems view ([PR #1117](https://github.com/forcedotcom/salesforcedx-vscode/pull/1117))
+- Add CPUs and total system memory information to telemetry ([PR #1119](https://github.com/forcedotcom/salesforcedx-vscode/pull/1119))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Enable `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` commands to work with Apex Tests sidebar ([PR #1135](https://github.com/forcedotcom/salesforcedx-vscode/pull/1135), [Issue #962](https://github.com/forcedotcom/salesforcedx-vscode/issues/962))
+
+#### salesforcedx-vscode-core
+
+- Enabling or disabling push-or-deploy-on-save feature does not require reloading VS Code ([PR #1129](https://github.com/forcedotcom/salesforcedx-vscode/pull/1129))
+
+## 45.5.0 - March 7, 2019
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- Show Apex block comment information when hovering on symbols ([PR #1106](https://github.com/forcedotcom/salesforcedx-vscode/pull/1106))
+
+### Fixed
+
+#### salesforcedx-vscode/docs
+
+- Fix typos in Org Development Model documentation ([PR #1089](https://github.com/forcedotcom/salesforcedx-vscode/pull/1089))—Contribution by [@tet3](https://github.com/tet3)
+
+#### salesforcedx-vscode-apex
+
+- Fix Apex Language Server performance issues that caused high CPU load:
+  - Handle document change requests queuing up ([PR #1086](https://github.com/forcedotcom/salesforcedx-vscode/pull/1086), [Issue #1047](https://github.com/forcedotcom/salesforcedx-vscode/issues/1047))
+  - Compile only necessary files when running a refactoring operation ([PR #1118](https://github.com/forcedotcom/salesforcedx-vscode/pull/1118), [Issue #1100](https://github.com/forcedotcom/salesforcedx-vscode/issues/1100))
+- Include a link to our documentation in the information messages that appear when Java isn’t set up correctly ([PR #1116](https://github.com/forcedotcom/salesforcedx-vscode/pull/1116))
+
+#### salesforcedx-vscode-core
+
+- Remove information message asking to allow configuraton changes on terminal when opening a new Salesforce DX project ([PR #1062](https://github.com/forcedotcom/salesforcedx-vscode/pull/1062))
+- Display human-readable `source:deploy` messages in Output view ([PR #1085](https://github.com/forcedotcom/salesforcedx-vscode/pull/1085))
+- Allow extensions to activate when Salesforce CLI isn’t installed ([PR #1107](https://github.com/forcedotcom/salesforcedx-vscode/pull/1107))
+
 ## 45.3.0 - February 22, 2019
 
 ### Added

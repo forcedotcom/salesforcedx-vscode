@@ -14,12 +14,7 @@ import {
   forceApexClassCreate,
   forceApexExecute,
   forceApexLogGet,
-  forceApexTestClassRunCodeAction,
-  forceApexTestClassRunCodeActionDelegate,
-  forceApexTestMethodRunCodeAction,
-  forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
-  ForceApexTestRunCodeActionExecutor,
   forceApexTriggerCreate,
   forceAuthDevHub,
   forceAuthLogoutAll,
@@ -73,7 +68,12 @@ import { setDefaultOrg, showDefaultOrg } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { getRootWorkspacePath, hasRootWorkspace, isCLIInstalled, showCLINotInstalledMessage } from './util';
+import {
+  getRootWorkspacePath,
+  hasRootWorkspace,
+  isCLIInstalled,
+  showCLINotInstalledMessage
+} from './util';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -171,30 +171,7 @@ function registerCommands(
     'sfdx.force.apex.test.run',
     forceApexTestRun
   );
-  const forceApexTestClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.class.run.delegate',
-    forceApexTestClassRunCodeActionDelegate
-  );
-  const forceApexTestLastClassRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.last.class.run',
-    forceApexTestClassRunCodeAction
-  );
-  const forceApexTestClassRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.class.run',
-    forceApexTestClassRunCodeAction
-  );
-  const forceApexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.method.run.delegate',
-    forceApexTestMethodRunCodeActionDelegate
-  );
-  const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.last.method.run',
-    forceApexTestMethodRunCodeAction
-  );
-  const forceApexTestMethodRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.method.run',
-    forceApexTestMethodRunCodeAction
-  );
+
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
     forceTaskStop
@@ -322,12 +299,6 @@ function registerCommands(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
-    forceApexTestLastClassRunCmd,
-    forceApexTestClassRunCmd,
-    forceApexTestClassRunDelegateCmd,
-    forceApexTestLastMethodRunCmd,
-    forceApexTestMethodRunCmd,
-    forceApexTestMethodRunDelegateCmd,
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
@@ -425,6 +396,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
+
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
@@ -458,7 +430,6 @@ export async function activate(context: vscode.ExtensionContext) {
     ProgressNotification,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
-    ForceApexTestRunCodeActionExecutor,
     SelectFileName,
     SelectStrictDirPath,
     SfdxCommandlet,
