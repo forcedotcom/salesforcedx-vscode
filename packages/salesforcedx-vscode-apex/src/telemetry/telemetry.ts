@@ -79,6 +79,15 @@ export class TelemetryService {
     }
   }
 
+  public sendApexLSPLog(
+    properties?: { [key: string]: string },
+    measures?: { [key: string]: number }
+  ): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('apexLSPLog', properties, measures);
+    }
+  }
+
   private getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);
