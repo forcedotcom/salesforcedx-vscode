@@ -11,10 +11,7 @@ import {
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
 import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
-import {
-  Command,
-  ForceConfigGet
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { Command } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -27,11 +24,12 @@ import {
   SObjectRefreshSource
 } from '../../../src/commands/forceGenerateFauxClasses';
 import { ProgressNotification } from '../../../src/notifications';
+import { OrgAuthInfo } from '../../../src/util/authInfo';
 
 describe('ForceGenerateFauxClasses', () => {
   describe('initSObjectDefinitions', () => {
     let existsSyncStub: sinon.SinonStub;
-    let getConfigStub: sinon.SinonStub;
+    let getUsernameStub: sinon.SinonStub;
     let commandletSpy: sinon.SinonSpy;
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
@@ -43,19 +41,19 @@ describe('ForceGenerateFauxClasses', () => {
 
     beforeEach(() => {
       existsSyncStub = sinon.stub(fs, 'existsSync');
-      getConfigStub = sinon.stub(ForceConfigGet.prototype, 'getConfig');
+      getUsernameStub = sinon.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
       commandletSpy = sinon.stub(SfdxCommandlet.prototype, 'run');
     });
 
     afterEach(() => {
       existsSyncStub.restore();
-      getConfigStub.restore();
+      getUsernameStub.restore();
       commandletSpy.restore();
     });
 
     it('Should execute sobject refresh if no sobjects folder is present', async () => {
       existsSyncStub.returns(false);
-      getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
+      getUsernameStub.returns(new Map([['defaultusername', 'Sample']]));
 
       await initSObjectDefinitions(projectPath);
 
@@ -70,7 +68,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should not execute sobject refresh if sobjects folder is present', async () => {
       existsSyncStub.returns(true);
-      getConfigStub.returns(new Map([['defaultusername', 'Sample']]));
+      getUsernameStub.returns('Sample');
 
       await initSObjectDefinitions(projectPath);
 
@@ -80,7 +78,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should not execute sobject refresh if no default username set', async () => {
       existsSyncStub.returns(false);
-      getConfigStub.returns(new Map([['defaultusername', undefined]]));
+      getUsernameStub.returns(undefined);
 
       await initSObjectDefinitions(projectPath);
 
