@@ -7,7 +7,15 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
+import {
+  Range,
+  TextDocument,
+  TextEditor,
+  TextLine,
+  window,
+  workspace
+} from 'vscode';
+import { nls } from '../messages';
 import {
   coveredLinesDecorationType,
   uncoveredLinesDecorationType
@@ -26,8 +34,14 @@ export function getLineRange(
   document: TextDocument,
   lineNumber: number
 ): Range {
-  const adjustedLineNumber = lineNumber - 1;
-  const firstLine = document.lineAt(adjustedLineNumber);
+  let adjustedLineNumber: number;
+  let firstLine: TextLine;
+  try {
+    adjustedLineNumber = lineNumber - 1;
+    firstLine = document.lineAt(adjustedLineNumber);
+  } catch (e) {
+    throw new Error(nls.localize('colorizer_out_of_sync_code_coverage_data'));
+  }
 
   return new Range(
     adjustedLineNumber,
@@ -53,7 +67,7 @@ export type CoverageItem = {
 function getTestRunId() {
   const testRunIdFile = path.join(apexDirPath, 'test-run-id.txt');
   if (!fs.existsSync(testRunIdFile)) {
-    throw new Error('No test run information was found for this project.');
+    throw new Error(nls.localize('colorizer_no_code_coverage_files'));
   }
   return fs.readFileSync(testRunIdFile, 'utf8');
 }
@@ -67,14 +81,14 @@ function getCoverageData() {
 
   if (!fs.existsSync(testResultFilePath)) {
     throw new Error(
-      `No code coverage information was found for test run ${testRunId}`
+      nls.localize('colorizer_no_code_coverage_on_test_results', testRunId)
     );
   }
   const testResultOutput = fs.readFileSync(testResultFilePath, 'utf8');
   const codeCoverage = JSON.parse(testResultOutput) as CoverageTestResult;
   if (codeCoverage.coverage === undefined) {
     throw new Error(
-      `No code coverage information was found for test run ${testRunId}.`
+      nls.localize('colorizer_no_code_coverage_on_test_results', testRunId)
     );
   }
   return codeCoverage.coverage ? codeCoverage.coverage.coverage : '';
@@ -144,7 +158,7 @@ export class CodeCoverage {
 
         if (!codeCovItem) {
           throw new Error(
-            'No code coverage information was found for the current file.'
+            nls.localize('colorizer_no_code_coverage_current_file')
           );
         }
 
