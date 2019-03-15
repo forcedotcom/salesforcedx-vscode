@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { Range, window, workspace } from 'vscode';
+import { Range, Uri, window, workspace } from 'vscode';
 import {
   CodeCoverage,
   getLineRange
@@ -14,6 +14,15 @@ import {
 import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 
 describe('Code coverage colorizer', () => {
+  let testCoverage: Uri[];
+
+  before(async () => {
+    testCoverage = await workspace.findFiles(
+      '**/DemoController.cls',
+      '**/DemoControllerTest.cls'
+    );
+  });
+
   it('Should report correct status on statusbaritem', async () => {
     const statusBarToggle = new StatusBarToggle();
     const colorizer = new CodeCoverage(statusBarToggle);
@@ -26,9 +35,8 @@ describe('Code coverage colorizer', () => {
   });
 
   it('Should report correct covered and uncovered lines for apex with code coverage', async () => {
-    const testCoverage = await workspace.findFiles('**/DemoController.cls');
-    const testDocument = await workspace.openTextDocument(testCoverage[0]);
-    await window.showTextDocument(testDocument);
+    const apexDocument = await workspace.openTextDocument(testCoverage[0]);
+    await window.showTextDocument(apexDocument);
 
     const statusBarToggle = new StatusBarToggle();
     const colorizer = new CodeCoverage(statusBarToggle);
@@ -43,15 +51,15 @@ describe('Code coverage colorizer', () => {
     expect(colorizer.coveredLines.length).to.equal(6);
     expect(colorizer.uncoveredLines.length).to.equal(1);
     const uncovered = Array<Range>();
-    uncovered.push(getLineRange(testDocument, 5));
+    uncovered.push(getLineRange(apexDocument, 5));
     expect(uncovered).to.deep.equal(colorizer.uncoveredLines);
     const covered = Array<Range>();
-    covered.push(getLineRange(testDocument, 10));
-    covered.push(getLineRange(testDocument, 12));
-    covered.push(getLineRange(testDocument, 14));
-    covered.push(getLineRange(testDocument, 16));
-    covered.push(getLineRange(testDocument, 19));
-    covered.push(getLineRange(testDocument, 27));
+    covered.push(getLineRange(apexDocument, 10));
+    covered.push(getLineRange(apexDocument, 12));
+    covered.push(getLineRange(apexDocument, 14));
+    covered.push(getLineRange(apexDocument, 16));
+    covered.push(getLineRange(apexDocument, 19));
+    covered.push(getLineRange(apexDocument, 27));
     expect(covered).to.deep.equal(colorizer.coveredLines);
     expect(statusBarToggle.isHighlightingEnabled).to.equal(true);
 
@@ -64,9 +72,8 @@ describe('Code coverage colorizer', () => {
   });
 
   it('Should report no lines for apex with out code coverage', async () => {
-    const testApex = await workspace.findFiles('**/DemoControllerTest.cls');
-    const testDocument = await workspace.openTextDocument(testApex[0]);
-    await window.showTextDocument(testDocument);
+    const apexTestDoc = await workspace.openTextDocument(testCoverage[1]);
+    await window.showTextDocument(apexTestDoc);
 
     const statusBarToggle = new StatusBarToggle();
     const colorizer = new CodeCoverage(statusBarToggle);
