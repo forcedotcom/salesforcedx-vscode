@@ -13,6 +13,7 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
+import { setupWorkspaceOrgType } from '../context/index';
 import { nls } from '../messages';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
@@ -22,7 +23,30 @@ export interface FileInfo {
   username: string;
   devHubUsername?: string;
 }
-export class OrgList {
+export class OrgList implements vscode.Disposable {
+  private statusBarItem: vscode.StatusBarItem;
+
+  constructor() {
+    this.statusBarItem = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      49
+    );
+    this.statusBarItem.command = 'sfdx.force.set.default.org';
+    this.statusBarItem.show();
+  }
+
+  public async displayDefaultUsername() {
+    let defaultUsernameorAlias: string | undefined;
+    if (hasRootWorkspace()) {
+      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias();
+    }
+    if (defaultUsernameorAlias) {
+      this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
+    } else {
+      this.statusBarItem.text = nls.localize('missing_default_org');
+    }
+  }
+
   public async getAuthInfoObjects() {
     const authFilesArray = await AuthInfo.listAllAuthFiles().catch(err => null);
 
@@ -51,7 +75,7 @@ export class OrgList {
       isNullOrUndefined(fileData.scratchAdminUsername)
     );
 
-    const defaultDevHubUsernameorAlias = await getDefaultDevHubUsernameorAlias();
+    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
     if (defaultDevHubUsernameorAlias) {
       const defaultDevHubUsername = await OrgAuthInfo.getUsername(
         defaultDevHubUsernameorAlias
@@ -86,97 +110,84 @@ export class OrgList {
     const authUsernameList = await this.filterAuthInfo(authInfoObjects);
     return authUsernameList;
   }
-}
 
-let statusBarItem: vscode.StatusBarItem;
-
-export async function setDefaultOrg(): Promise<
-  CancelResponse | ContinueResponse<{}>
-> {
-  let quickPickList = [
-    '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
-    '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
-  ];
-  const defaultDevHubUsernameorAlias = await getDefaultDevHubUsernameorAlias();
-  if (isNullOrUndefined(defaultDevHubUsernameorAlias)) {
-    quickPickList.push(
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
-    );
-  }
-  const orgList = new OrgList();
-  const authInfoList = await orgList.updateOrgList();
-  if (!isNullOrUndefined(authInfoList)) {
-    quickPickList = quickPickList.concat(authInfoList);
-  }
-
-  const selection = await vscode.window.showQuickPick(quickPickList, {
-    placeHolder: nls.localize('org_select_text')
-  });
-
-  if (!selection) {
-    return { type: 'CANCEL' };
-  }
-  switch (selection) {
-    case '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'): {
-      vscode.commands.executeCommand('sfdx.force.auth.web.login');
-      return {
-        type: 'CONTINUE',
-        data: {}
-      };
+  public async setDefaultOrg(): Promise<CancelResponse | ContinueResponse<{}>> {
+    let quickPickList = [
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
+      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
+    ];
+    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
+    if (isNullOrUndefined(defaultDevHubUsernameorAlias)) {
+      quickPickList.push(
+        '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
+      );
     }
-    case '$(plus) ' +
-      nls.localize('force_auth_web_login_authorize_dev_hub_text'): {
-      vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
-      return { type: 'CONTINUE', data: {} };
+    const authInfoList = await this.updateOrgList();
+    if (!isNullOrUndefined(authInfoList)) {
+      quickPickList = quickPickList.concat(authInfoList);
     }
-    case '$(plus) ' +
-      nls.localize('force_org_create_default_scratch_org_text'): {
-      vscode.commands.executeCommand('sfdx.force.org.create');
-      return { type: 'CONTINUE', data: {} };
+
+    const selection = await vscode.window.showQuickPick(quickPickList, {
+      placeHolder: nls.localize('org_select_text')
+    });
+
+    if (!selection) {
+      return { type: 'CANCEL' };
     }
-    default: {
-      const usernameOrAlias = selection.split(' ', 1);
-      vscode.commands.executeCommand('sfdx.force.config.set', usernameOrAlias);
-      return { type: 'CONTINUE', data: {} };
+    switch (selection) {
+      case '$(plus) ' +
+        nls.localize('force_auth_web_login_authorize_org_text'): {
+        vscode.commands.executeCommand('sfdx.force.auth.web.login');
+        return {
+          type: 'CONTINUE',
+          data: {}
+        };
+      }
+      case '$(plus) ' +
+        nls.localize('force_auth_web_login_authorize_dev_hub_text'): {
+        vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
+        return { type: 'CONTINUE', data: {} };
+      }
+      case '$(plus) ' +
+        nls.localize('force_org_create_default_scratch_org_text'): {
+        vscode.commands.executeCommand('sfdx.force.org.create');
+        return { type: 'CONTINUE', data: {} };
+      }
+      default: {
+        const usernameOrAlias = selection.split(' ', 1);
+        vscode.commands.executeCommand(
+          'sfdx.force.config.set',
+          usernameOrAlias
+        );
+        return { type: 'CONTINUE', data: {} };
+      }
     }
   }
-}
 
-export async function showDefaultOrg() {
-  if (!statusBarItem) {
-    statusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      49
-    );
-    statusBarItem.command = 'sfdx.force.set.default.org';
-    statusBarItem.show();
+  public async getDefaultDevHubUsernameorAlias(): Promise<string | undefined> {
+    if (hasRootWorkspace()) {
+      return OrgAuthInfo.getDefaultDevHubUsernameOrAlias();
+    }
   }
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    statusBarItem.hide();
-    return;
-  }
-  await displayDefaultUsername();
-}
 
-export async function displayDefaultUsername() {
-  let defaultUsernameorAlias: string | undefined;
-  if (hasRootWorkspace()) {
-    defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-      getRootWorkspacePath()
-    );
+  public dispose() {
+    this.statusBarItem.dispose();
   }
-  if (defaultUsernameorAlias) {
-    statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
-  } else {
-    statusBarItem.text = nls.localize('missing_default_org');
-  }
-}
 
-export async function getDefaultDevHubUsernameorAlias(): Promise<
-  string | undefined
-> {
-  if (hasRootWorkspace()) {
-    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(getRootWorkspacePath());
+  public async onSfdxConfigEvent() {
+    await setupWorkspaceOrgType();
+    await this.displayDefaultUsername();
+  }
+
+  public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {
+    if (hasRootWorkspace()) {
+      const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
+        path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
+      );
+      sfdxConfigWatcher.onDidChange(uri => this.onSfdxConfigEvent());
+      sfdxConfigWatcher.onDidCreate(uri => this.onSfdxConfigEvent());
+      sfdxConfigWatcher.onDidDelete(uri => this.onSfdxConfigEvent());
+      context.subscriptions.push(sfdxConfigWatcher);
+    }
   }
 }

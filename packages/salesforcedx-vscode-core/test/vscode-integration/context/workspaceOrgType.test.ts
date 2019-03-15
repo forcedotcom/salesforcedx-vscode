@@ -10,7 +10,6 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 
 import { Aliases, AuthInfo } from '@salesforce/core';
-import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   getDefaultUsernameOrAlias,
   getWorkspaceOrgType,
@@ -37,16 +36,14 @@ describe('getUsername', () => {
 
 describe('getDefaultUsernameOrAlias', () => {
   it('returns undefined when no defaultusername is set', async () => {
-    const getConfigStub = getGetConfigStub(new Map());
+    const getConfigStub = getDefaultUsernameStub(undefined);
     expect(await getDefaultUsernameOrAlias()).to.be.undefined;
     getConfigStub.restore();
   });
 
   it('returns the defaultusername when the username is set', async () => {
     const username = 'test@org.com';
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', username]])
-    );
+    const getConfigStub = getDefaultUsernameStub(username);
     expect(await getDefaultUsernameOrAlias()).to.equal(username);
     getConfigStub.restore();
   });
@@ -54,9 +51,7 @@ describe('getDefaultUsernameOrAlias', () => {
 
 describe('getWorkspaceOrgType', () => {
   it('returns the source-tracked org type', async () => {
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', 'scratchOrgAlias']])
-    );
+    const getConfigStub = getDefaultUsernameStub('scratchOrgAlias');
     const aliasesStub = getAliasesFetchStub('scratch@org.com');
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({
@@ -74,9 +69,7 @@ describe('getWorkspaceOrgType', () => {
   });
 
   it('returns the non-source-tracked org type', async () => {
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', 'sandbox@org.com']])
-    );
+    const getConfigStub = getDefaultUsernameStub('sandbox@org.com');
     const aliasesStub = getAliasesFetchStub(undefined);
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({})
@@ -94,7 +87,7 @@ describe('getWorkspaceOrgType', () => {
   });
 
   it('throws an error when no defaultusername is set', async () => {
-    const getConfigStub = getGetConfigStub(new Map());
+    const getConfigStub = getDefaultUsernameStub(undefined);
     const aliasesSpy = sinon.spy(Aliases, 'fetch');
 
     let errorWasThrown = false;
@@ -112,9 +105,7 @@ describe('getWorkspaceOrgType', () => {
   });
 
   it('throws an error when the info cannot be found for the defaultusername', async () => {
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', 'testUsername']])
-    );
+    const getConfigStub = getDefaultUsernameStub('testUsername');
     const aliasesStub = getAliasesFetchStub('test@org.com');
 
     const error = new Error();
@@ -138,9 +129,7 @@ describe('getWorkspaceOrgType', () => {
   });
 
   it('throws an error when the cli has no configuration', async () => {
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', 'testUsername']])
-    );
+    const getConfigStub = getDefaultUsernameStub('testUsername');
     const aliasesStub = getAliasesFetchStub('test@org.com');
 
     const error = new Error();
@@ -171,7 +160,7 @@ describe('getWorkspaceOrgType', () => {
 
 describe('setupWorkspaceOrgType', () => {
   it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to false', async () => {
-    const getConfigStub = getGetConfigStub(new Map());
+    const getConfigStub = getDefaultUsernameStub(undefined);
     const aliasesSpy = sinon.spy(Aliases, 'fetch');
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
@@ -188,9 +177,7 @@ describe('setupWorkspaceOrgType', () => {
   });
 
   it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to true', async () => {
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', 'testUsername']])
-    );
+    const getConfigStub = getDefaultUsernameStub('testUsername');
     const aliasesStub = getAliasesFetchStub('test@org.com');
 
     const error = new Error();
@@ -213,9 +200,7 @@ describe('setupWorkspaceOrgType', () => {
   });
 
   it('should set sfdx:default_username_has_change_tracking to true, and sfdx:default_username_has_no_change_tracking to false', async () => {
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', 'scratchOrgAlias']])
-    );
+    const getConfigStub = getDefaultUsernameStub('scratchOrgAlias');
     const aliasesStub = getAliasesFetchStub('scratch@org.com');
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({
@@ -240,9 +225,7 @@ describe('setupWorkspaceOrgType', () => {
   });
 
   it('should set sfdx:default_username_has_change_tracking to false, and sfdx:default_username_has_no_change_tracking to true', async () => {
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', 'sandbox@org.com']])
-    );
+    const getConfigStub = getDefaultUsernameStub('sandbox@org.com');
     const aliasesStub = getAliasesFetchStub(undefined);
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({})
@@ -269,9 +252,7 @@ describe('setupWorkspaceOrgType', () => {
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
     const username = 'test@org.com';
-    const getConfigStub = getGetConfigStub(
-      new Map([['defaultusername', username]])
-    );
+    const getConfigStub = getDefaultUsernameStub(username);
 
     const error = new Error();
     error.name = 'GenericKeychainServiceError';
@@ -299,9 +280,9 @@ describe('setupWorkspaceOrgType', () => {
   });
 });
 
-const getGetConfigStub = (returnValue: any) =>
+const getDefaultUsernameStub = (returnValue: any) =>
   sinon
-    .stub(ForceConfigGet.prototype, 'getConfig')
+    .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
     .returns(Promise.resolve(returnValue));
 
 const getAliasesFetchStub = (returnValue: any) =>
