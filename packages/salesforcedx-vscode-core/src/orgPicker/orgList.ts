@@ -35,14 +35,6 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.show();
   }
 
-  public async showDefaultOrg(editor?: vscode.TextEditor) {
-    if (!editor) {
-      this.statusBarItem.hide();
-      return;
-    }
-    await this.displayDefaultUsername();
-  }
-
   public async displayDefaultUsername() {
     let defaultUsernameorAlias: string | undefined;
     if (hasRootWorkspace()) {
