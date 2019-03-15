@@ -11,6 +11,7 @@ import {
   ConfigFile
 } from '@salesforce/core';
 import * as path from 'path';
+import { nls } from '../messages';
 import { getRootWorkspacePath, hasRootWorkspace } from './index';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
@@ -34,7 +35,11 @@ export class OrgAuthInfo {
       const globalDefault = aggregator.getPropertyValue(usernameType);
       return JSON.stringify(globalDefault).replace(/\"/g, '');
     } catch {
-      console.error('No ' + usernameType + ' found.');
+      if (usernameType === 'defaultusername') {
+        console.error(nls.localize('error_no_default_username'));
+      } else {
+        console.error(nls.localize('error_ no_default_devhubusername'));
+      }
     }
   }
 
