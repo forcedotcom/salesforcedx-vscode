@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { Range, Uri, window, workspace } from 'vscode';
+import { Range, RelativePattern, Uri, window, workspace } from 'vscode';
 import {
   CodeCoverage,
   getLineRange
@@ -18,8 +18,14 @@ describe('Code coverage colorizer', () => {
 
   before(async () => {
     testCoverage = await workspace.findFiles(
-      '**/DemoController.cls',
-      '**/DemoControllerTest.cls'
+      new RelativePattern(
+        workspace.workspaceFolders![0],
+        '**/DemoController.cls'
+      ),
+      new RelativePattern(
+        workspace.workspaceFolders![0],
+        '**/DemoControllerTest.cls'
+      )
     );
   });
 

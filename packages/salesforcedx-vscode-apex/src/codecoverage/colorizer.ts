@@ -101,7 +101,8 @@ function isApexMetadata(filePath: string): boolean {
 function getApexMemberName(filePath: string): string {
   if (isApexMetadata(filePath)) {
     const filePathWithOutType = filePath.replace(/.cls|.trigger/g, '');
-    const indexOfLastFolder = filePathWithOutType.lastIndexOf('/');
+    const separator = process.platform === 'win32' ? '\\' : '/';
+    const indexOfLastFolder = filePathWithOutType.lastIndexOf(separator);
     return filePathWithOutType.substring(indexOfLastFolder + 1);
   }
   return '';
