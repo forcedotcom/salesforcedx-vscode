@@ -3,7 +3,7 @@
         "prefix": "class",
         "body": [
             "${1|global,public,private|} with sharing class ${2:MyClass} {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Class"
@@ -12,7 +12,7 @@
         "prefix": "interface",
         "body": [
             "${1|global,public,private|} interface ${2:MyInterface} {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Interface"
@@ -21,7 +21,7 @@
         "prefix": "enum",
         "body": [
             "${1|global,public,private|} enum ${2:MyEnum} {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Enum"
@@ -58,7 +58,7 @@
         "prefix": "do",
         "body": [
             "do {",
-            "   $0",
+            "\t$0",
             "} while (${1:true});"
         ],
         "description": "do...while loop"
@@ -67,7 +67,7 @@
         "prefix": "while",
         "body": [
             "while (${1:true}) {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "do...while loop"
@@ -76,7 +76,7 @@
         "prefix": "for",
         "body": [
             "for (${1:variable} : ${2:List_or_set}) {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "for loop"
@@ -85,7 +85,7 @@
         "prefix": "fors",
         "body": [
             "for (${1:variable} : [${2:SOQL}]) {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "for loop"
@@ -94,7 +94,7 @@
         "prefix": "forr",
         "body": [
             "for (Integer ${1:i} = ${2:length} - 1; ${1:i} >= 0 ; ${1:i}--) {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Reverse for loop"
@@ -103,7 +103,7 @@
         "prefix": "fori",
         "body": [
             "for (Integer ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "indexed for loop"
@@ -112,7 +112,7 @@
         "prefix": "if",
         "body": [
             "if (${1:true}) {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "if statement"
@@ -121,7 +121,7 @@
         "prefix": "else",
         "body": [
             "else {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Else statement"
@@ -130,9 +130,9 @@
         "prefix": "tryf",
         "body": [
             "try {",
-            "   $1",
+            "\t$1",
             "} finally {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Try finally"
@@ -141,9 +141,9 @@
         "prefix": "try",
         "body": [
             "try {",
-            "   $1",
+            "\t$1",
             "} catch (${2:Exception}) {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Try catch"
@@ -152,11 +152,11 @@
         "prefix": "trycf",
         "body": [
             "try {",
-            "   $1",
+            "\t$1",
             "} catch (${2:Exception}) {",
-            "   $3",
+            "\t$3",
             "} finally {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Try catch finally"
@@ -165,12 +165,12 @@
         "prefix": "switch",
         "body": [
             "switch on ${1:switch_on} {",
-            "   when $2 {",
-            "       $3",
-            "   }",
-            "   when else {",
-            "       $0",
-            "   }",
+            "\twhen $2 {",
+            "\t\t$3",
+            "\t}",
+            "\twhen else {",
+            "\t\t$0",
+            "\t}",
             "}"
         ],
         "description": "Switch statement"
@@ -208,7 +208,7 @@
         "body": [
             "@AuraEnabled",
             "${1|public,global|} static ${2:string} ${3:methodName}(){",
-            "  $4",
+            "\t$0",
             "}"
         ],
         "description": "Aura Enabled Apex Method"
@@ -225,12 +225,12 @@
         "body": [
             "@IsTest",
             "static void ${1:methodName}(){",
-            "  ",
-            "  test.startTest();",
-            "  system.RunAs(${2:contextuser}){",
-            "    ",
-            "  test.stopTest();",
-            "  ",
+            "\t",
+            "\ttest.startTest();",
+            "\tsystem.RunAs(${2:contextuser}){",
+            "\t",
+            "\ttest.stopTest();",
+            "\t",
             "}"
         ],
         "description": "Test method with runAs and stop/start"
@@ -240,7 +240,7 @@
         "body": [
             "@TestSetup",
             "static void ${1:makeData}(){",
-            "  ",
+            "\t",
             "}"
         ],
         "description": "Test setup for creating data before test methods run"
@@ -249,7 +249,7 @@
         "prefix": "customException",
         "body": [
             "${1|global,public,private|} class ${2:MyException} extends Exception {",
-            "   $0",
+            "\t$0",
             "}"
         ],
         "description": "Class"
@@ -258,14 +258,14 @@
         "prefix": "mockCallout",
         "body": [
             "global HTTPResponse respond(HTTPRequest req) {",
-            "",
-            "  HttpResponse res = new HttpResponse();",
-            "  res.setHeader('Content-Type', '${1:application/json}');",
-            "  res.setBody('{",
-            "    \"example\": \"test\"",
-            "  }');",
-            "  res.setStatusCode(${2:200});",
-            "  return res;",
+            "\t",
+            "\tHttpResponse res = new HttpResponse();",
+            "\tres.setHeader('Content-Type', '${1:application/json}');",
+            "\tres.setBody('{",
+            "\t\t\"example\": \"test\"",
+            "\t}');",
+            "\tres.setStatusCode(${2:200});",
+            "\treturn res;",
             "}"
         ],
         "description": "Create a mock for an http callout for apex testing"
