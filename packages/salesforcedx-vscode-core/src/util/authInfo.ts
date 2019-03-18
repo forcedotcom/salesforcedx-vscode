@@ -4,28 +4,60 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo } from '@salesforce/core';
-import { ForceConfigGet } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
+import {
+  Aliases,
+  AuthInfo,
+  ConfigAggregator,
+  ConfigFile
+} from '@salesforce/core';
+import * as path from 'path';
+import { nls } from '../messages';
+import { getRootWorkspacePath, hasRootWorkspace } from './index';
 export class OrgAuthInfo {
-  public static async getDefaultUsernameOrAlias(
-    vscodePath: string
-  ): Promise<string | undefined> {
-    const forceConfig = await new ForceConfigGet().getConfig(
-      vscodePath,
-      'defaultusername'
-    );
-    return forceConfig.get('defaultusername');
+  public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
+    try {
+      const rootPath = getRootWorkspacePath();
+      const myLocalConfig = await ConfigFile.create({
+        isGlobal: false,
+        rootFolder: path.join(rootPath, '.sfdx'),
+        filename: 'sfdx-config.json'
+      });
+      const localDefault = myLocalConfig.get('defaultusername');
+      return JSON.stringify(localDefault).replace(/\"/g, '');
+    } catch {
+      await this.getGlobalDefaults('defaultusername');
+    }
   }
 
-  public static async getDefaultDevHubUsernameOrAlias(
-    vscodePath: string
-  ): Promise<string | undefined> {
-    const forceConfig = await new ForceConfigGet().getConfig(
-      vscodePath,
-      'defaultdevhubusername'
-    );
-    return forceConfig.get('defaultdevhubusername');
+  private static async getGlobalDefaults(usernameType: string) {
+    try {
+      const aggregator = await ConfigAggregator.create();
+      const globalDefault = aggregator.getPropertyValue(usernameType);
+      return JSON.stringify(globalDefault).replace(/\"/g, '');
+    } catch {
+      if (usernameType === 'defaultusername') {
+        console.error(nls.localize('error_no_default_username'));
+      } else {
+        console.error(nls.localize('error_ no_default_devhubusername'));
+      }
+    }
+  }
+
+  public static async getDefaultDevHubUsernameOrAlias(): Promise<
+    string | undefined
+  > {
+    try {
+      const rootPath = getRootWorkspacePath();
+      const myLocalConfig = await ConfigFile.create({
+        isGlobal: false,
+        rootFolder: path.join(rootPath, '.sfdx'),
+        filename: 'sfdx-config.json'
+      });
+      const localDefault = myLocalConfig.get('defaultdevhubusername');
+      return JSON.stringify(localDefault).replace(/\"/g, '');
+    } catch {
+      await this.getGlobalDefaults('defaultdevhubusername');
+    }
   }
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {

@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
+import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
@@ -109,6 +110,14 @@ export async function activate(context: vscode.ExtensionContext) {
 function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
+  // Colorize code coverage
+  const statusBarToggle = new StatusBarToggle();
+  const colorizer = new CodeCoverage(statusBarToggle);
+  const forceApexToggleColorizerCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.toggle.colorizer',
+    () => colorizer.toggleCoverage()
+  );
+
   // Customer-facing commands
   const forceApexTestClassRunDelegateCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.class.run.delegate',
@@ -135,6 +144,7 @@ function registerCommands(
     forceApexTestMethodRunCodeAction
   );
   return vscode.Disposable.from(
+    forceApexToggleColorizerCmd,
     forceApexTestLastClassRunCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,
