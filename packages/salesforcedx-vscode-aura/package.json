@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "44.10.0",
+  "version": "45.6.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -25,7 +25,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "44.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.6.0",
     "chalk": "^2.4.2",
     "change-case": "^3.1.0",
     "lightning-lsp-common": "1.0.4",
