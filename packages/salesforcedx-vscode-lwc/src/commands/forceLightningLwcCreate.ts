@@ -89,7 +89,7 @@ class ForceLightningLwcCreateExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: vscode.workspace.workspaceFolders![0].uri.fsPath
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
@@ -97,12 +97,12 @@ class ForceLightningLwcCreateExecutor extends SfdxCommandletExecutor<
       if (
         data !== undefined &&
         data.toString() === '0' &&
-        vscode.workspace.rootPath
+        vscode.workspace.workspaceFolders![0].uri.fsPath
       ) {
         vscode.workspace
           .openTextDocument(
             path.join(
-              vscode.workspace.rootPath,
+              vscode.workspace.workspaceFolders![0].uri.fsPath,
               response.data.outputdir,
               // fileName is also used to create a subdirectory for the app in the lwc directory
               response.data.fileName,
