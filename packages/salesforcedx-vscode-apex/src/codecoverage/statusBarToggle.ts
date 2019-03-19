@@ -11,8 +11,8 @@ import { nls } from '../messages';
 export class StatusBarToggle implements Disposable {
   private static readonly toggleCodeCovCommand =
     'sfdx.force.apex.toggle.colorizer';
-  private static readonly showIcon = '$(tasklist)';
-  private static readonly hideIcon = '$(three-bars)';
+  private static readonly showIcon = '$(three-bars)';
+  private static readonly hideIcon = '$(tasklist)';
   private static readonly toolTip = nls.localize(
     'colorizer_statusbar_hover_text'
   );
