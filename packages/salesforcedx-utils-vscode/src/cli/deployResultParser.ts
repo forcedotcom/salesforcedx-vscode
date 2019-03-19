@@ -37,15 +37,8 @@ export interface ForceSourceDeploySuccessResponse {
 export class ForceDeployResultParser {
   private response: any;
 
-  constructor(stdOut: string) {
-    const stdErrLines = stdOut.split(EOL);
-    for (const line of stdErrLines) {
-      if (line.trim().startsWith('{')) {
-        this.response = JSON.parse(line);
-        return;
-      }
-    }
-    throw new Error('No JSON found in response');
+  constructor(response: string) {
+    this.response = JSON.parse(response);
   }
 
   public getErrors(): ForceSourceDeployErrorResponse | undefined {
