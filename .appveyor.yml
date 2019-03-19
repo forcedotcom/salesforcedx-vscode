@@ -73,7 +73,7 @@ test_script:
       "Test Results:`n$($AllFiles | Out-String)"
       # Upload results for AppVeyor test tab
       "Uploading Test Results:`n"
-      appveyor-retry (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)" , (Resolve-Path .\junit-aggregate.xml) )
+      (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)" , (Resolve-Path .\junit-aggregate.xml) )
   - ps: |
       $stopwatch.Stop()
       Write-Host "Total Test Time - " $stopwatch.Elapsed
