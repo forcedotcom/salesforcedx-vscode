@@ -73,12 +73,12 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         }
         this.outputResult(deployParser);
       } catch (e) {
-        telemetryService.sendError(
-          'Error while creating diagnostics for vscode problem view.'
-        );
-        console.error(
-          'Error while creating diagnostics for vscode problem view.'
-        );
+        if (e.name !== 'DeployParserFail') {
+          e.message =
+            'Error while creating diagnostics for vscode problem view.';
+        }
+        telemetryService.sendError(e.message);
+        console.error(e.message);
       }
     });
 
