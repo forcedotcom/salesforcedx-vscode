@@ -1,3 +1,31 @@
+## 45.7.0 - March 21, 2019
+
+### Added
+
+#### salesforcedx-vscode/docs
+
+- Add troubleshooting information about Apex compilation during deployments ([PR #1150](https://github.com/forcedotcom/salesforcedx-vscode/pull/1150))
+
+#### salesforcedx-vscode-apex
+
+- Visually display Apex code coverage ([PR #1145](https://github.com/forcedotcom/salesforcedx-vscode/pull/1145), [Issue #973](https://github.com/forcedotcom/salesforcedx-vscode/issues/973))
+- Collect telemetry data for Apex Language Server ([PR #1148](https://github.com/forcedotcom/salesforcedx-vscode/pull/1148))
+
+#### salesforcedx-vscode-lwc
+
+- Include execution time in telemetry for `SFDX: Create Lightning Web Component` command ([PR #1154](https://github.com/forcedotcom/salesforcedx-vscode/pull/1154))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Improve Apex Tests sidebar performance when refreshing tests ([PR #1144](https://github.com/forcedotcom/salesforcedx-vscode/pull/1144), [Issue #1103](https://github.com/forcedotcom/salesforcedx-vscode/issues/1103))
+- Update Apex snippets to respect user’s indentation configuration ([PR #1158](https://github.com/forcedotcom/salesforcedx-vscode/pull/1158), [Issue #1152](https://github.com/forcedotcom/salesforcedx-vscode/issues/1152))—Contribution by [@Gkupce](https://github.com/Gkupce)
+
+#### salesforcedx-vscode-core
+
+- Improve performance for [org picker and `SFDX: Set a Default Org` command](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/default-org) ([PR #1139](https://github.com/forcedotcom/salesforcedx-vscode/pull/1139), [Issue #1007](https://github.com/forcedotcom/salesforcedx-vscode/issues/1007))
+
 ## 45.6.0 - March 14, 2019
 
 ### Added
