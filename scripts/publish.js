@@ -29,50 +29,50 @@ if (parseInt(major) !== 10 || parseInt(minor) < 2) {
 }
 
 // Checks that you have access to our bucket on AWS
-const awsExitCode = shell.exec(
-  'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',
-  {
-    silent: true
-  }
-).code;
-if (awsExitCode !== 0) {
-  console.log(
-    'You do not have the s3 command line installed or you do not have access to the aws s3 bucket.'
-  );
-  process.exit(-1);
-}
+// const awsExitCode = shell.exec(
+//   'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',
+//   {
+//     silent: true
+//   }
+// ).code;
+// if (awsExitCode !== 0) {
+//   console.log(
+//     'You do not have the s3 command line installed or you do not have access to the aws s3 bucket.'
+//   );
+//   process.exit(-1);
+// }
 
 // Checks that you have access to the salesforce publisher
-const publishers = shell.exec('vsce ls-publishers', { silent: true }).stdout;
-if (!publishers.includes('salesforce')) {
-  console.log(
-    'You do not have the vsce command line installed or you do not have access to the salesforce publisher id as part of vsce.'
-  );
-  process.exit(-1);
-}
+// const publishers = shell.exec('vsce ls-publishers', { silent: true }).stdout;
+// if (!publishers.includes('salesforce')) {
+//   console.log(
+//     'You do not have the vsce command line installed or you do not have access to the salesforce publisher id as part of vsce.'
+//   );
+//   process.exit(-1);
+// }
 
 // Checks that you have specified the next version as an environment variable, and that it's properly formatted.
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-if (!nextVersion) {
-  console.log(
-    'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
-  );
-  process.exit(-1);
-} else {
-  const [version, major, minor, patch] = nextVersion.match(
-    /^(\d+)\.(\d+)\.(\d+)$/
-  );
-  const currentBranch = shell.exec('git rev-parse --abbrev-ref HEAD', {
-    silent: true
-  }).stdout;
+// if (!nextVersion) {
+//   console.log(
+//     'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
+//   );
+//   process.exit(-1);
+// } else {
+//   const [version, major, minor, patch] = nextVersion.match(
+//     /^(\d+)\.(\d+)\.(\d+)$/
+//   );
+//   const currentBranch = shell.exec('git rev-parse --abbrev-ref HEAD', {
+//     silent: true
+//   }).stdout;
 
-  if (!currentBranch.includes('/v' + nextVersion)) {
-    console.log(
-      `You must execute this script in a release branch including SALESFORCEDX_VSCODE_VERSION (e.g, release/v${nextVersion} or hotfix/v${nextVersion})`
-    );
-    process.exit(-1);
-  }
-}
+//   if (!currentBranch.includes('/v' + nextVersion)) {
+//     console.log(
+//       `You must execute this script in a release branch including SALESFORCEDX_VSCODE_VERSION (e.g, release/v${nextVersion} or hotfix/v${nextVersion})`
+//     );
+//     process.exit(-1);
+//   }
+// }
 
 // Checks that a tag of the next version doesn't already exist
 const checkTags = shell.exec('git tag', { silent: true }).stdout;
@@ -112,9 +112,9 @@ shell.exec('./scripts/concatenate-sha256.js');
 shell.rm('./SHA256');
 
 // Push the SHA256 to AWS
-shell.exec(
-  'aws s3 cp ./SHA256.md s3://dfc-data-production/media/vscode/SHA256.md'
-);
+// shell.exec(
+//   'aws s3 cp ./SHA256.md s3://dfc-data-production/media/vscode/SHA256.md'
+// );
 
 // Add SHA256 to git
 shell.exec(`git add SHA256.md`);
@@ -123,4 +123,4 @@ shell.exec(`git add SHA256.md`);
 shell.exec(`git commit -m "Updated SHA256"`);
 
 // Publish to VS Code Marketplace
-shell.exec(`npm run vscode:publish`);
+// shell.exec(`npm run vscode:publish`);
