@@ -32,7 +32,7 @@
     "test:without-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test",
     "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream",
     "test:vscode-insiders-system-tests": "lerna run test:vscode-insiders-system-tests --scope system-tests --concurrency 1 --stream",
-    "coverage:system-tests": "lerna run coverage --scope system-tests --concurrency 1 --stream",
+    "coverage:system-tests": "lerna exec --concurrency 1 --stream --bail=false -- npm run coverage:system-tests",
     "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
