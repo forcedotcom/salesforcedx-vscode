@@ -30,7 +30,6 @@
     "aura-language-server": "2.0.5",
     "lightning-lsp-common": "2.0.5",
     "opn": "^5.4.0",
-    "vscode": "1.1.17",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1"
   },
@@ -45,7 +44,8 @@
     "cross-env": "5.2.0",
     "mocha": "3.2.0",
     "sinon": "^2.3.6",
-    "typescript": "3.1.6"
+    "typescript": "3.1.6",
+    "vscode": "1.1.17"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
