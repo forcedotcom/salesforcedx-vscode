@@ -77,12 +77,14 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Commands
-  registerCommands(sfdxWorkspace).then(disposable => {
-    if (disposable) {
-      context.subscriptions.push(disposable);
-    }
-  });
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  registerCommands(sfdxWorkspace)
+    .then(disposable => {
+      if (disposable) {
+        context.subscriptions.push(disposable);
+      }
+    })
+    .catch();
+  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
@@ -177,5 +179,5 @@ export async function populateEslintSettingIfNecessary(
 
 export function deactivate() {
   console.log('SFDX LWC Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
+  telemetryService.sendExtensionDeactivationEvent().catch();
 }

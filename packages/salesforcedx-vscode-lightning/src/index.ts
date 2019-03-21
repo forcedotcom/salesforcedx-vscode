@@ -120,10 +120,13 @@ export async function activate(context: ExtensionContext) {
     componentProvider
   );
 
-  client.onReady().then(() => {
-    this.client.onNotification('salesforce/indexingStarted', startIndexing);
-    this.client.onNotification('salesforce/indexingEnded', endIndexing);
-  });
+  client
+    .onReady()
+    .then(() => {
+      this.client.onNotification('salesforce/indexingStarted', startIndexing);
+      this.client.onNotification('salesforce/indexingEnded', endIndexing);
+    })
+    .catch();
 
   // do this last
   client.start();

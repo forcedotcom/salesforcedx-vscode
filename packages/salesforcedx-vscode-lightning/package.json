@@ -28,6 +28,7 @@
     "chalk": "^2.4.2",
     "change-case": "^3.1.0",
     "aura-language-server": "2.0.5",
+    "lightning-lsp-common": "2.0.5",
     "opn": "^5.4.0",
     "vscode": "1.1.17",
     "vscode-extension-telemetry": "0.0.17",
