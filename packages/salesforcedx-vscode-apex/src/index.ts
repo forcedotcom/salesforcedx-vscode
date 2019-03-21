@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
+import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
@@ -76,8 +77,13 @@ export async function activate(context: vscode.ExtensionContext) {
   languageClient
     .onReady()
     .then(async () => {
+      if (languageClient) {
+        languageClient.onNotification('indexer/done', async () => {
+          LanguageClientUtils.indexing = false;
+          await testOutlineProvider.refresh();
+        });
+      }
       LanguageClientUtils.languageClientReady = true;
-      await testOutlineProvider.refresh();
       telemetryService.sendApexLSPActivationEvent(langClientHRStart);
     })
     .catch(err => {
@@ -104,6 +110,14 @@ export async function activate(context: vscode.ExtensionContext) {
 function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
+  // Colorize code coverage
+  const statusBarToggle = new StatusBarToggle();
+  const colorizer = new CodeCoverage(statusBarToggle);
+  const forceApexToggleColorizerCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.toggle.colorizer',
+    () => colorizer.toggleCoverage()
+  );
+
   // Customer-facing commands
   const forceApexTestClassRunDelegateCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.class.run.delegate',
@@ -130,6 +144,7 @@ function registerCommands(
     forceApexTestMethodRunCodeAction
   );
   return vscode.Disposable.from(
+    forceApexToggleColorizerCmd,
     forceApexTestLastClassRunCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,
@@ -188,9 +203,11 @@ async function registerTestView(
   );
   // Refresh Test View command
   testViewItems.push(
-    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () =>
-      testOutlineProvider.refresh()
-    )
+    vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
+      if (!LanguageClientUtils.indexing) {
+        return testOutlineProvider.refresh();
+      }
+    })
   );
 
   return vscode.Disposable.from(...testViewItems);

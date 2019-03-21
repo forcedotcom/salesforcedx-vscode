@@ -57,14 +57,11 @@ import {
 import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import {
-  registerDefaultUsernameWatcher,
-  setupWorkspaceOrgType
-} from './context';
+import { setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { setDefaultOrg, showDefaultOrg } from './orgPicker';
+import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
@@ -286,10 +283,6 @@ function registerCommands(
     forceApexLogGet
   );
 
-  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
-    'sfdx.force.set.default.org',
-    setDefaultOrg
-  );
   const forceConfigSetCmd = vscode.commands.registerCommand(
     'sfdx.force.config.set',
     forceConfigSet
@@ -343,9 +336,19 @@ function registerCommands(
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
-    forceSetDefaultOrgCmd,
     forceConfigSetCmd
   );
+}
+
+function registerOrgPickerCommands(
+  extensionContext: vscode.ExtensionContext,
+  orgList: OrgList
+): vscode.Disposable {
+  const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
+    'sfdx.force.set.default.org',
+    () => orgList.setDefaultOrg()
+  );
+  return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -383,12 +386,15 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
+  // register org picker commands and set up filewatcher for defaultusername
+  const orgList = new OrgList();
+  await orgList.displayDefaultUsername();
+  context.subscriptions.push(registerOrgPickerCommands(context, orgList));
+
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
-    registerDefaultUsernameWatcher(context);
-
-    await showDefaultOrg();
+    await orgList.registerDefaultUsernameWatcher(context);
   } else {
     showCLINotInstalledMessage();
     telemetryService.sendError('Salesforce CLI is not installed');

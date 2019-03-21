@@ -231,5 +231,9 @@ export const messages = {
   table_title_pushed_source: 'Pushed Source',
   table_title_push_errors: 'Push Errors',
   push_conflicts_error:
-    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".'
+    'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".',
+  error_no_default_username:
+    'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+  error_no_default_devhubusername:
+    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.'
 };
