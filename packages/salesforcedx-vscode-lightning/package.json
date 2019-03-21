@@ -27,8 +27,8 @@
     "@salesforce/salesforcedx-slds-linter": "45.7.0",
     "chalk": "^2.4.2",
     "change-case": "^3.1.0",
-    "aura-language-server": "2.0.5",
-    "lightning-lsp-common": "2.0.5",
+    "aura-language-server": "2.0.7",
+    "lightning-lsp-common": "2.0.7",
     "opn": "^5.4.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1"
