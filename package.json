@@ -42,7 +42,7 @@
     "snyk:test": "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
     "snyk:monitor": "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
-    "link-lsp": "lerna exec yarn link aura-language-server lwc-language-server lightning-lsp-common --scope salesforcedx-vscode-aura && lerna exec yarn link lwc-language-server lightning-lsp-common --scope salesforcedx-vscode-lwc"
+    "link-lsp": "lerna exec yarn link aura-language-server lwc-language-server lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link lwc-language-server lightning-lsp-common --scope salesforcedx-vscode-lwc"
   },
   "repository": {
     "type": "git",

@@ -60,7 +60,7 @@ describe('Test commands', () => {
       ) as vscode.Extension<any>;
 
       auraExtension = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-aura'
+        'salesforce.salesforcedx-vscode-lightning'
       ) as vscode.Extension<any>;
     }
   });
