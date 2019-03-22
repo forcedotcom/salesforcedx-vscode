@@ -24,9 +24,9 @@ import { taskViewService } from '../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
+  DirSelector,
   FilePathExistsChecker,
   SelectFileName,
-  SelectPrioritizedDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -58,11 +58,7 @@ export class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      if (
-        data !== undefined &&
-        data.toString() === '0' &&
-        hasRootWorkspace()
-      ) {
+      if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         vscode.workspace
           .openTextDocument(
             path.join(
@@ -90,10 +86,7 @@ const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(APEX_TRIGGER_EXTENSION);
 
 export async function forceApexTriggerCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectPrioritizedDirPath(
-    explorerDir,
-    'triggers'
-  );
+  const outputDirGatherer = new DirSelector('triggers');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

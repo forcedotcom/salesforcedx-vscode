@@ -24,9 +24,9 @@ import { taskViewService } from '../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
+  DirSelector,
   LightningFilePathExistsChecker,
   SelectFileName,
-  SelectStrictDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -58,11 +58,7 @@ class ForceLightningAppCreateExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      if (
-        data !== undefined &&
-        data.toString() === '0' &&
-        hasRootWorkspace()
-      ) {
+      if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         vscode.workspace
           .openTextDocument(
             path.join(
@@ -92,7 +88,7 @@ const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
 export async function forceLightningAppCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectStrictDirPath(explorerDir, 'aura');
+  const outputDirGatherer = new DirSelector('aura', true);
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

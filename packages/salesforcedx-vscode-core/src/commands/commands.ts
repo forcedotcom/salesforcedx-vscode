@@ -25,9 +25,12 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+
+const DEFAULT_SOURCE_PATH = '/main/default';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -213,6 +216,57 @@ export class SelectFileName
     return fileName
       ? { type: 'CONTINUE', data: { fileName } }
       : { type: 'CANCEL' };
+  }
+}
+
+export class DirSelector implements ParametersGatherer<{ outputdir: string }> {
+  private typeDir: string;
+  private typeDirRequired: boolean | undefined;
+  private readonly customDirOption = `$(file-directory) ${nls.localize(
+    'custom_output_directory'
+  )}`;
+
+  public constructor(typeDir: string, typeDirRequired?: boolean) {
+    this.typeDir = typeDir;
+    this.typeDirRequired = typeDirRequired;
+  }
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ outputdir: string }>
+  > {
+    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const options = packageDirs.map(packageDir =>
+      path.join(packageDir, DEFAULT_SOURCE_PATH, this.typeDir)
+    );
+    options.push(this.customDirOption);
+
+    let outputdir = await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+    } as vscode.QuickPickOptions);
+    if (outputdir === this.customDirOption) {
+      outputdir = await this.selectCustomPath();
+    }
+
+    return outputdir
+      ? { type: 'CONTINUE', data: { outputdir } }
+      : { type: 'CANCEL' };
+  }
+
+  private async selectCustomPath(): Promise<string | undefined> {
+    const rootPath = getRootWorkspacePath();
+    const relPaths = new glob.GlobSync(path.join(rootPath, '**/')).found.map(
+      value => {
+        let relativePath = path.relative(rootPath, path.join(value, '/'));
+        relativePath = path.join(
+          relativePath,
+          this.typeDirRequired ? this.typeDir : ''
+        );
+        return relativePath;
+      }
+    );
+    return await vscode.window.showQuickPick(relPaths, {
+      placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+    } as vscode.QuickPickOptions);
   }
 }
 

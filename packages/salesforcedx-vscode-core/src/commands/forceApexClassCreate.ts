@@ -23,9 +23,9 @@ import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import {
   CompositeParametersGatherer,
+  DirSelector,
   FilePathExistsChecker,
   SelectFileName,
-  SelectPrioritizedDirPath,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -90,10 +90,7 @@ const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(APEX_FILE_EXTENSION);
 
 export async function forceApexClassCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectPrioritizedDirPath(
-    explorerDir,
-    'classes'
-  );
+  const outputDirGatherer = new DirSelector('classes');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);
