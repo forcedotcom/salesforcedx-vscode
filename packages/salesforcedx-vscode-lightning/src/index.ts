@@ -6,6 +6,7 @@
  */
 
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
 import {
   LanguageClient,
@@ -13,6 +14,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import { telemetryService } from './telemetry';
 
 import { createQuickOpenCommand } from './commands/quickpick/quickpick';
 import { ComponentTreeProvider } from './views/component-tree-provider';
@@ -37,7 +39,8 @@ function protocol2CodeConverter(value: string): Uri {
 }
 
 export async function activate(context: ExtensionContext) {
-  // UI customizations
+  console.log('Aura Components Extension Activated');
+  const extensionHRStart = process.hrtime();
 
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'aura-language-server', 'lib', 'server.js')
@@ -103,7 +106,7 @@ export async function activate(context: ExtensionContext) {
   // Create the language client and start the client.
   this.client = client = new LanguageClient(
     'auraLanguageServer',
-    'Lightning Language Server',
+    'Aura Language Server',
     serverOptions,
     clientOptions
   );
@@ -131,6 +134,22 @@ export async function activate(context: ExtensionContext) {
   // do this last
   client.start();
   context.subscriptions.push(this.client);
+
+  const sfdxCoreExtension = vscode.extensions.getExtension(
+    'salesforce.salesforcedx-vscode-core'
+  );
+
+  // Telemetry
+  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
+    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+
+    telemetryService.initializeService(
+      sfdxCoreExtension.exports.telemetryService.getReporter(),
+      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
+    );
+  }
+
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
 let indexingResolve: any;
