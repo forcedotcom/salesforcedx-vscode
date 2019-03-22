@@ -99,7 +99,7 @@ export class ChannelService {
   }
 
   public showChannelOutput() {
-    this.channel.show();
+    this.channel.show(true);
   }
 
   public appendLine(text: string) {
