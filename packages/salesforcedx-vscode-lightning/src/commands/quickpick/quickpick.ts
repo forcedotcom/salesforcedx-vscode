@@ -21,7 +21,7 @@ export function createQuickOpenCommand(client: LanguageClient) {
       opn(url).catch();
       return;
     }
-    console.log('Waiting for LSP to be ready');
+    console.log('Waiting for Language Server to initialize');
     client
       .onReady()
       .then(() => {
@@ -57,14 +57,16 @@ export function createQuickOpenCommand(client: LanguageClient) {
           },
           err => {
             console.error(
-              'Could not request lwc/listComponents - is the LSP the correct version?'
+              'Error occurred calling salesforce/listComponents - is the LSP the correct version?'
             );
             console.error(err);
           }
         );
       })
       .catch(err => {
-        console.error('LSP not ready');
+        console.error(
+          'Language Server is not initialized, cannot complete command'
+        );
         console.error(err);
       });
   };
