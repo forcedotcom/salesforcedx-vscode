@@ -142,6 +142,7 @@ export class NotificationService {
       this.showChannelOutput();
     });
   }
+
   private showChannelOutput() {
     this.channel.show(true);
   }
