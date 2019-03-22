@@ -2,6 +2,7 @@ import { paramCase } from 'change-case';
 import opn = require('opn');
 import { Uri, window, workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
+import { COMPONENT_LIBRARY_BUNDLE_LINK } from '../../constants';
 import { LwcNode } from '../../views/lwc-node';
 import { TagItem } from './tag-item';
 
@@ -10,9 +11,8 @@ export function createQuickOpenCommand(client: LanguageClient) {
     if (arg instanceof LwcNode) {
       const node = arg as LwcNode;
       const tag: string = node.label;
-      opn(
-        `https://developer.salesforce.com/docs/component-library/bundle/${tag}`
-      ).catch();
+      const url: string = COMPONENT_LIBRARY_BUNDLE_LINK + tag;
+      opn(url).catch();
       return;
     }
     console.log('Waiting for LSP to be ready');
