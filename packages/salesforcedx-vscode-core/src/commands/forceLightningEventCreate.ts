@@ -24,9 +24,9 @@ import { taskViewService } from '../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
-  DirSelector,
   LightningFilePathExistsChecker,
   SelectFileName,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -88,7 +88,7 @@ const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
 export async function forceLightningEventCreate(explorerDir?: any) {
-  const outputDirGatherer = new DirSelector('aura', true);
+  const outputDirGatherer = new SelectOutputDir('aura', true);
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

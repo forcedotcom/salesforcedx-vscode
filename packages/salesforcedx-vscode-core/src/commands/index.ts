@@ -10,6 +10,7 @@ export {
   EmptyParametersGatherer,
   SelectFileName,
   SelectStrictDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker

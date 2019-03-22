@@ -24,9 +24,9 @@ import { taskViewService } from '../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
-  DirSelector,
   FilePathExistsChecker,
   SelectFileName,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -86,7 +86,7 @@ const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(APEX_TRIGGER_EXTENSION);
 
 export async function forceApexTriggerCreate(explorerDir?: any) {
-  const outputDirGatherer = new DirSelector('triggers');
+  const outputDirGatherer = new SelectOutputDir('triggers');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

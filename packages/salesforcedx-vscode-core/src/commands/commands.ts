@@ -30,8 +30,6 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
-const DEFAULT_SOURCE_PATH = '/main/default';
-
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
   public async check(
@@ -219,9 +217,11 @@ export class SelectFileName
   }
 }
 
-export class DirSelector implements ParametersGatherer<{ outputdir: string }> {
+export class SelectOutputDir
+  implements ParametersGatherer<{ outputdir: string }> {
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
+  private readonly defaultOutput = '/main/default';
   private readonly customDirOption = `$(file-directory) ${nls.localize(
     'custom_output_directory'
   )}`;
@@ -236,7 +236,7 @@ export class DirSelector implements ParametersGatherer<{ outputdir: string }> {
   > {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const options = packageDirs.map(packageDir =>
-      path.join(packageDir, DEFAULT_SOURCE_PATH, this.typeDir)
+      path.join(packageDir, this.defaultOutput, this.typeDir)
     );
     options.push(this.customDirOption);
 
@@ -252,14 +252,16 @@ export class DirSelector implements ParametersGatherer<{ outputdir: string }> {
       : { type: 'CANCEL' };
   }
 
-  private async selectCustomPath(): Promise<string | undefined> {
+  public async selectCustomPath(): Promise<string | undefined> {
     const rootPath = getRootWorkspacePath();
     const relPaths = new glob.GlobSync(path.join(rootPath, '**/')).found.map(
       value => {
         let relativePath = path.relative(rootPath, path.join(value, '/'));
         relativePath = path.join(
           relativePath,
-          this.typeDirRequired ? this.typeDir : ''
+          this.typeDirRequired && !relativePath.endsWith(this.typeDir)
+            ? this.typeDir
+            : ''
         );
         return relativePath;
       }
@@ -267,88 +269,6 @@ export class DirSelector implements ParametersGatherer<{ outputdir: string }> {
     return await vscode.window.showQuickPick(relPaths, {
       placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
     } as vscode.QuickPickOptions);
-  }
-}
-
-export abstract class SelectDirPath
-  implements ParametersGatherer<{ outputdir: string }> {
-  private explorerDir: string | undefined;
-  private globKeyWord: string | undefined;
-
-  public constructor(explorerDir?: vscode.Uri, globKeyWord?: string) {
-    this.explorerDir = explorerDir ? explorerDir.fsPath : explorerDir;
-    this.globKeyWord = globKeyWord;
-  }
-
-  public abstract globDirs(srcPath: string, priorityKeyword?: string): string[];
-
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ outputdir: string }>
-  > {
-    const rootPath = getRootWorkspacePath();
-    let outputdir;
-    if (rootPath) {
-      if (
-        !this.explorerDir &&
-        this.globDirs(rootPath, this.globKeyWord).length === 0
-      ) {
-        notificationService.showErrorMessage(
-          nls.localize(
-            'parameter_directory_strict_not_available',
-            this.globKeyWord
-          )
-        );
-        return { type: 'CANCEL' };
-      }
-      outputdir = this.explorerDir
-        ? path.relative(rootPath, this.explorerDir)
-        : await vscode.window.showQuickPick(
-            this.globDirs(rootPath, this.globKeyWord),
-            {
-              placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-            } as vscode.QuickPickOptions
-          );
-    }
-    return outputdir
-      ? { type: 'CONTINUE', data: { outputdir } }
-      : { type: 'CANCEL' };
-  }
-}
-export class SelectPrioritizedDirPath extends SelectDirPath {
-  public globDirs(srcPath: string, priorityKeyword?: string): string[] {
-    const unprioritizedRelDirs = new glob.GlobSync(
-      path.join(srcPath, '**/')
-    ).found.map(value => {
-      let relativePath = path.relative(srcPath, path.join(value, '/'));
-      relativePath = path.join(relativePath, '');
-      return relativePath;
-    });
-    if (priorityKeyword) {
-      const notPrioritized: string[] = [];
-      const prioritized = unprioritizedRelDirs.filter(dir => {
-        if (dir.includes(priorityKeyword)) {
-          return true;
-        } else {
-          notPrioritized.push(dir);
-        }
-      });
-      return prioritized.concat(notPrioritized);
-    }
-    return unprioritizedRelDirs;
-  }
-}
-
-export class SelectStrictDirPath extends SelectDirPath {
-  public globDirs(srcPath: string, priorityKeyword?: string): string[] {
-    const globPattern = priorityKeyword
-      ? path.join(srcPath, '**/', priorityKeyword + '/')
-      : path.join(srcPath, '**/');
-    const relativeDirs = new glob.GlobSync(globPattern).found.map(value => {
-      let relativePath = path.relative(srcPath, path.join(value, '/'));
-      relativePath = path.join(relativePath, '');
-      return relativePath;
-    });
-    return relativeDirs;
   }
 }
 

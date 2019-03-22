@@ -26,7 +26,7 @@ import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
   SelectFileName,
-  SelectPrioritizedDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -59,11 +59,7 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      if (
-        data !== undefined &&
-        data.toString() === '0' &&
-        hasRootWorkspace()
-      ) {
+      if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         vscode.workspace
           .openTextDocument(
             path.join(
@@ -91,10 +87,7 @@ const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(VF_CMP_EXTENSION);
 
 export async function forceVisualforceComponentCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectPrioritizedDirPath(
-    explorerDir,
-    'components'
-  );
+  const outputDirGatherer = new SelectOutputDir('components');
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

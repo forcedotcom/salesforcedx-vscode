@@ -27,7 +27,7 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const ProgressNotification = sfdxCoreExports.ProgressNotification;
 const CompositeParametersGatherer = sfdxCoreExports.CompositeParametersGatherer;
 const SelectFileName = sfdxCoreExports.SelectFileName;
-const SelectStrictDirPath = sfdxCoreExports.SelectStrictDirPath;
+const SelectOutputDir = sfdxCoreExports.SelectOutputDir;
 const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
@@ -128,10 +128,10 @@ const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
 export async function forceLightningLwcCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectStrictDirPath(explorerDir, 'lwc');
+  const outputDirGatherer = new SelectOutputDir('lwc', true);
   const parameterGatherer = new CompositeParametersGatherer(
-    outputDirGatherer,
-    fileNameGatherer
+    fileNameGatherer,
+    outputDirGatherer
   );
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
