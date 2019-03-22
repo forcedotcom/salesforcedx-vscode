@@ -24,8 +24,6 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "45.7.0",
-    "chalk": "^2.4.2",
     "change-case": "^3.1.0",
     "aura-language-server": "2.0.7",
     "lightning-lsp-common": "2.0.7",
