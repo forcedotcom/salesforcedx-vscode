@@ -95,14 +95,14 @@ export class NotificationService {
     this.showErrorMessage(
       nls.localize('notification_unsuccessful_execution_text', executionName)
     );
-    this.channel.show();
+    this.showChannelOutput();
   }
 
   private showCanceledExecution(executionName: string) {
     this.showWarningMessage(
       nls.localize('notification_canceled_execution_text', executionName)
     );
-    this.channel.show();
+    this.showChannelOutput();
   }
 
   public async showSuccessfulExecution(executionName: string) {
@@ -121,7 +121,7 @@ export class NotificationService {
         showOnlyStatusBarButtonText
       );
       if (selection && selection === showButtonText) {
-        this.channel.show();
+        this.showChannelOutput();
       }
       if (selection && selection === showOnlyStatusBarButtonText) {
         await sfdxCoreSettings.updateShowCLISuccessMsg(false);
@@ -139,7 +139,10 @@ export class NotificationService {
       this.showErrorMessage(
         nls.localize('notification_unsuccessful_execution_text', executionName)
       );
-      this.channel.show();
+      this.showChannelOutput();
     });
+  }
+  private showChannelOutput() {
+    this.channel.show(true);
   }
 }
