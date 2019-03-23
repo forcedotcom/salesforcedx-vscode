@@ -221,8 +221,8 @@ export class SelectOutputDir
   implements ParametersGatherer<{ outputdir: string }> {
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
-  private readonly defaultOutput = '/main/default';
-  private readonly customDirOption = `$(file-directory) ${nls.localize(
+  public readonly defaultOutput = '/main/default';
+  public readonly customDirOption = `$(file-directory) ${nls.localize(
     'custom_output_directory'
   )}`;
 
@@ -235,16 +235,12 @@ export class SelectOutputDir
     CancelResponse | ContinueResponse<{ outputdir: string }>
   > {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    const options = packageDirs.map(packageDir =>
-      path.join(packageDir, this.defaultOutput, this.typeDir)
-    );
-    options.push(this.customDirOption);
+    let dirOptions = this.getDefaultOptions(packageDirs);
+    let outputdir = await this.showMenu(dirOptions);
 
-    let outputdir = await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-    } as vscode.QuickPickOptions);
     if (outputdir === this.customDirOption) {
-      outputdir = await this.selectCustomPath();
+      dirOptions = this.getCustomOptions(getRootWorkspacePath());
+      outputdir = await this.showMenu(dirOptions);
     }
 
     return outputdir
@@ -252,21 +248,29 @@ export class SelectOutputDir
       : { type: 'CANCEL' };
   }
 
-  public async selectCustomPath(): Promise<string | undefined> {
-    const rootPath = getRootWorkspacePath();
-    const relPaths = new glob.GlobSync(path.join(rootPath, '**/')).found.map(
-      value => {
-        let relativePath = path.relative(rootPath, path.join(value, '/'));
-        relativePath = path.join(
-          relativePath,
-          this.typeDirRequired && !relativePath.endsWith(this.typeDir)
-            ? this.typeDir
-            : ''
-        );
-        return relativePath;
-      }
+  public getDefaultOptions(packageDirectories: string[]): string[] {
+    const options = packageDirectories.map(packageDir =>
+      path.join(packageDir, this.defaultOutput, this.typeDir)
     );
-    return await vscode.window.showQuickPick(relPaths, {
+    options.push(this.customDirOption);
+    return options;
+  }
+
+  public getCustomOptions(rootPath: string): string[] {
+    return new glob.GlobSync(path.join(rootPath, '**/')).found.map(value => {
+      let relativePath = path.relative(rootPath, path.join(value, '/'));
+      relativePath = path.join(
+        relativePath,
+        this.typeDirRequired && !relativePath.endsWith(this.typeDir)
+          ? this.typeDir
+          : ''
+      );
+      return relativePath;
+    });
+  }
+
+  public async showMenu(options: string[]): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
       placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
     } as vscode.QuickPickOptions);
   }

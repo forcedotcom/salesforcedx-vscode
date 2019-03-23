@@ -31,16 +31,16 @@ describe('SFDX Package Directories', () => {
       ]);
     });
 
-    it('should return multiple package directories', async () => {
+    it('should return multiple package directories with default as first', async () => {
       sfdxProjectConfigStub = stub(SfdxProjectConfig, 'getValue').returns([
         { path: 'package1' },
         { path: 'package2' },
-        { path: 'package3' }
+        { path: 'package3', default: true }
       ]);
       expect(await SfdxPackageDirectories.getPackageDirectoryPaths()).to.eql([
+        'package3',
         'package1',
-        'package2',
-        'package3'
+        'package2'
       ]);
     });
 
