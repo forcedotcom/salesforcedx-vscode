@@ -52,6 +52,15 @@ export class TelemetryService {
     }
   }
 
+  public async sendCommandEvent(commandName?: string): Promise<void> {
+    if (this.reporter !== undefined && this.isTelemetryEnabled && commandName) {
+      this.reporter.sendTelemetryEvent('commandExecution', {
+        extensionName: EXTENSION_NAME,
+        commandName
+      });
+    }
+  }
+
   private getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);

@@ -9,12 +9,7 @@
     "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "out",
-    "preserveConstEnums": true,
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*", "*"]
-    }
+    "preserveConstEnums": true
   },
   "exclude": ["node_modules", ".vscode-test", "out"]
 }
