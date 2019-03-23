@@ -67,32 +67,32 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  xit('Should create Apex trigger', async () => {
-    // Invoke SFDX: Create Apex Trigger command by name
-    await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create Apex Trigger');
-    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+  // xit('Should create Apex trigger', async () => {
+  //   // Invoke SFDX: Create Apex Trigger command by name
+  //   await app.command('workbench.action.quickOpen');
+  //   await common.type('>SFDX: Create Apex Trigger');
+  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+  //   await app.wait();
 
-    const fileName = `apexTrigger_${new Date().getTime()}`;
+  //   const fileName = `apexTrigger_${new Date().getTime()}`;
 
-    // Enter file name
-    await common.type(fileName);
-    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+  //   // Enter file name
+  //   await common.type(fileName);
+  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+  //   await app.wait();
 
-    // Enter desired location (without slashes so it's OS-independent)
-    await common.type('force-appmaindefaulttriggers');
-    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+  //   // Enter desired location (without slashes so it's OS-independent)
+  //   await common.type('force-appmaindefaulttriggers');
+  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+  //   await app.wait();
 
-    // Check that the new apex trigger is opened in a new tab
-    const apexTriggerTab = await common.getTab(`${fileName}.trigger`);
-    expect(apexTriggerTab).to.be.not.undefined;
-    if (apexTriggerTab) {
-      await common.closeTab();
-    }
-  });
+  //   // Check that the new apex trigger is opened in a new tab
+  //   const apexTriggerTab = await common.getTab(`${fileName}.trigger`);
+  //   expect(apexTriggerTab).to.be.not.undefined;
+  //   if (apexTriggerTab) {
+  //     await common.closeTab();
+  //   }
+  // });
 
   it('Should create Visualforce component', async () => {
     // Invoke SFDX: Create Visualforce Component command by name
