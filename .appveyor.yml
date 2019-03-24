@@ -87,7 +87,7 @@ artifacts:
 
 on_finish:
   - del C:\projects\devhub.key
-  - codecov --disable=gcov
+  - appveyor-retry codecov --disable=gcov
   - ps: |
       [xml]$results = Get-Content junit-aggregate.xml
         $failure = $results.SelectSingleNode("//failure")
