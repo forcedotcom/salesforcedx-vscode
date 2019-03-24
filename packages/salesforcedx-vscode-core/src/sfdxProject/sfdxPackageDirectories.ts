@@ -17,8 +17,7 @@ export default class SfdxPackageDirectories {
       'packageDirectories'
     )) as JsonArray;
     if (packageDirectories) {
-      const packageDirectoryPaths: string[] = [];
-      let defaultPath;
+      let packageDirectoryPaths: string[] = [];
       packageDirectories.forEach(packageDir => {
         if (packageDir) {
           const packageDirectory = packageDir as JsonMap;
@@ -29,16 +28,13 @@ export default class SfdxPackageDirectories {
               dirPath = dirPath.substring(1);
             }
             if (packageDirectory.default) {
-              defaultPath = dirPath;
+              packageDirectoryPaths = [dirPath].concat(packageDirectoryPaths);
             } else {
               packageDirectoryPaths.push(dirPath);
             }
           }
         }
       });
-      if (defaultPath) {
-        packageDirectoryPaths.unshift(defaultPath);
-      }
       if (packageDirectoryPaths.length === 0) {
         const error = new Error();
         error.name = 'NoPackageDirectoryPathsFound';
