@@ -109,7 +109,7 @@ describe('Scaffolding commands', () => {
     await app.wait();
 
     // Enter desired location (without slashes so it's OS-independent)
-    await common.type('force-appmaindefaultpages');
+    await common.type('force-appmaindefaultcomponents');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
@@ -273,7 +273,7 @@ describe('Scaffolding commands', () => {
     await app.wait();
 
     // Enter desired location (without slashes so it's OS-independent)
-    await common.type('defaultlightningcomponents');
+    await common.type('defaultlwc');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
