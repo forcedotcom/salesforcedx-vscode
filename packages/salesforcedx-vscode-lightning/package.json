@@ -1,7 +1,7 @@
 {
   "name": "salesforcedx-vscode-lightning",
   "displayName": "Aura Components",
-  "description": "Provides syntax highlighting for Aura components",
+  "description": "Provides code-editing features for Aura Components",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "45.6.0",
+  "version": "45.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,13 +24,18 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "45.6.0",
-    "vscode-extension-telemetry": "0.0.17"
+    "change-case": "^3.1.0",
+    "aura-language-server": "2.0.8",
+    "lightning-lsp-common": "2.0.8",
+    "opn": "^5.4.0",
+    "vscode-extension-telemetry": "0.0.17",
+    "vscode-languageclient": "^3.5.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "45.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.7.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
+    "@types/opn": "^5.1.0",
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
@@ -58,7 +63,8 @@
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json"
+    "workspaceContains:sfdx-project.json",
+    "workspaceContains:**/core/workspace-user.xml"
   ],
   "main": "./out/src",
   "contributes": {
@@ -81,6 +87,40 @@
         "language": "html",
         "scopeName": "text.html.basic",
         "path": "./syntaxes/html.tmLanguage.json"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "salesforce-lightning-explorer",
+          "title": "Lightning Explorer",
+          "icon": "resources/lightning.svg"
+        }
+      ]
+    },
+    "views": {
+      "salesforce-lightning-explorer": [
+        {
+          "id": "salesforce-lightning-components",
+          "name": "Lightning Components"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "salesforce-lightning-quickopen",
+          "when": "view == salesforce-lightning-components && viewItem == external",
+          "group": "inline"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "salesforce-lightning-quickopen",
+        "title": "Lightning: Open Component",
+        "category": "Lightning Components",
+        "icon": "resources/open.svg"
       }
     ]
   }
