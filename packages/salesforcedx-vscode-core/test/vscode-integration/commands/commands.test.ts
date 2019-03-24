@@ -248,7 +248,7 @@ describe('Command Utilities', () => {
 
       expect(
         options.every(outputDir => {
-          // don't append the type name if a dir already has that as its name
+          // don't append the type name if the output dir already has that as its name
           return outputDir.endsWith('aura') && !outputDir.endsWith('aura/aura');
         })
       ).to.be.true;
@@ -263,7 +263,6 @@ describe('Command Utilities', () => {
         'getPackageDirectoryPaths'
       );
       const showMenuStub = sinon.stub(selector, 'showMenu');
-
       const choice = customOptions[5];
       getPackageDirPathsStub.returns(['test-app']);
       showMenuStub.onFirstCall().returns(selector.customDirOption);

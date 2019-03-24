@@ -234,7 +234,17 @@ export class SelectOutputDir
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ outputdir: string }>
   > {
-    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    let packageDirs: string[] = [];
+    try {
+      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    } catch (e) {
+      if (
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
+      ) {
+        throw e;
+      }
+    }
     let dirOptions = this.getDefaultOptions(packageDirs);
     let outputdir = await this.showMenu(dirOptions);
 
