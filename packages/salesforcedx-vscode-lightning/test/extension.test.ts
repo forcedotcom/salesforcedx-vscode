@@ -48,3 +48,41 @@ describe('Lightning file association', () => {
     await matchExtensionAsHtml('.tokens');
   });
 });
+
+describe('Test commands', () => {
+  let coreExtension: vscode.Extension<any>;
+  let auraExtension: vscode.Extension<any>;
+
+  before(async () => {
+    if (vscode.workspace.rootPath) {
+      coreExtension = vscode.extensions.getExtension(
+        'salesforce.salesforcedx-vscode-core'
+      ) as vscode.Extension<any>;
+
+      auraExtension = vscode.extensions.getExtension(
+        'salesforce.salesforcedx-vscode-lightning'
+      ) as vscode.Extension<any>;
+    }
+  });
+
+  it('coreExtension activation', async function() {
+    // tslint:disable-next-line:no-invalid-this
+    this.timeout(10000);
+    await coreExtension.activate();
+    expect(coreExtension.isActive);
+  });
+
+  it('aura activation', async () => {
+    // tslint:disable-next-line:no-invalid-this
+    this.timeout(10000);
+    await auraExtension.activate();
+    expect(auraExtension.isActive);
+  });
+
+  it('quick open command', async () => {
+    expect(auraExtension.isActive);
+
+    const commandList = await vscode.commands.getCommands(true);
+    expect(commandList).to.include('salesforce-lightning-quickopen');
+  });
+});

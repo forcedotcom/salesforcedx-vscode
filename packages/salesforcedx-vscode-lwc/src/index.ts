@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as lwcLanguageServer from 'lwc-language-server';
+import { shared as lwcLanguageServer } from 'lightning-lsp-common';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -15,25 +15,31 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
-import { nls } from './messages';
+
+import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
+import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
 
-const coreDependency = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
+async function registerCommands(
+  activateDX: boolean
+): Promise<vscode.Disposable | undefined> {
+  try {
+    await waitForDX(activateDX);
+    const {
+      forceLightningLwcCreate
+    } = require('./commands/forceLightningLwcCreate');
 
-function registerCommands(): vscode.Disposable {
-  const {
-    forceLightningLwcCreate
-  } = require('./commands/forceLightningLwcCreate');
+    // Customer-facing commands
+    const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.create',
+      forceLightningLwcCreate
+    );
 
-  // Customer-facing commands
-  const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.lwc.create',
-    forceLightningLwcCreate
-  );
-
-  return vscode.Disposable.from(forceLightningLwcCreateCmd);
+    return vscode.Disposable.from(forceLightningLwcCreateCmd);
+  } catch (ignore) {
+    // ignore
+    return undefined;
+  }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -50,6 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const workspaceType = lwcLanguageServer.detectWorkspaceType(
     vscode.workspace.workspaceFolders[0].uri.fsPath
   );
+  const sfdxWorkspace = workspaceType === WorkspaceType.SFDX;
 
   // Check if ran from a LWC project
   if (!lwcLanguageServer.isLWC(workspaceType)) {
@@ -70,28 +77,14 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Commands
-  const commands = registerCommands();
-  context.subscriptions.push(commands);
-
-  // Telemetry
-  if (coreDependency && coreDependency.exports) {
-    coreDependency.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      coreDependency.exports.telemetryService.getReporter(),
-      coreDependency.exports.telemetryService.isTelemetryEnabled()
-    );
-  } else {
-    vscode.window.showErrorMessage(
-      nls.localize('salesforcedx_vscode_core_not_installed_text')
-    );
-    console.log(
-      'salesforce.salesforcedx-vscode-core not installed or activated, exiting extension'
-    );
-    return;
-  }
-
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  registerCommands(sfdxWorkspace)
+    .then(disposable => {
+      if (disposable) {
+        context.subscriptions.push(disposable);
+      }
+    })
+    .catch();
+  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
@@ -142,6 +135,7 @@ function startLWCLanguageServer(
           '**/contentassets/*.asset-meta.xml'
         ),
         vscode.workspace.createFileSystemWatcher('**/lwc/*/*.js'),
+        vscode.workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
         // need to watch for directory deletions as no events are created for contents or deleted directories
         vscode.workspace.createFileSystemWatcher('**/', false, true, false)
       ]
@@ -185,5 +179,5 @@ export async function populateEslintSettingIfNecessary(
 
 export function deactivate() {
   console.log('SFDX LWC Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
+  telemetryService.sendExtensionDeactivationEvent().catch();
 }
