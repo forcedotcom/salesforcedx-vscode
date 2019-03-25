@@ -71,6 +71,12 @@ export class SourcePathChecker implements PostconditionChecker<string> {
 }
 
 export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
+  if (!explorerPath) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      explorerPath = editor.document.uri;
+    }
+  }
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),

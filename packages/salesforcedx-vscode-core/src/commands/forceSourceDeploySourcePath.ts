@@ -54,6 +54,12 @@ export class MultipleSourcePathsGatherer implements ParametersGatherer<string> {
 }
 
 export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
+  if (!sourceUri) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      sourceUri = editor.document.uri;
+    }
+  }
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),

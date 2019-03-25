@@ -32,6 +32,12 @@ export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
 }
 
 export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
+  if (!explorerPath) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      explorerPath = editor.document.uri;
+    }
+  }
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),

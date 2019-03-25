@@ -34,6 +34,12 @@ export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
 }
 
 export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
+  if (!manifestUri) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      manifestUri = editor.document.uri;
+    }
+  }
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(manifestUri),

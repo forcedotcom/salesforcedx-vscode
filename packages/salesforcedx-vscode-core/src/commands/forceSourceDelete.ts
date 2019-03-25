@@ -40,8 +40,8 @@ export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
 export class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
-  public constructor(explorerPath: any) {
-    this.explorerPath = explorerPath.fsPath;
+  public constructor(uri: vscode.Uri) {
+    this.explorerPath = uri.fsPath;
   }
 
   public check(): boolean {
@@ -67,8 +67,8 @@ export class ConfirmationAndSourcePathGatherer
   private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
-  public constructor(explorerPath: any) {
-    this.explorerPath = explorerPath.fsPath;
+  public constructor(uri: vscode.Uri) {
+    this.explorerPath = uri.fsPath;
   }
 
   public async gather(): Promise<
@@ -87,11 +87,17 @@ export class ConfirmationAndSourcePathGatherer
   }
 }
 
-export async function forceSourceDelete(explorerPath: any) {
-  const manifestChecker = new ManifestChecker(explorerPath);
+export async function forceSourceDelete(sourceUri: vscode.Uri) {
+  if (!sourceUri) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      sourceUri = editor.document.uri;
+    }
+  }
+  const manifestChecker = new ManifestChecker(sourceUri);
   const commandlet = new SfdxCommandlet(
     manifestChecker,
-    new ConfirmationAndSourcePathGatherer(explorerPath),
+    new ConfirmationAndSourcePathGatherer(sourceUri),
     new ForceSourceDeleteExecutor()
   );
   await commandlet.run();
