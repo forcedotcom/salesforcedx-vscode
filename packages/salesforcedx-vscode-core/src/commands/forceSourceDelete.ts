@@ -19,8 +19,10 @@ import {
 import * as vscode from 'vscode';
 import { SfdxCommandlet, SfdxCommandletExecutor } from './commands';
 
+import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
@@ -90,8 +92,17 @@ export class ConfirmationAndSourcePathGatherer
 export async function forceSourceDelete(sourceUri: vscode.Uri) {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
-    if (editor) {
+    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
       sourceUri = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize(
+        'force_source_delete_select_file_or_directory'
+      );
+      telemetryService.sendError(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
     }
   }
   const manifestChecker = new ManifestChecker(sourceUri);

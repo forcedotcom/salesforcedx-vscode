@@ -14,7 +14,10 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   FilePathGatherer,
@@ -56,8 +59,17 @@ export class MultipleSourcePathsGatherer implements ParametersGatherer<string> {
 export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
-    if (editor) {
+    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
       sourceUri = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize(
+        'force_source_deploy_select_file_or_directory'
+      );
+      telemetryService.sendError(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
     }
   }
   const commandlet = new SfdxCommandlet(
