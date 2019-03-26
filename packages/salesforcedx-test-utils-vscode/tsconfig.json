@@ -10,11 +10,7 @@
     "rootDir": ".",
     "outDir": "out",
     "preserveConstEnums": true,
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*", "*"]
-    }
+    "strict": true
   },
-  "exclude": ["node_modules", ".vscode-test", "out"]
+  "exclude": ["node_modules", "out"]
 }

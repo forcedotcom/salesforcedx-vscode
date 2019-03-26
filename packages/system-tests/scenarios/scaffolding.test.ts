@@ -67,32 +67,32 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  // xit('Should create Apex trigger', async () => {
-  //   // Invoke SFDX: Create Apex Trigger command by name
-  //   await app.command('workbench.action.quickOpen');
-  //   await common.type('>SFDX: Create Apex Trigger');
-  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-  //   await app.wait();
+  it('Should create Apex trigger', async () => {
+    // Invoke SFDX: Create Apex Trigger command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Create Apex Trigger');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
 
-  //   const fileName = `apexTrigger_${new Date().getTime()}`;
+    const fileName = `apexTrigger_${new Date().getTime()}`;
 
-  //   // Enter file name
-  //   await common.type(fileName);
-  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-  //   await app.wait();
+    // Enter file name
+    await common.type(fileName);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
 
-  //   // Enter desired location (without slashes so it's OS-independent)
-  //   await common.type('force-appmaindefaulttriggers');
-  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-  //   await app.wait();
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaulttriggers');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
 
-  //   // Check that the new apex trigger is opened in a new tab
-  //   const apexTriggerTab = await common.getTab(`${fileName}.trigger`);
-  //   expect(apexTriggerTab).to.be.not.undefined;
-  //   if (apexTriggerTab) {
-  //     await common.closeTab();
-  //   }
-  // });
+    // Check that the new apex trigger is opened in a new tab
+    const apexTriggerTab = await common.getTab(`${fileName}.trigger`);
+    expect(apexTriggerTab).to.be.not.undefined;
+    if (apexTriggerTab) {
+      await common.closeTab();
+    }
+  });
 
   it('Should create Visualforce component', async () => {
     // Invoke SFDX: Create Visualforce Component command by name
@@ -258,32 +258,32 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  // xit('Should create Lightning LWC', async () => {
-  //   // Invoke SFDX: Create LWC Bundle command by name
-  //   await app.command('workbench.action.quickOpen');
-  //   await common.type('>SFDX: Create Lightning Web Component');
-  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-  //   await app.wait();
+  it('Should create Lightning LWC', async () => {
+    // Invoke SFDX: Create LWC Bundle command by name
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX: Create Lightning Web Component');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
 
-  //   const fileName = `lwc_${new Date().getTime()}`;
+    const fileName = `lwc_${new Date().getTime()}`;
 
-  //   // Enter file name
-  //   await common.type(fileName);
-  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-  //   await app.wait();
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultlwc');
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
 
-  //   // Enter desired location (without slashes so it's OS-independent)
-  //   await common.type('defaultlightningcomponents');
-  //   await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-  //   await app.wait();
+    // Enter file name
+    await common.type(fileName);
+    await app.client.keys(['NULL', 'Enter', 'NULL'], false);
+    await app.wait();
 
-  //   // Check that the new LWC bundle .js file is opened in a new tab
-  //   const lwcBundleTab = await common.getTab(`${fileName}.js`);
-  //   expect(lwcBundleTab).to.be.not.undefined;
-  //   if (lwcBundleTab) {
-  //     await common.closeTab();
-  //   }
-  // });
+    // Check that the new LWC bundle .js file is opened in a new tab
+    const lwcBundleTab = await common.getTab(`${fileName}.js`);
+    expect(lwcBundleTab).to.be.not.undefined;
+    if (lwcBundleTab) {
+      await common.closeTab();
+    }
+  });
 });
 
 describe('Empty VSCode workspace', () => {
