@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "45.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "45.7.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/opn": "^5.1.0",
@@ -93,7 +94,7 @@
       "activitybar": [
         {
           "id": "salesforce-lightning-explorer",
-          "title": "Lightning Explorer",
+          "title": "%lightning_explorer_title%",
           "icon": "resources/lightning.svg"
         }
       ]
@@ -102,7 +103,7 @@
       "salesforce-lightning-explorer": [
         {
           "id": "salesforce-lightning-components",
-          "name": "Lightning Components"
+          "name": "%lightning_explorer_name%"
         }
       ]
     },
@@ -118,8 +119,7 @@
     "commands": [
       {
         "command": "salesforce-lightning-quickopen",
-        "title": "Lightning: Open Component",
-        "category": "Lightning Components",
+        "title": "%lightning_open_component_title%",
         "icon": "resources/open.svg"
       }
     ]
