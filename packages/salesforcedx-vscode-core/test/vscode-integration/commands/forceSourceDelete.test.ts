@@ -52,14 +52,16 @@ describe('ManifestChecker', () => {
       'manifest',
       'package.xml'
     );
-    const checker = new ManifestChecker({ fsPath: manifestFilePath });
+    const manifestUri = { fsPath: manifestFilePath } as vscode.Uri;
+    const checker = new ManifestChecker(manifestUri);
     const response = checker.check();
     expect(response).to.be.false;
   });
 
   it('passes the check if the selected resource is not in the manifest directory', () => {
     const sourcePath = path.join(workspaceFolderPath, 'src', 'exampleFile.js');
-    const checker = new ManifestChecker({ fsPath: sourcePath });
+    const sourceUri = { fsPath: sourcePath } as vscode.Uri;
+    const checker = new ManifestChecker(sourceUri);
     const response = checker.check();
     expect(response).to.be.true;
   });
@@ -67,7 +69,7 @@ describe('ManifestChecker', () => {
 
 describe('ConfirmationAndSourcePathGatherer', () => {
   const examplePath = path.join('example', 'path');
-  const explorerPath = { fsPath: examplePath };
+  const explorerPath = { fsPath: examplePath } as vscode.Uri;
 
   let informationMessageStub: sinon.SinonStub;
 
