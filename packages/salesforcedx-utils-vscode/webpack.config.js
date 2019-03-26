@@ -1,6 +1,5 @@
 const path = require('path');
-
-const DIST = path.resolve(__dirname, './');
+const DIST = path.resolve(__dirname);
 
 module.exports = {
   // extensions run in a node context
@@ -20,7 +19,9 @@ module.exports = {
   output: {
     path: DIST,
     filename: '[name].js',
-    libraryTarget: 'commonjs'
+    libraryTarget: 'commonjs2',
+    devtoolModuleFilenameTemplate:
+      'webpack://[namespace]/[resource-path]?[loaders]'
   },
   // include source maps
   devtool: 'source-map',
