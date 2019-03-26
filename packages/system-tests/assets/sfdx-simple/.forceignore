@@ -1,1 +1,2 @@
-force-app/main/default/lightningcomponents/.gitkeep
+force-app/main/default/lwc/.gitkeep
+force-app/main/default/triggers/.gitkeep

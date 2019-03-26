@@ -33,7 +33,7 @@ import { notificationService } from '../../../src/notifications';
 // tslint:disable:no-unused-expression
 describe('Command Utilities', () => {
   const WORKSPACE_NAME = 'sfdx-simple';
-  const SFDX_SIMPLE_NUM_OF_DIRS = 15;
+  const SFDX_SIMPLE_NUM_OF_DIRS = 16;
   describe('EmptyParametersGatherer', () => {
     it('Should always return continue with empty object as data', async () => {
       const gatherer = new EmptyParametersGatherer();
