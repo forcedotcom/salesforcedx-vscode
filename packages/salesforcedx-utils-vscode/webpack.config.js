@@ -1,6 +1,16 @@
 const path = require('path');
+const glob = require('glob');
 const DIST = path.resolve(__dirname);
 
+const entryArray = glob.sync('src/**/*.ts');
+console.log('------------ entryArray = ', entryArray);
+const entryObject = entryArray.reduce((acc, item) => {
+  const name = item.replace(/\/[\.A-Za-z_-]*\.ts/g, '');
+  console.log('name == ', name);
+  acc[name] = item;
+  return acc;
+}, {});
+console.log('------------ entryObject = ', entryObject);
 module.exports = {
   // extensions run in a node context
   target: 'node',
@@ -12,7 +22,8 @@ module.exports = {
     'out/src/output/index': './src/output/index.ts',
     'out/src/predicates/predicate': './src/predicates/predicate.ts',
     'out/src/requestService/index': './src/requestService/index.ts',
-    'out/src/types/index': './src/types/index.ts'
+    'out/src/types/index': './src/types/index.ts',
+    'out/test/unit/cli': './test/unit/cli/*.ts'
   },
   // All bundles go into DIST
   // packaging depends on that and this must always be like it
@@ -39,7 +50,7 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
+        exclude: ['/node_modules/'],
         use: [
           {
             loader: 'ts-loader'
