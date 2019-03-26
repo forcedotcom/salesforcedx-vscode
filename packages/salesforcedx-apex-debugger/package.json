@@ -20,6 +20,7 @@
     "vscode-debugprotocol": "1.28.0"
   },
   "devDependencies": {
+    "@salesforce/salesforcedx-test-utils-vscode": "45.7.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",

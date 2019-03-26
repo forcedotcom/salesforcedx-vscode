@@ -18,7 +18,7 @@
 // a possible error to the callback or null if none.
 
 // tslint:disable-next-line:no-var-requires
-const testRunner = require('@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/test/testrunner');
+const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/testrunner');
 
 // You can directly control Mocha options by uncommenting the following lines
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info

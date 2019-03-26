@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-utils-vscode": "45.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "45.7.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",

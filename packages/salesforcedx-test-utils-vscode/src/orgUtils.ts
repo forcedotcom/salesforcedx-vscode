@@ -5,11 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  CliCommandExecutor,
+  CommandOutput,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
 import * as path from 'path';
 import { cp } from 'shelljs';
 import * as util from 'util';
-import { CliCommandExecutor, CommandOutput, SfdxCommandBuilder } from '../cli';
 
 // Used only for CI purposes. Must call delete if you call create
 export async function createSFDXProject(projectName: string): Promise<void> {
