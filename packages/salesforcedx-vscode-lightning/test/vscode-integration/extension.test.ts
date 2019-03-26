@@ -72,7 +72,7 @@ describe('Test commands', () => {
     expect(coreExtension.isActive);
   });
 
-  it('aura activation', async () => {
+  it('aura activation', async function() {
     // tslint:disable-next-line:no-invalid-this
     this.timeout(10000);
     await auraExtension.activate();
