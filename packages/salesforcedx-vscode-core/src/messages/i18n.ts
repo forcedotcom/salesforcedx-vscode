@@ -82,19 +82,19 @@ export const messages = {
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
-    'SFDX: Deploy Source to Org requires a source file or directory to deploy.',
+    'You can run SFDX: Deploy Source to Org only on a source file or directory.',
   force_source_deploy_select_manifest:
-    'SFDX: Deploy Source in Manifest to Org requires a manifest file to deploy.',
+    'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
   force_source_retrieve_select_file_or_directory:
-    'SFDX: Retrieve Source from Org requires a source file or directory to retrieve.',
+    'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
   force_source_retrieve_select_manifest:
-    'SFDX: Retrieve Source in Manifest from Org requires a manifest file to retrieve.',
+    'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   force_source_delete_text: 'SFDX: Delete from Project and Org',
   force_source_delete_manifest_unsupported_message:
     'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete.',
   force_source_delete_select_file_or_directory:
-    'SFDX: Delete from Project and Org requires a source file or directory to delete.',
+    'You can run SFDX: Delete from Project and Org only on a source file or directory.',
   force_source_delete_confirmation_message:
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
