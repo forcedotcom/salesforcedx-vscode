@@ -33,6 +33,7 @@ import {
 } from './commands';
 
 const VF_CMP_EXTENSION = '.component';
+const VF_CMP_METADATA_DIR = 'components';
 
 class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
@@ -58,7 +59,12 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
+      const dirType = response.data.outputdir.endsWith(
+        path.join(SelectOutputDir.defaultOutput, VF_CMP_METADATA_DIR)
+      )
+        ? 'defaultDir'
+        : 'customDir';
+      this.logMetric(`${execution.command.logName}_${dirType}`, startTime);
       if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         vscode.workspace
           .openTextDocument(
@@ -86,8 +92,8 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(VF_CMP_EXTENSION);
 
-export async function forceVisualforceComponentCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectOutputDir('components');
+export async function forceVisualforceComponentCreate() {
+  const outputDirGatherer = new SelectOutputDir(VF_CMP_METADATA_DIR);
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

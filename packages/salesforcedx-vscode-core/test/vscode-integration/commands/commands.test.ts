@@ -229,9 +229,9 @@ describe('Command Utilities', () => {
       const options = selector.getDefaultOptions(['testapp', 'testapp2']);
 
       expect(options).to.eql([
-        path.join('testapp', selector.defaultOutput, 'test'),
-        path.join('testapp2', selector.defaultOutput, 'test'),
-        selector.customDirOption
+        path.join('testapp', SelectOutputDir.defaultOutput, 'test'),
+        path.join('testapp2', SelectOutputDir.defaultOutput, 'test'),
+        SelectOutputDir.customDirOption
       ]);
     });
 
@@ -265,7 +265,7 @@ describe('Command Utilities', () => {
       const showMenuStub = sinon.stub(selector, 'showMenu');
       const choice = customOptions[5];
       getPackageDirPathsStub.returns(['test-app']);
-      showMenuStub.onFirstCall().returns(selector.customDirOption);
+      showMenuStub.onFirstCall().returns(SelectOutputDir.customDirOption);
       showMenuStub.onSecondCall().returns(choice);
 
       const response = await selector.gather();

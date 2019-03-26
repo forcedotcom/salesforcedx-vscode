@@ -221,8 +221,8 @@ export class SelectOutputDir
   implements ParametersGatherer<{ outputdir: string }> {
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
-  public readonly defaultOutput = '/main/default';
-  public readonly customDirOption = `$(file-directory) ${nls.localize(
+  public static readonly defaultOutput = path.join('main', 'default');
+  public static readonly customDirOption = `$(file-directory) ${nls.localize(
     'custom_output_directory'
   )}`;
 
@@ -248,7 +248,7 @@ export class SelectOutputDir
     let dirOptions = this.getDefaultOptions(packageDirs);
     let outputdir = await this.showMenu(dirOptions);
 
-    if (outputdir === this.customDirOption) {
+    if (outputdir === SelectOutputDir.customDirOption) {
       dirOptions = this.getCustomOptions(getRootWorkspacePath());
       outputdir = await this.showMenu(dirOptions);
     }
@@ -260,23 +260,25 @@ export class SelectOutputDir
 
   public getDefaultOptions(packageDirectories: string[]): string[] {
     const options = packageDirectories.map(packageDir =>
-      path.join(packageDir, this.defaultOutput, this.typeDir)
+      path.join(packageDir, SelectOutputDir.defaultOutput, this.typeDir)
     );
-    options.push(this.customDirOption);
+    options.push(SelectOutputDir.customDirOption);
     return options;
   }
 
   public getCustomOptions(rootPath: string): string[] {
-    return new glob.GlobSync(path.join(rootPath, '**/')).found.map(value => {
-      let relativePath = path.relative(rootPath, path.join(value, '/'));
-      relativePath = path.join(
-        relativePath,
-        this.typeDirRequired && !relativePath.endsWith(this.typeDir)
-          ? this.typeDir
-          : ''
-      );
-      return relativePath;
-    });
+    return new glob.GlobSync(path.join(rootPath, '**', path.sep)).found.map(
+      value => {
+        let relativePath = path.relative(rootPath, path.join(value, '/'));
+        relativePath = path.join(
+          relativePath,
+          this.typeDirRequired && !relativePath.endsWith(this.typeDir)
+            ? this.typeDir
+            : ''
+        );
+        return relativePath;
+      }
+    );
   }
 
   public async showMenu(options: string[]): Promise<string | undefined> {

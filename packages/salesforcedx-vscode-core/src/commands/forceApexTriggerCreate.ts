@@ -33,6 +33,7 @@ import {
 } from './commands';
 
 const APEX_TRIGGER_EXTENSION = '.trigger';
+const APEX_TRIGGER_METADATA_DIR = 'triggers';
 
 export class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
@@ -57,7 +58,12 @@ export class ForceApexTriggerCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
+      const dirType = response.data.outputdir.endsWith(
+        path.join(SelectOutputDir.defaultOutput, APEX_TRIGGER_METADATA_DIR)
+      )
+        ? 'defaultDir'
+        : 'customDir';
+      this.logMetric(`${execution.command.logName}_${dirType}`, startTime);
       if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         vscode.workspace
           .openTextDocument(
@@ -85,8 +91,8 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(APEX_TRIGGER_EXTENSION);
 
-export async function forceApexTriggerCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectOutputDir('triggers');
+export async function forceApexTriggerCreate() {
+  const outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_METADATA_DIR);
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

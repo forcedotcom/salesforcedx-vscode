@@ -36,6 +36,7 @@ const notificationService = sfdxCoreExports.notificationService;
 const taskViewService = sfdxCoreExports.taskViewService;
 
 const LIGHTNING_LWC_EXTENSION = '.js';
+const LIGHTNING_LWC_METADATA_DIR = 'lwc';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -93,7 +94,12 @@ class ForceLightningLwcCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
+      const dirType = response.data.outputdir.endsWith(
+        path.join(SelectOutputDir.defaultOutput, LIGHTNING_LWC_METADATA_DIR)
+      )
+        ? 'defaultDir'
+        : 'customDir';
+      this.logMetric(`${execution.command.logName}_${dirType}`, startTime);
       if (
         data !== undefined &&
         data.toString() === '0' &&
@@ -127,8 +133,11 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
-export async function forceLightningLwcCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectOutputDir('lwc', true);
+export async function forceLightningLwcCreate() {
+  const outputDirGatherer = new SelectOutputDir(
+    LIGHTNING_LWC_METADATA_DIR,
+    true
+  );
   const parameterGatherer = new CompositeParametersGatherer(
     fileNameGatherer,
     outputDirGatherer
