@@ -27,7 +27,7 @@
     "change-case": "^3.1.0",
     "aura-language-server": "2.0.8",
     "lightning-lsp-common": "2.0.8",
-    "opn": "^5.4.0",
+    "open": "^6.0.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1"
   },
@@ -35,7 +35,7 @@
     "@salesforce/salesforcedx-utils-vscode": "45.7.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
-    "@types/opn": "^5.1.0",
+    "@types/open": "^6.0.0",
     "@types/node": "8.9.3",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
@@ -102,7 +102,8 @@
       "salesforce-lightning-explorer": [
         {
           "id": "salesforce-lightning-components",
-          "name": "%lightning_explorer_name%"
+          "name": "%lightning_explorer_name%",
+          "when": "config.salesforcedx-vscode-lightning.show-lightning-explorer"
         }
       ]
     },
@@ -121,6 +122,18 @@
         "title": "%lightning_open_component_title%",
         "icon": "resources/open.svg"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%feature_previews_title%",
+      "properties": {
+        "salesforcedx-vscode-lightning.show-lightning-explorer": {
+          "type": "boolean",
+          "scope": "window",
+          "default": false,
+          "description": "%show_lightning_explorer_description%"
+        }
+      }
+    }
   }
 }

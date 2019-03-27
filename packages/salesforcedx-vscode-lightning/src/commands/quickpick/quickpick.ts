@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { paramCase } from 'change-case';
-import opn = require('opn');
+import opn = require('open');
 import { Uri, window, workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { COMPONENT_LIBRARY_BUNDLE_LINK } from '../../constants';
