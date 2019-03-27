@@ -236,5 +236,5 @@ export const messages = {
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_default_devhubusername:
     'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
-  custom_output_directory: 'Select a Custom Directory'
+  custom_output_directory: 'Choose a Custom Directory'
 };
