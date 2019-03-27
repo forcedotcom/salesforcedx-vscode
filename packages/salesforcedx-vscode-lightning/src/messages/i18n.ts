@@ -15,4 +15,8 @@
  *
  * If ommitted, we will assume _message.
  */
-export const messages = {};
+export const messages = {
+  channel_name: 'Aura Language Server',
+  client_name: 'Aura Language Server',
+  index_components_text: 'Indexing Lightning Components'
+};

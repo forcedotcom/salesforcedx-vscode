@@ -6,20 +6,25 @@
  */
 
 import * as path from 'path';
-import * as vscode from 'vscode';
-import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
+import {
+  commands,
+  ExtensionContext,
+  extensions,
+  ProgressLocation,
+  Uri,
+  window,
+  workspace
+} from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { telemetryService } from './telemetry';
-
 import { createQuickOpenCommand } from './commands/quickpick/quickpick';
+import { nls } from './messages';
+import { telemetryService } from './telemetry';
 import { ComponentTreeProvider } from './views/component-tree-provider';
-
-import { ProgressLocation } from 'vscode';
 
 let client: LanguageClient;
 
@@ -62,7 +67,7 @@ export async function activate(context: ExtensionContext) {
   };
 
   const clientOptions: LanguageClientOptions = {
-    outputChannelName: 'Aura Language Server',
+    outputChannelName: nls.localize('channel_name'),
     documentSelector: [
       {
         language: 'html',
@@ -106,7 +111,7 @@ export async function activate(context: ExtensionContext) {
   // Create the language client and start the client.
   this.client = client = new LanguageClient(
     'auraLanguageServer',
-    'Aura Language Server',
+    nls.localize('client_name'),
     serverOptions,
     clientOptions
   );
@@ -135,7 +140,7 @@ export async function activate(context: ExtensionContext) {
   client.start();
   context.subscriptions.push(this.client);
 
-  const sfdxCoreExtension = vscode.extensions.getExtension(
+  const sfdxCoreExtension = extensions.getExtension(
     'salesforce.salesforcedx-vscode-core'
   );
 
@@ -169,7 +174,7 @@ function reportIndexing(indexingPromise: Promise<void>) {
   window.withProgress(
     {
       location: ProgressLocation.Window,
-      title: 'Indexing Lightning Components',
+      title: nls.localize('index_components_text'),
       cancellable: true
     },
     () => {

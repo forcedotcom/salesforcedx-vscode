@@ -10,7 +10,10 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { channelService } from '../channels';
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -32,6 +35,21 @@ export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
 }
 
 export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
+  if (!explorerPath) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId === 'forcesourcemanifest') {
+      explorerPath = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize(
+        'force_source_retrieve_select_manifest'
+      );
+      telemetryService.sendError(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
+    }
+  }
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
