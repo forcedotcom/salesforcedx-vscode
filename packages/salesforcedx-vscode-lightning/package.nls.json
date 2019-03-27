@@ -1,5 +1,7 @@
 {
   "lightning_open_component_title": "SFDX: Open Lightning Component",
   "lightning_explorer_title": "Lightning Explorer",
-  "lightning_explorer_name": "Lightning Components"
+  "feature_previews_title": "Salesforce Feature Previews",
+  "lightning_explorer_name": "Lightning Components",
+  "show_lightning_explorer_description": "Show the lightning explorer view"
 }
