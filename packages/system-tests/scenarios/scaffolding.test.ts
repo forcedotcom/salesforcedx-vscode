@@ -267,13 +267,13 @@ describe('Scaffolding commands', () => {
 
     const fileName = `lwc_${new Date().getTime()}`;
 
-    // Enter desired location (without slashes so it's OS-independent)
-    await common.type('force-appmaindefaultlwc');
+    // Enter file name
+    await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
-    // Enter file name
-    await common.type(fileName);
+    // Enter desired location (without slashes so it's OS-independent)
+    await common.type('force-appmaindefaultlwc');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.wait();
 
