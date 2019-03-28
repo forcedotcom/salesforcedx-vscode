@@ -76,8 +76,9 @@ describe('Channel', () => {
           resolve();
         });
       });
+      expect(mChannel.value).to.contain('Starting sfdx force --help\n\n');
       expect(mChannel.value).to.contain(
-        'sfdx force: [-v] [--json] [--loglevel <string>]'
+        '\nUSAGE\n  $ sfdx force [--json] [--loglevel trace|debug|info|warn|error|fatal]\n\nOPTIONS\n'
       );
       expect(mChannel.value).to.contain('ended with exit code 0');
     });
@@ -98,7 +99,7 @@ describe('Channel', () => {
           resolve();
         });
       });
-      expect(mChannel.value).to.contain('Unexpected argument --unknown');
+      expect(mChannel.value).to.contain('Unexpected argument: --unknown');
     });
 
     it('Should suggest to install SFDX binary', async () => {
