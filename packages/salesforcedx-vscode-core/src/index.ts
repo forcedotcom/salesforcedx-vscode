@@ -61,6 +61,7 @@ import { setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { forceDescribeMetadata } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -288,6 +289,8 @@ function registerCommands(
     forceConfigSet
   );
 
+  const forceDescribeMetadataCmd = vscode.commands.registerCommand('sfdx.force.describe.metadata', forceDescribeMetadata);
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -336,7 +339,8 @@ function registerCommands(
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
     forceApexLogGetCmd,
-    forceConfigSetCmd
+    forceConfigSetCmd,
+    forceDescribeMetadataCmd
   );
 }
 
