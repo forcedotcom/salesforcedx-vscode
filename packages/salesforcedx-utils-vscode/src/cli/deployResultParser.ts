@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { EOL } from 'os';
-
 export const CONFLICT_ERROR_NAME = 'sourceConflictDetected';
 
 export interface DeployResult {
@@ -37,15 +35,18 @@ export interface ForceSourceDeploySuccessResponse {
 export class ForceDeployResultParser {
   private response: any;
 
-  constructor(stdOut: string) {
-    const stdErrLines = stdOut.split(EOL);
-    for (const line of stdErrLines) {
-      if (line.trim().startsWith('{')) {
-        this.response = JSON.parse(line);
-        return;
-      }
+  constructor(stdout: string) {
+    try {
+      const sanitized = stdout.substring(
+        stdout.indexOf('{'),
+        stdout.lastIndexOf('}') + 1
+      );
+      this.response = JSON.parse(sanitized);
+    } catch (e) {
+      const err = new Error('Error parsing deploy result');
+      err.name = 'DeployParserFail';
+      throw err;
     }
-    throw new Error('No JSON found in response');
   }
 
   public getErrors(): ForceSourceDeployErrorResponse | undefined {

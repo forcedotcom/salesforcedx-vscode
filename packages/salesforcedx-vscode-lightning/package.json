@@ -1,7 +1,7 @@
 {
   "name": "salesforcedx-vscode-lightning",
   "displayName": "Aura Components",
-  "description": "Provides syntax highlighting for Aura components",
+  "description": "Provides code-editing features for Aura Components",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "45.7.0",
+  "version": "45.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,14 +24,19 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-slds-linter": "45.7.0",
-    "vscode-extension-telemetry": "0.0.17"
+    "@salesforce/salesforcedx-utils-vscode": "45.8.0",
+    "aura-language-server": "2.0.11",
+    "change-case": "^3.1.0",
+    "lightning-lsp-common": "2.0.11",
+    "open": "^6.0.0",
+    "vscode-extension-telemetry": "0.0.17",
+    "vscode-languageclient": "^3.5.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "45.7.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
+    "@types/open": "^6.0.0",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
@@ -58,7 +63,8 @@
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json"
+    "workspaceContains:sfdx-project.json",
+    "workspaceContains:**/core/workspace-user.xml"
   ],
   "main": "./out/src",
   "contributes": {
@@ -82,6 +88,52 @@
         "scopeName": "text.html.basic",
         "path": "./syntaxes/html.tmLanguage.json"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "salesforce-lightning-explorer",
+          "title": "%lightning_explorer_title%",
+          "icon": "resources/lightning.svg"
+        }
+      ]
+    },
+    "views": {
+      "salesforce-lightning-explorer": [
+        {
+          "id": "salesforce-lightning-components",
+          "name": "%lightning_explorer_name%",
+          "when": "config.salesforcedx-vscode-lightning.show-lightning-explorer"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "salesforce-lightning-quickopen",
+          "when": "view == salesforce-lightning-components && viewItem == external",
+          "group": "inline"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "salesforce-lightning-quickopen",
+        "title": "%lightning_open_component_title%",
+        "icon": "resources/open.svg"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%feature_previews_title%",
+      "properties": {
+        "salesforcedx-vscode-lightning.show-lightning-explorer": {
+          "type": "boolean",
+          "scope": "window",
+          "default": false,
+          "description": "%show_lightning_explorer_description%"
+        }
+      }
+    }
   }
 }
