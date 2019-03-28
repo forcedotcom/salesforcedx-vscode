@@ -41,11 +41,11 @@ describe('CommandExecutor tests', () => {
       });
 
       expect(exitCode).to.equal('0');
-      expect(stdout).to.contain('Usage: sfdx force');
+      expect(stdout).to.contain('USAGE\n  $ sfdx force');
       expect(stderr).to.contain('');
     });
 
-    it('Should pipe stderr', async () => {
+    it('Should pipe errors on stdout', async () => {
       const execution = new CliCommandExecutor(
         new SfdxCommandBuilder()
           .withArg('force')
@@ -71,7 +71,9 @@ describe('CommandExecutor tests', () => {
 
       expect(exitCode).to.not.equal('0');
       expect(stdout).to.contain('');
-      expect(stderr).to.contain('Unexpected argument --unknown');
+      expect(stderr).to.contain(
+        'ERROR running force:  Unexpected argument: --unknown'
+      );
     });
   });
 
