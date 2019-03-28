@@ -1,3 +1,25 @@
+## 45.8.0 - March 28, 2019
+
+### Added
+
+#### salesforcedx-vscode-lightning
+
+- Add Aura Language Server: Support Go to Definition, autocompletion, and showing documentation on hover ([PR #1183](https://github.com/forcedotcom/salesforcedx-vscode/pull/1183))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix threading issues in Apex Language Server’s CompilerService ([PR #1173](https://github.com/forcedotcom/salesforcedx-vscode/pull/1173), [Issue #867](https://github.com/forcedotcom/salesforcedx-vscode/issues/867))
+
+#### salesforcedx-vscode-core
+
+- Prevent Output panel from stealing focus during command execution ([PR #1181](https://github.com/forcedotcom/salesforcedx-vscode/pull/1181), [Issue #1110](https://github.com/forcedotcom/salesforcedx-vscode/issues/1110))
+
+#### salesforcedx-vscode-lightning
+
+- Remove deprecated SLDS linter ([PR #1191](https://github.com/forcedotcom/salesforcedx-vscode/pull/1191))
+
 ## 45.7.0 - March 21, 2019
 
 ### Added
