@@ -9,7 +9,7 @@ export {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
   SelectFileName,
-  SelectStrictDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker

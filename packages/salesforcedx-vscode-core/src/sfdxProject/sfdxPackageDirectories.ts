@@ -17,7 +17,7 @@ export default class SfdxPackageDirectories {
       'packageDirectories'
     )) as JsonArray;
     if (packageDirectories) {
-      const packageDirectoryPaths: string[] = [];
+      let packageDirectoryPaths: string[] = [];
       packageDirectories.forEach(packageDir => {
         if (packageDir) {
           const packageDirectory = packageDir as JsonMap;
@@ -27,7 +27,11 @@ export default class SfdxPackageDirectories {
             if (dirPath.startsWith(path.sep)) {
               dirPath = dirPath.substring(1);
             }
-            packageDirectoryPaths.push(dirPath);
+            if (packageDirectory.default) {
+              packageDirectoryPaths = [dirPath].concat(packageDirectoryPaths);
+            } else {
+              packageDirectoryPaths.push(dirPath);
+            }
           }
         }
       });

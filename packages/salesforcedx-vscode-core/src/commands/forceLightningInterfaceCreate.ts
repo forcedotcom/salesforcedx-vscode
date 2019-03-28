@@ -26,13 +26,14 @@ import {
   CompositeParametersGatherer,
   LightningFilePathExistsChecker,
   SelectFileName,
-  SelectStrictDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 
 const LIGHTNING_INT_EXTENSION = '.intf';
+const LIGHTNING_METADATA_DIR = 'aura';
 
 class ForceLightningInterfaceCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
@@ -57,12 +58,13 @@ class ForceLightningInterfaceCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      if (
-        data !== undefined &&
-        data.toString() === '0' &&
-        hasRootWorkspace()
-      ) {
+      const dirType = response.data.outputdir.endsWith(
+        path.join(SelectOutputDir.defaultOutput, LIGHTNING_METADATA_DIR)
+      )
+        ? 'defaultDir'
+        : 'customDir';
+      this.logMetric(`${execution.command.logName}_${dirType}`, startTime);
+      if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         vscode.workspace
           .openTextDocument(
             path.join(
@@ -91,8 +93,8 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
-export async function forceLightningInterfaceCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectStrictDirPath(explorerDir, 'aura');
+export async function forceLightningInterfaceCreate() {
+  const outputDirGatherer = new SelectOutputDir(LIGHTNING_METADATA_DIR, true);
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);
