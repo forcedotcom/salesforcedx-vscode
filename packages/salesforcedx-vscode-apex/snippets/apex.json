@@ -239,7 +239,7 @@
         "prefix": "@TestSetup",
         "body": [
             "@TestSetup",
-            "static void ${1:makeData}(){",
+            "static void ${1:makeData}(){}",
             "\t",
             "}"
         ],
