@@ -227,7 +227,7 @@
             "static void ${1:methodName}(){",
             "\t",
             "\ttest.startTest();",
-            "\tsystem.RunAs(${2:contextuser}){",
+            "\tsystem.RunAs(${2:contextuser}){}",
             "\t",
             "\ttest.stopTest();",
             "\t",
