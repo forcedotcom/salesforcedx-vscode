@@ -25,6 +25,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
@@ -216,85 +217,74 @@ export class SelectFileName
   }
 }
 
-export abstract class SelectDirPath
+export class SelectOutputDir
   implements ParametersGatherer<{ outputdir: string }> {
-  private explorerDir: string | undefined;
-  private globKeyWord: string | undefined;
+  private typeDir: string;
+  private typeDirRequired: boolean | undefined;
+  public static readonly defaultOutput = path.join('main', 'default');
+  public static readonly customDirOption = `$(file-directory) ${nls.localize(
+    'custom_output_directory'
+  )}`;
 
-  public constructor(explorerDir?: vscode.Uri, globKeyWord?: string) {
-    this.explorerDir = explorerDir ? explorerDir.fsPath : explorerDir;
-    this.globKeyWord = globKeyWord;
+  public constructor(typeDir: string, typeDirRequired?: boolean) {
+    this.typeDir = typeDir;
+    this.typeDirRequired = typeDirRequired;
   }
-
-  public abstract globDirs(srcPath: string, priorityKeyword?: string): string[];
 
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ outputdir: string }>
   > {
-    const rootPath = getRootWorkspacePath();
-    let outputdir;
-    if (rootPath) {
+    let packageDirs: string[] = [];
+    try {
+      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    } catch (e) {
       if (
-        !this.explorerDir &&
-        this.globDirs(rootPath, this.globKeyWord).length === 0
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
       ) {
-        notificationService.showErrorMessage(
-          nls.localize(
-            'parameter_directory_strict_not_available',
-            this.globKeyWord
-          )
-        );
-        return { type: 'CANCEL' };
+        throw e;
       }
-      outputdir = this.explorerDir
-        ? path.relative(rootPath, this.explorerDir)
-        : await vscode.window.showQuickPick(
-            this.globDirs(rootPath, this.globKeyWord),
-            {
-              placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-            } as vscode.QuickPickOptions
-          );
     }
+    let dirOptions = this.getDefaultOptions(packageDirs);
+    let outputdir = await this.showMenu(dirOptions);
+
+    if (outputdir === SelectOutputDir.customDirOption) {
+      dirOptions = this.getCustomOptions(getRootWorkspacePath());
+      outputdir = await this.showMenu(dirOptions);
+    }
+
     return outputdir
       ? { type: 'CONTINUE', data: { outputdir } }
       : { type: 'CANCEL' };
   }
-}
-export class SelectPrioritizedDirPath extends SelectDirPath {
-  public globDirs(srcPath: string, priorityKeyword?: string): string[] {
-    const unprioritizedRelDirs = new glob.GlobSync(
-      path.join(srcPath, '**/')
-    ).found.map(value => {
-      let relativePath = path.relative(srcPath, path.join(value, '/'));
-      relativePath = path.join(relativePath, '');
-      return relativePath;
-    });
-    if (priorityKeyword) {
-      const notPrioritized: string[] = [];
-      const prioritized = unprioritizedRelDirs.filter(dir => {
-        if (dir.includes(priorityKeyword)) {
-          return true;
-        } else {
-          notPrioritized.push(dir);
-        }
-      });
-      return prioritized.concat(notPrioritized);
-    }
-    return unprioritizedRelDirs;
-  }
-}
 
-export class SelectStrictDirPath extends SelectDirPath {
-  public globDirs(srcPath: string, priorityKeyword?: string): string[] {
-    const globPattern = priorityKeyword
-      ? path.join(srcPath, '**/', priorityKeyword + '/')
-      : path.join(srcPath, '**/');
-    const relativeDirs = new glob.GlobSync(globPattern).found.map(value => {
-      let relativePath = path.relative(srcPath, path.join(value, '/'));
-      relativePath = path.join(relativePath, '');
-      return relativePath;
-    });
-    return relativeDirs;
+  public getDefaultOptions(packageDirectories: string[]): string[] {
+    const options = packageDirectories.map(packageDir =>
+      path.join(packageDir, SelectOutputDir.defaultOutput, this.typeDir)
+    );
+    options.push(SelectOutputDir.customDirOption);
+    return options;
+  }
+
+  public getCustomOptions(rootPath: string): string[] {
+    return new glob.GlobSync(path.join(rootPath, '**', path.sep)).found.map(
+      value => {
+        let relativePath = path.relative(rootPath, path.join(value, '/'));
+        relativePath = path.join(
+          relativePath,
+          this.typeDirRequired && !relativePath.endsWith(this.typeDir)
+            ? this.typeDir
+            : ''
+        );
+        return relativePath;
+      }
+    );
+  }
+
+  public async showMenu(options: string[]): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+    } as vscode.QuickPickOptions);
   }
 }
 
