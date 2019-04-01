@@ -9,7 +9,9 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as fs from 'fs';
 import * as path from 'path';
+import { isNullOrUndefined } from 'util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -17,7 +19,7 @@ import {
   SfdxWorkspaceChecker
 } from '../commands';
 import { nls } from '../messages';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { getRootWorkspacePath } from '../util';
 
 export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string> {
   public build(data: string): Command {
@@ -45,4 +47,28 @@ export async function forceDescribeMetadata() {
     describeExecutor
   );
   await commandlet.run();
+  buildTypeList();
+}
+
+export type MetadataObject = {
+  directoryName: string;
+  inFolder: boolean;
+  metaFile: boolean;
+  suffix: string;
+  xmlName: string;
+};
+
+export function buildTypeList() {
+  const filePath = path.join(getRootWorkspacePath(), '.sfdx', 'tools', 'metadata', 'metadataTypes.json');
+  if (fs.existsSync(filePath)) {
+    const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const metadataObjects = fileData.metadataObjects;
+    const metadataTypes = [];
+    for (const index in metadataObjects) {
+      if (!isNullOrUndefined(metadataObjects[index].xmlName)) {
+        metadataTypes.push(metadataObjects[index].xmlName);
+      }
+    }
+    console.log(metadataTypes);
+  }
 }
