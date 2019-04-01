@@ -11,6 +11,8 @@
       url: /articles/getting-started/recommended-extensions
     - title: Settings
       url: /articles/getting-started/settings
+    - title: Prettier Code Formatter
+      url: /articles/getting-started/prettier
     - title: Tips & Tricks
       url: /articles/getting-started/tips-and-tricks
 - title: User Guide
