@@ -348,9 +348,6 @@
         {
           "command": "sfdx.force.source.delete.current.file",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
-        },
-        {
-          "command": "sfdx.force.describe.metadata"
         }
       ]
     },
@@ -542,10 +539,6 @@
       {
         "command": "sfdx.force.set.default.org",
         "title": "%force_config_set_org_text%"
-      },
-      {
-        "command": "sfdx.force.describe.metadata",
-        "title": "SFDX: Describe Metadata"
       }
     ],
     "configuration": {
