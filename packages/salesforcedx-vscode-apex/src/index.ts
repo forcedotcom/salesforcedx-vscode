@@ -24,11 +24,11 @@ import {
   SFDX_APEX_CONFIGURATION_NAME
 } from './constants';
 import {
+  ClientStatus,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
-  isLanguageClientReady,
-  LanguageClientUtils
+  languageClientUtils
 } from './languageClientUtils';
 import * as languageServer from './languageServer';
 import { nls } from './messages';
@@ -72,56 +72,64 @@ export async function activate(context: vscode.ExtensionContext) {
     coreTelemetryService.isTelemetryEnabled()
   );
 
-  const langClientHRStart = process.hrtime();
-  languageClient = await languageServer.createLanguageServer(context);
-  LanguageClientUtils.setClientInstance(languageClient);
-  const handle = languageClient.start();
-  context.subscriptions.push(handle);
+  // Initialize Apex language server
+  try {
+    const langClientHRStart = process.hrtime();
+    languageClient = await languageServer.createLanguageServer(context);
+    languageClientUtils.setClientInstance(languageClient);
+    const handle = languageClient.start();
+    languageClientUtils.setStatus(ClientStatus.Indexing, '');
+    context.subscriptions.push(handle);
 
-  languageClient
-    .onReady()
-    .then(async () => {
-      if (languageClient) {
-        languageClient.onNotification('indexer/done', async () => {
-          LanguageClientUtils.indexing = false;
+    languageClient
+      .onReady()
+      .then(async () => {
+        if (languageClient) {
+          languageClient.onNotification('indexer/done', async () => {
+            // Refresh SObject definitions if there aren't any faux classes
+            const sobjectRefreshStartup: boolean = vscode.workspace
+              .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
+              .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+            if (sobjectRefreshStartup) {
+              initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
+                telemetryService.sendErrorEvent(e.message, e.stack)
+              );
+            }
 
-          // Refresh SObject definitions if there aren't any faux classes
-          const sobjectRefreshStartup: boolean = vscode.workspace
-            .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
-            .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
-          if (sobjectRefreshStartup) {
-            initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
-              telemetryService.sendErrorEvent(e.message, e.stack)
-            );
-          }
-
-          await testOutlineProvider.refresh();
-        });
-      }
-      LanguageClientUtils.languageClientReady = true;
-      telemetryService.sendApexLSPActivationEvent(langClientHRStart);
-    })
-    .catch(err => {
-      // Handled by clients
-      telemetryService.sendApexLSPError(err);
-    });
+            await testOutlineProvider.refresh();
+          });
+        }
+        languageClientUtils.setStatus(ClientStatus.Ready, '');
+        telemetryService.sendApexLSPActivationEvent(langClientHRStart);
+      })
+      .catch(err => {
+        // Handled by clients
+        telemetryService.sendApexLSPError(err);
+        languageClientUtils.setStatus(ClientStatus.Error, err);
+      });
+  } catch (e) {
+    console.error('Apex language server failed to initialize');
+    languageClientUtils.setStatus(ClientStatus.Error, e);
+  }
 
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
 
   context.subscriptions.push(await registerTestView(testOutlineProvider));
+  const languageClientStatus = languageClientUtils.getStatus();
 
   const exportedApi = {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
-    isLanguageClientReady,
-    getApexTests
+    getApexTests,
+    languageClientStatus
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
+
 function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
@@ -173,6 +181,7 @@ function registerCommands(
     forceGenerateFauxClassesCmd
   );
 }
+
 async function registerTestView(
   testOutlineProvider: ApexTestOutlineProvider
 ): Promise<vscode.Disposable> {
@@ -224,7 +233,7 @@ async function registerTestView(
   // Refresh Test View command
   testViewItems.push(
     vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
-      if (!LanguageClientUtils.indexing) {
+      if (!languageClientUtils.getStatus().isIndexing()) {
         return testOutlineProvider.refresh();
       }
     })
