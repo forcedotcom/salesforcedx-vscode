@@ -15,6 +15,12 @@ import TelemetryReporter from './telemetryReporter';
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
+interface CommandMetric {
+  extensionName: string;
+  commandName: string;
+  executionTime?: string;
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private context: vscode.ExtensionContext | undefined;
@@ -127,20 +133,25 @@ export class TelemetryService {
 
   public sendCommandEvent(
     commandName?: string,
-    hrstart?: [number, number]
+    hrstart?: [number, number],
+    additionalData?: any
   ): void {
     if (
       this.reporter !== undefined &&
       this.isTelemetryEnabled() &&
-      commandName &&
-      hrstart
+      commandName
     ) {
-      const executionTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent('commandExecution', {
+      const baseTelemetry: CommandMetric = {
         extensionName: EXTENSION_NAME,
-        commandName,
-        executionTime
-      });
+        commandName
+      };
+
+      if (hrstart) {
+        baseTelemetry['executionTime'] = this.getEndHRTime(hrstart);
+      }
+
+      const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
+      this.reporter.sendTelemetryEvent('commandExecution', aggregatedTelemetry);
     }
   }
 
@@ -171,6 +182,6 @@ export class TelemetryService {
 
   private getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
-    return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);
+    return util.format('%d%d', hrend[0], hrend[1] / 1000000);
   }
 }
