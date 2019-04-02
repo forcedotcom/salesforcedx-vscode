@@ -6,12 +6,19 @@
  */
 
 import {
+  CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  ContinueResponse
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Observable } from 'rxjs/Observable';
 import { isNullOrUndefined } from 'util';
+import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -19,35 +26,92 @@ import {
   SfdxWorkspaceChecker
 } from '../commands';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from '../util';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string> {
-  public build(data: string): Command {
-    const filePath = path.join(getRootWorkspacePath(), '.sfdx', 'tools', 'metadata', 'metadataTypes.json');
+  private outputPath: string;
+
+  public constructor(outputPath: string) {
+    super();
+    this.outputPath = outputPath;
+  }
+
+  public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('')
+       'SFDX: Describe Metadata'
       )
       .withArg('force:mdapi:describemetadata')
       .withJson()
-      .withFlag('-f', filePath)
+      .withFlag('-f', this.outputPath)
       .withLogName('force_describe_metadata')
       .build();
+  }
+
+  public execute(response: ContinueResponse<string>): void {
+    const startTime = process.hrtime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: getRootWorkspacePath()
+    }).execute(cancellationToken);
+
+    execution.processExitSubject.subscribe(async data => {
+      this.logMetric(execution.command.logName, startTime);
+      buildTypeList();
+    });
+    notificationService.reportExecutionError(
+      execution.command.toString(),
+      (execution.stderrSubject as any) as Observable<Error | undefined>
+    );
+    channelService.streamCommandOutput(execution);
+    ProgressNotification.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+}
+
+async function getDirectory(): Promise<string | undefined> {
+  if (hasRootWorkspace()) {
+    const workspaceRootPath = getRootWorkspacePath();
+    const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
+    const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
+
+    if (defaultUsernameIsSet) {
+      const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
+      const metadataTypesPath = path.join(workspaceRootPath, '.sfdx', 'orgs', username, 'metadata', 'metadataTypes.json');
+      return metadataTypesPath;
+    } else {
+      throw new Error(nls.localize('error_no_default_username'));
+    }
+  } else {
+    throw new Error(nls.localize('cannot_determine_workspace'));
+  }
+}
+
+export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
+  if (hasRootWorkspace()) {
+    return await OrgAuthInfo.getDefaultUsernameOrAlias();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const describeExecutor = new ForceDescribeMetadataExecutor();
 
 export async function forceDescribeMetadata() {
-  const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    describeExecutor
-  );
-  await commandlet.run();
-  buildTypeList();
+  const outputPath = await getDirectory();
+  if (!isNullOrUndefined(outputPath)) {
+    const describeExecutor = new ForceDescribeMetadataExecutor(outputPath);
+    const commandlet = new SfdxCommandlet(
+      workspaceChecker,
+      parameterGatherer,
+      describeExecutor
+    );
+    await commandlet.run();
+  }
+
 }
 
 export type MetadataObject = {
@@ -58,9 +122,9 @@ export type MetadataObject = {
   xmlName: string;
 };
 
-export function buildTypeList() {
-  const filePath = path.join(getRootWorkspacePath(), '.sfdx', 'tools', 'metadata', 'metadataTypes.json');
-  if (fs.existsSync(filePath)) {
+export async function buildTypeList() {
+  const filePath = await getDirectory();
+  if (!isNullOrUndefined(filePath)) {
     const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     const metadataObjects = fileData.metadataObjects;
     const metadataTypes = [];
@@ -69,6 +133,7 @@ export function buildTypeList() {
         metadataTypes.push(metadataObjects[index].xmlName);
       }
     }
-    console.log(metadataTypes);
+  } else {
+    throw new Error('There was an error retrieving metadata type information.');
   }
 }

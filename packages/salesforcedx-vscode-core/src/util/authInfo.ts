@@ -12,7 +12,7 @@ import {
 } from '@salesforce/core';
 import * as path from 'path';
 import { nls } from '../messages';
-import { getRootWorkspacePath, hasRootWorkspace } from './index';
+import { getRootWorkspacePath } from './index';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
     try {
