@@ -61,7 +61,7 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      buildTypeList();
+      await buildTypeList();
     });
     notificationService.reportExecutionError(
       execution.command.toString(),
