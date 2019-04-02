@@ -61,7 +61,7 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      await buildTypeList();
+      buildTypesList(this.outputPath);
     });
     notificationService.reportExecutionError(
       execution.command.toString(),
@@ -73,7 +73,22 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string
   }
 }
 
-async function getDirectory(): Promise<string | undefined> {
+const workspaceChecker = new SfdxWorkspaceChecker();
+const parameterGatherer = new EmptyParametersGatherer();
+
+export async function forceDescribeMetadata(outputPath?: string) {
+  if (!isNullOrUndefined(outputPath)) {
+    const describeExecutor = new ForceDescribeMetadataExecutor(outputPath);
+    const commandlet = new SfdxCommandlet(
+      workspaceChecker,
+      parameterGatherer,
+      describeExecutor
+    );
+    await commandlet.run();
+  }
+}
+
+async function getMetadataTypesPath(): Promise<string | undefined> {
   if (hasRootWorkspace()) {
     const workspaceRootPath = getRootWorkspacePath();
     const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
@@ -97,23 +112,6 @@ export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-
-export async function forceDescribeMetadata() {
-  const outputPath = await getDirectory();
-  if (!isNullOrUndefined(outputPath)) {
-    const describeExecutor = new ForceDescribeMetadataExecutor(outputPath);
-    const commandlet = new SfdxCommandlet(
-      workspaceChecker,
-      parameterGatherer,
-      describeExecutor
-    );
-    await commandlet.run();
-  }
-
-}
-
 export type MetadataObject = {
   directoryName: string;
   inFolder: boolean;
@@ -122,10 +120,9 @@ export type MetadataObject = {
   xmlName: string;
 };
 
-export async function buildTypeList() {
-  const filePath = await getDirectory();
-  if (!isNullOrUndefined(filePath)) {
-    const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+export function buildTypesList(metadataTypesPath: string) {
+  if (!isNullOrUndefined(metadataTypesPath)) {
+    const fileData = JSON.parse(fs.readFileSync(metadataTypesPath, 'utf8'));
     const metadataObjects = fileData.metadataObjects;
     const metadataTypes = [];
     for (const index in metadataObjects) {
@@ -135,5 +132,14 @@ export async function buildTypeList() {
     }
   } else {
     throw new Error('There was an error retrieving metadata type information.');
+  }
+}
+
+export async function onUsernameChange() {
+  const metadataTypesPath = await getMetadataTypesPath();
+  if (!isNullOrUndefined(metadataTypesPath) && fs.existsSync(metadataTypesPath)) {
+    buildTypesList(metadataTypesPath);
+  } else {
+    await forceDescribeMetadata(metadataTypesPath);
   }
 }
