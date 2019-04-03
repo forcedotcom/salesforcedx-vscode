@@ -34,22 +34,8 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, false);
 
-    telemetryService.sendCommandEvent('some_apex_command');
+    telemetryService.sendExtensionActivationEvent([1, 700]);
     assert.notCalled(sendEvent);
-  });
-
-  it('Should send correct data format on sendCommandEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
-
-    telemetryService.sendCommandEvent('some_apex_command');
-    assert.calledOnce(sendEvent);
-
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex',
-      commandName: 'some_apex_command'
-    };
-    assert.calledWith(sendEvent, 'commandExecution', expectedData);
   });
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
