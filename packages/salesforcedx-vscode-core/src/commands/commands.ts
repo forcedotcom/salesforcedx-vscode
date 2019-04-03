@@ -358,9 +358,10 @@ export abstract class SfdxCommandletExecutor<T>
 
   public logMetric(
     logName: string | undefined,
-    executionTime: [number, number]
+    executionTime: [number, number],
+    additionalData?: any
   ) {
-    telemetryService.sendCommandEvent(logName, executionTime);
+    telemetryService.sendCommandEvent(logName, executionTime, additionalData);
   }
 
   public execute(response: ContinueResponse<T>): void {
