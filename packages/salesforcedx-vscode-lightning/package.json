@@ -45,9 +45,6 @@
     "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
-  ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -64,7 +61,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "workspaceContains:**/core/workspace-user.xml"
+    "workspaceContains:**/core/workspace-user.xml",
+    "onView:salesforce-lightning-components"
   ],
   "main": "./out/src",
   "contributes": {

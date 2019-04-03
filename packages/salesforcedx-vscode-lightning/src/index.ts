@@ -52,7 +52,13 @@ export async function activate(context: ExtensionContext) {
   );
 
   // The debug options for the server
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6020'] };
+  const debugOptions = {
+    execArgv: [
+      '--nolazy',
+      '--inspect-brk=6020',
+      '--abort-on-uncaught-exception'
+    ]
+  };
   // let debugOptions = { };
 
   // If the extension is launched in debug mode then the debug server options are used
@@ -62,7 +68,8 @@ export async function activate(context: ExtensionContext) {
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
-      options: debugOptions
+      options: debugOptions,
+      runtime: '/Users/midzelis/.nvm/versions/node/v10.15.3/bin/node'
     }
   };
 
@@ -140,21 +147,7 @@ export async function activate(context: ExtensionContext) {
   client.start();
   context.subscriptions.push(this.client);
 
-  const sfdxCoreExtension = extensions.getExtension(
-    'salesforce.salesforcedx-vscode-core'
-  );
-
-  // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
-
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 let indexingResolve: any;
