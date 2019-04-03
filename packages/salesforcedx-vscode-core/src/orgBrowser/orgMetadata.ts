@@ -10,9 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
@@ -28,9 +26,12 @@ import {
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
-export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string> {
+export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
+  string
+> {
   private outputPath: string;
 
   public constructor(outputPath: string) {
@@ -40,9 +41,6 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string
 
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withDescription(
-       'SFDX: Describe Metadata'
-      )
       .withArg('force:mdapi:describemetadata')
       .withJson()
       .withFlag('-f', this.outputPath)
@@ -76,39 +74,46 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<string
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
+// refresh when registering the command or checking to see if server is available initially
 export async function forceDescribeMetadata(outputPath?: string) {
-  if (!isNullOrUndefined(outputPath)) {
-    const describeExecutor = new ForceDescribeMetadataExecutor(outputPath);
-    const commandlet = new SfdxCommandlet(
-      workspaceChecker,
-      parameterGatherer,
-      describeExecutor
-    );
-    await commandlet.run();
+  if (isNullOrUndefined(outputPath)) {
+    outputPath = await getMetadataTypesPath();
   }
+  const describeExecutor = new ForceDescribeMetadataExecutor(outputPath!);
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    describeExecutor
+  );
+  await commandlet.run();
 }
 
 async function getMetadataTypesPath(): Promise<string | undefined> {
   if (hasRootWorkspace()) {
     const workspaceRootPath = getRootWorkspacePath();
-    const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
+    const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias();
     const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
 
     if (defaultUsernameIsSet) {
       const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
-      const metadataTypesPath = path.join(workspaceRootPath, '.sfdx', 'orgs', username, 'metadata', 'metadataTypes.json');
+      const metadataTypesPath = path.join(
+        workspaceRootPath,
+        '.sfdx',
+        'orgs',
+        username,
+        'metadata',
+        'metadataTypes.json'
+      );
       return metadataTypesPath;
     } else {
-      throw new Error(nls.localize('error_no_default_username'));
+      const err = nls.localize('error_no_default_username');
+      telemetryService.sendError(err);
+      throw new Error(err);
     }
   } else {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
-}
-
-export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
-  if (hasRootWorkspace()) {
-    return await OrgAuthInfo.getDefaultUsernameOrAlias();
+    const err = nls.localize('cannot_determine_workspace');
+    telemetryService.sendError(err);
+    throw new Error(err);
   }
 }
 
@@ -119,27 +124,27 @@ export type MetadataObject = {
   suffix: string;
   xmlName: string;
 };
-
+// builds the list. saves as a list right now, later should be used to add as child nodes to root node tree
 export function buildTypesList(metadataTypesPath: string) {
   if (!isNullOrUndefined(metadataTypesPath)) {
     const fileData = JSON.parse(fs.readFileSync(metadataTypesPath, 'utf8'));
-    const metadataObjects = fileData.metadataObjects;
+    const metadataObjects = fileData.metadataObjects as MetadataObject[];
     const metadataTypes = [];
-    for (const index in metadataObjects) {
-      if (!isNullOrUndefined(metadataObjects[index].xmlName)) {
-        metadataTypes.push(metadataObjects[index].xmlName);
+    for (const metadataObject of metadataObjects) {
+      if (!isNullOrUndefined(metadataObject.xmlName)) {
+        metadataTypes.push(metadataObject.xmlName);
       }
     }
   } else {
-    throw new Error('There was an error retrieving metadata type information.');
+    const err = nls.localize('There was an error retrieving metadata type information.');
+    telemetryService.sendError(err);
+    throw new Error(err);
   }
 }
-
+// when the default username is updated we should get the file in the background if we don't previously have it
 export async function onUsernameChange() {
   const metadataTypesPath = await getMetadataTypesPath();
-  if (!isNullOrUndefined(metadataTypesPath) && fs.existsSync(metadataTypesPath)) {
-    buildTypesList(metadataTypesPath);
-  } else {
+  if (isNullOrUndefined(metadataTypesPath) || !fs.existsSync(metadataTypesPath)) {
     await forceDescribeMetadata(metadataTypesPath);
   }
 }

@@ -15,6 +15,7 @@ import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '../context/index';
 import { nls } from '../messages';
+import { onUsernameChange } from '../orgBrowser/index';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
@@ -177,6 +178,7 @@ export class OrgList implements vscode.Disposable {
   public async onSfdxConfigEvent() {
     await setupWorkspaceOrgType();
     await this.displayDefaultUsername();
+    await onUsernameChange();
   }
 
   public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {
