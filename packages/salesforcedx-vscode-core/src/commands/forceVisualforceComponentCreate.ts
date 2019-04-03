@@ -64,7 +64,7 @@ class ForceVisualForceComponentCreateExecutor extends SfdxCommandletExecutor<
       )
         ? 'defaultDir'
         : 'customDir';
-      this.logMetric(`${execution.command.logName}_${dirType}`, startTime);
+      this.logMetric(execution.command.logName, startTime, { dirType });
       if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         vscode.workspace
           .openTextDocument(
