@@ -34,22 +34,8 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, false);
 
-    telemetryService.sendCommandEvent('debugger_command');
+    telemetryService.sendExtensionActivationEvent([0, 400]);
     assert.notCalled(sendEvent);
-  });
-
-  it('Should send correct data format on sendCommandEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
-
-    telemetryService.sendCommandEvent('debugger_command');
-    assert.calledOnce(sendEvent);
-
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-debugger',
-      commandName: 'debugger_command'
-    };
-    assert.calledWith(sendEvent, 'commandExecution', expectedData);
   });
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
