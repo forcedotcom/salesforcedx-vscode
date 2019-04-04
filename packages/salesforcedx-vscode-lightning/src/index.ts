@@ -15,6 +15,7 @@ import {
   window,
   workspace
 } from 'vscode';
+import * as vscode from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -44,6 +45,17 @@ function protocol2CodeConverter(value: string): Uri {
 }
 
 export async function activate(context: ExtensionContext) {
+  if (
+    vscode.workspace
+      .getConfiguration('salesforcedx-vscode-lightning')
+      .get('activationMode') === 'off'
+  ) {
+    console.log(
+      'Aura Components Extension deactivated - setting is turned off'
+    );
+    return;
+  }
+
   console.log('Aura Components Extension Activated');
   const extensionHRStart = process.hrtime();
 
@@ -52,8 +64,9 @@ export async function activate(context: ExtensionContext) {
   );
 
   // The debug options for the server
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6020'] };
-  // let debugOptions = { };
+  const debugOptions = {
+    execArgv: ['--nolazy', '--inspect-brk=6020']
+  };
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
@@ -140,21 +153,7 @@ export async function activate(context: ExtensionContext) {
   client.start();
   context.subscriptions.push(this.client);
 
-  const sfdxCoreExtension = extensions.getExtension(
-    'salesforce.salesforcedx-vscode-core'
-  );
-
-  // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
-
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 let indexingResolve: any;

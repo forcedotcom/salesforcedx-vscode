@@ -15,9 +15,41 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
+
+import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
+import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
 
+async function registerCommands(): Promise<vscode.Disposable | undefined> {
+  try {
+    await waitForDX(true);
+    const {
+      forceLightningLwcCreate
+    } = require('./commands/forceLightningLwcCreate');
+
+    // Customer-facing commands
+    const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.create',
+      forceLightningLwcCreate
+    );
+
+    return vscode.Disposable.from(forceLightningLwcCreateCmd);
+  } catch (ignore) {
+    // ignore
+    return undefined;
+  }
+}
+
 export async function activate(context: vscode.ExtensionContext) {
+  if (
+    vscode.workspace
+      .getConfiguration('salesforcedx-vscode-lightning')
+      .get('activationMode') === 'off'
+  ) {
+    console.log('LWC Extension deactivated - setting is turned off');
+    return;
+  }
+
   const extensionHRStart = process.hrtime();
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
@@ -50,6 +82,14 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   }
 
+  // Commands
+  registerCommands()
+    .then(disposable => {
+      if (disposable) {
+        context.subscriptions.push(disposable);
+      }
+    })
+    .catch();
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
@@ -72,7 +112,7 @@ function startLWCLanguageServer(
   serverModule: string,
   context: vscode.ExtensionContext
 ) {
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+  const debugOptions = { execArgv: ['--nolazy', '--inspect-brk=6009'] };
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
   const serverOptions: ServerOptions = {
