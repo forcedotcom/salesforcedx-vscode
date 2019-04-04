@@ -1,3 +1,32 @@
+## 45.9.0 - April 4, 2019
+
+### Added
+
+#### salesforcedx-vscode/docs
+
+- Add `Set Up the Prettier Code Formatter for Salesforce Projects` page ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
+- Show the statuses of the project’s dependencies ([PR #1218](https://github.com/forcedotcom/salesforcedx-vscode/pull/1218))
+
+#### salesforcedx-vscode-core
+
+- Include org development commands in command palette ([PR #1190](https://github.com/forcedotcom/salesforcedx-vscode/pull/1190), [Issue #662](https://github.com/forcedotcom/salesforcedx-vscode/issues/662), [Issue #918](https://github.com/forcedotcom/salesforcedx-vscode/issues/918)):
+  - `SFDX: Deploy Source in Manifest to Org`
+  - `SFDX: Retrieve Source in Manifest from Org`
+  - `SFDX: Delete from Project and Org`
+  - `SFDX: Deploy Source to Org`
+  - `SFDX: Retrieve Source From Org`
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Add missing closing bracket on `testMethod` Apex snippet ([PR #1219](https://github.com/forcedotcom/salesforcedx-vscode/pull/1219))—Contribution by [@1ktribble](https://github.com/1ktribble)
+
+#### salesforcedx-vscode-core
+
+- Add a menu for selecting an output directory for commands that create metadata from a template; create the `default` directory, if it doesn’t exist, when running these commands ([PR #1187](https://github.com/forcedotcom/salesforcedx-vscode/pull/1187), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852), [Issue #998](https://github.com/forcedotcom/salesforcedx-vscode/issues/998))
+- Update command execution telemetry when directory type is included ([PR #1225](https://github.com/forcedotcom/salesforcedx-vscode/pull/1225))
+
 ## 45.8.0 - March 28, 2019
 
 ### Added
