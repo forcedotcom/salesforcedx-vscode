@@ -27,6 +27,7 @@
     "@salesforce/salesforcedx-utils-vscode": "45.9.0",
     "change-case": "^3.1.0",
     "aura-language-server": "2.0.13",
+    "lightning-lsp-common": "2.0.13",
     "open": "^6.0.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1"
@@ -125,7 +126,7 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%feature_previews_title%",
+      "title": "%lightning_preferences%",
       "properties": {
         "salesforcedx-vscode-lightning.show-lightning-explorer": {
           "type": "boolean",
@@ -142,9 +143,9 @@
             "off"
           ],
           "enumDescription": [
-            "Always on",
-            "Only activate when a valid SFDX workspace",
-            "Always off"
+            "%activation_mode_always_on%",
+            "%activation_mode_autodetect%",
+            "%activation_mode_off%"
           ],
           "default": "autodetect"
         }
