@@ -34,22 +34,8 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, false);
 
-    telemetryService.sendCommandEvent('create_apex_class_command');
+    telemetryService.sendLaunchEvent('test', 'test2');
     assert.notCalled(sendEvent);
-  });
-
-  it('Should send correct data format on sendCommandEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
-
-    telemetryService.sendCommandEvent('create_apex_class_command');
-    assert.calledOnce(sendEvent);
-
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex-replay-debugger',
-      commandName: 'create_apex_class_command'
-    };
-    assert.calledWith(sendEvent, 'commandExecution', expectedData);
   });
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
