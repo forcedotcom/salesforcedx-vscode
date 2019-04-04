@@ -95,13 +95,7 @@ export async function activate(context: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Start the Aura Language Server
-  startAuraLanguageServer(context);
 
-  // Notify telemetry that our extension is now active
-  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
-}
-
-function startAuraLanguageServer(context: vscode.ExtensionContext) {
   // Setup the language server
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'aura-language-server', 'lib', 'server.js')
@@ -203,6 +197,9 @@ function startAuraLanguageServer(context: vscode.ExtensionContext) {
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
   context.subscriptions.push(this.client);
+
+  // Notify telemetry that our extension is now active
+  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 let indexingResolve: any;
