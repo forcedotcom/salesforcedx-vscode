@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -13,7 +13,11 @@ describe('Telemetry', () => {
   let sendEvent: SinonStub;
 
   beforeEach(() => {
-    reporter = new TelemetryReporter('salesforcedx-vscode', 'v1', 'test345390');
+    reporter = new TelemetryReporter(
+      'salesforcedx-vscode-lwc',
+      'v1',
+      'test345390'
+    );
     sendEvent = stub(reporter, 'sendTelemetryEvent');
   });
 
@@ -50,5 +54,18 @@ describe('Telemetry', () => {
       startupTime: match.string
     };
     assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
+  });
+
+  it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+
+    await telemetryService.sendExtensionDeactivationEvent();
+    assert.calledOnce(sendEvent);
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-lightning'
+    };
+    assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
   });
 });
