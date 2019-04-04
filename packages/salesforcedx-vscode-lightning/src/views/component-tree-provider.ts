@@ -20,6 +20,8 @@ import {
 import { LanguageClient, NotificationType } from 'vscode-languageclient';
 import { LwcNode, NodeType } from './lwc-node';
 
+import { isUnknown, WorkspaceType } from 'lightning-lsp-common/lib/shared';
+
 interface TagParams {
   taginfo: any;
 }
@@ -39,15 +41,35 @@ const tagsCleared: NotificationType<void, void> = new NotificationType<
 
 let loadNamespacesPromise: Promise<Map<string, LwcNode>>;
 
-async function loadNamespaces(client: LanguageClient) {
+async function loadNamespaces(
+  client: LanguageClient,
+  workspaceType: WorkspaceType
+) {
   if (!loadNamespacesPromise) {
     loadNamespacesPromise = client
       .onReady()
       .then(() => client.sendRequest('salesforce/listComponents', {}))
       .then((data: any) => {
+        const tags: Map<string, any> = new Map(JSON.parse(data));
+
+        const unknown = isUnknown(workspaceType);
+        if (unknown) {
+          // if we're unknown, check to see if we have any aura custom components
+          // if we dont', we want to filter all aura components
+          const hasCustomComponent = [...tags.values()].find(
+            (e: any) => e.type === NodeType.Component && e.file
+          );
+          if (!hasCustomComponent) {
+            for (const [k, v] of tags) {
+              if (!v.lwc && v.namespace !== 'lightning') {
+                tags.delete(k);
+              }
+            }
+          }
+        }
+
         let namespaces: Map<string, LwcNode> = new Map();
 
-        const tags: Map<string, any> = new Map(JSON.parse(data));
         for (const key of tags.keys()) {
           // safety
           if (!key) {
@@ -55,16 +77,7 @@ async function loadNamespaces(client: LanguageClient) {
           }
           const value = tags.get(key);
           const ns = key.split(':')[0];
-          let node = namespaces.get(ns);
-          if (!node) {
-            node = new LwcNode(
-              ns,
-              '',
-              NodeType.Namespace,
-              TreeItemCollapsibleState.Collapsed
-            );
-            namespaces.set(ns, node);
-          }
+
           const hasChildren = value.attributes.length > 0;
           const uriString = value.location && value.location.uri;
           const uri = uriString ? Uri.parse(uriString) : undefined;
@@ -89,6 +102,16 @@ async function loadNamespaces(client: LanguageClient) {
             openCmd
           );
 
+          let node = namespaces.get(ns);
+          if (!node) {
+            node = new LwcNode(
+              ns,
+              '',
+              NodeType.Namespace,
+              TreeItemCollapsibleState.Collapsed
+            );
+            namespaces.set(ns, node);
+          }
           node.children.push(cmp);
 
           for (const attr of value.attributes) {
@@ -155,7 +178,11 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
   private namespaces: Map<string, LwcNode> = new Map();
   private refreshTree = debounce(this.fullRefresh.bind(this), 1000);
 
-  constructor(public client: LanguageClient, public context: ExtensionContext) {
+  constructor(
+    public client: LanguageClient,
+    public context: ExtensionContext,
+    private workspaceType: WorkspaceType
+  ) {
     this.onDidChangeTreeData = this.internalOnDidChangeTreeData.event;
     this.client = client;
     this.context = context;
@@ -192,7 +219,9 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
       const sorted = node.children.sort((a, b) => (a.label < b.label ? -1 : 1));
       return Promise.resolve(sorted);
     } else {
-      return [...(await loadNamespaces(this.client)).values()];
+      return [
+        ...(await loadNamespaces(this.client, this.workspaceType)).values()
+      ];
     }
   }
 

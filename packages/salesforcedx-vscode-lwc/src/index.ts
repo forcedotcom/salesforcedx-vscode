@@ -58,12 +58,6 @@ export async function activate(context: vscode.ExtensionContext) {
   );
   const sfdxWorkspace = workspaceType === WorkspaceType.SFDX;
 
-  // Check if ran from a LWC project
-  if (!lwcLanguageServer.isLWC(workspaceType)) {
-    console.log('Not a LWC project, exiting extension');
-    return;
-  }
-
   startLWCLanguageServer(serverModule, context);
 
   if (workspaceType === lwcLanguageServer.WorkspaceType.SFDX) {
@@ -107,7 +101,7 @@ function startLWCLanguageServer(
   context: vscode.ExtensionContext
 ) {
   const debugOptions = {
-    execArgv: ['--nolazy', '--inspect=6009', '--abort-on-uncaught-exception']
+    execArgv: ['--nolazy', '--inspect=6009']
   };
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used

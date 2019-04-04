@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { shared } from 'lightning-lsp-common';
 import * as path from 'path';
 import {
   commands,
@@ -25,6 +26,11 @@ import { createQuickOpenCommand } from './commands/quickpick/quickpick';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { ComponentTreeProvider } from './views/component-tree-provider';
+
+import {
+  detectWorkspaceType,
+  WorkspaceType
+} from 'lightning-lsp-common/lib/shared';
 
 let client: LanguageClient;
 
@@ -53,11 +59,7 @@ export async function activate(context: ExtensionContext) {
 
   // The debug options for the server
   const debugOptions = {
-    execArgv: [
-      '--nolazy',
-      '--inspect-brk=6020',
-      '--abort-on-uncaught-exception'
-    ]
+    execArgv: ['--nolazy', '--inspect=6020']
   };
   // let debugOptions = { };
 
@@ -129,7 +131,15 @@ export async function activate(context: ExtensionContext) {
       createQuickOpenCommand(client)
     )
   );
-  const componentProvider = new ComponentTreeProvider(client, context);
+  const workspaceType: WorkspaceType = detectWorkspaceType(
+    workspace.workspaceFolders[0].uri.fsPath
+  );
+
+  const componentProvider = new ComponentTreeProvider(
+    client,
+    context,
+    workspaceType
+  );
   window.registerTreeDataProvider(
     'salesforce-lightning-components',
     componentProvider

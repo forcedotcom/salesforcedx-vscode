@@ -65,7 +65,8 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "workspaceContains:**/core/workspace-user.xml"
+    "workspaceContains:**/core/workspace-user.xml",
+    "onView:salesforce-lightning-components"
   ],
   "main": "./out/src",
   "contributes": {
