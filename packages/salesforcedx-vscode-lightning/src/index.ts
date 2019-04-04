@@ -184,5 +184,5 @@ function reportIndexing(indexingPromise: Promise<void>) {
 
 export function deactivate() {
   console.log('Aura Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
+  telemetryService.sendExtensionDeactivationEvent().catch();
 }
