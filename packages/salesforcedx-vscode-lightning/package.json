@@ -46,9 +46,6 @@
     "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
-  ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -64,8 +61,11 @@
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:javascript",
     "workspaceContains:sfdx-project.json",
-    "workspaceContains:**/core/workspace-user.xml"
+    "workspaceContains:**/workspace-user.xml",
+    "onView:salesforce-lightning-explorer"
   ],
   "main": "./out/src",
   "contributes": {
@@ -133,6 +133,21 @@
           "scope": "window",
           "default": false,
           "description": "%show_lightning_explorer_description%"
+        },
+        "salesforcedx-vscode-lightning.activationMode": {
+          "type": "string",
+          "description": "%activation_mode_description%",
+          "enum": [
+            "always",
+            "autodetect",
+            "off"
+          ],
+          "enumDescription": [
+            "Always on",
+            "Only activate when a valid SFDX workspace",
+            "Always off"
+          ],
+          "default": "autodetect"
         }
       }
     }

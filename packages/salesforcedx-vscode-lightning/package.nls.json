@@ -1,7 +1,9 @@
 {
   "lightning_open_component_title": "SFDX: Open Lightning Component",
   "lightning_explorer_title": "Lightning Explorer",
-  "feature_previews_title": "Salesforce Feature Previews",
+  "feature_previews_title": "Salesforce Lightning ",
   "lightning_explorer_name": "Lightning Components",
-  "show_lightning_explorer_description": "Show the lightning explorer view"
+  "show_lightning_explorer_description": "Show the lightning explorer view",
+  "debug_mode_description": "Activate debug mode",
+  "activation_mode_description": "When the language server should be activated"
 }
