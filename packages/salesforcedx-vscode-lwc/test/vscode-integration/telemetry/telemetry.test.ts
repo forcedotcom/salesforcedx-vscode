@@ -64,7 +64,7 @@ describe('Telemetry', () => {
     assert.calledOnce(sendEvent);
 
     const expectedData = {
-      extensionName: 'salesforcedx-vscode-lightning'
+      extensionName: 'salesforcedx-vscode-lwc'
     };
     assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
   });
