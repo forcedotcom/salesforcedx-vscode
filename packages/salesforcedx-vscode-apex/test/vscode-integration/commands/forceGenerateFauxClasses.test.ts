@@ -16,15 +16,22 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
+import * as vscode from 'vscode';
 import { ProgressLocation } from 'vscode';
-import { SfdxCommandlet } from '../../../src/commands';
 import {
   ForceGenerateFauxClassesExecutor,
   initSObjectDefinitions,
   SObjectRefreshSource
 } from '../../../src/commands/forceGenerateFauxClasses';
-import { ProgressNotification } from '../../../src/notifications';
-import { OrgAuthInfo } from '../../../src/util/authInfo';
+
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const {
+  OrgAuthInfo,
+  ProgressNotification,
+  SfdxCommandlet
+} = sfdxCoreExports;
 
 describe('ForceGenerateFauxClasses', () => {
   describe('initSObjectDefinitions', () => {

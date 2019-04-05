@@ -34,6 +34,7 @@
     "vscode-languageclient": "5.1.1"
   },
   "devDependencies": {
+    "@salesforce/salesforcedx-sobjects-faux-generator": "45.9.0",
     "@salesforce/salesforcedx-test-utils-vscode": "45.9.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
@@ -225,6 +226,13 @@
           ],
           "default": false,
           "description": "%apex_semantic_errors_description%"
+        },
+        "salesforcedx-vscode-apex.enable-sobject-refresh-on-startup": {
+          "type": [
+            "boolean"
+          ],
+          "default": true,
+          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },

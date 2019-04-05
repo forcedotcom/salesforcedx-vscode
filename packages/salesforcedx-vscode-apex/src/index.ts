@@ -15,8 +15,11 @@ import {
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
-  forceApexTestMethodRunCodeActionDelegate
+  forceApexTestMethodRunCodeActionDelegate,
+  forceGenerateFauxClassesCreate,
+  initSObjectDefinitions
 } from './commands';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_APEX_CONFIGURATION_NAME } from './constants';
 import {
   getApexTests,
   getExceptionBreakpointInfo,
@@ -30,9 +33,11 @@ import { telemetryService } from './telemetry';
 import { ApexTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
+const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
-);
+)!.exports;
+const getRootWorkspacePath = sfdxCoreExports.getRootWorkspacePath;
+const coreTelemetryService = sfdxCoreExports.telemetryService;
 
 let languageClient: LanguageClient | undefined;
 
@@ -59,14 +64,11 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
+  coreTelemetryService.showTelemetryMessage();
+  telemetryService.initializeService(
+    coreTelemetryService.getReporter(),
+    coreTelemetryService.isTelemetryEnabled()
+  );
 
   const langClientHRStart = process.hrtime();
   languageClient = await languageServer.createLanguageServer(context);
@@ -80,6 +82,17 @@ export async function activate(context: vscode.ExtensionContext) {
       if (languageClient) {
         languageClient.onNotification('indexer/done', async () => {
           LanguageClientUtils.indexing = false;
+
+          // Refresh SObject definitions if there aren't any faux classes
+          const sobjectRefreshStartup: boolean = vscode.workspace
+            .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
+            .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, true);
+          if (sobjectRefreshStartup) {
+            initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
+              telemetryService.sendErrorEvent(e.message, e.stack)
+            );
+          }
+
           await testOutlineProvider.refresh();
         });
       }
@@ -143,6 +156,10 @@ function registerCommands(
     'sfdx.force.apex.test.method.run',
     forceApexTestMethodRunCodeAction
   );
+  const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
+    'sfdx.force.internal.refreshsobjects',
+    forceGenerateFauxClassesCreate
+  );
   return vscode.Disposable.from(
     forceApexToggleColorizerCmd,
     forceApexTestLastClassRunCmd,
@@ -150,7 +167,8 @@ function registerCommands(
     forceApexTestClassRunDelegateCmd,
     forceApexTestLastMethodRunCmd,
     forceApexTestMethodRunCmd,
-    forceApexTestMethodRunDelegateCmd
+    forceApexTestMethodRunDelegateCmd,
+    forceGenerateFauxClassesCmd
   );
 }
 async function registerTestView(

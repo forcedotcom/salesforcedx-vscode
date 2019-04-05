@@ -79,6 +79,16 @@ export class TelemetryService {
     }
   }
 
+  public sendErrorEvent(errorMsg: string, callstack: string): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent('error', {
+        extensionName: EXTENSION_NAME,
+        errorMessage: errorMsg,
+        errorStack: callstack
+      });
+    }
+  }
+
   private getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%d%d', hrend[0], hrend[1] / 1000000);

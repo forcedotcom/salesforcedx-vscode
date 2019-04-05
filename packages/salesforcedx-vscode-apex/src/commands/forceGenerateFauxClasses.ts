@@ -24,17 +24,22 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
-import { getDefaultUsernameOrAlias } from '../context';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
-import { taskViewService } from '../statuses';
-import { getRootWorkspacePath } from '../util';
-import {
+
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const {
+  channelService,
+  getDefaultUsernameOrAlias,
+  getRootWorkspacePath,
+  notificationService,
+  ProgressNotification,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './commands';
+  SfdxWorkspaceChecker,
+  taskViewService
+} = sfdxCoreExports;
+const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
 export enum SObjectRefreshSource {
   Manual = 'manual',
