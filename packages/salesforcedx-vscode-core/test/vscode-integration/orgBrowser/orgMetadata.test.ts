@@ -7,6 +7,7 @@
 
 import { expect } from 'chai';
 import * as fs from 'fs';
+import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { nls } from '../../../src/messages';
@@ -51,9 +52,15 @@ describe('getMetadataTypesPath', () => {
   it('returns the path for a given username', async () => {
     getDefaultUsernameStub.returns('defaultUsername');
     getUsernameStub.returns('defaultUsername');
-    expect(await getMetadataTypesPath()).to.equal(
-      `${rootWorkspacePath}/.sfdx/orgs/defaultUsername/metadata/metadataTypes.json`
+    const filePath = path.join(
+      rootWorkspacePath,
+      'sfdx',
+      'orgs',
+      'defaultUsername',
+      'metadata',
+      'metadataTypes.json'
     );
+    expect(await getMetadataTypesPath()).to.equal(filePath);
   });
 
   it('should throw an error if default username is not set', async () => {
