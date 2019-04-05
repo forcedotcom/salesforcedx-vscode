@@ -80,7 +80,7 @@ class ForceLightningLwcCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--type', 'lwc')
       .withFlag('--componentname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_component_create')
+      .withLogName('force_lightning_web_component_create')
       .build();
   }
 
