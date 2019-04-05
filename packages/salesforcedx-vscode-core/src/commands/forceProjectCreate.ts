@@ -51,6 +51,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
       .withArg('force:project:create')
       .withFlag('--projectname', data.projectName)
       .withFlag('--outputdir', data.projectUri)
+      .withFlag('--template', 'standard')
       .withLogName('force_project_create');
 
     if (this.options.isProjectWithManifest) {
