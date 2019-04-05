@@ -74,7 +74,6 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-// refresh when registering the command or checking to see if server is available initially
 export async function forceDescribeMetadata(outputPath?: string) {
   if (isNullOrUndefined(outputPath)) {
     outputPath = await getMetadataTypesPath();
@@ -88,7 +87,7 @@ export async function forceDescribeMetadata(outputPath?: string) {
   await commandlet.run();
 }
 
-async function getMetadataTypesPath(): Promise<string | undefined> {
+export async function getMetadataTypesPath(): Promise<string | undefined> {
   if (hasRootWorkspace()) {
     const workspaceRootPath = getRootWorkspacePath();
     const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias();
@@ -124,9 +123,9 @@ export type MetadataObject = {
   suffix: string;
   xmlName: string;
 };
-// builds the list. saves as a list right now, later should be used to add as child nodes to root node tree
-export function buildTypesList(metadataTypesPath: string) {
-  if (!isNullOrUndefined(metadataTypesPath)) {
+
+export function buildTypesList(metadataTypesPath: string): string[] {
+  if (fs.existsSync(metadataTypesPath)) {
     const fileData = JSON.parse(fs.readFileSync(metadataTypesPath, 'utf8'));
     const metadataObjects = fileData.metadataObjects as MetadataObject[];
     const metadataTypes = [];
@@ -135,16 +134,24 @@ export function buildTypesList(metadataTypesPath: string) {
         metadataTypes.push(metadataObject.xmlName);
       }
     }
+    telemetryService.sendMetadataTypes(undefined, {
+      metadataTypes: metadataTypes.length
+    });
+    return metadataTypes;
   } else {
-    const err = nls.localize('There was an error retrieving metadata type information.');
+    const err =
+      'There was an error retrieving metadata type information. Refresh the view to retry.';
     telemetryService.sendError(err);
     throw new Error(err);
   }
 }
-// when the default username is updated we should get the file in the background if we don't previously have it
+
 export async function onUsernameChange() {
   const metadataTypesPath = await getMetadataTypesPath();
-  if (isNullOrUndefined(metadataTypesPath) || !fs.existsSync(metadataTypesPath)) {
+  if (
+    !isNullOrUndefined(metadataTypesPath) &&
+    !fs.existsSync(metadataTypesPath)
+  ) {
     await forceDescribeMetadata(metadataTypesPath);
   }
 }

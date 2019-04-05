@@ -6,5 +6,8 @@
  */
 export {
   onUsernameChange,
-  forceDescribeMetadata
+  forceDescribeMetadata,
+  ForceDescribeMetadataExecutor,
+  getMetadataTypesPath,
+  buildTypesList
 } from './orgMetadata';

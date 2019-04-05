@@ -164,6 +164,19 @@ export class TelemetryService {
     }
   }
 
+  public sendMetadataTypes(
+    properties?: { [key: string]: string },
+    measures?: { [key: string]: number }
+  ): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent(
+        'metadataTypesQuantity',
+        properties,
+        measures
+      );
+    }
+  }
+
   public sendErrorEvent(errorMsg: string, callstack: string): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent('error', {
