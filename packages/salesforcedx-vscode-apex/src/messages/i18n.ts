@@ -52,5 +52,5 @@ export const messages = {
     'No code coverage information was found for this file. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
   force_sobjects_no_refresh_if_already_active_error_text:
-    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
+    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.'
 };
