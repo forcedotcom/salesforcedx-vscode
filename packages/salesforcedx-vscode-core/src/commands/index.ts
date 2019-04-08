@@ -50,7 +50,7 @@ export {
   forceSfdxProjectCreate,
   forceProjectWithManifestCreate
 } from './forceProjectCreate';
-export { forceApexTriggerCreate } from './forceApexTriggerCreate';
+export { forceApexTriggerCreate } from './templates/forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
 export {
   forceStopApexDebugLogging,
