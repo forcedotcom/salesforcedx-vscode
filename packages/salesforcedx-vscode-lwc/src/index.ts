@@ -19,6 +19,7 @@ import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
 import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
+import { sync as which } from 'which';
 
 async function registerCommands(
   activateDX: boolean
@@ -110,10 +111,14 @@ function startLWCLanguageServer(
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
-      options: debugOptions,
-      runtime: '/Users/midzelis/.nvm/versions/node/v10.15.3/bin/node'
+      options: debugOptions
     }
   };
+  const node = which('node', { nothrow: true });
+  if (node) {
+    serverOptions.run.runtime = node;
+    serverOptions.debug.runtime = node;
+  }
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
       { language: 'html', scheme: 'file' },
