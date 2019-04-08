@@ -19,9 +19,14 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
-import { BaseTemplateCommand } from './baseTemplateCommand';
+import { BaseTemplateCommand, BundlePathStrategy } from './baseTemplateCommand';
 
 class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super();
+    this.sourcePathStrategy = new BundlePathStrategy();
+  }
+
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_event_create_text'))
@@ -30,10 +35,6 @@ class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
       .withFlag('--outputdir', data.outputdir)
       .withLogName('force_lightning_event_create')
       .build();
-  }
-
-  public createSubDirectory(): boolean {
-    return true;
   }
 
   public getFileExtension(): string {

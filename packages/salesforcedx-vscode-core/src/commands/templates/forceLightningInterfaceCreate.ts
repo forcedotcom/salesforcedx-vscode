@@ -19,11 +19,12 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
-import { BaseTemplateCommand } from './baseTemplateCommand';
+import { BaseTemplateCommand, BundlePathStrategy } from './baseTemplateCommand';
 
 class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
-  public createSubDirectory(): boolean {
-    return true;
+  constructor() {
+    super();
+    this.sourcePathStrategy = new BundlePathStrategy();
   }
 
   public getFileExtension(): string {

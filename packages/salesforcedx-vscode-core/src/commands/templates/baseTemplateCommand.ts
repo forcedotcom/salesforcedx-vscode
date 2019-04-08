@@ -22,6 +22,8 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
+  protected sourcePathStrategy!: SourcePathStrategy;
+
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -51,15 +53,37 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   }
 
   private getPathToSource(outputDir: string, fileName: string): string {
-    return path.join(
-      getRootWorkspacePath(),
-      outputDir,
-      this.createSubDirectory() ? fileName : '',
-      fileName + this.getFileExtension()
+    const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
+    return this.sourcePathStrategy.getPathToSource(
+      sourceDirectory,
+      fileName,
+      this.getFileExtension()
     );
   }
 
-  public abstract createSubDirectory(): boolean;
-
   public abstract getFileExtension(): string;
+}
+
+export interface SourcePathStrategy {
+  getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
+}
+
+export class BundlePathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    return path.join(dirPath, fileName, `${fileName}${fileExt}`);
+  }
+}
+
+export class DefaultPathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    return path.join(dirPath, `${fileName}${fileExt}`);
+  }
 }

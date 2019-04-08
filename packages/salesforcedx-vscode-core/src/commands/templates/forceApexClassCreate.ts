@@ -19,10 +19,17 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
-import { BaseTemplateCommand } from './baseTemplateCommand';
+import {
+  BaseTemplateCommand,
+  DefaultPathStrategy
+} from './baseTemplateCommand';
 const APEX_FILE_EXTENSION = '.cls';
 
 class ForceApexClassCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super();
+    this.sourcePathStrategy = new DefaultPathStrategy();
+  }
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_class_create_text'))
@@ -32,10 +39,6 @@ class ForceApexClassCreateExecutor extends BaseTemplateCommand {
       .withFlag('--outputdir', data.outputdir)
       .withLogName('force_apex_class_create')
       .build();
-  }
-
-  public createSubDirectory(): boolean {
-    return false;
   }
 
   public getFileExtension(): string {

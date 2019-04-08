@@ -19,11 +19,18 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
-import { BaseTemplateCommand } from './baseTemplateCommand';
+import {
+  BaseTemplateCommand,
+  DefaultPathStrategy
+} from './baseTemplateCommand';
 
 const VF_PAGE_EXTENSION = '.page';
 
 class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super();
+    this.sourcePathStrategy = new DefaultPathStrategy();
+  }
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_visualforce_page_create_text'))
@@ -33,10 +40,6 @@ class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
       .withFlag('--outputdir', data.outputdir)
       .withLogName('force_visualforce_page_create')
       .build();
-  }
-
-  public createSubDirectory(): boolean {
-    return false;
   }
 
   public getFileExtension(): string {
