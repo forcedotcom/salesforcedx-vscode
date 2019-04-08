@@ -34,16 +34,10 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
       if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
-        vscode.workspace
-          .openTextDocument(
-            path.join(
-              getRootWorkspacePath(),
-              response.data.outputdir,
-              this.createSubDirectory() ? response.data.fileName : '',
-              response.data.fileName + this.getFileExtension()
-            )
-          )
-          .then(document => vscode.window.showTextDocument(document));
+        const document = await vscode.workspace.openTextDocument(
+          this.getPathToSource(response.data.outputdir, response.data.fileName)
+        );
+        vscode.window.showTextDocument(document);
       }
     });
 
@@ -54,6 +48,15 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+
+  private getPathToSource(outputDir: string, fileName: string): string {
+    return path.join(
+      getRootWorkspacePath(),
+      outputDir,
+      this.createSubDirectory() ? fileName : '',
+      fileName + this.getFileExtension()
+    );
   }
 
   public abstract createSubDirectory(): boolean;
