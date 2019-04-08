@@ -6,8 +6,8 @@
  */
 
 import { expect } from 'chai';
-import { ForceApexTriggerCreateExecutor } from '../../../src/commands/templates/forceApexTriggerCreate';
-import { nls } from '../../../src/messages';
+import { ForceApexTriggerCreateExecutor } from '../../../../src/commands/templates/forceApexTriggerCreate';
+import { nls } from '../../../../src/messages';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Trigger Create', () => {
