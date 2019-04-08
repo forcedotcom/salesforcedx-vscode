@@ -9,7 +9,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   FilePathGatherer,
@@ -34,6 +37,19 @@ export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
 }
 
 export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
+  if (!manifestUri) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId === 'forcesourcemanifest') {
+      manifestUri = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize('force_source_deploy_select_manifest');
+      telemetryService.sendError(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
+    }
+  }
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(manifestUri),

@@ -27,7 +27,7 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const ProgressNotification = sfdxCoreExports.ProgressNotification;
 const CompositeParametersGatherer = sfdxCoreExports.CompositeParametersGatherer;
 const SelectFileName = sfdxCoreExports.SelectFileName;
-const SelectStrictDirPath = sfdxCoreExports.SelectStrictDirPath;
+const SelectOutputDir = sfdxCoreExports.SelectOutputDir;
 const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
@@ -36,6 +36,7 @@ const notificationService = sfdxCoreExports.notificationService;
 const taskViewService = sfdxCoreExports.taskViewService;
 
 const LIGHTNING_LWC_EXTENSION = '.js';
+const LIGHTNING_LWC_METADATA_DIR = 'lwc';
 
 export class LightningFilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
@@ -79,7 +80,7 @@ class ForceLightningLwcCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--type', 'lwc')
       .withFlag('--componentname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_component_create')
+      .withLogName('force_lightning_web_component_create')
       .build();
   }
 
@@ -93,7 +94,12 @@ class ForceLightningLwcCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
+      const dirType = response.data.outputdir.endsWith(
+        path.join(SelectOutputDir.defaultOutput, LIGHTNING_LWC_METADATA_DIR)
+      )
+        ? 'defaultDir'
+        : 'customDir';
+      this.logMetric(execution.command.logName, startTime, { dirType });
       if (
         data !== undefined &&
         data.toString() === '0' &&
@@ -127,11 +133,14 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
 
-export async function forceLightningLwcCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectStrictDirPath(explorerDir, 'lwc');
+export async function forceLightningLwcCreate() {
+  const outputDirGatherer = new SelectOutputDir(
+    LIGHTNING_LWC_METADATA_DIR,
+    true
+  );
   const parameterGatherer = new CompositeParametersGatherer(
-    outputDirGatherer,
-    fileNameGatherer
+    fileNameGatherer,
+    outputDirGatherer
   );
   const commandlet = new SfdxCommandlet(
     workspaceChecker,

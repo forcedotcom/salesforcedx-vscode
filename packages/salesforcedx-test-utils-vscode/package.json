@@ -1,0 +1,46 @@
+{
+  "name": "@salesforce/salesforcedx-test-utils-vscode",
+  "displayName": "SFDX Test Utilities for VS Code",
+  "description": "Provides test utilies to interface the SFDX libraries with VS Code",
+  "version": "45.9.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "categories": [
+    "Other"
+  ],
+  "dependencies": {
+    "@salesforce/salesforcedx-utils-vscode": "45.9.0",
+    "shelljs": "0.8.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.0",
+    "@types/glob": "^5.0.30",
+    "@types/mocha": "^2.2.38",
+    "@types/node": "8.9.3",
+    "@types/shelljs": "0.7.9",
+    "@types/sinon": "^2.3.2",
+    "chai": "^4.0.2",
+    "decache": "^4.1.0",
+    "glob": "^7.1.2",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
+    "mock-spawn": "0.2.6",
+    "nyc": "^11.0.2",
+    "remap-istanbul": "^0.9.5",
+    "request-light": "0.2.4",
+    "sinon": "^2.3.6",
+    "source-map-support": "^0.4.15",
+    "typescript": "3.1.6"
+  },
+  "engines": {
+    "vscode": "^1.26.0"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out"
+  }
+}
