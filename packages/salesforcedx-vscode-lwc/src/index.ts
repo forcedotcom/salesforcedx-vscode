@@ -17,9 +17,9 @@ import {
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 
 import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
+import { sync as which } from 'which';
 import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
-import { sync as which } from 'which';
 
 async function registerCommands(
   activateDX: boolean
