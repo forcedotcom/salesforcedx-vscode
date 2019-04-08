@@ -36,6 +36,8 @@ export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './templates/forceApexClassCreate';
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
 export { forceLightningAppCreate } from './forceLightningAppCreate';
+export { forceLightningAppCreate } from './templates/forceLightningAppCreate';
+export { forceLightningAppCreate } from './forceLightningAppCreate';
 export {
   forceVisualforceComponentCreate
 } from './forceVisualforceComponentCreate';
