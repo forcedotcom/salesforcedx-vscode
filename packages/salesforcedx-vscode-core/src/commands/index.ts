@@ -40,7 +40,7 @@ export { forceLightningAppCreate } from './templates/forceLightningAppCreate';
 export { forceLightningAppCreate } from './forceLightningAppCreate';
 export {
   forceVisualforceComponentCreate
-} from './forceVisualforceComponentCreate';
+} from './templates/forceVisualforceComponentCreate';
 export {
   forceLightningComponentCreate
 } from './templates/forceLightningComponentCreate';
