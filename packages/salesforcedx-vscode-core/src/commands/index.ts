@@ -33,7 +33,7 @@ export { forceSourceRetrieveSourcePath } from './forceSourceRetrieveSourcePath';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
-export { forceApexClassCreate } from './forceApexClassCreate';
+export { forceApexClassCreate } from './templates/forceApexClassCreate';
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
 export { forceLightningAppCreate } from './forceLightningAppCreate';
 export {
