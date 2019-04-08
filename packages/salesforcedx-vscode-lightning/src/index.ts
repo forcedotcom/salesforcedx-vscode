@@ -31,6 +31,7 @@ import {
   detectWorkspaceType,
   WorkspaceType
 } from 'lightning-lsp-common/lib/shared';
+import { sync as which } from 'which';
 
 let client: LanguageClient;
 
@@ -65,15 +66,20 @@ export async function activate(context: ExtensionContext) {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
+
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
-      options: debugOptions,
-      runtime: '/Users/midzelis/.nvm/versions/node/v10.15.3/bin/node'
+      options: debugOptions
     }
   };
+  const node = which('node', { nothrow: true });
+  if (node) {
+    serverOptions.run.runtime = node;
+    serverOptions.debug.runtime = node;
+  }
 
   const clientOptions: LanguageClientOptions = {
     outputChannelName: nls.localize('channel_name'),
@@ -188,5 +194,5 @@ function reportIndexing(indexingPromise: Promise<void>) {
 
 export function deactivate() {
   console.log('Aura Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
+  telemetryService.sendExtensionDeactivationEvent().catch();
 }

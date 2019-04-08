@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { paramCase } from 'change-case';
+import { AttributeInfo, TagInfo } from 'lightning-lsp-common';
+import { isUnknown, WorkspaceType } from 'lightning-lsp-common/lib/shared';
 import {
   commands,
   Event,
@@ -19,8 +22,6 @@ import {
 } from 'vscode';
 import { LanguageClient, NotificationType } from 'vscode-languageclient';
 import { LwcNode, NodeType } from './lwc-node';
-
-import { isUnknown, WorkspaceType } from 'lightning-lsp-common/lib/shared';
 
 interface TagParams {
   taginfo: any;
@@ -41,6 +42,90 @@ const tagsCleared: NotificationType<void, void> = new NotificationType<
 
 let loadNamespacesPromise: Promise<Map<string, LwcNode>>;
 
+function createAttribute(attr: AttributeInfo, lwc: boolean) {
+  const attributeStringUri = attr.location && attr.location.uri;
+  const attributeUri = attributeStringUri
+    ? Uri.parse(attributeStringUri)
+    : undefined;
+  const attributeRange = (attr.location && attr.location.range) || undefined;
+  const openAttributeCommand = attributeUri
+    ? {
+        command: 'salesforce-open-component',
+        title: '',
+        arguments: [attributeUri, attributeRange]
+      }
+    : undefined;
+  let name = attr.name;
+  if (lwc) {
+    name = paramCase(name);
+  }
+  return new LwcNode(
+    name,
+    attr.detail,
+    NodeType.Attribute,
+    TreeItemCollapsibleState.None,
+    attributeUri,
+    openAttributeCommand
+  );
+}
+function createMethod(method: any /*ClassMember*/, uri: string) {
+  const attributeUri = uri ? Uri.parse(uri) : undefined;
+  let attributeRange: Range;
+  if (method.loc) {
+    attributeRange = new Range(
+      new Position(method.loc.start.line, method.loc.start.column),
+      new Position(method.loc.end.line, method.loc.end.column)
+    );
+  }
+  const openAttributeCommand = attributeUri
+    ? {
+        command: 'salesforce-open-component',
+        title: '',
+        arguments: [attributeUri, attributeRange]
+      }
+    : undefined;
+  const name = method.name + '()';
+
+  return new LwcNode(
+    name,
+    '',
+    NodeType.Method,
+    TreeItemCollapsibleState.None,
+    attributeUri,
+    openAttributeCommand
+  );
+}
+function createNamespace(ns: string) {
+  return new LwcNode(
+    ns,
+    '',
+    NodeType.Namespace,
+    TreeItemCollapsibleState.Collapsed
+  );
+}
+function createComponent(value: TagInfo) {
+  const hasChildren = value.attributes.length > 0;
+  const uriString = value.location && value.location.uri;
+  const uri = uriString ? Uri.parse(uriString) : undefined;
+  const componentType = value.lwc ? NodeType.WebComponent : NodeType.Component;
+  const openCmd = uri
+    ? {
+        command: 'salesforce-open-component',
+        title: '',
+        arguments: [uri]
+      }
+    : undefined;
+  return new LwcNode(
+    value.name,
+    value.documentation,
+    componentType,
+    hasChildren
+      ? TreeItemCollapsibleState.Collapsed
+      : TreeItemCollapsibleState.None,
+    uri,
+    openCmd
+  );
+}
 async function loadNamespaces(
   client: LanguageClient,
   workspaceType: WorkspaceType
@@ -50,7 +135,7 @@ async function loadNamespaces(
       .onReady()
       .then(() => client.sendRequest('salesforce/listComponents', {}))
       .then((data: any) => {
-        const tags: Map<string, any> = new Map(JSON.parse(data));
+        const tags: Map<string, TagInfo> = new Map(JSON.parse(data));
 
         const unknown = isUnknown(workspaceType);
         if (unknown) {
@@ -59,9 +144,14 @@ async function loadNamespaces(
           const hasCustomComponent = [...tags.values()].find(
             (e: any) => e.type === NodeType.Component && e.file
           );
+          const hasCustomWebComponent = [...tags.values()].find(
+            (e: any) => e.type === NodeType.WebComponent && e.file
+          );
           if (!hasCustomComponent) {
             for (const [k, v] of tags) {
               if (!v.lwc && v.namespace !== 'lightning') {
+                tags.delete(k);
+              } else if (!hasCustomWebComponent) {
                 tags.delete(k);
               }
             }
@@ -78,65 +168,26 @@ async function loadNamespaces(
           const value = tags.get(key);
           const ns = key.split(':')[0];
 
-          const hasChildren = value.attributes.length > 0;
-          const uriString = value.location && value.location.uri;
-          const uri = uriString ? Uri.parse(uriString) : undefined;
-          const componentType = value.lwc
-            ? NodeType.WebComponent
-            : NodeType.Component;
-          const openCmd = uri
-            ? {
-                command: 'salesforce-open-component',
-                title: '',
-                arguments: [uri]
-              }
-            : undefined;
-          const cmp = new LwcNode(
-            key,
-            value.documentation,
-            componentType,
-            hasChildren
-              ? TreeItemCollapsibleState.Collapsed
-              : TreeItemCollapsibleState.None,
-            uri,
-            openCmd
-          );
+          const cmp = createComponent(value);
 
           let node = namespaces.get(ns);
           if (!node) {
-            node = new LwcNode(
-              ns,
-              '',
-              NodeType.Namespace,
-              TreeItemCollapsibleState.Collapsed
-            );
+            node = createNamespace(ns);
             namespaces.set(ns, node);
           }
           node.children.push(cmp);
 
           for (const attr of value.attributes) {
-            const attributeStringUri = attr.location && attr.location.uri;
-            const attributeUri = attributeStringUri
-              ? Uri.parse(attributeStringUri)
-              : undefined;
-            const attributeRange =
-              (attr.location && attr.location.range) || undefined;
-            const openAttributeCommand = attributeUri
-              ? {
-                  command: 'salesforce-open-component',
-                  title: '',
-                  arguments: [attributeUri, attributeRange]
-                }
-              : undefined;
+            cmp.children.push(createAttribute(attr, value.lwc));
+          }
+          const methods =
+            (value.methods &&
+              value.methods.filter(m => m.decorator === 'api')) ||
+            [];
+
+          for (const method of methods) {
             cmp.children.push(
-              new LwcNode(
-                attr.name,
-                attr.detail,
-                NodeType.Attribute,
-                TreeItemCollapsibleState.None,
-                attributeUri,
-                openAttributeCommand
-              )
+              createMethod(method, value.location && value.location.uri)
             );
           }
         }
@@ -145,6 +196,19 @@ async function loadNamespaces(
           [...namespaces].sort((a, b) => (a[0] > b[0] ? 1 : -1))
         );
 
+        if (namespaces.size === 0) {
+          return new Map<string, LwcNode>([
+            [
+              'none',
+              new LwcNode(
+                'No components found',
+                '',
+                NodeType.Info,
+                TreeItemCollapsibleState.None
+              )
+            ]
+          ]);
+        }
         return namespaces;
       })
       .catch(err => {
@@ -197,20 +261,21 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
       .catch();
 
     commands.registerCommand('salesforce-open-component', (uri, range) => {
-      commands.executeCommand('vscode.open', uri);
-      if (range) {
-        if (window.activeTextEditor) {
-          window.activeTextEditor.selection = new Selection(
-            new Position(range.start.line, range.start.character),
-            new Position(range.end.line, range.end.character)
-          );
-          const revealRange = new Range(
-            new Position(range.start.line, range.start.character),
-            new Position(range.end.line, range.end.character)
-          );
-          window.activeTextEditor.revealRange(revealRange);
+      commands.executeCommand('vscode.open', uri).then(() => {
+        if (range) {
+          if (window.activeTextEditor) {
+            window.activeTextEditor.selection = new Selection(
+              new Position(range.start.line, range.start.character),
+              new Position(range.end.line, range.end.character)
+            );
+            const revealRange = new Range(
+              new Position(range.start.line, range.start.character),
+              new Position(range.end.line, range.end.character)
+            );
+            window.activeTextEditor.revealRange(revealRange);
+          }
         }
-      }
+      });
     });
   }
 
