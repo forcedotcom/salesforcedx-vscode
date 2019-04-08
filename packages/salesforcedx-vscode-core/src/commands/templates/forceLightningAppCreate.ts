@@ -23,10 +23,6 @@ import {
 import { BaseTemplateCommand, BundlePathStrategy } from './baseTemplateCommand';
 
 class ForceLightningAppCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super();
-    this.sourcePathStrategy = new BundlePathStrategy();
-  }
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_app_create_text'))
@@ -36,6 +32,8 @@ class ForceLightningAppCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_lightning_app_create')
       .build();
   }
+
+  public sourcePathStrategy = new BundlePathStrategy();
 
   public getFileExtension(): string {
     return '.app';

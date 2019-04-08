@@ -27,10 +27,6 @@ import {
 const VF_CMP_EXTENSION = '.component';
 
 class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super();
-    this.sourcePathStrategy = new DefaultPathStrategy();
-  }
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_visualforce_component_create_text'))
@@ -41,6 +37,8 @@ class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_visualforce_component_create')
       .build();
   }
+
+  public sourcePathStrategy = new DefaultPathStrategy();
 
   public getFileExtension(): string {
     return VF_CMP_EXTENSION;

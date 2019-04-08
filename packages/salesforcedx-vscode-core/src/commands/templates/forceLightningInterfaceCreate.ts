@@ -22,15 +22,6 @@ import {
 import { BaseTemplateCommand, BundlePathStrategy } from './baseTemplateCommand';
 
 class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super();
-    this.sourcePathStrategy = new BundlePathStrategy();
-  }
-
-  public getFileExtension(): string {
-    return '.intf';
-  }
-
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_interface_create_text'))
@@ -39,6 +30,12 @@ class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
       .withFlag('--outputdir', data.outputdir)
       .withLogName('force_lightning_interface_create')
       .build();
+  }
+
+  public sourcePathStrategy = new BundlePathStrategy();
+
+  public getFileExtension(): string {
+    return '.intf';
   }
 }
 

@@ -22,10 +22,6 @@ import {
 import { BaseTemplateCommand, BundlePathStrategy } from './baseTemplateCommand';
 
 class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super();
-    this.sourcePathStrategy = new BundlePathStrategy();
-  }
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_component_create_text'))
@@ -35,6 +31,8 @@ class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_lightning_component_create')
       .build();
   }
+
+  public sourcePathStrategy = new BundlePathStrategy();
 
   public getFileExtension(): string {
     return '.cmp';

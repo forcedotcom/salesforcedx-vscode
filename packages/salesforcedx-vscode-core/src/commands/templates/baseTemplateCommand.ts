@@ -22,8 +22,6 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
-  protected sourcePathStrategy!: SourcePathStrategy;
-
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -61,7 +59,9 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     );
   }
 
-  public abstract getFileExtension(): string;
+  protected abstract sourcePathStrategy: SourcePathStrategy;
+
+  protected abstract getFileExtension(): string;
 }
 
 export interface SourcePathStrategy {

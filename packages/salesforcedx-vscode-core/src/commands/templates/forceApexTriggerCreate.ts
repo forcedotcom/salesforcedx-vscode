@@ -27,10 +27,6 @@ import {
 const APEX_TRIGGER_EXTENSION = '.trigger';
 
 export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super();
-    this.sourcePathStrategy = new DefaultPathStrategy();
-  }
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_trigger_create_text'))
@@ -40,6 +36,8 @@ export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_apex_trigger_create')
       .build();
   }
+
+  public sourcePathStrategy = new DefaultPathStrategy();
 
   public getFileExtension(): string {
     return APEX_TRIGGER_EXTENSION;

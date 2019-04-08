@@ -26,10 +26,6 @@ import {
 const APEX_FILE_EXTENSION = '.cls';
 
 class ForceApexClassCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super();
-    this.sourcePathStrategy = new DefaultPathStrategy();
-  }
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_class_create_text'))
@@ -40,6 +36,8 @@ class ForceApexClassCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_apex_class_create')
       .build();
   }
+
+  public sourcePathStrategy = new DefaultPathStrategy();
 
   public getFileExtension(): string {
     return APEX_FILE_EXTENSION;
