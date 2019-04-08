@@ -34,8 +34,9 @@ export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './templates/forceApexClassCreate';
-export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
-export { forceLightningAppCreate } from './forceLightningAppCreate';
+export {
+  forceVisualforcePageCreate
+} from './templates/forceVisualforcePageCreate';
 export { forceLightningAppCreate } from './templates/forceLightningAppCreate';
 export { forceLightningAppCreate } from './forceLightningAppCreate';
 export {
