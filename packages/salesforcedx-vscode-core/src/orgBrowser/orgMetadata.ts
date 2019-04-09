@@ -125,7 +125,7 @@ export type MetadataObject = {
 };
 
 export function buildTypesList(metadataTypesPath: string): string[] {
-  if (fs.existsSync(metadataTypesPath)) {
+  try {
     const fileData = JSON.parse(fs.readFileSync(metadataTypesPath, 'utf8'));
     const metadataObjects = fileData.metadataObjects as MetadataObject[];
     const metadataTypes = [];
@@ -134,15 +134,12 @@ export function buildTypesList(metadataTypesPath: string): string[] {
         metadataTypes.push(metadataObject.xmlName);
       }
     }
-    telemetryService.sendMetadataTypes(undefined, {
+    telemetryService.sendEventData('Metadata Types Quantity', undefined, {
       metadataTypes: metadataTypes.length
     });
     return metadataTypes;
-  } else {
-    const err =
-      'There was an error retrieving metadata type information. Refresh the view to retry.';
-    telemetryService.sendError(err);
-    throw new Error(err);
+  } catch (e) {
+    throw e;
   }
 }
 

@@ -49,12 +49,12 @@ describe('getMetadataTypesPath', () => {
     getUsernameStub.restore();
   });
 
-  it('returns the path for a given username', async () => {
+  it('should return the path for a given username', async () => {
     getDefaultUsernameStub.returns('defaultUsername');
     getUsernameStub.returns('defaultUsername');
     const filePath = path.join(
       rootWorkspacePath,
-      'sfdx',
+      '.sfdx',
       'orgs',
       'defaultUsername',
       'metadata',
@@ -115,9 +115,6 @@ describe('build metadata types list', () => {
       buildTypesList(metadataTypesPath);
     } catch (e) {
       errorWasThrown = true;
-      expect(e.message).to.equal(
-        'There was an error retrieving metadata type information. Refresh the view to retry.'
-      );
     } finally {
       expect(errorWasThrown).to.be.true;
     }
