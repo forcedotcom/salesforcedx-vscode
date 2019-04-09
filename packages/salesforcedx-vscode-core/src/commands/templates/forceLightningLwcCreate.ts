@@ -21,7 +21,7 @@ import {
 import {
   BaseTemplateCommand,
   BundlePathStrategy,
-  FilePathExistsChecker2
+  FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
   LWC_DEFINITION_FILE_EXTS,
@@ -60,7 +60,7 @@ export async function forceLightningLwcCreate() {
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer(fileNameGatherer, outputDirGatherer),
     new ForceLightningLwcCreateExecutor(),
-    new FilePathExistsChecker2(
+    new FilePathExistsChecker(
       LWC_DEFINITION_FILE_EXTS,
       new BundlePathStrategy(),
       nls.localize('lwc_message_name')

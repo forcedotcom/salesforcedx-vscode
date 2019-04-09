@@ -12,7 +12,7 @@ import {
 import {
   BundlePathStrategy,
   DefaultPathStrategy,
-  FilePathExistsChecker2
+  FilePathExistsChecker
 } from '../../../../src/commands/templates/baseTemplateCommand';
 import {
   APEX_CLASS_EXTENSION,
@@ -57,7 +57,7 @@ describe('FilePathExistsChecker for Aura bundle', () => {
     });
 
     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         AURA_DEFINITION_FILE_EXTS,
         new BundlePathStrategy(),
         nls.localize('aura_bundle_message_name')
@@ -70,7 +70,7 @@ describe('FilePathExistsChecker for Aura bundle', () => {
     });
 
     it('Should return ContinueResponse if path specified does not have existing lightning files', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         AURA_DEFINITION_FILE_EXTS,
         new BundlePathStrategy(),
         nls.localize('aura_bundle_message_name')
@@ -114,7 +114,7 @@ describe('FilePathExistsChecker for Aura bundle', () => {
     });
 
     it('Should return ContinueResponse if lightning files exist in specified path and user selects continue', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         AURA_DEFINITION_FILE_EXTS,
         new BundlePathStrategy(),
         nls.localize('aura_bundle_message_name')
@@ -138,7 +138,7 @@ describe('FilePathExistsChecker for Aura bundle', () => {
     });
 
     it('Should return CancelResponse if lightning files exist in specified path and user selects No/Cancel', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         AURA_DEFINITION_FILE_EXTS,
         new BundlePathStrategy(),
         nls.localize('aura_bundle_message_name')
@@ -178,7 +178,7 @@ describe('FilePathExistsChecker for Apex Class', () => {
     });
 
     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         [APEX_CLASS_EXTENSION],
         new DefaultPathStrategy(),
         nls.localize('apex_class_message_name')
@@ -191,7 +191,7 @@ describe('FilePathExistsChecker for Apex Class', () => {
     });
 
     it('Should return ContinueResponse if path specified does not have existing file with specified name', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         [APEX_CLASS_EXTENSION],
         new DefaultPathStrategy(),
         nls.localize('apex_class_message_name')
@@ -235,7 +235,7 @@ describe('FilePathExistsChecker for Apex Class', () => {
     });
 
     it('Should return ContinueResponse if files exist in specified path and user selects continue', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         [APEX_CLASS_EXTENSION],
         new DefaultPathStrategy(),
         nls.localize('apex_class_message_name')
@@ -259,7 +259,7 @@ describe('FilePathExistsChecker for Apex Class', () => {
     });
 
     it('Should return CancelResponse if files exist in specified path and user selects No/Cancel', async () => {
-      const postChecker = new FilePathExistsChecker2(
+      const postChecker = new FilePathExistsChecker(
         [APEX_CLASS_EXTENSION],
         new DefaultPathStrategy(),
         nls.localize('apex_class_message_name')

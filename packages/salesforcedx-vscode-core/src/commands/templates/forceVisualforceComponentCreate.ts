@@ -21,7 +21,7 @@ import {
 import {
   BaseTemplateCommand,
   DefaultPathStrategy,
-  FilePathExistsChecker2
+  FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
   VISUALFORCE_COMPONENT_DIRECTORY,
@@ -62,7 +62,7 @@ export async function forceVisualforceComponentCreate() {
       outputDirGatherer
     ),
     new ForceVisualForceComponentCreateExecutor(),
-    new FilePathExistsChecker2(
+    new FilePathExistsChecker(
       [VISUALFORCE_COMPONENT_EXTENSION],
       new DefaultPathStrategy(),
       nls.localize('visualforce_component_message_name')

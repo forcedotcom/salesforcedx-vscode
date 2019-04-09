@@ -21,7 +21,7 @@ import {
 import {
   BaseTemplateCommand,
   DefaultPathStrategy,
-  FilePathExistsChecker2
+  FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
   APEX_TRIGGER_DIRECTORY,
@@ -61,7 +61,7 @@ export async function forceApexTriggerCreate() {
       outputDirGatherer
     ),
     new ForceApexTriggerCreateExecutor(),
-    new FilePathExistsChecker2(
+    new FilePathExistsChecker(
       [APEX_TRIGGER_EXTENSION],
       new DefaultPathStrategy(),
       nls.localize('apex_trigger_message_name')

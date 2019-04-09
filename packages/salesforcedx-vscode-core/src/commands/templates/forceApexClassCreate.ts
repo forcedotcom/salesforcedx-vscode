@@ -21,7 +21,7 @@ import {
 import {
   BaseTemplateCommand,
   DefaultPathStrategy,
-  FilePathExistsChecker2
+  FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
   APEX_CLASS_DIRECTORY,
@@ -62,7 +62,7 @@ export async function forceApexClassCreate() {
       outputDirGatherer
     ),
     new ForceApexClassCreateExecutor(),
-    new FilePathExistsChecker2(
+    new FilePathExistsChecker(
       [APEX_CLASS_EXTENSION],
       new DefaultPathStrategy(),
       nls.localize('apex_class_message_name')

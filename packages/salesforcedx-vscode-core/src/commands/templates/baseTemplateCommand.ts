@@ -106,7 +106,7 @@ export class BundlePathStrategy implements SourcePathStrategy {
   }
 }
 
-export class FilePathExistsChecker2
+export class FilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
   private fileExtensionsToCheck: string[];
   private sourcePathStrategy: SourcePathStrategy;

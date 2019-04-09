@@ -21,7 +21,7 @@ import {
 import {
   BaseTemplateCommand,
   DefaultPathStrategy,
-  FilePathExistsChecker2
+  FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
   VISUALFORCE_PAGE_DIRECTORY,
@@ -62,7 +62,7 @@ export async function forceVisualforcePageCreate() {
       outputDirGatherer
     ),
     new ForceVisualForcePageCreateExecutor(),
-    new FilePathExistsChecker2(
+    new FilePathExistsChecker(
       [VISUALFORCE_PAGE_EXTENSION],
       new DefaultPathStrategy(),
       nls.localize('visualforce_page_message_name')

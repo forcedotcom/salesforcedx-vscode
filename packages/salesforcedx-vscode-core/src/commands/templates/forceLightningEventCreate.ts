@@ -21,7 +21,7 @@ import {
 import {
   BaseTemplateCommand,
   BundlePathStrategy,
-  FilePathExistsChecker2
+  FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
   AURA_DEFINITION_FILE_EXTS,
@@ -62,7 +62,7 @@ export async function forceLightningEventCreate() {
       outputDirGatherer
     ),
     new ForceLightningEventCreateExecutor(),
-    new FilePathExistsChecker2(
+    new FilePathExistsChecker(
       AURA_DEFINITION_FILE_EXTS,
       new BundlePathStrategy(),
       nls.localize('aura_bundle_message_name')
