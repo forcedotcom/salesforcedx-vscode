@@ -16,31 +16,7 @@ import {
 } from 'vscode-languageclient';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 
-import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
-import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
-
-async function registerCommands(
-  activateDX: boolean
-): Promise<vscode.Disposable | undefined> {
-  try {
-    await waitForDX(activateDX);
-    const {
-      forceLightningLwcCreate
-    } = require('./commands/forceLightningLwcCreate');
-
-    // Customer-facing commands
-    const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
-      'sfdx.force.lightning.lwc.create',
-      forceLightningLwcCreate
-    );
-
-    return vscode.Disposable.from(forceLightningLwcCreateCmd);
-  } catch (ignore) {
-    // ignore
-    return undefined;
-  }
-}
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
@@ -56,7 +32,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const workspaceType = lwcLanguageServer.detectWorkspaceType(
     vscode.workspace.workspaceFolders[0].uri.fsPath
   );
-  const sfdxWorkspace = workspaceType === WorkspaceType.SFDX;
 
   // Check if ran from a LWC project
   if (!lwcLanguageServer.isLWC(workspaceType)) {
@@ -76,14 +51,6 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  // Commands
-  registerCommands(sfdxWorkspace)
-    .then(disposable => {
-      if (disposable) {
-        context.subscriptions.push(disposable);
-      }
-    })
-    .catch();
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
