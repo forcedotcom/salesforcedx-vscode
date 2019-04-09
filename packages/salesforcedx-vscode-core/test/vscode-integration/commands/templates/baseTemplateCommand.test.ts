@@ -31,7 +31,7 @@ describe('SourcePathStrategy', () => {
 
   it('successfully creates a default source path', () => {
     const defaultPathStrategy = new DefaultPathStrategy();
-    const expectedPath = path.join('test-dir', 'TestClass', '.cls');
+    const expectedPath = path.join('test-dir', 'TestClass.cls');
     expect(
       defaultPathStrategy.getPathToSource('test-dir', 'TestClass', '.cls')
     ).to.equal(expectedPath);
