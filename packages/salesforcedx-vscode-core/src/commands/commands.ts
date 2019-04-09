@@ -42,7 +42,7 @@ export class LightningFilePathExistsChecker
         inputs.data.fileName
       );
       const files = await vscode.workspace.findFiles(
-        `{${baseFileName}.app,${baseFileName}.cmp,${baseFileName}.intf,${baseFileName}.evt}`
+        `{${baseFileName}.app,${baseFileName}.cmp,${baseFileName}.intf,${baseFileName}.evt,${baseFileName}.html, ${baseFileName}.js}}`
       );
       // If file does not exist then create it, otherwise prompt user to overwrite the file
       if (files.length === 0) {
