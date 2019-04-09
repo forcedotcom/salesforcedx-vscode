@@ -20,20 +20,22 @@ import {
 } from '../../../../src/commands/templates/metadataTypeConstants';
 import { notificationService } from '../../../../src/notifications';
 
-it('successfully creates the bundle path', () => {
-  const bundlePathStrategy = new BundlePathStrategy();
-  const expectedPath = path.join('test-dir', 'TestClass', '.cls');
-  expect(
-    bundlePathStrategy.getPathToSource('test-dir', 'TestClass', '.cls')
-  ).to.equal(expectedPath);
-});
+describe('SourcePathStrategy', () => {
+  it('successfully creates the bundle path', () => {
+    const bundlePathStrategy = new BundlePathStrategy();
+    const expectedPath = path.join('test-dir', 'TestCmp', 'TestCmp.cmp');
+    expect(
+      bundlePathStrategy.getPathToSource('test-dir', 'TestCmp', '.cmp')
+    ).to.equal(expectedPath);
+  });
 
-it('successfully creates a default source path', () => {
-  const defaultPathStrategy = new DefaultPathStrategy();
-  const expectedPath = path.join('test-dir', 'TestCmp', 'TestCmp.cmp');
-  expect(
-    defaultPathStrategy.getPathToSource('test-dir', 'TestCmp', '.cmp')
-  ).to.equal(expectedPath);
+  it('successfully creates a default source path', () => {
+    const defaultPathStrategy = new DefaultPathStrategy();
+    const expectedPath = path.join('test-dir', 'TestClass', '.cls');
+    expect(
+      defaultPathStrategy.getPathToSource('test-dir', 'TestClass', '.cls')
+    ).to.equal(expectedPath);
+  });
 });
 
 describe('FilePathExistsChecker for Aura bundle', () => {
