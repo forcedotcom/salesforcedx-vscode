@@ -127,16 +127,9 @@ export class FilePathExistsChecker
     if (inputs.type === 'CONTINUE') {
       const outputDir = inputs.data.outputdir;
       const fileName = inputs.data.fileName;
-      const filesGlob = `{${this.fileExtensionsToCheck
-        .map(fileExtension =>
-          this.sourcePathStrategy.getPathToSource(
-            outputDir,
-            fileName,
-            fileExtension
-          )
-        )
-        .join(',')}}`;
-      const files = await vscode.workspace.findFiles(filesGlob);
+      const files = await vscode.workspace.findFiles(
+        this.createFilesGlob(outputDir, fileName)
+      );
       // If file does not exist then create it, otherwise prompt user to overwrite the file
       if (files.length === 0) {
         return inputs;
@@ -152,5 +145,16 @@ export class FilePathExistsChecker
       }
     }
     return { type: 'CANCEL' };
+  }
+
+  private createFilesGlob(outputDir: string, fileName: string): string {
+    const filePaths = this.fileExtensionsToCheck.map(fileExtension =>
+      this.sourcePathStrategy.getPathToSource(
+        outputDir,
+        fileName,
+        fileExtension
+      )
+    );
+    return `{${filePaths.join(',')}}`;
   }
 }

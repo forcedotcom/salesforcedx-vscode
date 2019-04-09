@@ -246,7 +246,7 @@ export const messages = {
   apex_trigger_message_name: 'Apex Trigger',
   visualforce_component_message_name: 'Visualforce Component',
   visualforce_page_message_name: 'Visualforce Page',
-  aura_bundle_message_name: 'Aura App',
+  aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
   force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component'
 };
