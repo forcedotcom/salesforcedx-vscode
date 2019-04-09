@@ -40,6 +40,10 @@ class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
 
   public sourcePathStrategy = new DefaultPathStrategy();
 
+  public getDefaultDirectory() {
+    return 'pages';
+  }
+
   public getFileExtension(): string {
     return VF_PAGE_EXTENSION;
   }

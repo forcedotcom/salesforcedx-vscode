@@ -34,7 +34,11 @@ class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
 
   public sourcePathStrategy = new BundlePathStrategy();
 
-  public getFileExtension(): string {
+  public getDefaultDirectory() {
+    return 'aura';
+  }
+
+  public getFileExtension() {
     return '.evt';
   }
 }

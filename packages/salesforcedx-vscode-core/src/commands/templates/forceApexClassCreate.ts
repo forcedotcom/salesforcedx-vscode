@@ -39,7 +39,11 @@ class ForceApexClassCreateExecutor extends BaseTemplateCommand {
 
   public sourcePathStrategy = new DefaultPathStrategy();
 
-  public getFileExtension(): string {
+  public getDefaultDirectory() {
+    return 'classes';
+  }
+
+  public getFileExtension() {
     return APEX_FILE_EXTENSION;
   }
 }

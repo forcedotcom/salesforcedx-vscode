@@ -40,6 +40,10 @@ class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
 
   public sourcePathStrategy = new DefaultPathStrategy();
 
+  public getDefaultDirectory() {
+    return 'components';
+  }
+
   public getFileExtension(): string {
     return VF_CMP_EXTENSION;
   }

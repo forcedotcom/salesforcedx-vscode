@@ -39,7 +39,11 @@ export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
 
   public sourcePathStrategy = new DefaultPathStrategy();
 
-  public getFileExtension(): string {
+  public getDefaultDirectory() {
+    return 'triggers';
+  }
+
+  public getFileExtension() {
     return APEX_TRIGGER_EXTENSION;
   }
 }

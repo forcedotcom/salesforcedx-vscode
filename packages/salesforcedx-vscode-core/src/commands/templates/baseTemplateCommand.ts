@@ -15,6 +15,7 @@ import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { SfdxCommandletExecutor } from '..';
 import { channelService } from '../../channels';
+import { SelectOutputDir } from '../../commands';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
@@ -32,7 +33,9 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
+      this.logMetric(execution.command.logName, startTime, {
+        dirType: this.identifyDirType(response.data.outputdir)
+      });
       if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
         const document = await vscode.workspace.openTextDocument(
           this.getPathToSource(response.data.outputdir, response.data.fileName)
@@ -50,6 +53,16 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
+  private identifyDirType(outputDirectory: string): string {
+    const defaultDirectoryPath = path.join(
+      SelectOutputDir.defaultOutput,
+      this.getDefaultDirectory()
+    );
+    return outputDirectory.endsWith(defaultDirectoryPath)
+      ? 'defaultDir'
+      : 'customDir';
+  }
+
   private getPathToSource(outputDir: string, fileName: string): string {
     const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
     return this.sourcePathStrategy.getPathToSource(
@@ -62,6 +75,8 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   protected abstract sourcePathStrategy: SourcePathStrategy;
 
   protected abstract getFileExtension(): string;
+
+  protected abstract getDefaultDirectory(): string;
 }
 
 export interface SourcePathStrategy {
