@@ -23,7 +23,10 @@ import {
   DefaultPathStrategy,
   FilePathExistsChecker2
 } from './baseTemplateCommand';
-const APEX_FILE_EXTENSION = '.cls';
+import {
+  APEX_CLASS_DIRECTORY,
+  APEX_CLASS_EXTENSION
+} from './metadataTypeConstants';
 
 class ForceApexClassCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
@@ -40,16 +43,16 @@ class ForceApexClassCreateExecutor extends BaseTemplateCommand {
   public sourcePathStrategy = new DefaultPathStrategy();
 
   public getDefaultDirectory() {
-    return 'classes';
+    return APEX_CLASS_DIRECTORY;
   }
 
   public getFileExtension() {
-    return APEX_FILE_EXTENSION;
+    return APEX_CLASS_EXTENSION;
   }
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir('classes');
+const outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
 
 export async function forceApexClassCreate() {
   const commandlet = new SfdxCommandlet(
@@ -59,7 +62,11 @@ export async function forceApexClassCreate() {
       outputDirGatherer
     ),
     new ForceApexClassCreateExecutor(),
-    new FilePathExistsChecker2([APEX_FILE_EXTENSION], new DefaultPathStrategy())
+    new FilePathExistsChecker2(
+      [APEX_CLASS_EXTENSION],
+      new DefaultPathStrategy(),
+      nls.localize('apex_class_message_name')
+    )
   );
   await commandlet.run();
 }

@@ -13,7 +13,6 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -21,10 +20,13 @@ import {
 } from '../commands';
 import {
   BaseTemplateCommand,
-  DefaultPathStrategy
+  DefaultPathStrategy,
+  FilePathExistsChecker2
 } from './baseTemplateCommand';
-
-const APEX_TRIGGER_EXTENSION = '.trigger';
+import {
+  APEX_TRIGGER_DIRECTORY,
+  APEX_TRIGGER_EXTENSION
+} from './metadataTypeConstants';
 
 export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
@@ -40,7 +42,7 @@ export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
   public sourcePathStrategy = new DefaultPathStrategy();
 
   public getDefaultDirectory() {
-    return 'triggers';
+    return APEX_TRIGGER_DIRECTORY;
   }
 
   public getFileExtension() {
@@ -49,7 +51,7 @@ export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir('triggers');
+const outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_DIRECTORY);
 
 export async function forceApexTriggerCreate() {
   const commandlet = new SfdxCommandlet(
@@ -59,7 +61,11 @@ export async function forceApexTriggerCreate() {
       outputDirGatherer
     ),
     new ForceApexTriggerCreateExecutor(),
-    new FilePathExistsChecker(APEX_TRIGGER_EXTENSION)
+    new FilePathExistsChecker2(
+      [APEX_TRIGGER_EXTENSION],
+      new DefaultPathStrategy(),
+      nls.localize('apex_trigger_message_name')
+    )
   );
   await commandlet.run();
 }

@@ -13,15 +13,21 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  LightningFilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
-import { BaseTemplateCommand, BundlePathStrategy } from './baseTemplateCommand';
-
-const LIGHTNING_LWC_METADATA_DIR = 'lwc';
+import {
+  BaseTemplateCommand,
+  BundlePathStrategy,
+  FilePathExistsChecker2
+} from './baseTemplateCommand';
+import {
+  LWC_DEFINITION_FILE_EXTS,
+  LWC_DIRECTORY,
+  LWC_JS_EXTENSION
+} from './metadataTypeConstants';
 
 class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
@@ -38,23 +44,27 @@ class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
   public sourcePathStrategy = new BundlePathStrategy();
 
   public getDefaultDirectory() {
-    return LIGHTNING_LWC_METADATA_DIR;
+    return LWC_DIRECTORY;
   }
 
   public getFileExtension() {
-    return '.js';
+    return LWC_JS_EXTENSION;
   }
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir(LIGHTNING_LWC_METADATA_DIR, true);
+const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
 
 export async function forceLightningLwcCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer(fileNameGatherer, outputDirGatherer),
     new ForceLightningLwcCreateExecutor(),
-    new LightningFilePathExistsChecker()
+    new FilePathExistsChecker2(
+      LWC_DEFINITION_FILE_EXTS,
+      new BundlePathStrategy(),
+      nls.localize('lwc_message_name')
+    )
   );
   commandlet.run();
 }

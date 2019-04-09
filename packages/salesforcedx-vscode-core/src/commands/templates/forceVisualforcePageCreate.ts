@@ -13,7 +13,6 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -21,10 +20,13 @@ import {
 } from '../commands';
 import {
   BaseTemplateCommand,
-  DefaultPathStrategy
+  DefaultPathStrategy,
+  FilePathExistsChecker2
 } from './baseTemplateCommand';
-
-const VF_PAGE_EXTENSION = '.page';
+import {
+  VISUALFORCE_PAGE_DIRECTORY,
+  VISUALFORCE_PAGE_EXTENSION
+} from './metadataTypeConstants';
 
 class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
@@ -41,16 +43,16 @@ class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
   public sourcePathStrategy = new DefaultPathStrategy();
 
   public getDefaultDirectory() {
-    return 'pages';
+    return VISUALFORCE_PAGE_DIRECTORY;
   }
 
   public getFileExtension(): string {
-    return VF_PAGE_EXTENSION;
+    return VISUALFORCE_PAGE_EXTENSION;
   }
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir('pages');
+const outputDirGatherer = new SelectOutputDir(VISUALFORCE_PAGE_DIRECTORY);
 
 export async function forceVisualforcePageCreate() {
   const commandlet = new SfdxCommandlet(
@@ -60,7 +62,11 @@ export async function forceVisualforcePageCreate() {
       outputDirGatherer
     ),
     new ForceVisualForcePageCreateExecutor(),
-    new FilePathExistsChecker(VF_PAGE_EXTENSION)
+    new FilePathExistsChecker2(
+      [VISUALFORCE_PAGE_EXTENSION],
+      new DefaultPathStrategy(),
+      nls.localize('visualforce_page_message_name')
+    )
   );
   await commandlet.run();
 }

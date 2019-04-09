@@ -13,13 +13,21 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  LightningFilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
-import { BaseTemplateCommand, BundlePathStrategy } from './baseTemplateCommand';
+import {
+  BaseTemplateCommand,
+  BundlePathStrategy,
+  FilePathExistsChecker2
+} from './baseTemplateCommand';
+import {
+  AURA_DEFINITION_FILE_EXTS,
+  AURA_DIRECTORY,
+  AURA_EVENT_EXTENSION
+} from './metadataTypeConstants';
 
 class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
@@ -35,16 +43,16 @@ class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
   public sourcePathStrategy = new BundlePathStrategy();
 
   public getDefaultDirectory() {
-    return 'aura';
+    return AURA_DIRECTORY;
   }
 
   public getFileExtension() {
-    return '.evt';
+    return AURA_EVENT_EXTENSION;
   }
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir('aura', true);
+const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 
 export async function forceLightningEventCreate() {
   const commandlet = new SfdxCommandlet(
@@ -54,7 +62,11 @@ export async function forceLightningEventCreate() {
       outputDirGatherer
     ),
     new ForceLightningEventCreateExecutor(),
-    new LightningFilePathExistsChecker()
+    new FilePathExistsChecker2(
+      AURA_DEFINITION_FILE_EXTS,
+      new BundlePathStrategy(),
+      nls.localize('aura_bundle_message_name')
+    )
   );
   await commandlet.run();
 }

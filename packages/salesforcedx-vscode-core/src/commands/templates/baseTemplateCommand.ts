@@ -110,12 +110,15 @@ export class FilePathExistsChecker2
   implements PostconditionChecker<DirFileNameSelection> {
   private fileExtensionsToCheck: string[];
   private sourcePathStrategy: SourcePathStrategy;
+  private metadataLabel: string;
   public constructor(
     fileExtensionsToCheck: string[],
-    sourcePathStrategy: SourcePathStrategy
+    sourcePathStrategy: SourcePathStrategy,
+    metadataLabel: string
   ) {
     this.fileExtensionsToCheck = fileExtensionsToCheck;
     this.sourcePathStrategy = sourcePathStrategy;
+    this.metadataLabel = metadataLabel;
   }
 
   public async check(
@@ -139,7 +142,7 @@ export class FilePathExistsChecker2
         return inputs;
       } else {
         const overwrite = await notificationService.showWarningMessage(
-          nls.localize('warning_prompt_file_overwrite'),
+          nls.localize('warning_prompt_file_overwrite', this.metadataLabel),
           nls.localize('warning_prompt_overwrite_confirm'),
           nls.localize('warning_prompt_overwrite_cancel')
         );

@@ -21,11 +21,14 @@ import {
   DemoModePromptGatherer,
   EmptyParametersGatherer,
   EmptyPostChecker,
-  FilePathExistsChecker,
-  LightningFilePathExistsChecker,
   SelectOutputDir,
   SfdxCommandlet
 } from '../../../src/commands/commands';
+import {
+  BundlePathStrategy,
+  FilePathExistsChecker2
+} from '../../../src/commands/templates/baseTemplateCommand';
+import { AURA_DEFINITION_FILE_EXTS } from '../../../src/commands/templates/metadataTypeConstants';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
@@ -308,216 +311,216 @@ describe('Command Utilities', () => {
     });
   });
 
-  describe('LightningFilePathExistsChecker', () => {
-    let findFilesSpy: sinon.SinonSpy;
-    let warningSpy: sinon.SinonSpy;
+  // describe('FilePathExistsChecker', () => {
+  //   let findFilesSpy: sinon.SinonSpy;
+  //   let warningSpy: sinon.SinonSpy;
 
-    afterEach(() => {
-      findFilesSpy.reset();
-      warningSpy.reset();
-    });
+  //   afterEach(() => {
+  //     findFilesSpy.reset();
+  //     warningSpy.reset();
+  //   });
 
-    describe('Without notification warning', () => {
-      before(() => {
-        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
-        warningSpy = sinon.stub(notificationService, 'showWarningMessage');
-      });
+  //   describe('Without notification warning', () => {
+  //     before(() => {
+  //       findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+  //       warningSpy = sinon.stub(notificationService, 'showWarningMessage');
+  //     });
 
-      after(() => {
-        sinon.restore(vscode.workspace);
-        sinon.restore(notificationService);
-      });
+  //     after(() => {
+  //       sinon.restore(vscode.workspace);
+  //       sinon.restore(notificationService);
+  //     });
 
-      it('Should return CancelResponse if input passed in is CancelResponse', async () => {
-        const postChecker = new LightningFilePathExistsChecker();
-        const input: CancelResponse = { type: 'CANCEL' };
-        const response = await postChecker.check(input);
-        sinon.assert.notCalled(findFilesSpy);
-        sinon.assert.notCalled(warningSpy);
-        expect(response.type).to.equal('CANCEL');
-      });
+  //     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+  //       const postChecker = new FilePathExistsChecker2(AURA_DEFINITION_FILE_EXTS,));
+  //       const input: CancelResponse = { type: 'CANCEL' };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.notCalled(findFilesSpy);
+  //       sinon.assert.notCalled(warningSpy);
+  //       expect(response.type).to.equal('CANCEL');
+  //     });
 
-      it('Should return ContinueResponse if path specified does not have existing lightning files', async () => {
-        const postChecker = new LightningFilePathExistsChecker();
-        if (!vscode.workspace.rootPath) {
-          throw new Error('Test workspace should be opened');
-        }
-        const input: ContinueResponse<DirFileNameSelection> = {
-          type: 'CONTINUE',
-          data: {
-            fileName: 'test',
-            outputdir: path.join('force-app', 'main', 'default', 'aura')
-          }
-        };
-        const response = await postChecker.check(input);
-        sinon.assert.calledOnce(findFilesSpy);
-        sinon.assert.notCalled(warningSpy);
-        expect(response.type).to.equal('CONTINUE');
-        if (response.type === 'CONTINUE') {
-          expect(response).to.equal(input);
-        } else {
-          throw new Error('Response should be of type ContinueResponse');
-        }
-      });
-    });
+  //     it('Should return ContinueResponse if path specified does not have existing lightning files', async () => {
+  //       const postChecker = new FilePathExistsChecker2();
+  //       if (!vscode.workspace.rootPath) {
+  //         throw new Error('Test workspace should be opened');
+  //       }
+  //       const input: ContinueResponse<DirFileNameSelection> = {
+  //         type: 'CONTINUE',
+  //         data: {
+  //           fileName: 'test',
+  //           outputdir: path.join('force-app', 'main', 'default', 'aura')
+  //         }
+  //       };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.calledOnce(findFilesSpy);
+  //       sinon.assert.notCalled(warningSpy);
+  //       expect(response.type).to.equal('CONTINUE');
+  //       if (response.type === 'CONTINUE') {
+  //         expect(response).to.equal(input);
+  //       } else {
+  //         throw new Error('Response should be of type ContinueResponse');
+  //       }
+  //     });
+  //   });
 
-    describe('With notification warning', () => {
-      before(() => {
-        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
-        warningSpy = sinon
-          .stub(notificationService, 'showWarningMessage')
-          .onFirstCall()
-          .returns(nls.localize('warning_prompt_overwrite_confirm'))
-          .onSecondCall()
-          .returns(nls.localize('warning_prompt_overwrite_cancel'));
-      });
+  //   describe('With notification warning', () => {
+  //     before(() => {
+  //       findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+  //       warningSpy = sinon
+  //         .stub(notificationService, 'showWarningMessage')
+  //         .onFirstCall()
+  //         .returns(nls.localize('warning_prompt_overwrite_confirm'))
+  //         .onSecondCall()
+  //         .returns(nls.localize('warning_prompt_overwrite_cancel'));
+  //     });
 
-      after(() => {
-        sinon.restore(vscode.workspace);
-        sinon.restore(notificationService);
-      });
+  //     after(() => {
+  //       sinon.restore(vscode.workspace);
+  //       sinon.restore(notificationService);
+  //     });
 
-      it('Should return ContinueResponse if lightning files exist in specified path and user selects continue', async () => {
-        const postChecker = new LightningFilePathExistsChecker();
-        const input: ContinueResponse<DirFileNameSelection> = {
-          type: 'CONTINUE',
-          data: {
-            fileName: 'DemoApp',
-            outputdir: path.join('force-app', 'main', 'default', 'aura')
-          }
-        };
-        const response = await postChecker.check(input);
-        sinon.assert.calledOnce(findFilesSpy);
-        sinon.assert.called(warningSpy);
-        expect(response.type).to.equal('CONTINUE');
-        if (response.type === 'CONTINUE') {
-          expect(response).to.equal(input);
-        } else {
-          throw new Error('Response should be of type ContinueResponse');
-        }
-      });
+  //     it('Should return ContinueResponse if lightning files exist in specified path and user selects continue', async () => {
+  //       const postChecker = new FilePathExistsChecker2();
+  //       const input: ContinueResponse<DirFileNameSelection> = {
+  //         type: 'CONTINUE',
+  //         data: {
+  //           fileName: 'DemoApp',
+  //           outputdir: path.join('force-app', 'main', 'default', 'aura')
+  //         }
+  //       };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.calledOnce(findFilesSpy);
+  //       sinon.assert.called(warningSpy);
+  //       expect(response.type).to.equal('CONTINUE');
+  //       if (response.type === 'CONTINUE') {
+  //         expect(response).to.equal(input);
+  //       } else {
+  //         throw new Error('Response should be of type ContinueResponse');
+  //       }
+  //     });
 
-      it('Should return CancelResponse if lightning files exist in specified path and user selects No/Cancel', async () => {
-        const postChecker = new LightningFilePathExistsChecker();
-        const input: ContinueResponse<DirFileNameSelection> = {
-          type: 'CONTINUE',
-          data: {
-            fileName: 'DemoApp',
-            outputdir: path.join('force-app', 'main', 'default', 'aura')
-          }
-        };
-        const response = await postChecker.check(input);
-        sinon.assert.calledOnce(findFilesSpy);
-        sinon.assert.called(warningSpy);
-        expect(response.type).to.equal('CANCEL');
-      });
-    });
-  });
+  //     it('Should return CancelResponse if lightning files exist in specified path and user selects No/Cancel', async () => {
+  //       const postChecker = new FilePathExistsChecker2();
+  //       const input: ContinueResponse<DirFileNameSelection> = {
+  //         type: 'CONTINUE',
+  //         data: {
+  //           fileName: 'DemoApp',
+  //           outputdir: path.join('force-app', 'main', 'default', 'aura')
+  //         }
+  //       };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.calledOnce(findFilesSpy);
+  //       sinon.assert.called(warningSpy);
+  //       expect(response.type).to.equal('CANCEL');
+  //     });
+  //   });
+  // });
 
-  describe('FilePathExistsChecker', () => {
-    let findFilesSpy: sinon.SinonSpy;
-    let warningSpy: sinon.SinonSpy;
-    afterEach(() => {
-      findFilesSpy.reset();
-      warningSpy.reset();
-    });
+  // describe('FilePathExistsChecker', () => {
+  //   let findFilesSpy: sinon.SinonSpy;
+  //   let warningSpy: sinon.SinonSpy;
+  //   afterEach(() => {
+  //     findFilesSpy.reset();
+  //     warningSpy.reset();
+  //   });
 
-    describe('Without notification warning', () => {
-      before(() => {
-        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
-        warningSpy = sinon.stub(notificationService, 'showWarningMessage');
-      });
+  //   describe('Without notification warning', () => {
+  //     before(() => {
+  //       findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+  //       warningSpy = sinon.stub(notificationService, 'showWarningMessage');
+  //     });
 
-      after(() => {
-        sinon.restore(vscode.workspace);
-        sinon.restore(notificationService);
-      });
+  //     after(() => {
+  //       sinon.restore(vscode.workspace);
+  //       sinon.restore(notificationService);
+  //     });
 
-      it('Should return CancelResponse if input passed in is CancelResponse', async () => {
-        const postChecker = new FilePathExistsChecker('.cls');
-        const input: CancelResponse = { type: 'CANCEL' };
-        const response = await postChecker.check(input);
-        sinon.assert.notCalled(findFilesSpy);
-        sinon.assert.notCalled(warningSpy);
-        expect(response.type).to.equal('CANCEL');
-      });
+  //     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+  //       const postChecker = new FilePathExistsChecker('.cls');
+  //       const input: CancelResponse = { type: 'CANCEL' };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.notCalled(findFilesSpy);
+  //       sinon.assert.notCalled(warningSpy);
+  //       expect(response.type).to.equal('CANCEL');
+  //     });
 
-      it('Should return ContinueResponse if path specified does not have existing file with specified name', async () => {
-        const postChecker = new FilePathExistsChecker('.cls');
-        if (!vscode.workspace.rootPath) {
-          throw new Error('Test workspace should be opened');
-        }
-        const input: ContinueResponse<DirFileNameSelection> = {
-          type: 'CONTINUE',
-          data: {
-            fileName: 'test',
-            outputdir: path.join('force-app', 'main', 'default', 'classes')
-          }
-        };
-        const response = await postChecker.check(input);
-        sinon.assert.calledOnce(findFilesSpy);
-        sinon.assert.notCalled(warningSpy);
-        expect(response.type).to.equal('CONTINUE');
-        if (response.type === 'CONTINUE') {
-          expect(response).to.equal(input);
-        } else {
-          throw new Error('Response should be of type ContinueResponse');
-        }
-      });
-    });
+  //     it('Should return ContinueResponse if path specified does not have existing file with specified name', async () => {
+  //       const postChecker = new FilePathExistsChecker('.cls');
+  //       if (!vscode.workspace.rootPath) {
+  //         throw new Error('Test workspace should be opened');
+  //       }
+  //       const input: ContinueResponse<DirFileNameSelection> = {
+  //         type: 'CONTINUE',
+  //         data: {
+  //           fileName: 'test',
+  //           outputdir: path.join('force-app', 'main', 'default', 'classes')
+  //         }
+  //       };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.calledOnce(findFilesSpy);
+  //       sinon.assert.notCalled(warningSpy);
+  //       expect(response.type).to.equal('CONTINUE');
+  //       if (response.type === 'CONTINUE') {
+  //         expect(response).to.equal(input);
+  //       } else {
+  //         throw new Error('Response should be of type ContinueResponse');
+  //       }
+  //     });
+  //   });
 
-    describe('With notification warning', () => {
-      before(() => {
-        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
-        warningSpy = sinon
-          .stub(notificationService, 'showWarningMessage')
-          .onFirstCall()
-          .returns(nls.localize('warning_prompt_overwrite_confirm'))
-          .onSecondCall()
-          .returns(nls.localize('warning_prompt_overwrite_cancel'));
-      });
+  //   describe('With notification warning', () => {
+  //     before(() => {
+  //       findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+  //       warningSpy = sinon
+  //         .stub(notificationService, 'showWarningMessage')
+  //         .onFirstCall()
+  //         .returns(nls.localize('warning_prompt_overwrite_confirm'))
+  //         .onSecondCall()
+  //         .returns(nls.localize('warning_prompt_overwrite_cancel'));
+  //     });
 
-      after(() => {
-        sinon.restore(vscode.workspace);
-        sinon.restore(notificationService);
-      });
+  //     after(() => {
+  //       sinon.restore(vscode.workspace);
+  //       sinon.restore(notificationService);
+  //     });
 
-      it('Should return ContinueResponse if files exist in specified path and user selects continue', async () => {
-        const postChecker = new FilePathExistsChecker('.cls');
-        const input: ContinueResponse<DirFileNameSelection> = {
-          type: 'CONTINUE',
-          data: {
-            fileName: 'DemoController',
-            outputdir: path.join('force-app', 'main', 'default', 'classes')
-          }
-        };
-        const response = await postChecker.check(input);
-        sinon.assert.calledOnce(findFilesSpy);
-        sinon.assert.called(warningSpy);
-        expect(response.type).to.equal('CONTINUE');
-        if (response.type === 'CONTINUE') {
-          expect(response).to.equal(input);
-        } else {
-          throw new Error('Response should be of type ContinueResponse');
-        }
-      });
+  //     it('Should return ContinueResponse if files exist in specified path and user selects continue', async () => {
+  //       const postChecker = new FilePathExistsChecker('.cls');
+  //       const input: ContinueResponse<DirFileNameSelection> = {
+  //         type: 'CONTINUE',
+  //         data: {
+  //           fileName: 'DemoController',
+  //           outputdir: path.join('force-app', 'main', 'default', 'classes')
+  //         }
+  //       };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.calledOnce(findFilesSpy);
+  //       sinon.assert.called(warningSpy);
+  //       expect(response.type).to.equal('CONTINUE');
+  //       if (response.type === 'CONTINUE') {
+  //         expect(response).to.equal(input);
+  //       } else {
+  //         throw new Error('Response should be of type ContinueResponse');
+  //       }
+  //     });
 
-      it('Should return CancelResponse if files exist in specified path and user selects No/Cancel', async () => {
-        const postChecker = new FilePathExistsChecker('.cls');
-        const input: ContinueResponse<DirFileNameSelection> = {
-          type: 'CONTINUE',
-          data: {
-            fileName: 'DemoController',
-            outputdir: path.join('force-app', 'main', 'default', 'classes')
-          }
-        };
-        const response = await postChecker.check(input);
-        sinon.assert.calledOnce(findFilesSpy);
-        sinon.assert.called(warningSpy);
-        expect(response.type).to.equal('CANCEL');
-      });
-    });
-  });
+  //     it('Should return CancelResponse if files exist in specified path and user selects No/Cancel', async () => {
+  //       const postChecker = new FilePathExistsChecker('.cls');
+  //       const input: ContinueResponse<DirFileNameSelection> = {
+  //         type: 'CONTINUE',
+  //         data: {
+  //           fileName: 'DemoController',
+  //           outputdir: path.join('force-app', 'main', 'default', 'classes')
+  //         }
+  //       };
+  //       const response = await postChecker.check(input);
+  //       sinon.assert.calledOnce(findFilesSpy);
+  //       sinon.assert.called(warningSpy);
+  //       expect(response.type).to.equal('CANCEL');
+  //     });
+  //   });
+  // });
 
   // Due to the way the prompt is phrased
   // CONTINUE means that we will execute the forceLogoutAll command

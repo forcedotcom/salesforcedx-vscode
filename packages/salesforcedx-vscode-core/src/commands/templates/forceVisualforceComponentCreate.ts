@@ -13,7 +13,6 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -21,10 +20,13 @@ import {
 } from '../commands';
 import {
   BaseTemplateCommand,
-  DefaultPathStrategy
+  DefaultPathStrategy,
+  FilePathExistsChecker2
 } from './baseTemplateCommand';
-
-const VF_CMP_EXTENSION = '.component';
+import {
+  VISUALFORCE_COMPONENT_DIRECTORY,
+  VISUALFORCE_COMPONENT_EXTENSION
+} from './metadataTypeConstants';
 
 class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
@@ -41,16 +43,16 @@ class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
   public sourcePathStrategy = new DefaultPathStrategy();
 
   public getDefaultDirectory() {
-    return 'components';
+    return VISUALFORCE_COMPONENT_DIRECTORY;
   }
 
   public getFileExtension(): string {
-    return VF_CMP_EXTENSION;
+    return VISUALFORCE_COMPONENT_EXTENSION;
   }
 }
 
 const fileNameGatherer = new SelectFileName();
-const outputDirGatherer = new SelectOutputDir('components');
+const outputDirGatherer = new SelectOutputDir(VISUALFORCE_COMPONENT_DIRECTORY);
 
 export async function forceVisualforceComponentCreate() {
   const commandlet = new SfdxCommandlet(
@@ -60,7 +62,11 @@ export async function forceVisualforceComponentCreate() {
       outputDirGatherer
     ),
     new ForceVisualForceComponentCreateExecutor(),
-    new FilePathExistsChecker(VF_CMP_EXTENSION)
+    new FilePathExistsChecker2(
+      [VISUALFORCE_COMPONENT_EXTENSION],
+      new DefaultPathStrategy(),
+      nls.localize('visualforce_component_message_name')
+    )
   );
   await commandlet.run();
 }
