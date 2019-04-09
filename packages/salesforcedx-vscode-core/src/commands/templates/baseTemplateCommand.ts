@@ -7,8 +7,10 @@
 
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  CancelResponse,
   ContinueResponse,
-  DirFileNameSelection
+  DirFileNameSelection,
+  PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
@@ -16,6 +18,7 @@ import * as vscode from 'vscode';
 import { SfdxCommandletExecutor } from '..';
 import { channelService } from '../../channels';
 import { SelectOutputDir } from '../../commands';
+import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
@@ -83,16 +86,6 @@ export interface SourcePathStrategy {
   getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
 }
 
-export class BundlePathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
-    return path.join(dirPath, fileName, `${fileName}${fileExt}`);
-  }
-}
-
 export class DefaultPathStrategy implements SourcePathStrategy {
   public getPathToSource(
     dirPath: string,
@@ -100,5 +93,61 @@ export class DefaultPathStrategy implements SourcePathStrategy {
     fileExt: string
   ): string {
     return path.join(dirPath, `${fileName}${fileExt}`);
+  }
+}
+export class BundlePathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    const bundleName = fileName;
+    return path.join(dirPath, bundleName, `${fileName}${fileExt}`);
+  }
+}
+
+export class FilePathExistsChecker2
+  implements PostconditionChecker<DirFileNameSelection> {
+  private fileExtensionsToCheck: string[];
+  private sourcePathStrategy: SourcePathStrategy;
+  public constructor(
+    fileExtensionsToCheck: string[],
+    sourcePathStrategy: SourcePathStrategy
+  ) {
+    this.fileExtensionsToCheck = fileExtensionsToCheck;
+    this.sourcePathStrategy = sourcePathStrategy;
+  }
+
+  public async check(
+    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
+  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const outputDir = inputs.data.outputdir;
+      const fileName = inputs.data.fileName;
+      const filesGlob = `{${this.fileExtensionsToCheck
+        .map(fileExtension =>
+          this.sourcePathStrategy.getPathToSource(
+            outputDir,
+            fileName,
+            fileExtension
+          )
+        )
+        .join(',')}}`;
+      const files = await vscode.workspace.findFiles(filesGlob);
+      // If file does not exist then create it, otherwise prompt user to overwrite the file
+      if (files.length === 0) {
+        return inputs;
+      } else {
+        const overwrite = await notificationService.showWarningMessage(
+          nls.localize('warning_prompt_file_overwrite'),
+          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite_cancel')
+        );
+        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
+          return inputs;
+        }
+      }
+    }
+    return { type: 'CANCEL' };
   }
 }

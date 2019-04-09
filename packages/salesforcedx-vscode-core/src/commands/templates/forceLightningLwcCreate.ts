@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -38,7 +38,7 @@ class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
   public sourcePathStrategy = new BundlePathStrategy();
 
   public getDefaultDirectory() {
-    return 'lwc';
+    return LIGHTNING_LWC_METADATA_DIR;
   }
 
   public getFileExtension() {
@@ -46,24 +46,15 @@ class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
-const lightningFilePathExistsChecker = new LightningFilePathExistsChecker();
+const outputDirGatherer = new SelectOutputDir(LIGHTNING_LWC_METADATA_DIR, true);
 
 export async function forceLightningLwcCreate() {
-  const outputDirGatherer = new SelectOutputDir(
-    LIGHTNING_LWC_METADATA_DIR,
-    true
-  );
-  const parameterGatherer = new CompositeParametersGatherer(
-    fileNameGatherer,
-    outputDirGatherer
-  );
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
+    new SfdxWorkspaceChecker(),
+    new CompositeParametersGatherer(fileNameGatherer, outputDirGatherer),
     new ForceLightningLwcCreateExecutor(),
-    lightningFilePathExistsChecker
+    new LightningFilePathExistsChecker()
   );
   commandlet.run();
 }
