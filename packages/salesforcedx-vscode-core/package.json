@@ -456,10 +456,6 @@
         "title": "%force_org_display_username_text%"
       },
       {
-        "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_sobjects_refresh%"
-      },
-      {
         "command": "sfdx.force.data.soql.query.input",
         "title": "%force_data_soql_query_input_text%"
       },

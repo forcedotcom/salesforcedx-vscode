@@ -64,7 +64,6 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 import {
-  getRootWorkspacePath,
   hasRootWorkspace,
   isCLIInstalled,
   showCLINotInstalledMessage
@@ -423,7 +422,6 @@ export async function activate(context: vscode.ExtensionContext) {
     CompositeParametersGatherer,
     EmptyParametersGatherer,
     getDefaultUsernameOrAlias,
-    getRootWorkspacePath,
     getUserId,
     isCLIInstalled,
     notificationService,

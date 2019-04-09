@@ -19,7 +19,10 @@ import {
   forceGenerateFauxClassesCreate,
   initSObjectDefinitions
 } from './commands';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_APEX_CONFIGURATION_NAME } from './constants';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  SFDX_APEX_CONFIGURATION_NAME
+} from './constants';
 import {
   getApexTests,
   getExceptionBreakpointInfo,
@@ -64,7 +67,6 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Telemetry
-  coreTelemetryService.showTelemetryMessage();
   telemetryService.initializeService(
     coreTelemetryService.getReporter(),
     coreTelemetryService.isTelemetryEnabled()

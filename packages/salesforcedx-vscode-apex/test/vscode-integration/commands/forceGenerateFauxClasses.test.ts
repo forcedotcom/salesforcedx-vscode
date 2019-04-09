@@ -10,7 +10,10 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
-import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import {
+  FauxClassGenerator,
+  SObjectRefreshSource
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import { Command } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -20,18 +23,13 @@ import * as vscode from 'vscode';
 import { ProgressLocation } from 'vscode';
 import {
   ForceGenerateFauxClassesExecutor,
-  initSObjectDefinitions,
-  SObjectRefreshSource
+  initSObjectDefinitions
 } from '../../../src/commands/forceGenerateFauxClasses';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const {
-  OrgAuthInfo,
-  ProgressNotification,
-  SfdxCommandlet
-} = sfdxCoreExports;
+const { OrgAuthInfo, ProgressNotification, SfdxCommandlet } = sfdxCoreExports;
 
 describe('ForceGenerateFauxClasses', () => {
   describe('initSObjectDefinitions', () => {

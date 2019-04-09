@@ -11,7 +11,10 @@ import {
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
 import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
-import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import {
+  FauxClassGenerator,
+  SObjectRefreshSource
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
   Command,
   LocalCommandExecution,
@@ -25,6 +28,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -32,7 +36,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const {
   channelService,
   getDefaultUsernameOrAlias,
-  getRootWorkspacePath,
   notificationService,
   ProgressNotification,
   SfdxCommandlet,
@@ -40,11 +43,6 @@ const {
   taskViewService
 } = sfdxCoreExports;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
-
-export enum SObjectRefreshSource {
-  Manual = 'manual',
-  Startup = 'startup'
-}
 
 export class SObjectRefreshGatherer
   implements ParametersGatherer<SObjectRefreshSource> {
@@ -89,10 +87,6 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
     const cancellationToken = cancellationTokenSource.token;
     const execution = new LocalCommandExecution(this.build(response.data));
 
-    execution.processExitSubject.subscribe(() => {
-      this.logMetric(execution.command.logName, startTime);
-    });
-
     channelService.streamCommandOutput(execution);
 
     if (this.showChannelOutput) {
@@ -117,18 +111,30 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
 
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
 
-    const projectPath: string = getRootWorkspacePath();
     const gen: FauxClassGenerator = new FauxClassGenerator(
       execution.cmdEmitter,
       cancellationToken
     );
 
+    const commandName = execution.command.logName;
     try {
-      const result = await gen.generate(projectPath, SObjectCategory.ALL);
-      console.log('Generate success ' + result);
-    } catch (e) {
-      console.log('Generate error ' + e);
+      const result = await gen.generate(
+        vscode.workspace.workspaceFolders![0].uri.fsPath,
+        SObjectCategory.ALL,
+        refreshSource
+      );
+      console.log('Generate success ' + result.data);
+      this.logMetric(commandName, startTime, result.data);
+    } catch (result) {
+      console.log('Generate error ' + result.error);
+      telemetryService.sendErrorEvent(
+        result.error,
+        result.data,
+        commandName,
+        startTime
+      );
     }
+
     ForceGenerateFauxClassesExecutor.isActive = false;
     return;
   }

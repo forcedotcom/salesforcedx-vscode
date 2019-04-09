@@ -9,6 +9,14 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex';
 
+interface ErrorMetric {
+  extensionName: string;
+  errorMessage: string;
+  errorStack?: string;
+  commandName?: string;
+  executionTime?: string;
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private reporter: TelemetryReporter | undefined;
@@ -79,13 +87,26 @@ export class TelemetryService {
     }
   }
 
-  public sendErrorEvent(errorMsg: string, callstack: string): void {
+  public sendErrorEvent(
+    error: { message: string; stack?: string },
+    additionalData?: any,
+    commandName?: string,
+    hrstart?: [number, number]
+  ): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('error', {
+      const baseTelemetry: ErrorMetric = {
         extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg,
-        errorStack: callstack
-      });
+        errorMessage: error.message,
+        errorStack: error.stack
+      };
+
+      if (commandName && hrstart) {
+        baseTelemetry.commandName = commandName;
+        baseTelemetry['executionTime'] = this.getEndHRTime(hrstart);
+      }
+
+      const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
+      this.reporter.sendTelemetryEvent('error', aggregatedTelemetry);
     }
   }
 

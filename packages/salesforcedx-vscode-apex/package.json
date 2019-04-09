@@ -206,6 +206,10 @@
       {
         "command": "sfdx.force.apex.test.last.method.run",
         "title": "%force_apex_test_last_method_run_text%"
+      },
+      {
+        "command": "sfdx.force.internal.refreshsobjects",
+        "title": "%force_sobjects_refresh%"
       }
     ],
     "configuration": {
@@ -231,7 +235,7 @@
           "type": [
             "boolean"
           ],
-          "default": true,
+          "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
