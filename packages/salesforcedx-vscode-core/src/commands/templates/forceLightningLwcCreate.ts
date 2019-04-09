@@ -66,5 +66,5 @@ export async function forceLightningLwcCreate() {
       nls.localize('lwc_message_name')
     )
   );
-  commandlet.run();
+  await commandlet.run();
 }
