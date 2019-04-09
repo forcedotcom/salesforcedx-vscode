@@ -62,22 +62,11 @@ export class LightningFilePathExistsChecker
   }
 }
 
-export class FilePathExistsChecker2
-  implements PostconditionChecker<DirFileNameSelection> {
-  private fileExtensionsToCheck: string[];
-  public constructor(fileExtensionsToCheck: string[]) {
-    this.fileExtensionsToCheck = fileExtensionsToCheck;
-  }
-
-  public async check(inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
-    ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {)
-}
-
 export class FilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
   private fileExtension: string;
 
-  public constructor(fileExtension: string, fileOverwriteWarningMessage: string) {
+  public constructor(fileExtension: string) {
     this.fileExtension = fileExtension;
   }
 

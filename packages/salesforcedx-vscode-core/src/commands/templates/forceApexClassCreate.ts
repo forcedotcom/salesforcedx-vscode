@@ -13,7 +13,6 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -21,7 +20,8 @@ import {
 } from '../commands';
 import {
   BaseTemplateCommand,
-  DefaultPathStrategy
+  DefaultPathStrategy,
+  FilePathExistsChecker2
 } from './baseTemplateCommand';
 const APEX_FILE_EXTENSION = '.cls';
 
@@ -59,7 +59,7 @@ export async function forceApexClassCreate() {
       outputDirGatherer
     ),
     new ForceApexClassCreateExecutor(),
-    new FilePathExistsChecker(APEX_FILE_EXTENSION)
+    new FilePathExistsChecker2([APEX_FILE_EXTENSION], new DefaultPathStrategy())
   );
   await commandlet.run();
 }
