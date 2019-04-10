@@ -14,7 +14,6 @@ import {
   FauxClassGenerator,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
-import { Command } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -93,8 +92,8 @@ describe('ForceGenerateFauxClasses', () => {
   });
 
   describe('ForceGenerateFauxClassesExecutor', () => {
-    let generatorStub: sinon.SinonStub;
     let progressStub: sinon.SinonStub;
+    let generatorStub: sinon.SinonStub;
     let logStub: sinon.SinonStub;
     let errorStub: sinon.SinonStub;
 
