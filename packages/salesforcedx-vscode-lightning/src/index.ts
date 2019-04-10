@@ -11,7 +11,6 @@ import * as path from 'path';
 import {
   commands,
   ExtensionContext,
-  extensions,
   ProgressLocation,
   Uri,
   window,
@@ -69,27 +68,22 @@ export async function activate(context: ExtensionContext) {
   }
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  let workspaceType;
-  if (checkActivationMode('autodetect') || checkActivationMode('always')) {
-    workspaceType = lspCommon.detectWorkspaceType(
-      workspace.workspaceFolders[0].uri.fsPath
-    );
-    const sfdxWorkspace = workspaceType === WorkspaceType.SFDX;
+  const workspaceType = lspCommon.detectWorkspaceType(
+    workspace.workspaceFolders[0].uri.fsPath
+  );
 
-    // Check if we have a valid project structure
-    if (!lspCommon.isLWC(workspaceType)) {
-      // If activationMode === autodetect and we don't have a valid workspace type, exit
-      if (checkActivationMode('autodetect')) {
-        console.log(
-          'Aura LSP - autodetect did not find a valid project structure, exiting....'
-        );
-        console.log('WorkspaceType detected: ' + workspaceType);
-        return;
-      }
-      // If activationMode === always, ignore workspace type and continue activating
-    }
+  // Check if we have a valid project structure
+  if (checkActivationMode('autodetect') && !lspCommon.isLWC(workspaceType)) {
+    // If activationMode === autodetect and we don't have a valid workspace type, exit
+    console.log(
+      'Aura LSP - autodetect did not find a valid project structure, exiting....'
+    );
+    console.log('WorkspaceType detected: ' + workspaceType);
+    return;
   }
-  // 4) If we get here, we either passed autodetect validation or activationMode == alwayson
+  // If activationMode === always, ignore workspace type and continue activating
+
+  // 4) If we get here, we either passed autodetect validation or activationMode == always
   console.log('Aura Components Extension Activated');
   console.log('WorkspaceType detected: ' + workspaceType);
 

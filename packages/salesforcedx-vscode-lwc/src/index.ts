@@ -7,7 +7,15 @@
 
 import { shared as lspCommon } from 'lightning-lsp-common';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import {
+  commands,
+  ConfigurationTarget,
+  Disposable,
+  ExtensionContext,
+  Uri,
+  workspace,
+  WorkspaceConfiguration
+} from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -21,7 +29,7 @@ import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export function code2ProtocolConverter(value: vscode.Uri) {
+export function code2ProtocolConverter(value: Uri) {
   if (/^win32/.test(process.platform)) {
     // The *first* : is also being encoded which is not the standard for URI on Windows
     // Here we transform it back to the standard way
@@ -32,10 +40,10 @@ export function code2ProtocolConverter(value: vscode.Uri) {
 }
 
 function protocol2CodeConverter(value: string) {
-  return vscode.Uri.parse(value);
+  return Uri.parse(value);
 }
 
-async function registerCommands(): Promise<vscode.Disposable | undefined> {
+async function registerCommands(): Promise<Disposable | undefined> {
   try {
     await waitForDX(true);
     const {
@@ -43,12 +51,12 @@ async function registerCommands(): Promise<vscode.Disposable | undefined> {
     } = require('./commands/forceLightningLwcCreate');
 
     // Customer-facing commands
-    const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
+    const forceLightningLwcCreateCmd = commands.registerCommand(
       'sfdx.force.lightning.lwc.create',
       forceLightningLwcCreate
     );
 
-    return vscode.Disposable.from(forceLightningLwcCreateCmd);
+    return Disposable.from(forceLightningLwcCreateCmd);
   } catch (ignore) {
     // ignore
     return undefined;
@@ -57,13 +65,13 @@ async function registerCommands(): Promise<vscode.Disposable | undefined> {
 
 function checkActivationMode(mode: string): boolean {
   return (
-    vscode.workspace
+    workspace
       .getConfiguration('salesforcedx-vscode-lightning')
       .get('activationMode') === mode
   );
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
@@ -73,30 +81,27 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // 2) if we have no workspace folders, exit
-  if (!vscode.workspace.workspaceFolders) {
+  if (!workspace.workspaceFolders) {
     console.log('No workspace, exiting extension');
     return;
   }
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
   const workspaceType = lspCommon.detectWorkspaceType(
-    vscode.workspace.workspaceFolders[0].uri.fsPath
+  	workspace.workspaceFolders[0].uri.fsPath
   );
 
-    // Check if we have a valid project structure
-    if (!lspCommon.isLWC(workspaceType)) {
-      // If activationMode === autodetect and we don't have a valid workspace type, exit
-      if (checkActivationMode('autodetect')) {
-        console.log(
-          'LWC LSP - autodetect did not find a valid project structure, exiting....'
-        );
-        console.log('WorkspaceType detected: ' + workspaceType);
-        return;
-      }
-      // If activationMode === always, ignore workspace type and continue activating
-    }
+  // Check if we have a valid project structure
+  if (checkActivationMode('autodetect') && !lspCommon.isLWC(workspaceType)) {
+    // If activationMode === autodetect and we don't have a valid workspace type, exit
+    console.log(
+      'LWC LSP - autodetect did not find a valid project structure, exiting....'
+    );
+    console.log('WorkspaceType detected: ' + workspaceType);
+    return;
   }
-  // 4) If we get here, we either passed autodetect validation or activationMode == alwayson
+
+  // 4) If we get here, we either passed autodetect validation or activationMode == always
   console.log('Lightning Web Components Extension Activated');
   console.log('WorkspaceType detected: ' + workspaceType);
 
@@ -107,10 +112,7 @@ export async function activate(context: vscode.ExtensionContext) {
   if (workspaceType === lspCommon.WorkspaceType.SFDX) {
     await populateEslintSettingIfNecessary(
       context,
-      vscode.workspace.getConfiguration(
-        '',
-        vscode.workspace.workspaceFolders[0].uri
-      )
+      workspace.getConfiguration('', workspace.workspaceFolders[0].uri)
     );
   }
 
@@ -127,7 +129,7 @@ export async function activate(context: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
-function startLWCLanguageServer(context: vscode.ExtensionContext) {
+function startLWCLanguageServer(context: ExtensionContext) {
   // Setup the language server
   const serverModule = context.asAbsolutePath(
     path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
@@ -150,20 +152,18 @@ function startLWCLanguageServer(context: vscode.ExtensionContext) {
     ],
     synchronize: {
       fileEvents: [
-        vscode.workspace.createFileSystemWatcher('**/*.resource'),
-        vscode.workspace.createFileSystemWatcher(
+        workspace.createFileSystemWatcher('**/*.resource'),
+        workspace.createFileSystemWatcher(
           '**/labels/CustomLabels.labels-meta.xml'
         ),
-        vscode.workspace.createFileSystemWatcher(
+        workspace.createFileSystemWatcher(
           '**/staticresources/*.resource-meta.xml'
         ),
-        vscode.workspace.createFileSystemWatcher(
-          '**/contentassets/*.asset-meta.xml'
-        ),
-        vscode.workspace.createFileSystemWatcher('**/lwc/*/*.js'),
-        vscode.workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
+        workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
+        workspace.createFileSystemWatcher('**/lwc/*/*.js'),
+        workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
         // need to watch for directory deletions as no events are created for contents or deleted directories
-        vscode.workspace.createFileSystemWatcher('**/', false, true, false)
+        workspace.createFileSystemWatcher('**/', false, true, false)
       ]
     },
     uriConverters: {
@@ -186,8 +186,8 @@ function startLWCLanguageServer(context: vscode.ExtensionContext) {
 }
 
 export async function populateEslintSettingIfNecessary(
-  context: vscode.ExtensionContext,
-  config: vscode.WorkspaceConfiguration
+  context: ExtensionContext,
+  config: WorkspaceConfiguration
 ) {
   const nodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
 
@@ -200,7 +200,7 @@ export async function populateEslintSettingIfNecessary(
     await config.update(
       ESLINT_NODEPATH_CONFIG,
       eslintModule,
-      vscode.ConfigurationTarget.Workspace
+      ConfigurationTarget.Workspace
     );
   }
 }
