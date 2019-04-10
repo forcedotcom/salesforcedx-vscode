@@ -63,19 +63,17 @@ async function registerCommands(): Promise<Disposable | undefined> {
   }
 }
 
-function checkActivationMode(mode: string): boolean {
-  return (
-    workspace
-      .getConfiguration('salesforcedx-vscode-lightning')
-      .get('activationMode') === mode
-  );
+function getActivationMode(): string {
+  const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
+  return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
 export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
+  console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
-  if (checkActivationMode('off')) {
+  if (getActivationMode() === 'off') {
     console.log('LWC Language Server activationMode set to off, exiting...');
     return;
   }
@@ -92,7 +90,7 @@ export async function activate(context: ExtensionContext) {
   );
 
   // Check if we have a valid project structure
-  if (checkActivationMode('autodetect') && !lspCommon.isLWC(workspaceType)) {
+  if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     console.log(
       'LWC LSP - autodetect did not find a valid project structure, exiting....'

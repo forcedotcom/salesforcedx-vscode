@@ -27,8 +27,6 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { ComponentTreeProvider } from './views/component-tree-provider';
 
-let client: LanguageClient;
-
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri): string {
   if (/^win32/.test(process.platform)) {
@@ -44,19 +42,17 @@ function protocol2CodeConverter(value: string): Uri {
   return Uri.parse(value);
 }
 
-function checkActivationMode(mode: string): boolean {
-  return (
-    workspace
-      .getConfiguration('salesforcedx-vscode-lightning')
-      .get('activationMode') === mode
-  );
+function getActivationMode(): string {
+  const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
+  return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
 export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
+  console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
-  if (checkActivationMode('off')) {
+  if (getActivationMode() === 'off') {
     console.log('Aura Language Server activationMode set to off, exiting...');
     return;
   }
@@ -73,7 +69,7 @@ export async function activate(context: ExtensionContext) {
   );
 
   // Check if we have a valid project structure
-  if (checkActivationMode('autodetect') && !lspCommon.isLWC(workspaceType)) {
+  if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     console.log(
       'Aura LSP - autodetect did not find a valid project structure, exiting....'
@@ -154,7 +150,7 @@ export async function activate(context: ExtensionContext) {
   };
 
   // Create the language client and start the client.
-  this.client = client = new LanguageClient(
+  const client = new LanguageClient(
     'auraLanguageServer',
     nls.localize('client_name'),
     serverOptions,
@@ -179,17 +175,17 @@ export async function activate(context: ExtensionContext) {
   client
     .onReady()
     .then(() => {
-      this.client.onNotification('salesforce/indexingStarted', startIndexing);
-      this.client.onNotification('salesforce/indexingEnded', endIndexing);
+      client.onNotification('salesforce/indexingStarted', startIndexing);
+      client.onNotification('salesforce/indexingEnded', endIndexing);
     })
     .catch();
 
   // Start the language server
-  client.start();
+  const disp = client.start();
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
-  context.subscriptions.push(this.client);
+  context.subscriptions.push(disp);
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
