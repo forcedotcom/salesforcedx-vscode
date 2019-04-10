@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix NullPointerException when Apex language server was processing references ([PR #1245](https://github.com/forcedotcom/salesforcedx-vscode/pull/1245))
+- Fix NullPointerException when Apex language server processes references ([PR #1245](https://github.com/forcedotcom/salesforcedx-vscode/pull/1245))
 
 #### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger
 
@@ -12,7 +12,7 @@
 
 #### salesforcedx-vscode-core
 
-- Expose SFDX create commands exclusively on default folders when right-clicking the Explorer bar ([PR #1235](https://github.com/forcedotcom/salesforcedx-vscode/pull/1235), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852)):
+- Expose SFDX: Create commands only on source files’ default directories when right-clicking folders in the File Explorer ([PR #1235](https://github.com/forcedotcom/salesforcedx-vscode/pull/1235), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852)):
   - `SFDX: Create Apex Class`
   - `SFDX: Create Apex Trigger`
   - `SFDX: Create Visualforce Component`
@@ -20,7 +20,7 @@
 
 #### salesforcedx-vscode-lightning
 
-- Fix issue causing `settings.json` being overwritten ([PR #1254](https://github.com/forcedotcom/salesforcedx-vscode/pull/1254), [Issue #1210](https://github.com/forcedotcom/salesforcedx-vscode/issues/1210))
+- Stop extension from overwriting `settings.json` contents ([PR #1254](https://github.com/forcedotcom/salesforcedx-vscode/pull/1254), [Issue #1210](https://github.com/forcedotcom/salesforcedx-vscode/issues/1210))
 
 ## 45.9.0 - April 4, 2019
 
