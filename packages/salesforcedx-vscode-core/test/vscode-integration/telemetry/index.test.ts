@@ -230,5 +230,19 @@ describe('Telemetry', () => {
       };
       assert.calledWith(reporter, 'commandExecution', match(expectedData));
     });
+
+    it('should send correct data format on sendEventData', async () => {
+      mockContext = new MockContext(true);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
+
+      const eventName = 'eventName';
+      const property = { property: 'property for event' };
+      const measure = { measure: 123456 };
+      telemetryService.sendEventData(eventName, property, measure);
+
+      assert.calledWith(reporter, eventName, property, measure);
+    });
   });
 });
