@@ -17,7 +17,6 @@ import {
   window,
   workspace
 } from 'vscode';
-import * as vscode from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -48,7 +47,7 @@ function protocol2CodeConverter(value: string): Uri {
 
 function checkActivationMode(mode: string): boolean {
   return (
-    vscode.workspace
+    workspace
       .getConfiguration('salesforcedx-vscode-lightning')
       .get('activationMode') === mode
   );
@@ -64,7 +63,7 @@ export async function activate(context: ExtensionContext) {
   }
 
   // 2) if we have no workspace folders, exit
-  if (!vscode.workspace.workspaceFolders) {
+  if (!workspace.workspaceFolders) {
     console.log('No workspace, exiting extension');
     return;
   }
@@ -73,7 +72,7 @@ export async function activate(context: ExtensionContext) {
   let workspaceType;
   if (checkActivationMode('autodetect') || checkActivationMode('always')) {
     workspaceType = lspCommon.detectWorkspaceType(
-      vscode.workspace.workspaceFolders[0].uri.fsPath
+      workspace.workspaceFolders[0].uri.fsPath
     );
     const sfdxWorkspace = workspaceType === WorkspaceType.SFDX;
 
