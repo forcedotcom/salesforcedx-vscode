@@ -1,3 +1,27 @@
+## 45.10.0 - April 10, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix NullPointerException when Apex language server was processing references ([PR #1245](https://github.com/forcedotcom/salesforcedx-vscode/pull/1245))
+
+#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger
+
+- Update dependency to address security vulnerability ([PR #1230](https://github.com/forcedotcom/salesforcedx-vscode/pull/1230))
+
+#### salesforcedx-vscode-core
+
+- Expose SFDX create commands exclusively on default folders when right-clicking the Explorer bar ([PR #1235](https://github.com/forcedotcom/salesforcedx-vscode/pull/1235), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852)):
+  - `SFDX: Create Apex Class`
+  - `SFDX: Create Apex Trigger`
+  - `SFDX: Create Visualforce Component`
+  - `SFDX: Create Visualforce Page`
+
+#### salesforcedx-vscode-lightning
+
+- Fix issue causing `settings.json` being overwritten ([PR #1254](https://github.com/forcedotcom/salesforcedx-vscode/pull/1254), [Issue #1210](https://github.com/forcedotcom/salesforcedx-vscode/issues/1210))
+
 ## 45.9.0 - April 4, 2019
 
 ### Added
