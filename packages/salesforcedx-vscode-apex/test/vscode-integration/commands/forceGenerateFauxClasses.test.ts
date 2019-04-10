@@ -10,11 +10,7 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
-import {
-  FauxClassGenerator,
-  SObjectRefreshSource
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
-import { Command } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SObjectRefreshSource } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -92,23 +88,14 @@ describe('ForceGenerateFauxClasses', () => {
   });
 
   describe('ForceGenerateFauxClassesExecutor', () => {
-    let generatorStub: sinon.SinonStub;
     let progressStub: sinon.SinonStub;
-    let logStub: sinon.SinonStub;
 
     beforeEach(() => {
       progressStub = sinon.stub(ProgressNotification, 'show');
-      generatorStub = sinon.stub(FauxClassGenerator.prototype, 'generate');
-      logStub = sinon.stub(
-        ForceGenerateFauxClassesExecutor.prototype,
-        'logMetric'
-      );
     });
 
     afterEach(() => {
       progressStub.restore();
-      generatorStub.restore();
-      logStub.restore();
     });
 
     it('Should show progress on the status bar for non-manual refresh source', async () => {
@@ -123,35 +110,12 @@ describe('ForceGenerateFauxClasses', () => {
       );
     });
 
-    it('Should append refresh source to log name if not manual', async () => {
-      const source = SObjectRefreshSource.Startup;
-      const builder = buildWithSource(source);
-      expect(builder.logName).to.not.be.undefined;
-      if (builder.logName) {
-        expect(builder.logName.endsWith(`_${source}`)).to.be.true;
-      }
-    });
-
-    it('Should not append refresh source to log name if manual', async () => {
-      const source = SObjectRefreshSource.Manual;
-      const builder = buildWithSource(source);
-      expect(builder.logName).to.not.be.undefined;
-      if (builder.logName) {
-        expect(builder.logName.endsWith(`_${source}`)).to.be.false;
-      }
-    });
-
     async function executeWithSource(source: SObjectRefreshSource) {
       const executor = new ForceGenerateFauxClassesExecutor();
       await executor.execute({
         type: 'CONTINUE',
         data: source
       });
-    }
-
-    function buildWithSource(source: SObjectRefreshSource): Command {
-      const executor = new ForceGenerateFauxClassesExecutor();
-      return executor.build(source);
     }
   });
 });
