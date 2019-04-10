@@ -28,7 +28,7 @@
 
 #### salesforcedx-vscode/docs
 
-- Add `Set Up the Prettier Code Formatter for Salesforce Projects` page ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
+- Add [Set Up the Prettier Code Formatter for Salesforce Projects](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) article ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
 - Show the statuses of the project’s dependencies ([PR #1218](https://github.com/forcedotcom/salesforcedx-vscode/pull/1218))
 
 #### salesforcedx-vscode-core
