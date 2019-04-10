@@ -50,13 +50,13 @@ describe('getMetadataTypesPath', () => {
   });
 
   it('should return the path for a given username', async () => {
-    getDefaultUsernameStub.returns('defaultUsername');
-    getUsernameStub.returns('defaultUsername');
+    getDefaultUsernameStub.returns('defaultAlias');
+    getUsernameStub.returns('test-username1@example.com');
     const filePath = path.join(
       rootWorkspacePath,
       '.sfdx',
       'orgs',
-      'defaultUsername',
+      'test-username1@example.com',
       'metadata',
       'metadataTypes.json'
     );
