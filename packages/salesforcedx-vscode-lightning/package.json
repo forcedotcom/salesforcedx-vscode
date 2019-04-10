@@ -104,7 +104,7 @@
         {
           "id": "salesforce-lightning-components",
           "name": "%lightning_explorer_name%",
-          "when": "config.salesforcedx-vscode-lightning.show-lightning-explorer"
+          "when": "config.salesforcedx-vscode-lightning.showLightningExplorer"
         }
       ]
     },
@@ -128,7 +128,7 @@
       "type": "object",
       "title": "%lightning_preferences%",
       "properties": {
-        "salesforcedx-vscode-lightning.show-lightning-explorer": {
+        "salesforcedx-vscode-lightning.showLightningExplorer": {
           "type": "boolean",
           "scope": "window",
           "default": false,
