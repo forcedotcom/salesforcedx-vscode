@@ -13,8 +13,6 @@ interface ErrorMetric {
   extensionName: string;
   errorMessage: string;
   errorStack?: string;
-  commandName?: string;
-  executionTime?: string;
 }
 
 export class TelemetryService {
@@ -89,9 +87,7 @@ export class TelemetryService {
 
   public sendErrorEvent(
     error: { message: string; stack?: string },
-    additionalData?: any,
-    commandName?: string,
-    hrstart?: [number, number]
+    additionalData?: any
   ): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const baseTelemetry: ErrorMetric = {
@@ -100,17 +96,12 @@ export class TelemetryService {
         errorStack: error.stack
       };
 
-      if (commandName && hrstart) {
-        baseTelemetry.commandName = commandName;
-        baseTelemetry['executionTime'] = this.getEndHRTime(hrstart);
-      }
-
       const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
       this.reporter.sendTelemetryEvent('error', aggregatedTelemetry);
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): string {
+  public getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%d%d', hrend[0], hrend[1] / 1000000);
   }

@@ -97,11 +97,17 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
+    const additionalData = {
+      cancelled: false,
+      standardObjects: 1,
+      customObjects: 2,
+      commandName: 'sobject_refresh_command',
+      executionTime: telemetryService.getEndHRTime([0, 678])
+    };
+
     telemetryService.sendErrorEvent(
       { message: 'sample error', stack: 'sample stack' },
-      { standardObjects: 1, customObjects: 2 },
-      'sobject_refresh_command',
-      [0, 678]
+      additionalData
     );
     assert.calledOnce(sendEvent);
 
@@ -109,10 +115,11 @@ describe('Telemetry', () => {
       extensionName: 'salesforcedx-vscode-apex',
       errorMessage: 'sample error',
       errorStack: 'sample stack',
-      commandName: 'sobject_refresh_command',
-      executionTime: match.string,
+      cancelled: false,
       standardObjects: 1,
-      customObjects: 2
+      customObjects: 2,
+      commandName: 'sobject_refresh_command',
+      executionTime: match.string
     };
     assert.calledWith(sendEvent, 'error', match(expectedData));
   });

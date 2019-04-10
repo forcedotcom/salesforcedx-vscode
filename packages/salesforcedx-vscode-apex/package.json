@@ -139,6 +139,10 @@
         {
           "command": "sfdx.force.apex.test.last.method.run",
           "when": "sfdx:project_opened && sfdx:has_cached_test_method"
+        },
+        {
+          "command": "sfdx.force.internal.refreshsobjects",
+          "when": "sfdx:project_opened"
         }
       ]
     },

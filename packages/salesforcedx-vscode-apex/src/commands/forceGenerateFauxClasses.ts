@@ -127,11 +127,13 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       this.logMetric(commandName, startTime, result.data);
     } catch (result) {
       console.log('Generate error ' + result.error);
+      const commandData = {
+        commandName,
+        executionTime: telemetryService.getEndHRTime(startTime)
+      };
       telemetryService.sendErrorEvent(
         result.error,
-        result.data,
-        commandName,
-        startTime
+        Object.assign(result.data, commandData)
       );
     }
 

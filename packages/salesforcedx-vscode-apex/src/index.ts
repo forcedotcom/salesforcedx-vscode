@@ -88,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
           // Refresh SObject definitions if there aren't any faux classes
           const sobjectRefreshStartup: boolean = vscode.workspace
             .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
-            .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, true);
+            .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
           if (sobjectRefreshStartup) {
             initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
               telemetryService.sendErrorEvent(e.message, e.stack)

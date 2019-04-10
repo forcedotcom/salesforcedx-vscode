@@ -272,10 +272,6 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.internal.refreshsobjects",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.data.soql.query.input",
           "when": "sfdx:project_opened && !editorHasSelection"
         },
