@@ -1,10 +1,34 @@
+## 45.10.0 - April 10, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix NullPointerException when Apex language server processes references ([PR #1245](https://github.com/forcedotcom/salesforcedx-vscode/pull/1245))
+
+#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger
+
+- Update dependency to address security vulnerability ([PR #1230](https://github.com/forcedotcom/salesforcedx-vscode/pull/1230))
+
+#### salesforcedx-vscode-core
+
+- Expose SFDX: Create commands only on source files’ default directories when right-clicking folders in the File Explorer ([PR #1235](https://github.com/forcedotcom/salesforcedx-vscode/pull/1235), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852)):
+  - `SFDX: Create Apex Class`
+  - `SFDX: Create Apex Trigger`
+  - `SFDX: Create Visualforce Component`
+  - `SFDX: Create Visualforce Page`
+
+#### salesforcedx-vscode-lightning
+
+- Stop extension from overwriting `settings.json` contents ([PR #1254](https://github.com/forcedotcom/salesforcedx-vscode/pull/1254), [Issue #1210](https://github.com/forcedotcom/salesforcedx-vscode/issues/1210))
+
 ## 45.9.0 - April 4, 2019
 
 ### Added
 
 #### salesforcedx-vscode/docs
 
-- Add `Set Up the Prettier Code Formatter for Salesforce Projects` page ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
+- Add [Set Up the Prettier Code Formatter for Salesforce Projects](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) article ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
 - Show the statuses of the project’s dependencies ([PR #1218](https://github.com/forcedotcom/salesforcedx-vscode/pull/1218))
 
 #### salesforcedx-vscode-core
