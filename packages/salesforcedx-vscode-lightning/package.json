@@ -142,7 +142,7 @@
             "autodetect",
             "off"
           ],
-          "enumDescription": [
+          "enumDescriptions": [
             "%activation_mode_always_on%",
             "%activation_mode_autodetect%",
             "%activation_mode_off%"
