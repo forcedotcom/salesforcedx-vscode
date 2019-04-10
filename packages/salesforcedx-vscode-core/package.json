@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "45.9.0",
+  "version": "45.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,8 +26,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "1.1.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "45.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "45.9.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "45.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.10.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -37,7 +37,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "45.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "45.10.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -116,15 +116,15 @@
       "explorer/context": [
         {
           "command": "sfdx.force.apex.class.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == classes && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.component.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == components && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.page.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == pages && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.app.create",
@@ -144,7 +144,7 @@
         },
         {
           "command": "sfdx.force.apex.trigger.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == triggers && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
