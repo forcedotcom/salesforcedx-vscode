@@ -26,7 +26,6 @@
   ],
   "dependencies": {
     "@salesforce/core": "1.1.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "45.10.0",
     "@salesforce/salesforcedx-utils-vscode": "45.10.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
@@ -273,10 +272,6 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.internal.refreshsobjects",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.data.soql.query.input",
           "when": "sfdx:project_opened && !editorHasSelection"
         },
@@ -457,10 +452,6 @@
         "title": "%force_org_display_username_text%"
       },
       {
-        "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_sobjects_refresh%"
-      },
-      {
         "command": "sfdx.force.data.soql.query.input",
         "title": "%force_data_soql_query_input_text%"
       },
@@ -572,13 +563,6 @@
           ],
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
-        },
-        "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
-          "type": [
-            "boolean"
-          ],
-          "default": false,
-          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },

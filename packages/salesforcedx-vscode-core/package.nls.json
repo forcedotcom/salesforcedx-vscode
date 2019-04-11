@@ -27,7 +27,6 @@
   "force_alias_list_text": "SFDX: List All Aliases",
   "force_org_display_default_text": "SFDX: Display Org Details for Default Org",
   "force_org_display_username_text": "SFDX: Display Org Details...",
-  "force_sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "force_data_soql_query_input_text": "SFDX: Execute SOQL Query...",
   "force_data_soql_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text",
   "force_apex_execute_document_text": "SFDX: Execute Anonymous Apex with Editor Contents",
@@ -55,6 +54,5 @@
   "force_source_deploy_in_manifest_text": "SFDX: Deploy Source in Manifest to Org",
   "force_source_delete_text": "SFDX: Delete from Project and Org",
   "force_source_delete_this_source_text": "SFDX: Delete This from Project and Org",
-  "force_config_set_org_text": "SFDX: Set a Default Org",
-  "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false)."
+  "force_config_set_org_text": "SFDX: Set a Default Org"
 }

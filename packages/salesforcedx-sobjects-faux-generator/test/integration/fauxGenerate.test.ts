@@ -13,7 +13,11 @@ import { EventEmitter } from 'events';
 import { renameSync } from 'fs';
 import * as path from 'path';
 import { SObjectCategory } from '../../src/describe';
-import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
+import {
+  FauxClassGenerator,
+  SObjectRefreshResult,
+  SObjectRefreshSource
+} from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import * as util from './integrationTestUtil';
 
@@ -76,21 +80,30 @@ describe('Generate faux classes for SObjects', function() {
   });
 
   it('Should be cancellable', async () => {
-    let result = '';
     const generator = getGenerator();
     cancellationTokenSource.cancel();
-    result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
-    expect(result).to.contain(nls.localize('faux_generation_cancelled_text'));
+    const result = await generator.generate(
+      projectPath,
+      SObjectCategory.CUSTOM,
+      SObjectRefreshSource.Manual
+    );
+    expect(result.data.cancelled).to.be.true;
   });
 
   it('Should fail if outside a project', async () => {
-    let result = '';
+    let result: SObjectRefreshResult;
     const generator = getGenerator();
     invalidateProject(projectPath);
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
-    } catch (e) {
-      expect(e).to.contain(nls.localize('no_generate_if_not_in_project', ''));
+      result = await generator.generate(
+        projectPath,
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      );
+    } catch ({ error }) {
+      expect(error.message).to.contain(
+        nls.localize('no_generate_if_not_in_project', '')
+      );
       return;
     } finally {
       restoreProject(projectPath);
@@ -101,7 +114,7 @@ describe('Generate faux classes for SObjects', function() {
   it('Should emit an error event on failure', async () => {
     let errorMessage = '';
     let exitCode: number = LocalCommandExecution.SUCCESS_CODE;
-    let rejectOutput = '';
+    let rejectOutput: any;
     const generator = getGenerator();
     emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: Error) => {
       errorMessage = data.message;
@@ -111,13 +124,17 @@ describe('Generate faux classes for SObjects', function() {
     });
     invalidateProject(projectPath);
     try {
-      await generator.generate(projectPath, SObjectCategory.CUSTOM);
-    } catch (e) {
-      rejectOutput = e;
+      await generator.generate(
+        projectPath,
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      );
+    } catch ({ error }) {
+      rejectOutput = error;
     } finally {
       restoreProject(projectPath);
     }
-    expect(rejectOutput).to.contain(
+    expect(rejectOutput.message).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
     );
     expect(errorMessage).to.contain(
@@ -128,20 +145,24 @@ describe('Generate faux classes for SObjects', function() {
 
   it('Should emit message to stderr on failure', async () => {
     let stderrInfo = '';
-    let rejectOutput = '';
+    let rejectOutput: any;
     const generator = getGenerator();
     emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
       stderrInfo = data;
     });
     invalidateProject(projectPath);
     try {
-      await generator.generate(projectPath, SObjectCategory.CUSTOM);
-    } catch (e) {
-      rejectOutput = e;
+      await generator.generate(
+        projectPath,
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      );
+    } catch ({ error }) {
+      rejectOutput = error;
     } finally {
       restoreProject(projectPath);
     }
-    expect(rejectOutput).to.contain(
+    expect(rejectOutput.message).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
     );
     expect(stderrInfo).to.contain(
@@ -150,37 +171,45 @@ describe('Generate faux classes for SObjects', function() {
   });
 
   it('Should emit an exit event with code success code 0 on success', async () => {
-    let result = '';
     let exitCode = LocalCommandExecution.FAILURE_CODE;
     const generator = getGenerator();
     emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
       exitCode = data;
     });
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      const result = await generator.generate(
+        projectPath,
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      );
+      expect(result.error).to.be.undefined;
+      expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
     } catch (e) {
       expect.fail(e, 'undefined', 'generator should not have thrown an error');
     }
-    expect(result).to.equal(LocalCommandExecution.SUCCESS_CODE.toString());
-    expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
   });
 
   it('Should log the number of created faux classes on success', async () => {
     const generator = getGenerator();
     let stdoutInfo = '';
-    let result = '';
+    let result: SObjectRefreshResult;
     emitter.addListener(LocalCommandExecution.STDOUT_EVENT, (data: string) => {
       stdoutInfo = data;
     });
     try {
-      result = await generator.generate(projectPath, SObjectCategory.CUSTOM);
+      result = await generator.generate(
+        projectPath,
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      );
+      expect(result.error).to.be.undefined;
+      expect(result.data.customObjects).to.eql(3);
+      expect(stdoutInfo).to.contain(
+        nls.localize('fetched_sobjects_length_text', 3, 'Custom')
+      );
     } catch (e) {
       expect.fail(e, 'undefined', 'generator should not have thrown an error');
     }
-    expect(result).to.equal(LocalCommandExecution.SUCCESS_CODE.toString());
-    expect(stdoutInfo).to.contain(
-      nls.localize('fetched_sobjects_length_text', 3, 'Custom')
-    );
   });
 });
 

@@ -140,9 +140,6 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
-  force_sobjects_no_refresh_if_already_active_error_text:
-    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
