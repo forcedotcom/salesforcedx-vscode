@@ -10,7 +10,10 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
-import { SObjectRefreshSource } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import {
+  FauxClassGenerator,
+  SObjectRefreshSource
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -21,6 +24,7 @@ import {
   ForceGenerateFauxClassesExecutor,
   initSObjectDefinitions
 } from '../../../src/commands/forceGenerateFauxClasses';
+import { telemetryService } from '../../../src/telemetry';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -89,13 +93,33 @@ describe('ForceGenerateFauxClasses', () => {
 
   describe('ForceGenerateFauxClassesExecutor', () => {
     let progressStub: sinon.SinonStub;
+    let generatorStub: sinon.SinonStub;
+    let logStub: sinon.SinonStub;
+    let errorStub: sinon.SinonStub;
+
+    const expectedData: any = {
+      cancelled: false,
+      standardObjects: 1,
+      customObjects: 2
+    };
 
     beforeEach(() => {
       progressStub = sinon.stub(ProgressNotification, 'show');
+      generatorStub = sinon
+        .stub(FauxClassGenerator.prototype, 'generate')
+        .returns({ data: expectedData });
+      logStub = sinon.stub(
+        ForceGenerateFauxClassesExecutor.prototype,
+        'logMetric'
+      );
+      errorStub = sinon.stub(telemetryService, 'sendErrorEvent');
     });
 
     afterEach(() => {
       progressStub.restore();
+      generatorStub.restore();
+      logStub.restore();
+      errorStub.restore();
     });
 
     it('Should show progress on the status bar for non-manual refresh source', async () => {
@@ -108,6 +132,18 @@ describe('ForceGenerateFauxClasses', () => {
       expect(progressStub.getCall(0).args[2]).to.eq(
         ProgressLocation.Notification
       );
+    });
+
+    it('Should log correct information to telemetry', async () => {
+      // Success
+      await executeWithSource(SObjectRefreshSource.Startup);
+      expect(logStub.getCall(0).args[2]).to.eqls(expectedData);
+
+      // Error
+      const error = { message: 'sample error', stack: 'sample stack' };
+      generatorStub.throws({ data: expectedData, error });
+      await executeWithSource(SObjectRefreshSource.Startup);
+      expect(errorStub.calledWith(error, expectedData));
     });
 
     async function executeWithSource(source: SObjectRefreshSource) {
