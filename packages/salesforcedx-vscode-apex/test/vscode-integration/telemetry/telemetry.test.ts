@@ -92,4 +92,35 @@ describe('Telemetry', () => {
     };
     assert.calledWith(sendEvent, 'apexLSPError', expectedData);
   });
+
+  it('Should send correct data format on sendErrorEvent with additionalData', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+
+    const additionalData = {
+      cancelled: false,
+      standardObjects: 1,
+      customObjects: 2,
+      commandName: 'sobject_refresh_command',
+      executionTime: telemetryService.getEndHRTime([0, 678])
+    };
+
+    telemetryService.sendErrorEvent(
+      { message: 'sample error', stack: 'sample stack' },
+      additionalData
+    );
+    assert.calledOnce(sendEvent);
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-apex',
+      errorMessage: 'sample error',
+      errorStack: 'sample stack',
+      cancelled: false,
+      standardObjects: 1,
+      customObjects: 2,
+      commandName: 'sobject_refresh_command',
+      executionTime: match.string
+    };
+    assert.calledWith(sendEvent, 'error', match(expectedData));
+  });
 });
