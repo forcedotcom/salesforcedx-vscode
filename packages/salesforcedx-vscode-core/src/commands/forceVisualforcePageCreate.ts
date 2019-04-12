@@ -31,7 +31,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { getRootWorkspacePath } from '../util';
 
 const VF_PAGE_EXTENSION = '.page';
 
