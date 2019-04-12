@@ -21,7 +21,10 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+<<<<<<< HEAD
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+=======
+>>>>>>> Removes deprecated deprecated workspace.rootPath
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
@@ -31,6 +34,10 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+<<<<<<< HEAD
+=======
+import { getRootWorkspacePath } from '../util';
+>>>>>>> Removes deprecated deprecated workspace.rootPath
 
 const VF_PAGE_EXTENSION = '.page';
 
@@ -62,7 +69,11 @@ class ForceVisualForcePageCreateExecutor extends SfdxCommandletExecutor<
       if (
         data !== undefined &&
         data.toString() === '0' &&
+<<<<<<< HEAD
         hasRootWorkspace()
+=======
+        getRootWorkspacePath()
+>>>>>>> Removes deprecated deprecated workspace.rootPath
       ) {
         vscode.workspace
           .openTextDocument(
