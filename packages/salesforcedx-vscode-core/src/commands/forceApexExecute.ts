@@ -23,6 +23,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { getRootWorkspacePath } from '../util';
 
 class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: TempFile): Command {
@@ -39,9 +40,9 @@ class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
-    if (vscode.workspace.rootPath) {
+    if (getRootWorkspacePath()) {
       const fileName = path.join(
-        vscode.workspace.rootPath,
+        getRootWorkspacePath(),
         '.sfdx',
         'tools',
         'tempApex.input'
