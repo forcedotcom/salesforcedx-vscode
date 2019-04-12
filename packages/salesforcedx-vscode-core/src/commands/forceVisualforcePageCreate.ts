@@ -22,9 +22,13 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 =======
 >>>>>>> Removes deprecated deprecated workspace.rootPath
+=======
+import { getRootWorkspacePath } from '../util';
+>>>>>>> Alphabetize import sources
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
@@ -35,9 +39,12 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import { getRootWorkspacePath } from '../util';
 >>>>>>> Removes deprecated deprecated workspace.rootPath
+=======
+>>>>>>> Alphabetize import sources
 
 const VF_PAGE_EXTENSION = '.page';
 
