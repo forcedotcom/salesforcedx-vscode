@@ -19,8 +19,10 @@ import {
 import * as vscode from 'vscode';
 import { SfdxCommandlet, SfdxCommandletExecutor } from './commands';
 
+import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
@@ -40,8 +42,8 @@ export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
 export class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
-  public constructor(explorerPath: any) {
-    this.explorerPath = explorerPath.fsPath;
+  public constructor(uri: vscode.Uri) {
+    this.explorerPath = uri.fsPath;
   }
 
   public check(): boolean {
@@ -67,8 +69,8 @@ export class ConfirmationAndSourcePathGatherer
   private readonly PROCEED = nls.localize('confirm_delete_source_button_text');
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
-  public constructor(explorerPath: any) {
-    this.explorerPath = explorerPath.fsPath;
+  public constructor(uri: vscode.Uri) {
+    this.explorerPath = uri.fsPath;
   }
 
   public async gather(): Promise<
@@ -87,11 +89,26 @@ export class ConfirmationAndSourcePathGatherer
   }
 }
 
-export async function forceSourceDelete(explorerPath: any) {
-  const manifestChecker = new ManifestChecker(explorerPath);
+export async function forceSourceDelete(sourceUri: vscode.Uri) {
+  if (!sourceUri) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
+      sourceUri = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize(
+        'force_source_delete_select_file_or_directory'
+      );
+      telemetryService.sendError(errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
+    }
+  }
+  const manifestChecker = new ManifestChecker(sourceUri);
   const commandlet = new SfdxCommandlet(
     manifestChecker,
-    new ConfirmationAndSourcePathGatherer(explorerPath),
+    new ConfirmationAndSourcePathGatherer(sourceUri),
     new ForceSourceDeleteExecutor()
   );
   await commandlet.run();

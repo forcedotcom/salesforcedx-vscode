@@ -55,8 +55,9 @@ describe('Channel', () => {
       mChannel = new MockChannel();
       channelService = new ChannelService(mChannel);
     });
-
-    it('Should have proper name', () => {
+    // Commenting out this because of current issue in vscode 1.33.0 and above
+    // https://github.com/Microsoft/vscode/issues/71947
+    xit('Should have proper name', () => {
       expect(DEFAULT_SFDX_CHANNEL.name).to.equal('Salesforce CLI');
     });
 
@@ -76,8 +77,9 @@ describe('Channel', () => {
           resolve();
         });
       });
+      expect(mChannel.value).to.contain('Starting sfdx force --help');
       expect(mChannel.value).to.contain(
-        'sfdx force: [-v] [--json] [--loglevel <string>]'
+        'USAGE\n  $ sfdx force [--json] [--loglevel trace|debug|info|warn|error|fatal]'
       );
       expect(mChannel.value).to.contain('ended with exit code 0');
     });
@@ -98,7 +100,7 @@ describe('Channel', () => {
           resolve();
         });
       });
-      expect(mChannel.value).to.contain('Unexpected argument --unknown');
+      expect(mChannel.value).to.contain('Unexpected argument: --unknown');
     });
 
     it('Should suggest to install SFDX binary', async () => {

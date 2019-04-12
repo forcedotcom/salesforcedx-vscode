@@ -1,3 +1,78 @@
+## 45.10.0 - April 10, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix NullPointerException when Apex language server processes references ([PR #1245](https://github.com/forcedotcom/salesforcedx-vscode/pull/1245))
+
+#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger
+
+- Update dependency to address security vulnerability ([PR #1230](https://github.com/forcedotcom/salesforcedx-vscode/pull/1230))
+
+#### salesforcedx-vscode-core
+
+- Expose SFDX: Create commands only on source files’ default directories when right-clicking folders in the File Explorer ([PR #1235](https://github.com/forcedotcom/salesforcedx-vscode/pull/1235), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852)):
+  - `SFDX: Create Apex Class`
+  - `SFDX: Create Apex Trigger`
+  - `SFDX: Create Visualforce Component`
+  - `SFDX: Create Visualforce Page`
+
+#### salesforcedx-vscode-lightning
+
+- Stop extension from overwriting `settings.json` contents ([PR #1254](https://github.com/forcedotcom/salesforcedx-vscode/pull/1254), [Issue #1210](https://github.com/forcedotcom/salesforcedx-vscode/issues/1210))
+
+## 45.9.0 - April 4, 2019
+
+### Added
+
+#### salesforcedx-vscode/docs
+
+- Add [Set Up the Prettier Code Formatter for Salesforce Projects](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) article ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
+- Show the statuses of the project’s dependencies ([PR #1218](https://github.com/forcedotcom/salesforcedx-vscode/pull/1218))
+
+#### salesforcedx-vscode-core
+
+- Include org development commands in command palette ([PR #1190](https://github.com/forcedotcom/salesforcedx-vscode/pull/1190), [Issue #662](https://github.com/forcedotcom/salesforcedx-vscode/issues/662), [Issue #918](https://github.com/forcedotcom/salesforcedx-vscode/issues/918)):
+  - `SFDX: Deploy Source in Manifest to Org`
+  - `SFDX: Retrieve Source in Manifest from Org`
+  - `SFDX: Delete from Project and Org`
+  - `SFDX: Deploy Source to Org`
+  - `SFDX: Retrieve Source From Org`
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Add missing closing bracket on `testMethod` Apex snippet ([PR #1219](https://github.com/forcedotcom/salesforcedx-vscode/pull/1219))—Contribution by [@1ktribble](https://github.com/1ktribble)
+
+#### salesforcedx-vscode-core
+
+- Add a menu for selecting an output directory for commands that create metadata from a template; create the `default` directory, if it doesn’t exist, when running these commands ([PR #1187](https://github.com/forcedotcom/salesforcedx-vscode/pull/1187), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852), [Issue #998](https://github.com/forcedotcom/salesforcedx-vscode/issues/998))
+- Update command execution telemetry when directory type is included ([PR #1225](https://github.com/forcedotcom/salesforcedx-vscode/pull/1225))
+
+## 45.8.0 - March 28, 2019
+
+### Added
+
+#### salesforcedx-vscode-lightning
+
+- Add Aura Language Server: Support Go to Definition, autocompletion, and showing documentation on hover ([PR #1183](https://github.com/forcedotcom/salesforcedx-vscode/pull/1183))
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix threading issues in Apex Language Server’s CompilerService ([PR #1173](https://github.com/forcedotcom/salesforcedx-vscode/pull/1173), [Issue #867](https://github.com/forcedotcom/salesforcedx-vscode/issues/867))
+
+#### salesforcedx-vscode-core
+
+- Prevent Output panel from stealing focus during command execution ([PR #1181](https://github.com/forcedotcom/salesforcedx-vscode/pull/1181), [Issue #1110](https://github.com/forcedotcom/salesforcedx-vscode/issues/1110))
+
+#### salesforcedx-vscode-lightning
+
+- Remove deprecated SLDS linter ([PR #1191](https://github.com/forcedotcom/salesforcedx-vscode/pull/1191))
+
 ## 45.7.0 - March 21, 2019
 
 ### Added

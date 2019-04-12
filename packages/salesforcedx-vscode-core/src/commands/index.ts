@@ -9,7 +9,7 @@ export {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
   SelectFileName,
-  SelectStrictDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -36,7 +36,6 @@ export { forceTaskStop } from './forceTaskStop';
 export { forceApexClassCreate } from './forceApexClassCreate';
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
 export { forceLightningAppCreate } from './forceLightningAppCreate';
-export { forceGenerateFauxClassesCreate } from './forceGenerateFauxClasses';
 export {
   forceVisualforceComponentCreate
 } from './forceVisualforceComponentCreate';

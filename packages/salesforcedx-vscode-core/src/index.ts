@@ -23,7 +23,6 @@ import {
   forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
-  forceGenerateFauxClassesCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
@@ -48,16 +47,15 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   SelectFileName,
-  SelectStrictDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
-import { initSObjectDefinitions } from './commands/forceGenerateFauxClasses';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import { setupWorkspaceOrgType } from './context';
+import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -66,11 +64,11 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 import {
-  getRootWorkspacePath,
   hasRootWorkspace,
   isCLIInstalled,
   showCLINotInstalledMessage
 } from './util';
+import { OrgAuthInfo } from './util/authInfo';
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -232,11 +230,6 @@ function registerCommands(
     forceDataSoqlQuery
   );
 
-  const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
-    'sfdx.force.internal.refreshsobjects',
-    forceGenerateFauxClassesCreate
-  );
-
   const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.execute.document',
     forceApexExecute,
@@ -328,7 +321,6 @@ function registerCommands(
     forceAliasListCmd,
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
-    forceGenerateFauxClassesCmd,
     forceProjectCreateCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
@@ -425,29 +417,24 @@ export async function activate(context: vscode.ExtensionContext) {
     decorators.showDemoMode();
   }
 
-  // Refresh SObject definitions if there aren't any faux classes
-  if (sfdxCoreSettings.getEnableSObjectRefreshOnStartup()) {
-    initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
-      telemetryService.sendErrorEvent(e.message, e.stack)
-    );
-  }
-
   const api: any = {
-    ProgressNotification,
+    channelService,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
+    getDefaultUsernameOrAlias,
+    getUserId,
+    isCLIInstalled,
+    notificationService,
+    OrgAuthInfo,
+    ProgressNotification,
     SelectFileName,
-    SelectStrictDirPath,
+    SelectOutputDir,
     SfdxCommandlet,
     SfdxCommandletExecutor,
     sfdxCoreSettings,
     SfdxWorkspaceChecker,
-    channelService,
-    notificationService,
     taskViewService,
-    telemetryService,
-    getUserId,
-    isCLIInstalled
+    telemetryService
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);

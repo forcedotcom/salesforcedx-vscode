@@ -81,10 +81,20 @@ export const messages = {
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
+  force_source_deploy_select_file_or_directory:
+    'You can run SFDX: Deploy Source to Org only on a source file or directory.',
+  force_source_deploy_select_manifest:
+    'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
+  force_source_retrieve_select_file_or_directory:
+    'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
+  force_source_retrieve_select_manifest:
+    'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   force_source_delete_text: 'SFDX: Delete from Project and Org',
   force_source_delete_manifest_unsupported_message:
     'SFDX: Delete from Project and Org is not supported for manifest files. Select a source file or directory to delete.',
+  force_source_delete_select_file_or_directory:
+    'You can run SFDX: Delete from Project and Org only on a source file or directory.',
   force_source_delete_confirmation_message:
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
@@ -130,9 +140,6 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
-  force_sobjects_no_refresh_if_already_active_error_text:
-    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
@@ -235,5 +242,6 @@ export const messages = {
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_default_devhubusername:
-    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.'
+    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
+  custom_output_directory: 'Choose a Custom Directory'
 };

@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "45.7.0",
+  "version": "45.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,8 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "1.1.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "45.7.0",
-    "@salesforce/salesforcedx-utils-vscode": "45.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.10.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -37,7 +36,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "45.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "45.10.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -116,15 +115,15 @@
       "explorer/context": [
         {
           "command": "sfdx.force.apex.class.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == classes && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.component.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == components && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.visualforce.page.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == pages && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.lightning.app.create",
@@ -144,7 +143,7 @@
         },
         {
           "command": "sfdx.force.apex.trigger.create",
-          "when": "explorerResourceIsFolder && resourceFilename != aura && resourceFilename != lwc && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourceFilename == triggers && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
@@ -273,10 +272,6 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.internal.refreshsobjects",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.data.soql.query.input",
           "when": "sfdx:project_opened && !editorHasSelection"
         },
@@ -327,19 +322,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "false"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "false"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "false"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "false"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
@@ -347,7 +342,7 @@
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when": "false"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         }
       ]
     },
@@ -455,10 +450,6 @@
       {
         "command": "sfdx.force.org.display.username",
         "title": "%force_org_display_username_text%"
-      },
-      {
-        "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_sobjects_refresh%"
       },
       {
         "command": "sfdx.force.data.soql.query.input",
@@ -572,13 +563,6 @@
           ],
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
-        },
-        "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
-          "type": [
-            "boolean"
-          ],
-          "default": false,
-          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },

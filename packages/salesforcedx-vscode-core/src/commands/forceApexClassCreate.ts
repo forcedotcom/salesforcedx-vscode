@@ -26,12 +26,13 @@ import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
   SelectFileName,
-  SelectPrioritizedDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 const APEX_FILE_EXTENSION = '.cls';
+const APEX_CLASS_METADATA_DIR = 'classes';
 
 class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
@@ -57,7 +58,12 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
+      const dirType = response.data.outputdir.endsWith(
+        path.join(SelectOutputDir.defaultOutput, APEX_CLASS_METADATA_DIR)
+      )
+        ? 'defaultDir'
+        : 'customDir';
+      this.logMetric(execution.command.logName, startTime, { dirType });
       if (
         data !== undefined &&
         data.toString() === '0' &&
@@ -90,11 +96,8 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(APEX_FILE_EXTENSION);
 
-export async function forceApexClassCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectPrioritizedDirPath(
-    explorerDir,
-    'classes'
-  );
+export async function forceApexClassCreate() {
+  const outputDirGatherer = new SelectOutputDir(APEX_CLASS_METADATA_DIR);
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

@@ -52,15 +52,6 @@ export class TelemetryService {
     }
   }
 
-  public sendCommandEvent(commandName: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('commandExecution', {
-        extensionName: EXTENSION_NAME,
-        commandName
-      });
-    }
-  }
-
   public sendLaunchEvent(logSizeStr: string, errorMsg: string): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent('launchDebuggerSession', {
@@ -92,6 +83,6 @@ export class TelemetryService {
 
   private getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
-    return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);
+    return util.format('%d%d', hrend[0], hrend[1] / 1000000);
   }
 }

@@ -202,5 +202,47 @@ describe('Telemetry', () => {
       };
       assert.calledWith(reporter, 'commandExecution', match(expectedData));
     });
+
+    it('Should send correct data format on sendCommandEvent with additionalData', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
+      const additionalData = {
+        dirType: 'testDirectoryType',
+        secondParam: 'value'
+      };
+
+      telemetryService.sendCommandEvent(
+        'create_apex_class_command',
+        [0, 678],
+        additionalData
+      );
+      assert.calledOnce(reporter);
+
+      const expectedData = {
+        extensionName: 'salesforcedx-vscode-core',
+        commandName: 'create_apex_class_command',
+        executionTime: match.string,
+        dirType: 'testDirectoryType',
+        secondParam: 'value'
+      };
+      assert.calledWith(reporter, 'commandExecution', match(expectedData));
+    });
+
+    it('should send correct data format on sendEventData', async () => {
+      mockContext = new MockContext(true);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
+
+      const eventName = 'eventName';
+      const property = { property: 'property for event' };
+      const measure = { measure: 123456 };
+      telemetryService.sendEventData(eventName, property, measure);
+
+      assert.calledWith(reporter, eventName, property, measure);
+    });
   });
 });

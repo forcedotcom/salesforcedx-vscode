@@ -34,22 +34,8 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, false);
 
-    telemetryService.sendCommandEvent('some_apex_command');
+    telemetryService.sendExtensionActivationEvent([1, 700]);
     assert.notCalled(sendEvent);
-  });
-
-  it('Should send correct data format on sendCommandEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
-    telemetryService.initializeService(reporter, true);
-
-    telemetryService.sendCommandEvent('some_apex_command');
-    assert.calledOnce(sendEvent);
-
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex',
-      commandName: 'some_apex_command'
-    };
-    assert.calledWith(sendEvent, 'commandExecution', expectedData);
   });
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
@@ -105,5 +91,36 @@ describe('Telemetry', () => {
       errorMsg
     };
     assert.calledWith(sendEvent, 'apexLSPError', expectedData);
+  });
+
+  it('Should send correct data format on sendErrorEvent with additionalData', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+
+    const additionalData = {
+      cancelled: false,
+      standardObjects: 1,
+      customObjects: 2,
+      commandName: 'sobject_refresh_command',
+      executionTime: telemetryService.getEndHRTime([0, 678])
+    };
+
+    telemetryService.sendErrorEvent(
+      { message: 'sample error', stack: 'sample stack' },
+      additionalData
+    );
+    assert.calledOnce(sendEvent);
+
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-apex',
+      errorMessage: 'sample error',
+      errorStack: 'sample stack',
+      cancelled: false,
+      standardObjects: 1,
+      customObjects: 2,
+      commandName: 'sobject_refresh_command',
+      executionTime: match.string
+    };
+    assert.calledWith(sendEvent, 'error', match(expectedData));
   });
 });

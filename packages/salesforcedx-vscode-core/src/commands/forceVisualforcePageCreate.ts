@@ -26,13 +26,14 @@ import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
   SelectFileName,
-  SelectPrioritizedDirPath,
+  SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 
 const VF_PAGE_EXTENSION = '.page';
+const VF_PAGE_METADATA_DIR = 'pages';
 
 class ForceVisualForcePageCreateExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
@@ -58,7 +59,12 @@ class ForceVisualForcePageCreateExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
+      const dirType = response.data.outputdir.endsWith(
+        path.join(SelectOutputDir.defaultOutput, VF_PAGE_METADATA_DIR)
+      )
+        ? 'defaultDir'
+        : 'customDir';
+      this.logMetric(execution.command.logName, startTime, { dirType });
       if (
         data !== undefined &&
         data.toString() === '0' &&
@@ -91,8 +97,8 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new SelectFileName();
 const filePathExistsChecker = new FilePathExistsChecker(VF_PAGE_EXTENSION);
 
-export async function forceVisualforcePageCreate(explorerDir?: any) {
-  const outputDirGatherer = new SelectPrioritizedDirPath(explorerDir, 'pages');
+export async function forceVisualforcePageCreate() {
+  const outputDirGatherer = new SelectOutputDir(VF_PAGE_METADATA_DIR);
   const parameterGatherer = new CompositeParametersGatherer<
     DirFileNameSelection
   >(fileNameGatherer, outputDirGatherer);

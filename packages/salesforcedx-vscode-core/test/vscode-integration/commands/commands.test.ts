@@ -23,12 +23,12 @@ import {
   EmptyPostChecker,
   FilePathExistsChecker,
   LightningFilePathExistsChecker,
-  SelectPrioritizedDirPath,
-  SelectStrictDirPath,
+  SelectOutputDir,
   SfdxCommandlet
 } from '../../../src/commands/commands';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -223,52 +223,64 @@ describe('Command Utilities', () => {
     });
   });
 
-  describe('Glob Directories', () => {
-    describe('SelectPrioritizedDirPath', () => {
-      it('Should glob and return correct number of directories', async () => {
-        const dirPathGatherer = new SelectPrioritizedDirPath();
-        if (!getRootWorkspacePath()) {
-          throw new Error('Test workspace should be opened');
-        }
-        const dirList: string[] = dirPathGatherer.globDirs(
-          getRootWorkspacePath()
-        );
-        expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
-        expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
-      });
+  describe('SelectOutputDir', () => {
+    it('Should correctly build default menu options', async () => {
+      const selector = new SelectOutputDir('test');
+      const options = selector.getDefaultOptions(['testapp', 'testapp2']);
 
-      it('Should return list of relative paths with paths containing keyword prioritized to the top of list', async () => {
-        const dirPathGatherer = new SelectPrioritizedDirPath();
-        if (!getRootWorkspacePath()) {
-          throw new Error('Test workspace should be opened');
-        }
-        const dirList: string[] = dirPathGatherer.globDirs(
-          getRootWorkspacePath(),
-          'classes'
-        );
-        expect(dirList[0]).to.equal(
-          path.join('force-app', 'main', 'default', 'classes')
-        );
-        expect(dirList[1]).to.equal(
-          path.join('force-app', 'test', 'default', 'classes')
-        );
-      });
+      expect(options).to.eql([
+        path.join('testapp', SelectOutputDir.defaultOutput, 'test'),
+        path.join('testapp2', SelectOutputDir.defaultOutput, 'test'),
+        SelectOutputDir.customDirOption
+      ]);
     });
 
-    describe('SelectStrictDirPath', () => {
-      it('Should glob and return a list of dirs containing only the keyword', async () => {
-        const strictDirPathGatherer = new SelectStrictDirPath();
-        if (!getRootWorkspacePath()) {
-          throw new Error('Test workspace should be opened');
-        }
-        const dirList: string[] = strictDirPathGatherer.globDirs(
-          getRootWorkspacePath(),
-          'aura'
-        );
-        dirList.forEach(value => {
-          expect(value).to.contain('aura');
+    it('Should generate correct number of custom options for a workspace', async () => {
+      const selector = new SelectOutputDir('test');
+      const options = selector.getCustomOptions(getRootWorkspacePath());
+
+      expect(options.length).to.be.equal(SFDX_SIMPLE_NUM_OF_DIRS);
+    });
+
+    it('Should correctly append type folder to paths for type that requires specific parent folder', () => {
+      const selector = new SelectOutputDir('aura', true);
+      const options = selector.getCustomOptions(getRootWorkspacePath());
+
+      expect(
+        options.every(outputDir => {
+          // don't append the type name if the output dir already has that as its name
+          return outputDir.endsWith('aura') && !outputDir.endsWith('aura/aura');
+        })
+      ).to.be.true;
+    });
+
+    it('Should gather paths from correct sources and prompt custom dir if chosen', async () => {
+      const selector = new SelectOutputDir('test');
+      const defaultOptions = selector.getDefaultOptions(['test-app']);
+      const customOptions = selector.getCustomOptions(getRootWorkspacePath());
+      const getPackageDirPathsStub = sinon.stub(
+        SfdxPackageDirectories,
+        'getPackageDirectoryPaths'
+      );
+      const showMenuStub = sinon.stub(selector, 'showMenu');
+      const choice = customOptions[5];
+      getPackageDirPathsStub.returns(['test-app']);
+      showMenuStub.onFirstCall().returns(SelectOutputDir.customDirOption);
+      showMenuStub.onSecondCall().returns(choice);
+
+      const response = await selector.gather();
+
+      try {
+        expect(showMenuStub.getCall(0).calledWith(defaultOptions)).to.be.true;
+        expect(showMenuStub.getCall(1).calledWith(customOptions)).to.be.true;
+        expect(response).to.eql({
+          type: 'CONTINUE',
+          data: { outputdir: choice }
         });
-      });
+      } finally {
+        getPackageDirPathsStub.restore();
+        showMenuStub.restore();
+      }
     });
   });
 

@@ -9,6 +9,12 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-apex';
 
+interface ErrorMetric {
+  extensionName: string;
+  errorMessage: string;
+  errorStack?: string;
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private reporter: TelemetryReporter | undefined;
@@ -51,15 +57,6 @@ export class TelemetryService {
     }
   }
 
-  public sendCommandEvent(commandName: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('commandExecution', {
-        extensionName: EXTENSION_NAME,
-        commandName
-      });
-    }
-  }
-
   public sendApexLSPActivationEvent(hrstart: [number, number]): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
@@ -88,8 +85,24 @@ export class TelemetryService {
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): string {
+  public sendErrorEvent(
+    error: { message: string; stack?: string },
+    additionalData?: any
+  ): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      const baseTelemetry: ErrorMetric = {
+        extensionName: EXTENSION_NAME,
+        errorMessage: error.message,
+        errorStack: error.stack
+      };
+
+      const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
+      this.reporter.sendTelemetryEvent('error', aggregatedTelemetry);
+    }
+  }
+
+  public getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
-    return util.format('%ds %dms', hrend[0], hrend[1] / 1000000);
+    return util.format('%d%d', hrend[0], hrend[1] / 1000000);
   }
 }
