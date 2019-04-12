@@ -27,7 +27,7 @@ describe('getConfigSource', () => {
     const configSource = await ConfigUtil.getConfigSource('key');
     expect(configSource).to.be.eq(ConfigSource.Global);
   });
-  it('should return ConfigSource.None if the key/value is in the global config', async () => {
+  it('should return ConfigSource.None if the key/value is not in the local or global config', async () => {
     getConfigValueStub.onCall(0).returns(undefined);
     getConfigValueStub.onCall(1).returns(undefined);
     const configSource = await ConfigUtil.getConfigSource('key');
