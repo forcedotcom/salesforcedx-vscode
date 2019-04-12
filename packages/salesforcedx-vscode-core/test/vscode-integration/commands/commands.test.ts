@@ -224,7 +224,6 @@ describe('Command Utilities', () => {
     });
   });
 
-<<<<<<< HEAD
   describe('SelectOutputDir', () => {
     it('Should correctly build default menu options', async () => {
       const selector = new SelectOutputDir('test');
@@ -278,52 +277,6 @@ describe('Command Utilities', () => {
         expect(response).to.eql({
           type: 'CONTINUE',
           data: { outputdir: choice }
-=======
-  describe('Glob Directories', () => {
-    describe('SelectPrioritizedDirPath', () => {
-      it('Should glob and return correct number of directories', async () => {
-        const dirPathGatherer = new SelectPrioritizedDirPath();
-        if (!getRootWorkspacePath()) {
-          throw new Error('Test workspace should be opened');
-        }
-        const dirList: string[] = dirPathGatherer.globDirs(
-          getRootWorkspacePath()
-        );
-        expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
-        expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
-      });
-
-      it('Should return list of relative paths with paths containing keyword prioritized to the top of list', async () => {
-        const dirPathGatherer = new SelectPrioritizedDirPath();
-        if (!getRootWorkspacePath()) {
-          throw new Error('Test workspace should be opened');
-        }
-        const dirList: string[] = dirPathGatherer.globDirs(
-          getRootWorkspacePath(),
-          'classes'
-        );
-        expect(dirList[0]).to.equal(
-          path.join('force-app', 'main', 'default', 'classes')
-        );
-        expect(dirList[1]).to.equal(
-          path.join('force-app', 'test', 'default', 'classes')
-        );
-      });
-    });
-
-    describe('SelectStrictDirPath', () => {
-      it('Should glob and return a list of dirs containing only the keyword', async () => {
-        const strictDirPathGatherer = new SelectStrictDirPath();
-        if (!getRootWorkspacePath()) {
-          throw new Error('Test workspace should be opened');
-        }
-        const dirList: string[] = strictDirPathGatherer.globDirs(
-          getRootWorkspacePath(),
-          'aura'
-        );
-        dirList.forEach(value => {
-          expect(value).to.contain('aura');
->>>>>>> Removes deprecated deprecated workspace.rootPath
         });
       } finally {
         getPackageDirPathsStub.restore();
