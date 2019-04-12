@@ -29,6 +29,7 @@ import {
 } from '../../../src/commands/commands';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Command Utilities', () => {
@@ -226,11 +227,11 @@ describe('Command Utilities', () => {
     describe('SelectPrioritizedDirPath', () => {
       it('Should glob and return correct number of directories', async () => {
         const dirPathGatherer = new SelectPrioritizedDirPath();
-        if (!vscode.workspace.rootPath) {
+        if (!getRootWorkspacePath()) {
           throw new Error('Test workspace should be opened');
         }
         const dirList: string[] = dirPathGatherer.globDirs(
-          vscode.workspace.rootPath
+          getRootWorkspacePath()
         );
         expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
         expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
@@ -238,11 +239,11 @@ describe('Command Utilities', () => {
 
       it('Should return list of relative paths with paths containing keyword prioritized to the top of list', async () => {
         const dirPathGatherer = new SelectPrioritizedDirPath();
-        if (!vscode.workspace.rootPath) {
+        if (!getRootWorkspacePath()) {
           throw new Error('Test workspace should be opened');
         }
         const dirList: string[] = dirPathGatherer.globDirs(
-          vscode.workspace.rootPath,
+          getRootWorkspacePath(),
           'classes'
         );
         expect(dirList[0]).to.equal(
@@ -257,11 +258,11 @@ describe('Command Utilities', () => {
     describe('SelectStrictDirPath', () => {
       it('Should glob and return a list of dirs containing only the keyword', async () => {
         const strictDirPathGatherer = new SelectStrictDirPath();
-        if (!vscode.workspace.rootPath) {
+        if (!getRootWorkspacePath()) {
           throw new Error('Test workspace should be opened');
         }
         const dirList: string[] = strictDirPathGatherer.globDirs(
-          vscode.workspace.rootPath,
+          getRootWorkspacePath(),
           'aura'
         );
         dirList.forEach(value => {
@@ -326,7 +327,7 @@ describe('Command Utilities', () => {
 
       it('Should return ContinueResponse if path specified does not have existing lightning files', async () => {
         const postChecker = new LightningFilePathExistsChecker();
-        if (!vscode.workspace.rootPath) {
+        if (!getRootWorkspacePath()) {
           throw new Error('Test workspace should be opened');
         }
         const input: ContinueResponse<DirFileNameSelection> = {
@@ -431,7 +432,7 @@ describe('Command Utilities', () => {
 
       it('Should return ContinueResponse if path specified does not have existing file with specified name', async () => {
         const postChecker = new FilePathExistsChecker('.cls');
-        if (!vscode.workspace.rootPath) {
+        if (!getRootWorkspacePath()) {
           throw new Error('Test workspace should be opened');
         }
         const input: ContinueResponse<DirFileNameSelection> = {

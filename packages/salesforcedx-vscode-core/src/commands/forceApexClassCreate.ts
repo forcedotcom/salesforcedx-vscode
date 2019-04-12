@@ -30,6 +30,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { getRootWorkspacePath } from '../util';
 const APEX_FILE_EXTENSION = '.cls';
 
 class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
@@ -52,7 +53,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
@@ -60,12 +61,12 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       if (
         data !== undefined &&
         data.toString() === '0' &&
-        vscode.workspace.rootPath
+        getRootWorkspacePath()
       ) {
         vscode.workspace
           .openTextDocument(
             path.join(
-              vscode.workspace.rootPath,
+              getRootWorkspacePath(),
               response.data.outputdir,
               response.data.fileName + APEX_FILE_EXTENSION
             )
