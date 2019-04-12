@@ -23,8 +23,13 @@ import {
   SelectOutputDir,
   SfdxCommandlet
 } from '../../../src/commands/commands';
+<<<<<<< HEAD
 
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+=======
+import { nls } from '../../../src/messages';
+import { notificationService } from '../../../src/notifications';
+>>>>>>> Removes deprecated deprecated workspace.rootPath
 import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -219,6 +224,7 @@ describe('Command Utilities', () => {
     });
   });
 
+<<<<<<< HEAD
   describe('SelectOutputDir', () => {
     it('Should correctly build default menu options', async () => {
       const selector = new SelectOutputDir('test');
@@ -272,6 +278,52 @@ describe('Command Utilities', () => {
         expect(response).to.eql({
           type: 'CONTINUE',
           data: { outputdir: choice }
+=======
+  describe('Glob Directories', () => {
+    describe('SelectPrioritizedDirPath', () => {
+      it('Should glob and return correct number of directories', async () => {
+        const dirPathGatherer = new SelectPrioritizedDirPath();
+        if (!getRootWorkspacePath()) {
+          throw new Error('Test workspace should be opened');
+        }
+        const dirList: string[] = dirPathGatherer.globDirs(
+          getRootWorkspacePath()
+        );
+        expect(dirList[0]).to.not.contain(WORKSPACE_NAME);
+        expect(dirList.length).to.equal(SFDX_SIMPLE_NUM_OF_DIRS);
+      });
+
+      it('Should return list of relative paths with paths containing keyword prioritized to the top of list', async () => {
+        const dirPathGatherer = new SelectPrioritizedDirPath();
+        if (!getRootWorkspacePath()) {
+          throw new Error('Test workspace should be opened');
+        }
+        const dirList: string[] = dirPathGatherer.globDirs(
+          getRootWorkspacePath(),
+          'classes'
+        );
+        expect(dirList[0]).to.equal(
+          path.join('force-app', 'main', 'default', 'classes')
+        );
+        expect(dirList[1]).to.equal(
+          path.join('force-app', 'test', 'default', 'classes')
+        );
+      });
+    });
+
+    describe('SelectStrictDirPath', () => {
+      it('Should glob and return a list of dirs containing only the keyword', async () => {
+        const strictDirPathGatherer = new SelectStrictDirPath();
+        if (!getRootWorkspacePath()) {
+          throw new Error('Test workspace should be opened');
+        }
+        const dirList: string[] = strictDirPathGatherer.globDirs(
+          getRootWorkspacePath(),
+          'aura'
+        );
+        dirList.forEach(value => {
+          expect(value).to.contain('aura');
+>>>>>>> Removes deprecated deprecated workspace.rootPath
         });
       } finally {
         getPackageDirPathsStub.restore();
@@ -304,6 +356,220 @@ describe('Command Utilities', () => {
     });
   });
 
+<<<<<<< HEAD
+=======
+  describe('LightningFilePathExistsChecker', () => {
+    let findFilesSpy: sinon.SinonSpy;
+    let warningSpy: sinon.SinonSpy;
+
+    afterEach(() => {
+      findFilesSpy.reset();
+      warningSpy.reset();
+    });
+
+    describe('Without notification warning', () => {
+      before(() => {
+        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+        warningSpy = sinon.stub(notificationService, 'showWarningMessage');
+      });
+
+      after(() => {
+        sinon.restore(vscode.workspace);
+        sinon.restore(notificationService);
+      });
+
+      it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+        const postChecker = new LightningFilePathExistsChecker();
+        const input: CancelResponse = { type: 'CANCEL' };
+        const response = await postChecker.check(input);
+        sinon.assert.notCalled(findFilesSpy);
+        sinon.assert.notCalled(warningSpy);
+        expect(response.type).to.equal('CANCEL');
+      });
+
+      it('Should return ContinueResponse if path specified does not have existing lightning files', async () => {
+        const postChecker = new LightningFilePathExistsChecker();
+        if (!getRootWorkspacePath()) {
+          throw new Error('Test workspace should be opened');
+        }
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'test',
+            outputdir: path.join('force-app', 'main', 'default', 'aura')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.notCalled(warningSpy);
+        expect(response.type).to.equal('CONTINUE');
+        if (response.type === 'CONTINUE') {
+          expect(response).to.equal(input);
+        } else {
+          throw new Error('Response should be of type ContinueResponse');
+        }
+      });
+    });
+
+    describe('With notification warning', () => {
+      before(() => {
+        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+        warningSpy = sinon
+          .stub(notificationService, 'showWarningMessage')
+          .onFirstCall()
+          .returns(nls.localize('warning_prompt_overwrite_confirm'))
+          .onSecondCall()
+          .returns(nls.localize('warning_prompt_overwrite_cancel'));
+      });
+
+      after(() => {
+        sinon.restore(vscode.workspace);
+        sinon.restore(notificationService);
+      });
+
+      it('Should return ContinueResponse if lightning files exist in specified path and user selects continue', async () => {
+        const postChecker = new LightningFilePathExistsChecker();
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'DemoApp',
+            outputdir: path.join('force-app', 'main', 'default', 'aura')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.called(warningSpy);
+        expect(response.type).to.equal('CONTINUE');
+        if (response.type === 'CONTINUE') {
+          expect(response).to.equal(input);
+        } else {
+          throw new Error('Response should be of type ContinueResponse');
+        }
+      });
+
+      it('Should return CancelResponse if lightning files exist in specified path and user selects No/Cancel', async () => {
+        const postChecker = new LightningFilePathExistsChecker();
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'DemoApp',
+            outputdir: path.join('force-app', 'main', 'default', 'aura')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.called(warningSpy);
+        expect(response.type).to.equal('CANCEL');
+      });
+    });
+  });
+
+  describe('FilePathExistsChecker', () => {
+    let findFilesSpy: sinon.SinonSpy;
+    let warningSpy: sinon.SinonSpy;
+    afterEach(() => {
+      findFilesSpy.reset();
+      warningSpy.reset();
+    });
+
+    describe('Without notification warning', () => {
+      before(() => {
+        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+        warningSpy = sinon.stub(notificationService, 'showWarningMessage');
+      });
+
+      after(() => {
+        sinon.restore(vscode.workspace);
+        sinon.restore(notificationService);
+      });
+
+      it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        const input: CancelResponse = { type: 'CANCEL' };
+        const response = await postChecker.check(input);
+        sinon.assert.notCalled(findFilesSpy);
+        sinon.assert.notCalled(warningSpy);
+        expect(response.type).to.equal('CANCEL');
+      });
+
+      it('Should return ContinueResponse if path specified does not have existing file with specified name', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        if (!getRootWorkspacePath()) {
+          throw new Error('Test workspace should be opened');
+        }
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'test',
+            outputdir: path.join('force-app', 'main', 'default', 'classes')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.notCalled(warningSpy);
+        expect(response.type).to.equal('CONTINUE');
+        if (response.type === 'CONTINUE') {
+          expect(response).to.equal(input);
+        } else {
+          throw new Error('Response should be of type ContinueResponse');
+        }
+      });
+    });
+
+    describe('With notification warning', () => {
+      before(() => {
+        findFilesSpy = sinon.spy(vscode.workspace, 'findFiles');
+        warningSpy = sinon
+          .stub(notificationService, 'showWarningMessage')
+          .onFirstCall()
+          .returns(nls.localize('warning_prompt_overwrite_confirm'))
+          .onSecondCall()
+          .returns(nls.localize('warning_prompt_overwrite_cancel'));
+      });
+
+      after(() => {
+        sinon.restore(vscode.workspace);
+        sinon.restore(notificationService);
+      });
+
+      it('Should return ContinueResponse if files exist in specified path and user selects continue', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'DemoController',
+            outputdir: path.join('force-app', 'main', 'default', 'classes')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.called(warningSpy);
+        expect(response.type).to.equal('CONTINUE');
+        if (response.type === 'CONTINUE') {
+          expect(response).to.equal(input);
+        } else {
+          throw new Error('Response should be of type ContinueResponse');
+        }
+      });
+
+      it('Should return CancelResponse if files exist in specified path and user selects No/Cancel', async () => {
+        const postChecker = new FilePathExistsChecker('.cls');
+        const input: ContinueResponse<DirFileNameSelection> = {
+          type: 'CONTINUE',
+          data: {
+            fileName: 'DemoController',
+            outputdir: path.join('force-app', 'main', 'default', 'classes')
+          }
+        };
+        const response = await postChecker.check(input);
+        sinon.assert.calledOnce(findFilesSpy);
+        sinon.assert.called(warningSpy);
+        expect(response.type).to.equal('CANCEL');
+      });
+    });
+  });
+
+>>>>>>> Removes deprecated deprecated workspace.rootPath
   // Due to the way the prompt is phrased
   // CONTINUE means that we will execute the forceLogoutAll command
   // CANCEL means that we will not execute the forceLogoutAll command

@@ -21,7 +21,10 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+<<<<<<< HEAD
 import { getRootWorkspacePath } from '../util';
+=======
+>>>>>>> Removes deprecated deprecated workspace.rootPath
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
@@ -31,6 +34,10 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+<<<<<<< HEAD
+=======
+import { getRootWorkspacePath } from '../util';
+>>>>>>> Removes deprecated deprecated workspace.rootPath
 const APEX_FILE_EXTENSION = '.cls';
 
 class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
