@@ -18,12 +18,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getRootWorkspacePath } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { getRootWorkspacePath } from '../util';
 
 class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: TempFile): Command {

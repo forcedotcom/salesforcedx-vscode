@@ -21,6 +21,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath } from '../util';
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
@@ -30,7 +31,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { getRootWorkspacePath } from '../util';
 const APEX_FILE_EXTENSION = '.cls';
 
 class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
