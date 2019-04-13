@@ -17,8 +17,8 @@ export class TypeNodeProvider implements vscode.TreeDataProvider<MetadataType> {
 
   constructor() {}
 
-  public refresh(): void {
-    forceDescribeMetadata();
+  public async refresh(): Promise<void> {
+    await forceDescribeMetadata();
     this._onDidChangeTreeData.fire();
   }
 
