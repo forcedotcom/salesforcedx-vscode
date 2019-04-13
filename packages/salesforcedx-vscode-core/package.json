@@ -75,11 +75,27 @@
   ],
   "main": "./out/src",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "metadata",
+          "title": "Org Browser",
+          "icon": "resources/dep.svg"
+        }
+      ]
+    },
     "views": {
       "explorer": [
         {
           "id": "sfdx.force.tasks.view",
           "name": "%running_tasks_title_text%"
+        }
+      ],
+      "metadata": [
+        {
+          "id": "metadata",
+          "name": "Metadata Types",
+          "when": "sfdx:project_opened"
         }
       ]
     },

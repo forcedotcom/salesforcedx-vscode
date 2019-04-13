@@ -60,6 +60,7 @@ import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { TypeNodeProvider } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -410,6 +411,12 @@ export async function activate(context: vscode.ExtensionContext) {
     taskViewService
   );
   context.subscriptions.push(treeDataProvider);
+
+  const metadataProvider = vscode.window.registerTreeDataProvider(
+    'metadata',
+    new TypeNodeProvider()
+  );
+  context.subscriptions.push(metadataProvider);
 
   // Scratch Org Decorator
   if (hasRootWorkspace()) {
