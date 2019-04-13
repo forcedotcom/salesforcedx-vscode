@@ -11,4 +11,4 @@ export {
   getMetadataTypesPath,
   buildTypesList
 } from './orgMetadata';
-export { TypeNodeProvider } from './metadataOutlineProvider';
+export { MetadataType, TypeNodeProvider } from './metadataOutlineProvider';

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { forceDescribeMetadata } from './index';
 
 export class TypeNodeProvider implements vscode.TreeDataProvider<MetadataType> {
   private _onDidChangeTreeData: vscode.EventEmitter<
@@ -17,6 +18,7 @@ export class TypeNodeProvider implements vscode.TreeDataProvider<MetadataType> {
   constructor() {}
 
   public refresh(): void {
+    forceDescribeMetadata();
     this._onDidChangeTreeData.fire();
   }
 
@@ -51,4 +53,24 @@ export class MetadataType extends vscode.TreeItem {
   }
 
   public contextValue = 'metadataType';
+}
+
+export class MetadataCmp extends vscode.TreeItem {
+  constructor(
+    public label: string,
+    public type: string,
+    public command?: vscode.Command
+  ) {
+    super(label, 0);
+  }
+
+  get tooltip(): string {
+    return 'metadata component';
+  }
+
+  get description(): string {
+    return this.type;
+  }
+
+  public contextValue = 'metadataComponent';
 }
