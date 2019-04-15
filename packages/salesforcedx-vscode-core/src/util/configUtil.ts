@@ -20,8 +20,6 @@ export enum ConfigSource {
 // to its docs checks local, global and environment and, for our purposes, environment may
 // not be viable.
 
-// Given a configuration key, check the local then the global configs for the value and return
-// the appropriate ConfigSource for the location or None if the value doesn't exist in either.
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
     let value = await ConfigUtil.getConfigValue(key, ConfigSource.Local);
@@ -35,9 +33,6 @@ export class ConfigUtil {
     return ConfigSource.None;
   }
 
-  // Given a configuration key check the local then the global configs for the value returning
-  // the value if it exists or undefined otherwise. If the optional source argument if set to Local
-  // or Global then it will only check the appropriate config for the value.
   public static async getConfigValue(
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
