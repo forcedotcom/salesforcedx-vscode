@@ -29,7 +29,7 @@ import {
   AURA_INTERFACE_EXTENSION
 } from './metadataTypeConstants';
 
-class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
+export class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_interface_create_text'))

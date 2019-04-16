@@ -28,7 +28,7 @@ import {
   VISUALFORCE_PAGE_EXTENSION
 } from './metadataTypeConstants';
 
-class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
+export class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_visualforce_page_create_text'))

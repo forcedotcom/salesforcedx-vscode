@@ -29,7 +29,7 @@ import {
   AURA_DIRECTORY
 } from './metadataTypeConstants';
 
-class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
+export class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_component_create_text'))

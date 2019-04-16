@@ -29,7 +29,7 @@ import {
   LWC_JS_EXTENSION
 } from './metadataTypeConstants';
 
-class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
+export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_create_text'))

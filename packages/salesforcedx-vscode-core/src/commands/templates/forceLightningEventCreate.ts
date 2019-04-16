@@ -29,7 +29,7 @@ import {
   AURA_EVENT_EXTENSION
 } from './metadataTypeConstants';
 
-class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
+export class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_event_create_text'))

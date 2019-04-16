@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { expect } from 'chai';
+import * as path from 'path';
+import { ForceLightningComponentCreateExecutor } from '../../../../src/commands/templates/forceLightningComponentCreate';
+import { nls } from '../../../../src/messages';
+
+// tslint:disable:no-unused-expression
+describe('Force Lightning Component Create', () => {
+  it('Should build the Lightning Component create command', async () => {
+    const lightningCmpCreate = new ForceLightningComponentCreateExecutor();
+    const outputDirPath = path.join('force-app', 'main', 'default', 'aura');
+    const lwcCreateCommand = lightningCmpCreate.build({
+      fileName: 'myAuraCmp',
+      outputdir: outputDirPath
+    });
+    expect(lwcCreateCommand.toCommand()).to.equal(
+      `sfdx force:lightning:component:create --componentname myAuraCmp --outputdir ${outputDirPath}`
+    );
+    expect(lwcCreateCommand.description).to.equal(
+      nls.localize('force_lightning_component_create_text')
+    );
+    expect(lightningCmpCreate.getDefaultDirectory()).to.equal('aura');
+    expect(lightningCmpCreate.getFileExtension()).to.equal('.cmp');
+  });
+});

@@ -28,7 +28,7 @@ import {
   VISUALFORCE_COMPONENT_EXTENSION
 } from './metadataTypeConstants';
 
-class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
+export class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_visualforce_component_create_text'))
