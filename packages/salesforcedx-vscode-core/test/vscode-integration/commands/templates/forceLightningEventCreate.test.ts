@@ -15,17 +15,25 @@ describe('Force Lightning Event Create', () => {
   it('Should build the Lightning Event create command', async () => {
     const lightningEventCreate = new ForceLightningEventCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'aura');
+    const fileName = 'myAuraEvent';
     const lwcCreateCommand = lightningEventCreate.build({
-      fileName: 'myAuraEvent',
+      fileName,
       outputdir: outputDirPath
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
-      `sfdx force:lightning:event:create --eventname myAuraEvent --outputdir ${outputDirPath}`
+      `sfdx force:lightning:event:create --eventname ${fileName} --outputdir ${outputDirPath}`
     );
     expect(lwcCreateCommand.description).to.equal(
       nls.localize('force_lightning_event_create_text')
     );
     expect(lightningEventCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningEventCreate.getFileExtension()).to.equal('.evt');
+    expect(
+      lightningEventCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.evt'
+      )
+    ).to.equal(path.join(outputDirPath, fileName, `${fileName}.evt`));
   });
 });

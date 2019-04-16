@@ -15,17 +15,25 @@ describe('Force Apex Class Create', () => {
   it('Should build the apex class create command', async () => {
     const classCreate = new ForceApexClassCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'classes');
+    const fileName = 'myClass';
     const classCreateCommand = classCreate.build({
-      fileName: 'myClass',
+      fileName,
       outputdir: outputDirPath
     });
     expect(classCreateCommand.toCommand()).to.equal(
-      `sfdx force:apex:class:create --classname myClass --template DefaultApexClass --outputdir ${outputDirPath}`
+      `sfdx force:apex:class:create --classname ${fileName} --template DefaultApexClass --outputdir ${outputDirPath}`
     );
     expect(classCreateCommand.description).to.equal(
       nls.localize('force_apex_class_create_text')
     );
     expect(classCreate.getDefaultDirectory()).to.equal('classes');
     expect(classCreate.getFileExtension()).to.equal('.cls');
+    expect(
+      classCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.cls'
+      )
+    ).to.equal(path.join(outputDirPath, `${fileName}.cls`));
   });
 });

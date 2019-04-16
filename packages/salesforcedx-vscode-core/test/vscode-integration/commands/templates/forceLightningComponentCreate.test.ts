@@ -15,17 +15,25 @@ describe('Force Lightning Component Create', () => {
   it('Should build the Lightning Component create command', async () => {
     const lightningCmpCreate = new ForceLightningComponentCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'aura');
+    const fileName = 'myAuraCmp';
     const lwcCreateCommand = lightningCmpCreate.build({
-      fileName: 'myAuraCmp',
+      fileName,
       outputdir: outputDirPath
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
-      `sfdx force:lightning:component:create --componentname myAuraCmp --outputdir ${outputDirPath}`
+      `sfdx force:lightning:component:create --componentname ${fileName} --outputdir ${outputDirPath}`
     );
     expect(lwcCreateCommand.description).to.equal(
       nls.localize('force_lightning_component_create_text')
     );
     expect(lightningCmpCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningCmpCreate.getFileExtension()).to.equal('.cmp');
+    expect(
+      lightningCmpCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.cmp'
+      )
+    ).to.equal(path.join(outputDirPath, fileName, `${fileName}.cmp`));
   });
 });

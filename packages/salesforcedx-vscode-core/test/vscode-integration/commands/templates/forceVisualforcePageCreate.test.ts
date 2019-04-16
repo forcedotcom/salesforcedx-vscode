@@ -15,17 +15,25 @@ describe('Force Visualforce Page Create', () => {
   it('Should build the Visualforce page create command', async () => {
     const visualforcePageCreate = new ForceVisualForcePageCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'pages');
+    const fileName = 'myVFPage';
     const vfPageCreateCommand = visualforcePageCreate.build({
-      fileName: 'myVFPage',
+      fileName,
       outputdir: outputDirPath
     });
     expect(vfPageCreateCommand.toCommand()).to.equal(
-      `sfdx force:visualforce:page:create --pagename myVFPage --label myVFPage --outputdir ${outputDirPath}`
+      `sfdx force:visualforce:page:create --pagename ${fileName} --label ${fileName} --outputdir ${outputDirPath}`
     );
     expect(vfPageCreateCommand.description).to.equal(
       nls.localize('force_visualforce_page_create_text')
     );
     expect(visualforcePageCreate.getDefaultDirectory()).to.equal('pages');
     expect(visualforcePageCreate.getFileExtension()).to.equal('.page');
+    expect(
+      visualforcePageCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.page'
+      )
+    ).to.equal(path.join(outputDirPath, `${fileName}.page`));
   });
 });

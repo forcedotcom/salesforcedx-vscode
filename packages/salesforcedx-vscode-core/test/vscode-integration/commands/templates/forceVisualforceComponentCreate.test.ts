@@ -20,17 +20,25 @@ describe('Force Visualforce Component Create', () => {
       'default',
       'components'
     );
+    const fileName = 'myVFCmp';
     const vfCmpCreateCommand = visualforceCmpCreate.build({
-      fileName: 'myVFCmp',
+      fileName,
       outputdir: outputDirPath
     });
     expect(vfCmpCreateCommand.toCommand()).to.equal(
-      `sfdx force:visualforce:component:create --componentname myVFCmp --label myVFCmp --outputdir ${outputDirPath}`
+      `sfdx force:visualforce:component:create --componentname ${fileName} --label ${fileName} --outputdir ${outputDirPath}`
     );
     expect(vfCmpCreateCommand.description).to.equal(
       nls.localize('force_visualforce_component_create_text')
     );
     expect(visualforceCmpCreate.getDefaultDirectory()).to.equal('components');
     expect(visualforceCmpCreate.getFileExtension()).to.equal('.component');
+    expect(
+      visualforceCmpCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.component'
+      )
+    ).to.equal(path.join(outputDirPath, `${fileName}.component`));
   });
 });

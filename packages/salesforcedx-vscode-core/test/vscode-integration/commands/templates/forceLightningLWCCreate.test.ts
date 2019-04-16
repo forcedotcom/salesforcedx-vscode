@@ -15,17 +15,25 @@ describe('Force Lightning Web Component Create', () => {
   it('Should build the Lightning Web Component create command', async () => {
     const lightningLWCCreate = new ForceLightningLwcCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'lwc');
+    const fileName = 'myLWC';
     const lwcCreateCommand = lightningLWCCreate.build({
-      fileName: 'myLWC',
+      fileName,
       outputdir: outputDirPath
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
-      `sfdx force:lightning:component:create --type lwc --componentname myLWC --outputdir ${outputDirPath}`
+      `sfdx force:lightning:component:create --type lwc --componentname ${fileName} --outputdir ${outputDirPath}`
     );
     expect(lwcCreateCommand.description).to.equal(
       nls.localize('force_lightning_lwc_create_text')
     );
     expect(lightningLWCCreate.getDefaultDirectory()).to.equal('lwc');
     expect(lightningLWCCreate.getFileExtension()).to.equal('.js');
+    expect(
+      lightningLWCCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.js'
+      )
+    ).to.equal(path.join(outputDirPath, fileName, `${fileName}.js`));
   });
 });

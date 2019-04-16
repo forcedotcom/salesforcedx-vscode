@@ -15,17 +15,25 @@ describe('Force Lightning App Create', () => {
   it('Should build the lightning app create command', async () => {
     const lightningAppCreate = new ForceLightningAppCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'aura');
+    const fileName = 'lightningApp';
     const lightningAppCreateCommand = lightningAppCreate.build({
-      fileName: 'lightningApp',
+      fileName,
       outputdir: outputDirPath
     });
     expect(lightningAppCreateCommand.toCommand()).to.equal(
-      `sfdx force:lightning:app:create --appname lightningApp --outputdir ${outputDirPath}`
+      `sfdx force:lightning:app:create --appname ${fileName} --outputdir ${outputDirPath}`
     );
     expect(lightningAppCreateCommand.description).to.equal(
       nls.localize('force_lightning_app_create_text')
     );
     expect(lightningAppCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningAppCreate.getFileExtension()).to.equal('.app');
+    expect(
+      lightningAppCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.app'
+      )
+    ).to.equal(path.join(outputDirPath, fileName, `${fileName}.app`));
   });
 });

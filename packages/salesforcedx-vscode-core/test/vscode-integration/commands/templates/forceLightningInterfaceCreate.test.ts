@@ -15,17 +15,25 @@ describe('Force Lightning Interface Create', () => {
   it('Should build the Lightning Interface create command', async () => {
     const lightningInterfaceCreate = new ForceLightningInterfaceCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'aura');
+    const fileName = 'myAuraInterface';
     const lwcCreateCommand = lightningInterfaceCreate.build({
-      fileName: 'myAuraInterface',
+      fileName,
       outputdir: outputDirPath
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
-      `sfdx force:lightning:interface:create --interfacename myAuraInterface --outputdir ${outputDirPath}`
+      `sfdx force:lightning:interface:create --interfacename ${fileName} --outputdir ${outputDirPath}`
     );
     expect(lwcCreateCommand.description).to.equal(
       nls.localize('force_lightning_interface_create_text')
     );
     expect(lightningInterfaceCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningInterfaceCreate.getFileExtension()).to.equal('.intf');
+    expect(
+      lightningInterfaceCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.intf'
+      )
+    ).to.equal(path.join(outputDirPath, fileName, `${fileName}.intf`));
   });
 });

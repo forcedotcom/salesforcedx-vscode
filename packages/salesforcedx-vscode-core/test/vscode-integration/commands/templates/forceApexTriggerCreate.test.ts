@@ -15,17 +15,25 @@ describe('Force Apex Trigger Create', () => {
   it('Should build the apex trigger create command', async () => {
     const triggerCreate = new ForceApexTriggerCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'triggers');
+    const fileName = 'myTrigger';
     const triggerCreateCommand = triggerCreate.build({
-      fileName: 'myTrigger',
+      fileName,
       outputdir: outputDirPath
     });
     expect(triggerCreateCommand.toCommand()).to.equal(
-      `sfdx force:apex:trigger:create --triggername myTrigger --outputdir ${outputDirPath}`
+      `sfdx force:apex:trigger:create --triggername ${fileName} --outputdir ${outputDirPath}`
     );
     expect(triggerCreateCommand.description).to.equal(
       nls.localize('force_apex_trigger_create_text')
     );
     expect(triggerCreate.getDefaultDirectory()).to.equal('triggers');
     expect(triggerCreate.getFileExtension()).to.equal('.trigger');
+    expect(
+      triggerCreate.sourcePathStrategy.getPathToSource(
+        outputDirPath,
+        fileName,
+        '.trigger'
+      )
+    ).to.equal(path.join(outputDirPath, `${fileName}.trigger`));
   });
 });
