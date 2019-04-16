@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
@@ -77,7 +84,7 @@ describe('FilePathExistsChecker for Aura bundle', () => {
         new BundlePathStrategy(),
         nls.localize('aura_bundle_message_name')
       );
-      if (!vscode.workspace.rootPath) {
+      if (!vscode.workspace.workspaceFolders![0]) {
         throw new Error('Test workspace should be opened');
       }
       const input: ContinueResponse<DirFileNameSelection> = {
@@ -198,7 +205,7 @@ describe('FilePathExistsChecker for Apex Class', () => {
         new DefaultPathStrategy(),
         nls.localize('apex_class_message_name')
       );
-      if (!vscode.workspace.rootPath) {
+      if (!vscode.workspace.workspaceFolders![0]) {
         throw new Error('Test workspace should be opened');
       }
       const input: ContinueResponse<DirFileNameSelection> = {

@@ -15,7 +15,6 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
-
 import { telemetryService } from './telemetry';
 
 export async function activate(context: vscode.ExtensionContext) {

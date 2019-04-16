@@ -28,7 +28,7 @@ import {
   APEX_CLASS_EXTENSION
 } from './metadataTypeConstants';
 
-class ForceApexClassCreateExecutor extends BaseTemplateCommand {
+export class ForceApexClassCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_class_create_text'))

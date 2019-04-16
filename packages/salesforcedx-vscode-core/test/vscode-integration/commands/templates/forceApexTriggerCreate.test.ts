@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import * as path from 'path';
 import { ForceApexTriggerCreateExecutor } from '../../../../src/commands/templates/forceApexTriggerCreate';
 import { nls } from '../../../../src/messages';
 
@@ -13,15 +14,18 @@ import { nls } from '../../../../src/messages';
 describe('Force Apex Trigger Create', () => {
   it('Should build the apex trigger create command', async () => {
     const triggerCreate = new ForceApexTriggerCreateExecutor();
+    const outputDirPath = path.join('force-app', 'main', 'default', 'triggers');
     const triggerCreateCommand = triggerCreate.build({
       fileName: 'myTrigger',
-      outputdir: 'force-app/main/default/trigger'
+      outputdir: outputDirPath
     });
     expect(triggerCreateCommand.toCommand()).to.equal(
-      'sfdx force:apex:trigger:create --triggername myTrigger --outputdir force-app/main/default/trigger'
+      `sfdx force:apex:trigger:create --triggername myTrigger --outputdir ${outputDirPath}`
     );
     expect(triggerCreateCommand.description).to.equal(
       nls.localize('force_apex_trigger_create_text')
     );
+    expect(triggerCreate.getDefaultDirectory()).to.equal('triggers');
+    expect(triggerCreate.getFileExtension()).to.equal('.trigger');
   });
 });
