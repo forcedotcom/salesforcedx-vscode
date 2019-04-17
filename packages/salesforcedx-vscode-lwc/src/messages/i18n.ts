@@ -17,12 +17,5 @@
  */
 export const messages = {
   salesforcedx_vscode_core_not_installed_text:
-    'salesforce.salesforcedx-vscode-lwc failed to activate. Ensure that you have the latest version of salesforce.salesforcedx-vscode-core installed and activated',
-
-  force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component',
-
-  warning_prompt_lightning_bundle_overwrite:
-    'A Lightning Web Component with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
-  warning_prompt_overwrite_confirm: 'Overwrite',
-  warning_prompt_overwrite_cancel: 'Cancel'
+    'salesforce.salesforcedx-vscode-lwc failed to activate. Ensure that you have the latest version of salesforce.salesforcedx-vscode-core installed and activated'
 };
