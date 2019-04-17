@@ -6,12 +6,10 @@ Currently, Prettier supports Aura and Lightning Web Components (LWC) as well as 
 
 Using Prettier for Aura and LWC requires some configuration.
 
-> NOTE: Prettier support for LWC is coming in the next release of Prettier (version 1.17.0). However, it can be used now by installing the `master` branch as shown in this document.
-
 1. If you don’t already have a `package.json` in your project, run: `npm init`  
-  You can accept all the defaults.
+   You can accept all the defaults.
 
-1. Install the latest `master` branch of Prettier by running: `npm i prettier/prettier -D`
+1. Install Prettier by running: `npm install --save-dev --save-exact prettier`
 
 1. Create a Prettier configuration file called `.prettierrc`, in the root of your project, with the following content.
 
