@@ -27,6 +27,7 @@ import {
   forceLightningComponentCreate,
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
+  forceLightningLwcCreate,
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
@@ -199,7 +200,10 @@ function registerCommands(
     'sfdx.force.lightning.interface.create',
     forceLightningInterfaceCreate
   );
-
+  const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.lwc.create',
+    forceLightningLwcCreate
+  );
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -314,6 +318,7 @@ function registerCommands(
     forceLightningComponentCreateCmd,
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
+    forceLightningLwcCreateCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
