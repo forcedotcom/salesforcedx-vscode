@@ -242,6 +242,8 @@ export const messages = {
   error_no_default_devhubusername:
     'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   custom_output_directory: 'Choose a Custom Directory',
+  warning_using_global_username:
+    'No default username found in the local project config; using the global default username. Run "SFDX: Authorize an Org" to set the username for the local project config.',
   apex_class_message_name: 'Apex Class',
   apex_trigger_message_name: 'Apex Trigger',
   visualforce_component_message_name: 'Visualforce Component',

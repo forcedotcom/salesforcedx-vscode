@@ -4,42 +4,51 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Aliases,
-  AuthInfo,
-  ConfigAggregator,
-  ConfigFile
-} from '@salesforce/core';
-import * as path from 'path';
+import { Aliases, AuthInfo } from '@salesforce/core';
+import { isUndefined } from 'util';
+import { channelService } from '../channels';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from './index';
-export class OrgAuthInfo {
-  public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    try {
-      const rootPath = getRootWorkspacePath();
-      const myLocalConfig = await ConfigFile.create({
-        isGlobal: false,
-        rootFolder: path.join(rootPath, '.sfdx'),
-        filename: 'sfdx-config.json'
-      });
-      const localDefault = myLocalConfig.get('defaultusername');
-      return JSON.stringify(localDefault).replace(/\"/g, '');
-    } catch {
-      await this.getGlobalDefaults('defaultusername');
-    }
-  }
+import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
+import { ConfigSource, ConfigUtil } from './index';
 
-  private static async getGlobalDefaults(usernameType: string) {
+const defaultUserNameKey = 'defaultusername';
+const defaultDevHubUserNameKey = 'defaultdevhubusername';
+export class OrgAuthInfo {
+  public static async getDefaultUsernameOrAlias(
+    enableWarning: boolean
+  ): Promise<string | undefined> {
     try {
-      const aggregator = await ConfigAggregator.create();
-      const globalDefault = aggregator.getPropertyValue(usernameType);
-      return JSON.stringify(globalDefault).replace(/\"/g, '');
-    } catch {
-      if (usernameType === 'defaultusername') {
-        console.error(nls.localize('error_no_default_username'));
+      const defaultUserName = await ConfigUtil.getConfigValue(
+        defaultUserNameKey
+      );
+      if (isUndefined(defaultUserName)) {
+        displayMessage(
+          nls.localize('error_no_default_username'),
+          enableWarning,
+          VSCodeWindowTypeEnum.Informational
+        );
+        return undefined;
       } else {
-        console.error(nls.localize('error_ no_default_devhubusername'));
+        const configSource = await ConfigUtil.getConfigSource(
+          defaultUserNameKey
+        );
+        if (configSource === ConfigSource.Global) {
+          displayMessage(
+            nls.localize('warning_using_global_username'),
+            enableWarning,
+            VSCodeWindowTypeEnum.Warning
+          );
+        }
       }
+      return JSON.stringify(defaultUserName).replace(/\"/g, '');
+    } catch (err) {
+      console.error(err);
+      telemetryService.sendErrorEvent(
+        'Unexpected error in OrgAuthInfo.getDefaultUsernameOrAlias',
+        err
+      );
+      return undefined;
     }
   }
 
@@ -47,16 +56,25 @@ export class OrgAuthInfo {
     string | undefined
   > {
     try {
-      const rootPath = getRootWorkspacePath();
-      const myLocalConfig = await ConfigFile.create({
-        isGlobal: false,
-        rootFolder: path.join(rootPath, '.sfdx'),
-        filename: 'sfdx-config.json'
-      });
-      const localDefault = myLocalConfig.get('defaultdevhubusername');
-      return JSON.stringify(localDefault).replace(/\"/g, '');
-    } catch {
-      await this.getGlobalDefaults('defaultdevhubusername');
+      const defaultDevHubUserName = await ConfigUtil.getConfigValue(
+        defaultDevHubUserNameKey
+      );
+      if (isUndefined(defaultDevHubUserName)) {
+        displayMessage(
+          nls.localize('error_no_default_devhubusername'),
+          true,
+          VSCodeWindowTypeEnum.Error
+        );
+        return undefined;
+      }
+      return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
+    } catch (err) {
+      console.error(err);
+      telemetryService.sendErrorEvent(
+        'Unexpected error in OrgAuthInfo.getDefaultDevHubUsernameOrAlias',
+        err
+      );
+      return undefined;
     }
   }
 
@@ -77,6 +95,40 @@ export class OrgAuthInfo {
       );
     } catch (e) {
       throw e;
+    }
+  }
+}
+
+enum VSCodeWindowTypeEnum {
+  Error = 1,
+  Informational = 2,
+  Warning = 3
+}
+function displayMessage(
+  output: string,
+  enableWarning?: boolean,
+  vsCodeWindowType?: VSCodeWindowTypeEnum
+) {
+  if (!isUndefined(enableWarning) && !enableWarning) {
+    return;
+  }
+
+  channelService.appendLine(output);
+  channelService.showChannelOutput();
+  if (vsCodeWindowType) {
+    switch (vsCodeWindowType) {
+      case VSCodeWindowTypeEnum.Error: {
+        notificationService.showErrorMessage(output);
+        break;
+      }
+      case VSCodeWindowTypeEnum.Informational: {
+        notificationService.showInformationMessage(output);
+        break;
+      }
+      case VSCodeWindowTypeEnum.Warning: {
+        notificationService.showWarningMessage(output);
+        break;
+      }
     }
   }
 }
