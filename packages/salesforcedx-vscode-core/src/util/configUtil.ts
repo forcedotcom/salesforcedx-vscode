@@ -7,6 +7,7 @@
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from './index';
 
 export enum ConfigSource {
@@ -49,7 +50,13 @@ export class ConfigUtil {
         if (!isNullOrUndefined(localValue)) {
           return localValue;
         }
-      } catch {}
+      } catch (err) {
+        telemetryService.sendErrorEvent(
+          'Unexpected error in ConfigUtil.getConfigValue local',
+          err
+        );
+        return undefined;
+      }
     }
     if (isUndefined(source) || source === ConfigSource.Global) {
       try {
@@ -58,7 +65,13 @@ export class ConfigUtil {
         if (!isNullOrUndefined(globalValue)) {
           return globalValue;
         }
-      } catch {}
+      } catch (err) {
+        telemetryService.sendErrorEvent(
+          'Unexpected error in ConfigUtil.getConfigValue global',
+          err
+        );
+        return undefined;
+      }
     }
     return undefined;
   }

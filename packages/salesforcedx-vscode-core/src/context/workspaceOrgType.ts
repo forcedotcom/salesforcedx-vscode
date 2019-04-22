@@ -73,6 +73,6 @@ function setDefaultUsernameHasNoChangeTracking(val: boolean) {
 
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   if (hasRootWorkspace()) {
-    return await OrgAuthInfo.getDefaultUsernameOrAlias();
+    return await OrgAuthInfo.getDefaultUsernameOrAlias(true);
   }
 }

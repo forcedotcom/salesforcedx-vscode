@@ -9,48 +9,73 @@ import { isUndefined } from 'util';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
 import { ConfigSource, ConfigUtil } from './index';
 
 const defaultUserNameKey = 'defaultusername';
 const defaultDevHubUserNameKey = 'defaultdevhubusername';
 export class OrgAuthInfo {
-  public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    const defaultUserName = await ConfigUtil.getConfigValue(defaultUserNameKey);
-    if (isUndefined(defaultUserName)) {
-      displayMessage(
-        nls.localize('error_no_default_username'),
-        true,
-        VSCodeWindowTypeEnum.Informational
+  public static async getDefaultUsernameOrAlias(
+    enableWarning: boolean
+  ): Promise<string | undefined> {
+    try {
+      const defaultUserName = await ConfigUtil.getConfigValue(
+        defaultUserNameKey
+      );
+      if (isUndefined(defaultUserName)) {
+        displayMessage(
+          nls.localize('error_no_default_username'),
+          enableWarning,
+          VSCodeWindowTypeEnum.Informational
+        );
+        return undefined;
+      } else {
+        const configSource = await ConfigUtil.getConfigSource(
+          defaultUserNameKey
+        );
+        if (configSource === ConfigSource.Global) {
+          displayMessage(
+            nls.localize('warning_using_global_username'),
+            enableWarning,
+            VSCodeWindowTypeEnum.Warning
+          );
+        }
+      }
+      return JSON.stringify(defaultUserName).replace(/\"/g, '');
+    } catch (err) {
+      console.error(err);
+      telemetryService.sendErrorEvent(
+        'Unexpected error in OrgAuthInfo.getDefaultUsernameOrAlias',
+        err
       );
       return undefined;
-    } else {
-      const configSource = await ConfigUtil.getConfigSource(defaultUserNameKey);
-      if (configSource === ConfigSource.Global) {
-        displayMessage(
-          nls.localize('warning_using_global_username'),
-          true,
-          VSCodeWindowTypeEnum.Warning
-        );
-      }
     }
-    return JSON.stringify(defaultUserName).replace(/\"/g, '');
   }
 
   public static async getDefaultDevHubUsernameOrAlias(): Promise<
     string | undefined
   > {
-    const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-      defaultDevHubUserNameKey
-    );
-    if (isUndefined(defaultDevHubUserName)) {
-      displayMessage(
-        nls.localize('error_no_default_devhubusername'),
-        true,
-        VSCodeWindowTypeEnum.Error
+    try {
+      const defaultDevHubUserName = await ConfigUtil.getConfigValue(
+        defaultDevHubUserNameKey
+      );
+      if (isUndefined(defaultDevHubUserName)) {
+        displayMessage(
+          nls.localize('error_no_default_devhubusername'),
+          true,
+          VSCodeWindowTypeEnum.Error
+        );
+        return undefined;
+      }
+      return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
+    } catch (err) {
+      console.error(err);
+      telemetryService.sendErrorEvent(
+        'Unexpected error in OrgAuthInfo.getDefaultDevHubUsernameOrAlias',
+        err
       );
       return undefined;
     }
-    return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
   }
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {
@@ -81,12 +106,16 @@ enum VSCodeWindowTypeEnum {
 }
 function displayMessage(
   output: string,
-  showVSCodeWindow?: boolean,
+  enableWarning?: boolean,
   vsCodeWindowType?: VSCodeWindowTypeEnum
 ) {
+  if (!isUndefined(enableWarning) && !enableWarning) {
+    return;
+  }
+
   channelService.appendLine(output);
   channelService.showChannelOutput();
-  if (showVSCodeWindow && vsCodeWindowType) {
+  if (vsCodeWindowType) {
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
         notificationService.showErrorMessage(output);
