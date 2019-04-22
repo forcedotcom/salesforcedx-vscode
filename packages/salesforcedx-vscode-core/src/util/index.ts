@@ -12,3 +12,4 @@ export {
   hasRootWorkspace
 } from './rootWorkspace';
 export { isCLIInstalled, showCLINotInstalledMessage } from './cliConfiguration';
+export { ConfigSource, ConfigUtil } from './configUtil';

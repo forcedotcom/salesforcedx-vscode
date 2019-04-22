@@ -38,7 +38,9 @@ export class OrgList implements vscode.Disposable {
   public async displayDefaultUsername() {
     let defaultUsernameorAlias: string | undefined;
     if (hasRootWorkspace()) {
-      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias();
+      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+        false
+      );
     }
     if (defaultUsernameorAlias) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;

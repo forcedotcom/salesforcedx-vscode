@@ -90,7 +90,9 @@ export async function forceDescribeMetadata(outputPath?: string) {
 export async function getMetadataTypesPath(): Promise<string | undefined> {
   if (hasRootWorkspace()) {
     const workspaceRootPath = getRootWorkspacePath();
-    const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias();
+    const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+      false
+    );
     const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
 
     if (defaultUsernameIsSet) {
