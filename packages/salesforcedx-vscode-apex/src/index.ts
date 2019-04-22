@@ -99,13 +99,18 @@ export async function activate(context: vscode.ExtensionContext) {
             await testOutlineProvider.refresh();
           });
         }
+        // TODO: This currently keeps existing behavior in which we set the language
+        // server to ready before it finishes indexing. We'll evaluate this in the future.
         languageClientUtils.setStatus(ClientStatus.Ready, '');
         telemetryService.sendApexLSPActivationEvent(langClientHRStart);
       })
       .catch(err => {
         // Handled by clients
         telemetryService.sendApexLSPError(err);
-        languageClientUtils.setStatus(ClientStatus.Error, err);
+        languageClientUtils.setStatus(
+          ClientStatus.Error,
+          nls.localize('apex_language_server_failed_activate')
+        );
       });
   } catch (e) {
     console.error('Apex language server failed to initialize');
@@ -233,7 +238,7 @@ async function registerTestView(
   // Refresh Test View command
   testViewItems.push(
     vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
-      if (!languageClientUtils.getStatus().isIndexing()) {
+      if (languageClientUtils.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
     })

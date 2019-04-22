@@ -128,9 +128,7 @@ export class ApexTestRunner {
     const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
     if (!languageClientStatus.isReady()) {
       if (languageClientStatus.failedToInitialize()) {
-        vscode.window.showInformationMessage(
-          languageClientStatus.getStatusMessage()
-        );
+        vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
         return Promise.resolve([]);
       }
     }
