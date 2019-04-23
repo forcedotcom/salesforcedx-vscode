@@ -36,7 +36,7 @@ export class TelemetryService {
       return Promise.resolve(telemetryService);
     }
     if (!this.setup) {
-      this.setup = waitForDX()
+      this.setup = waitForDX(true)
         .then((coreDependency: vscode.Extension<any>) => {
           coreDependency.exports.telemetryService.showTelemetryMessage();
 

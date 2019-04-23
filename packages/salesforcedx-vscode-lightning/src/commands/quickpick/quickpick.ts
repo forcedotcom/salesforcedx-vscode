@@ -6,6 +6,7 @@
  */
 import { paramCase } from 'change-case';
 import opn = require('open');
+import { stringify } from 'querystring';
 import { Uri, window, workspace } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
 import { COMPONENT_LIBRARY_BUNDLE_LINK } from '../../constants';
@@ -16,7 +17,7 @@ export function createQuickOpenCommand(client: LanguageClient) {
   return (arg: any) => {
     if (arg instanceof LwcNode) {
       const node = arg as LwcNode;
-      const tag: string = node.label;
+      const tag: string = node.label || '';
       const url: string = COMPONENT_LIBRARY_BUNDLE_LINK + tag;
       opn(url).catch();
       return;
@@ -26,7 +27,7 @@ export function createQuickOpenCommand(client: LanguageClient) {
       .onReady()
       .then(() => {
         console.log('Client ready');
-        client.sendRequest('salesforce/listComponents', {}).then(
+        client.sendRequest<string>('salesforce/listComponents', {}).then(
           (jsonData: string) => {
             const tags: Map<string, any> = new Map(JSON.parse(jsonData));
             const items: TagItem[] = [];
@@ -49,11 +50,15 @@ export function createQuickOpenCommand(client: LanguageClient) {
               }
             }
             const sorted = items.sort((a, b) => (a.label < b.label ? -1 : 1));
-            window.showQuickPick(sorted, {}).then((data: TagItem) => {
-              workspace
-                .openTextDocument(data.uri)
-                .then(doc => window.showTextDocument(doc));
-            });
+            window
+              .showQuickPick(sorted, {})
+              .then((data: TagItem | undefined) => {
+                if (data) {
+                  workspace
+                    .openTextDocument(data.uri)
+                    .then(doc => window.showTextDocument(doc));
+                }
+              });
           },
           err => {
             console.error(
