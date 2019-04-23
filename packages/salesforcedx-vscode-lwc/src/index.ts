@@ -8,9 +8,7 @@
 import { shared as lspCommon } from 'lightning-lsp-common';
 import * as path from 'path';
 import {
-  commands,
   ConfigurationTarget,
-  Disposable,
   ExtensionContext,
   Uri,
   workspace,
@@ -23,9 +21,6 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
-
-import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
-import { waitForDX } from './dxsupport/waitForDX';
 import { telemetryService } from './telemetry';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
@@ -41,26 +36,6 @@ export function code2ProtocolConverter(value: Uri) {
 
 function protocol2CodeConverter(value: string) {
   return Uri.parse(value);
-}
-
-async function registerCommands(): Promise<Disposable | undefined> {
-  try {
-    await waitForDX(true);
-    const {
-      forceLightningLwcCreate
-    } = require('./commands/forceLightningLwcCreate');
-
-    // Customer-facing commands
-    const forceLightningLwcCreateCmd = commands.registerCommand(
-      'sfdx.force.lightning.lwc.create',
-      forceLightningLwcCreate
-    );
-
-    return Disposable.from(forceLightningLwcCreateCmd);
-  } catch (ignore) {
-    // ignore
-    return undefined;
-  }
 }
 
 function getActivationMode(): string {
@@ -86,7 +61,7 @@ export async function activate(context: ExtensionContext) {
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
   const workspaceType = lspCommon.detectWorkspaceType(
-  	workspace.workspaceFolders[0].uri.fsPath
+    workspace.workspaceFolders[0].uri.fsPath
   );
 
   // Check if we have a valid project structure
@@ -98,6 +73,7 @@ export async function activate(context: ExtensionContext) {
     console.log('WorkspaceType detected: ' + workspaceType);
     return;
   }
+  // If activationMode === always, ignore workspace type and continue activating
 
   // 4) If we get here, we either passed autodetect validation or activationMode == always
   console.log('Lightning Web Components Extension Activated');
@@ -113,15 +89,6 @@ export async function activate(context: ExtensionContext) {
       workspace.getConfiguration('', workspace.workspaceFolders[0].uri)
     );
   }
-
-  // Register commands async
-  registerCommands()
-    .then(disposable => {
-      if (disposable) {
-        context.subscriptions.push(disposable);
-      }
-    })
-    .catch();
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
