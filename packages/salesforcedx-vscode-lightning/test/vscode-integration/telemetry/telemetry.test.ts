@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -14,7 +14,7 @@ describe('Telemetry', () => {
 
   beforeEach(() => {
     reporter = new TelemetryReporter(
-      'salesforcedx-vscode',
+      'salesforcedx-vscode-lightning',
       'v1',
       'test87349-0'
     );
@@ -30,7 +30,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent([0, 600]);
+    await telemetryService.sendExtensionActivationEvent([0, 600]);
     assert.calledOnce(sendEvent);
   });
 
@@ -38,7 +38,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, false);
 
-    telemetryService.sendExtensionActivationEvent([0, 700]);
+    await telemetryService.sendExtensionActivationEvent([0, 700]);
     assert.notCalled(sendEvent);
   });
 
@@ -46,7 +46,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionActivationEvent([0, 800]);
+    await telemetryService.sendExtensionActivationEvent([0, 800]);
     assert.calledOnce(sendEvent);
 
     const expectedData = {
@@ -60,7 +60,7 @@ describe('Telemetry', () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    telemetryService.sendExtensionDeactivationEvent();
+    await telemetryService.sendExtensionDeactivationEvent();
     assert.calledOnce(sendEvent);
 
     const expectedData = {

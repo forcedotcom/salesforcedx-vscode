@@ -4,6 +4,7 @@
     "target": "es6",
     "lib": ["dom", "es2016"],
     "sourceMap": true,
+    "declarationMap": true,
     "declaration": true,
     "moduleResolution": "node",
     "noImplicitAny": true,
