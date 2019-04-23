@@ -56,7 +56,12 @@ import {
 } from './commands';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
+import {
+  getDefaultUsernameOrAlias,
+  getWorkspaceOrgType,
+  OrgType,
+  setupWorkspaceOrgType
+} from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -393,6 +398,18 @@ export async function activate(context: vscode.ExtensionContext) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
     await orgList.registerDefaultUsernameWatcher(context);
+    const orgType = await getWorkspaceOrgType();
+    if (orgType === OrgType.NonSourceTracked) {
+      const metadataTreeProvider = new TypeNodeProvider();
+      const metadataProvider = vscode.window.registerTreeDataProvider(
+        'metadata',
+        metadataTreeProvider
+      );
+      context.subscriptions.push(metadataProvider);
+      vscode.commands.registerCommand('metadata.refresh', () =>
+        metadataTreeProvider.refresh()
+      );
+    }
   } else {
     showCLINotInstalledMessage();
     telemetryService.sendError('Salesforce CLI is not installed');
@@ -411,12 +428,6 @@ export async function activate(context: vscode.ExtensionContext) {
     taskViewService
   );
   context.subscriptions.push(treeDataProvider);
-
-  const metadataProvider = vscode.window.registerTreeDataProvider(
-    'metadata',
-    new TypeNodeProvider()
-  );
-  context.subscriptions.push(metadataProvider);
 
   // Scratch Org Decorator
   if (hasRootWorkspace()) {
