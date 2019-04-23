@@ -21,7 +21,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CompositeParametersGatherer,
   FilePathExistsChecker,
@@ -61,7 +61,7 @@ class ForceApexClassCreateExecutor extends SfdxCommandletExecutor<
       if (
         data !== undefined &&
         data.toString() === '0' &&
-        getRootWorkspacePath()
+        hasRootWorkspace()
       ) {
         vscode.workspace
           .openTextDocument(
