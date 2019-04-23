@@ -9,21 +9,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 const CONFIG_FILE = hasRootWorkspace()
-=======
-import { getRootWorkspacePath } from '../util';
-
-const CONFIG_FILE = getRootWorkspacePath()
->>>>>>> Removes deprecated deprecated workspace.rootPath
-=======
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
-
-const CONFIG_FILE = hasRootWorkspace()
->>>>>>> Updates if getRootWorkspace() to hasRootWorkspace
   ? path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
   : path.join(os.homedir(), '.sfdx', 'sfdx-config.json');
 
