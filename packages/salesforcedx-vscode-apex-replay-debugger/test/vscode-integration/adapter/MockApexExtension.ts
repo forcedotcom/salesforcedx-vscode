@@ -35,7 +35,15 @@ class MockJorje {
     return Promise.resolve(response);
   }
 
-  public isLanguageClientReady() {
-    return true;
-  }
+  public languageClientStatus = {
+    isReady() {
+      return true;
+    },
+    failedToInitialize() {
+      return false;
+    },
+    getStatusMessage() {
+      return '';
+    }
+  };
 }

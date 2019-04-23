@@ -12,6 +12,11 @@ import * as fs from 'fs';
 import { SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
+import {
+  ClientStatus,
+  LanguageClientStatus,
+  LanguageClientUtils
+} from '../../../src/languageClientUtils/languageClientUtils';
 import { nls } from '../../../src/messages';
 import { forceApexTestRunCacheService } from '../../../src/testRunCache';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
@@ -60,6 +65,7 @@ describe('TestView', () => {
     )!.exports;
     let commandletSpy: SinonSpy;
     let getCoverageStub: SinonStub;
+    let languageClientUtils: LanguageClientUtils;
 
     beforeEach(() => {
       commandletSpy = spy(coreExports.SfdxCommandlet.prototype, 'run');
@@ -67,6 +73,8 @@ describe('TestView', () => {
         coreExports.sfdxCoreSettings,
         'getRetrieveTestCodeCoverage'
       );
+      languageClientUtils = LanguageClientUtils.getInstance();
+      languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
     });
 
     afterEach(() => {
@@ -94,6 +102,13 @@ describe('TestView', () => {
     const testMethod = 'MyTestMethod';
     const testClass = 'MyTestClass';
     const testRunAll = 'RunAll';
+    let languageClientUtils: LanguageClientUtils;
+
+    beforeEach(() => {
+      languageClientUtils = LanguageClientUtils.getInstance();
+      languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
+    });
+
     it('Should cache the last run test method', async () => {
       // forceApexTestRunCacheService is a singleton which means the values need to be
       // reset back to their default values otherwise they'll be set by the earlier

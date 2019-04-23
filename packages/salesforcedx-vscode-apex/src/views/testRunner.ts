@@ -1,12 +1,17 @@
-// /*
-//  * Copyright (c) 2017, salesforce.com, inc.
-//  * All rights reserved.
-//  * Licensed under the BSD 3-Clause license.
-//  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-//  */
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as events from 'events';
 import * as vscode from 'vscode';
+import {
+  LanguageClientStatus,
+  languageClientUtils
+} from '../languageClientUtils';
 import { nls } from '../messages';
 import { forceApexTestRunCacheService } from '../testRunCache';
 import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
@@ -16,7 +21,6 @@ import {
   ApexTestOutlineProvider,
   TestNode
 } from './testOutlineProvider';
-
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
@@ -121,6 +125,14 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
+    const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+    if (!languageClientStatus.isReady()) {
+      if (languageClientStatus.failedToInitialize()) {
+        vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
+        return Promise.resolve([]);
+      }
+    }
+
     const tmpFolder = this.getTempFolder();
     const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {

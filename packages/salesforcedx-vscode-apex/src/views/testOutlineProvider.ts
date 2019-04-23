@@ -18,7 +18,11 @@ import {
   LIGHT_ORANGE_BUTTON,
   LIGHT_RED_BUTTON
 } from '../constants';
-import { getApexTests, isLanguageClientReady } from '../languageClientUtils';
+import {
+  getApexTests,
+  LanguageClientStatus,
+  languageClientUtils
+} from '../languageClientUtils';
 import { nls } from '../messages';
 import { ApexTestMethod } from './lspConverter';
 import { FullTestResult } from './testDataAccessObjects';
@@ -64,7 +68,14 @@ export class ApexTestOutlineProvider
       } else {
         let message = NO_TESTS_MESSAGE;
         let description = NO_TESTS_DESCRIPTION;
-        if (!isLanguageClientReady()) {
+        const languageClientStatus = languageClientUtils.getStatus() as LanguageClientStatus;
+        if (!languageClientStatus.isReady()) {
+          if (languageClientStatus.failedToInitialize()) {
+            vscode.window.showInformationMessage(
+              languageClientStatus.getStatusMessage()
+            );
+            return new Array<ApexTestNode>();
+          }
           message = LOADING_MESSAGE;
           description = '';
         }
@@ -84,7 +95,7 @@ export class ApexTestOutlineProvider
       this.getAllApexTests();
       let message = NO_TESTS_MESSAGE;
       let description = NO_TESTS_DESCRIPTION;
-      if (!isLanguageClientReady()) {
+      if (!languageClientUtils.getStatus().isReady()) {
         message = LOADING_MESSAGE;
         description = '';
       }
@@ -103,7 +114,7 @@ export class ApexTestOutlineProvider
     this.apexTestMap.clear();
     this.testStrings.clear();
     this.apexTestInfo = null;
-    if (isLanguageClientReady()) {
+    if (languageClientUtils.getStatus().isReady()) {
       this.apexTestInfo = await getApexTests();
     }
     this.getAllApexTests();
