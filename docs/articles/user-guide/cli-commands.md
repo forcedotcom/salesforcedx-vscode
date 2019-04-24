@@ -35,8 +35,8 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:org:display`: **SFDX: Display Org Details for Default Scratch Org**
 - `force:org:display --targetusername ...`: **SFDX: Display Org Details...**
 - `force:org:open`: **SFDX: Open Default Org**
-- `force:project:create ...`: **SFDX: Create Project**
-- `force:project:create --manifest ...`: **SFDX: Create Project with Manifest**
+- `force:project:create --template standard ...`: **SFDX: Create Project**
+- `force:project:create --template standard --manifest ...`: **SFDX: Create Project with Manifest**
 - `force:source:delete`: **SFDX: Delete from Project and Org** (beta)
 - `force:source:deploy`: **SFDX: Deploy Source to Org** (beta)
 - `force:source:deploy --manifest ...`: **SFDX: Deploy Source in Manifest to Org** (beta)
