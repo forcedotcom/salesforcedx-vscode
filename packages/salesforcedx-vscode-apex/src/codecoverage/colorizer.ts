@@ -67,7 +67,7 @@ export type CoverageItem = {
 function getTestRunId() {
   const testRunIdFile = path.join(apexDirPath, 'test-run-id.txt');
   if (!fs.existsSync(testRunIdFile)) {
-    throw new Error(nls.localize('colorizer_no_code_coverage_files'));
+    throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
   return fs.readFileSync(testRunIdFile, 'utf8');
 }
