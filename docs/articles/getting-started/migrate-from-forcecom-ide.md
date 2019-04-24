@@ -79,7 +79,7 @@ The second option for migrating your project is an in-place conversion. This opt
 1. As a first step, you need to add several files (some required, some optional) to support the new project format. The most important is the `sfdx-project.json`. The easiest way to create these files is to create a temporary project to copy them from. Run the following command to do so.
 
    ```bash
-   $ sfdx force:project:create -n ../tempproj
+   $ sfdx force:project:create -n ../tempproj --template standard
    ```
 
 1. Next, copy the following from the temp project into your project.

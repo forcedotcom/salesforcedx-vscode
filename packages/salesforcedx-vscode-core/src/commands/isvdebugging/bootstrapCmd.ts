@@ -79,6 +79,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('force:project:create')
       .withFlag('--projectname', data.projectName)
       .withFlag('--outputdir', data.projectUri)
+      .withFlag('--template', 'standard')
       .withLogName('isv_debug_bootstrap_create_project')
       .build();
   }
