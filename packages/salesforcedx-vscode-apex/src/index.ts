@@ -39,7 +39,6 @@ import { ApexTestRunner, TestRunType } from './views/testRunner';
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const getRootWorkspacePath = sfdxCoreExports.getRootWorkspacePath;
 const coreTelemetryService = sfdxCoreExports.telemetryService;
 
 let languageClient: LanguageClient | undefined;
@@ -91,9 +90,9 @@ export async function activate(context: vscode.ExtensionContext) {
               .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
               .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
             if (sobjectRefreshStartup) {
-              initSObjectDefinitions(getRootWorkspacePath()).catch(e =>
-                telemetryService.sendErrorEvent(e.message, e.stack)
-              );
+              initSObjectDefinitions(
+                vscode.workspace.workspaceFolders![0].uri.fsPath
+              ).catch(e => telemetryService.sendErrorEvent(e.message, e.stack));
             }
 
             await testOutlineProvider.refresh();
