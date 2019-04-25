@@ -160,7 +160,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
           PROJECT_DIR[0].fsPath
-        }`
+        } --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_step1_create_project')

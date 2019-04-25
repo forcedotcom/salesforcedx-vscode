@@ -167,7 +167,7 @@ describe('Force Project Create', () => {
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
           PROJECT_DIR[0].fsPath
-        }`
+        } --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
@@ -185,7 +185,7 @@ describe('Force Project Create', () => {
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
           PROJECT_DIR[0].fsPath
-        } --manifest`
+        } --template standard --manifest`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')

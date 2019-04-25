@@ -33,16 +33,17 @@ export { forceSourceRetrieveSourcePath } from './forceSourceRetrieveSourcePath';
 export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
-export { forceApexClassCreate } from './forceApexClassCreate';
-export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
-export { forceLightningAppCreate } from './forceLightningAppCreate';
-export { forceGenerateFauxClassesCreate } from './forceGenerateFauxClasses';
 export {
-  forceVisualforceComponentCreate
-} from './forceVisualforceComponentCreate';
-export { forceLightningComponentCreate } from './forceLightningComponentCreate';
-export { forceLightningEventCreate } from './forceLightningEventCreate';
-export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';
+  forceApexClassCreate,
+  forceApexTriggerCreate,
+  forceLightningAppCreate,
+  forceLightningComponentCreate,
+  forceLightningEventCreate,
+  forceLightningInterfaceCreate,
+  forceLightningLwcCreate,
+  forceVisualforceComponentCreate,
+  forceVisualforcePageCreate
+} from './templates';
 export { forceDebuggerStop } from './forceDebuggerStop';
 export { forceConfigList } from './forceConfigList';
 export { forceAliasList } from './forceAliasList';
@@ -51,7 +52,6 @@ export {
   forceSfdxProjectCreate,
   forceProjectWithManifestCreate
 } from './forceProjectCreate';
-export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
 export {
   forceStopApexDebugLogging,
