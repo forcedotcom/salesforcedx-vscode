@@ -181,7 +181,7 @@ export class SelectOutputDir
     let outputdir = await this.showMenu(dirOptions);
 
     if (outputdir === SelectOutputDir.customDirOption) {
-      dirOptions = this.getCustomOptions(getRootWorkspacePath());
+      dirOptions = this.getCustomOptions(packageDirs, getRootWorkspacePath());
       outputdir = await this.showMenu(dirOptions);
     }
 
@@ -198,19 +198,21 @@ export class SelectOutputDir
     return options;
   }
 
-  public getCustomOptions(rootPath: string): string[] {
-    return new glob.GlobSync(path.join(rootPath, '**', path.sep)).found.map(
-      value => {
-        let relativePath = path.relative(rootPath, path.join(value, '/'));
-        relativePath = path.join(
-          relativePath,
-          this.typeDirRequired && !relativePath.endsWith(this.typeDir)
-            ? this.typeDir
-            : ''
-        );
-        return relativePath;
-      }
-    );
+  public getCustomOptions(packageDirs: string[], rootPath: string): string[] {
+    const packages =
+      packageDirs.length > 1 ? `{${packageDirs.join(',')}}` : packageDirs[0];
+    return new glob.GlobSync(
+      path.join(rootPath, packages, '**', path.sep)
+    ).found.map(value => {
+      let relativePath = path.relative(rootPath, path.join(value, '/'));
+      relativePath = path.join(
+        relativePath,
+        this.typeDirRequired && !relativePath.endsWith(this.typeDir)
+          ? this.typeDir
+          : ''
+      );
+      return relativePath;
+    });
   }
 
   public async showMenu(options: string[]): Promise<string | undefined> {
