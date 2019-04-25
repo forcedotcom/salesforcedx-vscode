@@ -19,12 +19,17 @@
 #### salesforcedx-vscode-apex
 
 - Apex extension now activates even when Java is misconfigured ([PR #1261](https://github.com/forcedotcom/salesforcedx-vscode/pull/1261), [Issue #809](https://github.com/forcedotcom/salesforcedx-vscode/issues/809))
-- Apex Language Server handling sObject checks in Windows ([PR #1276](https://github.com/forcedotcom/salesforcedx-vscode/pull/1276), [Issue #1269](https://github.com/forcedotcom/salesforcedx-vscode/issues/1269), [Issue #1170](https://github.com/forcedotcom/salesforcedx-vscode/issues/1170))
+- Apex language server handling sObject checks in Windows ([PR #1276](https://github.com/forcedotcom/salesforcedx-vscode/pull/1276), [Issue #1269](https://github.com/forcedotcom/salesforcedx-vscode/issues/1269), [Issue #1170](https://github.com/forcedotcom/salesforcedx-vscode/issues/1170))
 - Update sObject refresh on startup setting name to `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` ([PR #1236](https://github.com/forcedotcom/salesforcedx-vscode/pull/1236))
 
 #### salesforcedx-vscode-core
 
 - Support upper-case package names in `sfdx-project.json` ([PR #1277](https://github.com/forcedotcom/salesforcedx-vscode/pull/1277), [Issue #1266](https://github.com/forcedotcom/salesforcedx-vscode/issues/1266))
+
+#### salesforcedx-vscode-lightning
+
+- Lightning language server startup is asynchronous ([PR #1253](https://github.com/forcedotcom/salesforcedx-vscode/pull/1253))
+- Support different extension activation modes; `always`, `autodetect` & `off` ([PR #1253](https://github.com/forcedotcom/salesforcedx-vscode/pull/1253))
 
 ## 45.10.0 - April 10, 2019
 
