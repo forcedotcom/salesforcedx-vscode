@@ -36,14 +36,18 @@ class MockJorje {
   }
 
   public languageClientStatus = {
-    isReady() {
-      return true;
-    },
-    failedToInitialize() {
-      return false;
-    },
-    getStatusMessage() {
-      return '';
+    getStatus() {
+      return {
+        isReady() {
+          return true;
+        },
+        failedToInitialize() {
+          return false;
+        },
+        getStatusMessage() {
+          return '';
+        }
+      };
     }
   };
 }
