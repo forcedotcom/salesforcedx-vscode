@@ -82,12 +82,18 @@ export class DebugConfigurationProvider
     while (
       this.sfdxApex &&
       this.sfdxApex.exports &&
-      !this.sfdxApex.exports.languageClientStatus.isReady() &&
+      !this.sfdxApex.exports.languageClientStatus.getStatus().isReady() &&
       !expired
     ) {
-      if (this.sfdxApex.exports.languageClientStatus.failedToInitialize()) {
+      if (
+        this.sfdxApex.exports.languageClientStatus
+          .getStatus()
+          .failedToInitialize()
+      ) {
         throw Error(
-          this.sfdxApex.exports.languageClientStatus.getStatusMessage()
+          this.sfdxApex.exports.languageClientStatus
+            .getStatus()
+            .getStatusMessage()
         );
       }
 
