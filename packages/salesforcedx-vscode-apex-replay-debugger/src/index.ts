@@ -237,9 +237,16 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
   if (sfdxApex && sfdxApex.exports) {
     let expired = false;
     let i = 0;
-    while (!sfdxApex.exports.languageClientStatus().isReady() && !expired) {
-      if (sfdxApex.exports.languageClientStatus().failedToInitialize()) {
-        throw Error(sfdxApex.exports.languageClientStatus().getStatusMessage());
+    while (
+      !sfdxApex.exports.languageClientStatus.getStatus().isReady() &&
+      !expired
+    ) {
+      if (
+        sfdxApex.exports.languageClientStatus.getStatus().failedToInitialize()
+      ) {
+        throw Error(
+          sfdxApex.exports.languageClientStatus.getStatus().getStatusMessage()
+        );
       }
 
       await imposeSlightDelay(100);
