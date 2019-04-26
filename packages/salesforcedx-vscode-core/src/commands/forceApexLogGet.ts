@@ -68,7 +68,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
 

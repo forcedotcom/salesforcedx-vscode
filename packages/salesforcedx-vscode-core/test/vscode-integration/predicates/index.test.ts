@@ -13,6 +13,7 @@ import { workspace } from 'vscode';
 import { SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { isSfdxProjectOpened } from '../../../src/predicates';
+import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('SFDX project predicate', () => {
@@ -27,7 +28,7 @@ describe('SFDX project predicate', () => {
 
   it('Should fail predicate with message when sfdx-project.json is missing', () => {
     mExistsSync
-      .withArgs(path.join(workspace.rootPath!, SFDX_PROJECT_FILE))
+      .withArgs(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE))
       .returns(false);
 
     const response = isSfdxProjectOpened.apply(workspace);
@@ -39,7 +40,7 @@ describe('SFDX project predicate', () => {
 
   it('Should pass predicate when sfdx-project.json is present', () => {
     mExistsSync
-      .withArgs(path.join(workspace.rootPath!, SFDX_PROJECT_FILE))
+      .withArgs(path.join(getRootWorkspacePath(), SFDX_PROJECT_FILE))
       .returns(true);
 
     const response = isSfdxProjectOpened.apply(workspace);
