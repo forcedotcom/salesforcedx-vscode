@@ -12,13 +12,14 @@ import {
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging/bootstrapCmd';
 import { nls } from '../../../../src/messages';
+import { getRootWorkspacePath } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('ISV Debugging Project Bootstrap Command', () => {
   const LOGIN_URL = 'a.b.c';
   const SESSION_ID = '0x123';
   const PROJECT_NAME = 'sfdx-simple';
-  const WORKSPACE_PATH = path.join(vscode.workspace.rootPath!, '..');
+  const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
   describe('EnterForceIdeUri Gatherer', () => {
@@ -160,7 +161,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
           PROJECT_DIR[0].fsPath
-        }`
+        } --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_step1_create_project')

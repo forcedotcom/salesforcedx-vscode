@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "45.10.0",
+  "version": "45.12.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,20 +24,20 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "45.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.12.1",
     "aura-language-server": "2.1.0",
     "change-case": "^3.1.0",
     "lightning-lsp-common": "2.1.0",
-    "open": "^6.0.0",
+    "open": "6.0.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "45.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "45.12.1",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
-    "@types/open": "^6.0.0",
+    "@types/open": "6.0.0",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
@@ -46,9 +46,6 @@
     "typescript": "3.1.6",
     "vscode": "1.1.17"
   },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
-  ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "vsce package",
@@ -64,8 +61,11 @@
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:javascript",
     "workspaceContains:sfdx-project.json",
-    "workspaceContains:**/core/workspace-user.xml"
+    "workspaceContains:**/workspace-user.xml",
+    "onView:salesforce-lightning-explorer"
   ],
   "main": "./out/src",
   "contributes": {
@@ -104,7 +104,7 @@
         {
           "id": "salesforce-lightning-components",
           "name": "%lightning_explorer_name%",
-          "when": "config.salesforcedx-vscode-lightning.show-lightning-explorer"
+          "when": "config.salesforcedx-vscode-lightning.showLightningExplorer"
         }
       ]
     },
@@ -126,13 +126,28 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%feature_previews_title%",
+      "title": "%lightning_preferences%",
       "properties": {
-        "salesforcedx-vscode-lightning.show-lightning-explorer": {
+        "salesforcedx-vscode-lightning.showLightningExplorer": {
           "type": "boolean",
           "scope": "window",
           "default": false,
           "description": "%show_lightning_explorer_description%"
+        },
+        "salesforcedx-vscode-lightning.activationMode": {
+          "type": "string",
+          "description": "%activation_mode_description%",
+          "enum": [
+            "always",
+            "autodetect",
+            "off"
+          ],
+          "enumDescriptions": [
+            "%activation_mode_always_on%",
+            "%activation_mode_autodetect%",
+            "%activation_mode_off%"
+          ],
+          "default": "autodetect"
         }
       }
     }

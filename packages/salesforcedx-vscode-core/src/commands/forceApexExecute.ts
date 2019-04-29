@@ -18,6 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -39,9 +40,9 @@ class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
-    if (vscode.workspace.rootPath) {
+    if (hasRootWorkspace()) {
       const fileName = path.join(
-        vscode.workspace.rootPath,
+        getRootWorkspacePath(),
         '.sfdx',
         'tools',
         'tempApex.input'
