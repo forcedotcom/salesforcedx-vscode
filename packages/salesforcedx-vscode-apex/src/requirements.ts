@@ -88,7 +88,10 @@ function checkJavaVersion(javaHome: string): Promise<any> {
       ['-version'],
       {},
       (error, stdout, stderr) => {
-        if (stderr.indexOf('1.8') < 0) {
+        if (
+          stderr.indexOf('build 1.8') < 0 &&
+          stderr.indexOf('build 11.') < 0
+        ) {
           reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
         } else {
           resolve(true);
