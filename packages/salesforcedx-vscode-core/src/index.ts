@@ -343,15 +343,24 @@ function registerCommands(
   );
 }
 
-function registerOrgPickerCommands(
-  extensionContext: vscode.ExtensionContext,
-  orgList: OrgList
-): vscode.Disposable {
+function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
     () => orgList.setDefaultOrg()
   );
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
+}
+
+async function setupOrgBrowser(
+  extensionContext: vscode.ExtensionContext
+): Promise<void> {
+  const metadataTreeProvider = new TypeNodeProvider();
+  await metadataTreeProvider.getDefaultUsernameOrAlias();
+  const metadataProvider = vscode.window.registerTreeDataProvider(
+    'metadata',
+    metadataTreeProvider
+  );
+  extensionContext.subscriptions.push(metadataProvider);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -392,23 +401,19 @@ export async function activate(context: vscode.ExtensionContext) {
   // register org picker commands and set up filewatcher for defaultusername
   const orgList = new OrgList();
   await orgList.displayDefaultUsername();
-  context.subscriptions.push(registerOrgPickerCommands(context, orgList));
+  context.subscriptions.push(registerOrgPickerCommands(orgList));
 
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
     await orgList.registerDefaultUsernameWatcher(context);
-    const orgType = await getWorkspaceOrgType();
-    if (orgType === OrgType.NonSourceTracked) {
-      const metadataTreeProvider = new TypeNodeProvider();
-      const metadataProvider = vscode.window.registerTreeDataProvider(
-        'metadata',
-        metadataTreeProvider
-      );
-      context.subscriptions.push(metadataProvider);
-      vscode.commands.registerCommand('metadata.refresh', () =>
-        metadataTreeProvider.refresh()
-      );
+    try {
+      const orgType = await getWorkspaceOrgType();
+      if (orgType === OrgType.NonSourceTracked) {
+        setupOrgBrowser(context);
+      }
+    } catch (e) {
+      telemetryService.sendError('Default username is not set');
     }
   } else {
     showCLINotInstalledMessage();

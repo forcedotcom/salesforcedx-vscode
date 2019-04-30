@@ -7,45 +7,46 @@
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
-import { forceDescribeMetadata } from './index';
+import { forceDescribeMetadata, Node, NodeType } from './index';
 
-export class TypeNodeProvider implements vscode.TreeDataProvider<Org> {
+export class TypeNodeProvider implements vscode.TreeDataProvider<Node> {
   private defaultOrg: string | undefined;
 
   private _onDidChangeTreeData: vscode.EventEmitter<
-    MetadataType | undefined
-  > = new vscode.EventEmitter<MetadataType | undefined>();
-  public readonly onDidChangeTreeData: vscode.Event<
-    MetadataType | undefined
-  > = this._onDidChangeTreeData.event;
+    Node | undefined
+  > = new vscode.EventEmitter<Node | undefined>();
+  public readonly onDidChangeTreeData: vscode.Event<Node | undefined> = this
+    ._onDidChangeTreeData.event;
 
-  constructor() {
-    this.getDefaultUsernameOrAlias().catch(err => {
-      throw new Error(err);
-    });
-  }
+  constructor() {}
 
   public async refresh(): Promise<void> {
-    await forceDescribeMetadata();
+    await this.getDefaultUsernameOrAlias();
+    // trigger refresh of type nodes
     this._onDidChangeTreeData.fire();
   }
 
-  public getTreeItem(element: MetadataType): vscode.TreeItem {
+  public getTreeItem(element: Node): vscode.TreeItem {
     return element;
   }
 
-  /*   if there is an element, this method will call ie. getComponents to load cmps for the md type
-else, call forceDescribeMetadata to load metadata type nodes  */
-  public getChildren(element?: MetadataType): Promise<Org[]> {
+  /* if there is not an element, load and display the default org then load the metadata types for the org
+  if there is an element, this method will call ie. getComponents to load cmps for the md type  */
+  public getChildren(element?: Node): Promise<Node[]> {
     if (isNullOrUndefined(element)) {
       if (!isNullOrUndefined(this.defaultOrg)) {
-        return Promise.resolve([new Org(this.defaultOrg, 1, 'meta')]);
+        // at this point the metadata types would be loaded too
+        const org = new Node(this.defaultOrg, NodeType.Org, 'Type Org');
+        getMetadataTypes(org);
+        return Promise.resolve([org]);
       } else {
         vscode.window.showInformationMessage('No default org set');
         return Promise.resolve([]);
       }
+    } else {
+      // call the get component method and return the type node again
+      return Promise.resolve(element.children);
     }
-    return Promise.resolve([new Org('Example', 1, 'meta')]);
   }
 
   public async getDefaultUsernameOrAlias() {
@@ -55,57 +56,11 @@ else, call forceDescribeMetadata to load metadata type nodes  */
   }
 }
 
-export class Org extends vscode.TreeItem {
-  constructor(
-    public label: string,
-    public collapsibleState: vscode.TreeItemCollapsibleState,
-    public type: string,
-    public command?: vscode.Command
-  ) {
-    super(label, 1);
-  }
-
-  get tooltip(): string {
-    return 'Default Org';
-  }
-}
-export class MetadataType extends vscode.TreeItem {
-  constructor(
-    public label: string,
-    public collapsibleState: vscode.TreeItemCollapsibleState,
-    public type: string,
-    public command?: vscode.Command
-  ) {
-    super(label, collapsibleState);
-  }
-
-  get tooltip(): string {
-    return 'Metadata Type';
-  }
-
-  get description(): string {
-    return this.type;
-  }
-
-  public contextValue = 'metadataType';
-}
-
-export class MetadataCmp extends vscode.TreeItem {
-  constructor(
-    public label: string,
-    public type: string,
-    public command?: vscode.Command
-  ) {
-    super(label, 0);
-  }
-
-  get tooltip(): string {
-    return 'Metadata Component';
-  }
-
-  get description(): string {
-    return this.type;
-  }
-
-  public contextValue = 'metadataComponent';
+function getMetadataTypes(org: Node): Node {
+  org.children = [
+    new Node('type 1', NodeType.MetadataType, 'component'),
+    new Node('type 2', NodeType.MetadataType, 'component'),
+    new Node('type 3', NodeType.MetadataType, 'component')
+  ];
+  return org;
 }
