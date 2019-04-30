@@ -100,13 +100,6 @@
       ]
     },
     "menus": {
-      "view/title": [
-        {
-          "command": "metadata.refresh",
-          "when": "view == metadata",
-          "group": "navigation"
-        }
-      ],
       "view/item/context": [
         {
           "command": "sfdx.force.task.stop",
@@ -565,10 +558,6 @@
       {
         "command": "sfdx.force.lightning.lwc.create",
         "title": "%force_lightning_lwc_create_text%"
-      },
-      {
-        "command": "metadata.refresh",
-        "title": "refresh"
       }
     ],
     "configuration": {

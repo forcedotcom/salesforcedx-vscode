@@ -402,19 +402,11 @@ export async function activate(context: vscode.ExtensionContext) {
   const orgList = new OrgList();
   await orgList.displayDefaultUsername();
   context.subscriptions.push(registerOrgPickerCommands(orgList));
-
+  await setupOrgBrowser(context);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
     await orgList.registerDefaultUsernameWatcher(context);
-    try {
-      const orgType = await getWorkspaceOrgType();
-      if (orgType === OrgType.NonSourceTracked) {
-        await setupOrgBrowser(context);
-      }
-    } catch (e) {
-      telemetryService.sendError('Default username is not set');
-    }
   } else {
     showCLINotInstalledMessage();
     telemetryService.sendError('Salesforce CLI is not installed');

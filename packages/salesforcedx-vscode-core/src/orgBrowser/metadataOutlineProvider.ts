@@ -7,7 +7,7 @@
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
-import { forceDescribeMetadata, Node, NodeType } from './index';
+import { Node, NodeType } from './index';
 
 export class TypeNodeProvider implements vscode.TreeDataProvider<Node> {
   private defaultOrg: string | undefined;
@@ -22,7 +22,6 @@ export class TypeNodeProvider implements vscode.TreeDataProvider<Node> {
 
   public async refresh(): Promise<void> {
     await this.getDefaultUsernameOrAlias();
-    // trigger refresh of type nodes
     this._onDidChangeTreeData.fire();
   }
 
@@ -30,21 +29,15 @@ export class TypeNodeProvider implements vscode.TreeDataProvider<Node> {
     return element;
   }
 
-  /* if there is not an element, load and display the default org then load the metadata types for the org
-  if there is an element, this method will call ie. getComponents to load cmps for the md type  */
   public getChildren(element?: Node): Promise<Node[]> {
     if (isNullOrUndefined(element)) {
       if (!isNullOrUndefined(this.defaultOrg)) {
-        // at this point the metadata types would be loaded too
-        const org = new Node(this.defaultOrg, NodeType.Org, 'Type Org');
-        getMetadataTypes(org);
+        const org = new Node(this.defaultOrg, NodeType.Org);
         return Promise.resolve([org]);
       } else {
-        vscode.window.showInformationMessage('No default org set');
         return Promise.resolve([]);
       }
     } else {
-      // call the get component method and return the type node again
       return Promise.resolve(element.children);
     }
   }
@@ -54,13 +47,4 @@ export class TypeNodeProvider implements vscode.TreeDataProvider<Node> {
       this.defaultOrg = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
     }
   }
-}
-
-function getMetadataTypes(org: Node): Node {
-  org.children = [
-    new Node('type 1', NodeType.MetadataType, 'component'),
-    new Node('type 2', NodeType.MetadataType, 'component'),
-    new Node('type 3', NodeType.MetadataType, 'component')
-  ];
-  return org;
 }

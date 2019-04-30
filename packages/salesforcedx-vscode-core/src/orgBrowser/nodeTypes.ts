@@ -14,18 +14,22 @@ export enum NodeType {
 
 export class Node extends vscode.TreeItem {
   public children: Node[] = [];
-  constructor(
-    label: string,
-    public readonly type: NodeType,
-    public readonly tooltip: string
-  ) {
+  constructor(label: string, public readonly type: NodeType) {
     super(label);
     this.type = type;
-    if (this.type !== NodeType.MetadataCmp) {
-      this.collapsibleState = 1;
-    } else {
-      this.collapsibleState = 0;
+    switch (this.type) {
+      case NodeType.Org:
+        this.collapsibleState = 1;
+        this.tooltip = 'Default Org';
+        break;
+      case NodeType.MetadataCmp:
+        this.collapsibleState = 0;
+        this.tooltip = 'Metadata Component';
+        break;
+      case NodeType.MetadataType:
+        this.collapsibleState = 1;
+        this.tooltip = 'Metadata Type';
+        break;
     }
-    this.tooltip = tooltip;
   }
 }
