@@ -95,7 +95,7 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "sfdx:display_tree_view"
         }
       ]
     },
