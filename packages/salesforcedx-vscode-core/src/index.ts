@@ -410,7 +410,7 @@ export async function activate(context: vscode.ExtensionContext) {
     try {
       const orgType = await getWorkspaceOrgType();
       if (orgType === OrgType.NonSourceTracked) {
-        setupOrgBrowser(context);
+        await setupOrgBrowser(context);
       }
     } catch (e) {
       telemetryService.sendError('Default username is not set');
