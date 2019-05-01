@@ -13,7 +13,7 @@ If you don’t see any SFDX commands in the command palette, make sure that you�
 
 ## Set Your Java Version
 
-The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code depends upon the Java 8 Platform, Standard Edition Development Kit (JDK). By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension cannot find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
+The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code depends upon the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of either JDK version 8 or JDK version 11. By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension cannot find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 1. Search for `apex`.
@@ -45,7 +45,7 @@ If the Apex Language Server didn’t activate, ensure that you've:
 
 1. Opened a Salesforce DX project that has a valid `sfdx-project.json` file.
 1. Opened the Salesforce DX project as a top-level folder.
-1. Installed Java 1.8; you will see a warning if it's not installed.
+1. Installed Java 8 or Java 11; you will see a warning if it's not installed.
 
 If you’ve checked all of the above and nothing is working, check for errors in VS Code itself. In the VS Code menu bar, select **Help** > **Toggle Developer Tools**, click **Console**, and search for relevant messages.
 
