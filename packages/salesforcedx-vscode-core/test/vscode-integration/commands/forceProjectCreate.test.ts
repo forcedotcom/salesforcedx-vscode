@@ -18,11 +18,12 @@ import {
   SelectProjectName
 } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
+import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
-  const WORKSPACE_PATH = path.join(vscode.workspace.rootPath!, '..');
+  const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
   describe('SelectProjectName Gatherer', () => {

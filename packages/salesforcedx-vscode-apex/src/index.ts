@@ -121,7 +121,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(commands);
 
   context.subscriptions.push(await registerTestView(testOutlineProvider));
-  const languageClientStatus = languageClientUtils.getStatus();
+  const languageClientStatus = languageClientUtils;
 
   const exportedApi = {
     getLineBreakpointInfo,
