@@ -61,6 +61,7 @@ import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { MetadataOutlineProvider } from './orgBrowser';
+import { forceListMetadata } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -418,7 +419,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
-
+  await forceListMetadata('ApexClass', 'a.jha@appexchange.com.full8');
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);

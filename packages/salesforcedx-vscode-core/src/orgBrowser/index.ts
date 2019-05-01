@@ -8,8 +8,14 @@ export {
   onUsernameChange,
   forceDescribeMetadata,
   ForceDescribeMetadataExecutor,
-  getMetadataTypesPath,
+  getTypesPath,
   buildTypesList
-} from './orgMetadata';
+} from './metadataType';
 export { MetadataOutlineProvider } from './metadataOutlineProvider';
 export { BrowserNode, NodeType } from './nodeTypes';
+export {
+  buildComponentsList,
+  forceListMetadata,
+  ForceListMetadataExecutor,
+  getComponentsPath
+} from './metadataCmp';

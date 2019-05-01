@@ -29,22 +29,29 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
-export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
-  string
-> {
+export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
+  private metadataType: string;
   private outputPath: string;
+  private defaultUsernameOrAlias: string;
 
-  public constructor(outputPath: string) {
+  public constructor(
+    metadataType: string,
+    outputPath: string,
+    defaultUsernameOrAlias: string
+  ) {
     super();
+    this.metadataType = metadataType;
     this.outputPath = outputPath;
+    this.defaultUsernameOrAlias = defaultUsernameOrAlias;
   }
 
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
-      .withArg('force:mdapi:describemetadata')
-      .withJson()
+      .withArg('force:mdapi:listmetadata')
+      .withFlag('-m', this.metadataType)
+      .withFlag('-u', this.defaultUsernameOrAlias)
       .withFlag('-f', this.outputPath)
-      .withLogName('force_describe_metadata')
+      .withJson()
       .build();
   }
 
@@ -59,7 +66,8 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      buildTypesList(this.outputPath);
+      console.log(this.outputPath);
+      buildComponentsList(this.outputPath, this.metadataType);
     });
     notificationService.reportExecutionError(
       execution.command.toString(),
@@ -74,11 +82,19 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceDescribeMetadata(outputPath?: string) {
-  if (isNullOrUndefined(outputPath)) {
-    outputPath = await getMetadataTypesPath();
-  }
-  const describeExecutor = new ForceDescribeMetadataExecutor(outputPath!);
+export async function forceListMetadata(
+  metadataType: string,
+  defaultUsernameOrAlias: string
+) {
+  const outputPath = await getComponentsPath(
+    metadataType,
+    defaultUsernameOrAlias
+  );
+  const describeExecutor = new ForceListMetadataExecutor(
+    metadataType,
+    outputPath,
+    defaultUsernameOrAlias
+  );
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
@@ -87,82 +103,55 @@ export async function forceDescribeMetadata(outputPath?: string) {
   await commandlet.run();
 }
 
-export async function getMetadataTypesPath(): Promise<string | undefined> {
-  if (!hasRootWorkspace()) {
+export async function getComponentsPath(
+  metadataType: string,
+  defaultUsernameOrAlias: string
+): Promise<string> {
+  if (hasRootWorkspace()) {
+    try {
+      const workspaceRootPath = getRootWorkspacePath();
+      const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+      const componentsPath = path.join(
+        workspaceRootPath,
+        '.sfdx',
+        'orgs',
+        username,
+        'metadata',
+        metadataType + '.json'
+      );
+      return componentsPath;
+    } catch {
+      const err = nls.localize('error_no_default_username');
+      telemetryService.sendError(err);
+      throw new Error(err);
+    }
+  } else {
     const err = nls.localize('cannot_determine_workspace');
     telemetryService.sendError(err);
     throw new Error(err);
   }
-
-  const workspaceRootPath = getRootWorkspacePath();
-  const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-    false
-  );
-
-  if (isNullOrUndefined(defaultUsernameOrAlias)) {
-    const err = nls.localize('error_no_default_username');
-    telemetryService.sendErrorEvent(
-      'Undefined username or alias on orgMetadata.getMetadataTypesPath',
-      err
-    );
-    throw new Error(err);
-  }
-
-  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-
-  if (isNullOrUndefined(username)) {
-    const err = nls.localize('error_no_default_username');
-    telemetryService.sendErrorEvent(
-      'Undefined username on orgMetadata.getMetadataTypesPath',
-      err
-    );
-    throw new Error(err);
-  }
-
-  const metadataTypesPath = path.join(
-    workspaceRootPath,
-    '.sfdx',
-    'orgs',
-    username,
-    'metadata',
-    'metadataTypes.json'
-  );
-  return metadataTypesPath;
 }
 
-export type MetadataObject = {
-  directoryName: string;
-  inFolder: boolean;
-  metaFile: boolean;
-  suffix: string;
-  xmlName: string;
-};
-
-export function buildTypesList(metadataTypesPath: string): string[] {
+export function buildComponentsList(
+  componentsPath: string,
+  metadataType: string
+): string[] {
   try {
-    const fileData = JSON.parse(fs.readFileSync(metadataTypesPath, 'utf8'));
-    const metadataObjects = fileData.metadataObjects as MetadataObject[];
-    const metadataTypes = [];
-    for (const metadataObject of metadataObjects) {
-      if (!isNullOrUndefined(metadataObject.xmlName)) {
-        metadataTypes.push(metadataObject.xmlName);
+    const fileData = JSON.parse(fs.readFileSync(componentsPath, 'utf8'));
+    const metaComponents = [];
+    for (const component of fileData) {
+      if (!isNullOrUndefined(component.fullName)) {
+        metaComponents.push(component.fullName);
       }
     }
-    telemetryService.sendEventData('Metadata Types Quantity', undefined, {
-      metadataTypes: metadataTypes.length
-    });
-    return metadataTypes;
+    telemetryService.sendEventData(
+      'Metadata Components quantity',
+      { metadataType },
+      { metadataComponents: metaComponents.length }
+    );
+    console.log(metaComponents);
+    return metaComponents;
   } catch (e) {
     throw e;
-  }
-}
-
-export async function onUsernameChange() {
-  const metadataTypesPath = await getMetadataTypesPath();
-  if (
-    !isNullOrUndefined(metadataTypesPath) &&
-    !fs.existsSync(metadataTypesPath)
-  ) {
-    await forceDescribeMetadata(metadataTypesPath);
   }
 }
