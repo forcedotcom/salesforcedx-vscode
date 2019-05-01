@@ -45,7 +45,7 @@ If the Apex Language Server didn’t activate, ensure that you've:
 
 1. Opened a Salesforce DX project that has a valid `sfdx-project.json` file.
 1. Opened the Salesforce DX project as a top-level folder.
-1. Installed Java 8 or Java 11; you will see a warning if it's not installed.
+1. Installed Java 8 or Java 11; you’ll see a warning if neither version is installed.
 
 If you’ve checked all of the above and nothing is working, check for errors in VS Code itself. In the VS Code menu bar, select **Help** > **Toggle Developer Tools**, click **Console**, and search for relevant messages.
 
