@@ -30,7 +30,7 @@ import { getRootWorkspacePath } from '../../../src/util';
 // tslint:disable:no-unused-expression
 describe('Command Utilities', () => {
   const WORKSPACE_NAME = 'sfdx-simple';
-  const SFDX_SIMPLE_NUM_OF_DIRS = 16;
+  const SFDX_SIMPLE_NUM_OF_DIRS = 14;
   describe('EmptyParametersGatherer', () => {
     it('Should always return continue with empty object as data', async () => {
       const gatherer = new EmptyParametersGatherer();
@@ -220,6 +220,8 @@ describe('Command Utilities', () => {
   });
 
   describe('SelectOutputDir', () => {
+    const packageDirs = ['force-app'];
+
     it('Should correctly build default menu options', async () => {
       const selector = new SelectOutputDir('test');
       const options = selector.getDefaultOptions(['testapp', 'testapp2']);
@@ -233,14 +235,19 @@ describe('Command Utilities', () => {
 
     it('Should generate correct number of custom options for a workspace', async () => {
       const selector = new SelectOutputDir('test');
-      const options = selector.getCustomOptions(getRootWorkspacePath());
-
+      const options = selector.getCustomOptions(
+        packageDirs,
+        getRootWorkspacePath()
+      );
       expect(options.length).to.be.equal(SFDX_SIMPLE_NUM_OF_DIRS);
     });
 
     it('Should correctly append type folder to paths for type that requires specific parent folder', () => {
       const selector = new SelectOutputDir('aura', true);
-      const options = selector.getCustomOptions(getRootWorkspacePath());
+      const options = selector.getCustomOptions(
+        packageDirs,
+        getRootWorkspacePath()
+      );
 
       expect(
         options.every(outputDir => {
@@ -252,15 +259,18 @@ describe('Command Utilities', () => {
 
     it('Should gather paths from correct sources and prompt custom dir if chosen', async () => {
       const selector = new SelectOutputDir('test');
-      const defaultOptions = selector.getDefaultOptions(['test-app']);
-      const customOptions = selector.getCustomOptions(getRootWorkspacePath());
+      const defaultOptions = selector.getDefaultOptions(packageDirs);
+      const customOptions = selector.getCustomOptions(
+        packageDirs,
+        getRootWorkspacePath()
+      );
       const getPackageDirPathsStub = sinon.stub(
         SfdxPackageDirectories,
         'getPackageDirectoryPaths'
       );
       const showMenuStub = sinon.stub(selector, 'showMenu');
       const choice = customOptions[5];
-      getPackageDirPathsStub.returns(['test-app']);
+      getPackageDirPathsStub.returns(packageDirs);
       showMenuStub.onFirstCall().returns(SelectOutputDir.customDirOption);
       showMenuStub.onSecondCall().returns(choice);
 
