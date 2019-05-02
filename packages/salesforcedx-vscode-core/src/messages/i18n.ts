@@ -118,11 +118,9 @@ export const messages = {
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
-    'One or more files with the specified path already exist in your workspace. Do you want to overwrite them?',
+    'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
-  warning_prompt_lightning_bundle_overwrite:
-    'A Lightning bundle with the specified path already exists in your workspace. Do you want to overwrite any existing files in this bundle?',
   warning_prompt_overwrite_confirm: 'Overwrite',
   warning_prompt_overwrite_cancel: 'Cancel',
   force_config_list_text: 'SFDX: List All Config Variables',
@@ -140,9 +138,6 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
-  force_sobjects_no_refresh_if_already_active_error_text:
-    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
@@ -246,5 +241,14 @@ export const messages = {
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   error_no_default_devhubusername:
     'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
-  custom_output_directory: 'Choose a Custom Directory'
+  custom_output_directory: 'Choose a Custom Directory',
+  warning_using_global_username:
+    'No default username found in the local project config; using the global default username. Run "SFDX: Authorize an Org" to set the username for the local project config.',
+  apex_class_message_name: 'Apex Class',
+  apex_trigger_message_name: 'Apex Trigger',
+  visualforce_component_message_name: 'Visualforce Component',
+  visualforce_page_message_name: 'Visualforce Page',
+  aura_bundle_message_name: 'Aura Bundle',
+  lwc_message_name: 'Lightning Web Component',
+  force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component'
 };

@@ -18,11 +18,12 @@ import {
   SelectProjectName
 } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
+import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
-  const WORKSPACE_PATH = path.join(vscode.workspace.rootPath!, '..');
+  const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
   describe('SelectProjectName Gatherer', () => {
@@ -167,7 +168,7 @@ describe('Force Project Create', () => {
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
           PROJECT_DIR[0].fsPath
-        }`
+        } --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
@@ -185,7 +186,7 @@ describe('Force Project Create', () => {
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
           PROJECT_DIR[0].fsPath
-        } --manifest`
+        } --template standard --manifest`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')

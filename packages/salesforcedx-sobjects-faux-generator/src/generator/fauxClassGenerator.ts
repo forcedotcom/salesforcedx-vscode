@@ -24,6 +24,21 @@ export interface CancellationToken {
   isCancellationRequested: boolean;
 }
 
+export enum SObjectRefreshSource {
+  Manual = 'manual',
+  Startup = 'startup'
+}
+
+export interface SObjectRefreshResult {
+  data: {
+    source?: SObjectRefreshSource;
+    cancelled: boolean;
+    standardObjects?: number;
+    customObjects?: number;
+  };
+  error?: { message: string; stack?: string };
+}
+
 const SFDX_DIR = '.sfdx';
 const TOOLS_DIR = 'tools';
 const SOBJECTS_DIR = 'sobjects';
@@ -70,16 +85,20 @@ export class FauxClassGenerator {
 
   private emitter: EventEmitter;
   private cancellationToken: CancellationToken | undefined;
+  private result: SObjectRefreshResult;
 
   constructor(emitter: EventEmitter, cancellationToken?: CancellationToken) {
     this.emitter = emitter;
     this.cancellationToken = cancellationToken;
+    this.result = { data: { cancelled: false } };
   }
 
   public async generate(
     projectPath: string,
-    type: SObjectCategory
-  ): Promise<string> {
+    type: SObjectCategory,
+    source: SObjectRefreshSource
+  ): Promise<SObjectRefreshResult> {
+    this.result = { data: { source, cancelled: false } };
     const sobjectsFolderPath = path.join(
       projectPath,
       SFDX_DIR,
@@ -113,8 +132,10 @@ export class FauxClassGenerator {
     try {
       sobjects = await describe.describeGlobal(projectPath, type);
     } catch (e) {
+      const err = JSON.parse(e);
       return this.errorExit(
-        nls.localize('failure_fetching_sobjects_list_text', e)
+        nls.localize('failure_fetching_sobjects_list_text', err.message),
+        err.stack
       );
     }
     let j = 0;
@@ -130,9 +151,9 @@ export class FauxClassGenerator {
           await describe.describeSObjectBatch(projectPath, sobjects, j)
         );
         j = fetchedSObjects.length;
-      } catch (e) {
+      } catch (errorMessage) {
         return this.errorExit(
-          nls.localize('failure_in_sobject_describe_text', e)
+          nls.localize('failure_in_sobject_describe_text', errorMessage)
         );
       }
     }
@@ -146,18 +167,21 @@ export class FauxClassGenerator {
       }
     }
 
+    this.result.data.standardObjects = standardSObjects.length;
+    this.result.data.customObjects = customSObjects.length;
+
     this.logFetchedObjects(standardSObjects, customSObjects);
 
     try {
       this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
-    } catch (e) {
-      return this.errorExit(e);
+    } catch (errorMessage) {
+      return this.errorExit(errorMessage);
     }
 
     try {
       this.generateFauxClasses(customSObjects, customSObjectsFolderPath);
-    } catch (e) {
-      return this.errorExit(e);
+    } catch (errorMessage) {
+      return this.errorExit(errorMessage);
     }
 
     return this.successExit();
@@ -181,35 +205,35 @@ export class FauxClassGenerator {
     return fauxClassPath;
   }
 
-  private errorExit(errorMessage: string): Promise<string> {
-    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, `${errorMessage}\n`);
-    this.emitter.emit(
-      LocalCommandExecution.ERROR_EVENT,
-      new Error(errorMessage)
-    );
+  private errorExit(
+    message: string,
+    stack?: string
+  ): Promise<SObjectRefreshResult> {
+    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, `${message}\n`);
+    this.emitter.emit(LocalCommandExecution.ERROR_EVENT, new Error(message));
     this.emitter.emit(
       LocalCommandExecution.EXIT_EVENT,
       LocalCommandExecution.FAILURE_CODE
     );
-    return Promise.reject(
-      `${LocalCommandExecution.FAILURE_CODE.toString()} - ${errorMessage}`
-    );
+    this.result.error = { message, stack };
+    return Promise.reject(this.result);
   }
 
-  private successExit(): Promise<string> {
+  private successExit(): Promise<SObjectRefreshResult> {
     this.emitter.emit(
       LocalCommandExecution.EXIT_EVENT,
       LocalCommandExecution.SUCCESS_CODE
     );
-    return Promise.resolve(LocalCommandExecution.SUCCESS_CODE.toString());
+    return Promise.resolve(this.result);
   }
 
-  private cancelExit(): Promise<string> {
+  private cancelExit(): Promise<SObjectRefreshResult> {
     this.emitter.emit(
       LocalCommandExecution.EXIT_EVENT,
       LocalCommandExecution.FAILURE_CODE
     );
-    return Promise.resolve(nls.localize('faux_generation_cancelled_text'));
+    this.result.data.cancelled = true;
+    return Promise.resolve(this.result);
   }
 
   private stripId(name: string): string {

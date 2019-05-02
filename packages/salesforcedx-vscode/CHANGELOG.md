@@ -1,10 +1,67 @@
+## 45.12.0 - April 25, 2019
+
+### Added
+
+#### salesforcedx-vscode/docs
+
+- Update Prettier installation instructions to use the latest release ([PR #1263](https://github.com/forcedotcom/salesforcedx-vscode/pull/1263))
+
+#### salesforcedx-vscode-core
+
+- Show which default username is in use ([PR #1259](https://github.com/forcedotcom/salesforcedx-vscode/pull/1259))
+- Use the `standard` template value (`sfdx force:project:create --template standard`) when creating projects ([PR #1234](https://github.com/forcedotcom/salesforcedx-vscode/pull/1234), [Issue #1090](https://github.com/forcedotcom/salesforcedx-vscode/issues/1090)):
+  - `SFDX: Create Project`
+  - `SFDX: Create Project with Manifest`
+  - `SFDX: Create and Set Up Project for ISV Debugger`
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Activate Apex extension even when Java is misconfigured ([PR #1261](https://github.com/forcedotcom/salesforcedx-vscode/pull/1261), [Issue #809](https://github.com/forcedotcom/salesforcedx-vscode/issues/809))
+- Handle Apex Language Server’s sObject checks on Windows ([PR #1276](https://github.com/forcedotcom/salesforcedx-vscode/pull/1276), [Issue #1269](https://github.com/forcedotcom/salesforcedx-vscode/issues/1269), [Issue #1170](https://github.com/forcedotcom/salesforcedx-vscode/issues/1170))
+- Change name of setting that enables sObject refresh on startup to `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` ([PR #1236](https://github.com/forcedotcom/salesforcedx-vscode/pull/1236))
+
+#### salesforcedx-vscode-core
+
+- Support uppercase package names in `sfdx-project.json` ([PR #1277](https://github.com/forcedotcom/salesforcedx-vscode/pull/1277), [Issue #1266](https://github.com/forcedotcom/salesforcedx-vscode/issues/1266))
+
+#### salesforcedx-vscode-lightning
+
+- Start Lightning Language Server asynchronously ([PR #1253](https://github.com/forcedotcom/salesforcedx-vscode/pull/1253))
+- Support different extension activation modes: `always`, `autodetect`, and `off` ([PR #1253](https://github.com/forcedotcom/salesforcedx-vscode/pull/1253))
+
+## 45.10.0 - April 10, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix NullPointerException when Apex language server processes references ([PR #1245](https://github.com/forcedotcom/salesforcedx-vscode/pull/1245))
+
+#### salesforcedx-vscode-apex-debugger, salesforcedx-vscode-apex-replay-debugger
+
+- Update dependency to address security vulnerability ([PR #1230](https://github.com/forcedotcom/salesforcedx-vscode/pull/1230))
+
+#### salesforcedx-vscode-core
+
+- Expose SFDX: Create commands only on source files’ default directories when right-clicking folders in the File Explorer ([PR #1235](https://github.com/forcedotcom/salesforcedx-vscode/pull/1235), [Issue #852](https://github.com/forcedotcom/salesforcedx-vscode/issues/852)):
+  - `SFDX: Create Apex Class`
+  - `SFDX: Create Apex Trigger`
+  - `SFDX: Create Visualforce Component`
+  - `SFDX: Create Visualforce Page`
+
+#### salesforcedx-vscode-lightning
+
+- Stop extension from overwriting `settings.json` contents ([PR #1254](https://github.com/forcedotcom/salesforcedx-vscode/pull/1254), [Issue #1210](https://github.com/forcedotcom/salesforcedx-vscode/issues/1210))
+
 ## 45.9.0 - April 4, 2019
 
 ### Added
 
 #### salesforcedx-vscode/docs
 
-- Add `Set Up the Prettier Code Formatter for Salesforce Projects` page ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
+- Add [Set Up the Prettier Code Formatter for Salesforce Projects](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) article ([PR #1208](https://github.com/forcedotcom/salesforcedx-vscode/pull/1208))
 - Show the statuses of the project’s dependencies ([PR #1218](https://github.com/forcedotcom/salesforcedx-vscode/pull/1218))
 
 #### salesforcedx-vscode-core

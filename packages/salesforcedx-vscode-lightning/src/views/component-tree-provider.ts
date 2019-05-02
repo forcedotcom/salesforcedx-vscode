@@ -40,7 +40,7 @@ const tagsCleared: NotificationType<void, void> = new NotificationType<
   void
 >('salesforce/tagsCleared');
 
-let loadNamespacesPromise: Promise<Map<string, LwcNode>>;
+let loadNamespacesPromise: Promise<Map<string, LwcNode>> | null;
 
 function createAttribute(attr: AttributeInfo, lwc: boolean) {
   const attributeStringUri = attr.location && attr.location.uri;
@@ -281,7 +281,9 @@ export class ComponentTreeProvider implements TreeDataProvider<LwcNode> {
 
   public async getChildren(node?: LwcNode): Promise<LwcNode[]> {
     if (node) {
-      const sorted = node.children.sort((a, b) => (a.label < b.label ? -1 : 1));
+      const sorted = node.children.sort((a, b) =>
+        (a.label || '') < (b.label || '') ? -1 : 1
+      );
       return Promise.resolve(sorted);
     } else {
       return [

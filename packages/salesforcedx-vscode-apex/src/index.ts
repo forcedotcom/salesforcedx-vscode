@@ -15,14 +15,20 @@ import {
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
-  forceApexTestMethodRunCodeActionDelegate
+  forceApexTestMethodRunCodeActionDelegate,
+  forceGenerateFauxClassesCreate,
+  initSObjectDefinitions
 } from './commands';
 import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  SFDX_APEX_CONFIGURATION_NAME
+} from './constants';
+import {
+  ClientStatus,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
-  isLanguageClientReady,
-  LanguageClientUtils
+  languageClientUtils
 } from './languageClientUtils';
 import * as languageServer from './languageServer';
 import { nls } from './messages';
@@ -30,9 +36,10 @@ import { telemetryService } from './telemetry';
 import { ApexTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
+const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
-);
+)!.exports;
+const coreTelemetryService = sfdxCoreExports.telemetryService;
 
 let languageClient: LanguageClient | undefined;
 
@@ -59,54 +66,74 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Telemetry
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
+  telemetryService.initializeService(
+    coreTelemetryService.getReporter(),
+    coreTelemetryService.isTelemetryEnabled()
+  );
 
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
+  // Initialize Apex language server
+  try {
+    const langClientHRStart = process.hrtime();
+    languageClient = await languageServer.createLanguageServer(context);
+    languageClientUtils.setClientInstance(languageClient);
+    const handle = languageClient.start();
+    languageClientUtils.setStatus(ClientStatus.Indexing, '');
+    context.subscriptions.push(handle);
+
+    languageClient
+      .onReady()
+      .then(async () => {
+        if (languageClient) {
+          languageClient.onNotification('indexer/done', async () => {
+            // Refresh SObject definitions if there aren't any faux classes
+            const sobjectRefreshStartup: boolean = vscode.workspace
+              .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
+              .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+            if (sobjectRefreshStartup) {
+              initSObjectDefinitions(
+                vscode.workspace.workspaceFolders![0].uri.fsPath
+              ).catch(e => telemetryService.sendErrorEvent(e.message, e.stack));
+            }
+
+            await testOutlineProvider.refresh();
+          });
+        }
+        // TODO: This currently keeps existing behavior in which we set the language
+        // server to ready before it finishes indexing. We'll evaluate this in the future.
+        languageClientUtils.setStatus(ClientStatus.Ready, '');
+        telemetryService.sendApexLSPActivationEvent(langClientHRStart);
+      })
+      .catch(err => {
+        // Handled by clients
+        telemetryService.sendApexLSPError(err);
+        languageClientUtils.setStatus(
+          ClientStatus.Error,
+          nls.localize('apex_language_server_failed_activate')
+        );
+      });
+  } catch (e) {
+    console.error('Apex language server failed to initialize');
+    languageClientUtils.setStatus(ClientStatus.Error, e);
   }
-
-  const langClientHRStart = process.hrtime();
-  languageClient = await languageServer.createLanguageServer(context);
-  LanguageClientUtils.setClientInstance(languageClient);
-  const handle = languageClient.start();
-  context.subscriptions.push(handle);
-
-  languageClient
-    .onReady()
-    .then(async () => {
-      if (languageClient) {
-        languageClient.onNotification('indexer/done', async () => {
-          LanguageClientUtils.indexing = false;
-          await testOutlineProvider.refresh();
-        });
-      }
-      LanguageClientUtils.languageClientReady = true;
-      telemetryService.sendApexLSPActivationEvent(langClientHRStart);
-    })
-    .catch(err => {
-      // Handled by clients
-      telemetryService.sendApexLSPError(err);
-    });
 
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
 
   context.subscriptions.push(await registerTestView(testOutlineProvider));
+  const languageClientStatus = languageClientUtils;
 
   const exportedApi = {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
-    isLanguageClientReady,
-    getApexTests
+    getApexTests,
+    languageClientStatus
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
+
 function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
@@ -143,6 +170,10 @@ function registerCommands(
     'sfdx.force.apex.test.method.run',
     forceApexTestMethodRunCodeAction
   );
+  const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
+    'sfdx.force.internal.refreshsobjects',
+    forceGenerateFauxClassesCreate
+  );
   return vscode.Disposable.from(
     forceApexToggleColorizerCmd,
     forceApexTestLastClassRunCmd,
@@ -150,9 +181,11 @@ function registerCommands(
     forceApexTestClassRunDelegateCmd,
     forceApexTestLastMethodRunCmd,
     forceApexTestMethodRunCmd,
-    forceApexTestMethodRunDelegateCmd
+    forceApexTestMethodRunDelegateCmd,
+    forceGenerateFauxClassesCmd
   );
 }
+
 async function registerTestView(
   testOutlineProvider: ApexTestOutlineProvider
 ): Promise<vscode.Disposable> {
@@ -204,7 +237,7 @@ async function registerTestView(
   // Refresh Test View command
   testViewItems.push(
     vscode.commands.registerCommand('sfdx.force.test.view.refresh', () => {
-      if (!LanguageClientUtils.indexing) {
+      if (languageClientUtils.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
     })

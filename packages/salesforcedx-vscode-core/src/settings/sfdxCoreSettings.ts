@@ -7,7 +7,6 @@
 
 import * as vscode from 'vscode';
 import {
-  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -58,10 +57,6 @@ export class SfdxCoreSettings {
 
   public getRetrieveTestCodeCoverage(): boolean {
     return this.getConfigValue(RETRIEVE_TEST_CODE_COVERAGE, false);
-  }
-
-  public getEnableSObjectRefreshOnStartup(): boolean {
-    return this.getConfigValue(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

@@ -82,9 +82,21 @@ export class DebugConfigurationProvider
     while (
       this.sfdxApex &&
       this.sfdxApex.exports &&
-      !this.sfdxApex.exports.isLanguageClientReady() &&
+      !this.sfdxApex.exports.languageClientStatus.getStatus().isReady() &&
       !expired
     ) {
+      if (
+        this.sfdxApex.exports.languageClientStatus
+          .getStatus()
+          .failedToInitialize()
+      ) {
+        throw Error(
+          this.sfdxApex.exports.languageClientStatus
+            .getStatus()
+            .getStatusMessage()
+        );
+      }
+
       await new Promise(r => setTimeout(r, 100));
       if (i >= 30) {
         expired = true;
