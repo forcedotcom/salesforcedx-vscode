@@ -1,3 +1,17 @@
+## 45.13.0 - May 2, 2019
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- Add support for Java 11.
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Remove references to `workspace.rootPath`, which is deprecated; use `getRootWorkspacePath` instead.
+
 ## 45.12.0 - April 25, 2019
 
 ### Added
