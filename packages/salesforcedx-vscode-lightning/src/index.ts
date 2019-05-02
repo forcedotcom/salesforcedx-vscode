@@ -22,6 +22,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import { sync as which } from 'which';
 import { createQuickOpenCommand } from './commands/quickpick/quickpick';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
@@ -97,6 +98,7 @@ export async function activate(context: ExtensionContext) {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
+
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: {
@@ -105,6 +107,11 @@ export async function activate(context: ExtensionContext) {
       options: debugOptions
     }
   };
+  const node = which('node', { nothrow: true });
+  if (node) {
+    serverOptions.run.runtime = node;
+    serverOptions.debug.runtime = node;
+  }
 
   // Setup our fileSystemWatchers
   const clientOptions: LanguageClientOptions = {
@@ -166,7 +173,11 @@ export async function activate(context: ExtensionContext) {
   );
 
   // Add Lightning Explorer data provider
-  const componentProvider = new ComponentTreeProvider(client, context);
+  const componentProvider = new ComponentTreeProvider(
+    client,
+    context,
+    workspaceType
+  );
   window.registerTreeDataProvider(
     'salesforce-lightning-components',
     componentProvider
