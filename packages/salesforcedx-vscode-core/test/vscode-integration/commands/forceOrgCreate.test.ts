@@ -14,6 +14,7 @@ import {
   ForceOrgCreateExecutor
 } from '../../../src/commands/forceOrgCreate';
 import { nls } from '../../../src/messages';
+import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Org Create', () => {
@@ -124,7 +125,7 @@ describe('Force Org Create', () => {
       const TEST_ORG_EXPIRATION_DAYS = '7';
       const forceOrgCreateBuilder = new ForceOrgCreateExecutor();
       const createCommand = forceOrgCreateBuilder.build({
-        file: path.join(vscode.workspace.rootPath!, CONFIG_FILE),
+        file: path.join(getRootWorkspacePath(), CONFIG_FILE),
         alias: TEST_ALIAS,
         expirationDays: TEST_ORG_EXPIRATION_DAYS
       });
