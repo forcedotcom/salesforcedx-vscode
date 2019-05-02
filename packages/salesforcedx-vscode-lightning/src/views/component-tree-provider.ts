@@ -61,16 +61,16 @@ function createAttribute(attr: AttributeInfo, lwc: boolean) {
   }
   return new LwcNode(
     name,
-    attr.detail,
+    attr.detail || '',
     NodeType.Attribute,
     TreeItemCollapsibleState.None,
     attributeUri,
     openAttributeCommand
   );
 }
-function createMethod(method: any /*ClassMember*/, uri: string) {
+function createMethod(method: any /*ClassMember*/, uri: string | undefined) {
   const attributeUri = uri ? Uri.parse(uri) : undefined;
-  let attributeRange: Range;
+  let attributeRange = null;
   if (method.loc) {
     attributeRange = new Range(
       new Position(method.loc.start.line, method.loc.start.column),
@@ -116,8 +116,8 @@ function createComponent(value: TagInfo) {
       }
     : undefined;
   return new LwcNode(
-    value.name,
-    value.documentation,
+    value.name || '',
+    value.documentation || '',
     componentType,
     hasChildren
       ? TreeItemCollapsibleState.Collapsed
@@ -162,33 +162,34 @@ async function loadNamespaces(
 
         for (const key of tags.keys()) {
           // safety
-          if (!key) {
-            continue;
-          }
-          const value = tags.get(key);
-          const ns = key.split(':')[0];
+          if (key) {
+            const value = tags.get(key);
+            if (value) {
+              const ns = key.split(':')[0];
 
-          const cmp = createComponent(value);
+              const cmp = createComponent(value);
 
-          let node = namespaces.get(ns);
-          if (!node) {
-            node = createNamespace(ns);
-            namespaces.set(ns, node);
-          }
-          node.children.push(cmp);
+              let node = namespaces.get(ns);
+              if (!node) {
+                node = createNamespace(ns);
+                namespaces.set(ns, node);
+              }
+              node.children.push(cmp);
 
-          for (const attr of value.attributes) {
-            cmp.children.push(createAttribute(attr, value.lwc));
-          }
-          const methods =
-            (value.methods &&
-              value.methods.filter(m => m.decorator === 'api')) ||
-            [];
+              for (const attr of value.attributes) {
+                cmp.children.push(createAttribute(attr, value.lwc));
+              }
+              const methods =
+                (value.methods &&
+                  value.methods.filter(m => m.decorator === 'api')) ||
+                [];
 
-          for (const method of methods) {
-            cmp.children.push(
-              createMethod(method, value.location && value.location.uri)
-            );
+              for (const method of methods) {
+                cmp.children.push(
+                  createMethod(method, value.location && value.location.uri)
+                );
+              }
+            }
           }
         }
 
