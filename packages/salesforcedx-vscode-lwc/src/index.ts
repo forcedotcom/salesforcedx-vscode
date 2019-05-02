@@ -20,6 +20,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import { sync as which } from 'which';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { telemetryService } from './telemetry';
 

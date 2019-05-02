@@ -22,11 +22,11 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import { sync as which } from 'which';
 import { createQuickOpenCommand } from './commands/quickpick/quickpick';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { ComponentTreeProvider } from './views/component-tree-provider';
-import { sync as which } from 'which';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri): string {
