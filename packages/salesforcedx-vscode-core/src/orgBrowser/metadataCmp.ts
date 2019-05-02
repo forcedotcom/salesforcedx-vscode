@@ -16,7 +16,6 @@ import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -24,7 +23,7 @@ import {
   SfdxWorkspaceChecker
 } from '../commands';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
+import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -66,15 +65,12 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      console.log(this.outputPath);
       buildComponentsList(this.outputPath, this.metadataType);
     });
     notificationService.reportExecutionError(
       execution.command.toString(),
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
-    channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
@@ -120,10 +116,9 @@ export async function getComponentsPath(
         metadataType + '.json'
       );
       return componentsPath;
-    } catch {
-      const err = nls.localize('error_no_default_username');
-      telemetryService.sendError(err);
-      throw new Error(err);
+    } catch (e) {
+      telemetryService.sendError(e);
+      throw new Error(e);
     }
   } else {
     const err = nls.localize('cannot_determine_workspace');
@@ -149,7 +144,6 @@ export function buildComponentsList(
       { metadataType },
       { metadataComponents: metaComponents.length }
     );
-    console.log(metaComponents);
     return metaComponents;
   } catch (e) {
     throw e;

@@ -32,7 +32,7 @@ describe('Force Describe Metadata', () => {
 });
 
 // tslint:disable:no-unused-expression
-describe('getMetadataTypesPath', () => {
+describe('get metadata types path', () => {
   let getDefaultUsernameStub: SinonStub;
   let getUsernameStub: SinonStub;
   const rootWorkspacePath = getRootWorkspacePath();

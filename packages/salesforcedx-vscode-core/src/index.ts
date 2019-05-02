@@ -419,7 +419,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
-  await forceListMetadata('ApexClass', 'a.jha@appexchange.com.full8');
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
