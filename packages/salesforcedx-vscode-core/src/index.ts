@@ -65,7 +65,7 @@ import {
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { TypeNodeProvider } from './orgBrowser';
+import { MetadataOutlineProvider } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -354,7 +354,7 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
 async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext
 ): Promise<void> {
-  const metadataTreeProvider = new TypeNodeProvider();
+  const metadataTreeProvider = new MetadataOutlineProvider();
   await metadataTreeProvider.getDefaultUsernameOrAlias();
   const metadataProvider = vscode.window.registerTreeDataProvider(
     'metadata',

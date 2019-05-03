@@ -12,8 +12,8 @@ export enum NodeType {
   MetadataCmp
 }
 
-export class Node extends vscode.TreeItem {
-  public children: Node[] = [];
+export class BrowserNode extends vscode.TreeItem {
+  public children: BrowserNode[] = [];
   constructor(label: string, public readonly type: NodeType) {
     super(label);
     this.type = type;

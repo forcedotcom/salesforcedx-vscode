@@ -11,5 +11,5 @@ export {
   getMetadataTypesPath,
   buildTypesList
 } from './orgMetadata';
-export { TypeNodeProvider } from './metadataOutlineProvider';
-export { Node, NodeType } from './nodeTypes';
+export { MetadataOutlineProvider } from './metadataOutlineProvider';
+export { BrowserNode, NodeType } from './nodeTypes';

@@ -7,16 +7,18 @@
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
-import { Node, NodeType } from './index';
+import { BrowserNode, NodeType } from './index';
 
-export class TypeNodeProvider implements vscode.TreeDataProvider<Node> {
+export class MetadataOutlineProvider
+  implements vscode.TreeDataProvider<BrowserNode> {
   private defaultOrg: string | undefined;
 
   private _onDidChangeTreeData: vscode.EventEmitter<
-    Node | undefined
-  > = new vscode.EventEmitter<Node | undefined>();
-  public readonly onDidChangeTreeData: vscode.Event<Node | undefined> = this
-    ._onDidChangeTreeData.event;
+    BrowserNode | undefined
+  > = new vscode.EventEmitter<BrowserNode | undefined>();
+  public readonly onDidChangeTreeData: vscode.Event<
+    BrowserNode | undefined
+  > = this._onDidChangeTreeData.event;
 
   constructor() {}
 
@@ -25,14 +27,14 @@ export class TypeNodeProvider implements vscode.TreeDataProvider<Node> {
     this._onDidChangeTreeData.fire();
   }
 
-  public getTreeItem(element: Node): vscode.TreeItem {
+  public getTreeItem(element: BrowserNode): vscode.TreeItem {
     return element;
   }
 
-  public getChildren(element?: Node): Promise<Node[]> {
+  public getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
     if (isNullOrUndefined(element)) {
       if (!isNullOrUndefined(this.defaultOrg)) {
-        const org = new Node(this.defaultOrg, NodeType.Org);
+        const org = new BrowserNode(this.defaultOrg, NodeType.Org);
         return Promise.resolve([org]);
       } else {
         return Promise.resolve([]);
