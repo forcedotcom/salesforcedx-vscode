@@ -12,7 +12,9 @@ export enum NodeType {
   Namespace,
   Component,
   WebComponent,
-  Attribute
+  Attribute,
+  Method,
+  Info
 }
 function getLabel(label: string, type: NodeType) {
   if (type === NodeType.WebComponent) {
@@ -55,6 +57,10 @@ export class LwcNode extends TreeItem {
       retVal = 'attribute.svg';
     } else if (this.type === NodeType.WebComponent) {
       retVal = 'lwclogo.png';
+    } else if (this.type === NodeType.Method) {
+      retVal = 'method.svg';
+    } else if (this.type === NodeType.Info) {
+      return '';
     } else {
       retVal = 'lightning-file.svg';
     }
