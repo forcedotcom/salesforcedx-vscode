@@ -45,13 +45,22 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   }
 
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    let builder = new SfdxCommandBuilder()
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
       .withFlag('-f', this.outputPath)
-      .withJson()
-      .build();
+      .withJson();
+
+    if (
+      this.metadataType === 'Dashboard' ||
+      this.metadataType === 'Report' ||
+      this.metadataType === 'EmailTemplate' ||
+      this.metadataType === 'Document'
+    ) {
+      builder = builder.withFlag('--folder', 'unfiled$public');
+    }
+    return builder.build();
   }
 
   public execute(response: ContinueResponse<string>): void {
