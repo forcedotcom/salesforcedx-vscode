@@ -32,6 +32,21 @@ describe('Force List Metadata', () => {
       `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} -f ${outputPath} --json --loglevel fatal`
     );
   });
+
+  it('Should build list metadata command with folder arg', async () => {
+    const outputPath = 'outputPath';
+    const metadataType = 'Report';
+    const defaultUsername = 'test-username1@example.com';
+    const forceListMetadataExec = new ForceListMetadataExecutor(
+      metadataType,
+      outputPath,
+      defaultUsername
+    );
+    const forceDescribeMetadataCmd = forceListMetadataExec.build({});
+    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
+      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} -f ${outputPath} --json --loglevel fatal --folder unfiled$public`
+    );
+  });
 });
 
 // tslint:disable:no-unused-expression
