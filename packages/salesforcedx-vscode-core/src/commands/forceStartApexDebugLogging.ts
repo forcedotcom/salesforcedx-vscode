@@ -62,7 +62,11 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 
     try {
       // query traceflag
-      let resultJson = await this.subExecute(new ForceQueryTraceFlag().build());
+      const userId = await getUserId(getRootWorkspacePath());
+
+      let resultJson = await this.subExecute(
+        new ForceQueryTraceFlag().build(userId)
+      );
       if (resultJson && resultJson.result && resultJson.result.size >= 1) {
         const traceflag = resultJson.result.records[0];
         developerLogTraceFlag.setTraceFlagDebugLevelInfo(
@@ -85,7 +89,6 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
         const debugLevelId = resultJson.result.id;
         developerLogTraceFlag.setDebugLevelId(debugLevelId);
 
-        const userId = await getUserId(getRootWorkspacePath());
         developerLogTraceFlag.validateDates();
         resultJson = await this.subExecute(new CreateTraceFlag(userId).build());
         developerLogTraceFlag.setTraceFlagId(resultJson.result.id);
@@ -237,13 +240,13 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export class ForceQueryTraceFlag extends SfdxCommandletExecutor<{}> {
-  public build(): Command {
+  public build(userId: string): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_start_apex_debug_logging'))
       .withArg('force:data:soql:query')
       .withFlag(
         '--query',
-        "SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG'"
+        `SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='${userId}'`
       )
       .withArg('--usetoolingapi')
       .withJson()

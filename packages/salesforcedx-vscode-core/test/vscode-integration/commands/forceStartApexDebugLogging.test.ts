@@ -66,9 +66,9 @@ describe('Force Start Apex Debug Logging', () => {
 
   it('Should build the traceflag query command for logging', async () => {
     const queryTraceFlagsExecutor = new ForceQueryTraceFlag();
-    const updateTraceFlagCmd = queryTraceFlagsExecutor.build();
+    const updateTraceFlagCmd = queryTraceFlagsExecutor.build('005x00000000123');
     expect(updateTraceFlagCmd.toCommand()).to.equal(
-      `sfdx force:data:soql:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' --usetoolingapi --json --loglevel fatal`
+      `sfdx force:data:soql:query --query SELECT id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce FROM TraceFlag WHERE logtype='DEVELOPER_LOG' AND TracedEntityId='005x00000000123' --usetoolingapi --json --loglevel fatal`
     );
   });
 
