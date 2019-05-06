@@ -121,13 +121,12 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(commands);
 
   context.subscriptions.push(await registerTestView(testOutlineProvider));
-  const languageClientStatus = languageClientUtils;
 
   const exportedApi = {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
     getApexTests,
-    languageClientStatus
+    languageClientUtils
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);

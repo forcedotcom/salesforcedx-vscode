@@ -35,7 +35,7 @@ class MockJorje {
     return Promise.resolve(response);
   }
 
-  public languageClientStatus = {
+  public languageClientUtils = {
     getStatus() {
       return {
         isReady() {
