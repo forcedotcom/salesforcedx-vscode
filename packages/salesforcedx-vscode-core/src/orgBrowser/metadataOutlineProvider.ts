@@ -13,18 +13,18 @@ export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
   private defaultOrg: string | undefined;
 
-  private _onDidChangeTreeData: vscode.EventEmitter<
+  private internalOnDidChangeTreeData: vscode.EventEmitter<
     BrowserNode | undefined
   > = new vscode.EventEmitter<BrowserNode | undefined>();
   public readonly onDidChangeTreeData: vscode.Event<
     BrowserNode | undefined
-  > = this._onDidChangeTreeData.event;
+  > = this.internalOnDidChangeTreeData.event;
 
   constructor() {}
 
   public async refresh(): Promise<void> {
     await this.getDefaultUsernameOrAlias();
-    this._onDidChangeTreeData.fire();
+    this.internalOnDidChangeTreeData.fire();
   }
 
   public getTreeItem(element: BrowserNode): vscode.TreeItem {

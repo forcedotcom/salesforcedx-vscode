@@ -19,15 +19,15 @@ export class BrowserNode extends vscode.TreeItem {
     this.type = type;
     switch (this.type) {
       case NodeType.Org:
-        this.collapsibleState = 1;
+        this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         this.tooltip = 'Default Org';
         break;
       case NodeType.MetadataCmp:
-        this.collapsibleState = 0;
+        this.collapsibleState = vscode.TreeItemCollapsibleState.None;
         this.tooltip = 'Metadata Component';
         break;
       case NodeType.MetadataType:
-        this.collapsibleState = 1;
+        this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
         this.tooltip = 'Metadata Type';
         break;
     }
