@@ -56,10 +56,16 @@ import {
 } from './commands';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
+import {
+  getDefaultUsernameOrAlias,
+  getWorkspaceOrgType,
+  OrgType,
+  setupWorkspaceOrgType
+} from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
+import { MetadataOutlineProvider } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -337,15 +343,24 @@ function registerCommands(
   );
 }
 
-function registerOrgPickerCommands(
-  extensionContext: vscode.ExtensionContext,
-  orgList: OrgList
-): vscode.Disposable {
+function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
     () => orgList.setDefaultOrg()
   );
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
+}
+
+async function setupOrgBrowser(
+  extensionContext: vscode.ExtensionContext
+): Promise<void> {
+  const metadataTreeProvider = new MetadataOutlineProvider();
+  await metadataTreeProvider.getDefaultUsernameOrAlias();
+  const metadataProvider = vscode.window.registerTreeDataProvider(
+    'metadata',
+    metadataTreeProvider
+  );
+  extensionContext.subscriptions.push(metadataProvider);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -386,8 +401,10 @@ export async function activate(context: vscode.ExtensionContext) {
   // register org picker commands and set up filewatcher for defaultusername
   const orgList = new OrgList();
   await orgList.displayDefaultUsername();
-  context.subscriptions.push(registerOrgPickerCommands(context, orgList));
+  context.subscriptions.push(registerOrgPickerCommands(orgList));
+  // await setupOrgBrowser(context);
 
+  vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', false);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType();
