@@ -35,14 +35,8 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.show();
   }
 
-  public async displayDefaultUsername() {
-    let defaultUsernameorAlias: string | undefined;
-    if (hasRootWorkspace()) {
-      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-        false
-      );
-    }
-    if (defaultUsernameorAlias) {
+  public async displayDefaultUsername(defaultUsernameorAlias?: string) {
+    if (!isNullOrUndefined(defaultUsernameorAlias)) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
@@ -177,8 +171,14 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async onSfdxConfigEvent() {
-    await setupWorkspaceOrgType();
-    await this.displayDefaultUsername();
+    let defaultUsernameorAlias: string | undefined;
+    if (hasRootWorkspace()) {
+      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+        false
+      );
+    }
+    await setupWorkspaceOrgType(defaultUsernameorAlias);
+    await this.displayDefaultUsername(defaultUsernameorAlias);
   }
 
   public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {

@@ -398,16 +398,26 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
+  let defaultUsernameorAlias: string | undefined;
+  if (hasRootWorkspace()) {
+    defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+  }
+
   // register org picker commands and set up filewatcher for defaultusername
   const orgList = new OrgList();
+<<<<<<< HEAD
   await orgList.displayDefaultUsername();
   context.subscriptions.push(registerOrgPickerCommands(orgList));
   // await setupOrgBrowser(context);
+=======
+  await orgList.displayDefaultUsername(defaultUsernameorAlias);
+  context.subscriptions.push(registerOrgPickerCommands(context, orgList));
+>>>>>>> Changes for default username & activation
 
   vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', false);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
-    await setupWorkspaceOrgType();
+    await setupWorkspaceOrgType(defaultUsernameorAlias);
     await orgList.registerDefaultUsernameWatcher(context);
   } else {
     showCLINotInstalledMessage();
