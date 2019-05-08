@@ -1,16 +1,46 @@
+## 45.14.0 - May 9, 2019
+
+### Added
+
+#### salesforcedx-vscode
+
+- Reference the changelog at the top-level of the repository ([PR #1304](https://github.com/forcedotcom/salesforcedx-vscode/pull/1304), [Issue #1292](https://github.com/forcedotcom/salesforcedx-vscode/issues/1292))
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Filter existing TraceFlags to the user the Salesforce CLI is authenticated with when running `SFDX: Turn On Apex Debug Log for Replay Debugger` ([PR #1315](https://github.com/forcedotcom/salesforcedx-vscode/pull/1315), [Issue #1285](https://github.com/forcedotcom/salesforcedx-vscode/issues/1285), [Issue #1280](https://github.com/forcedotcom/salesforcedx-vscode/issues/1280))
+- Show only directories under package directories when running SFDX create metadata commands and choosing a custom output directory ([PR #1288](https://github.com/forcedotcom/salesforcedx-vscode/pull/1288), [Issue #1206](https://github.com/forcedotcom/salesforcedx-vscode/issues/1206))
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Use system version of node when launching lightning and lwc language servers ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
+- Show method icon for lwc component methods in Lightning Explorer ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
+- Display message in Lightning Explorer when no components are found ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
+- Filter lightning & lwc system namespaces for unknown workspaces in Lightning Explorer when no custom components are detected ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
+
 ## 45.13.0 - May 2, 2019
 
 ### Added
 
 #### salesforcedx-vscode-apex
 
-- Add support for Java 11.
+- Add support for Java 11 ([PR #1275](https://github.com/forcedotcom/salesforcedx-vscode/pull/1275))
 
 ### Fixed
 
 #### salesforcedx-vscode-core
 
-- Remove references to `workspace.rootPath`, which is deprecated; use `getRootWorkspacePath` instead.
+- Remove references to `workspace.rootPath`, which is deprecated; use `workspace.workspaceFolders` instead ([PR #1260](https://github.com/forcedotcom/salesforcedx-vscode/pull/1260))
+
+## 45.12.1 - April 25, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Enable Apex debuggers to get the latest status from Apex language server ([PR #1290](https://github.com/forcedotcom/salesforcedx-vscode/pull/1290), [Issue #1289](https://github.com/forcedotcom/salesforcedx-vscode/issues/1289))
 
 ## 45.12.0 - April 25, 2019
 
