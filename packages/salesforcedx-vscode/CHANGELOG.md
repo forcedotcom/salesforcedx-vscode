@@ -4,21 +4,21 @@
 
 #### salesforcedx-vscode
 
-- Reference the changelog at the top-level of the repository ([PR #1304](https://github.com/forcedotcom/salesforcedx-vscode/pull/1304), [Issue #1292](https://github.com/forcedotcom/salesforcedx-vscode/issues/1292))
+- Reference the change log at the top level of the repository ([PR #1304](https://github.com/forcedotcom/salesforcedx-vscode/pull/1304), [Issue #1292](https://github.com/forcedotcom/salesforcedx-vscode/issues/1292))
 
 ### Fixed
 
 #### salesforcedx-vscode-core
 
-- Filter existing TraceFlags to the user the Salesforce CLI is authenticated with when running `SFDX: Turn On Apex Debug Log for Replay Debugger` ([PR #1315](https://github.com/forcedotcom/salesforcedx-vscode/pull/1315), [Issue #1285](https://github.com/forcedotcom/salesforcedx-vscode/issues/1285), [Issue #1280](https://github.com/forcedotcom/salesforcedx-vscode/issues/1280))
-- Show only directories under package directories when running SFDX create metadata commands and choosing a custom output directory ([PR #1288](https://github.com/forcedotcom/salesforcedx-vscode/pull/1288), [Issue #1206](https://github.com/forcedotcom/salesforcedx-vscode/issues/1206))
+- When running `SFDX: Turn On Apex Debug Log for Replay Debugger`, show trace flags only for the user that Salesforce CLI is authenticated with ([PR #1315](https://github.com/forcedotcom/salesforcedx-vscode/pull/1315), [Issue #1285](https://github.com/forcedotcom/salesforcedx-vscode/issues/1285), [Issue #1280](https://github.com/forcedotcom/salesforcedx-vscode/issues/1280))
+- When running commands to create metadata, show only directories within package directories as available locations ([PR #1288](https://github.com/forcedotcom/salesforcedx-vscode/pull/1288), [Issue #1206](https://github.com/forcedotcom/salesforcedx-vscode/issues/1206))
 
 #### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
-- Use system version of node when launching lightning and lwc language servers ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
-- Show method icon for lwc component methods in Lightning Explorer ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
+- Use system version of Node.js when launching Aura Language Server and LWC Language Server ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
+- Show method icon for LWC component methods in Lightning Explorer ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
 - Display message in Lightning Explorer when no components are found ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
-- Filter lightning & lwc system namespaces for unknown workspaces in Lightning Explorer when no custom components are detected ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
+- Filter Aura and LWC system namespaces for unknown workspaces in Lightning Explorer when no custom components are detected ([PR #1305](https://github.com/forcedotcom/salesforcedx-vscode/pull/1305))
 
 ## 45.13.0 - May 2, 2019
 
@@ -40,7 +40,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Enable Apex debuggers to get the latest status from Apex language server ([PR #1290](https://github.com/forcedotcom/salesforcedx-vscode/pull/1290), [Issue #1289](https://github.com/forcedotcom/salesforcedx-vscode/issues/1289))
+- Enable Apex debuggers to get the latest status from Apex Language Server ([PR #1290](https://github.com/forcedotcom/salesforcedx-vscode/pull/1290), [Issue #1289](https://github.com/forcedotcom/salesforcedx-vscode/issues/1289))
 
 ## 45.12.0 - April 25, 2019
 
