@@ -407,7 +407,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // register org picker commands and set up filewatcher for defaultusername
   const orgList = new OrgList();
-  await orgList.displayDefaultUsername(defaultUsernameorAlias);
+  orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
   // await setupOrgBrowser(context, defaultUsernameorAlias);
 

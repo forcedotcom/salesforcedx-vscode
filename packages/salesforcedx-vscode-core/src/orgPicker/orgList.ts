@@ -35,7 +35,7 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.show();
   }
 
-  public async displayDefaultUsername(defaultUsernameorAlias?: string) {
+  public displayDefaultUsername(defaultUsernameorAlias?: string) {
     if (!isNullOrUndefined(defaultUsernameorAlias)) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
     } else {
@@ -178,7 +178,7 @@ export class OrgList implements vscode.Disposable {
       );
     }
     await setupWorkspaceOrgType(defaultUsernameorAlias);
-    await this.displayDefaultUsername(defaultUsernameorAlias);
+    this.displayDefaultUsername(defaultUsernameorAlias);
   }
 
   public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {
