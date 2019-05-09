@@ -53,6 +53,7 @@ describe('getAuthInfoObjects', () => {
     listAuthFilesStub.restore();
     readFileStub.restore();
   });
+
   it('should return null when no auth files are present', async () => {
     const orgList = new OrgList();
     const listAuthFilesStub = getAuthInfoListAuthFilesStub(null);
@@ -60,6 +61,7 @@ describe('getAuthInfoObjects', () => {
     expect(authInfoObjects).to.equal(null);
     listAuthFilesStub.restore();
   });
+
   const getAuthInfoListAuthFilesStub = (returnValue: any) =>
     sinon
       .stub(AuthInfo, 'listAllAuthFiles')
@@ -68,22 +70,28 @@ describe('getAuthInfoObjects', () => {
 
 describe('Filter Authorization Info', async () => {
   let defaultDevHubStub: sinon.SinonStub;
+  let getUsernameStub: sinon.SinonStub;
   let aliasCreateStub: sinon.SinonStub;
   let aliasKeysStub: sinon.SinonStub;
   const orgList = new OrgList();
+
   beforeEach(() => {
     defaultDevHubStub = sinon.stub(
       OrgAuthInfo,
       'getDefaultDevHubUsernameOrAlias'
     );
+    getUsernameStub = sinon.stub(OrgAuthInfo, 'getUsername');
     aliasCreateStub = sinon.stub(Aliases, 'create');
     aliasKeysStub = sinon.stub(Aliases.prototype, 'getKeysByValue');
   });
+
   afterEach(() => {
     defaultDevHubStub.restore();
+    getUsernameStub.restore();
     aliasCreateStub.restore();
     aliasKeysStub.restore();
   });
+
   it('should filter the list for users other than admins when scratchadminusername field is present', async () => {
     const authInfoObjects: FileInfo[] = [
       JSON.parse(
@@ -129,6 +137,7 @@ describe('Filter Authorization Info', async () => {
       )
     ];
     defaultDevHubStub.returns('test-devhub1@gmail.com');
+    getUsernameStub.returns('test-devhub1@gmail.com');
     aliasCreateStub.returns(Aliases.prototype);
     aliasKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
