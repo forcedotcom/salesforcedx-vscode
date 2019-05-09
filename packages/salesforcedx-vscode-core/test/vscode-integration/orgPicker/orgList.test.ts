@@ -164,6 +164,7 @@ describe('Filter Authorization Info', async () => {
 });
 
 describe('Set Default Org', () => {
+  let defaultDevHubStub: sinon.SinonStub;
   let orgListStub: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
   const orgsList = [
@@ -173,6 +174,10 @@ describe('Set Default Org', () => {
   const orgList = new OrgList();
 
   beforeEach(() => {
+    defaultDevHubStub = sinon.stub(
+      OrgAuthInfo,
+      'getDefaultDevHubUsernameOrAlias'
+    );
     orgListStub = sinon.stub(OrgList.prototype, 'updateOrgList');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
   });
@@ -186,6 +191,7 @@ describe('Set Default Org', () => {
     } finally {
       orgListStub.restore();
       quickPickStub.restore();
+      defaultDevHubStub.restore();
     }
   });
 
@@ -261,5 +267,16 @@ describe('Set Default Org', () => {
       quickPickStub.restore();
       executeCommandStub.restore();
     }
+  });
+
+  it('should show appropriate commands depending on whether or not a default dev hub is set', async () => {
+    defaultDevHubStub.returns(undefined);
+    const response = await orgList.setDefaultOrg();
+    expect(
+      quickPickStub.calledWith([
+        '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
+        '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
+      ])
+    );
   });
 });
