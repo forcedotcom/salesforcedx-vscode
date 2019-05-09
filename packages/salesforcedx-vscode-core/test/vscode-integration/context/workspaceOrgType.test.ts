@@ -51,7 +51,7 @@ describe('getDefaultUsernameOrAlias', () => {
 
 describe('getWorkspaceOrgType', () => {
   it('returns the source-tracked org type', async () => {
-    const getConfigStub = getDefaultUsernameStub('scratchOrgAlias');
+    const defaultUsername = 'scratchOrgAlias';
     const aliasesStub = getAliasesFetchStub('scratch@org.com');
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({
@@ -59,55 +59,50 @@ describe('getWorkspaceOrgType', () => {
       })
     });
 
-    const orgType = await getWorkspaceOrgType();
+    const orgType = await getWorkspaceOrgType(defaultUsername);
 
     expect(orgType).to.equal(OrgType.SourceTracked);
 
-    getConfigStub.restore();
     aliasesStub.restore();
     authInfoCreateStub.restore();
   });
 
   it('returns the non-source-tracked org type', async () => {
-    const getConfigStub = getDefaultUsernameStub('sandbox@org.com');
+    const defaultUsername = 'sandbox@org.com';
     const aliasesStub = getAliasesFetchStub(undefined);
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({})
     });
-    const orgType = await getWorkspaceOrgType();
+    const orgType = await getWorkspaceOrgType(defaultUsername);
 
     expect(orgType).to.equal(OrgType.NonSourceTracked);
     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
       username: 'sandbox@org.com'
     });
 
-    getConfigStub.restore();
     aliasesStub.restore();
     authInfoCreateStub.restore();
   });
 
   it('throws an error when no defaultusername is set', async () => {
-    const getConfigStub = getDefaultUsernameStub(undefined);
     const aliasesSpy = sinon.spy(Aliases, 'fetch');
-
+    const defaultUsername = undefined;
     let errorWasThrown = false;
     try {
-      await getWorkspaceOrgType();
+      await getWorkspaceOrgType(defaultUsername);
     } catch (error) {
       errorWasThrown = true;
       expect(error.name).to.equal('NoDefaultusernameSet');
     } finally {
       expect(aliasesSpy.called).to.be.false;
       expect(errorWasThrown).to.be.true;
-      getConfigStub.restore();
       aliasesSpy.restore();
     }
   });
 
   it('throws an error when the info cannot be found for the defaultusername', async () => {
-    const getConfigStub = getDefaultUsernameStub('testUsername');
     const aliasesStub = getAliasesFetchStub('test@org.com');
-
+    const defaultUsername = 'testUsername';
     const error = new Error();
     error.name = 'NamedOrgNotFound';
     const orgAuthInfoStub = sinon
@@ -116,22 +111,20 @@ describe('getWorkspaceOrgType', () => {
 
     let errorWasThrown = false;
     try {
-      await getWorkspaceOrgType();
+      await getWorkspaceOrgType(defaultUsername);
     } catch (error) {
       errorWasThrown = true;
       expect(error.name).to.equal('NamedOrgNotFound');
     } finally {
       expect(errorWasThrown).to.be.true;
-      getConfigStub.restore();
       aliasesStub.restore();
       orgAuthInfoStub.restore();
     }
   });
 
   it('throws an error when the cli has no configuration', async () => {
-    const getConfigStub = getDefaultUsernameStub('testUsername');
     const aliasesStub = getAliasesFetchStub('test@org.com');
-
+    const defaultUsername = 'testUsername';
     const error = new Error();
     error.name = 'GenericKeychainServiceError';
     error.stack =
@@ -142,7 +135,7 @@ describe('getWorkspaceOrgType', () => {
 
     let errorWasThrown = false;
     try {
-      await getWorkspaceOrgType();
+      await getWorkspaceOrgType(defaultUsername);
     } catch (error) {
       errorWasThrown = true;
       expect(error.name).to.equal('GenericKeychainServiceError');
@@ -151,7 +144,6 @@ describe('getWorkspaceOrgType', () => {
       );
     } finally {
       expect(errorWasThrown).to.be.true;
-      getConfigStub.restore();
       aliasesStub.restore();
       orgAuthInfoStub.restore();
     }
@@ -160,26 +152,24 @@ describe('getWorkspaceOrgType', () => {
 
 describe('setupWorkspaceOrgType', () => {
   it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to false', async () => {
-    const getConfigStub = getDefaultUsernameStub(undefined);
+    const defaultUsername = undefined;
     const aliasesSpy = sinon.spy(Aliases, 'fetch');
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-    await setupWorkspaceOrgType();
+    await setupWorkspaceOrgType(defaultUsername);
 
     expect(aliasesSpy.called).to.be.false;
     expect(executeCommandStub.calledTwice).to.be.true;
     expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
-    getConfigStub.restore();
     aliasesSpy.restore();
     executeCommandStub.restore();
   });
 
   it('should set both sfdx:default_username_has_change_tracking and sfdx:default_username_has_no_change_tracking contexts to true', async () => {
-    const getConfigStub = getDefaultUsernameStub('testUsername');
     const aliasesStub = getAliasesFetchStub('test@org.com');
-
+    const defaultUsername = 'test@org.com';
     const error = new Error();
     error.name = 'NamedOrgNotFound';
     const orgAuthInfoStub = sinon
@@ -187,29 +177,28 @@ describe('setupWorkspaceOrgType', () => {
       .throws(error);
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-    await setupWorkspaceOrgType();
+    await setupWorkspaceOrgType(defaultUsername);
 
     expect(executeCommandStub.calledTwice).to.be.true;
     expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
-    getConfigStub.restore();
     aliasesStub.restore();
     orgAuthInfoStub.restore();
     executeCommandStub.restore();
   });
 
   it('should set sfdx:default_username_has_change_tracking to true, and sfdx:default_username_has_no_change_tracking to false', async () => {
-    const getConfigStub = getDefaultUsernameStub('scratchOrgAlias');
     const aliasesStub = getAliasesFetchStub('scratch@org.com');
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({
         devHubUsername: 'dev@hub.com'
       })
     });
+    const defaultUsername = 'scratchOrgAlias';
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-    await setupWorkspaceOrgType();
+    await setupWorkspaceOrgType(defaultUsername);
 
     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
       username: 'scratch@org.com'
@@ -218,21 +207,19 @@ describe('setupWorkspaceOrgType', () => {
     expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
-    getConfigStub.restore();
     aliasesStub.restore();
     authInfoCreateStub.restore();
     executeCommandStub.restore();
   });
 
   it('should set sfdx:default_username_has_change_tracking to false, and sfdx:default_username_has_no_change_tracking to true', async () => {
-    const getConfigStub = getDefaultUsernameStub('sandbox@org.com');
     const aliasesStub = getAliasesFetchStub(undefined);
     const authInfoCreateStub = getAuthInfoCreateStub({
       getFields: () => ({})
     });
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
-
-    await setupWorkspaceOrgType();
+    const defaultUsername = 'sandbox@org.com';
+    await setupWorkspaceOrgType(defaultUsername);
 
     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
       username: 'sandbox@org.com'
@@ -241,7 +228,6 @@ describe('setupWorkspaceOrgType', () => {
     expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
-    getConfigStub.restore();
     aliasesStub.restore();
     authInfoCreateStub.restore();
     executeCommandStub.restore();
@@ -252,7 +238,6 @@ describe('setupWorkspaceOrgType', () => {
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
     const username = 'test@org.com';
-    const getConfigStub = getDefaultUsernameStub(username);
 
     const error = new Error();
     error.name = 'GenericKeychainServiceError';
@@ -263,16 +248,13 @@ describe('setupWorkspaceOrgType', () => {
       .throws(error);
 
     try {
-      expect(await getDefaultUsernameOrAlias()).to.equal(username);
-
-      await setupWorkspaceOrgType();
+      await setupWorkspaceOrgType(username);
 
       expect(aliasesSpy.called).to.be.true;
       expect(executeCommandStub.calledTwice).to.be.true;
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
       expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
     } finally {
-      getConfigStub.restore();
       aliasesSpy.restore();
       executeCommandStub.restore();
       orgAuthInfoStub.restore();
