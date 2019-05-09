@@ -20,10 +20,14 @@ export class MetadataOutlineProvider
     BrowserNode | undefined
   > = this.internalOnDidChangeTreeData.event;
 
-  constructor() {}
+  constructor(defaultOrg?: string) {
+    this.defaultOrg = defaultOrg;
+  }
 
-  public async refresh(): Promise<void> {
-    await this.getDefaultUsernameOrAlias();
+  public async refresh(defaultOrg?: string): Promise<void> {
+    if (!isNullOrUndefined(defaultOrg)) {
+      this.defaultOrg = defaultOrg;
+    }
     this.internalOnDidChangeTreeData.fire();
   }
 

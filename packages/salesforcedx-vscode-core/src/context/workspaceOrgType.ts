@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -13,11 +14,10 @@ export enum OrgType {
   NonSourceTracked
 }
 
-export async function getWorkspaceOrgType(): Promise<OrgType> {
-  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-
-  if (defaultUsernameIsSet) {
+export async function getWorkspaceOrgType(
+  defaultUsernameOrAlias?: string
+): Promise<OrgType> {
+  if (!isNullOrUndefined(defaultUsernameOrAlias)) {
     const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
     const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
       telemetryService.sendError(err)
@@ -30,9 +30,9 @@ export async function getWorkspaceOrgType(): Promise<OrgType> {
   throw e;
 }
 
-export async function setupWorkspaceOrgType() {
+export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   try {
-    const orgType = await getWorkspaceOrgType();
+    const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
     setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
     setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
   } catch (e) {

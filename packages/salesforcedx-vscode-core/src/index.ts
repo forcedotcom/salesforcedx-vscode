@@ -352,10 +352,12 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
 }
 
 async function setupOrgBrowser(
-  extensionContext: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext,
+  defaultUsernameOrAlias?: string
 ): Promise<void> {
-  const metadataTreeProvider = new MetadataOutlineProvider();
-  await metadataTreeProvider.getDefaultUsernameOrAlias();
+  const metadataTreeProvider = new MetadataOutlineProvider(
+    defaultUsernameOrAlias
+  );
   const metadataProvider = vscode.window.registerTreeDataProvider(
     'metadata',
     metadataTreeProvider
@@ -398,16 +400,21 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
+  let defaultUsernameorAlias: string | undefined;
+  if (hasRootWorkspace()) {
+    defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+  }
+
   // register org picker commands and set up filewatcher for defaultusername
   const orgList = new OrgList();
-  await orgList.displayDefaultUsername();
+  orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
-  // await setupOrgBrowser(context);
+  // await setupOrgBrowser(context, defaultUsernameorAlias);
 
   vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', false);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
-    await setupWorkspaceOrgType();
+    await setupWorkspaceOrgType(defaultUsernameorAlias);
     await orgList.registerDefaultUsernameWatcher(context);
   } else {
     showCLINotInstalledMessage();
