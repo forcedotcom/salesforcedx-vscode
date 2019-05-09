@@ -15,6 +15,7 @@ export { MetadataOutlineProvider } from './metadataOutlineProvider';
 export { BrowserNode, NodeType } from './nodeTypes';
 export {
   buildComponentsList,
+  folderTypes,
   forceListMetadata,
   ForceListMetadataExecutor,
   getComponentsPath

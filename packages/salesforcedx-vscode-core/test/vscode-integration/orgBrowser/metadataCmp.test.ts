@@ -12,6 +12,7 @@ import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import {
   buildComponentsList,
+  folderTypes,
   ForceListMetadataExecutor,
   getComponentsPath
 } from '../../../src/orgBrowser';
@@ -35,17 +36,18 @@ describe('Force List Metadata', () => {
 
   it('Should build list metadata command with folder arg', async () => {
     const outputPath = 'outputPath';
-    const metadataType = 'Report';
     const defaultUsername = 'test-username1@example.com';
-    const forceListMetadataExec = new ForceListMetadataExecutor(
-      metadataType,
-      outputPath,
-      defaultUsername
-    );
-    const forceDescribeMetadataCmd = forceListMetadataExec.build({});
-    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} -f ${outputPath} --json --loglevel fatal --folder unfiled$public`
-    );
+    for (const type of folderTypes) {
+      const forceListMetadataExec = new ForceListMetadataExecutor(
+        type,
+        outputPath,
+        defaultUsername
+      );
+      const forceDescribeMetadataCmd = forceListMetadataExec.build({});
+      expect(forceDescribeMetadataCmd.toCommand()).to.equal(
+        `sfdx force:mdapi:listmetadata -m ${type} -u ${defaultUsername} -f ${outputPath} --json --loglevel fatal --folder unfiled$public`
+      );
+    }
   });
 });
 

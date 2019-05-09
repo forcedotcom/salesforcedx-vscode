@@ -28,6 +28,7 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
+export const folderTypes = new Set(['EmailTemplate', 'Reports']);
 export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   private metadataType: string;
   private outputPath: string;
@@ -46,18 +47,14 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
 
   public build(data: {}): Command {
     let builder = new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_list_metadata_text'))
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
       .withFlag('-f', this.outputPath)
       .withJson();
 
-    if (
-      this.metadataType === 'Dashboard' ||
-      this.metadataType === 'Report' ||
-      this.metadataType === 'EmailTemplate' ||
-      this.metadataType === 'Document'
-    ) {
+    if (folderTypes.has(this.metadataType)) {
       builder = builder.withFlag('--folder', 'unfiled$public');
     }
     return builder.build();
@@ -155,6 +152,7 @@ export function buildComponentsList(
     );
     return metaComponents;
   } catch (e) {
-    throw e;
+    telemetryService.sendError(e);
+    throw new Error(e);
   }
 }
