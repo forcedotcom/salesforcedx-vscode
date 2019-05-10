@@ -165,12 +165,6 @@ export class OrgList implements vscode.Disposable {
     }
   }
 
-  public async getDefaultUsernameOrAlias() {
-    if (hasRootWorkspace()) {
-      return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
-    }
-  }
-
   public async getDefaultDevHubUsernameorAlias(): Promise<string | undefined> {
     if (hasRootWorkspace()) {
       return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
