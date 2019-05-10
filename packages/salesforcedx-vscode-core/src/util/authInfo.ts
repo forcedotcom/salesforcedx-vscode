@@ -52,9 +52,9 @@ export class OrgAuthInfo {
     }
   }
 
-  public static async getDefaultDevHubUsernameOrAlias(): Promise<
-    string | undefined
-  > {
+  public static async getDefaultDevHubUsernameOrAlias(
+    enableWarning: boolean
+  ): Promise<string | undefined> {
     try {
       const defaultDevHubUserName = await ConfigUtil.getConfigValue(
         defaultDevHubUserNameKey
@@ -62,7 +62,7 @@ export class OrgAuthInfo {
       if (isUndefined(defaultDevHubUserName)) {
         displayMessage(
           nls.localize('error_no_default_devhubusername'),
-          true,
+          enableWarning,
           VSCodeWindowTypeEnum.Error
         );
         return undefined;
