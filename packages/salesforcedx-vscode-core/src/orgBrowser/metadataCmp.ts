@@ -113,6 +113,16 @@ export async function getComponentsPath(
     try {
       const workspaceRootPath = getRootWorkspacePath();
       const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+
+      if (isNullOrUndefined(username)) {
+        const err = nls.localize('error_no_default_username');
+        telemetryService.sendErrorEvent(
+          'Undefined username on metadataCmp.getComponentsPath',
+          err
+        );
+        throw new Error(err);
+      }
+
       const componentsPath = path.join(
         workspaceRootPath,
         '.sfdx',

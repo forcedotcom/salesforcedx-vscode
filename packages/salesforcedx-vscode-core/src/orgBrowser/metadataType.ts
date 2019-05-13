@@ -102,7 +102,7 @@ export async function getTypesPath(): Promise<string | undefined> {
   if (isNullOrUndefined(defaultUsernameOrAlias)) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendErrorEvent(
-      'Undefined username or alias on orgMetadata.getMetadataTypesPath',
+      'Undefined username or alias on orgMetadata.getTypesPath',
       err
     );
     throw new Error(err);
@@ -113,7 +113,7 @@ export async function getTypesPath(): Promise<string | undefined> {
   if (isNullOrUndefined(username)) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendErrorEvent(
-      'Undefined username on orgMetadata.getMetadataTypesPath',
+      'Undefined username on orgMetadata.getTypesPath',
       err
     );
     throw new Error(err);
