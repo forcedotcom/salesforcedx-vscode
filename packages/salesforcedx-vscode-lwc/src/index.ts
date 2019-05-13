@@ -171,7 +171,7 @@ export async function populateEslintSettingIfNecessary(
     await config.update(
       ESLINT_NODEPATH_CONFIG,
       eslintModule,
-      ConfigurationTarget.Workspace
+      ConfigurationTarget.Global
     );
   }
 }
