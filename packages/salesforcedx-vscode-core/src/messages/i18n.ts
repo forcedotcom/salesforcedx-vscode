@@ -250,5 +250,6 @@ export const messages = {
   visualforce_page_message_name: 'Visualforce Page',
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
-  force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component'
+  force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component',
+  force_list_metadata_text: 'SFDX: List Metadata'
 };

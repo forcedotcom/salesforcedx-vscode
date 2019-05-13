@@ -14,13 +14,9 @@ import { nls } from '../../../src/messages';
 import {
   buildTypesList,
   ForceDescribeMetadataExecutor,
-  getMetadataTypesPath
+  getTypesPath
 } from '../../../src/orgBrowser';
-import {
-  getRootWorkspacePath,
-  hasRootWorkspace,
-  OrgAuthInfo
-} from '../../../src/util';
+import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 describe('Force Describe Metadata', () => {
   it('Should build describe metadata command', async () => {
@@ -36,7 +32,7 @@ describe('Force Describe Metadata', () => {
 });
 
 // tslint:disable:no-unused-expression
-describe('getMetadataTypesPath', () => {
+describe('get metadata types path', () => {
   let getDefaultUsernameStub: SinonStub;
   let getUsernameStub: SinonStub;
   const rootWorkspacePath = getRootWorkspacePath();
@@ -60,14 +56,14 @@ describe('getMetadataTypesPath', () => {
       'metadata',
       'metadataTypes.json'
     );
-    expect(await getMetadataTypesPath()).to.equal(filePath);
+    expect(await getTypesPath()).to.equal(filePath);
   });
 
   it('should throw an error if default username is not set', async () => {
     getDefaultUsernameStub.returns(undefined);
     let errorWasThrown = false;
     try {
-      await getMetadataTypesPath();
+      await getTypesPath();
     } catch (e) {
       errorWasThrown = true;
       expect(e.message).to.equal(nls.localize('error_no_default_username'));
