@@ -76,7 +76,7 @@ const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceDescribeMetadata(outputPath?: string) {
   if (isNullOrUndefined(outputPath)) {
-    outputPath = await getMetadataTypesPath();
+    outputPath = await getTypesPath();
   }
   const describeExecutor = new ForceDescribeMetadataExecutor(outputPath!);
   const commandlet = new SfdxCommandlet(
@@ -87,35 +87,47 @@ export async function forceDescribeMetadata(outputPath?: string) {
   await commandlet.run();
 }
 
-export async function getMetadataTypesPath(): Promise<string | undefined> {
-  if (hasRootWorkspace()) {
-    const workspaceRootPath = getRootWorkspacePath();
-    const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-      false
-    );
-    const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-
-    if (defaultUsernameIsSet) {
-      const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
-      const metadataTypesPath = path.join(
-        workspaceRootPath,
-        '.sfdx',
-        'orgs',
-        username,
-        'metadata',
-        'metadataTypes.json'
-      );
-      return metadataTypesPath;
-    } else {
-      const err = nls.localize('error_no_default_username');
-      telemetryService.sendError(err);
-      throw new Error(err);
-    }
-  } else {
+export async function getTypesPath(): Promise<string | undefined> {
+  if (!hasRootWorkspace()) {
     const err = nls.localize('cannot_determine_workspace');
     telemetryService.sendError(err);
     throw new Error(err);
   }
+
+  const workspaceRootPath = getRootWorkspacePath();
+  const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+    false
+  );
+
+  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+    const err = nls.localize('error_no_default_username');
+    telemetryService.sendErrorEvent(
+      'Undefined username or alias on orgMetadata.getTypesPath',
+      err
+    );
+    throw new Error(err);
+  }
+
+  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+
+  if (isNullOrUndefined(username)) {
+    const err = nls.localize('error_no_default_username');
+    telemetryService.sendErrorEvent(
+      'Undefined username on orgMetadata.getTypesPath',
+      err
+    );
+    throw new Error(err);
+  }
+
+  const metadataTypesPath = path.join(
+    workspaceRootPath,
+    '.sfdx',
+    'orgs',
+    username,
+    'metadata',
+    'metadataTypes.json'
+  );
+  return metadataTypesPath;
 }
 
 export type MetadataObject = {
@@ -146,7 +158,7 @@ export function buildTypesList(metadataTypesPath: string): string[] {
 }
 
 export async function onUsernameChange() {
-  const metadataTypesPath = await getMetadataTypesPath();
+  const metadataTypesPath = await getTypesPath();
   if (
     !isNullOrUndefined(metadataTypesPath) &&
     !fs.existsSync(metadataTypesPath)
