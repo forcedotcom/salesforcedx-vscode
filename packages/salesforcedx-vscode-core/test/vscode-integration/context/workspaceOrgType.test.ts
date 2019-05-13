@@ -19,7 +19,7 @@ import {
 import { OrgAuthInfo } from '../../../src/util';
 
 describe('getUsername', () => {
-  it('should return the username when given a username', async () => {
+  it('should return the undefined when given an invalid username', async () => {
     const username = 'test@org.com';
     const aliasesStub = getAliasesFetchStub(undefined);
     expect(await OrgAuthInfo.getUsername(username)).to.equal(undefined);
