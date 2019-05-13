@@ -14,6 +14,7 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
 const WAIT_TIME_IN_MS = 4500;
 
@@ -41,7 +42,13 @@ export async function registerPushOrDeployOnSave() {
 
 export async function pushOrDeploy(filesToDeploy: vscode.Uri[]): Promise<void> {
   try {
-    const orgType = await getWorkspaceOrgType();
+    let defaultUsernameorAlias: string | undefined;
+    if (hasRootWorkspace()) {
+      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+        false
+      );
+    }
+    const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
     if (orgType === OrgType.SourceTracked) {
       vscode.commands.executeCommand('sfdx.force.source.push');
     } else {

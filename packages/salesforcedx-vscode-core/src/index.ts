@@ -56,12 +56,7 @@ import {
 } from './commands';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import {
-  getDefaultUsernameOrAlias,
-  getWorkspaceOrgType,
-  OrgType,
-  setupWorkspaceOrgType
-} from './context';
+import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';

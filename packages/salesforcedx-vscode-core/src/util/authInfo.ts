@@ -78,12 +78,11 @@ export class OrgAuthInfo {
     }
   }
 
-  public static async getUsername(usernameOrAlias: string): Promise<string> {
+  public static async getUsername(
+    usernameOrAlias: string
+  ): Promise<string | undefined> {
     const username = await Aliases.fetch(usernameOrAlias);
-    if (username) {
-      return Promise.resolve(username);
-    }
-    return Promise.resolve(usernameOrAlias);
+    return Promise.resolve(username);
   }
 
   public static async isAScratchOrg(username: string): Promise<boolean> {
@@ -104,6 +103,7 @@ enum VSCodeWindowTypeEnum {
   Informational = 2,
   Warning = 3
 }
+
 function displayMessage(
   output: string,
   enableWarning?: boolean,

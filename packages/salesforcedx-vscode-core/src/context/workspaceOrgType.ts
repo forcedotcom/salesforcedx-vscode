@@ -14,20 +14,37 @@ export enum OrgType {
   NonSourceTracked
 }
 
+function imposeSlightDelay(ms = 0) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {
-  if (!isNullOrUndefined(defaultUsernameOrAlias)) {
-    const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
-    const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
-      telemetryService.sendError(err)
-    );
-    return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+    const e = new Error();
+    e.name = 'NoDefaultusernameSet';
+    throw e;
   }
 
-  const e = new Error();
-  e.name = 'NoDefaultusernameSet';
-  throw e;
+  let username;
+  let counter = 0;
+  while (isNullOrUndefined(username) && counter < 30) {
+    username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+    counter += 1;
+    await imposeSlightDelay(100);
+  }
+
+  if (isNullOrUndefined(username)) {
+    telemetryService.sendError(
+      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries`
+    );
+  }
+
+  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username!).catch(err =>
+    telemetryService.sendError(err)
+  );
+  return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
