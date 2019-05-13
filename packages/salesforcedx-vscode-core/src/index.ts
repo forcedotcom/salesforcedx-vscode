@@ -418,7 +418,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
-
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
