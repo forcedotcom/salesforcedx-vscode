@@ -28,7 +28,7 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
-export const folderTypes = new Set(['EmailTemplate', 'Reports']);
+export const folderTypes = new Set(['EmailTemplate', 'Report']);
 export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   private metadataType: string;
   private outputPath: string;
@@ -112,8 +112,10 @@ export async function getComponentsPath(
   if (hasRootWorkspace()) {
     try {
       const workspaceRootPath = getRootWorkspacePath();
-      const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-
+      let username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+      if (!username) {
+        username = defaultUsernameOrAlias;
+      }
       if (isNullOrUndefined(username)) {
         const err = nls.localize('error_no_default_username');
         telemetryService.sendErrorEvent(
@@ -148,11 +150,14 @@ export function buildComponentsList(
   metadataType: string
 ): string[] {
   try {
-    const fileData = JSON.parse(fs.readFileSync(componentsPath, 'utf8'));
     const metaComponents = [];
-    for (const component of fileData) {
-      if (!isNullOrUndefined(component.fullName)) {
-        metaComponents.push(component.fullName);
+    const fileData = fs.readFileSync(componentsPath, 'utf8');
+    if (fileData !== 'undefined') {
+      const fileObject = JSON.parse(fileData);
+      for (const component of fileObject) {
+        if (!isNullOrUndefined(component.fullName)) {
+          metaComponents.push(component.fullName);
+        }
       }
     }
     telemetryService.sendEventData(
