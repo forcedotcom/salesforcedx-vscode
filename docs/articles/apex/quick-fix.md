@@ -2,15 +2,20 @@
 title: Apex Quick Fix
 ---
 
+The Quick Fix widget suggests ways to automatically update your code.
+
 ## Quick Fix: Declare Missing Methods
 
-You can invoke quick fix when you reference a method that is not declared in your source.
-There are 2 ways to invoke quick fix in VS Code.
+You can invoke the Quick Fix widget when you reference a method that isn’t declared in your source. The widget declares the method for you automatically.
 
-1. When you click on the method name then a lightbulb will show up on the left side of the editor window. On clicking the lightbulb you will have the option to invoke the quick fix.
+There are three ways to invoke the Declare Missing Methods quick fix in VS Code.
+
+1. When you click the name of the undeclared method, a lightbulb appears on the left side of the editor window. Click the lightbulb, then click **Create method '_yourMethod_' in '_YourClass_'** to make the quick fix.
 
 ![GIF showing declare missing methods quick fix invocation via lightbulb](../../images/declare-missing-methods-1.gif)
 
-2. When you hover over the method name then the window that pops up has a quick fix link which when clicked provides you an option to invoke the quick fix.
+2. Hover over the method name, then click **Quick Fix** in the window that pops up. Then, click **Create method '_yourMethod_' in '_YourClass_'** to make the quick fix.
 
 ![GIF showing declare missing methods quick fix invocation via window popup](../../images/declare-missing-methods-2.gif)
+
+3. The keyboard shortcut for the Quick Fix widget is Ctrl+. (Windows or Linux) or Cmd+. (macOS).
