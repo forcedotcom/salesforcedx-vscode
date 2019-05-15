@@ -39,6 +39,8 @@
       url: /articles/apex/testing
     - title: Refactoring
       url: /articles/apex/refactoring
+    - title: Quick Fix
+      url: /articles/apex/quick-fix
     - title: Replay Debugger
       url: /articles/apex/replay-debugger
     - title: Interactive Debugger
