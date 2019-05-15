@@ -113,9 +113,7 @@ export async function getComponentsPath(
     try {
       const workspaceRootPath = getRootWorkspacePath();
       let username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-      if (!username) {
-        username = defaultUsernameOrAlias;
-      }
+      username = username ? username : defaultUsernameOrAlias;
       if (isNullOrUndefined(username)) {
         const err = nls.localize('error_no_default_username');
         telemetryService.sendErrorEvent(
