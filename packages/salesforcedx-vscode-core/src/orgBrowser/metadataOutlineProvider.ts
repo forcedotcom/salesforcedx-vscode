@@ -7,7 +7,13 @@
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
-import { BrowserNode, NodeType } from './index';
+import {
+  BrowserNode,
+  buildTypesList,
+  forceDescribeMetadata,
+  NodeType
+} from './index';
+import { getTypesPath } from './metadataType';
 
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
@@ -35,10 +41,12 @@ export class MetadataOutlineProvider
     return element;
   }
 
-  public getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
+  public async getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
     if (isNullOrUndefined(element)) {
       if (!isNullOrUndefined(this.defaultOrg)) {
         const org = new BrowserNode(this.defaultOrg, NodeType.Org);
+        const metadataTypes = await this.getTypes();
+        org.children = metadataTypes;
         return Promise.resolve([org]);
       } else {
         return Promise.resolve([]);
@@ -46,6 +54,18 @@ export class MetadataOutlineProvider
     } else {
       return Promise.resolve(element.children);
     }
+  }
+
+  public async getTypes(): Promise<BrowserNode[]> {
+    await forceDescribeMetadata();
+    const outputPath = await getTypesPath();
+    const typesList = buildTypesList(outputPath!);
+    const nodeList = [];
+    for (const type of typesList) {
+      const typeNode = new BrowserNode(type, NodeType.MetadataType);
+      nodeList.push(typeNode);
+    }
+    return nodeList;
   }
 
   public async getDefaultUsernameOrAlias() {
