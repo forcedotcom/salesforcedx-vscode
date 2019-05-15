@@ -173,7 +173,6 @@ describe('Filter Authorization Info', async () => {
 });
 
 describe('Set Default Org', () => {
-  let defaultDevHubStub: sinon.SinonStub;
   let orgListStub: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
   let executeCommandStub: sinon.SinonStub;
@@ -184,10 +183,6 @@ describe('Set Default Org', () => {
   const orgList = new OrgList();
 
   beforeEach(() => {
-    defaultDevHubStub = sinon.stub(
-      OrgAuthInfo,
-      'getDefaultDevHubUsernameOrAlias'
-    );
     orgListStub = sinon.stub(OrgList.prototype, 'updateOrgList');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
     executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
@@ -196,7 +191,6 @@ describe('Set Default Org', () => {
   afterEach(() => {
     orgListStub.restore();
     quickPickStub.restore();
-    defaultDevHubStub.restore();
     executeCommandStub.restore();
   });
 
@@ -251,20 +245,5 @@ describe('Set Default Org', () => {
     const commandResult = expect(
       executeCommandStub.calledWith('sfdx.force.config.set')
     ).to.be.true;
-  });
-
-  it('should show appropriate commands depending on whether a dev hub is set or not', async () => {
-    defaultDevHubStub.onCall(0).returns(undefined);
-    defaultDevHubStub.onCall(1).returns('test@test.test');
-    let response = await orgList.setDefaultOrg();
-    response = await orgList.setDefaultOrg();
-    expect(quickPickStub.getCall(0).args[0]).to.eql([
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
-    ]);
-    expect(quickPickStub.getCall(1).args[0]).to.eql([
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
-      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
-    ]);
   });
 });
