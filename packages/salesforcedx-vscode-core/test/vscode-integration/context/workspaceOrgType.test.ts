@@ -19,10 +19,10 @@ import {
 import { OrgAuthInfo } from '../../../src/util';
 
 describe('getUsername', () => {
-  it('should return the username when given a username', async () => {
+  it('should return the undefined when given an invalid username', async () => {
     const username = 'test@org.com';
     const aliasesStub = getAliasesFetchStub(undefined);
-    expect(await OrgAuthInfo.getUsername(username)).to.equal(username);
+    expect(await OrgAuthInfo.getUsername(username)).to.equal(undefined);
     aliasesStub.restore();
   });
 
@@ -77,7 +77,7 @@ describe('getWorkspaceOrgType', () => {
 
     expect(orgType).to.equal(OrgType.NonSourceTracked);
     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
-      username: 'sandbox@org.com'
+      username: undefined
     });
 
     aliasesStub.restore();
@@ -222,7 +222,7 @@ describe('setupWorkspaceOrgType', () => {
     await setupWorkspaceOrgType(defaultUsername);
 
     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
-      username: 'sandbox@org.com'
+      username: undefined
     });
     expect(executeCommandStub.calledTwice).to.be.true;
     expectDefaultUsernameHasChangeTracking(false, executeCommandStub);

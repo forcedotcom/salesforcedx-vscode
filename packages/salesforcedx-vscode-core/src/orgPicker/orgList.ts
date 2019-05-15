@@ -109,19 +109,10 @@ export class OrgList implements vscode.Disposable {
 
   public async setDefaultOrg(): Promise<CancelResponse | ContinueResponse<{}>> {
     let quickPickList = [
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text')
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text'),
+      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
     ];
-
-    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
-    if (isNullOrUndefined(defaultDevHubUsernameorAlias)) {
-      quickPickList.push(
-        '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
-      );
-    } else {
-      quickPickList.push(
-        '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
-      );
-    }
 
     const authInfoList = await this.updateOrgList();
     if (!isNullOrUndefined(authInfoList)) {

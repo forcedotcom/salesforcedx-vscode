@@ -56,12 +56,7 @@ import {
 } from './commands';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
-import {
-  getDefaultUsernameOrAlias,
-  getWorkspaceOrgType,
-  OrgType,
-  setupWorkspaceOrgType
-} from './context';
+import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -423,7 +418,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
-
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
