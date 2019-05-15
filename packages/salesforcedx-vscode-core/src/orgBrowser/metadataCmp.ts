@@ -112,8 +112,9 @@ export async function getComponentsPath(
   if (hasRootWorkspace()) {
     try {
       const workspaceRootPath = getRootWorkspacePath();
-      let username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-      username = username ? username : defaultUsernameOrAlias;
+      const username =
+        (await OrgAuthInfo.getUsername(defaultUsernameOrAlias)) ||
+        defaultUsernameOrAlias;
 
       const componentsPath = path.join(
         workspaceRootPath,
@@ -144,7 +145,8 @@ export function buildComponentsList(
     const fileData = fs.readFileSync(componentsPath, 'utf8');
     if (fileData !== 'undefined') {
       const fileObject = JSON.parse(fileData);
-      for (const component of fileObject) {
+      const cmpList = fileObject instanceof Array ? fileObject : [fileObject];
+      for (const component of cmpList) {
         if (!isNullOrUndefined(component.fullName)) {
           metaComponents.push(component.fullName);
         }
