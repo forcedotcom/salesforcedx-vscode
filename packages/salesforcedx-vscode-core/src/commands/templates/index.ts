@@ -1,6 +1,9 @@
 export { forceLightningLwcCreate } from './forceLightningLwcCreate';
 export { forceLightningAppCreate } from './forceLightningAppCreate';
-export { forceLightningComponentCreate } from './forceLightningComponentCreate';
+export {
+  forceLightningComponentCreate,
+  forceInternalLightningComponentCreate
+} from './forceLightningComponentCreate';
 export { forceLightningEventCreate } from './forceLightningEventCreate';
 export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';
 export {

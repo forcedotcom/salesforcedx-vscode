@@ -23,6 +23,7 @@ import {
   forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
+  forceInternalLightningComponentCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
@@ -193,6 +194,10 @@ function registerCommands(
     'sfdx.force.lightning.component.create',
     forceLightningComponentCreate
   );
+  const forceLightningInternalComponentCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.component.create',
+    forceInternalLightningComponentCreate
+  );
   const forceLightningEventCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.event.create',
     forceLightningEventCreate
@@ -317,6 +322,7 @@ function registerCommands(
     forceVisualforcePageCreateCmd,
     forceLightningAppCreateCmd,
     forceLightningComponentCreateCmd,
+    forceLightningInternalComponentCreateCmd,
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,

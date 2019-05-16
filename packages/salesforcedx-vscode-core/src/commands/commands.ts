@@ -13,7 +13,6 @@ import {
 import {
   CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
   ParametersGatherer,
   PostconditionChecker,
   PreconditionChecker
@@ -25,6 +24,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
+import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
@@ -52,6 +52,12 @@ export class SfdxWorkspaceChecker implements PreconditionChecker {
 export class EmptyPreChecker implements PreconditionChecker {
   public check(): boolean {
     return true;
+  }
+}
+
+export class InternalDevWorkspaceChecker implements PreconditionChecker {
+  public check(): boolean {
+    return sfdxCoreSettings.getInternalDev();
   }
 }
 
@@ -213,6 +219,38 @@ export class SelectOutputDir
       );
       return relativePath;
     });
+  }
+
+  public async showMenu(options: string[]): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+    } as vscode.QuickPickOptions);
+  }
+}
+
+export class SelectOutputInternalDevDir
+  implements ParametersGatherer<{ outputdir: string }> {
+  public constructor() {}
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ outputdir: string }>
+  > {
+    const srcPath = vscode.workspace.workspaceFolders![0].uri.fsPath || '';
+    const globPattern = path.join(srcPath, '**/');
+    let relativeDirs = [];
+    relativeDirs = new glob.GlobSync(globPattern, {
+      ignore: ['**/node_modules/**']
+    }).found.map(value => {
+      let relativePath = path.relative(srcPath, path.join(value, '/'));
+      relativePath = path.join(relativePath, '');
+      return relativePath;
+    });
+
+    const outputdir = await this.showMenu(relativeDirs);
+
+    return outputdir
+      ? { type: 'CONTINUE', data: { outputdir } }
+      : { type: 'CANCEL' };
   }
 
   public async showMenu(options: string[]): Promise<string | undefined> {

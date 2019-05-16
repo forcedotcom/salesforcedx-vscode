@@ -377,7 +377,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.lightning.component.create",
+          "command": "sfdx.internal.lightning.component.create",
           "when": "sfdx:internal_dev"
         },
         {
@@ -473,6 +473,10 @@
       },
       {
         "command": "sfdx.force.lightning.component.create",
+        "title": "%force_lightning_component_create_text%"
+      },
+      {
+        "command": "sfdx.internal.lightning.component.create",
         "title": "%force_lightning_component_create_text%"
       },
       {

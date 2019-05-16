@@ -11,10 +11,13 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
+  InternalDevWorkspaceChecker,
   SelectFileName,
   SelectOutputDir,
+  SelectOutputInternalDevDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
@@ -31,13 +34,18 @@ import {
 
 export class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_component_create_text'))
       .withArg('force:lightning:component:create')
       .withFlag('--componentname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_component_create')
-      .build();
+      .withLogName('force_lightning_component_create');
+
+    if (sfdxCoreSettings.getInternalDev()) {
+      builder.withArg('--internal');
+    }
+
+    return builder.build();
   }
 
   public sourcePathStrategy = new BundlePathStrategy();
@@ -60,6 +68,23 @@ export async function forceLightningComponentCreate() {
     new CompositeParametersGatherer<DirFileNameSelection>(
       fileNameGatherer,
       outputDirGatherer
+    ),
+    new ForceLightningComponentCreateExecutor(),
+    new FilePathExistsChecker(
+      AURA_DEFINITION_FILE_EXTS,
+      new BundlePathStrategy(),
+      nls.localize('aura_bundle_message_name')
+    )
+  );
+  await commandlet.run();
+}
+
+export async function forceInternalLightningComponentCreate() {
+  const commandlet = new SfdxCommandlet(
+    new InternalDevWorkspaceChecker(),
+    new CompositeParametersGatherer<DirFileNameSelection>(
+      fileNameGatherer,
+      new SelectOutputInternalDevDir()
     ),
     new ForceLightningComponentCreateExecutor(),
     new FilePathExistsChecker(

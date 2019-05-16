@@ -38,6 +38,7 @@ export {
   forceApexTriggerCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
+  forceInternalLightningComponentCreate,
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
