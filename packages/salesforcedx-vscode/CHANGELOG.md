@@ -2,6 +2,9 @@
 
 ### Added
 
+#### salesforcedx-vscode/docs
+- Add [Apex Quick Fix](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/quick-fix) doc re: how to declare missing methods 
+
 #### salesforcedx-vscode-apex
 
 - Add `Declare missing method` quick fix option ([PR #1334](https://github.com/forcedotcom/salesforcedx-vscode/pull/1334))
