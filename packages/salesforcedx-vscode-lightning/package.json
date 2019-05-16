@@ -117,6 +117,12 @@
           "when": "view == salesforce-lightning-components && viewItem == external",
           "group": "inline"
         }
+      ],
+      "commandPalette": [
+        {
+          "command": "salesforce-lightning-quickopen",
+          "when": "sfdx:project_opened"
+        }
       ]
     },
     "commands": [

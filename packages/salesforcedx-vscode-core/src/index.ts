@@ -395,6 +395,15 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
+  // Set internal dev context
+  const internalDev = sfdxCoreSettings.getInternalDev();
+
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:internal_dev',
+    internalDev
+  );
+
   let defaultUsernameorAlias: string | undefined;
   if (hasRootWorkspace()) {
     defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);

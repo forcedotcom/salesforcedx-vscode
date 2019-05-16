@@ -69,6 +69,7 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
+    "workspaceContains:core-workspace.code-workspace",
     "onCommand:sfdx.force.project.create",
     "onCommand:sfdx.force.project.with.manifest.create",
     "onCommand:sfdx.debug.isv.bootstrap"
@@ -256,22 +257,6 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.lightning.app.create",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.lightning.component.create",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.lightning.event.create",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "sfdx.force.lightning.interface.create",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.debugger.stop",
           "when": "sfdx:project_opened"
         },
@@ -308,10 +293,12 @@
           "when": "sfdx:project_opened && !editorHasSelection"
         },
         {
-          "command": "sfdx.force.project.create"
+          "command": "sfdx.force.project.create",
+          "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.project.with.manifest.create"
+          "command": "sfdx.force.project.with.manifest.create",
+          "when": "!sfdx:internal_dev"
         },
         {
           "command": "sfdx.force.apex.trigger.create",
@@ -326,7 +313,8 @@
           "when": "sfdx:project_opened && sfdx:replay_debugger_extension"
         },
         {
-          "command": "sfdx.debug.isv.bootstrap"
+          "command": "sfdx.debug.isv.bootstrap",
+          "when": "!sfdx:internal_dev"
         },
         {
           "command": "sfdx.force.apex.log.get",
@@ -365,8 +353,48 @@
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
+          "command": "sfdx.force.set.default.org",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.lightning.lwc.create",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.create",
+          "when": "sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.force.lightning.app.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.app.create",
+          "when": "sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.force.lightning.component.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.component.create",
+          "when": "sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.force.lightning.event.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.event.create",
+          "when": "sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.force.lightning.interface.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.interface.create",
+          "when": "sfdx:internal_dev"
         }
       ]
     },
