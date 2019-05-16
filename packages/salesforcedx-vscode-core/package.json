@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "45.14.0",
+  "version": "45.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "1.3.3",
-    "@salesforce/salesforcedx-utils-vscode": "45.14.0",
+    "@salesforce/salesforcedx-utils-vscode": "45.15.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -36,7 +36,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "45.14.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "45.15.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -75,11 +75,27 @@
   ],
   "main": "./out/src",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "metadata",
+          "title": "Org Browser",
+          "icon": "resources/dep.svg"
+        }
+      ]
+    },
     "views": {
       "explorer": [
         {
           "id": "sfdx.force.tasks.view",
           "name": "%running_tasks_title_text%"
+        }
+      ],
+      "metadata": [
+        {
+          "id": "metadata",
+          "name": "Metadata",
+          "when": "sfdx:display_tree_view"
         }
       ]
     },

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -13,26 +14,42 @@ export enum OrgType {
   NonSourceTracked
 }
 
-export async function getWorkspaceOrgType(): Promise<OrgType> {
-  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  const defaultUsernameIsSet = typeof defaultUsernameOrAlias !== 'undefined';
-
-  if (defaultUsernameIsSet) {
-    const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
-    const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
-      telemetryService.sendError(err)
-    );
-    return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
-  }
-
-  const e = new Error();
-  e.name = 'NoDefaultusernameSet';
-  throw e;
+function imposeSlightDelay(ms = 0) {
+  return new Promise(r => setTimeout(r, ms));
 }
 
-export async function setupWorkspaceOrgType() {
+export async function getWorkspaceOrgType(
+  defaultUsernameOrAlias?: string
+): Promise<OrgType> {
+  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+    const e = new Error();
+    e.name = 'NoDefaultusernameSet';
+    throw e;
+  }
+
+  let username;
+  let counter = 0;
+  while (isNullOrUndefined(username) && counter < 30) {
+    username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+    counter += 1;
+    await imposeSlightDelay(100);
+  }
+
+  if (isNullOrUndefined(username)) {
+    telemetryService.sendError(
+      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries`
+    );
+  }
+
+  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username!).catch(err =>
+    telemetryService.sendError(err)
+  );
+  return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+}
+
+export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   try {
-    const orgType = await getWorkspaceOrgType();
+    const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
     setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
     setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
   } catch (e) {

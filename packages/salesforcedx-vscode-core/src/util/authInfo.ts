@@ -52,9 +52,9 @@ export class OrgAuthInfo {
     }
   }
 
-  public static async getDefaultDevHubUsernameOrAlias(): Promise<
-    string | undefined
-  > {
+  public static async getDefaultDevHubUsernameOrAlias(
+    enableWarning: boolean
+  ): Promise<string | undefined> {
     try {
       const defaultDevHubUserName = await ConfigUtil.getConfigValue(
         defaultDevHubUserNameKey
@@ -62,7 +62,7 @@ export class OrgAuthInfo {
       if (isUndefined(defaultDevHubUserName)) {
         displayMessage(
           nls.localize('error_no_default_devhubusername'),
-          true,
+          enableWarning,
           VSCodeWindowTypeEnum.Error
         );
         return undefined;
@@ -78,12 +78,11 @@ export class OrgAuthInfo {
     }
   }
 
-  public static async getUsername(usernameOrAlias: string): Promise<string> {
+  public static async getUsername(
+    usernameOrAlias: string
+  ): Promise<string | undefined> {
     const username = await Aliases.fetch(usernameOrAlias);
-    if (username) {
-      return Promise.resolve(username);
-    }
-    return Promise.resolve(usernameOrAlias);
+    return Promise.resolve(username);
   }
 
   public static async isAScratchOrg(username: string): Promise<boolean> {
@@ -104,6 +103,7 @@ enum VSCodeWindowTypeEnum {
   Informational = 2,
   Warning = 3
 }
+
 function displayMessage(
   output: string,
   enableWarning?: boolean,

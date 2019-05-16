@@ -35,14 +35,8 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.show();
   }
 
-  public async displayDefaultUsername() {
-    let defaultUsernameorAlias: string | undefined;
-    if (hasRootWorkspace()) {
-      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-        false
-      );
-    }
-    if (defaultUsernameorAlias) {
+  public displayDefaultUsername(defaultUsernameorAlias?: string) {
+    if (!isNullOrUndefined(defaultUsernameorAlias)) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
@@ -116,14 +110,10 @@ export class OrgList implements vscode.Disposable {
   public async setDefaultOrg(): Promise<CancelResponse | ContinueResponse<{}>> {
     let quickPickList = [
       '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text'),
       '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
     ];
-    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
-    if (isNullOrUndefined(defaultDevHubUsernameorAlias)) {
-      quickPickList.push(
-        '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
-      );
-    }
+
     const authInfoList = await this.updateOrgList();
     if (!isNullOrUndefined(authInfoList)) {
       quickPickList = quickPickList.concat(authInfoList);
@@ -168,7 +158,7 @@ export class OrgList implements vscode.Disposable {
 
   public async getDefaultDevHubUsernameorAlias(): Promise<string | undefined> {
     if (hasRootWorkspace()) {
-      return OrgAuthInfo.getDefaultDevHubUsernameOrAlias();
+      return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
     }
   }
 
@@ -177,8 +167,14 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async onSfdxConfigEvent() {
-    await setupWorkspaceOrgType();
-    await this.displayDefaultUsername();
+    let defaultUsernameorAlias: string | undefined;
+    if (hasRootWorkspace()) {
+      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+        false
+      );
+    }
+    await setupWorkspaceOrgType(defaultUsernameorAlias);
+    this.displayDefaultUsername(defaultUsernameorAlias);
   }
 
   public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {
