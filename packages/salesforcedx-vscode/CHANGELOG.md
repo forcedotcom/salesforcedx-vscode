@@ -1,3 +1,26 @@
+## 45.15.0 - May 16, 2019
+
+### Added
+
+#### salesforcedx-vscode/docs
+- Add [Apex Quick Fix](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/quick-fix) doc re: how to declare missing methods 
+
+#### salesforcedx-vscode-apex
+
+- Add `Declare missing method` quick fix option ([PR #1334](https://github.com/forcedotcom/salesforcedx-vscode/pull/1334))
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Update command context to address SFDX commands not showing after creating scratch orgs ([PR #1327](https://github.com/forcedotcom/salesforcedx-vscode/pull/1327), [Issue #1196](https://github.com/forcedotcom/salesforcedx-vscode/issues/1196))
+
+- Remove `No default org set` warning message when opening the org picker ([PR #1329](https://github.com/forcedotcom/salesforcedx-vscode/pull/1329))
+
+#### salesforcedx-vscode-apex
+
+- Cache most recent code compilation when users trigger code action features like Hover, Apex Rename, Go To Definition, Find All References, etc. ([PR #1334](https://github.com/forcedotcom/salesforcedx-vscode/pull/1334))
+
 ## 45.14.0 - May 9, 2019
 
 ### Added
