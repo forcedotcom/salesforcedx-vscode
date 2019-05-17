@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Fixed an edge case where not having an alias for a dev hub fails to load scratch orgs in the org picker ([PR #1352](https://github.com/forcedotcom/salesforcedx-vscode/pull/1352))
+- Fix an edge case where not having an alias for a Dev Hub makes scratch orgs fail to load in the org picker ([PR #1352](https://github.com/forcedotcom/salesforcedx-vscode/pull/1352))
 
 ## 45.15.0 - May 16, 2019
 
