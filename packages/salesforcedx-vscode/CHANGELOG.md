@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix endIndex for Trigger location ([PR #1346](https://github.com/forcedotcom/salesforcedx-vscode/pull/1346))
+- Apex language server accurately reports the location of a Trigger definition ([PR #1346](https://github.com/forcedotcom/salesforcedx-vscode/pull/1346))
 
 #### salesforcedx-vscode-core
 
-- Fix for default dev hub username in org picker and test fix ([PR #1352](https://github.com/forcedotcom/salesforcedx-vscode/pull/1352))
+- Fixed an edge case where not having an alias for a dev hub fails to load scratch orgs in the org picker ([PR #1352](https://github.com/forcedotcom/salesforcedx-vscode/pull/1352))
 
 ## 45.15.0 - May 16, 2019
 
