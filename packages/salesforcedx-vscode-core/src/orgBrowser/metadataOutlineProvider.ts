@@ -14,6 +14,11 @@ import {
   forceDescribeMetadata,
   NodeType
 } from './index';
+import {
+  buildComponentsList,
+  forceListMetadata,
+  getComponentsPath
+} from './metadataCmp';
 import { getTypesPath } from './metadataType';
 
 export class MetadataOutlineProvider
@@ -46,15 +51,21 @@ export class MetadataOutlineProvider
     if (isNullOrUndefined(element)) {
       if (!isNullOrUndefined(this.defaultOrg)) {
         const org = new BrowserNode(this.defaultOrg, NodeType.Org);
-        const metadataTypes = await this.getTypes();
-        org.children = metadataTypes;
         return Promise.resolve([org]);
       } else {
         return Promise.resolve([]);
       }
-    } else {
+    } else if (element.type === NodeType.MetadataType) {
+      const metadataCmps = await this.getComponents(element);
+      element.children = metadataCmps;
+      return Promise.resolve(element.children);
+    } else if (element.type === NodeType.Org) {
+      const metadataTypes = await this.getTypes();
+      element.children = metadataTypes;
       return Promise.resolve(element.children);
     }
+
+    return Promise.resolve([]);
   }
 
   public async getTypes(): Promise<BrowserNode[]> {
@@ -67,6 +78,28 @@ export class MetadataOutlineProvider
     for (const type of typesList) {
       const typeNode = new BrowserNode(type, NodeType.MetadataType);
       nodeList.push(typeNode);
+    }
+    return nodeList;
+  }
+
+  public async getComponents(
+    metadataType: BrowserNode
+  ): Promise<BrowserNode[]> {
+    const componentsPath = await getComponentsPath(
+      metadataType.label!,
+      this.defaultOrg!
+    );
+    if (!fs.existsSync(componentsPath)) {
+      await forceListMetadata(metadataType.label!, this.defaultOrg!);
+    }
+    const componentsList = buildComponentsList(
+      componentsPath,
+      metadataType.label!
+    );
+    const nodeList = [];
+    for (const cmp of componentsList) {
+      const cmpNode = new BrowserNode(cmp, NodeType.MetadataCmp);
+      nodeList.push(cmpNode);
     }
     return nodeList;
   }
