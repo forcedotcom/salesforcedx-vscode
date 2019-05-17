@@ -79,7 +79,7 @@ describe('Channel', () => {
       });
       expect(mChannel.value).to.contain('Starting sfdx force --help');
       expect(mChannel.value).to.contain(
-        'USAGE\n  $ sfdx force [--json] [--loglevel trace|debug|info|warn|error|fatal]'
+        'USAGE\n  $ sfdx force [--json] [--loglevel \n  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]'
       );
       expect(mChannel.value).to.contain('ended with exit code 0');
     });
