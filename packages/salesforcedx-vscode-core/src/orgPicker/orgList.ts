@@ -73,9 +73,10 @@ export class OrgList implements vscode.Disposable {
 
     const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
     if (defaultDevHubUsernameorAlias) {
-      const defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameorAlias
-      );
+      const defaultDevHubUsername =
+        (await OrgAuthInfo.getUsername(defaultDevHubUsernameorAlias)) ||
+        defaultDevHubUsernameorAlias;
+
       authInfoObjects = authInfoObjects.filter(
         fileData =>
           isNullOrUndefined(fileData.devHubUsername) ||
