@@ -1,9 +1,22 @@
+## 45.15.1 - May 17, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Apex language server accurately reports the location of a Trigger definition ([PR #1346](https://github.com/forcedotcom/salesforcedx-vscode/pull/1346))
+
+#### salesforcedx-vscode-core
+
+- Fix an edge case where not having an alias for a Dev Hub makes scratch orgs fail to load in the org picker ([PR #1352](https://github.com/forcedotcom/salesforcedx-vscode/pull/1352))
+
 ## 45.15.0 - May 16, 2019
 
 ### Added
 
 #### salesforcedx-vscode/docs
-- Add [Apex Quick Fix](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/quick-fix) doc re: how to declare missing methods 
+
+- Add [Apex Quick Fix](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/quick-fix) doc re: how to declare missing methods
 
 #### salesforcedx-vscode-apex
 
