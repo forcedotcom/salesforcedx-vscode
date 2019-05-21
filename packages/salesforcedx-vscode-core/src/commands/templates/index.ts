@@ -1,11 +1,23 @@
-export { forceLightningLwcCreate } from './forceLightningLwcCreate';
-export { forceLightningAppCreate } from './forceLightningAppCreate';
+export {
+  forceLightningLwcCreate,
+  forceInternalLightningLwcCreate
+} from './forceLightningLwcCreate';
+export {
+  forceLightningAppCreate,
+  forceInternalLightningAppCreate
+} from './forceLightningAppCreate';
 export {
   forceLightningComponentCreate,
   forceInternalLightningComponentCreate
 } from './forceLightningComponentCreate';
-export { forceLightningEventCreate } from './forceLightningEventCreate';
-export { forceLightningInterfaceCreate } from './forceLightningInterfaceCreate';
+export {
+  forceLightningEventCreate,
+  forceInternalLightningEventCreate
+} from './forceLightningEventCreate';
+export {
+  forceLightningInterfaceCreate,
+  forceInternalLightningInterfaceCreate
+} from './forceLightningInterfaceCreate';
 export {
   forceVisualforceComponentCreate
 } from './forceVisualforceComponentCreate';

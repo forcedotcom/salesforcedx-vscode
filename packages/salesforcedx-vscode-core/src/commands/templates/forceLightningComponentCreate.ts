@@ -10,14 +10,13 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
-  InternalDevWorkspaceChecker,
   SelectFileName,
   SelectOutputDir,
-  SelectOutputInternalDevDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
@@ -27,9 +26,15 @@ import {
   FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
+  FileInternalPathGatherer,
+  InternalDevWorkspaceChecker,
+  InternalSourcePathChecker
+} from './internalCommandUtils';
+import {
   AURA_COMPONENT_EXTENSION,
   AURA_DEFINITION_FILE_EXTS,
-  AURA_DIRECTORY
+  AURA_DIRECTORY,
+  AURA_METADATA_TYPE
 } from './metadataTypeConstants';
 
 export class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
@@ -79,19 +84,15 @@ export async function forceLightningComponentCreate() {
   await commandlet.run();
 }
 
-export async function forceInternalLightningComponentCreate() {
+export async function forceInternalLightningComponentCreate(sourceUri: Uri) {
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer<DirFileNameSelection>(
       fileNameGatherer,
-      new SelectOutputInternalDevDir()
+      new FileInternalPathGatherer(sourceUri)
     ),
     new ForceLightningComponentCreateExecutor(),
-    new FilePathExistsChecker(
-      AURA_DEFINITION_FILE_EXTS,
-      new BundlePathStrategy(),
-      nls.localize('aura_bundle_message_name')
-    )
+    new InternalSourcePathChecker(AURA_METADATA_TYPE)
   );
   await commandlet.run();
 }

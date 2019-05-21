@@ -23,7 +23,11 @@ import {
   forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
+  forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
+  forceInternalLightningEventCreate,
+  forceInternalLightningInterfaceCreate,
+  forceInternalLightningLwcCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
@@ -186,30 +190,56 @@ function registerCommands(
     'sfdx.force.visualforce.page.create',
     forceVisualforcePageCreate
   );
+
   const forceLightningAppCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.app.create',
     forceLightningAppCreate
   );
+
+  const forceInternalLightningAppCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.app.create',
+    forceInternalLightningAppCreate
+  );
+
   const forceLightningComponentCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.component.create',
     forceLightningComponentCreate
   );
-  const forceLightningInternalComponentCreateCmd = vscode.commands.registerCommand(
+  const forceInternalLightningComponentCreateCmd = vscode.commands.registerCommand(
     'sfdx.internal.lightning.component.create',
     forceInternalLightningComponentCreate
   );
+
   const forceLightningEventCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.event.create',
     forceLightningEventCreate
   );
+
+  const forceInternalLightningEventCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.event.create',
+    forceInternalLightningEventCreate
+  );
+
   const forceLightningInterfaceCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.interface.create',
     forceLightningInterfaceCreate
   );
+
+  const forceInternalLightningInterfaceCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.interface.create',
+    forceInternalLightningInterfaceCreate
+  );
+
   const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.lwc.create',
     forceLightningLwcCreate
   );
+
+  const forceInternalLightningLwcCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.lwc.create',
+    forceInternalLightningLwcCreate
+  );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -322,10 +352,14 @@ function registerCommands(
     forceVisualforcePageCreateCmd,
     forceLightningAppCreateCmd,
     forceLightningComponentCreateCmd,
-    forceLightningInternalComponentCreateCmd,
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
+    forceInternalLightningComponentCreateCmd,
+    forceInternalLightningLwcCreateCmd,
+    forceInternalLightningAppCreateCmd,
+    forceInternalLightningEventCreateCmd,
+    forceInternalLightningInterfaceCreateCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
