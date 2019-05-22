@@ -380,20 +380,40 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.internal.lightning.lwc.create",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.lightning.app.create",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.internal.lightning.app.create",
+          "when": "false"
         },
         {
           "command": "sfdx.force.lightning.component.create",
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.internal.lightning.component.create",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.lightning.event.create",
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.internal.lightning.event.create",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.lightning.interface.create",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.internal.lightning.interface.create",
+          "when": "false"
         }
       ]
     },
