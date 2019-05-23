@@ -27,8 +27,8 @@ export class SpectronApplication {
   private keybindings: any[] = [];
   private screenshot: Screenshot;
 
-  private readonly pollTrials = 3;
-  private readonly pollTimeout = 1; // in secs
+  private readonly pollTrials = 5;
+  private readonly pollTimeout = 3; // in secs
 
   constructor(
     electronPath: string,

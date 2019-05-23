@@ -12,13 +12,13 @@ import {
   PostconditionChecker,
   PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as fs from 'fs';
 import { Uri } from 'vscode';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { AURA_METADATA_TYPE, LWC_METADATA_TYPE } from './metadataTypeConstants';
-
 export class InternalDevWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
     return sfdxCoreSettings.getInternalDev();
@@ -29,7 +29,6 @@ export class FileInternalPathGatherer
   implements ParametersGatherer<{ outputdir: string }> {
   private filePath: string;
   public constructor(uri: Uri) {
-    // add some validations here.
     this.filePath = uri.fsPath;
   }
 
@@ -37,9 +36,14 @@ export class FileInternalPathGatherer
     CancelResponse | ContinueResponse<{ outputdir: string }>
   > {
     const outputdir = this.filePath;
-    return outputdir
-      ? { type: 'CONTINUE', data: { outputdir } }
-      : { type: 'CANCEL' };
+    const isDir =
+      fs.existsSync(outputdir) && fs.lstatSync(outputdir).isDirectory();
+
+    if (isDir) {
+      return { type: 'CONTINUE', data: { outputdir } };
+    }
+
+    return { type: 'CANCEL' };
   }
 }
 
