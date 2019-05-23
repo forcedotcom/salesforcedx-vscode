@@ -658,6 +658,13 @@
           ],
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
+        },
+        "salesforcedx-vscode-core.internal-development": {
+          "type": [
+            "boolean"
+          ],
+          "default": false,
+          "description": "%internal_dev_description%"
         }
       }
     },
