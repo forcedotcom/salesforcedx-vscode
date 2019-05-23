@@ -11,7 +11,6 @@ export const VISUALFORCE_PAGE_DIRECTORY = 'pages';
 export const VISUALFORCE_PAGE_EXTENSION = '.page';
 
 export const AURA_DIRECTORY = 'aura';
-export const AURA_METADATA_TYPE = 'aura';
 export const AURA_APP_EXTENSION = '.app';
 export const AURA_COMPONENT_EXTENSION = '.cmp';
 export const AURA_EVENT_EXTENSION = '.evt';
@@ -27,4 +26,3 @@ export const LWC_JS_EXTENSION = '.js';
 export const LWC_HTML_EXTENSION = '.html';
 export const LWC_DEFINITION_FILE_EXTS = [LWC_JS_EXTENSION, LWC_HTML_EXTENSION];
 export const LWC_DIRECTORY = 'lwc';
-export const LWC_METADATA_TYPE = 'lwc';

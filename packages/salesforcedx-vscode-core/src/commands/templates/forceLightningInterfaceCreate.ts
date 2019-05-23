@@ -27,14 +27,12 @@ import {
 } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
-  InternalDevWorkspaceChecker,
-  InternalSourcePathChecker
+  InternalDevWorkspaceChecker
 } from './internalCommandUtils';
 import {
   AURA_DEFINITION_FILE_EXTS,
   AURA_DIRECTORY,
-  AURA_INTERFACE_EXTENSION,
-  AURA_METADATA_TYPE
+  AURA_INTERFACE_EXTENSION
 } from './metadataTypeConstants';
 
 export class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
@@ -91,8 +89,7 @@ export async function forceInternalLightningInterfaceCreate(sourceUri: Uri) {
       fileNameGatherer,
       new FileInternalPathGatherer(sourceUri)
     ),
-    new ForceLightningInterfaceCreateExecutor(),
-    new InternalSourcePathChecker(AURA_METADATA_TYPE)
+    new ForceLightningInterfaceCreateExecutor()
   );
   await commandlet.run();
 }

@@ -27,14 +27,12 @@ import {
 } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
-  InternalDevWorkspaceChecker,
-  InternalSourcePathChecker
+  InternalDevWorkspaceChecker
 } from './internalCommandUtils';
 import {
   LWC_DEFINITION_FILE_EXTS,
   LWC_DIRECTORY,
-  LWC_JS_EXTENSION,
-  LWC_METADATA_TYPE
+  LWC_JS_EXTENSION
 } from './metadataTypeConstants';
 
 export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
@@ -89,8 +87,7 @@ export async function forceInternalLightningLwcCreate(sourceUri: Uri) {
       fileNameGatherer,
       new FileInternalPathGatherer(sourceUri)
     ),
-    new ForceLightningLwcCreateExecutor(),
-    new InternalSourcePathChecker(LWC_METADATA_TYPE)
+    new ForceLightningLwcCreateExecutor()
   );
   await commandlet.run();
 }

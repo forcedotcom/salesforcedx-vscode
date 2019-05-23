@@ -58,20 +58,21 @@ describe('Internal Command Utilities', () => {
 
     it('Should return Continue', async () => {
       existsSyncStub.returns(true);
-      const testDir = Uri.parse('file:///path/to/outside/dir');
+      const testDir = path.join('path', 'to', 'outside', 'dir');
       lstatSyncStub.returns({
         isDirectory() {
           return true;
         }
       });
 
-      const folderPathGatherer = new FileInternalPathGatherer(testDir);
+      const folderPathGatherer = new FileInternalPathGatherer(
+        Uri.parse(testDir)
+      );
       const response = (await folderPathGatherer.gather()) as ContinueResponse<{
         outputdir: string;
       }>;
       expect(response.type).to.equal('CONTINUE');
-      const expectedVal = path.join('path', 'to', 'outside', 'dir');
-      expect(response.data.outputdir).to.equal(expectedVal);
+      expect(response.data.outputdir).contains(testDir);
     });
 
     it('Should return Cancel if path is not a directory', async () => {
