@@ -8,6 +8,7 @@
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as fs from 'fs';
+import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { Uri } from 'vscode';
 import {
@@ -69,7 +70,8 @@ describe('Internal Command Utilities', () => {
         outputdir: string;
       }>;
       expect(response.type).to.equal('CONTINUE');
-      expect(response.data.outputdir).to.equal('/path/to/outside/dir');
+      const expectedVal = path.join('path', 'to', 'outside', 'dir');
+      expect(response.data.outputdir).to.equal(expectedVal);
     });
 
     it('Should return Cancel if path is not a directory', async () => {
