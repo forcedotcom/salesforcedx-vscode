@@ -7,6 +7,7 @@
 
 import * as vscode from 'vscode';
 import {
+  INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -57,6 +58,10 @@ export class SfdxCoreSettings {
 
   public getRetrieveTestCodeCoverage(): boolean {
     return this.getConfigValue(RETRIEVE_TEST_CODE_COVERAGE, false);
+  }
+
+  public getInternalDev(): boolean {
+    return this.getConfigValue(INTERNAL_DEVELOPMENT_FLAG, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
