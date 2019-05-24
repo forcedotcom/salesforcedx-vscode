@@ -48,19 +48,19 @@ describe(TITLE, () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute SOQL Query...');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const query = `SELECT Id, Name FROM Account`;
 
     // Enter SOQL query
     await common.type(query);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Select REST API
     await common.type('REST API');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of
@@ -74,12 +74,12 @@ describe(TITLE, () => {
   it('Should execute SOQL query with current selection', async () => {
     // Open new untitled file
     await app.command('workbench.action.files.newUntitledFile');
-    await app.wait();
+    await app.waitUI();
 
     // Enter SOQL query in active editor
     const query = 'SELECT Id, Name\nFROM Account';
     await common.type(query);
-    await app.wait();
+    await app.waitUI();
 
     // Select all text in the current window
     await app.command('editor.action.selectAll');
@@ -88,12 +88,12 @@ describe(TITLE, () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute SOQL Query with Currently Selected Text');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Select REST API
     await common.type('REST API');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of
@@ -109,19 +109,19 @@ describe(TITLE, () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute SOQL Query...');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const query = `SELECT Id FROM ApexClassMember`;
 
     // Enter SOQL query
     await common.type(query);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Select Tooling API
     await common.type('Tooling API');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of

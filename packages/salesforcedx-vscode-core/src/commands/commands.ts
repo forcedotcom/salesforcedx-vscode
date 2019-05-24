@@ -13,7 +13,6 @@ import {
 import {
   CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
   ParametersGatherer,
   PostconditionChecker,
   PreconditionChecker
