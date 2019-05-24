@@ -122,6 +122,10 @@
         {
           "command": "salesforce-lightning-quickopen",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "salesforce-lightning-quickopen",
+          "when": "sfdx:internal_dev"
         }
       ]
     },
