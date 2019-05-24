@@ -10,7 +10,9 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { Uri } from 'vscode';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   SelectFileName,
@@ -24,6 +26,10 @@ import {
   FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
+  FileInternalPathGatherer,
+  InternalDevWorkspaceChecker
+} from './internalCommandUtils';
+import {
   AURA_COMPONENT_EXTENSION,
   AURA_DEFINITION_FILE_EXTS,
   AURA_DIRECTORY
@@ -31,13 +37,18 @@ import {
 
 export class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_component_create_text'))
       .withArg('force:lightning:component:create')
       .withFlag('--componentname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_component_create')
-      .build();
+      .withLogName('force_lightning_component_create');
+
+    if (sfdxCoreSettings.getInternalDev()) {
+      builder.withArg('--internal');
+    }
+
+    return builder.build();
   }
 
   public sourcePathStrategy = new BundlePathStrategy();
@@ -67,6 +78,18 @@ export async function forceLightningComponentCreate() {
       new BundlePathStrategy(),
       nls.localize('aura_bundle_message_name')
     )
+  );
+  await commandlet.run();
+}
+
+export async function forceInternalLightningComponentCreate(sourceUri: Uri) {
+  const commandlet = new SfdxCommandlet(
+    new InternalDevWorkspaceChecker(),
+    new CompositeParametersGatherer<DirFileNameSelection>(
+      fileNameGatherer,
+      new FileInternalPathGatherer(sourceUri)
+    ),
+    new ForceLightningComponentCreateExecutor()
   );
   await commandlet.run();
 }

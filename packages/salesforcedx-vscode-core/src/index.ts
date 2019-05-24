@@ -23,6 +23,11 @@ import {
   forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
+  forceInternalLightningAppCreate,
+  forceInternalLightningComponentCreate,
+  forceInternalLightningEventCreate,
+  forceInternalLightningInterfaceCreate,
+  forceInternalLightningLwcCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
   forceLightningEventCreate,
@@ -185,26 +190,32 @@ function registerCommands(
     'sfdx.force.visualforce.page.create',
     forceVisualforcePageCreate
   );
+
   const forceLightningAppCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.app.create',
     forceLightningAppCreate
   );
+
   const forceLightningComponentCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.component.create',
     forceLightningComponentCreate
   );
+
   const forceLightningEventCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.event.create',
     forceLightningEventCreate
   );
+
   const forceLightningInterfaceCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.interface.create',
     forceLightningInterfaceCreate
   );
+
   const forceLightningLwcCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.lightning.lwc.create',
     forceLightningLwcCreate
   );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -338,6 +349,43 @@ function registerCommands(
   );
 }
 
+function registerInternalDevCommands(
+  extensionContext: vscode.ExtensionContext
+): vscode.Disposable {
+  const forceInternalLightningAppCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.app.create',
+    forceInternalLightningAppCreate
+  );
+
+  const forceInternalLightningComponentCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.component.create',
+    forceInternalLightningComponentCreate
+  );
+
+  const forceInternalLightningEventCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.event.create',
+    forceInternalLightningEventCreate
+  );
+
+  const forceInternalLightningInterfaceCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.interface.create',
+    forceInternalLightningInterfaceCreate
+  );
+
+  const forceInternalLightningLwcCreateCmd = vscode.commands.registerCommand(
+    'sfdx.internal.lightning.lwc.create',
+    forceInternalLightningLwcCreate
+  );
+
+  return vscode.Disposable.from(
+    forceInternalLightningComponentCreateCmd,
+    forceInternalLightningLwcCreateCmd,
+    forceInternalLightningAppCreateCmd,
+    forceInternalLightningEventCreateCmd,
+    forceInternalLightningInterfaceCreateCmd
+  );
+}
+
 function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
   const forceSetDefaultOrgCmd = vscode.commands.registerCommand(
     'sfdx.force.set.default.org',
@@ -367,6 +415,44 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
   telemetryService.initializeService(context, machineId);
   telemetryService.showTelemetryMessage();
+
+  // Task View
+  const treeDataProvider = vscode.window.registerTreeDataProvider(
+    'sfdx.force.tasks.view',
+    taskViewService
+  );
+  context.subscriptions.push(treeDataProvider);
+
+  // Set internal dev context
+  const internalDev = sfdxCoreSettings.getInternalDev();
+
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:internal_dev',
+    internalDev
+  );
+
+  if (internalDev) {
+    // Internal Dev commands
+    const internalCommands = registerInternalDevCommands(context);
+    context.subscriptions.push(internalCommands);
+
+    // Api
+    const internalApi: any = {
+      telemetryService
+    };
+
+    if (!isCLIInstalled()) {
+      showCLINotInstalledMessage();
+      telemetryService.sendError(
+        'Salesforce CLI is not installed, internal dev mode'
+      );
+    }
+
+    telemetryService.sendExtensionActivationEvent(extensionHRStart);
+    console.log('SFDX CLI Extension Activated (internal dev mode)');
+    return internalApi;
+  }
 
   // Context
   let sfdxProjectOpened = false;
@@ -421,13 +507,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
-
-  // Task View
-  const treeDataProvider = vscode.window.registerTreeDataProvider(
-    'sfdx.force.tasks.view',
-    taskViewService
-  );
-  context.subscriptions.push(treeDataProvider);
 
   // Scratch Org Decorator
   if (hasRootWorkspace()) {
