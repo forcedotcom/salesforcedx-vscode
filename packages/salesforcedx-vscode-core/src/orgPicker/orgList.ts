@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '../context/index';
 import { nls } from '../messages';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { telemetryService } from '../telemetry';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -174,6 +175,7 @@ export class OrgList implements vscode.Disposable {
         false
       );
     }
+    telemetryService.sendEventData('Sfdx-config file updated with default username', undefined, {timestamp: new Date().getTime()});
     await setupWorkspaceOrgType(defaultUsernameorAlias);
     this.displayDefaultUsername(defaultUsernameorAlias);
   }
