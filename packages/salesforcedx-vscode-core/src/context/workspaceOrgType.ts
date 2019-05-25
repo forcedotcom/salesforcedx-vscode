@@ -39,6 +39,12 @@ export async function getWorkspaceOrgType(
     telemetryService.sendError(
       `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries`
     );
+  } else {
+    telemetryService.sendEventData(
+      `workspaceOrgType.getWorkspaceOrgType was successful after ${counter} retries`,
+      undefined,
+      { timestamp: new Date().getTime() }
+    );
   }
 
   const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username!).catch(err =>
