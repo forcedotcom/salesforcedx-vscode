@@ -20,6 +20,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import glob = require('glob');
+import { isNullOrUndefined } from 'util';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
@@ -27,7 +28,7 @@ import { isSfdxProjectOpened } from '../predicates';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(
@@ -47,6 +48,18 @@ export class SfdxWorkspaceChecker implements PreconditionChecker {
     return true;
   }
 }
+export class DevUsernameChecker implements PreconditionChecker {
+  public async check(): Promise<boolean> {
+    const hasWorkspace = new SfdxWorkspaceChecker().check();
+    if (
+      !hasWorkspace ||
+      isNullOrUndefined(await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true))
+    ) {
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(true);
+  }
+}
 
 export class EmptyPreChecker implements PreconditionChecker {
   public check(): boolean {
@@ -55,7 +68,7 @@ export class EmptyPreChecker implements PreconditionChecker {
 }
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  private readonly gatherers: Array<ParametersGatherer<any>>;
+  public readonly gatherers: Array<ParametersGatherer<any>>;
   public constructor(...gatherers: Array<ParametersGatherer<any>>) {
     this.gatherers = gatherers;
   }
@@ -333,7 +346,7 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
-    if (this.prechecker.check()) {
+    if (await this.prechecker.check()) {
       let inputs = await this.gatherer.gather();
       inputs = await this.postchecker.check(inputs);
       switch (inputs.type) {

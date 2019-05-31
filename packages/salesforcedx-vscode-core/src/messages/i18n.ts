@@ -31,6 +31,7 @@ export const messages = {
   notification_unsuccessful_execution_text: '%s failed to run',
   notification_show_button_text: 'Show',
   notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
+  notification_make_default_dev: 'Authorize a Dev Hub',
 
   predicates_no_folder_opened_text:
     'No folder opened. Open a Salesforce DX project in VS Code.',
@@ -239,8 +240,7 @@ export const messages = {
     'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  error_no_default_devhubusername:
-    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
+  error_no_default_devhubusername: 'No default Dev Hub is set.',
   custom_output_directory: 'Choose a Custom Directory',
   warning_using_global_username:
     'No default username found in the local project config; using the global default username. Run "SFDX: Authorize an Org" to set the username for the local project config.',

@@ -17,9 +17,14 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { getRootWorkspace, getRootWorkspacePath, hasRootWorkspace } from '../util';
+import {
+  getRootWorkspace,
+  getRootWorkspacePath,
+  hasRootWorkspace
+} from '../util';
 import {
   CompositeParametersGatherer,
+  DevUsernameChecker,
   FileSelection,
   FileSelector,
   SfdxCommandlet,
@@ -31,7 +36,7 @@ export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
-> {
+  > {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       getRootWorkspacePath(), // this is safe because of workspaceChecker
@@ -55,9 +60,7 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;
-    if (
-      hasRootWorkspace()
-    ) {
+    if (hasRootWorkspace()) {
       defaultAlias = getRootWorkspace().name.replace(
         /\W/g /* Replace all non-alphanumeric characters */,
         ''
@@ -114,14 +117,15 @@ export interface Alias {
 
 export type AliasAndFileSelection = Alias & FileSelection;
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new CompositeParametersGatherer<
-  AliasAndFileSelection
->(new FileSelector('config/**/*-scratch-def.json'), new AliasGatherer());
+const devnamechecker = new DevUsernameChecker();
+const parameterGatherer = new CompositeParametersGatherer(
+  new FileSelector('config/**/*-scratch-def.json'),
+  new AliasGatherer()
+);
 
 export async function forceOrgCreate() {
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
+    devnamechecker,
     parameterGatherer,
     new ForceOrgCreateExecutor()
   );
