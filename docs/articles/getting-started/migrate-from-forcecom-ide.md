@@ -108,32 +108,20 @@ The second option for migrating your project is an in-place conversion. This opt
    $ mv ./src ./src_old
    ```
 
-1. Create a folder structure for the new source.
-
-   ```bash
-   $ mkdir ./src
-   $ mkdir ./src/main
-   $ mkdir ./src/main/default
-   ```
-
 1. Now that you’ve set up your project, it’s time to convert your metadata to [source format](Source-Format). To convert, run the following command.
 
 
     ```bash
-    $ sfdx force:mdapi:convert --rootdir ./src --outputdir ./tmpsrc
+    $ sfdx force:mdapi:convert --rootdir ./src_old --outputdir ./src
     ```
-
-1. Now that your files are in source format and the directory structure is set up, you can copy the metadata into the correct place.
-
-   ```bash
-   $ mv ./tmpsrc ./src/main/default
-   ```
 
 1. Finally, delete the old source.
 
    ```bash
-   $ rm -rf ./tmpsrc
+   $ rm -rf ./src_old
    ```
+
+1. Your metadata is now in the source format.
 
 ### Version Control Considerations
 
