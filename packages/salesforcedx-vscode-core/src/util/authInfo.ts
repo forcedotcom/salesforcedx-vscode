@@ -7,13 +7,12 @@
 import { Aliases, AuthInfo } from '@salesforce/core';
 import { isUndefined } from 'util';
 import { channelService } from '../channels';
-import { forceAuthDevHub } from '../commands';
-import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';
+// import { forceAuthDevHub } from '../commands';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { ConfigSource, ConfigUtil } from './index';
-import vscode = require('vscode');
+import * as vscode from 'vscode';
 
 const defaultUserNameKey = 'defaultusername';
 const defaultDevHubUserNameKey = 'defaultdevhubusername';
@@ -71,7 +70,7 @@ export class OrgAuthInfo {
           [showButtonText]
         );
         if (selection && selection === showButtonText) {
-          forceAuthDevHub();
+          vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
         }
         return undefined;
       }
@@ -128,12 +127,15 @@ function displayMessage(
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
         return notificationService.showErrorMessage(output, ...buttons);
+
       }
       case VSCodeWindowTypeEnum.Informational: {
         return notificationService.showInformationMessage(output, ...buttons);
+
       }
       case VSCodeWindowTypeEnum.Warning: {
         return notificationService.showWarningMessage(output, ...buttons);
+
       }
     }
   }

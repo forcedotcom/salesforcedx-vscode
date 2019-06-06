@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
+import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
 describe('getDefaultDevHubUsernameOrAlias', () => {
@@ -20,7 +21,35 @@ describe('getDefaultDevHubUsernameOrAlias', () => {
     await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
     expect(infoMessageStub.calledOnce).to.be.true;
+    configUtilStub.restore();
+    infoMessageStub.restore();
   });
-  it('should run authorize a dev hub command if button clicked', async () => { });
-  it('should not show a message if there is a dev hub set', async () => { });
+  it('should run authorize a dev hub command if button clicked', async () => {
+    const configUtilStub = sinon.stub(ConfigUtil, 'getConfigValue');
+    configUtilStub.returns(undefined);
+    const authDebvHubStub = sinon.stub(vscode.window, 'showInformationMessage');
+    authDebvHubStub.returns(nls.localize('notification_make_default_dev'));
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+
+    await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
+
+    expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.be.true;
+    expect(authDebvHubStub.calledOnce).to.be.true;
+
+    configUtilStub.restore();
+    authDebvHubStub.restore();
+    executeCommandStub.restore();
+  });
+
+  it('should not show a message if there is a dev hub set', async () => {
+    const configUtilStub = sinon.stub(ConfigUtil, 'getConfigValue');
+    configUtilStub.returns('username');
+    const infoMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
+
+    await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
+
+    expect(infoMessageStub.calledOnce).to.be.false;
+    configUtilStub.restore();
+    infoMessageStub.restore();
+  });
 });
