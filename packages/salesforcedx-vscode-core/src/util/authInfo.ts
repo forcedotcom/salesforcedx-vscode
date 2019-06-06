@@ -6,13 +6,12 @@
  */
 import { Aliases, AuthInfo } from '@salesforce/core';
 import { isUndefined } from 'util';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
-// import { forceAuthDevHub } from '../commands';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { ConfigSource, ConfigUtil } from './index';
-import * as vscode from 'vscode';
 
 const defaultUserNameKey = 'defaultusername';
 const defaultDevHubUserNameKey = 'defaultdevhubusername';
@@ -127,15 +126,12 @@ function displayMessage(
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
         return notificationService.showErrorMessage(output, ...buttons);
-
       }
       case VSCodeWindowTypeEnum.Informational: {
         return notificationService.showInformationMessage(output, ...buttons);
-
       }
       case VSCodeWindowTypeEnum.Warning: {
         return notificationService.showWarningMessage(output, ...buttons);
-
       }
     }
   }

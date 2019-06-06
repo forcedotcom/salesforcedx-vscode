@@ -8,8 +8,8 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 import { nls } from '../../../src/messages';
+import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('getDefaultDevHubUsernameOrAlias', () => {
