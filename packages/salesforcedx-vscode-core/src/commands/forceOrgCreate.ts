@@ -23,6 +23,7 @@ import {
   hasRootWorkspace
 } from '../util';
 import {
+  CompositeChecker,
   CompositeParametersGatherer,
   DevUsernameChecker,
   FileSelection,
@@ -36,7 +37,7 @@ export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
-  > {
+> {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       getRootWorkspacePath(), // this is safe because of workspaceChecker
@@ -117,7 +118,10 @@ export interface Alias {
 
 export type AliasAndFileSelection = Alias & FileSelection;
 
-const devnamechecker = new DevUsernameChecker();
+const compositechecker = new CompositeChecker(
+  new SfdxWorkspaceChecker(),
+  new DevUsernameChecker()
+);
 const parameterGatherer = new CompositeParametersGatherer(
   new FileSelector('config/**/*-scratch-def.json'),
   new AliasGatherer()
@@ -125,7 +129,7 @@ const parameterGatherer = new CompositeParametersGatherer(
 
 export async function forceOrgCreate() {
   const commandlet = new SfdxCommandlet(
-    devnamechecker,
+    compositechecker,
     parameterGatherer,
     new ForceOrgCreateExecutor()
   );

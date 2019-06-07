@@ -30,6 +30,21 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
+export class CompositeChecker implements PreconditionChecker {
+  public checks: PreconditionChecker[];
+  public constructor(...checks: PreconditionChecker[]) {
+    this.checks = checks;
+  }
+  public async check(): Promise<boolean> {
+    for (const output of this.checks) {
+      const input = await output.check();
+      if (input === false) {
+        return Promise.resolve(false);
+      }
+    }
+    return Promise.resolve(true);
+  }
+}
 export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(
     inputs: ContinueResponse<any> | CancelResponse
@@ -50,9 +65,7 @@ export class SfdxWorkspaceChecker implements PreconditionChecker {
 }
 export class DevUsernameChecker implements PreconditionChecker {
   public async check(): Promise<boolean> {
-    const hasWorkspace = new SfdxWorkspaceChecker().check();
     if (
-      !hasWorkspace ||
       isNullOrUndefined(await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true))
     ) {
       return Promise.resolve(false);
