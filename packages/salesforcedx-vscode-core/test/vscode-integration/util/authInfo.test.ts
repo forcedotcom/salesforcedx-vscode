@@ -27,17 +27,17 @@ describe('getDefaultDevHubUsernameOrAlias', () => {
   it('should run authorize a dev hub command if button clicked', async () => {
     const configUtilStub = sinon.stub(ConfigUtil, 'getConfigValue');
     configUtilStub.returns(undefined);
-    const authDebvHubStub = sinon.stub(vscode.window, 'showInformationMessage');
-    authDebvHubStub.returns(nls.localize('notification_make_default_dev'));
+    const showMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
+    showMessageStub.returns(nls.localize('notification_make_default_dev'));
     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
     await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
     expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.be.true;
-    expect(authDebvHubStub.calledOnce).to.be.true;
+    expect(showMessageStub.calledOnce).to.be.true;
 
     configUtilStub.restore();
-    authDebvHubStub.restore();
+    showMessageStub.restore();
     executeCommandStub.restore();
   });
 

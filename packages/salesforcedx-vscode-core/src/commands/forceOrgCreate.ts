@@ -23,8 +23,8 @@ import {
   hasRootWorkspace
 } from '../util';
 import {
-  CompositeChecker,
   CompositeParametersGatherer,
+  CompositePreconditionChecker,
   DevUsernameChecker,
   FileSelection,
   FileSelector,
@@ -118,7 +118,7 @@ export interface Alias {
 
 export type AliasAndFileSelection = Alias & FileSelection;
 
-const compositechecker = new CompositeChecker(
+const preconditionChecker = new CompositePreconditionChecker(
   new SfdxWorkspaceChecker(),
   new DevUsernameChecker()
 );
@@ -129,7 +129,7 @@ const parameterGatherer = new CompositeParametersGatherer(
 
 export async function forceOrgCreate() {
   const commandlet = new SfdxCommandlet(
-    compositechecker,
+    preconditionChecker,
     parameterGatherer,
     new ForceOrgCreateExecutor()
   );

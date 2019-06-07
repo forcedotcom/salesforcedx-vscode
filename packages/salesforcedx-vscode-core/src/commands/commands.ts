@@ -30,7 +30,7 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
-export class CompositeChecker implements PreconditionChecker {
+export class CompositePreconditionChecker implements PreconditionChecker {
   public checks: PreconditionChecker[];
   public constructor(...checks: PreconditionChecker[]) {
     this.checks = checks;
@@ -81,7 +81,7 @@ export class EmptyPreChecker implements PreconditionChecker {
 }
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
-  public readonly gatherers: Array<ParametersGatherer<any>>;
+  private readonly gatherers: Array<ParametersGatherer<any>>;
   public constructor(...gatherers: Array<ParametersGatherer<any>>) {
     this.gatherers = gatherers;
   }
