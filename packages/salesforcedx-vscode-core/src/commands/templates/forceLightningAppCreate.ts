@@ -10,8 +10,9 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { Uri } from 'vscode';
 import { nls } from '../../messages';
-
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   SelectFileName,
@@ -25,6 +26,10 @@ import {
   FilePathExistsChecker
 } from './baseTemplateCommand';
 import {
+  FileInternalPathGatherer,
+  InternalDevWorkspaceChecker
+} from './internalCommandUtils';
+import {
   AURA_APP_EXTENSION,
   AURA_DEFINITION_FILE_EXTS,
   AURA_DIRECTORY
@@ -32,13 +37,18 @@ import {
 
 export class ForceLightningAppCreateExecutor extends BaseTemplateCommand {
   public build(data: DirFileNameSelection): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_app_create_text'))
       .withArg('force:lightning:app:create')
       .withFlag('--appname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_app_create')
-      .build();
+      .withLogName('force_lightning_app_create');
+
+    if (sfdxCoreSettings.getInternalDev()) {
+      builder.withArg('--internal');
+    }
+
+    return builder.build();
   }
 
   public sourcePathStrategy = new BundlePathStrategy();
@@ -67,6 +77,18 @@ export async function forceLightningAppCreate() {
       new BundlePathStrategy(),
       nls.localize('aura_bundle_message_name')
     )
+  );
+  await commandlet.run();
+}
+
+export async function forceInternalLightningAppCreate(sourceUri: Uri) {
+  const commandlet = new SfdxCommandlet(
+    new InternalDevWorkspaceChecker(),
+    new CompositeParametersGatherer(
+      fileNameGatherer,
+      new FileInternalPathGatherer(sourceUri)
+    ),
+    new ForceLightningAppCreateExecutor()
   );
   await commandlet.run();
 }

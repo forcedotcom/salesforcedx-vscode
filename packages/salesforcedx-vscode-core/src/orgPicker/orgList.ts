@@ -15,6 +15,7 @@ import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '../context/index';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
@@ -73,9 +74,10 @@ export class OrgList implements vscode.Disposable {
 
     const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
     if (defaultDevHubUsernameorAlias) {
-      const defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameorAlias
-      );
+      const defaultDevHubUsername =
+        (await OrgAuthInfo.getUsername(defaultDevHubUsernameorAlias)) ||
+        defaultDevHubUsernameorAlias;
+
       authInfoObjects = authInfoObjects.filter(
         fileData =>
           isNullOrUndefined(fileData.devHubUsername) ||
@@ -173,6 +175,11 @@ export class OrgList implements vscode.Disposable {
         false
       );
     }
+    telemetryService.sendEventData(
+      'Sfdx-config file updated with default username',
+      undefined,
+      { timestamp: new Date().getTime() }
+    );
     await setupWorkspaceOrgType(defaultUsernameorAlias);
     this.displayDefaultUsername(defaultUsernameorAlias);
   }

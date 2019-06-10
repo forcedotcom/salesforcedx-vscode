@@ -119,7 +119,7 @@ describe('Filter Authorization Info', async () => {
     expect(authList[0]).to.equal('test-username2@gmail.com');
   });
 
-  it('should filter the list to only show scratch orgs associated with current default dev hub', async () => {
+  it('should filter the list to only show scratch orgs associated with current default dev hub without an alias', async () => {
     const authInfoObjects: FileInfo[] = [
       JSON.parse(
         JSON.stringify({
@@ -137,6 +137,31 @@ describe('Filter Authorization Info', async () => {
       )
     ];
     defaultDevHubStub.returns('test-devhub1@gmail.com');
+    getUsernameStub.returns(undefined);
+    aliasCreateStub.returns(Aliases.prototype);
+    aliasKeysStub.returns([]);
+    const authList = await orgList.filterAuthInfo(authInfoObjects);
+    expect(authList[0]).to.equal('test-scratchorg1@gmail.com');
+  });
+
+  it('should filter the list to only show scratch orgs associated with current default dev hub with an alias', async () => {
+    const authInfoObjects: FileInfo[] = [
+      JSON.parse(
+        JSON.stringify({
+          orgId: '000',
+          username: 'test-scratchorg1@gmail.com',
+          devHubUsername: 'test-devhub1@gmail.com'
+        })
+      ),
+      JSON.parse(
+        JSON.stringify({
+          orgId: '111',
+          username: 'test-scratchorg2@gmail.com',
+          devHubUsername: 'test-devhub2@gmail.com'
+        })
+      )
+    ];
+    defaultDevHubStub.returns('dev hub alias');
     getUsernameStub.returns('test-devhub1@gmail.com');
     aliasCreateStub.returns(Aliases.prototype);
     aliasKeysStub.returns([]);
