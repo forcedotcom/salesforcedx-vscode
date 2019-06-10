@@ -28,7 +28,7 @@ At this time, there is no conflict detection for the new constant.
 
 ## Refactor: Extract Local Variable
 
-You can extract valid expression types into local variables. Please note that not all expression types are supported at this time.
+You can extract valid expression types into local variables. Please note that not all expression types are currently supported.
 
 This new variable will be instantiated above the currently selected line. It will retain the formatting of the expression that is selected.
 
