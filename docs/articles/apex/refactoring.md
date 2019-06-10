@@ -18,22 +18,22 @@ If the new name conflicts with an existing identifier name, we try to fully qual
 
 ## Refactor: Extract Constant
 
-You can extract valid literal expressions into constants. Literal expressions include: String, Integer, Long, Double, Decimal, and Boolean.
+You can extract literals into constants. Literals include: String, Integer, Long, Double, Decimal, and Boolean.
 
-This constant will be instantiated below the class declaration. If the expression is contained within an innerclass, the constant will be instantiated below the innerclass declaration. The new constant will always be defined with modifiers private, static, and final.
-
-At this time, there is no conflict detection for the new constant.
+1. In the editor, select an expression that you would like to extract.
+1. Click the lightbulb in the gutter and select 'Extract Constant'.
+1. The new constant will be declared as a field in the containing class from where the refactoring was invoked.
+1. The selected expression should now be replaced with the name of the new field.
 
 ![GIF showing extract constant](../../images/extract-constant.gif)
 
 ## Refactor: Extract Local Variable
 
-You can extract valid expression types into local variables. Please note that not all expression types are currently supported.
+You can extract expressions into local variables.
 
-This new variable will be instantiated above the currently selected line. It will retain the formatting of the expression that is selected.
-
-At this time, there is no conflict detection for the new variable and nested expressions are not supported.
-
-![GIF showing extract local variable basics](../../images/extract-local-variable-basics.gif)
+1. In the editor, select an expression that you like to extract.
+1. Click the lightbulb in the gutter and select 'Extract Variable'.
+1. The new field will be declared in the line above the declaration where the refactoring was invoked.
+1. The selected expression should now be replaced with the name of the new field.
 
 ![GIF showing extract local variable other](../../images/extract-local-variable-other.gif)
