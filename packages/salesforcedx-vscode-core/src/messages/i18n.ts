@@ -240,7 +240,8 @@ export const messages = {
     'We couldn’t push your source due to conflicts. Make sure that you want to overwrite the metadata in your org with your local files, then run "SFDX: Push Source to Default Scratch Org and Override Conflicts".',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  error_no_default_devhubusername: 'No default Dev Hub is set.',
+  error_no_default_devhubusername:
+    'No default Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   custom_output_directory: 'Choose a Custom Directory',
   warning_using_global_username:
     'No default username found in the local project config; using the global default username. Run "SFDX: Authorize an Org" to set the username for the local project config.',
