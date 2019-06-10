@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -65,12 +65,18 @@ import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { MetadataOutlineProvider } from './orgBrowser';
+import {
+  buildTypesList,
+  forceDescribeMetadata,
+  getTypesPath,
+  MetadataOutlineProvider
+} from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 import {
+  getRootWorkspacePath,
   hasRootWorkspace,
   isCLIInstalled,
   showCLINotInstalledMessage
@@ -491,7 +497,19 @@ export async function activate(context: vscode.ExtensionContext) {
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
   await setupOrgBrowser(context, defaultUsernameorAlias);
-
+  const outputPath = await getTypesPath();
+  await forceDescribeMetadata(outputPath);
+  const workspaceRootPath = getRootWorkspacePath();
+  const metadataTypesPath = path.join(
+    workspaceRootPath,
+    '.sfdx',
+    'orgs',
+    outputPath,
+    'metadata',
+    'metadataTypes.json'
+  );
+  const list = await buildTypesList(metadataTypesPath);
+  console.log(list);
   vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', true);
   if (isCLIInstalled()) {
     // Set context for defaultusername org

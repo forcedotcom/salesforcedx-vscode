@@ -71,7 +71,7 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      buildComponentsList(this.outputPath, this.metadataType);
+      // buildComponentsList(this.outputPath, this.metadataType);
     });
     notificationService.reportExecutionError(
       execution.command.toString(),
@@ -86,12 +86,9 @@ const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceListMetadata(
   metadataType: string,
-  defaultUsernameOrAlias: string
+  defaultUsernameOrAlias: string,
+  outputPath: string
 ) {
-  const outputPath = await getComponentsPath(
-    metadataType,
-    defaultUsernameOrAlias
-  );
   const describeExecutor = new ForceListMetadataExecutor(
     metadataType,
     outputPath,

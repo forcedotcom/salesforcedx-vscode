@@ -14,6 +14,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
+import { mkdir } from 'shelljs';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -40,12 +41,14 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   }
 
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
-      .withArg('force:mdapi:describemetadata')
-      .withJson()
-      .withFlag('-f', this.outputPath)
-      .withLogName('force_describe_metadata')
-      .build();
+    return (
+      new SfdxCommandBuilder()
+        .withArg('force:mdapi:describemetadata')
+        .withJson()
+        // .withFlag('-f', this.outputPath)
+        .withLogName('force_describe_metadata')
+        .build()
+    );
   }
 
   public execute(response: ContinueResponse<string>): void {
@@ -56,9 +59,26 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
+    const workspaceRootPath = getRootWorkspacePath();
+    const metadataTypesPath = path.join(
+      workspaceRootPath,
+      '.sfdx',
+      'orgs',
+      this.outputPath,
+      'metadata'
+    );
+    if (!fs.existsSync(metadataTypesPath)) {
+      mkdir('-p', metadataTypesPath);
+    }
+    const filePath = path.join(metadataTypesPath, 'metadataTypes.json');
+    execution.stdoutSubject.subscribe(data => {
+      fs.writeFileSync(filePath, JSON.stringify(data.toString()));
+      // console.log(data.toString());
+    });
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
+      // console.log(response.data);
     });
     notificationService.reportExecutionError(
       execution.command.toString(),
@@ -119,7 +139,7 @@ export async function getTypesPath(): Promise<string> {
     'metadata',
     'metadataTypes.json'
   );
-  return metadataTypesPath;
+  return username;
 }
 
 export type MetadataObject = {

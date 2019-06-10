@@ -55,14 +55,15 @@ export class MetadataOutlineProvider
       } else {
         return Promise.resolve([]);
       }
-    } else if (element.type === NodeType.MetadataType) {
-      const metadataCmps = await this.getComponents(element);
-      element.children = metadataCmps;
-      return Promise.resolve(element.children);
     } else if (element.type === NodeType.Org) {
       const metadataTypes = await this.getTypes();
       element.children = metadataTypes;
       return Promise.resolve(element.children);
+    } else if (element.type === NodeType.MetadataType) {
+      /*const metadataCmps = await this.getComponents(element);
+      element.children = metadataCmps;
+      return Promise.resolve(element.children);*/
+      return Promise.resolve([]);
     }
 
     return Promise.resolve([]);
@@ -82,7 +83,7 @@ export class MetadataOutlineProvider
     return nodeList;
   }
 
-  public async getComponents(
+  /*public async getComponents(
     metadataType: BrowserNode
   ): Promise<BrowserNode[]> {
     const componentsPath = await getComponentsPath(
@@ -102,7 +103,7 @@ export class MetadataOutlineProvider
       nodeList.push(cmpNode);
     }
     return nodeList;
-  }
+  }*/
 
   public async getDefaultUsernameOrAlias() {
     if (hasRootWorkspace()) {
