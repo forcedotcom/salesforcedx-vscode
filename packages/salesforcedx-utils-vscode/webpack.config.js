@@ -22,8 +22,7 @@ module.exports = {
     'out/src/output/index': './src/output/index.ts',
     'out/src/predicates/predicate': './src/predicates/predicate.ts',
     'out/src/requestService/index': './src/requestService/index.ts',
-    'out/src/types/index': './src/types/index.ts',
-    'out/test/unit/cli': './test/unit/cli/*.ts'
+    'out/src/types/index': './src/types/index.ts'
   },
   // All bundles go into DIST
   // packaging depends on that and this must always be like it
@@ -31,8 +30,7 @@ module.exports = {
     path: DIST,
     filename: '[name].js',
     libraryTarget: 'commonjs2',
-    devtoolModuleFilenameTemplate:
-      'webpack://[namespace]/[resource-path]?[loaders]'
+    devtoolModuleFilenameTemplate: `webpack:///salesforcedx-utils-vscode/[resource-path]`
   },
   // include source maps
   devtool: 'source-map',
@@ -43,14 +41,14 @@ module.exports = {
   },
   // Automatically resolve certain extensions.
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.tsx', '.js']
   },
   // pre-process certain file types using loaders
   module: {
     rules: [
       {
-        test: /\.ts$/,
-        exclude: ['/node_modules/'],
+        test: /\.tsx?$/,
+        exclude: /node_modules|\.d\.ts$/,
         use: [
           {
             loader: 'ts-loader'

@@ -24,10 +24,19 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages"],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages"],
       "stopOnEntry": false,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/*/out/src/**/*.js"],
+      "smartStep": true,
+      "outFiles": [
+        "${workspaceFolder}/packages/*/out/src/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-utils-vscode/out/src/cli/*.js"
+      ],
+      "sourceMapPathOverrides": {
+        "webpack:///./~/*": "${workspaceRoot}/node_modules/*",
+        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceRoot}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///*": "*"
+      },
       "preLaunchTask": "Compile"
     },
     {

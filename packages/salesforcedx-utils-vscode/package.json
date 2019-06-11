@@ -43,7 +43,7 @@
     "vscode": "^1.32.0"
   },
   "scripts": {
-    "build:webpack": "webpack --mode production",
+    "build:webpack": "webpack --mode development",
     "compile": "webpack --mode development",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
