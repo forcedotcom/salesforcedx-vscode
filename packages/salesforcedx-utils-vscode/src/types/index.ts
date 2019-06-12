@@ -8,7 +8,7 @@
 // Precondition checking
 ////////////////////////
 export interface PreconditionChecker {
-  check(): boolean;
+  check(): Promise<boolean> | boolean;
 }
 
 export interface PostconditionChecker<T> {
