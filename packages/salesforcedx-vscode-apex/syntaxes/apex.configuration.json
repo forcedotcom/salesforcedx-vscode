@@ -4,11 +4,29 @@
     "blockComment": ["/*", "*/"]
   },
   // symbols used as brackets
-  "brackets": [["{", "}"], ["[", "]"], ["(", ")"]],
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"]
+  ],
   // symbols that are auto closed when typing
-  "autoClosingPairs": [["{", "}"], ["[", "]"], ["(", ")"], ["'", "'"]],
+  "autoClosingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"],
+    ["'", "'"], {
+      "open": "/**",
+      "close": " */",
+      "notIn": ["string"]
+    }
+  ],
   // symbols that that can be used to surround a selection
-  "surroundingPairs": [["{", "}"], ["[", "]"], ["(", ")"], ["'", "'"]],
+  "surroundingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"],
+    ["'", "'"]
+  ],
   "folding": {
     "offSide": true,
     "markers": {
