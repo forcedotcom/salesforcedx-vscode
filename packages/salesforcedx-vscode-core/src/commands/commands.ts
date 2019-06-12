@@ -20,6 +20,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import glob = require('glob');
+import { isNullOrUndefined } from 'util';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
@@ -27,8 +28,23 @@ import { isSfdxProjectOpened } from '../predicates';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
+export class CompositePreconditionChecker implements PreconditionChecker {
+  public checks: PreconditionChecker[];
+  public constructor(...checks: PreconditionChecker[]) {
+    this.checks = checks;
+  }
+  public async check(): Promise<boolean> {
+    for (const output of this.checks) {
+      const input = await output.check();
+      if (input === false) {
+        return Promise.resolve(false);
+      }
+    }
+    return Promise.resolve(true);
+  }
+}
 export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(
     inputs: ContinueResponse<any> | CancelResponse
@@ -45,6 +61,16 @@ export class SfdxWorkspaceChecker implements PreconditionChecker {
       return false;
     }
     return true;
+  }
+}
+export class DevUsernameChecker implements PreconditionChecker {
+  public async check(): Promise<boolean> {
+    if (
+      isNullOrUndefined(await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true))
+    ) {
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(true);
   }
 }
 
@@ -333,7 +359,7 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
-    if (this.prechecker.check()) {
+    if (await this.prechecker.check()) {
       let inputs = await this.gatherer.gather();
       inputs = await this.postchecker.check(inputs);
       switch (inputs.type) {
