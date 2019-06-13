@@ -27,9 +27,14 @@ export async function getWorkspaceOrgType(
     throw e;
   }
 
+  const email = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
+    defaultUsernameOrAlias
+  );
+  const isUsername = email ? true : false;
+
   let username;
   let counter = 0;
-  while (isNullOrUndefined(username) && counter < 30) {
+  while (isNullOrUndefined(username) && counter < 60) {
     username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
     counter += 1;
     await imposeSlightDelay(100);
@@ -37,7 +42,7 @@ export async function getWorkspaceOrgType(
 
   if (isNullOrUndefined(username)) {
     telemetryService.sendError(
-      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries`
+      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries and scratch org username is ${isUsername}`
     );
   } else {
     telemetryService.sendEventData(
