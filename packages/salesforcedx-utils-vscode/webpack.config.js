@@ -2,30 +2,34 @@ const path = require('path');
 const glob = require('glob');
 const DIST = path.resolve(__dirname);
 
-const entryArray = glob.sync('src/**/*.ts');
-console.log('------------ entryArray = ', entryArray);
-const entryObject = entryArray.reduce((acc, item) => {
-  const name = item.replace(/\/[\.A-Za-z_-]*\.ts/g, '');
-  console.log('name == ', name);
-  acc[name] = item;
-  return acc;
-}, {});
-console.log('------------ entryObject = ', entryObject);
+const getEntryObject = () => {
+  const entryArray = glob.sync('src/**/*.ts');
+  return entryArray.reduce((acc, item) => {
+    const modulePath = item.replace(/\/[\.A-Za-z_-]*\.ts/g, '');
+    const outputModulePath = path.join('out', modulePath);
+
+    if (!acc.hasOwnProperty(outputModulePath)) {
+      // webpack requires the object to be in this format
+      // { 'out/src/cli': './src/cli/index.ts' }
+      acc[outputModulePath] = '.' + path.join(path.sep, modulePath, 'index.ts');
+    }
+
+    return acc;
+  }, {});
+};
+
+const getMode = () => {
+  const wpMode = process.env.NODE_ENV || 'development';
+  console.log(`Running in ${wpMode} mode`);
+  return wpMode;
+};
+
 module.exports = {
   // extensions run in a node context
   target: 'node',
-
-  entry: {
-    'out/src/index': './src/index.ts',
-    'out/src/cli/index': './src/cli/index.ts',
-    'out/src/i18n/index': './src/i18n/index.ts',
-    'out/src/output/index': './src/output/index.ts',
-    'out/src/predicates/predicate': './src/predicates/predicate.ts',
-    'out/src/requestService/index': './src/requestService/index.ts',
-    'out/src/types/index': './src/types/index.ts'
-  },
-  // All bundles go into DIST
-  // packaging depends on that and this must always be like it
+  mode: getMode(),
+  entry: getEntryObject(),
+  // vsix packaging depends on commonjs2
   output: {
     path: DIST,
     filename: '[name].js',

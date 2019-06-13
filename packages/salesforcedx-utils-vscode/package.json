@@ -43,8 +43,7 @@
     "vscode": "^1.32.0"
   },
   "scripts": {
-    "build:webpack": "webpack --mode development",
-    "compile": "webpack --mode development",
+    "compile": "webpack",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",

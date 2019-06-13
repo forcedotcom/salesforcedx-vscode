@@ -19,7 +19,6 @@
     "webpack-cli": "3.3.1"
   },
   "scripts": {
-    "build:webpack": "lerna run build:webpack",
     "postinstall": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
     "bootstrap": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
     "clean": "lerna run clean",

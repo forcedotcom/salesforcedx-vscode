@@ -16,3 +16,4 @@ node_modules/@salesforce/salesforcedx-utils-vscode/.vscodeignore
 node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
 node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
 node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
+node_modules/@salesforce/salesforcedx-utils-vscode/out/test/**
