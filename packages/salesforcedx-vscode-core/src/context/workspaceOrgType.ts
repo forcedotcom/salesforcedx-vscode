@@ -42,7 +42,7 @@ export async function getWorkspaceOrgType(
 
   if (isNullOrUndefined(username)) {
     telemetryService.sendError(
-      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries and scratch org username is ${isUsername}`
+      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries and default username provided is ${isUsername}`
     );
   } else {
     telemetryService.sendEventData(
