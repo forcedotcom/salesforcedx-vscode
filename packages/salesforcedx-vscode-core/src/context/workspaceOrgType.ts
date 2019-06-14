@@ -27,7 +27,7 @@ export async function getWorkspaceOrgType(
     throw e;
   }
 
-  const email = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
+  const email = /^\w+([\.$-]*\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
     defaultUsernameOrAlias
   );
   const isUsername = email ? true : false;
