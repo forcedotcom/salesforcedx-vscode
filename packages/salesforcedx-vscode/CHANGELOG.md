@@ -19,13 +19,13 @@
 
 #### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
-- Fix Lightning and LWC language servers crashing when an old version of NodeJS is present ([PR #1401](https://github.com/forcedotcom/salesforcedx-vscode/pull/1401), [Issue #1267](https://github.com/forcedotcom/salesforcedx-vscode/issues/1267))
+- Fix Aura and LWC language servers crashing when an old version of Node.js is present ([PR #1401](https://github.com/forcedotcom/salesforcedx-vscode/pull/1401), [Issue #1267](https://github.com/forcedotcom/salesforcedx-vscode/issues/1267))
 
 ### Added
 
 #### salesforcedx-vscode/docs
 
-- Apex Refactor: Extract Local Variable and Apex Refactor: Extract to Local Constant documentation in [Apex Refactoring](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/refactoring) article ([PR #1388](https://github.com/forcedotcom/salesforcedx-vscode/pull/1388))
+- Apex Refactor: Extract Local Variable, and Apex Refactor: Extract to Local Constant documentation in [Apex Refactoring](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/refactoring) article ([PR #1388](https://github.com/forcedotcom/salesforcedx-vscode/pull/1388))
 
 #### salesforcedx-vscode-apex
 
