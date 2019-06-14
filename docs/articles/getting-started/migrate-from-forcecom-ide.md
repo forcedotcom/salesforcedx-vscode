@@ -16,7 +16,7 @@ Every Salesforce project in VS Code must include a `sfdx-project.json` file. Thi
 
 ### 2. Source Format
 
-Salesforce projects use a new format and directory structure for local metadata called [source format](Source-Format). This format is optimized for working with version control. It has characteristics such as objects that are expanded into multiple directories and files, and the ability to work directly with static resources. However, this also means you can’t just open your existing project in VS Code and expect it to work. You need to convert it to the new format.
+Salesforce projects use a new format and directory structure for local metadata called [source format](../user-guide/source-format). This format is optimized for working with version control. It has characteristics such as objects that are expanded into multiple directories and files, and the ability to work directly with static resources. However, this also means you can’t just open your existing project in VS Code and expect it to work. You need to convert it to the new format.
 
 ## Decide Which Migration Process to Use
 
@@ -48,7 +48,7 @@ If you already have a `package.xml` file in your Force.com IDE project, you can 
 1. In the VS Code editor, right-click inside the `package.xml` file and select **SFDX: Retrieve Source in Manifest from Org**.
 1. The source downloads into the directory specified in the `sfdx-project.json` file. The default is `force-app/main/default`.
 
-Your project is now migrated from Force.com IDE to VS Code. You can continue to work as normal using your new code editor. For more information about this process, see [Org Development Model](org-development-model).
+Your project is now migrated from Force.com IDE to VS Code. You can continue to work as normal using your new code editor. For more information about this process, see [Org Development Model](../user-guide/org-development-model).
 
 ## Migrate by Conversion (advanced)
 
@@ -108,7 +108,7 @@ The second option for migrating your project is an in-place conversion. This opt
    $ mv ./src ./src_old
    ```
 
-1. Now that you’ve set up your project, it’s time to convert your metadata to [source format](Source-Format). To convert, run the following command.
+1. Now that you’ve set up your project, it’s time to convert your metadata to [source format](../user-guide/source-format). To convert, run the following command.
 
 
     ```bash
