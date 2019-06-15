@@ -111,11 +111,7 @@ function startLWCLanguageServer(context: ExtensionContext) {
       options: debugOptions
     }
   };
-  const node = which('node', { nothrow: true });
-  if (node) {
-    serverOptions.run.runtime = node;
-    serverOptions.debug.runtime = node;
-  }
+
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
       { language: 'html', scheme: 'file' },
