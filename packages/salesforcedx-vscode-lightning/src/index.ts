@@ -107,11 +107,6 @@ export async function activate(context: ExtensionContext) {
       options: debugOptions
     }
   };
-  const node = which('node', { nothrow: true });
-  if (node) {
-    serverOptions.run.runtime = node;
-    serverOptions.debug.runtime = node;
-  }
 
   // Setup our fileSystemWatchers
   const clientOptions: LanguageClientOptions = {
