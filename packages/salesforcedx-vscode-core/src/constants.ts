@@ -13,6 +13,7 @@ export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
+export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const TELEMETRY_OPT_OUT_LINK =
   'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
