@@ -4,7 +4,7 @@ const DIST = path.resolve(__dirname);
 
 const getEntryObject = () => {
   const entryArray = glob.sync('src/**/*.ts');
-  return entryArray.reduce((acc, item) => {
+  const srcObj = entryArray.reduce((acc, item) => {
     const modulePath = item.replace(/\/[\.A-Za-z_-]*\.ts/g, '');
     const outputModulePath = path.join('out', modulePath, 'index');
 
@@ -16,12 +16,32 @@ const getEntryObject = () => {
 
     return acc;
   }, {});
+
+  if (getMode() !== 'development') {
+    return srcObj;
+  }
+
+  const entryTestArray = glob.sync('test/**/*.ts');
+  const testObj = entryTestArray.reduce((acc, item) => {
+    const modulePath = item.replace(/\.ts/g, '');
+    const outputModulePath = path.join('out', modulePath);
+
+    if (!acc.hasOwnProperty(outputModulePath)) {
+      // webpack requires the object to be in this format
+      // { 'out/test/unit/cli/commandExecutorTest': './test/unit/cli/commandExecutorTest.ts' }
+      acc[outputModulePath] = '.' + path.join(path.sep, `${modulePath}.ts`);
+    }
+
+    return acc;
+  }, {});
+
+  return Object.assign(testObj, srcObj);
 };
 
 const getMode = () => {
-  const wpMode = process.env.NODE_ENV || 'development';
-  console.log(`Running in ${wpMode} mode`);
-  return wpMode;
+  const webpackMode = process.env.NODE_ENV || 'development';
+  console.log(`Running in ${webpackMode} mode`);
+  return webpackMode;
 };
 
 module.exports = {
