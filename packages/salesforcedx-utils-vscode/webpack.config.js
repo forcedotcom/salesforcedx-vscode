@@ -6,11 +6,11 @@ const getEntryObject = () => {
   const entryArray = glob.sync('src/**/*.ts');
   return entryArray.reduce((acc, item) => {
     const modulePath = item.replace(/\/[\.A-Za-z_-]*\.ts/g, '');
-    const outputModulePath = path.join('out', modulePath);
+    const outputModulePath = path.join('out', modulePath, 'index');
 
     if (!acc.hasOwnProperty(outputModulePath)) {
       // webpack requires the object to be in this format
-      // { 'out/src/cli': './src/cli/index.ts' }
+      // { 'out/src/cli/index': './src/cli/index.ts' }
       acc[outputModulePath] = '.' + path.join(path.sep, modulePath, 'index.ts');
     }
 
