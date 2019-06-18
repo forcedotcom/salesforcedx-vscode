@@ -15,12 +15,11 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run: npm install
-      # Setup an NODE_ENV to production mode before compiling & packaging phase.
+      # Setup an NODE_ENV to production mode before compiling.
       - run:
-          name: 'Setup NODE_ENV'
+          name: 'Run compile in production mode'
           command: |
-            export NODE_ENV=production
-      - run: npm run compile
+            export NODE_ENV=production && npm run compile
       - run: npm run vscode:package
       - run:
           command: |
