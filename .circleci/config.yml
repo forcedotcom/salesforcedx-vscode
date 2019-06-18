@@ -9,6 +9,7 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE=true
       - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
       - SFDX_DOMAIN_RETRY=300
+      - NODE_ENV=production
 
     steps:
       - checkout

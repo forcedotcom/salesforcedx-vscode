@@ -17,9 +17,9 @@ import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Observable } from 'rxjs/Observable';
-import { CancellationTokenSource, workspace } from 'vscode';
+import { CancellationTokenSource } from 'vscode';
 import { channelService } from '../channels/index';
 import { nls } from '../messages';
 import { isDemoMode, isProdOrg } from '../modes/demo-mode';
