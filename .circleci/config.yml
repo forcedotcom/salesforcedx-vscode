@@ -9,13 +9,17 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE=true
       - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
       - SFDX_DOMAIN_RETRY=300
-      - NODE_ENV=production
 
     steps:
       - checkout
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run: npm install
+      # Setup an NODE_ENV to production mode before compiling & packaging phase.
+      - run:
+          name: 'Setup NODE_ENV'
+          command: |
+            export NODE_ENV=production
       - run: npm run compile
       - run: npm run vscode:package
       - run:
