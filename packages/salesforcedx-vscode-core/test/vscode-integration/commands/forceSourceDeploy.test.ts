@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceDeployResultParser } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CONFLICT_ERROR_NAME,
   DeployResult,
+  ForceDeployResultParser,
   ForceSourceDeployErrorResponse,
   ForceSourceDeploySuccessResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli/deployResultParser';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   Row,
   Table
