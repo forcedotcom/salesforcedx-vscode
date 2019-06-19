@@ -27,7 +27,7 @@ describe(TITLE, () => {
 
   let username: string;
 
-  before(async () => {
+  beforeEach(async () => {
     await util.createSFDXProject(PROJECT_NAME);
     username = await util.createScratchOrg(PROJECT_NAME);
     app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [PROJECT_DIR]);
@@ -35,9 +35,14 @@ describe(TITLE, () => {
 
     await app.start();
     await app.wait();
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX:');
+    await app.waitUI();
+    const quickOpenText = await common.getQuickOpenElementsText();
+    expect(quickOpenText.length).to.be.greaterThan(3);
   });
 
-  after(async () => {
+  afterEach(async () => {
     await app.stop();
     await util.deleteScratchOrg(PROJECT_NAME, username);
     await removeWorkspace(PROJECT_DIR);

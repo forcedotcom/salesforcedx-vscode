@@ -71,7 +71,7 @@ export class CommonActions {
   }
 
   public async getConsoleOutput(): Promise<any> {
-    const htmlTag = `div[class="view-lines"]`;
+    const htmlTag = `div[id="workbench.panel.output"] div[class="view-lines"]`;
     const el = await this.spectron.client.element(htmlTag);
     if (el.status === 0) {
       const textFromElement = await this.spectron.client.getText(htmlTag);
