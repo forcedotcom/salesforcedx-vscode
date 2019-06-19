@@ -15,6 +15,7 @@ import {
   IndentAction,
   languages,
   Position,
+  Range,
   TextDocument
 } from 'vscode';
 import {
@@ -136,16 +137,16 @@ export async function activate(context: ExtensionContext) {
             });
         },
         provideColorPresentations(
-          document: TextDocument,
-          colorInfo: ColorInformation
+          color: Color,
+          colorContext: { document: TextDocument; range: Range }
         ): Thenable<ColorPresentation[]> {
           const params: ColorPresentationParams = {
             textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
-              document
+              colorContext.document
             ),
             colorInfo: {
-              range: client.code2ProtocolConverter.asRange(colorInfo.range),
-              color: colorInfo.color
+              range: client.code2ProtocolConverter.asRange(colorContext.range),
+              color
             }
           };
           return client
