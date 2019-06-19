@@ -35,6 +35,11 @@ describe(TITLE, () => {
 
     await app.start();
     await app.wait();
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX:');
+    await app.waitUI();
+    const quickOpenText = await common.getQuickOpenElementsText();
+    expect(quickOpenText.length).to.be.greaterThan(3);
   });
 
   after(async () => {
