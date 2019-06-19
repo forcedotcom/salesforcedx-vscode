@@ -40,7 +40,7 @@
     "typescript": "3.1.6"
   },
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.32.0"
   },
   "scripts": {
     "compile": "tsc -p ./",
