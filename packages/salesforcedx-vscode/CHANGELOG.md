@@ -1,3 +1,15 @@
+## 46.2.0 - June 20, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Guide user to authorize a dev hub if they attempt to make a scratch org without one ([PR #1384](https://github.com/forcedotcom/salesforcedx-vscode/pull/1384))
+
+#### salesforcedx-vscode-apex
+
+- Add document block comments to Apex's language config ([PR #1349](https://github.com/forcedotcom/salesforcedx-vscode/pull/1349))
+
 ## 46.1.0 - June 15, 2019
 
 ### Fixed
