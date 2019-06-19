@@ -90,7 +90,7 @@ shell.exec('git clean -xfd -e node_modules');
 shell.exec('npm install');
 
 // Compile
-shell.exec('npm run compile');
+shell.exec('NODE_ENV=production npm run compile');
 
 // lerna publish
 // --skip-npm to increment the version number in all packages but not publish to npmjs
