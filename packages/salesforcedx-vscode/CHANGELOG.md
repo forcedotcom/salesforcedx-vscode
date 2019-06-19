@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Add documentation block comments to Apex Language Server ([PR #1349](https://github.com/forcedotcom/salesforcedx-vscode/pull/1349))—Contribution by [@no-stack-dub-sack](https://github.com/no-stack-dub-sack)
+- Add auto close pair for documentation block comments in Apex ([PR #1349](https://github.com/forcedotcom/salesforcedx-vscode/pull/1349))—Contribution by [@no-stack-dub-sack](https://github.com/no-stack-dub-sack)
 
 ## 46.1.0 - June 15, 2019
 
