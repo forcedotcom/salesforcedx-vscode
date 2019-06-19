@@ -12,7 +12,6 @@ import {
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
-import * as vscode from 'vscode';
 import {
   ForceSourceRetrieveSourcePathExecutor,
   SourcePathChecker

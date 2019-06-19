@@ -31,6 +31,7 @@ export {
   ForceDeployResultParser,
   ForceSourceDeployErrorResponse,
   ForceSourceDeploySuccessResponse,
-  DeployResult
+  DeployResult,
+  CONFLICT_ERROR_NAME
 } from './deployResultParser';
 export { TestRunner } from './testRunner';

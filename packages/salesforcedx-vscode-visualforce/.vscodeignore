@@ -6,3 +6,25 @@ src/**
 **/*.map
 .gitignore
 tsconfig.json
+
+# salesforcedx-visualforce-language-server files to ignore
+node_modules/@salesforce/salesforcedx-visualforce-language-server/src/**
+node_modules/@salesforce/salesforcedx-visualforce-language-server/test/**
+node_modules/@salesforce/salesforcedx-visualforce-language-server/.vscode
+node_modules/@salesforce/salesforcedx-visualforce-language-server/.vscodeignore
+node_modules/@salesforce/salesforcedx-visualforce-language-server/package-lock.json
+node_modules/@salesforce/salesforcedx-visualforce-language-server/tsconfig.json
+node_modules/@salesforce/salesforcedx-visualforce-language-server/out/test/**
+node_modules/@salesforce/salesforcedx-visualforce-language-server/node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/src/**
+node_modules/@salesforce/salesforcedx-visualforce-language-server/node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/test/**
+node_modules/@salesforce/salesforcedx-visualforce-language-server/node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/tsconfig.json
+node_modules/@salesforce/salesforcedx-visualforce-language-server/node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/out/test/**
+
+# salesforcedx-visualforce-markup-language-server files to ignore
+node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/src/**
+node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/test/**
+node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/.vscode
+node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/.vscodeignore
+node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/package-lock.json
+node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/tsconfig.json
+node_modules/@salesforce/salesforcedx-visualforce-markup-language-server/out/test/**

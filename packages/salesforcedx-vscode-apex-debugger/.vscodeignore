@@ -6,3 +6,22 @@ src/**
 **/*.map
 .gitignore
 tsconfig.json
+
+# salesforcedx-apex-debugger files to ignore 
+node_modules/@salesforce/salesforcedx-apex-debugger/docs/**
+node_modules/@salesforce/salesforcedx-apex-debugger/src/**
+node_modules/@salesforce/salesforcedx-apex-debugger/test/**
+node_modules/@salesforce/salesforcedx-apex-debugger/out/test/**
+node_modules/@salesforce/salesforcedx-apex-debugger/package-lock.json
+node_modules/@salesforce/salesforcedx-apex-debugger/tsconfig.json
+
+# salesforcedx-utils-vscode files to ignore 
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/src/**
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/test/**
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/.vscode
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/.vscodeignore
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
+node_modules/@salesforce/salesforcedx-apex-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/test/**
