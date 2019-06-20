@@ -6,6 +6,7 @@
  */
 import { Aliases, AuthInfo } from '@salesforce/core';
 import { isUndefined } from 'util';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -60,11 +61,16 @@ export class OrgAuthInfo {
         defaultDevHubUserNameKey
       );
       if (isUndefined(defaultDevHubUserName)) {
-        displayMessage(
+        const showButtonText = nls.localize('notification_make_default_dev');
+        const selection = await displayMessage(
           nls.localize('error_no_default_devhubusername'),
           enableWarning,
-          VSCodeWindowTypeEnum.Error
+          VSCodeWindowTypeEnum.Informational,
+          [showButtonText]
         );
+        if (selection && selection === showButtonText) {
+          vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
+        }
         return undefined;
       }
       return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
@@ -107,27 +113,25 @@ enum VSCodeWindowTypeEnum {
 function displayMessage(
   output: string,
   enableWarning?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum
+  vsCodeWindowType?: VSCodeWindowTypeEnum,
+  items?: string[]
 ) {
   if (!isUndefined(enableWarning) && !enableWarning) {
     return;
   }
-
+  const buttons = items || [];
   channelService.appendLine(output);
   channelService.showChannelOutput();
   if (vsCodeWindowType) {
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
-        notificationService.showErrorMessage(output);
-        break;
+        return notificationService.showErrorMessage(output, ...buttons);
       }
       case VSCodeWindowTypeEnum.Informational: {
-        notificationService.showInformationMessage(output);
-        break;
+        return notificationService.showInformationMessage(output, ...buttons);
       }
       case VSCodeWindowTypeEnum.Warning: {
-        notificationService.showWarningMessage(output);
-        break;
+        return notificationService.showWarningMessage(output, ...buttons);
       }
     }
   }
