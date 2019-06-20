@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Disable quick fix diagnostics for Apex ([PR #1416](https://github.com/forcedotcom/salesforcedx-vscode/pull/1416))
+- Disable quick fix diagnostics for Apex ([PR #1416](https://github.com/forcedotcom/salesforcedx-vscode/pull/1416), [Issue #1405](https://github.com/forcedotcom/salesforcedx-vscode/issues/1405))
 
 #### salesforcedx-vscode-core
 
