@@ -25,7 +25,6 @@ describe('Force List Metadata', () => {
     const defaultUsername = 'test-username1@example.com';
     const forceListMetadataExec = new ForceListMetadataExecutor(
       metadataType,
-      outputPath,
       defaultUsername
     );
     const forceDescribeMetadataCmd = forceListMetadataExec.build({});
@@ -40,7 +39,6 @@ describe('Force List Metadata', () => {
     for (const type of folderTypes) {
       const forceListMetadataExec = new ForceListMetadataExecutor(
         type,
-        outputPath,
         defaultUsername
       );
       const forceDescribeMetadataCmd = forceListMetadataExec.build({});

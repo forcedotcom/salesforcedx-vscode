@@ -399,14 +399,18 @@ async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext,
   defaultUsernameOrAlias?: string
 ): Promise<void> {
-  const metadataTreeProvider = new MetadataOutlineProvider(
-    defaultUsernameOrAlias
-  );
-  const metadataProvider = vscode.window.registerTreeDataProvider(
-    'metadata',
-    metadataTreeProvider
-  );
-  extensionContext.subscriptions.push(metadataProvider);
+  const metadataProvider = new MetadataOutlineProvider(defaultUsernameOrAlias);
+
+  const treeView = vscode.window.createTreeView('metadata', {
+    treeDataProvider: metadataProvider
+  });
+
+  treeView.onDidChangeVisibility(async () => {
+    if (treeView.visible) {
+      await metadataProvider.onViewChange();
+    }
+  });
+  extensionContext.subscriptions.push(treeView);
 }
 
 export async function activate(context: vscode.ExtensionContext) {

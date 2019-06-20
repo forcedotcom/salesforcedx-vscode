@@ -11,23 +11,12 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import { isNullOrUndefined } from 'util';
-import * as vscode from 'vscode';
-import { channelService } from '../channels';
-import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from '../commands';
+import { SfdxCommandletExecutor } from '../commands';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
-import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
@@ -67,14 +56,15 @@ export async function forceDescribeMetadata(username: string): Promise<string> {
   return result;
 }
 
-export async function getTypesFolder(username: string): Promise<string> {
+export async function getTypesFolder(usernameOrAlias: string): Promise<string> {
   if (!hasRootWorkspace()) {
     const err = nls.localize('cannot_determine_workspace');
     telemetryService.sendError(err);
     throw new Error(err);
   }
   const workspaceRootPath = getRootWorkspacePath();
-
+  const username =
+    (await OrgAuthInfo.getUsername(usernameOrAlias)) || usernameOrAlias;
   const metadataTypesPath = path.join(
     workspaceRootPath,
     '.sfdx',

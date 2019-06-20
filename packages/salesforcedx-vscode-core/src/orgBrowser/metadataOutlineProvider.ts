@@ -37,6 +37,12 @@ export class MetadataOutlineProvider
     this.defaultOrg = defaultOrg;
   }
 
+  public async onViewChange() {
+    if (await this.getDefaultUsernameOrAlias()) {
+      this.internalOnDidChangeTreeData.fire();
+    }
+  }
+
   public async refresh(defaultOrg?: string): Promise<void> {
     await this.getDefaultUsernameOrAlias();
     if (isNullOrUndefined(this.defaultOrg)) {
@@ -64,10 +70,10 @@ export class MetadataOutlineProvider
       element.children = metadataTypes;
       return Promise.resolve(element.children);
     } else if (element.type === NodeType.MetadataType) {
-      /*const metadataCmps = await this.getComponents(element);
+      const metadataCmps = await this.getComponents(element);
       element.children = metadataCmps;
-      return Promise.resolve(element.children);*/
-      return Promise.resolve([]);
+      return Promise.resolve(element.children);
+      // return Promise.resolve([]);
     }
 
     return Promise.resolve([]);
@@ -75,7 +81,6 @@ export class MetadataOutlineProvider
 
   public async getTypes(): Promise<BrowserNode[]> {
     const username = this.defaultOrg!;
-    const workspaceRootPath = getRootWorkspacePath();
     let typesPath = await getTypesFolder(username);
     typesPath = path.join(typesPath, 'metadataTypes.json');
 
@@ -94,14 +99,42 @@ export class MetadataOutlineProvider
     return nodeList;
   }
 
-  /*public async getComponents(
+  public async getComponents(
     metadataType: BrowserNode
   ): Promise<BrowserNode[]> {
+    const username = this.defaultOrg!;
     const componentsPath = await getComponentsPath(
       metadataType.label!,
-      this.defaultOrg!
+      username
     );
+
+    let componentsList: string[];
     if (!fs.existsSync(componentsPath)) {
+      const result = await forceListMetadata(
+        metadataType.label!,
+        username,
+        componentsPath
+      );
+      componentsList = buildComponentsList(
+        metadataType.label!,
+        result,
+        undefined
+      );
+    } else {
+      componentsList = buildComponentsList(
+        metadataType.label!,
+        undefined,
+        componentsPath
+      );
+    }
+    const nodeList = [];
+    for (const component of componentsList) {
+      const cmpNode = new BrowserNode(component, NodeType.MetadataCmp);
+      nodeList.push(cmpNode);
+    }
+    return nodeList;
+
+    /*if (!fs.existsSync(componentsPath)) {
       await forceListMetadata(metadataType.label!, this.defaultOrg!);
     }
     const componentsList = buildComponentsList(
@@ -113,12 +146,20 @@ export class MetadataOutlineProvider
       const cmpNode = new BrowserNode(cmp, NodeType.MetadataCmp);
       nodeList.push(cmpNode);
     }
-    return nodeList;
-  }*/
+    return nodeList;*/
+  }
 
-  public async getDefaultUsernameOrAlias() {
+  public async getDefaultUsernameOrAlias(): Promise<boolean> {
     if (hasRootWorkspace()) {
-      this.defaultOrg = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+      const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+      let diff = false;
+      if (username !== this.defaultOrg) {
+        diff = true;
+      }
+      this.defaultOrg = username;
+      return diff;
+    } else {
+      throw new Error('Workspace could not be found.');
     }
   }
 }
