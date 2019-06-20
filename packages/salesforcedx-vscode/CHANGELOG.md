@@ -1,3 +1,21 @@
+## 46.2.0 - June 20, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Disable quick fix diagnostics for Apex ([PR #1416](https://github.com/forcedotcom/salesforcedx-vscode/pull/1416), [Issue #1405](https://github.com/forcedotcom/salesforcedx-vscode/issues/1405))
+
+#### salesforcedx-vscode-core
+
+- Guide users to authorize a Dev Hub if they attempt to create a scratch org without enabling a Dev Hub ([PR #1384](https://github.com/forcedotcom/salesforcedx-vscode/pull/1384))
+
+### Added
+
+#### salesforcedx-vscode-apex
+
+- Add auto close pair for documentation block comments in Apex ([PR #1349](https://github.com/forcedotcom/salesforcedx-vscode/pull/1349))—Contribution by [@no-stack-dub-sack](https://github.com/no-stack-dub-sack)
+
 ## 46.1.0 - June 15, 2019
 
 ### Fixed
