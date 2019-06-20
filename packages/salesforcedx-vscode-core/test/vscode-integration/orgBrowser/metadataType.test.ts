@@ -14,16 +14,14 @@ import { nls } from '../../../src/messages';
 import {
   buildTypesList,
   ForceDescribeMetadataExecutor,
-  getTypesPath
+  getTypesFolder
 } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 describe('Force Describe Metadata', () => {
   it('Should build describe metadata command', async () => {
     const outputPath = 'outputPath';
-    const forceDescribeMetadataExec = new ForceDescribeMetadataExecutor(
-      outputPath
-    );
+    const forceDescribeMetadataExec = new ForceDescribeMetadataExecutor();
     const forceDescribeMetadataCmd = forceDescribeMetadataExec.build({});
     expect(forceDescribeMetadataCmd.toCommand()).to.equal(
       `sfdx force:mdapi:describemetadata --json --loglevel fatal -f ${outputPath}`
@@ -53,13 +51,14 @@ describe('get metadata types path', () => {
       '.sfdx',
       'orgs',
       'test-username1@example.com',
-      'metadata',
-      'metadataTypes.json'
+      'metadata'
     );
-    expect(await getTypesPath()).to.equal(filePath);
+    expect(await getTypesFolder('test-username1@example.com')).to.equal(
+      filePath
+    );
   });
 
-  it('should throw an error if default username is not set', async () => {
+  /*it('should throw an error if default username is not set', async () => {
     getDefaultUsernameStub.returns(undefined);
     let errorWasThrown = false;
     try {
@@ -71,7 +70,7 @@ describe('get metadata types path', () => {
       expect(getUsernameStub.called).to.be.false;
       expect(errorWasThrown).to.be.true;
     }
-  });
+  });*/
 });
 
 describe('build metadata types list', () => {

@@ -8,6 +8,7 @@
 import {
   CliCommandExecutor,
   Command,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -33,113 +34,55 @@ import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   string
 > {
-  private outputPath: string;
-
-  public constructor(outputPath: string) {
+  public constructor() {
     super();
-    this.outputPath = outputPath;
   }
 
   public build(data: {}): Command {
-    return (
-      new SfdxCommandBuilder()
-        .withArg('force:mdapi:describemetadata')
-        .withJson()
-        // .withFlag('-f', this.outputPath)
-        .withLogName('force_describe_metadata')
-        .build()
-    );
-  }
-
-  public execute(response: ContinueResponse<string>): void {
-    const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
-    }).execute(cancellationToken);
-    const workspaceRootPath = getRootWorkspacePath();
-    const metadataTypesPath = path.join(
-      workspaceRootPath,
-      '.sfdx',
-      'orgs',
-      this.outputPath,
-      'metadata'
-    );
-    if (!fs.existsSync(metadataTypesPath)) {
-      mkdir('-p', metadataTypesPath);
-    }
-    const filePath = path.join(metadataTypesPath, 'metadataTypes.json');
-    execution.stdoutSubject.subscribe(data => {
-      fs.writeFileSync(filePath, JSON.stringify(data.toString()));
-      // console.log(data.toString());
-    });
-
-    execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      // console.log(response.data);
-    });
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
-    );
-    channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    return new SfdxCommandBuilder()
+      .withArg('force:mdapi:describemetadata')
+      .withJson()
+      .withLogName('force_describe_metadata')
+      .build();
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-
-export async function forceDescribeMetadata(outputPath?: string) {
-  if (isNullOrUndefined(outputPath)) {
-    outputPath = await getTypesPath();
+export async function forceDescribeMetadata(username: string): Promise<string> {
+  /* if (isNullOrUndefined(outputPath)) {
+    outputPath = await getTypesPath(username);
+  }*/
+  const outputFolder = await getTypesFolder(username);
+  const execution = new CliCommandExecutor(
+    new ForceDescribeMetadataExecutor().build({}),
+    { cwd: getRootWorkspacePath() }
+  ).execute();
+  if (!fs.existsSync(outputFolder)) {
+    mkdir('-p', outputFolder);
   }
-  const describeExecutor = new ForceDescribeMetadataExecutor(outputPath);
-  const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
-    describeExecutor
-  );
-  await commandlet.run();
+  const filePath = path.join(outputFolder, 'metadataTypes.json');
+
+  const cmdOutput = new CommandOutput();
+  const result = await cmdOutput.getCmdResult(execution);
+  fs.writeFileSync(filePath, result);
+  return result;
 }
 
-export async function getTypesPath(): Promise<string> {
+export async function getTypesFolder(username: string): Promise<string> {
   if (!hasRootWorkspace()) {
     const err = nls.localize('cannot_determine_workspace');
     telemetryService.sendError(err);
     throw new Error(err);
   }
-
   const workspaceRootPath = getRootWorkspacePath();
-  const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-    false
-  );
-
-  if (isNullOrUndefined(defaultUsernameOrAlias)) {
-    const err = nls.localize('error_no_default_username');
-    telemetryService.sendErrorEvent(
-      'Undefined username or alias on orgMetadata.getTypesPath',
-      err
-    );
-    throw new Error(err);
-  }
-
-  const username =
-    (await OrgAuthInfo.getUsername(defaultUsernameOrAlias)) ||
-    defaultUsernameOrAlias;
 
   const metadataTypesPath = path.join(
     workspaceRootPath,
     '.sfdx',
     'orgs',
     username,
-    'metadata',
-    'metadataTypes.json'
+    'metadata'
   );
-  return username;
+  return metadataTypesPath;
 }
 
 export type MetadataObject = {
@@ -150,28 +93,27 @@ export type MetadataObject = {
   xmlName: string;
 };
 
-export function buildTypesList(metadataTypesPath: string): string[] {
-  try {
-    const fileData = JSON.parse(fs.readFileSync(metadataTypesPath, 'utf8'));
-    const metadataObjects = fileData.metadataObjects as MetadataObject[];
-    const metadataTypes = [];
-    for (const metadataObject of metadataObjects) {
-      if (!isNullOrUndefined(metadataObject.xmlName)) {
-        metadataTypes.push(metadataObject.xmlName);
-      }
+export function buildTypesList(
+  metadataTypesList?: any,
+  metadataTypesPath?: string
+): string[] {
+  if (isNullOrUndefined(metadataTypesList)) {
+    try {
+      metadataTypesList = fs.readFileSync(metadataTypesPath!, 'utf8');
+    } catch (e) {
+      throw e;
     }
-    telemetryService.sendEventData('Metadata Types Quantity', undefined, {
-      metadataTypes: metadataTypes.length
-    });
-    return metadataTypes;
-  } catch (e) {
-    throw e;
   }
-}
-
-export async function onUsernameChange() {
-  const metadataTypesPath = await getTypesPath();
-  if (!fs.existsSync(metadataTypesPath)) {
-    await forceDescribeMetadata(metadataTypesPath);
+  const metadata = JSON.parse(metadataTypesList);
+  const metadataObjects = metadata.result.metadataObjects as MetadataObject[];
+  const metadataTypes = [];
+  for (const metadataObject of metadataObjects) {
+    if (!isNullOrUndefined(metadataObject.xmlName)) {
+      metadataTypes.push(metadataObject.xmlName);
+    }
   }
+  telemetryService.sendEventData('Metadata Types Quantity', undefined, {
+    metadataTypes: metadataTypes.length
+  });
+  return metadataTypes;
 }

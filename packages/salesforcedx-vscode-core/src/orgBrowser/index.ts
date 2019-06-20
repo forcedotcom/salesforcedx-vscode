@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export {
-  onUsernameChange,
   forceDescribeMetadata,
   ForceDescribeMetadataExecutor,
-  getTypesPath,
+  getTypesFolder,
   buildTypesList
 } from './metadataType';
 export { MetadataOutlineProvider } from './metadataOutlineProvider';

@@ -65,12 +65,7 @@ import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import {
-  buildTypesList,
-  forceDescribeMetadata,
-  getTypesPath,
-  MetadataOutlineProvider
-} from './orgBrowser';
+import { MetadataOutlineProvider } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -496,9 +491,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const orgList = new OrgList();
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
-  await setupOrgBrowser(context, defaultUsernameorAlias);
-  const outputPath = await getTypesPath();
+  /*const outputPath = await getTypesPath();
   await forceDescribeMetadata(outputPath);
+
   const workspaceRootPath = getRootWorkspacePath();
   const metadataTypesPath = path.join(
     workspaceRootPath,
@@ -509,7 +504,9 @@ export async function activate(context: vscode.ExtensionContext) {
     'metadataTypes.json'
   );
   const list = await buildTypesList(metadataTypesPath);
-  console.log(list);
+  // console.log(list);*/
+
+  await setupOrgBrowser(context, defaultUsernameorAlias);
   vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', true);
   if (isCLIInstalled()) {
     // Set context for defaultusername org

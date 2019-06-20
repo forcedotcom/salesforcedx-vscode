@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as fs from 'fs';
+import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 import {
   BrowserNode,
   buildTypesList,
@@ -19,7 +20,7 @@ import {
   forceListMetadata,
   getComponentsPath
 } from './metadataCmp';
-import { getTypesPath } from './metadataType';
+import { getTypesFolder } from './metadataType';
 
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
@@ -37,10 +38,12 @@ export class MetadataOutlineProvider
   }
 
   public async refresh(defaultOrg?: string): Promise<void> {
-    if (!isNullOrUndefined(defaultOrg)) {
-      this.defaultOrg = defaultOrg;
+    await this.getDefaultUsernameOrAlias();
+    if (isNullOrUndefined(this.defaultOrg)) {
+      // show a message and say no default org?
+    } else {
+      this.internalOnDidChangeTreeData.fire();
     }
-    this.internalOnDidChangeTreeData.fire();
   }
 
   public getTreeItem(element: BrowserNode): vscode.TreeItem {
@@ -53,6 +56,7 @@ export class MetadataOutlineProvider
         const org = new BrowserNode(this.defaultOrg, NodeType.Org);
         return Promise.resolve([org]);
       } else {
+        // or here we can show the message that there is no default org authorize one
         return Promise.resolve([]);
       }
     } else if (element.type === NodeType.Org) {
@@ -70,11 +74,18 @@ export class MetadataOutlineProvider
   }
 
   public async getTypes(): Promise<BrowserNode[]> {
-    const outputPath = await getTypesPath();
-    if (!fs.existsSync(outputPath)) {
-      await forceDescribeMetadata(outputPath);
+    const username = this.defaultOrg!;
+    const workspaceRootPath = getRootWorkspacePath();
+    let typesPath = await getTypesFolder(username);
+    typesPath = path.join(typesPath, 'metadataTypes.json');
+
+    let typesList: string[];
+    if (!fs.existsSync(typesPath)) {
+      const result = await forceDescribeMetadata(username);
+      typesList = buildTypesList(result, undefined);
+    } else {
+      typesList = buildTypesList(undefined, typesPath);
     }
-    const typesList = buildTypesList(outputPath);
     const nodeList = [];
     for (const type of typesList) {
       const typeNode = new BrowserNode(type, NodeType.MetadataType);

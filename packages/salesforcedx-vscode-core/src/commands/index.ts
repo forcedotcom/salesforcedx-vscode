@@ -8,6 +8,7 @@
 export {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
+  EmptyPostChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
