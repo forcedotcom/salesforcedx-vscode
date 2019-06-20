@@ -2,6 +2,10 @@
 
 ### Fixed
 
+#### salesforcedx-vscode-apex
+
+- Disable quick fix diagnostics for Apex ([PR #1416](https://github.com/forcedotcom/salesforcedx-vscode/pull/1416), [Issue #1405](https://github.com/forcedotcom/salesforcedx-vscode/issues/1405))
+
 #### salesforcedx-vscode-core
 
 - Guide users to authorize a Dev Hub if they attempt to create a scratch org without enabling a Dev Hub ([PR #1384](https://github.com/forcedotcom/salesforcedx-vscode/pull/1384))
