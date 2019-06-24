@@ -330,35 +330,6 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch SObject Generator Tests",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator",
-      "program": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "100000",
-        "--colors",
-        "--recursive",
-        "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/out/test/"
-      ],
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/out/test/**/*.js"
-      ],
-      "sourceMapPathOverrides": {
-        "../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/out/test/unit/*",
-        "../../../test/integration/": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/out/test/integration/*",
-        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///*": "*"
-      },
-      "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
       "name": "Launch SObject Generator Unit Tests",
       "type": "node",
       "request": "launch",
