@@ -100,6 +100,13 @@
       ]
     },
     "menus": {
+      "view/title": [
+        {
+          "command": "sfdx.force.metadata.view.refresh",
+          "when": "view == metadata",
+          "group": "navigation"
+        }
+      ],
       "view/item/context": [
         {
           "command": "sfdx.force.task.stop",
@@ -625,6 +632,14 @@
       {
         "command": "sfdx.internal.lightning.lwc.create",
         "title": "%force_lightning_lwc_create_text%"
+      },
+      {
+        "command": "sfdx.force.metadata.view.refresh",
+        "title": "Refresh tests",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       }
     ],
     "configuration": {

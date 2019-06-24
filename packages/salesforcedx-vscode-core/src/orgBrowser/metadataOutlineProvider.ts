@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { hasRootWorkspace, OrgAuthInfo } from '../util';
 import {
   BrowserNode,
   buildTypesList,
@@ -45,11 +45,7 @@ export class MetadataOutlineProvider
 
   public async refresh(defaultOrg?: string): Promise<void> {
     await this.getDefaultUsernameOrAlias();
-    if (isNullOrUndefined(this.defaultOrg)) {
-      // show a message and say no default org?
-    } else {
-      this.internalOnDidChangeTreeData.fire();
-    }
+    this.internalOnDidChangeTreeData.fire();
   }
 
   public getTreeItem(element: BrowserNode): vscode.TreeItem {
@@ -62,8 +58,11 @@ export class MetadataOutlineProvider
         const org = new BrowserNode(this.defaultOrg, NodeType.Org);
         return Promise.resolve([org]);
       } else {
-        // or here we can show the message that there is no default org authorize one
-        return Promise.resolve([]);
+        const emptyDefault = new BrowserNode(
+          'No default org set',
+          NodeType.EmptyNode
+        );
+        return Promise.resolve([emptyDefault]);
       }
     } else if (element.type === NodeType.Org) {
       const metadataTypes = await this.getTypes();
@@ -71,9 +70,16 @@ export class MetadataOutlineProvider
       return Promise.resolve(element.children);
     } else if (element.type === NodeType.MetadataType) {
       const metadataCmps = await this.getComponents(element);
-      element.children = metadataCmps;
+      if (isNullOrUndefined(metadataCmps) || metadataCmps.length === 0) {
+        const emptyDefault = new BrowserNode(
+          'No components available',
+          NodeType.EmptyNode
+        );
+        element.children = [emptyDefault];
+      } else {
+        element.children = metadataCmps;
+      }
       return Promise.resolve(element.children);
-      // return Promise.resolve([]);
     }
 
     return Promise.resolve([]);
@@ -81,13 +87,18 @@ export class MetadataOutlineProvider
 
   public async getTypes(): Promise<BrowserNode[]> {
     const username = this.defaultOrg!;
-    let typesPath = await getTypesFolder(username);
-    typesPath = path.join(typesPath, 'metadataTypes.json');
+    const typesFolder = await getTypesFolder(username);
+    const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
     let typesList: string[];
     if (!fs.existsSync(typesPath)) {
-      const result = await forceDescribeMetadata(username);
-      typesList = buildTypesList(result, undefined);
+      try {
+        const result = await forceDescribeMetadata(typesFolder);
+        typesList = buildTypesList(result, undefined);
+      } catch (e) {
+        const errorNode = new BrowserNode(parseErrors(e), NodeType.EmptyNode);
+        return [errorNode];
+      }
     } else {
       typesList = buildTypesList(undefined, typesPath);
     }
@@ -133,20 +144,6 @@ export class MetadataOutlineProvider
       nodeList.push(cmpNode);
     }
     return nodeList;
-
-    /*if (!fs.existsSync(componentsPath)) {
-      await forceListMetadata(metadataType.label!, this.defaultOrg!);
-    }
-    const componentsList = buildComponentsList(
-      componentsPath,
-      metadataType.label!
-    );
-    const nodeList = [];
-    for (const cmp of componentsList) {
-      const cmpNode = new BrowserNode(cmp, NodeType.MetadataCmp);
-      nodeList.push(cmpNode);
-    }
-    return nodeList;*/
   }
 
   public async getDefaultUsernameOrAlias(): Promise<boolean> {
@@ -162,4 +159,22 @@ export class MetadataOutlineProvider
       throw new Error('Workspace could not be found.');
     }
   }
+}
+
+export function parseErrors(error: string): string {
+  const e = JSON.parse(error);
+  let message: string;
+  switch (e.name) {
+    case 'RefreshTokenAuthError':
+      message = 'Error refreshing authentication token.';
+      break;
+    case 'NoOrgFound':
+      message = 'No org authorization info found.';
+      break;
+    default:
+      message = 'Error fetching metadata for org.';
+      break;
+  }
+  message += ' Run "SFDX: Authorize an Org" to authorize your org again.';
+  return message;
 }

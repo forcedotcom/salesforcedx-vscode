@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -71,7 +70,6 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 import {
-  getRootWorkspacePath,
   hasRootWorkspace,
   isCLIInstalled,
   showCLINotInstalledMessage
@@ -410,6 +408,9 @@ async function setupOrgBrowser(
       await metadataProvider.onViewChange();
     }
   });
+  vscode.commands.registerCommand('sfdx.force.metadata.view.refresh', () => {
+    return metadataProvider.refresh();
+  });
   extensionContext.subscriptions.push(treeView);
 }
 
@@ -495,20 +496,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const orgList = new OrgList();
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
-  /*const outputPath = await getTypesPath();
-  await forceDescribeMetadata(outputPath);
-
-  const workspaceRootPath = getRootWorkspacePath();
-  const metadataTypesPath = path.join(
-    workspaceRootPath,
-    '.sfdx',
-    'orgs',
-    outputPath,
-    'metadata',
-    'metadataTypes.json'
-  );
-  const list = await buildTypesList(metadataTypesPath);
-  // console.log(list);*/
 
   await setupOrgBrowser(context, defaultUsernameorAlias);
   vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', true);

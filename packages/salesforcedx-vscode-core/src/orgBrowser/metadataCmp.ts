@@ -14,15 +14,8 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
-import {
-  EmptyParametersGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from '../commands';
+import { SfdxCommandletExecutor } from '../commands';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
@@ -99,25 +92,25 @@ export async function getComponentsPath(
 
 export function buildComponentsList(
   metadataType: string,
-  componentsList?: string,
+  componentsFile?: string,
   componentsPath?: string
 ): string[] {
   const components = [];
-  if (isNullOrUndefined(componentsList)) {
+  if (isNullOrUndefined(componentsFile)) {
     try {
-      componentsList = fs.readFileSync(componentsPath!, 'utf8');
+      componentsFile = fs.readFileSync(componentsPath!, 'utf8');
     } catch (e) {
       throw e;
     }
   }
 
-  const fileObject = JSON.parse(componentsList);
-  let fileArray = fileObject.result;
-  if (!isNullOrUndefined(fileArray)) {
-    fileArray = fileArray instanceof Array ? fileArray : [fileArray];
-    for (const component of fileArray) {
-      if (!isNullOrUndefined(component.fullName)) {
-        components.push(component.fullName);
+  const jsonObject = JSON.parse(componentsFile);
+  let cmpArray = jsonObject.result;
+  if (!isNullOrUndefined(cmpArray)) {
+    cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
+    for (const cmp of cmpArray) {
+      if (!isNullOrUndefined(cmp.fullName)) {
+        components.push(cmp.fullName);
       }
     }
   }
@@ -127,26 +120,4 @@ export function buildComponentsList(
     { metadataComponents: components.length }
   );
   return components;
-  /* try {
-    const metaComponents = [];
-    const fileData = fs.readFileSync(componentsPath, 'utf8');
-    if (fileData !== 'undefined') {
-      const fileObject = JSON.parse(fileData);
-      const cmpList = fileObject instanceof Array ? fileObject : [fileObject];
-      for (const component of cmpList) {
-        if (!isNullOrUndefined(component.fullName)) {
-          metaComponents.push(component.fullName);
-        }
-      }
-    }
-    telemetryService.sendEventData(
-      'Metadata Components quantity',
-      { metadataType },
-      { metadataComponents: metaComponents.length }
-    );
-    return metaComponents;
-  } catch (e) {
-    telemetryService.sendError(e);
-    throw new Error(e);
-  }*/
 }

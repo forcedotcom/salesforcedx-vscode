@@ -36,11 +36,9 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export async function forceDescribeMetadata(username: string): Promise<string> {
-  /* if (isNullOrUndefined(outputPath)) {
-    outputPath = await getTypesPath(username);
-  }*/
-  const outputFolder = await getTypesFolder(username);
+export async function forceDescribeMetadata(
+  outputFolder: string
+): Promise<string> {
   const execution = new CliCommandExecutor(
     new ForceDescribeMetadataExecutor().build({}),
     { cwd: getRootWorkspacePath() }
@@ -84,22 +82,22 @@ export type MetadataObject = {
 };
 
 export function buildTypesList(
-  metadataTypesList?: any,
+  metadataFile?: any,
   metadataTypesPath?: string
 ): string[] {
-  if (isNullOrUndefined(metadataTypesList)) {
+  if (isNullOrUndefined(metadataFile)) {
     try {
-      metadataTypesList = fs.readFileSync(metadataTypesPath!, 'utf8');
+      metadataFile = fs.readFileSync(metadataTypesPath!, 'utf8');
     } catch (e) {
       throw e;
     }
   }
-  const metadata = JSON.parse(metadataTypesList);
-  const metadataObjects = metadata.result.metadataObjects as MetadataObject[];
+  const jsonObject = JSON.parse(metadataFile);
+  const metadataObjects = jsonObject.result.metadataObjects as MetadataObject[];
   const metadataTypes = [];
-  for (const metadataObject of metadataObjects) {
-    if (!isNullOrUndefined(metadataObject.xmlName)) {
-      metadataTypes.push(metadataObject.xmlName);
+  for (const type of metadataObjects) {
+    if (!isNullOrUndefined(type.xmlName)) {
+      metadataTypes.push(type.xmlName);
     }
   }
   telemetryService.sendEventData('Metadata Types Quantity', undefined, {
