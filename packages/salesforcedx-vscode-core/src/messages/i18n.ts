@@ -455,5 +455,7 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
-  XOrgHub: 'X Org Hubs'
+  XOrgHub: 'X Org Hubs',
+
+  force_source_diff_text: 'SFDX: Diff File Against Org'
 };

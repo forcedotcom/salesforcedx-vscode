@@ -81,3 +81,4 @@ export {
   ForceSourceRetrieveExecutor,
   generateSuffix
 } from './forceSourceRetrieveCmp';
+export { forceSourceDiff } from './forceSourceDiff';

@@ -143,6 +143,10 @@
         {
           "command": "sfdx.force.source.delete.current.file",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened"
         }
       ],
       "explorer/context": [
@@ -666,6 +670,10 @@
           "light": "resources/light/retrieve.svg",
           "dark": "resources/dark/retrieve.svg"
         }
+      },
+      {
+        "command": "sfdx.force.diff",
+        "title": "SFDX: Diff File Against Org"
       }
     ],
     "configuration": {
