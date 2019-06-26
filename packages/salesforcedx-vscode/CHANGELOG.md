@@ -1,3 +1,13 @@
+## 46.3.0 - June 27, 2019
+
+### Fixed
+
+- Update launch configurations for running extension tests ([PR #1422](https://github.com/forcedotcom/salesforcedx-vscode/pull/1422))
+
+#### salesforcedx-vscode-apex
+
+- Extract Unary Expressions and disable extract for unresolved types ([PR #1427](https://github.com/forcedotcom/salesforcedx-vscode/pull/1427))
+
 ## 46.2.0 - June 20, 2019
 
 ### Fixed
