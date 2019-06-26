@@ -257,5 +257,6 @@ export const messages = {
   error_no_org_found: 'No org authorization info found.',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
-    'Run "SFDX: Authorize an Org" to authorize your org again.'
+    'Run "SFDX: Authorize an Org" to authorize your org again.',
+  force_list_metadata_text: 'SFDX: Force List Metadata'
 };

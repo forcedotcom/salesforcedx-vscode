@@ -29,10 +29,10 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
 
   public build(data: {}): Command {
     let builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_list_metadata_text'))
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
+      .withLogName('force_list_metadata_text')
       .withJson();
 
     if (folderTypes.has(this.metadataType)) {
