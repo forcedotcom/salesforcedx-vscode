@@ -635,7 +635,7 @@
       },
       {
         "command": "sfdx.force.metadata.view.refresh",
-        "title": "Refresh tests",
+        "title": "%refresh_org_browser_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"

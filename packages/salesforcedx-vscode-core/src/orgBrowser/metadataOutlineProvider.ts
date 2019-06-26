@@ -4,23 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'fs';
-import * as path from 'path';
-import { isNullOrUndefined } from 'util';
+import { isEmpty } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
-import {
-  BrowserNode,
-  buildTypesList,
-  forceDescribeMetadata,
-  NodeType
-} from './index';
-import {
-  buildComponentsList,
-  forceListMetadata,
-  getComponentsPath
-} from './metadataCmp';
-import { getTypesFolder } from './metadataType';
+import { BrowserNode, loadComponents, loadTypes, NodeType } from './index';
 
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
@@ -33,18 +21,21 @@ export class MetadataOutlineProvider
     BrowserNode | undefined
   > = this.internalOnDidChangeTreeData.event;
 
-  constructor(defaultOrg?: string) {
+  constructor(defaultOrg: string | undefined) {
     this.defaultOrg = defaultOrg;
   }
 
   public async onViewChange() {
-    if (await this.getDefaultUsernameOrAlias()) {
+    const usernameOrAlias = await this.getDefaultUsernameOrAlias();
+    if (usernameOrAlias !== this.defaultOrg) {
       this.internalOnDidChangeTreeData.fire();
     }
+    this.defaultOrg = usernameOrAlias;
   }
 
-  public async refresh(defaultOrg?: string): Promise<void> {
-    await this.getDefaultUsernameOrAlias();
+  public async refresh(): Promise<void> {
+    const usernameOrAlias = await this.getDefaultUsernameOrAlias();
+    this.defaultOrg = usernameOrAlias;
     this.internalOnDidChangeTreeData.fire();
   }
 
@@ -53,110 +44,66 @@ export class MetadataOutlineProvider
   }
 
   public async getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
-    if (isNullOrUndefined(element)) {
-      if (!isNullOrUndefined(this.defaultOrg)) {
-        const org = new BrowserNode(this.defaultOrg, NodeType.Org);
-        return Promise.resolve([org]);
-      } else {
-        const emptyDefault = new BrowserNode(
-          'No default org set',
-          NodeType.EmptyNode
-        );
-        return Promise.resolve([emptyDefault]);
-      }
-    } else if (element.type === NodeType.Org) {
-      const metadataTypes = await this.getTypes();
-      element.children = metadataTypes;
-      return Promise.resolve(element.children);
-    } else if (element.type === NodeType.MetadataType) {
-      const metadataCmps = await this.getComponents(element);
-      if (isNullOrUndefined(metadataCmps) || metadataCmps.length === 0) {
-        const emptyDefault = new BrowserNode(
-          'No components available',
-          NodeType.EmptyNode
-        );
-        element.children = [emptyDefault];
-      } else {
-        element.children = metadataCmps;
-      }
-      return Promise.resolve(element.children);
+    if (isEmpty(this.defaultOrg)) {
+      const emptyDefault = new BrowserNode(
+        nls.localize('missing_default_org'),
+        NodeType.EmptyNode
+      );
+      return Promise.resolve([emptyDefault]);
     }
 
-    return Promise.resolve([]);
+    if (isEmpty(element)) {
+      const org = new BrowserNode(this.defaultOrg, NodeType.Org);
+      return Promise.resolve([org]);
+    }
+
+    switch (element.type) {
+      case NodeType.Org:
+        element.children = await this.getTypes();
+        break;
+      case NodeType.MetadataType:
+        element.children = await this.getComponents(element);
+        break;
+    }
+    return Promise.resolve(element.children);
   }
 
   public async getTypes(): Promise<BrowserNode[]> {
     const username = this.defaultOrg!;
-    const typesFolder = await getTypesFolder(username);
-    const typesPath = path.join(typesFolder, 'metadataTypes.json');
-
-    let typesList: string[];
-    if (!fs.existsSync(typesPath)) {
-      try {
-        const result = await forceDescribeMetadata(typesFolder);
-        typesList = buildTypesList(result, undefined);
-      } catch (e) {
-        const errorNode = new BrowserNode(parseErrors(e), NodeType.EmptyNode);
-        return [errorNode];
-      }
-    } else {
-      typesList = buildTypesList(undefined, typesPath);
+    try {
+      const typesList = await loadTypes(username);
+      const nodeList = typesList.map(
+        type => new BrowserNode(type, NodeType.MetadataType)
+      );
+      return nodeList;
+    } catch (e) {
+      const errorNode = new BrowserNode(parseErrors(e), NodeType.EmptyNode);
+      return [errorNode];
     }
-    const nodeList = [];
-    for (const type of typesList) {
-      const typeNode = new BrowserNode(type, NodeType.MetadataType);
-      nodeList.push(typeNode);
-    }
-    return nodeList;
   }
 
   public async getComponents(
     metadataType: BrowserNode
   ): Promise<BrowserNode[]> {
     const username = this.defaultOrg!;
-    const componentsPath = await getComponentsPath(
-      metadataType.label!,
-      username
+    const componentsList = await loadComponents(username, metadataType.label!);
+    const nodeList = componentsList.map(
+      cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
     );
-
-    let componentsList: string[];
-    if (!fs.existsSync(componentsPath)) {
-      const result = await forceListMetadata(
-        metadataType.label!,
-        username,
-        componentsPath
+    if (nodeList.length === 0) {
+      nodeList.push(
+        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
       );
-      componentsList = buildComponentsList(
-        metadataType.label!,
-        result,
-        undefined
-      );
-    } else {
-      componentsList = buildComponentsList(
-        metadataType.label!,
-        undefined,
-        componentsPath
-      );
-    }
-    const nodeList = [];
-    for (const component of componentsList) {
-      const cmpNode = new BrowserNode(component, NodeType.MetadataCmp);
-      nodeList.push(cmpNode);
     }
     return nodeList;
   }
 
-  public async getDefaultUsernameOrAlias(): Promise<boolean> {
+  public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
     if (hasRootWorkspace()) {
       const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-      let diff = false;
-      if (username !== this.defaultOrg) {
-        diff = true;
-      }
-      this.defaultOrg = username;
-      return diff;
+      return username;
     } else {
-      throw new Error('Workspace could not be found.');
+      throw new Error(nls.localize('cannot_determine_workspace'));
     }
   }
 }
@@ -166,15 +113,15 @@ export function parseErrors(error: string): string {
   let message: string;
   switch (e.name) {
     case 'RefreshTokenAuthError':
-      message = 'Error refreshing authentication token.';
+      message = nls.localize('error_auth_token');
       break;
     case 'NoOrgFound':
-      message = 'No org authorization info found.';
+      message = nls.localize('error_no_org_found');
       break;
     default:
-      message = 'Error fetching metadata for org.';
+      message = nls.localize('error_fetching_metadata');
       break;
   }
-  message += ' Run "SFDX: Authorize an Org" to authorize your org again.';
+  message += nls.localize('error_org_browser_text');
   return message;
 }

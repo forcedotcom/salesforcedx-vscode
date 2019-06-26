@@ -5,56 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { isEmpty } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
-import { mkdir } from 'shelljs';
-import { isNullOrUndefined } from 'util';
-import { SfdxCommandletExecutor } from '../commands';
+import { forceDescribeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
-export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
-  string
-> {
-  public constructor() {
-    super();
-  }
-
-  public build(data: {}): Command {
-    return new SfdxCommandBuilder()
-      .withArg('force:mdapi:describemetadata')
-      .withJson()
-      .withLogName('force_describe_metadata')
-      .build();
-  }
-}
-
-export async function forceDescribeMetadata(
-  outputFolder: string
-): Promise<string> {
-  const execution = new CliCommandExecutor(
-    new ForceDescribeMetadataExecutor().build({}),
-    { cwd: getRootWorkspacePath() }
-  ).execute();
-  if (!fs.existsSync(outputFolder)) {
-    mkdir('-p', outputFolder);
-  }
-  const filePath = path.join(outputFolder, 'metadataTypes.json');
-
-  const cmdOutput = new CommandOutput();
-  const result = await cmdOutput.getCmdResult(execution);
-  fs.writeFileSync(filePath, result);
-  return result;
-}
-
-export async function getTypesFolder(usernameOrAlias: string): Promise<string> {
+async function getTypesFolder(usernameOrAlias: string): Promise<string> {
   if (!hasRootWorkspace()) {
     const err = nls.localize('cannot_determine_workspace');
     telemetryService.sendError(err);
@@ -81,27 +40,43 @@ export type MetadataObject = {
   xmlName: string;
 };
 
-export function buildTypesList(
+function buildTypesList(
   metadataFile?: any,
   metadataTypesPath?: string
 ): string[] {
-  if (isNullOrUndefined(metadataFile)) {
-    try {
+  try {
+    if (isEmpty(metadataFile)) {
       metadataFile = fs.readFileSync(metadataTypesPath!, 'utf8');
-    } catch (e) {
-      throw e;
     }
-  }
-  const jsonObject = JSON.parse(metadataFile);
-  const metadataObjects = jsonObject.result.metadataObjects as MetadataObject[];
-  const metadataTypes = [];
-  for (const type of metadataObjects) {
-    if (!isNullOrUndefined(type.xmlName)) {
-      metadataTypes.push(type.xmlName);
+    const jsonObject = JSON.parse(metadataFile);
+    const metadataObjects = jsonObject.result
+      .metadataObjects as MetadataObject[];
+    const metadataTypes = [];
+    for (const type of metadataObjects) {
+      if (!isEmpty(type.xmlName)) {
+        metadataTypes.push(type.xmlName);
+      }
     }
+    telemetryService.sendEventData('Metadata Types Quantity', undefined, {
+      metadataTypes: metadataTypes.length
+    });
+    return metadataTypes.sort();
+  } catch (e) {
+    telemetryService.sendError(e);
+    throw new Error(e);
   }
-  telemetryService.sendEventData('Metadata Types Quantity', undefined, {
-    metadataTypes: metadataTypes.length
-  });
-  return metadataTypes;
+}
+
+export async function loadTypes(defaultOrg: string): Promise<string[]> {
+  const typesFolder = await getTypesFolder(defaultOrg);
+  const typesPath = path.join(typesFolder, 'metadataTypes.json');
+
+  let typesList: string[];
+  if (!fs.existsSync(typesPath)) {
+    const result = await forceDescribeMetadata(typesFolder);
+    typesList = buildTypesList(result, undefined);
+  } else {
+    typesList = buildTypesList(undefined, typesPath);
+  }
+  return typesList;
 }

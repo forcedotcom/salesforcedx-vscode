@@ -5,17 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
+/*import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { nls } from '../../../src/messages';
-import {
-  buildTypesList,
-  ForceDescribeMetadataExecutor,
-  getTypesFolder
-} from '../../../src/orgBrowser';
+import { ForceDescribeMetadataExecutor } from '../../../src/commands';
+import { buildTypesList, getTypesFolder } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 describe('Force Describe Metadata', () => {
@@ -58,7 +54,7 @@ describe('get metadata types path', () => {
     );
   });
 
-  /*it('should throw an error if default username is not set', async () => {
+  it('should throw an error if default username is not set', async () => {
     getDefaultUsernameStub.returns(undefined);
     let errorWasThrown = false;
     try {
@@ -70,7 +66,7 @@ describe('get metadata types path', () => {
       expect(getUsernameStub.called).to.be.false;
       expect(errorWasThrown).to.be.true;
     }
-  });*/
+  });
 });
 
 describe('build metadata types list', () => {
@@ -114,4 +110,4 @@ describe('build metadata types list', () => {
       expect(errorWasThrown).to.be.true;
     }
   });
-});
+});*/

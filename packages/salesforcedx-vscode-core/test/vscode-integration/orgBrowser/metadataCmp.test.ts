@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
+/*import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
+import { folderTypes, ForceListMetadataExecutor } from '../../../src/commands';
 import {
   buildComponentsList,
-  folderTypes,
-  ForceListMetadataExecutor,
   getComponentsPath
 } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
@@ -110,4 +109,4 @@ describe('build metadata components list', () => {
       expect(errorWasThrown).to.be.true;
     }
   });
-});
+}); */

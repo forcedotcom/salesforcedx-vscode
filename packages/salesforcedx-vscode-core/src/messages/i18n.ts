@@ -252,5 +252,10 @@ export const messages = {
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
   force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component',
-  force_list_metadata_text: 'SFDX: List Metadata'
+  empty_components: 'No components available',
+  error_auth_token: 'Error refreshing authentication token.',
+  error_no_org_found: 'No org authorization info found.',
+  error_fetching_metadata: 'Error fetching metadata for org.',
+  error_org_browser_text:
+    'Run "SFDX: Authorize an Org" to authorize your org again.'
 };
