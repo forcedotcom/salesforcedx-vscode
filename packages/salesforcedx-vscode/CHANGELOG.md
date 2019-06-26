@@ -2,8 +2,6 @@
 
 ### Fixed
 
-- Update launch configurations for running extension tests ([PR #1422](https://github.com/forcedotcom/salesforcedx-vscode/pull/1422))
-
 #### salesforcedx-vscode-apex
 
 - Extract unary expressions and disable extract for unresolved expression types ([PR #1427](https://github.com/forcedotcom/salesforcedx-vscode/pull/1427))
