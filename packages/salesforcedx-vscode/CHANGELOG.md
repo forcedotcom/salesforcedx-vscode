@@ -6,7 +6,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Extract Unary Expressions and disable extract for unresolved types ([PR #1427](https://github.com/forcedotcom/salesforcedx-vscode/pull/1427))
+- Extract unary expressions and disable extract for unresolved expression types ([PR #1427](https://github.com/forcedotcom/salesforcedx-vscode/pull/1427))
 
 ## 46.2.0 - June 20, 2019
 
