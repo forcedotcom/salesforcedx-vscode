@@ -8,7 +8,7 @@ import { isEmpty } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
-import { BrowserNode, loadComponents, loadTypes, NodeType } from './index';
+import { BrowserNode, ComponentUtils, NodeType, TypeUtils } from './index';
 
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
@@ -70,8 +70,9 @@ export class MetadataOutlineProvider
 
   public async getTypes(): Promise<BrowserNode[]> {
     const username = this.defaultOrg!;
+    const typeUtil = new TypeUtils();
     try {
-      const typesList = await loadTypes(username);
+      const typesList = await typeUtil.loadTypes(username);
       const nodeList = typesList.map(
         type => new BrowserNode(type, NodeType.MetadataType)
       );
@@ -86,7 +87,11 @@ export class MetadataOutlineProvider
     metadataType: BrowserNode
   ): Promise<BrowserNode[]> {
     const username = this.defaultOrg!;
-    const componentsList = await loadComponents(username, metadataType.label!);
+    const cmpUtil = new ComponentUtils();
+    const componentsList = await cmpUtil.loadComponents(
+      username,
+      metadataType.label!
+    );
     const nodeList = componentsList.map(
       cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
     );
@@ -108,7 +113,7 @@ export class MetadataOutlineProvider
   }
 }
 
-export function parseErrors(error: string): string {
+function parseErrors(error: string): string {
   const e = JSON.parse(error);
   let message: string;
   switch (e.name) {

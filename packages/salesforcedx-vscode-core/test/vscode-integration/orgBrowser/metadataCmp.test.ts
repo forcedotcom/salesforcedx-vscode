@@ -4,54 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-/*import { expect } from 'chai';
+import {
+  CliCommandExecutor,
+  CommandOutput
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { folderTypes, ForceListMetadataExecutor } from '../../../src/commands';
-import {
-  buildComponentsList,
-  getComponentsPath
-} from '../../../src/orgBrowser';
+import { ComponentUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
-
-describe('Force List Metadata', () => {
-  it('Should build list metadata command', async () => {
-    const outputPath = 'outputPath';
-    const metadataType = 'ApexClass';
-    const defaultUsername = 'test-username1@example.com';
-    const forceListMetadataExec = new ForceListMetadataExecutor(
-      metadataType,
-      defaultUsername
-    );
-    const forceDescribeMetadataCmd = forceListMetadataExec.build({});
-    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} -f ${outputPath} --json --loglevel fatal`
-    );
-  });
-
-  it('Should build list metadata command with folder arg', async () => {
-    const outputPath = 'outputPath';
-    const defaultUsername = 'test-username1@example.com';
-    for (const type of folderTypes) {
-      const forceListMetadataExec = new ForceListMetadataExecutor(
-        type,
-        defaultUsername
-      );
-      const forceDescribeMetadataCmd = forceListMetadataExec.build({});
-      expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-        `sfdx force:mdapi:listmetadata -m ${type} -u ${defaultUsername} -f ${outputPath} --json --loglevel fatal --folder unfiled$public`
-      );
-    }
-  });
-});
 
 // tslint:disable:no-unused-expression
 describe('get metadata components path', () => {
   let getUsernameStub: SinonStub;
   const rootWorkspacePath = getRootWorkspacePath();
+  const cmpUtil = new ComponentUtils();
   beforeEach(() => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername');
   });
@@ -71,42 +40,126 @@ describe('get metadata components path', () => {
       'metadata',
       metadataType + '.json'
     );
-    expect(await getComponentsPath(metadataType, alias)).to.equal(filePath);
+    expect(await cmpUtil.getComponentsPath(metadataType, alias)).to.equal(
+      filePath
+    );
   });
 });
 
 describe('build metadata components list', () => {
   let readFileStub: SinonStub;
+  const cmpUtil = new ComponentUtils();
   beforeEach(() => {
     readFileStub = stub(fs, 'readFileSync');
   });
   afterEach(() => {
     readFileStub.restore();
   });
-  it('should return a list of fullNames when given a list of metadata components', async () => {
-    const componentsPath = 'metadataComponentsPath';
+
+  it('should return a sorted list of fullNames when given a list of metadata components', async () => {
     const metadataType = 'ApexClass';
-    const fileData = JSON.stringify([
-      { fullName: 'fakeName1', suffix: 'fakeSuffix1' },
-      { fullName: 'fakeName2', suffix: 'fakeSuffix2' }
-    ]);
-    readFileStub.returns(fileData);
-    const fullNames = buildComponentsList(componentsPath, metadataType);
+    const fileData = JSON.stringify({
+      status: 0,
+      result: [
+        { fullName: 'fakeName2', type: 'ApexClass' },
+        { fullName: 'fakeName1', type: 'ApexClass' }
+      ]
+    });
+    const fullNames = cmpUtil.buildComponentsList(
+      metadataType,
+      fileData,
+      undefined
+    );
     if (!isNullOrUndefined(fullNames)) {
       expect(fullNames[0]).to.equal('fakeName1');
       expect(fullNames[1]).to.equal('fakeName2');
+      expect(readFileStub.called).to.equal(false);
     }
   });
-  it('should throw an error if the file does not exist yet', async () => {
-    const metadataTypesPath = 'invalidPath';
+
+  it('should return a sorted list of fullNames when given the metadata components result file path', async () => {
+    const filePath = '/test/metadata/ApexClass.json';
     const metadataType = 'ApexClass';
-    let errorWasThrown = false;
-    try {
-      buildComponentsList(metadataTypesPath, metadataType);
-    } catch (e) {
-      errorWasThrown = true;
-    } finally {
-      expect(errorWasThrown).to.be.true;
+    const fileData = JSON.stringify({
+      status: 0,
+      result: [
+        { fullName: 'fakeName2', type: 'ApexClass' },
+        { fullName: 'fakeName1', type: 'ApexClass' }
+      ]
+    });
+    readFileStub.returns(fileData);
+
+    const fullNames = cmpUtil.buildComponentsList(
+      metadataType,
+      undefined,
+      filePath
+    );
+    if (!isNullOrUndefined(fullNames)) {
+      expect(fullNames[0]).to.equal('fakeName1');
+      expect(fullNames[1]).to.equal('fakeName2');
+      expect(readFileStub.called).to.equal(true);
     }
   });
-}); */
+});
+
+describe('load metadata component data', () => {
+  let readFileStub: SinonStub;
+  let getUsernameStub: SinonStub;
+  let fileExistsStub: SinonStub;
+  let buildComponentsStub: SinonStub;
+  let cliCommandStub: SinonStub;
+  let cmdOutputStub: SinonStub;
+  let writeFileStub: SinonStub;
+  let getComponentsPathStub: SinonStub;
+  const cmpUtil = new ComponentUtils();
+  const defaultOrg = 'defaultOrg@test.com';
+  const metadataType = 'ApexClass';
+  const filePath = '/test/metadata/ApexClass.json';
+  beforeEach(() => {
+    readFileStub = stub(fs, 'readFileSync');
+    getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
+    fileExistsStub = stub(fs, 'existsSync');
+    buildComponentsStub = stub(ComponentUtils.prototype, 'buildComponentsList');
+    cliCommandStub = stub(CliCommandExecutor.prototype, 'execute');
+    cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
+    writeFileStub = stub(fs, 'writeFileSync');
+    getComponentsPathStub = stub(
+      ComponentUtils.prototype,
+      'getComponentsPath'
+    ).returns(filePath);
+  });
+  afterEach(() => {
+    readFileStub.restore();
+    getUsernameStub.restore();
+    fileExistsStub.restore();
+    buildComponentsStub.restore();
+    cliCommandStub.restore();
+    cmdOutputStub.restore();
+    writeFileStub.restore();
+    getComponentsPathStub.restore();
+  });
+
+  it('should load metadata components through cli command if file does not exist', async () => {
+    fileExistsStub.returns(false);
+    const fileData = JSON.stringify({
+      status: 0,
+      result: [
+        { fullName: 'fakeName2', type: 'ApexClass' },
+        { fullName: 'fakeName1', type: 'ApexClass' }
+      ]
+    });
+    cmdOutputStub.returns(fileData);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
+    expect(cmdOutputStub.called).to.equal(true);
+    expect(buildComponentsStub.calledWith(metadataType, fileData, undefined)).to
+      .be.true;
+  });
+
+  it('should load metadata components from file if file exists', async () => {
+    fileExistsStub.returns(true);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
+    expect(cmdOutputStub.called).to.equal(false);
+    expect(buildComponentsStub.calledWith(metadataType, undefined, filePath)).to
+      .be.true;
+  });
+});

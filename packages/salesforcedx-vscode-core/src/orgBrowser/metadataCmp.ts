@@ -12,87 +12,96 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
-async function getComponentsPath(
-  metadataType: string,
-  defaultUsernameOrAlias: string
-): Promise<string> {
-  if (!hasRootWorkspace()) {
-    const err = nls.localize('cannot_determine_workspace');
-    telemetryService.sendError(err);
-    throw new Error(err);
-  }
-
-  const workspaceRootPath = getRootWorkspacePath();
-
-  const username =
-    (await OrgAuthInfo.getUsername(defaultUsernameOrAlias)) ||
-    defaultUsernameOrAlias;
-
-  const componentsPath = path.join(
-    workspaceRootPath,
-    '.sfdx',
-    'orgs',
-    username,
-    'metadata',
-    metadataType + '.json'
-  );
-  return componentsPath;
-}
-
-function buildComponentsList(
-  metadataType: string,
-  componentsFile?: string,
-  componentsPath?: string
-): string[] {
-  try {
-    if (isEmpty(componentsFile)) {
-      componentsFile = fs.readFileSync(componentsPath!, 'utf8');
+export class ComponentUtils {
+  public async getComponentsPath(
+    metadataType: string,
+    defaultUsernameOrAlias: string
+  ): Promise<string> {
+    if (!hasRootWorkspace()) {
+      const err = nls.localize('cannot_determine_workspace');
+      telemetryService.sendError(err);
+      throw new Error(err);
     }
 
-    const jsonObject = JSON.parse(componentsFile);
-    let cmpArray = jsonObject.result;
+    const workspaceRootPath = getRootWorkspacePath();
 
-    const components = [];
-    if (!isEmpty(cmpArray)) {
-      cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
-      for (const cmp of cmpArray) {
-        if (!isEmpty(cmp.fullName)) {
-          components.push(cmp.fullName);
+    const username =
+      (await OrgAuthInfo.getUsername(defaultUsernameOrAlias)) ||
+      defaultUsernameOrAlias;
+
+    const componentsPath = path.join(
+      workspaceRootPath,
+      '.sfdx',
+      'orgs',
+      username,
+      'metadata',
+      metadataType + '.json'
+    );
+    return componentsPath;
+  }
+
+  public buildComponentsList(
+    metadataType: string,
+    componentsFile?: string,
+    componentsPath?: string
+  ): string[] {
+    try {
+      if (isEmpty(componentsFile)) {
+        componentsFile = fs.readFileSync(componentsPath!, 'utf8');
+      }
+
+      const jsonObject = JSON.parse(componentsFile);
+      let cmpArray = jsonObject.result;
+
+      const components = [];
+      if (!isEmpty(cmpArray)) {
+        cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
+        for (const cmp of cmpArray) {
+          if (!isEmpty(cmp.fullName)) {
+            components.push(cmp.fullName);
+          }
         }
       }
+      telemetryService.sendEventData(
+        'Metadata Components quantity',
+        { metadataType },
+        { metadataComponents: components.length }
+      );
+      return components.sort();
+    } catch (e) {
+      telemetryService.sendError(e);
+      throw new Error(e);
     }
-    telemetryService.sendEventData(
-      'Metadata Components quantity',
-      { metadataType },
-      { metadataComponents: components.length }
-    );
-    return components.sort();
-  } catch (e) {
-    telemetryService.sendError(e);
-    throw new Error(e);
   }
-}
 
-export async function loadComponents(
-  defaultOrg: string,
-  metadataType: string
-): Promise<string[]> {
-  const componentsPath = await getComponentsPath(metadataType, defaultOrg);
+  public async loadComponents(
+    defaultOrg: string,
+    metadataType: string
+  ): Promise<string[]> {
+    const componentsPath = await this.getComponentsPath(
+      metadataType,
+      defaultOrg
+    );
 
-  let componentsList: string[];
-  if (!fs.existsSync(componentsPath)) {
-    const result = await forceListMetadata(
-      metadataType,
-      defaultOrg,
-      componentsPath
-    );
-    componentsList = buildComponentsList(metadataType, result, undefined);
-  } else {
-    componentsList = buildComponentsList(
-      metadataType,
-      undefined,
-      componentsPath
-    );
+    let componentsList: string[];
+    if (!fs.existsSync(componentsPath)) {
+      const result = await forceListMetadata(
+        metadataType,
+        defaultOrg,
+        componentsPath
+      );
+      componentsList = this.buildComponentsList(
+        metadataType,
+        result,
+        undefined
+      );
+    } else {
+      componentsList = this.buildComponentsList(
+        metadataType,
+        undefined,
+        componentsPath
+      );
+    }
+    return componentsList;
   }
-  return componentsList;
 }
