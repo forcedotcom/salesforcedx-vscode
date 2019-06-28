@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isEmpty } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
 import { forceListMetadata } from '../commands';
@@ -46,7 +46,7 @@ export class ComponentUtils {
     componentsPath?: string
   ): string[] {
     try {
-      if (isEmpty(componentsFile)) {
+      if (isNullOrUndefined(componentsFile)) {
         componentsFile = fs.readFileSync(componentsPath!, 'utf8');
       }
 
@@ -54,10 +54,10 @@ export class ComponentUtils {
       let cmpArray = jsonObject.result;
 
       const components = [];
-      if (!isEmpty(cmpArray)) {
+      if (!isNullOrUndefined(cmpArray)) {
         cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
-          if (!isEmpty(cmp.fullName)) {
+          if (!isNullOrUndefined(cmp.fullName)) {
             components.push(cmp.fullName);
           }
         }

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isEmpty } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -44,7 +44,7 @@ export class MetadataOutlineProvider
   }
 
   public async getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
-    if (isEmpty(this.defaultOrg)) {
+    if (isNullOrUndefined(this.defaultOrg)) {
       const emptyDefault = new BrowserNode(
         nls.localize('missing_default_org'),
         NodeType.EmptyNode
@@ -52,7 +52,7 @@ export class MetadataOutlineProvider
       return Promise.resolve([emptyDefault]);
     }
 
-    if (isEmpty(element)) {
+    if (isNullOrUndefined(element)) {
       const org = new BrowserNode(this.defaultOrg, NodeType.Org);
       return Promise.resolve([org]);
     }

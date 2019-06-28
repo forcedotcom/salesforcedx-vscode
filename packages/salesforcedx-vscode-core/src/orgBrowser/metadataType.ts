@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isEmpty } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
@@ -45,7 +45,7 @@ export class TypeUtils {
     metadataTypesPath?: string
   ): string[] {
     try {
-      if (isEmpty(metadataFile)) {
+      if (isNullOrUndefined(metadataFile)) {
         metadataFile = fs.readFileSync(metadataTypesPath!, 'utf8');
       }
       const jsonObject = JSON.parse(metadataFile);
@@ -53,7 +53,7 @@ export class TypeUtils {
         .metadataObjects as MetadataObject[];
       const metadataTypes = [];
       for (const type of metadataObjects) {
-        if (!isEmpty(type.xmlName)) {
+        if (!isNullOrUndefined(type.xmlName)) {
           metadataTypes.push(type.xmlName);
         }
       }
