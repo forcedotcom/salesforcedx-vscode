@@ -7,10 +7,11 @@
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
-import { forceListMetadata } from '../commands';
+import { forceListMetadata, forceSourceRetrieve } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { BrowserNode } from './nodeTypes';
 
 export class ComponentUtils {
   public async getComponentsPath(
@@ -103,5 +104,12 @@ export class ComponentUtils {
       );
     }
     return componentsList;
+  }
+
+  public async retrieveComponent(componentNode: BrowserNode) {
+    const type = componentNode.metadataType;
+    const component = componentNode.label;
+    const sourceToRetrieve = type + ':' + component;
+    await forceSourceRetrieve(sourceToRetrieve);
   }
 }

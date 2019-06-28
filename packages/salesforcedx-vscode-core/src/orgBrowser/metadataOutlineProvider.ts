@@ -93,7 +93,7 @@ export class MetadataOutlineProvider
       metadataType.label!
     );
     const nodeList = componentsList.map(
-      cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
+      cmp => new BrowserNode(cmp, NodeType.MetadataCmp, metadataType.label!)
     );
     if (nodeList.length === 0) {
       nodeList.push(

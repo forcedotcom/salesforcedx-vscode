@@ -15,7 +15,12 @@ export enum NodeType {
 
 export class BrowserNode extends vscode.TreeItem {
   public children: BrowserNode[] = [];
-  constructor(label: string, public readonly type: NodeType) {
+  public metadataType: string | undefined;
+  constructor(
+    label: string,
+    public readonly type: NodeType,
+    metadataType?: string
+  ) {
     super(label);
     this.type = type;
     switch (this.type) {
@@ -26,6 +31,8 @@ export class BrowserNode extends vscode.TreeItem {
       case NodeType.MetadataCmp:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;
         this.tooltip = 'Metadata Component';
+        this.contextValue = 'component';
+        this.metadataType = metadataType;
         break;
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
