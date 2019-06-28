@@ -258,5 +258,5 @@ export const messages = {
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
-  force_list_metadata_text: 'SFDX: Force List Metadata'
+  force_list_metadata: 'SFDX: Force List Metadata'
 };

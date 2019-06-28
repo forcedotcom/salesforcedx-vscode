@@ -32,7 +32,7 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
-      .withLogName(nls.localize('force_list_metadata_text'))
+      .withLogName(nls.localize('force_list_metadata'))
       .withJson();
 
     if (folderTypes.has(this.metadataType)) {
