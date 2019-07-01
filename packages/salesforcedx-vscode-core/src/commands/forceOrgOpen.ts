@@ -6,8 +6,8 @@
  */
 
 import {
-  Command,
   CliCommandExecutor,
+  Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -20,6 +20,15 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+
+interface CLIOrgData {
+  status: number;
+  result: {
+    orgId: string;
+    url: string;
+    username: string;
+  };
+}
 
 class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
@@ -41,15 +50,25 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    execution.stdoutSubject.subscribe(cliResponsedata => {
-      console.log('CLI DATA: ', JSON.parse(cliResponsedata.toString()));
-      const orgData = JSON.parse(cliResponsedata.toString()).result;
-      console.log('\nURL==>', orgData.result.url);
-    });
+    if (process.env.SFDX_CONTAINER_MODE) {
+      execution.stdoutSubject.subscribe(cliResponseJSON => {
+        try {
+          const cliOrgData: CLIOrgData = JSON.parse(cliResponseJSON.toString());
+          const authenticatedOrgUrl: string = cliOrgData.result.url;
+          console.log('\nCLI DATA==> ', cliOrgData);
+          console.log('\nURL==>', authenticatedOrgUrl);
+          if (authenticatedOrgUrl) {
+            vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    }
   }
 }
 
-console.log('Activation CONTAINER MODE==>', process.env.SFDX_CONTAINER_MODE);
+console.log('\nActivation CONTAINER MODE==>', process.env.SFDX_CONTAINER_MODE);
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
@@ -62,12 +81,8 @@ const commandlet = new SfdxCommandlet(
 
 export async function forceOrgOpen() {
   console.log(
-    'forceOrgOpen CONTAINER MODE==>',
+    '\nforceOrgOpen CONTAINER MODE==>',
     process.env.SFDX_CONTAINER_MODE
   );
-
-  if (process.env.SFDX_CONTAINER_MODE) {
-    vscode.env.openExternal(vscode.Uri.parse('https://code.visualstudio.com'));
-  }
   await commandlet.run();
 }
