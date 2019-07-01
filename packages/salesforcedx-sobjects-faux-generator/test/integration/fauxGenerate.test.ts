@@ -7,11 +7,11 @@
 
 import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import rimraf = require('rimraf');
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import { renameSync } from 'fs';
 import * as path from 'path';
+import * as rimraf from 'rimraf';
 import { SObjectCategory } from '../../src/describe';
 import {
   FauxClassGenerator,
