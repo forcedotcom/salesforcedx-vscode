@@ -13,8 +13,8 @@ import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {
-  pathIsInPackageDirectory,
-  pushOrDeploy
+  DeployQueue,
+  pathIsInPackageDirectory
 } from '../../../src/settings/pushOrDeployOnSave';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 
@@ -110,89 +110,102 @@ describe('Push or Deploy on Save', () => {
     });
   });
 
-  describe('pushOrDeploy', () => {
-    describe('when it is not possible to determine the org type', () => {
-      it('should display an error to the user when the defaultusername org info cannot be found', async () => {
-        const namedOrgNotFoundError = new Error();
-        namedOrgNotFoundError.name = 'NamedOrgNotFound';
-        const getWorkspaceOrgTypeStub = stub(
-          context,
-          'getWorkspaceOrgType'
-        ).throws(namedOrgNotFoundError);
+  describe('DeployQueue', () => {
+    let getWorkspaceOrgTypeStub: SinonStub;
+    let executeCommandStub: SinonStub;
 
-        await pushOrDeploy([]);
-
-        const error = nls.localize('error_fetching_auth_info_text');
-        expect(showErrorMessageStub.calledOnce).to.be.true;
-        expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
-        expect(appendLineStub.calledOnce).to.be.true;
-        expect(appendLineStub.getCall(0).args[0]).to.equal(error);
-        getWorkspaceOrgTypeStub.restore();
-      });
-
-      it('should display an error to the user when no defaultusername is set', async () => {
-        const noDefaultUsernameSetError = new Error();
-        noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
-        const getWorkspaceOrgTypeStub = stub(
-          context,
-          'getWorkspaceOrgType'
-        ).throws(noDefaultUsernameSetError);
-
-        await pushOrDeploy([]);
-
-        const error = nls.localize(
-          'error_push_or_deploy_on_save_no_default_username'
-        );
-        expect(showErrorMessageStub.calledOnce).to.be.true;
-        expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
-        expect(appendLineStub.calledOnce).to.be.true;
-        expect(appendLineStub.getCall(0).args[0]).to.equal(error);
-        getWorkspaceOrgTypeStub.restore();
-      });
+    beforeEach(() => {
+      DeployQueue.reset();
+      getWorkspaceOrgTypeStub = stub(context, 'getWorkspaceOrgType');
+      executeCommandStub = stub(vscode.commands, 'executeCommand');
     });
 
-    describe('orgs with sourceTracking', () => {
-      it('should call force:source:push', async () => {
-        const getWorkspaceOrgTypeStub = stub(
-          context,
-          'getWorkspaceOrgType'
-        ).returns(OrgType.SourceTracked);
-        const executeCommandStub = stub(vscode.commands, 'executeCommand');
-
-        await pushOrDeploy([]);
-
-        expect(executeCommandStub.calledOnce).to.be.true;
-        expect(executeCommandStub.getCall(0).args[0]).to.eql(
-          'sfdx.force.source.push'
-        );
-        expect(showErrorMessageStub.calledOnce).to.be.false;
-        expect(appendLineStub.calledOnce).to.be.false;
-
-        getWorkspaceOrgTypeStub.restore();
-        executeCommandStub.restore();
-      });
+    afterEach(() => {
+      getWorkspaceOrgTypeStub.restore();
+      executeCommandStub.restore();
     });
 
-    describe('orgs without sourceTracking', () => {
-      it('should call force:source:deploy on multiple paths', async () => {
-        const getWorkspaceOrgTypeStub = stub(
-          context,
-          'getWorkspaceOrgType'
-        ).returns(Promise.resolve(OrgType.NonSourceTracked));
-        const executeCommandStub = stub(vscode.commands, 'executeCommand');
+    it('should not deploy if nothing has been queued', async () => {
+      await DeployQueue.get().unlock();
+      expect(executeCommandStub.notCalled).to.be.true;
+    });
 
-        await pushOrDeploy([]);
+    it('should stop additional files from deploying until queue is unlocked', async () => {
+      const queue = DeployQueue.get();
 
-        expect(executeCommandStub.calledOnce).to.be.true;
-        expect(executeCommandStub.getCall(0).args[0]).to.eql(
-          'sfdx.force.source.deploy.multiple.source.paths'
-        );
-        expect(showErrorMessageStub.calledOnce).to.be.false;
-        expect(appendLineStub.calledOnce).to.be.false;
+      // start a deploy from an enqueue and lock deploys
+      expect(executeCommandStub.notCalled).to.be.true;
+      let uris = [vscode.Uri.file('/sample')];
+      await queue.enqueue(uris[0]);
+      expect(executeCommandStub.calledOnce).to.be.true;
 
-        getWorkspaceOrgTypeStub.restore();
-        executeCommandStub.restore();
-      });
+      // try enquing more files and deploying
+      uris = [vscode.Uri.file('/sample2'), vscode.Uri.file('/sample3')];
+      await queue.enqueue(uris[0]);
+      await queue.enqueue(uris[1]);
+      expect(executeCommandStub.calledTwice).to.be.false;
+
+      // signal to the queue we're done and deploy anything that has been queued while locked
+      await queue.unlock();
+      expect(executeCommandStub.calledTwice).to.be.true;
+      expect(executeCommandStub.getCall(1).args[1]).to.eql(uris);
+    });
+
+    it('should display an error to the user when the defaultusername org info cannot be found', async () => {
+      const namedOrgNotFoundError = new Error();
+      namedOrgNotFoundError.name = 'NamedOrgNotFound';
+      getWorkspaceOrgTypeStub.throws(namedOrgNotFoundError);
+
+      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+
+      const error = nls.localize('error_fetching_auth_info_text');
+      expect(showErrorMessageStub.calledOnce).to.be.true;
+      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
+      expect(appendLineStub.calledOnce).to.be.true;
+      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
+    });
+
+    it('should display an error to the user when no defaultusername is set', async () => {
+      const noDefaultUsernameSetError = new Error();
+      noDefaultUsernameSetError.name = 'NoDefaultusernameSet';
+      getWorkspaceOrgTypeStub.throws(noDefaultUsernameSetError);
+
+      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+
+      const error = nls.localize(
+        'error_push_or_deploy_on_save_no_default_username'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.true;
+      expect(showErrorMessageStub.getCall(0).args[0]).to.equal(error);
+      expect(appendLineStub.calledOnce).to.be.true;
+      expect(appendLineStub.getCall(0).args[0]).to.equal(error);
+    });
+
+    it('should call force:source:push', async () => {
+      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+
+      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.getCall(0).args[0]).to.eql(
+        'sfdx.force.source.push'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.false;
+      expect(appendLineStub.calledOnce).to.be.false;
+      executeCommandStub.restore();
+    });
+
+    it('should call force:source:deploy on multiple paths', async () => {
+      getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
+
+      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.getCall(0).args[0]).to.eql(
+        'sfdx.force.source.deploy.multiple.source.paths'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.false;
+      expect(appendLineStub.calledOnce).to.be.false;
     });
   });
 });
