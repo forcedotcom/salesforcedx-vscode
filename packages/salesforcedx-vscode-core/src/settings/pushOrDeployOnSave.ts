@@ -125,7 +125,7 @@ export async function registerPushOrDeployOnSave() {
         dirtyDocs.has(textDocument.uri)
       ) {
         dirtyDocs.delete(textDocument.uri);
-        DeployQueue.get().enqueue(textDocument.uri);
+        await DeployQueue.get().enqueue(textDocument.uri);
       }
     }
   );

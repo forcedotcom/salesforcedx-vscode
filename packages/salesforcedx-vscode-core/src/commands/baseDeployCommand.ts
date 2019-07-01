@@ -81,7 +81,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         telemetryService.sendError(e.message);
         console.error(e.message);
       }
-      DeployQueue.get().unlock();
+      await DeployQueue.get().unlock();
     });
 
     notificationService.reportCommandExecutionStatus(
