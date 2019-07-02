@@ -8,13 +8,13 @@
 
 #### salesforcedx-vscode-core
 
-- Improved behavior for deploy on save ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442))
+- Improved behavior for deploy on save ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442), [Issue #1155](https://github.com/forcedotcom/salesforcedx-vscode/issues/1155))
 
 ### Added
 
 #### salesforcedx-sobjects-faux-generator
 
-- Use Webpack when compiling salesforcedx-sobjects-faux-generator package ([PR #1440](https://github.com/forcedotcom/salesforcedx-vscode/pull/1440))
+- Improved build process to reduce file size of extensions ([PR #1440](https://github.com/forcedotcom/salesforcedx-vscode/pull/1440))
 
 ## 46.3.0 - June 27, 2019
 
