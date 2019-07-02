@@ -79,6 +79,7 @@ export async function push(
     'main',
     'default'
   );
+
   childProcess.execSync('cp -R ' + sourceFolder + ' ' + targetFolder);
   const execution = new CliCommandExecutor(
     new SfdxCommandBuilder()
@@ -195,13 +196,7 @@ export async function initializeProject(
   await createSFDXProject(projectName);
   username = await createScratchOrg(projectName);
 
-  const sourceFolderPath = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    SIMPLE_OBJECT_DIR
-  );
+  const sourceFolderPath = path.join(process.cwd(), SIMPLE_OBJECT_DIR);
   await push(sourceFolderPath, projectName, username);
 
   const permSetName = 'AllowRead';
