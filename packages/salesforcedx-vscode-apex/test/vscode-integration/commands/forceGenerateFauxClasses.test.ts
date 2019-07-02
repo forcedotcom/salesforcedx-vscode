@@ -9,7 +9,7 @@ import {
   SFDX_DIR,
   SOBJECTS_DIR,
   TOOLS_DIR
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/constants';
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   FauxClassGenerator,
   SObjectRefreshSource
