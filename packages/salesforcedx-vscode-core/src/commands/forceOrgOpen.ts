@@ -13,6 +13,7 @@ import {
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import {
   EmptyParametersGatherer,
@@ -55,20 +56,17 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
         try {
           const cliOrgData: CLIOrgData = JSON.parse(cliResponseJSON.toString());
           const authenticatedOrgUrl: string = cliOrgData.result.url;
-          console.log('\nCLI DATA==> ', cliOrgData);
-          console.log('\nURL==>', authenticatedOrgUrl);
           if (authenticatedOrgUrl) {
+            // ===== VS Code API to open Browser ====== //
             vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
           }
-        } catch (error) {
-          console.error(error);
+        } catch (e) {
+          telemetryService.sendErrorEvent(e.message, e.stack);
         }
       });
     }
   }
 }
-
-console.log('\nActivation CONTAINER MODE==>', process.env.SFDX_CONTAINER_MODE);
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
@@ -80,9 +78,5 @@ const commandlet = new SfdxCommandlet(
 );
 
 export async function forceOrgOpen() {
-  console.log(
-    '\nforceOrgOpen CONTAINER MODE==>',
-    process.env.SFDX_CONTAINER_MODE
-  );
   await commandlet.run();
 }
