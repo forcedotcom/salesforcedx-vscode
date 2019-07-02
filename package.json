@@ -16,7 +16,7 @@
     "typescript": "3.1.6",
     "vsce": "1.62.0",
     "webpack": "4.30.0",
-    "webpack-cli": "3.3.1"
+    "webpack-cli": "3.3.5"
   },
   "scripts": {
     "postinstall": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
