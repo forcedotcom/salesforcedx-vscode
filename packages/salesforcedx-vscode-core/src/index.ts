@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -398,14 +397,21 @@ async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext,
   defaultUsernameOrAlias?: string
 ): Promise<void> {
-  const metadataTreeProvider = new MetadataOutlineProvider(
-    defaultUsernameOrAlias
-  );
-  const metadataProvider = vscode.window.registerTreeDataProvider(
-    'metadata',
-    metadataTreeProvider
-  );
-  extensionContext.subscriptions.push(metadataProvider);
+  const metadataProvider = new MetadataOutlineProvider(defaultUsernameOrAlias);
+
+  const treeView = vscode.window.createTreeView('metadata', {
+    treeDataProvider: metadataProvider
+  });
+
+  treeView.onDidChangeVisibility(async () => {
+    if (treeView.visible) {
+      await metadataProvider.onViewChange();
+    }
+  });
+  vscode.commands.registerCommand('sfdx.force.metadata.view.refresh', () => {
+    return metadataProvider.refresh();
+  });
+  extensionContext.subscriptions.push(treeView);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -490,8 +496,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const orgList = new OrgList();
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
-  // await setupOrgBrowser(context, defaultUsernameorAlias);
 
+  // await setupOrgBrowser(context, defaultUsernameorAlias);
   vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', false);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
