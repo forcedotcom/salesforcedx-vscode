@@ -1,3 +1,21 @@
+## 46.4.0 - July 3, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix declare missing method crashing when generating a method with a nested return type ([PR #1444](https://github.com/forcedotcom/salesforcedx-vscode/pull/1444))
+
+#### salesforcedx-vscode-core
+
+- Improved behavior for deploy on save ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442))
+
+### Added
+
+#### salesforcedx-sobjects-faux-generator
+
+- Use Webpack when compiling salesforcedx-sobjects-faux-generator package ([PR #1440](https://github.com/forcedotcom/salesforcedx-vscode/pull/1440))
+
 ## 46.3.0 - June 27, 2019
 
 ### Fixed
