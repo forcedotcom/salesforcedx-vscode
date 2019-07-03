@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- push-or-deploy-on-save: Reduced delay when triggering and optimized how subsequent changes are queued.  ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442), [Issue #1155](https://github.com/forcedotcom/salesforcedx-vscode/issues/1155))
+- push-or-deploy-on-save: Reduced delay when triggering and optimized how subsequent saves are queued.  ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442), [Issue #1155](https://github.com/forcedotcom/salesforcedx-vscode/issues/1155))
 
 ### Added
 
