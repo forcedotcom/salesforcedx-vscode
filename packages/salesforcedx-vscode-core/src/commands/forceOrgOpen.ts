@@ -57,7 +57,6 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
           const cliOrgData: CLIOrgData = JSON.parse(cliResponseJSON.toString());
           const authenticatedOrgUrl: string = cliOrgData.result.url;
           if (authenticatedOrgUrl) {
-            // ===== VS Code API to open Browser ====== //
             vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
           }
         } catch (e) {
