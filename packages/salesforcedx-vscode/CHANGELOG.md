@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Improve deploy on save performance and optimize how subsequent saves are queued for deployment ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442), [Issue #1155](https://github.com/forcedotcom/salesforcedx-vscode/issues/1155))
+- Update deploy on save to run one deployment at a time, optimize how subsequent saves are queued for deployment, and trigger immediate deployment if there isn't an active one ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442), [Issue #1155](https://github.com/forcedotcom/salesforcedx-vscode/issues/1155))
 
 ### Added
 
