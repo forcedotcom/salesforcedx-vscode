@@ -32,13 +32,14 @@ interface CLIOrgData {
 }
 
 class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
+  protected showChannelOutput = true;
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
       .withArg('force:org:open')
       .withLogName('force_org_open_default_scratch_org');
     if (process.env.SFDX_CONTAINER_MODE) {
-      builder.withArg('-r').withJson();
+      builder.withArg('--urlonly').withJson();
     }
     return builder.build();
   }
@@ -64,6 +65,7 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
         }
       });
     }
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 }
 
