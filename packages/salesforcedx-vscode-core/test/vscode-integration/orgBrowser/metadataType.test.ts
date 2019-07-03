@@ -4,38 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import {
+  CliCommandExecutor,
+  CommandOutput
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { nls } from '../../../src/messages';
-import {
-  buildTypesList,
-  ForceDescribeMetadataExecutor,
-  getTypesPath
-} from '../../../src/orgBrowser';
+import { TypeUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
-describe('Force Describe Metadata', () => {
-  it('Should build describe metadata command', async () => {
-    const outputPath = 'outputPath';
-    const forceDescribeMetadataExec = new ForceDescribeMetadataExecutor(
-      outputPath
-    );
-    const forceDescribeMetadataCmd = forceDescribeMetadataExec.build({});
-    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-      `sfdx force:mdapi:describemetadata --json --loglevel fatal -f ${outputPath}`
-    );
-  });
-});
-
 // tslint:disable:no-unused-expression
-describe('get metadata types path', () => {
+describe('get metadata types folder', () => {
   let getDefaultUsernameStub: SinonStub;
   let getUsernameStub: SinonStub;
   const rootWorkspacePath = getRootWorkspacePath();
+  const typeUtil = new TypeUtils();
   beforeEach(() => {
     getDefaultUsernameStub = stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
     getUsernameStub = stub(OrgAuthInfo, 'getUsername');
@@ -53,66 +39,112 @@ describe('get metadata types path', () => {
       '.sfdx',
       'orgs',
       'test-username1@example.com',
-      'metadata',
-      'metadataTypes.json'
+      'metadata'
     );
-    expect(await getTypesPath()).to.equal(filePath);
-  });
-
-  it('should throw an error if default username is not set', async () => {
-    getDefaultUsernameStub.returns(undefined);
-    let errorWasThrown = false;
-    try {
-      await getTypesPath();
-    } catch (e) {
-      errorWasThrown = true;
-      expect(e.message).to.equal(nls.localize('error_no_default_username'));
-    } finally {
-      expect(getUsernameStub.called).to.be.false;
-      expect(errorWasThrown).to.be.true;
-    }
+    expect(
+      await typeUtil.getTypesFolder('test-username1@example.com')
+    ).to.equal(filePath);
   });
 });
 
 describe('build metadata types list', () => {
   let readFileStub: SinonStub;
-  let fileExistStub: SinonStub;
+  const typeUtil = new TypeUtils();
+  const fileData = JSON.stringify({
+    status: 0,
+    result: {
+      metadataObjects: [
+        { suffix: 'fakeName2', xmlName: 'FakeName2' },
+        { suffix: 'fakeName1', xmlName: 'FakeName1' }
+      ]
+    }
+  });
   beforeEach(() => {
     readFileStub = stub(fs, 'readFileSync');
-    fileExistStub = stub(fs, 'existsSync');
   });
   afterEach(() => {
     readFileStub.restore();
-    fileExistStub.restore();
   });
-  it('should return a list of xmlNames when given a list of metadata objects', async () => {
-    const metadataTypesPath = 'metadataTypesPath';
-    fileExistStub.returns(true);
-    const fileData = JSON.stringify({
-      metadataObjects: [
-        { xmlName: 'fakeName1', suffix: 'fakeSuffix1' },
-        { xmlName: 'fakeName2', suffix: 'fakeSuffix2' }
-      ],
-      extraField1: 'extraData1',
-      extraField2: 'extraData2'
-    });
+
+  it('should return a sorted list of xmlNames when given a list of metadata types', async () => {
     readFileStub.returns(fileData);
-    const xmlNames = buildTypesList(metadataTypesPath);
+    const xmlNames = typeUtil.buildTypesList(fileData, undefined);
     if (!isNullOrUndefined(xmlNames)) {
-      expect(xmlNames[0]).to.equal('fakeName1');
-      expect(xmlNames[1]).to.equal('fakeName2');
+      expect(xmlNames[0]).to.equal('FakeName1');
+      expect(xmlNames[1]).to.equal('FakeName2');
     }
   });
-  it('should throw an error if the file does not exist yet', async () => {
-    const metadataTypesPath = 'invalidPath';
-    fileExistStub.returns(false);
-    let errorWasThrown = false;
-    try {
-      buildTypesList(metadataTypesPath);
-    } catch (e) {
-      errorWasThrown = true;
-    } finally {
-      expect(errorWasThrown).to.be.true;
+
+  it('should return a sorted list of xmlNames when given the metadata types result file path', async () => {
+    const filePath = '/test/metadata/metadataTypes.json';
+    readFileStub.returns(fileData);
+
+    const xmlNames = typeUtil.buildTypesList(undefined, filePath);
+    if (!isNullOrUndefined(xmlNames)) {
+      expect(xmlNames[0]).to.equal('FakeName1');
+      expect(xmlNames[1]).to.equal('FakeName2');
+      expect(readFileStub.called).to.equal(true);
     }
+  });
+});
+
+describe('load metadata types data', () => {
+  let readFileStub: SinonStub;
+  let getUsernameStub: SinonStub;
+  let fileExistsStub: SinonStub;
+  let buildTypesStub: SinonStub;
+  let cliCommandStub: SinonStub;
+  let cmdOutputStub: SinonStub;
+  let writeFileStub: SinonStub;
+  let getTypesFolderStub: SinonStub;
+  const typeUtil = new TypeUtils();
+  const defaultOrg = 'defaultOrg@test.com';
+  let filePath = '/test/metadata/';
+  beforeEach(() => {
+    readFileStub = stub(fs, 'readFileSync');
+    getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
+    fileExistsStub = stub(fs, 'existsSync');
+    buildTypesStub = stub(TypeUtils.prototype, 'buildTypesList');
+    cliCommandStub = stub(CliCommandExecutor.prototype, 'execute');
+    cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
+    writeFileStub = stub(fs, 'writeFileSync');
+    getTypesFolderStub = stub(TypeUtils.prototype, 'getTypesFolder').returns(
+      filePath
+    );
+  });
+  afterEach(() => {
+    readFileStub.restore();
+    getUsernameStub.restore();
+    fileExistsStub.restore();
+    buildTypesStub.restore();
+    cliCommandStub.restore();
+    cmdOutputStub.restore();
+    writeFileStub.restore();
+    getTypesFolderStub.restore();
+  });
+
+  it('should load metadata types through cli command if file does not exist', async () => {
+    fileExistsStub.returns(false);
+    const fileData = JSON.stringify({
+      status: 0,
+      result: {
+        metadataObjects: [
+          { suffix: 'fakeName2', xmlName: 'FakeName2' },
+          { suffix: 'fakeName1', xmlName: 'FakeName1' }
+        ]
+      }
+    });
+    cmdOutputStub.returns(fileData);
+    const components = await typeUtil.loadTypes(defaultOrg);
+    expect(cmdOutputStub.called).to.equal(true);
+    expect(buildTypesStub.calledWith(fileData, undefined)).to.be.true;
+  });
+
+  it('should load metadata types from file if file exists', async () => {
+    fileExistsStub.returns(true);
+    filePath = path.join(filePath, 'metadataTypes.json');
+    const components = await typeUtil.loadTypes(defaultOrg);
+    expect(cmdOutputStub.called).to.equal(false);
+    expect(buildTypesStub.calledWith(undefined, filePath)).to.be.true;
   });
 });
