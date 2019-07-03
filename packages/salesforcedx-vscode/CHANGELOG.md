@@ -1,3 +1,21 @@
+## 46.4.0 - July 3, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix `Declare missing method` quick fix option crashing when generating a method with nested return type ([PR #1444](https://github.com/forcedotcom/salesforcedx-vscode/pull/1444))
+
+#### salesforcedx-vscode-core
+
+- Update deploy on save to run one deployment at a time, optimize how subsequent saves are queued for deployment, and trigger immediate deployment if there isn't an active one ([PR #1442](https://github.com/forcedotcom/salesforcedx-vscode/pull/1442), [Issue #1155](https://github.com/forcedotcom/salesforcedx-vscode/issues/1155))
+
+### Added
+
+#### salesforcedx-sobjects-faux-generator
+
+- Improve build process to reduce file size of extensions ([PR #1440](https://github.com/forcedotcom/salesforcedx-vscode/pull/1440))
+
 ## 46.3.0 - June 27, 2019
 
 ### Fixed
