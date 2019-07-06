@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface ScratchOrgCreateSuccessResult {
+export interface OrgCreateSuccessResult {
   status: number;
   result: {
     orgId: string;
@@ -13,7 +13,7 @@ export interface ScratchOrgCreateSuccessResult {
   };
 }
 
-export interface ScratchOrgCreateErrorResult {
+export interface OrgCreateErrorResult {
   status: number;
   name: string;
   message: string;
@@ -23,7 +23,7 @@ export interface ScratchOrgCreateErrorResult {
   warnings: any[];
 }
 
-export class ScratchOrgCreateResultParser {
+export class OrgCreateResultParser {
   private response: any;
 
   constructor(stdout: string) {
@@ -34,8 +34,8 @@ export class ScratchOrgCreateResultParser {
       );
       this.response = JSON.parse(sanitized);
     } catch (e) {
-      const err = new Error('Error parsing scratch org create result');
-      err.name = 'ScratchOrgCreateParserFail';
+      const err = new Error('Error parsing org create result');
+      err.name = 'OrgCreateParserFail';
       throw err;
     }
   }
@@ -44,12 +44,10 @@ export class ScratchOrgCreateResultParser {
     return this.response && this.response.status === 0 ? true : false;
   }
 
-  public getResult():
-    | ScratchOrgCreateSuccessResult
-    | ScratchOrgCreateErrorResult {
+  public getResult(): OrgCreateSuccessResult | OrgCreateErrorResult {
     if (this.createIsSuccessful()) {
-      return this.response as ScratchOrgCreateSuccessResult;
+      return this.response as OrgCreateSuccessResult;
     }
-    return this.response as ScratchOrgCreateErrorResult;
+    return this.response as OrgCreateErrorResult;
   }
 }

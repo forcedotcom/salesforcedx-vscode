@@ -8,7 +8,8 @@
 import {
   CliCommandExecutor,
   Command,
-  ScratchOrgCreateResultParser,
+  OrgCreateErrorResult,
+  OrgCreateResultParser,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
@@ -23,6 +24,7 @@ import { OrgType, setWorkspaceOrgTypeWithOrgType } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { telemetryService } from '../telemetry';
 import {
   getRootWorkspace,
   getRootWorkspacePath,
@@ -66,7 +68,6 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
 
   public execute(response: ContinueResponse<AliasAndFileSelection>): void {
     const startTime = process.hrtime();
-    // const scratchOrgAlias = response.data.alias;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -84,23 +85,21 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
-        const createParser = new ScratchOrgCreateResultParser(stdOut);
+        const createParser = new OrgCreateResultParser(stdOut);
 
         if (createParser.createIsSuccessful()) {
-          // can potentially simplify it even more
-          /*        const scratchOrgInfo = createParser.getResult() as ScratchOrgCreateSuccessResult;
-          const cachedScratchOrgInfo = {
-            alias: scratchOrgAlias,
-            username: scratchOrgInfo.result.username,
-            isScratchOrg: true
-          } as CachedOrgInfo;
-*/
+          // NOTE: there is a beta in which this command also allows users to create sandboxes
+          // once it's GA this will have to be updated
           setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
         } else {
-          // add telemetry to track scratch org creation errors.
+          const errorResponse = createParser.getResult() as OrgCreateErrorResult;
+          channelService.appendLine(errorResponse.message);
+          telemetryService.sendError(
+            `forceOrgCreate: Error ${errorResponse.message}`
+          );
         }
       } catch (err) {
-        // add telemetry to track scratch org creation errors.
+        telemetryService.sendError(`forceOrgCreate: Error ${err}`);
       }
     });
 

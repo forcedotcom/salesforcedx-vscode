@@ -36,7 +36,7 @@ export {
 } from './deployResultParser';
 export { TestRunner } from './testRunner';
 export {
-  ScratchOrgCreateSuccessResult,
-  ScratchOrgCreateErrorResult,
-  ScratchOrgCreateResultParser
-} from './scratchOrgCreateResultParser';
+  OrgCreateSuccessResult,
+  OrgCreateErrorResult,
+  OrgCreateResultParser
+} from './orgCreateResultParser';
