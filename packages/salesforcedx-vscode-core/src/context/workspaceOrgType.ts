@@ -17,10 +17,6 @@ export enum OrgType {
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {
-  console.log(
-    '-- workspaceOrgType.getWorkspaceOrgType, defaultUsernameOrAlias =>',
-    defaultUsernameOrAlias
-  );
   if (isNullOrUndefined(defaultUsernameOrAlias)) {
     const e = new Error();
     e.name = 'NoDefaultusernameSet';
@@ -46,10 +42,6 @@ export async function getWorkspaceOrgType(
 }
 
 export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
-  console.log(
-    '-- workspaceOrgType.setWorkspaceOrgTypeWithOrgInfo, orgInfo =>',
-    orgType
-  );
   setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
   setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
 }
