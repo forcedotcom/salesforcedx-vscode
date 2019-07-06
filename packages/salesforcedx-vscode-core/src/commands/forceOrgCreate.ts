@@ -6,7 +6,9 @@
  */
 
 import {
+  CliCommandExecutor,
   Command,
+  ScratchOrgCreateResultParser,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
@@ -16,7 +18,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { OrgType, setWorkspaceOrgTypeWithOrgType } from '../context';
 import { nls } from '../messages';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import {
   getRootWorkspace,
   getRootWorkspacePath,
@@ -35,6 +41,7 @@ import {
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
+
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
 > {
@@ -53,7 +60,56 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--durationdays', data.expirationDays)
       .withArg('--setdefaultusername')
       .withLogName('force_org_create_default_scratch_org')
+      .withJson()
       .build();
+  }
+
+  public execute(response: ContinueResponse<AliasAndFileSelection>): void {
+    const startTime = process.hrtime();
+    // const scratchOrgAlias = response.data.alias;
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    channelService.streamCommandStartStop(execution);
+
+    let stdOut = '';
+    execution.stdoutSubject.subscribe(realData => {
+      stdOut += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(execution.command.logName, startTime);
+      try {
+        const createParser = new ScratchOrgCreateResultParser(stdOut);
+
+        if (createParser.createIsSuccessful()) {
+          // can potentially simplify it even more
+          /*        const scratchOrgInfo = createParser.getResult() as ScratchOrgCreateSuccessResult;
+          const cachedScratchOrgInfo = {
+            alias: scratchOrgAlias,
+            username: scratchOrgInfo.result.username,
+            isScratchOrg: true
+          } as CachedOrgInfo;
+*/
+          setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
+        } else {
+          // add telemetry to track scratch org creation errors.
+        }
+      } catch (err) {
+        // add telemetry to track scratch org creation errors.
+      }
+    });
+
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
+    ProgressNotification.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 

@@ -14,13 +14,13 @@ export enum OrgType {
   NonSourceTracked
 }
 
-function imposeSlightDelay(ms = 0) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {
+  console.log(
+    '-- workspaceOrgType.getWorkspaceOrgType, defaultUsernameOrAlias =>',
+    defaultUsernameOrAlias
+  );
   if (isNullOrUndefined(defaultUsernameOrAlias)) {
     const e = new Error();
     e.name = 'NoDefaultusernameSet';
@@ -31,24 +31,11 @@ export async function getWorkspaceOrgType(
     defaultUsernameOrAlias
   );
   const isUsername = email ? true : false;
-
-  let username;
-  let counter = 0;
-  while (isNullOrUndefined(username) && counter < 60) {
-    username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-    counter += 1;
-    await imposeSlightDelay(100);
-  }
+  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
 
   if (isNullOrUndefined(username)) {
     telemetryService.sendError(
-      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username after ${counter} retries and default username provided is ${isUsername}`
-    );
-  } else {
-    telemetryService.sendEventData(
-      `workspaceOrgType.getWorkspaceOrgType was successful after ${counter} retries`,
-      undefined,
-      { timestamp: new Date().getTime() }
+      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username. Username email format = ${isUsername}`
     );
   }
 
@@ -58,11 +45,19 @@ export async function getWorkspaceOrgType(
   return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
 
+export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
+  console.log(
+    '-- workspaceOrgType.setWorkspaceOrgTypeWithOrgInfo, orgInfo =>',
+    orgType
+  );
+  setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
+  setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
+}
+
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   try {
     const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
-    setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
-    setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
+    setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
     telemetryService.sendErrorEvent(e.message, e.stack);
     switch (e.name) {

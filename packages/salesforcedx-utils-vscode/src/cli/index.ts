@@ -35,3 +35,8 @@ export {
   CONFLICT_ERROR_NAME
 } from './deployResultParser';
 export { TestRunner } from './testRunner';
+export {
+  ScratchOrgCreateSuccessResult,
+  ScratchOrgCreateErrorResult,
+  ScratchOrgCreateResultParser
+} from './scratchOrgCreateResultParser';
