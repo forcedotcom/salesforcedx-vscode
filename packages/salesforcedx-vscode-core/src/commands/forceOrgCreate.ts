@@ -99,7 +99,13 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
           );
         }
       } catch (err) {
-        telemetryService.sendError(`forceOrgCreate: Error ${err}`);
+        channelService.appendLine(
+          nls.localize('force_org_create_result_parsing_error')
+        );
+        channelService.appendLine(err);
+        telemetryService.sendError(
+          `forceOrgCreate: Error while parsing org create response ${err}`
+        );
       }
     });
 
