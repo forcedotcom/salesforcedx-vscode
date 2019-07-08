@@ -10,7 +10,8 @@ export enum NodeType {
   Org,
   MetadataType,
   MetadataCmp,
-  EmptyNode
+  EmptyNode,
+  Folder
 }
 
 export class BrowserNode extends vscode.TreeItem {
@@ -30,6 +31,10 @@ export class BrowserNode extends vscode.TreeItem {
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
         this.tooltip = 'Metadata Type';
+        break;
+      case NodeType.Folder:
+        this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+        this.tooltip = 'Metadata Folder';
         break;
       case NodeType.EmptyNode:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;

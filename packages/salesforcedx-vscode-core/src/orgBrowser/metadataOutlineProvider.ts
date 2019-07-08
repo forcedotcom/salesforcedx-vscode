@@ -88,17 +88,50 @@ export class MetadataOutlineProvider
   ): Promise<BrowserNode[]> {
     const username = this.defaultOrg!;
     const cmpUtil = new ComponentUtils();
-    const componentsList = await cmpUtil.loadComponents(
-      username,
-      metadataType.label!
-    );
-    const nodeList = componentsList.map(
-      cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
-    );
-    if (nodeList.length === 0) {
-      nodeList.push(
-        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
+    let nodeList: BrowserNode[] = [];
+    if (TypeUtils.FOLDER_TYPES.has(metadataType.label!)) {
+      let typeName = metadataType.label!;
+      if (typeName === 'EmailTemplate') {
+        typeName = 'Email';
+      }
+
+      const folders = await cmpUtil.loadComponents(
+        this.defaultOrg!,
+        `${typeName}Folder`
       );
+      for (const folder of folders) {
+        const components = await cmpUtil.loadComponents(
+          username,
+          metadataType.label!,
+          folder
+        );
+        const folderNode = new BrowserNode(folder, NodeType.Folder);
+        folderNode.children = components.map(
+          cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
+        );
+        if (folderNode.children.length === 0) {
+          folderNode.children = [
+            new BrowserNode(
+              nls.localize('empty_components'),
+              NodeType.EmptyNode
+            )
+          ];
+        }
+        nodeList.push(folderNode);
+      }
+    } else {
+      const componentsList = await cmpUtil.loadComponents(
+        username,
+        metadataType.label!
+      );
+      nodeList = componentsList.map(
+        cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
+      );
+      if (nodeList.length === 0) {
+        nodeList.push(
+          new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
+        );
+      }
     }
     return nodeList;
   }

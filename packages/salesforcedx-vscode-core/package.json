@@ -94,8 +94,7 @@
       "metadata": [
         {
           "id": "metadata",
-          "name": "Metadata",
-          "when": "sfdx:display_tree_view"
+          "name": "Metadata"
         }
       ]
     },
