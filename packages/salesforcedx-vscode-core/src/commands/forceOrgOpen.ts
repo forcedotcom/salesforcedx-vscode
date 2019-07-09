@@ -23,14 +23,14 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-interface CLIOrgData {
+type CLIOrgData = {
   status: number;
   result: {
     orgId: string;
     url: string;
     username: string;
   };
-}
+};
 
 class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
