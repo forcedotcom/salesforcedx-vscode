@@ -1,8 +1,9 @@
 ---
-title: Lighting Web Components
+title: Write Lighting Web Components
+redirect_from: '/articles/frameworks/lwc'
 ---
 
-## Features Provided by the Lightning Web Components Extension
+Features Provided by the Lightning Web Components Extension
 
 - Notification of HTML and JavaScript file errors or compiler warnings
 
