@@ -16,25 +16,29 @@ export enum NodeType {
 
 export class BrowserNode extends vscode.TreeItem {
   public children: BrowserNode[] = [];
-  constructor(label: string, public readonly type: NodeType) {
+  public readonly fullName: string;
+  constructor(
+    label: string,
+    public readonly type: NodeType,
+    fullName?: string
+  ) {
     super(label);
     this.type = type;
+    this.fullName = fullName || label;
     switch (this.type) {
       case NodeType.Org:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-        this.tooltip = 'Default Org';
         break;
       case NodeType.MetadataCmp:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;
-        this.tooltip = 'Metadata Component';
+        this.iconPath = vscode.ThemeIcon.File;
         break;
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-        this.tooltip = 'Metadata Type';
         break;
       case NodeType.Folder:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-        this.tooltip = 'Metadata Folder';
+        this.iconPath = vscode.ThemeIcon.Folder;
         break;
       case NodeType.EmptyNode:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;

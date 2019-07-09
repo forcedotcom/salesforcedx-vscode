@@ -106,9 +106,13 @@ export class MetadataOutlineProvider
           folder
         );
         const folderNode = new BrowserNode(folder, NodeType.Folder);
-        folderNode.children = components.map(
-          cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
-        );
+        folderNode.children = components.map(cmp => {
+          return new BrowserNode(
+            cmp.substr(cmp.indexOf('/') + 1),
+            NodeType.MetadataCmp,
+            cmp
+          );
+        });
         if (folderNode.children.length === 0) {
           folderNode.children = [
             new BrowserNode(
