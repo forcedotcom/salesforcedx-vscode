@@ -165,6 +165,7 @@
         if (
           element &&
           element.childNodes &&
+          element.childNodes.length > 1 &&
           element.childNodes[0].nodeName === 'CODE'
         ) {
           var code = element.childNodes[0];
@@ -175,6 +176,22 @@
             mimeType: getLanguageMime(lang)
           });
         }
+      }
+    </script>
+    <script>
+      var titles = document.getElementsByTagName('h2');
+      // ['h2', 'h3', 'h4'].forEach(function(tagName) {
+      //   elements.push(document.getElementsByTagName(tagName));
+      // });
+      for (let i = 0; i < titles.length; i++) {
+        const element = titles[i];
+        var link = document.createElement('a');
+        link.setAttribute('aria-label', 'Jump to section');
+        link.setAttribute('class', 'doc doc-anchor');
+        link.setAttribute('data-level', '2');
+        link.setAttribute('href', '#' + element.id);
+        link.innerText = '#';
+        element.append(link);
       }
     </script>
   </body>
