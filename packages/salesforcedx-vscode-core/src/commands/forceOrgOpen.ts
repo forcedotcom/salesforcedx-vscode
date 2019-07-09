@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, isSFDXContainerMode } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -38,7 +38,7 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
       .withArg('force:org:open')
       .withLogName('force_org_open_default_scratch_org');
-    if (process.env.SFDX_CONTAINER_MODE) {
+    if (isSFDXContainerMode()) {
       builder.withArg('--urlonly').withJson();
     }
     return builder.build();
@@ -76,7 +76,7 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    if (process.env.SFDX_CONTAINER_MODE) {
+    if (isSFDXContainerMode()) {
       channelService.showChannelOutput();
       channelService.streamCommandStartStop(execution);
 
