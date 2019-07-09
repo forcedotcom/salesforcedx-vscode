@@ -16,7 +16,6 @@ import { SfdxCommandletExecutor } from '../commands';
 import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
 
-export const folderTypes = new Set(['EmailTemplate', 'Report']);
 export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   private metadataType: string;
   private defaultUsernameOrAlias: string;

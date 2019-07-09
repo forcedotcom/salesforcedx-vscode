@@ -8,12 +8,13 @@ import {
   CliCommandExecutor,
   CommandOutput
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { ComponentUtils } from '../../../src/orgBrowser';
+import { ComponentUtils, TypeUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -21,6 +22,8 @@ describe('get metadata components path', () => {
   let getUsernameStub: SinonStub;
   const rootWorkspacePath = getRootWorkspacePath();
   const cmpUtil = new ComponentUtils();
+  const alias = 'test user 1';
+  const username = 'test-username1@example.com';
   beforeEach(() => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername');
   });
@@ -28,21 +31,44 @@ describe('get metadata components path', () => {
     getUsernameStub.restore();
   });
 
-  it('should return the path for a given username and metadata type', async () => {
-    getUsernameStub.returns('test-username1@example.com');
-    const metadataType = 'Apex Class';
-    const alias = 'test user 1';
-    const filePath = path.join(
+  function expectedPath(fileName: string) {
+    return path.join(
       rootWorkspacePath,
       '.sfdx',
       'orgs',
-      'test-username1@example.com',
+      username,
       'metadata',
-      metadataType + '.json'
+      fileName + '.json'
     );
+  }
+
+  it('should return the path for a given username and metadata type', async () => {
+    getUsernameStub.returns('test-username1@example.com');
+    const metadataType = 'ApexClass';
     expect(await cmpUtil.getComponentsPath(metadataType, alias)).to.equal(
-      filePath
+      expectedPath(metadataType)
     );
+  });
+
+  it('should return the path for a given folder', async () => {
+    getUsernameStub.returns('test-username1@example.com');
+    const metadataType = 'Report';
+    const folder = 'TestFolder';
+    expect(
+      await cmpUtil.getComponentsPath(metadataType, alias, folder)
+    ).to.equal(expectedPath(metadataType + '_' + folder));
+  });
+
+  it('should throw an error if a metadata type with folders is called without one', async () => {
+    getUsernameStub.returns('test-username1@example.com');
+    for (const type of TypeUtils.FOLDER_TYPES) {
+      try {
+        await cmpUtil.getComponentsPath(type, alias);
+        fail('Should not have finished getComponentsPath call');
+      } catch (e) {
+        expect(e.message).to.equal(`${type} requires a folder to be specified`);
+      }
+    }
   });
 });
 
