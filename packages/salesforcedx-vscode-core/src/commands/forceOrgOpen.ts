@@ -32,16 +32,15 @@ type CLIOrgData = {
   };
 };
 
-class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
+class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
-    const builder = new SfdxCommandBuilder()
+    return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
       .withArg('force:org:open')
-      .withLogName('force_org_open_default_scratch_org');
-    if (isSFDXContainerMode()) {
-      builder.withArg('--urlonly').withJson();
-    }
-    return builder.build();
+      .withLogName('force_org_open_default_scratch_org')
+      .withArg('--urlonly')
+      .withJson()
+      .build();
   }
 
   private buildUserMessageWith(orgData: CLIOrgData): string {
@@ -69,33 +68,40 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public execute(response: ContinueResponse<string>): void {
+    const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    if (isSFDXContainerMode()) {
-      channelService.showChannelOutput();
-      channelService.streamCommandStartStop(execution);
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+    execution.stdoutSubject.subscribe(cliResponseJSON =>
+      this.openBrowserWithCliResponse(cliResponseJSON)
+    );
 
-      execution.stdoutSubject.subscribe(cliResponseJSON =>
-        this.openBrowserWithCliResponse(cliResponseJSON)
-      );
-    } else {
-      this.attachExecution(
-        execution,
-        cancellationTokenSource,
-        cancellationToken
-      );
-    }
+    channelService.showChannelOutput();
+    channelService.streamCommandStartStop(execution);
+  }
+}
+
+class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
+  public build(data: {}): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
+      .withArg('force:org:open')
+      .withLogName('force_org_open_default_scratch_org')
+      .build();
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = new ForceOrgOpenExecutor();
+const executor = isSFDXContainerMode()
+  ? new ForceOrgOpenContainerExecutor()
+  : new ForceOrgOpenExecutor();
 const commandlet = new SfdxCommandlet(
   workspaceChecker,
   parameterGatherer,
