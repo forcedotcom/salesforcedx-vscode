@@ -67,6 +67,9 @@ class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
           vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
         }
       } catch (e) {
+        channelService.appendLine(
+          nls.localize('force_org_open_default_scratch_org_container_error')
+        );
         telemetryService.sendErrorEvent(e.message, e.message);
       }
     });
