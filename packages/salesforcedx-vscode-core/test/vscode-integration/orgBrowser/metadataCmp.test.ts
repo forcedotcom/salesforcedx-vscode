@@ -24,8 +24,11 @@ describe('get metadata components path', () => {
   const cmpUtil = new ComponentUtils();
   const alias = 'test user 1';
   const username = 'test-username1@example.com';
+
   beforeEach(() => {
-    getUsernameStub = stub(OrgAuthInfo, 'getUsername');
+    getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(
+      'test-username1@example.com'
+    );
   });
   afterEach(() => {
     getUsernameStub.restore();
@@ -43,7 +46,6 @@ describe('get metadata components path', () => {
   }
 
   it('should return the path for a given username and metadata type', async () => {
-    getUsernameStub.returns('test-username1@example.com');
     const metadataType = 'ApexClass';
     expect(await cmpUtil.getComponentsPath(metadataType, alias)).to.equal(
       expectedPath(metadataType)
@@ -51,7 +53,6 @@ describe('get metadata components path', () => {
   });
 
   it('should return the path for a given folder', async () => {
-    getUsernameStub.returns('test-username1@example.com');
     const metadataType = 'Report';
     const folder = 'TestFolder';
     expect(
@@ -60,7 +61,6 @@ describe('get metadata components path', () => {
   });
 
   it('should throw an error if a metadata type with folders is called without one', async () => {
-    getUsernameStub.returns('test-username1@example.com');
     for (const type of TypeUtils.FOLDER_TYPES) {
       try {
         await cmpUtil.getComponentsPath(type, alias);

@@ -99,12 +99,11 @@ export class MetadataOutlineProvider
       );
       for (const folder of folders) {
         if (folder.label !== nls.localize('empty_components')) {
-          const components = await this.loadAndMapComponents(
+          folder.children = await this.loadAndMapComponents(
             metadataType.label!,
             NodeType.MetadataCmp,
             folder.fullName
           );
-          folder.children = components;
         }
       }
       nodeList = folders;
