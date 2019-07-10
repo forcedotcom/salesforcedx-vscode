@@ -22,8 +22,10 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 
-type CLIOrgData = {
+type CliOrgData = {
   status: number;
   result: {
     orgId: string;
@@ -43,47 +45,34 @@ class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  private buildUserMessageWith(orgData: CLIOrgData): string {
-    return nls.localize(
-      'force_org_open_container_mode_message_text',
-      orgData.result.orgId,
-      orgData.result.username,
-      orgData.result.url
-    );
-  }
-
-  private openBrowserWithCliResponse(cliResponseJSON: string | Buffer) {
-    try {
-      const cliOrgData: CLIOrgData = JSON.parse(cliResponseJSON.toString());
-      const authenticatedOrgUrl: string = cliOrgData.result.url;
-
-      channelService.appendLine(this.buildUserMessageWith(cliOrgData));
-
-      if (authenticatedOrgUrl) {
-        vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
-      }
-    } catch (e) {
-      telemetryService.sendErrorEvent(e.message, e.stack);
-    }
-  }
-
   public execute(response: ContinueResponse<string>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
+
+    let stdOut = '';
+    execution.stdoutSubject.subscribe(cliResponse => {
+      stdOut += cliResponse.toString();
+    });
 
     execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
-    });
-    execution.stdoutSubject.subscribe(cliResponseJSON =>
-      this.openBrowserWithCliResponse(cliResponseJSON)
-    );
+      try {
+        const cliOrgData: CliOrgData = JSON.parse(stdOut);
+        const authenticatedOrgUrl: string = cliOrgData.result.url;
 
-    channelService.showChannelOutput();
-    channelService.streamCommandStartStop(execution);
+        if (authenticatedOrgUrl) {
+          vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
+        }
+      } catch (e) {
+        telemetryService.sendErrorEvent(e.message, e.message);
+      }
+    });
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 }
 
