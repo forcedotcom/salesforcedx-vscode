@@ -1,3 +1,11 @@
+## 46.5.0 - July 11, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- Update command context logic after creating scratch orgs ([PR #1456](https://github.com/forcedotcom/salesforcedx-vscode/pull/1456), [Issue #1449](https://github.com/forcedotcom/salesforcedx-vscode/issues/1449))
+
 ## 46.4.0 - July 3, 2019
 
 ### Fixed
