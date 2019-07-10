@@ -86,8 +86,6 @@ export class MetadataOutlineProvider
   public async getComponents(
     metadataType: BrowserNode
   ): Promise<BrowserNode[]> {
-    const username = this.defaultOrg!;
-    const cmpUtil = new ComponentUtils();
     let nodeList: BrowserNode[] = [];
     if (TypeUtils.FOLDER_TYPES.has(metadataType.label!)) {
       let typeName = metadataType.label!;
@@ -95,47 +93,26 @@ export class MetadataOutlineProvider
         typeName = 'Email';
       }
 
-      const folders = await cmpUtil.loadComponents(
-        this.defaultOrg!,
-        `${typeName}Folder`
+      const folders = await this.loadAndMapComponents(
+        `${typeName}Folder`,
+        NodeType.Folder
       );
       for (const folder of folders) {
-        const components = await cmpUtil.loadComponents(
-          username,
-          metadataType.label!,
-          folder
-        );
-        const folderNode = new BrowserNode(folder, NodeType.Folder);
-        folderNode.children = components.map(cmp => {
-          return new BrowserNode(
-            cmp.substr(cmp.indexOf('/') + 1),
+        if (folder.label !== nls.localize('empty_components')) {
+          const components = await this.loadAndMapComponents(
+            metadataType.label!,
             NodeType.MetadataCmp,
-            cmp
+            folder.fullName
           );
-        });
-        if (folderNode.children.length === 0) {
-          folderNode.children = [
-            new BrowserNode(
-              nls.localize('empty_components'),
-              NodeType.EmptyNode
-            )
-          ];
+          folder.children = components;
         }
-        nodeList.push(folderNode);
       }
+      nodeList = folders;
     } else {
-      const componentsList = await cmpUtil.loadComponents(
-        username,
-        metadataType.label!
+      nodeList = await this.loadAndMapComponents(
+        metadataType.label!,
+        NodeType.MetadataCmp
       );
-      nodeList = componentsList.map(
-        cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
-      );
-      if (nodeList.length === 0) {
-        nodeList.push(
-          new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
-        );
-      }
     }
     return nodeList;
   }
@@ -147,6 +124,29 @@ export class MetadataOutlineProvider
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));
     }
+  }
+
+  private async loadAndMapComponents(
+    metadataType: string,
+    nodeType: NodeType,
+    folder?: string
+  ) {
+    const cmpUtil = new ComponentUtils();
+    const componentsList = await cmpUtil.loadComponents(
+      this.defaultOrg!,
+      metadataType,
+      folder
+    );
+    const nodeList = componentsList.map(cmp => {
+      const label = folder ? cmp.substr(cmp.indexOf('/') + 1) : cmp;
+      return new BrowserNode(label, nodeType, cmp);
+    });
+    if (nodeList.length === 0) {
+      nodeList.push(
+        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
+      );
+    }
+    return nodeList;
   }
 }
 
