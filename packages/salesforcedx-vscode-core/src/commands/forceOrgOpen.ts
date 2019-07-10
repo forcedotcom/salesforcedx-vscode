@@ -22,8 +22,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { notificationService, ProgressNotification } from '../notifications';
-import { taskViewService } from '../statuses';
 
 type CliOrgData = {
   status: number;
