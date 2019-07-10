@@ -6,7 +6,10 @@
  */
 
 import {
+  CliCommandExecutor,
   Command,
+  OrgCreateErrorResult,
+  OrgCreateResultParser,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
@@ -16,7 +19,12 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { OrgType, setWorkspaceOrgTypeWithOrgType } from '../context';
 import { nls } from '../messages';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
+import { telemetryService } from '../telemetry';
 import {
   getRootWorkspace,
   getRootWorkspacePath,
@@ -35,6 +43,7 @@ import {
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
+
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
 > {
@@ -53,7 +62,59 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--durationdays', data.expirationDays)
       .withArg('--setdefaultusername')
       .withLogName('force_org_create_default_scratch_org')
+      .withJson()
       .build();
+  }
+
+  public execute(response: ContinueResponse<AliasAndFileSelection>): void {
+    const startTime = process.hrtime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    channelService.streamCommandStartStop(execution);
+
+    let stdOut = '';
+    execution.stdoutSubject.subscribe(realData => {
+      stdOut += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(execution.command.logName, startTime);
+      try {
+        const createParser = new OrgCreateResultParser(stdOut);
+
+        if (createParser.createIsSuccessful()) {
+          // NOTE: there is a beta in which this command also allows users to create sandboxes
+          // once it's GA this will have to be updated
+          setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
+        } else {
+          const errorResponse = createParser.getResult() as OrgCreateErrorResult;
+          channelService.appendLine(errorResponse.message);
+          telemetryService.sendError(
+            `forceOrgCreate: Error ${errorResponse.message}`
+          );
+        }
+      } catch (err) {
+        channelService.appendLine(
+          nls.localize('force_org_create_result_parsing_error')
+        );
+        channelService.appendLine(err);
+        telemetryService.sendError(
+          `forceOrgCreate: Error while parsing org create response ${err}`
+        );
+      }
+    });
+
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
+    ProgressNotification.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 

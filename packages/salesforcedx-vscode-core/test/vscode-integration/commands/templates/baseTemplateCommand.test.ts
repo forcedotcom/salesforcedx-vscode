@@ -61,8 +61,8 @@ describe('FilePathExistsChecker for Aura bundle', () => {
     });
 
     after(() => {
-      sinon.restore(vscode.workspace);
-      sinon.restore(notificationService);
+      findFilesSpy.restore();
+      warningSpy.restore();
     });
 
     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
@@ -118,8 +118,8 @@ describe('FilePathExistsChecker for Aura bundle', () => {
     });
 
     after(() => {
-      sinon.restore(vscode.workspace);
-      sinon.restore(notificationService);
+      findFilesSpy.restore();
+      warningSpy.restore();
     });
 
     it('Should return ContinueResponse if lightning files exist in specified path and user selects continue', async () => {
@@ -182,8 +182,8 @@ describe('FilePathExistsChecker for Apex Class', () => {
     });
 
     after(() => {
-      sinon.restore(vscode.workspace);
-      sinon.restore(notificationService);
+      findFilesSpy.restore();
+      warningSpy.restore();
     });
 
     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
@@ -239,8 +239,8 @@ describe('FilePathExistsChecker for Apex Class', () => {
     });
 
     after(() => {
-      sinon.restore(vscode.workspace);
-      sinon.restore(notificationService);
+      findFilesSpy.restore();
+      warningSpy.restore();
     });
 
     it('Should return ContinueResponse if files exist in specified path and user selects continue', async () => {
