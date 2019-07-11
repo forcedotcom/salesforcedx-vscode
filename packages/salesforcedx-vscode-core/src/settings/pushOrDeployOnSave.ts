@@ -15,6 +15,7 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
+import { telemetryService } from '../telemetry';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export class DeployQueue {
@@ -25,6 +26,7 @@ export class DeployQueue {
   private readonly queue = new Set<vscode.Uri>();
   private timer: NodeJS.Timer | undefined;
   private locked = false;
+  private deployWaitStart?: [number, number];
 
   private constructor() {}
 
@@ -45,6 +47,7 @@ export class DeployQueue {
   }
 
   public async enqueue(document: vscode.Uri) {
+    telemetryService.sendEventData('deployOnSaveEnqueue');
     this.queue.add(document);
     await this.wait();
     await this.doDeploy();
@@ -86,6 +89,20 @@ export class DeployQueue {
             toDeploy
           );
         }
+
+        telemetryService.sendEventData(
+          'deployOnSave',
+          {
+            deployType: orgType === OrgType.SourceTracked ? 'Push' : 'Deploy'
+          },
+          {
+            documentsToDeploy: toDeploy.length,
+            waitTimeForLastDeploy: this.deployWaitStart
+              ? parseFloat(telemetryService.getEndHRTime(this.deployWaitStart))
+              : 0
+          }
+        );
+        this.deployWaitStart = undefined;
       } catch (e) {
         switch (e.name) {
           case 'NamedOrgNotFound':
@@ -100,31 +117,21 @@ export class DeployQueue {
             displayError(e.message);
         }
         this.locked = false;
+        this.deployWaitStart = undefined;
       }
+    } else if (this.locked && !this.deployWaitStart) {
+      this.deployWaitStart = process.hrtime();
     }
   }
 }
 
 export async function registerPushOrDeployOnSave() {
-  const dirtyDocs = new Set<vscode.Uri>();
-  vscode.workspace.onWillSaveTextDocument(
-    (e: vscode.TextDocumentWillSaveEvent) => {
-      if (
-        sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-        e.document.isDirty
-      ) {
-        dirtyDocs.add(e.document.uri);
-      }
-    }
-  );
   vscode.workspace.onDidSaveTextDocument(
     async (textDocument: vscode.TextDocument) => {
       if (
         sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-        !(await ignorePath(textDocument.uri)) &&
-        dirtyDocs.has(textDocument.uri)
+        !(await ignorePath(textDocument.uri))
       ) {
-        dirtyDocs.delete(textDocument.uri);
         await DeployQueue.get().enqueue(textDocument.uri);
       }
     }
@@ -135,6 +142,7 @@ function displayError(message: string) {
   notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
+  telemetryService.sendError(`DeployOnSaveError: ${message}`);
 }
 
 async function ignorePath(uri: vscode.Uri) {
