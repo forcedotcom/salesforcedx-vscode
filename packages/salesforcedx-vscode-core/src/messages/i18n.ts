@@ -68,6 +68,8 @@ export const messages = {
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
+  force_org_create_result_parsing_error:
+    'An unexpected error occurred while processing the org create response.',
 
   force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
 
