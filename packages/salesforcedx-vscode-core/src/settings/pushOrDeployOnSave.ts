@@ -47,7 +47,6 @@ export class DeployQueue {
   }
 
   public async enqueue(document: vscode.Uri) {
-    telemetryService.sendEventData('deployOnSaveEnqueue');
     this.queue.add(document);
     await this.wait();
     await this.doDeploy();
@@ -141,7 +140,9 @@ function displayError(message: string) {
   notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
-  telemetryService.sendError(`DeployOnSaveError: ${message}`);
+  telemetryService.sendError(
+    `DeployOnSaveError: Documents were queued but a deployment was not triggered`
+  );
 }
 
 async function ignorePath(uri: vscode.Uri) {
