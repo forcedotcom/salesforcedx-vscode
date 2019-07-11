@@ -8,7 +8,10 @@
 import {
   CliCommandExecutor,
   Command,
-  SfdxCommandBuilder
+  OrgOpenContainerResultParser,
+  OrgOpenErrorResult,
+  SfdxCommandBuilder,
+  OrgOpenSuccessResult
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
@@ -60,7 +63,7 @@ class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
     execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
       try {
-        const cliOrgData: CliOrgData = JSON.parse(stdOut);
+        const cliOrgData: OrgOpenSuccessResult = JSON.parse(stdOut);
         const authenticatedOrgUrl: string = cliOrgData.result.url;
 
         if (authenticatedOrgUrl) {
