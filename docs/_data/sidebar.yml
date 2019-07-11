@@ -15,6 +15,8 @@
       url: /articles/getting-started/prettier
     - title: Tips & Tricks
       url: /articles/getting-started/tips-and-tricks
+    - title: Java Setup
+      url: /articles/getting-started/java-setup
 - title: User Guide
   baseUrl: /articles/user-guide/
   children:
@@ -49,15 +51,21 @@
       url: /articles/apex/isv-debugger
     - title: Language Server
       url: /articles/apex/language-server
-- title: Frameworks
-  baseUrl: /articles/frameworks
+- title: Aura
+  baseUrl: /articles/aura/
   children:
-    - title: Aura
-      url: /articles/frameworks/aura
-    - title: Lighting Web Components
-      url: /articles/frameworks/lwc
-    - title: Visualforce
-      url: /articles/frameworks/visualforce
+    - title: Writing
+      url: /articles/aura/writing
+- title: Lighting Web Components
+  baseUrl: /articles/lwc/
+  children:
+    - title: Writing
+      url: /articles/lwc/writing
+- title: Visualforce
+  baseUrl: /articles/visualforce/
+  children:
+    - title: Writing
+      url: /articles/visualforce/writing
 - title: FAQ
   baseUrl: /articles/faq/
   children:
