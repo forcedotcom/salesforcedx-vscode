@@ -10,13 +10,15 @@ import {
   Command,
   OrgOpenContainerResultParser,
   OrgOpenErrorResult,
-  SfdxCommandBuilder,
-  OrgOpenSuccessResult
+  OrgOpenSuccessResult,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import { notificationService, ProgressNotification } from '../notifications';
+import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, isSFDXContainerMode } from '../util';
 import {
@@ -25,15 +27,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-
-type CliOrgData = {
-  status: number;
-  result: {
-    orgId: string;
-    url: string;
-    username: string;
-  };
-};
 
 class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
@@ -46,6 +39,15 @@ class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
+  public buildUserMessageWith(orgData: OrgOpenSuccessResult): string {
+    return nls.localize(
+      'force_org_open_container_mode_message_text',
+      orgData.result.orgId,
+      orgData.result.username,
+      orgData.result.url
+    );
+  }
+
   public execute(response: ContinueResponse<string>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -55,7 +57,9 @@ class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
-    let stdOut = '';
+    channelService.streamCommandStartStop(execution);
+
+    let stdOut: string = '';
     execution.stdoutSubject.subscribe(cliResponse => {
       stdOut += cliResponse.toString();
     });
@@ -63,20 +67,35 @@ class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
     execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
       try {
-        const cliOrgData: OrgOpenSuccessResult = JSON.parse(stdOut);
-        const authenticatedOrgUrl: string = cliOrgData.result.url;
+        const orgOpenParser = new OrgOpenContainerResultParser(stdOut);
 
-        if (authenticatedOrgUrl) {
+        if (orgOpenParser.openIsSuccessful()) {
+          const cliOrgData = orgOpenParser.getResult() as OrgOpenSuccessResult;
+          const authenticatedOrgUrl: string = cliOrgData.result.url;
+
+          channelService.appendLine(this.buildUserMessageWith(cliOrgData));
+          // open the default browser
           vscode.env.openExternal(vscode.Uri.parse(authenticatedOrgUrl));
+        } else {
+          const errorResponse = orgOpenParser.getResult() as OrgOpenErrorResult;
+          channelService.appendLine(errorResponse.message);
         }
-      } catch (e) {
+      } catch (error) {
         channelService.appendLine(
           nls.localize('force_org_open_default_scratch_org_container_error')
         );
-        telemetryService.sendErrorEvent(e.message, e.message);
+        telemetryService.sendError(
+          `forceOrgOpenContainer: There was an error when parsing the org open response ${error}`
+        );
       }
     });
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
+    ProgressNotification.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 
