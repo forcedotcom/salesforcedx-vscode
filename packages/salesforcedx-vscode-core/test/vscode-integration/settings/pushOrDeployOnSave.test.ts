@@ -161,7 +161,7 @@ describe('Push or Deploy on Save', () => {
       expect(executeCommandStub.calledTwice).to.be.true;
       expect(executeCommandStub.getCall(1).args[1]).to.eql(uris);
 
-      const telemArgs = telemetryStub.getCall(4).args;
+      const telemArgs = telemetryStub.getCall(1).args;
       expect(telemArgs[0]).to.equal('deployOnSave');
       expect(telemArgs[1]).to.deep.equal({ deployType: 'Deploy' });
       expect(telemArgs[2]['documentsToDeploy']).to.equal(2);
