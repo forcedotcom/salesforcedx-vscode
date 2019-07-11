@@ -25,27 +25,19 @@ export class ComponentUtils {
       throw new Error(err);
     }
 
-    const workspaceRootPath = getRootWorkspacePath();
-
     const username =
       (await OrgAuthInfo.getUsername(defaultUsernameOrAlias)) ||
       defaultUsernameOrAlias;
-
-    let fileName = metadataType;
-    if (TypeUtils.FOLDER_TYPES.has(metadataType)) {
-      if (!folder) {
-        throw new Error(`${metadataType} requires a folder to be specified`);
-      }
-      fileName = `${metadataType}_${folder}`;
-    }
-
+    const fileName = `${
+      folder ? `${metadataType}_${folder}` : metadataType
+    }.json`;
     const componentsPath = path.join(
-      workspaceRootPath,
+      getRootWorkspacePath(),
       '.sfdx',
       'orgs',
       username,
       'metadata',
-      fileName + '.json'
+      fileName
     );
     return componentsPath;
   }

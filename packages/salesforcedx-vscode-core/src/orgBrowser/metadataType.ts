@@ -87,4 +87,8 @@ export class TypeUtils {
     }
     return typesList;
   }
+
+  public getFolderForType(metadataType: string): string {
+    return `${metadataType === 'EmailTemplate' ? 'Email' : metadataType}Folder`;
+  }
 }

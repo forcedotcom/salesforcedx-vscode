@@ -87,14 +87,11 @@ export class MetadataOutlineProvider
     metadataType: BrowserNode
   ): Promise<BrowserNode[]> {
     let nodeList: BrowserNode[] = [];
-    if (TypeUtils.FOLDER_TYPES.has(metadataType.label!)) {
-      let typeName = metadataType.label!;
-      if (typeName === 'EmailTemplate') {
-        typeName = 'Email';
-      }
 
+    if (TypeUtils.FOLDER_TYPES.has(metadataType.fullName)) {
+      const typeUtils = new TypeUtils();
       const folders = await this.loadAndMapComponents(
-        `${typeName}Folder`,
+        typeUtils.getFolderForType(metadataType.fullName),
         NodeType.Folder
       );
       for (const folder of folders) {
