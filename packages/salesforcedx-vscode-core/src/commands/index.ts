@@ -76,4 +76,7 @@ export {
   forceListMetadata,
   ForceListMetadataExecutor
 } from './forceListMetadata';
-export { forceSourceRetrieve } from './forceSourceRetrieve';
+export {
+  forceSourceRetrieve,
+  ForceSourceRetrieveExecutor
+} from './forceSourceRetrieve';
