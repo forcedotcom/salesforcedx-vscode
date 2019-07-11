@@ -108,8 +108,8 @@ export class ComponentUtils {
 
   public async retrieveComponent(componentNode: BrowserNode) {
     const type = componentNode.metadataType;
-    const component = componentNode.label;
-    const sourceToRetrieve = type + ':' + component;
-    await forceSourceRetrieve(sourceToRetrieve);
+    const component = componentNode.label; // this will use componentNode.fullName once folder changes are merged
+    const metadataArg = type + ':' + component;
+    await forceSourceRetrieve(metadataArg);
   }
 }

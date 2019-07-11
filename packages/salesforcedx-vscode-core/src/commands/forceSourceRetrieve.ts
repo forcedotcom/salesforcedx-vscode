@@ -5,19 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
-
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { telemetryService } from '../telemetry';
 import {
   EmptyParametersGatherer,
-  FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -34,7 +28,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 
   public build(): Command {
     return new SfdxCommandBuilder()
-      .withDescription('SFDX: Retrieve Source from Org')
+      .withDescription(nls.localize('force_source_retrieve_text'))
       .withArg('force:source:retrieve')
       .withFlag('-m', this.metadataArg)
       .build();

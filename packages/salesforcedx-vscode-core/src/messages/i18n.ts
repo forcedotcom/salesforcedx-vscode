@@ -89,6 +89,7 @@ export const messages = {
   force_source_deploy_select_manifest:
     'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
+  force_source_retrieve_display_text: 'Retrieve Source from Org',
   force_source_retrieve_select_file_or_directory:
     'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
   force_source_retrieve_select_manifest:
@@ -144,6 +145,7 @@ export const messages = {
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
+  force_list_metadata: 'SFDX: Force List Metadata',
   force_start_apex_debug_logging:
     'SFDX: Turn On Apex Debug Log for Replay Debugger',
   force_apex_debug_log_status_bar_text:
@@ -259,6 +261,5 @@ export const messages = {
   error_no_org_found: 'No org authorization info found.',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
-    'Run "SFDX: Authorize an Org" to authorize your org again.',
-  force_list_metadata: 'SFDX: Force List Metadata'
+    'Run "SFDX: Authorize an Org" to authorize your org again.'
 };

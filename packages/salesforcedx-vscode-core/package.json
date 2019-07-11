@@ -114,7 +114,8 @@
         },
         {
           "command": "sfdx.force.source.retrieve",
-          "when": "view == metadata && viewItem == component"
+          "when": "view == metadata && viewItem == component",
+          "group": "inline"
         }
       ],
       "editor/context": [
@@ -647,7 +648,11 @@
       },
       {
         "command": "sfdx.force.source.retrieve",
-        "title": "%force_source_retrieve_text%"
+        "title": "%force_source_retrieve_display_text%",
+        "icon": {
+          "light": "resources/light/retrieve.svg",
+          "dark": "resources/dark/retrieve.svg"
+        }
       }
     ],
     "configuration": {
