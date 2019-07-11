@@ -2,6 +2,11 @@
 
 ### Fixed
 
+#### salesforcedx-vscode/docs
+
+- Update sidebar navigation structure ([PR #1458](https://github.com/forcedotcom/salesforcedx-vscode/pull/1458))
+- Update [Java Setup](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/java-setup) article to include Zulu & AdoptOpenJDK setup instructions ([PR #1458](https://github.com/forcedotcom/salesforcedx-vscode/pull/1458))
+
 #### salesforcedx-vscode-core
 
 - Update command context to switch from non-source-tracked to source-tracked org after creating scratch orgs ([PR #1456](https://github.com/forcedotcom/salesforcedx-vscode/pull/1456), [Issue #1449](https://github.com/forcedotcom/salesforcedx-vscode/issues/1449))
