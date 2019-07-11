@@ -1,8 +1,9 @@
 ---
-title: Visualforce
+title: Write Visualforce
+redirect_from: '/articles/frameworks/visualforce'
 ---
 
-## Features Provided by the Visualforce Extension
+Features Provided by the Visualforce Extension
 
 - Code completion (invoke using Ctrl+Space)
 
