@@ -17,6 +17,7 @@ import {
   pathIsInPackageDirectory
 } from '../../../src/settings/pushOrDeployOnSave';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { telemetryService } from '../../../src/telemetry';
 
 const OrgType = context.OrgType;
 /* tslint:disable:no-unused-expression */
@@ -131,6 +132,8 @@ describe('Push or Deploy on Save', () => {
     });
 
     it('should stop additional files from deploying until queue is unlocked', async () => {
+      getWorkspaceOrgTypeStub.resolves(OrgType.NonSourceTracked);
+      const telemetryStub = stub(telemetryService, 'sendEventData');
       const queue = DeployQueue.get();
 
       // start a deploy from an enqueue and lock deploys
@@ -138,17 +141,33 @@ describe('Push or Deploy on Save', () => {
       let uris = [vscode.Uri.file('/sample')];
       await queue.enqueue(uris[0]);
       expect(executeCommandStub.calledOnce).to.be.true;
+      expect(
+        telemetryStub.calledWith(
+          'deployOnSave',
+          { deployType: 'Deploy' },
+          { documentsToDeploy: 1, waitTimeForLastDeploy: 0 }
+        )
+      ).to.be.true;
 
       // try enquing more files and deploying
       uris = [vscode.Uri.file('/sample2'), vscode.Uri.file('/sample3')];
       await queue.enqueue(uris[0]);
       await queue.enqueue(uris[1]);
       expect(executeCommandStub.calledTwice).to.be.false;
+      expect(telemetryStub.calledTwice).to.be.false;
 
       // signal to the queue we're done and deploy anything that has been queued while locked
       await queue.unlock();
       expect(executeCommandStub.calledTwice).to.be.true;
       expect(executeCommandStub.getCall(1).args[1]).to.eql(uris);
+
+      const telemArgs = telemetryStub.getCall(4).args;
+      expect(telemArgs[0]).to.equal('deployOnSave');
+      expect(telemArgs[1]).to.deep.equal({ deployType: 'Deploy' });
+      expect(telemArgs[2]['documentsToDeploy']).to.equal(2);
+      expect(telemArgs[2]['waitTimeForLastDeploy'] > 0).to.be.true;
+
+      telemetryStub.restore();
     });
 
     it('should display an error to the user when the defaultusername org info cannot be found', async () => {
