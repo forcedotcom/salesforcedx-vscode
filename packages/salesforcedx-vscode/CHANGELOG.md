@@ -4,9 +4,9 @@
 
 #### salesforcedx-vscode-core
 
-- Update command context logic after creating scratch orgs ([PR #1456](https://github.com/forcedotcom/salesforcedx-vscode/pull/1456), [Issue #1449](https://github.com/forcedotcom/salesforcedx-vscode/issues/1449))
+- Update command context to switch from non-source-tracked to source-tracked org after creating scratch orgs ([PR #1456](https://github.com/forcedotcom/salesforcedx-vscode/pull/1456), [Issue #1449](https://github.com/forcedotcom/salesforcedx-vscode/issues/1449))
 
-- Remove checking a document has been modified before deploying it with deploy on save. Add more telemetry data for deploy on save feature ([PR #1464](https://github.com/forcedotcom/salesforcedx-vscode/pull/1464), [Issue #1451](https://github.com/forcedotcom/salesforcedx-vscode/issues/1451))
+- Remove the check for modified document before deploying and also collect more telemetry data for deploy on save feature ([PR #1464](https://github.com/forcedotcom/salesforcedx-vscode/pull/1464), [Issue #1451](https://github.com/forcedotcom/salesforcedx-vscode/issues/1451))
 
 ## 46.4.0 - July 3, 2019
 
