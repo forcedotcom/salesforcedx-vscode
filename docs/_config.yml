@@ -35,6 +35,7 @@ plugins:
   - jekyll-feed
   - jekyll-octicons
   - jekyll-sitemap
+  - jekyll-redirect-from
 
 sass:
   style: compressed
