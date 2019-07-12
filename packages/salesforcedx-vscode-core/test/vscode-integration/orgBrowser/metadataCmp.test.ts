@@ -59,17 +59,6 @@ describe('get metadata components path', () => {
       await cmpUtil.getComponentsPath(metadataType, alias, folder)
     ).to.equal(expectedPath(metadataType + '_' + folder));
   });
-
-  it('should throw an error if a metadata type with folders is called without one', async () => {
-    for (const type of TypeUtils.FOLDER_TYPES) {
-      try {
-        await cmpUtil.getComponentsPath(type, alias);
-        fail('Should not have finished getComponentsPath call');
-      } catch (e) {
-        expect(e.message).to.equal(`${type} requires a folder to be specified`);
-      }
-    }
-  });
 });
 
 describe('build metadata components list', () => {

@@ -57,60 +57,53 @@ export class MetadataOutlineProvider
       return Promise.resolve([org]);
     }
 
-    switch (element.type) {
-      case NodeType.Org:
-        element.children = await this.getTypes();
-        break;
-      case NodeType.MetadataType:
-        element.children = await this.getComponents(element);
-        break;
+    if (!element.children) {
+      switch (element.type) {
+        case NodeType.Org:
+          element.setChildren(await this.getTypes(), NodeType.MetadataType);
+          break;
+        case NodeType.Folder:
+        case NodeType.MetadataType:
+          const type = TypeUtils.FOLDER_TYPES.has(element.fullName)
+            ? NodeType.Folder
+            : NodeType.MetadataCmp;
+          element.setChildren(await this.getComponents(element), type);
+          break;
+      }
     }
-    return Promise.resolve(element.children);
+    return Promise.resolve(element.children!);
   }
 
-  public async getTypes(): Promise<BrowserNode[]> {
+  public async getTypes(): Promise<string[]> {
     const username = this.defaultOrg!;
     const typeUtil = new TypeUtils();
     try {
-      const typesList = await typeUtil.loadTypes(username);
-      const nodeList = typesList.map(
-        type => new BrowserNode(type, NodeType.MetadataType)
-      );
-      return nodeList;
+      return await typeUtil.loadTypes(username);
     } catch (e) {
-      const errorNode = new BrowserNode(parseErrors(e), NodeType.EmptyNode);
-      return [errorNode];
+      throw parseErrors(e);
     }
   }
 
-  public async getComponents(
-    metadataType: BrowserNode
-  ): Promise<BrowserNode[]> {
-    let nodeList: BrowserNode[] = [];
-
-    if (TypeUtils.FOLDER_TYPES.has(metadataType.fullName)) {
-      const typeUtils = new TypeUtils();
-      const folders = await this.loadAndMapComponents(
-        typeUtils.getFolderForType(metadataType.fullName),
-        NodeType.Folder
-      );
-      for (const folder of folders) {
-        if (folder.label !== nls.localize('empty_components')) {
-          folder.children = await this.loadAndMapComponents(
-            metadataType.label!,
-            NodeType.MetadataCmp,
-            folder.fullName
-          );
-        }
+  public async getComponents(node: BrowserNode): Promise<string[]> {
+    const cmpUtils = new ComponentUtils();
+    try {
+      if (TypeUtils.FOLDER_TYPES.has(node.fullName)) {
+        const typeUtils = new TypeUtils();
+        return await cmpUtils.loadComponents(
+          this.defaultOrg!,
+          typeUtils.getFolderForType(node.fullName)
+        );
+      } else if (node.type === NodeType.Folder) {
+        return await cmpUtils.loadComponents(
+          this.defaultOrg!,
+          node.parent!.fullName,
+          node.fullName
+        );
       }
-      nodeList = folders;
-    } else {
-      nodeList = await this.loadAndMapComponents(
-        metadataType.label!,
-        NodeType.MetadataCmp
-      );
+      return await cmpUtils.loadComponents(this.defaultOrg!, node.fullName);
+    } catch (e) {
+      throw parseErrors(e);
     }
-    return nodeList;
   }
 
   public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
@@ -121,32 +114,9 @@ export class MetadataOutlineProvider
       throw new Error(nls.localize('cannot_determine_workspace'));
     }
   }
-
-  private async loadAndMapComponents(
-    metadataType: string,
-    nodeType: NodeType,
-    folder?: string
-  ) {
-    const cmpUtil = new ComponentUtils();
-    const componentsList = await cmpUtil.loadComponents(
-      this.defaultOrg!,
-      metadataType,
-      folder
-    );
-    const nodeList = componentsList.map(cmp => {
-      const label = folder ? cmp.substr(cmp.indexOf('/') + 1) : cmp;
-      return new BrowserNode(label, nodeType, cmp);
-    });
-    if (nodeList.length === 0) {
-      nodeList.push(
-        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
-      );
-    }
-    return nodeList;
-  }
 }
 
-function parseErrors(error: string): string {
+function parseErrors(error: string): Error {
   const e = JSON.parse(error);
   let message: string;
   switch (e.name) {
@@ -160,6 +130,6 @@ function parseErrors(error: string): string {
       message = nls.localize('error_fetching_metadata');
       break;
   }
-  message += nls.localize('error_org_browser_text');
-  return message;
+  message += ' ' + nls.localize('error_org_browser_text');
+  return new Error(message);
 }
