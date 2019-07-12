@@ -103,3 +103,6 @@ packages/dbaeumer*
 
 # MacOS folder atttribute tracking
 **/.DS_Store
+
+# Netlify
+.netlify

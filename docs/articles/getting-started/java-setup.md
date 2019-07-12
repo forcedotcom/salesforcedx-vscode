@@ -8,7 +8,7 @@ The Apex Language Server, shipped as part of the Salesforce Apex Extension for V
 1. Search for `apex`.
 1. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself.
 
-![Apex Java Setting](/salesforcedx-vscode/images/apex-java-home-setting.png)
+![Apex Java Setting](../../images/apex-java-home-setting.png)
 
 Below you will find instructions on how to download and configure different versions of Java.
 

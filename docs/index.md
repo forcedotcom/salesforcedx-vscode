@@ -6,7 +6,7 @@ This extension pack includes tools for developing on the Salesforce platform in 
 
 <span>Download using the links below, or read the [installation instructions](/salesforcedx-vscode/articles/getting-started/install).<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
 
-![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/overview.gif)
+![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](/images/overview.gif)
 
 ## Additional Resources
 

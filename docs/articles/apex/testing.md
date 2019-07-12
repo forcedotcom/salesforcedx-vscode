@@ -19,7 +19,7 @@ To clear your test results, click the refresh icon at the top of the sidebar (ho
 ## Run Apex Tests from Within a File
 
 To run Apex tests, in your `.cls` file, click **Run Test** or **Run All Tests** above the definition of an Apex test method or class.  
-![Running Apex tests using the Run Test and Run All Tests code lenses](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/apex_test_run.gif)
+![Running Apex tests using the Run Test and Run All Tests code lenses](../../images/apex_test_run.gif)
 
 Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Ctrl (Windows or Linux) or Cmd (macOS) and click that stack trace.
 
