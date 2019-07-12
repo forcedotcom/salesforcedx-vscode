@@ -19,7 +19,6 @@ To report issues with Salesforce Extensions for VS Code, open a [bug on GitHub](
 - Doc: [Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
 - Doc: [Apex Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode)
 - GitHub: [salesforcedx-vscode-apex-debugger](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-apex-debugger)
-- GitHub wiki for salesforcedx-vscode: [Apex Debugger](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Apex-Debugger)
 
 ---
 
