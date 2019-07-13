@@ -12,6 +12,7 @@ import {
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
+  SHOW_ORG_BROWSER,
   TELEMETRY_ENABLED
 } from '../constants';
 /**
@@ -58,6 +59,10 @@ export class SfdxCoreSettings {
 
   public getRetrieveTestCodeCoverage(): boolean {
     return this.getConfigValue(RETRIEVE_TEST_CODE_COVERAGE, false);
+  }
+
+  public showOrgBrowser(): boolean {
+    return this.getConfigValue(SHOW_ORG_BROWSER, false);
   }
 
   public getInternalDev(): boolean {
