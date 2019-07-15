@@ -72,7 +72,6 @@ export {
   ForceDescribeMetadataExecutor
 } from './forceDescribeMetadata';
 export {
-  folderTypes,
   forceListMetadata,
   ForceListMetadataExecutor
 } from './forceListMetadata';

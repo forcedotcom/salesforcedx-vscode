@@ -21,6 +21,13 @@ type MetadataObject = {
   xmlName: string;
 };
 export class TypeUtils {
+  public static readonly FOLDER_TYPES = new Set([
+    'EmailTemplate',
+    'Report',
+    'Dashboard',
+    'Document'
+  ]);
+
   public async getTypesFolder(usernameOrAlias: string): Promise<string> {
     if (!hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
@@ -79,5 +86,9 @@ export class TypeUtils {
       typesList = this.buildTypesList(undefined, typesPath);
     }
     return typesList;
+  }
+
+  public getFolderForType(metadataType: string): string {
+    return `${metadataType === 'EmailTemplate' ? 'Email' : metadataType}Folder`;
   }
 }
