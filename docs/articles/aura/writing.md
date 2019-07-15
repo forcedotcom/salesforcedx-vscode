@@ -25,7 +25,6 @@ Here's reference documentation for the `lightning:card` component.
 
 ## View or Jump to Definitions
 You can preview, view, or go to definitions of:
-
 - Aura Tags
 - LWC Tags
 - JavaScript
