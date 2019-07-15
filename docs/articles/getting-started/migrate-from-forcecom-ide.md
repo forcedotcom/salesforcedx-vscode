@@ -34,7 +34,7 @@ If you already have a `package.xml` file in your Force.com IDE project, you can 
 
 1. Open VS Code and create a project. From the start screen of VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to bring up the command palette. To search for the project-creation command, start typing `SFDX: Create Project with Manifest`. Press Enter when you’ve selected the command.
 
-   ![Create Project With Manifest](/salesforcedx-vscode/images/create-project-with-manifest.png)
+   ![Create Project With Manifest](../../create-project-with-manifest.png)
 
 1. Select the location of your project and click `Create Project`.
 1. Next, copy the contents of the `package.xml` file that you used in your Force.com IDE project.

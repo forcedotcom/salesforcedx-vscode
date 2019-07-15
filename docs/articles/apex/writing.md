@@ -7,7 +7,7 @@ View outlines of Apex classes and triggers, see code-completion suggestions, and
 ## View Code-Completion Suggestions
 
 To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.  
-![Animation showing code completion of a System.debug() statement](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_completion.gif)
+![Animation showing code completion of a System.debug() statement](../../images/apex_completion.gif)
 
 ## Insert Code Snippets
 
@@ -38,7 +38,7 @@ To preview a definition, hold down Ctrl (Windows or Linux) or Cmd (macOS) and ho
 To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
 
 To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.  
-![Previewing, viewing, and jumping to a definition](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_go_to_definition.gif)
+![Previewing, viewing, and jumping to a definition](../../images/apex_go_to_definition.gif)
 
 ## Find All References
 
@@ -58,12 +58,12 @@ To find references to an item, right-click the item and select **Find All Refere
 If you leave out a `;`, `}`, or `)`, the syntax error is marked with a red squiggly line in the editor.
 
 The Problems view in the bottom pane also lists the syntax errors. Double-click the problem to go to the source file.  
-![Problems view, showing a missing semicolon in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_problems.png)
+![Problems view, showing a missing semicolon in an Apex class](../../images/apex_problems.png)
 
 ## View an Outline of Your Apex Class or Trigger
 
 The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Ctrl+Shift+O (Windows or Linux) or Cmd+Shift+O (macOS). To jump to one of the symbols, select it in the list.  
-![Outline view, showing the symbols in an Apex class](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-apex/images/apex_outline.png)
+![Outline view, showing the symbols in an Apex class](../../images/apex_outline.png)
 
 ## Enable Code Smartness for SObjects
 

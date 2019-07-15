@@ -3593,6 +3593,12 @@ docs h1 {
   font-size: 1.125rem;
 }
 
+.docs h2 a {
+  color: #706e6b;
+  font-size: 1.25rem;
+  margin-left: 0.5rem;
+}
+
 pre {
   background-color: rgba(224, 229, 238, 0.1);
   /* box-shadow: inset 0 1px 3px #a8b7c7; */
