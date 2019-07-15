@@ -95,7 +95,7 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:display_tree_view"
+          "when": "config.salesforcedx-vscode-core.show-org-browser && sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         }
       ]
     },
@@ -680,6 +680,12 @@
           ],
           "default": false,
           "description": "%internal_dev_description%"
+        },
+        "salesforcedx-vscode-core.show-org-browser": {
+          "type": [
+            "boolean"
+          ],
+          "default": false
         }
       }
     },
