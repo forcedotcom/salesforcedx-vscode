@@ -16,28 +16,34 @@ import { SfdxCommandletExecutor } from '../commands';
 import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
 
-export const folderTypes = new Set(['EmailTemplate', 'Report']);
 export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
   private metadataType: string;
   private defaultUsernameOrAlias: string;
+  private folder?: string;
 
-  public constructor(metadataType: string, defaultUsernameOrAlias: string) {
+  public constructor(
+    metadataType: string,
+    defaultUsernameOrAlias: string,
+    folder?: string
+  ) {
     super();
     this.metadataType = metadataType;
     this.defaultUsernameOrAlias = defaultUsernameOrAlias;
+    this.folder = folder;
   }
 
   public build(data: {}): Command {
-    let builder = new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
       .withLogName(nls.localize('force_list_metadata'))
       .withJson();
 
-    if (folderTypes.has(this.metadataType)) {
-      builder = builder.withFlag('--folder', 'unfiled$public');
+    if (this.folder) {
+      builder.withFlag('--folder', this.folder);
     }
+
     return builder.build();
   }
 }
@@ -45,12 +51,15 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
 export async function forceListMetadata(
   metadataType: string,
   defaultUsernameOrAlias: string,
-  outputPath: string
+  outputPath: string,
+  folder?: string
 ): Promise<string> {
   const execution = new CliCommandExecutor(
-    new ForceListMetadataExecutor(metadataType, defaultUsernameOrAlias).build(
-      {}
-    ),
+    new ForceListMetadataExecutor(
+      metadataType,
+      defaultUsernameOrAlias,
+      folder
+    ).build({}),
     { cwd: getRootWorkspacePath() }
   ).execute();
 
