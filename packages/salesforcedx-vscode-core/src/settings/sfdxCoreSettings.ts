@@ -61,10 +61,6 @@ export class SfdxCoreSettings {
     return this.getConfigValue(RETRIEVE_TEST_CODE_COVERAGE, false);
   }
 
-  public showOrgBrowser(): boolean {
-    return this.getConfigValue(SHOW_ORG_BROWSER, false);
-  }
-
   public getInternalDev(): boolean {
     return this.getConfigValue(INTERNAL_DEVELOPMENT_FLAG, false);
   }

@@ -20,4 +20,3 @@ export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
 export const SFDX_CLI_DOWNLOAD_LINK =
   'https://developer.salesforce.com/tools/sfdxcli';
-export const SHOW_ORG_BROWSER = 'show-org-browser';
