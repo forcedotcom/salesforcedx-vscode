@@ -2,6 +2,8 @@
 
 ## Setup Ruby
 
+https://jekyllrb.com/docs/
+
 ```
 brew install ruby
 ```
@@ -14,9 +16,18 @@ export LDFLAGS="-L/usr/local/opt/ruby/lib"
 export CPPFLAGS="-I/usr/local/opt/ruby/include"
 ```
 
+## Install Jekyll
+
+```
+gem install jekyll bundler
+```
+
+
 ## Start the Server
 
 ```
+cd docs
+bundle install
 bundle exec jekyll serve
 ```
 
