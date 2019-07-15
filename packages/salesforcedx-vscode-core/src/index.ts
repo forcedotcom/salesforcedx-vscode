@@ -497,9 +497,8 @@ export async function activate(context: vscode.ExtensionContext) {
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  if (sfdxCoreSettings.showOrgBrowser()) {
-    await setupOrgBrowser(context, defaultUsernameorAlias);
-  }
+  await setupOrgBrowser(context, defaultUsernameorAlias);
+
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType(defaultUsernameorAlias);
