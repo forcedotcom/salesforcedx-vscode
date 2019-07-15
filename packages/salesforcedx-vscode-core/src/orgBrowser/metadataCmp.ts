@@ -11,11 +11,13 @@ import { forceListMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { TypeUtils } from './metadataType';
 
 export class ComponentUtils {
   public async getComponentsPath(
     metadataType: string,
-    defaultUsernameOrAlias: string
+    defaultUsernameOrAlias: string,
+    folder?: string
   ): Promise<string> {
     if (!hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
@@ -23,19 +25,19 @@ export class ComponentUtils {
       throw new Error(err);
     }
 
-    const workspaceRootPath = getRootWorkspacePath();
-
     const username =
       (await OrgAuthInfo.getUsername(defaultUsernameOrAlias)) ||
       defaultUsernameOrAlias;
-
+    const fileName = `${
+      folder ? `${metadataType}_${folder}` : metadataType
+    }.json`;
     const componentsPath = path.join(
-      workspaceRootPath,
+      getRootWorkspacePath(),
       '.sfdx',
       'orgs',
       username,
       'metadata',
-      metadataType + '.json'
+      fileName
     );
     return componentsPath;
   }
@@ -76,11 +78,13 @@ export class ComponentUtils {
 
   public async loadComponents(
     defaultOrg: string,
-    metadataType: string
+    metadataType: string,
+    folder?: string
   ): Promise<string[]> {
     const componentsPath = await this.getComponentsPath(
       metadataType,
-      defaultOrg
+      defaultOrg,
+      folder
     );
 
     let componentsList: string[];
@@ -88,7 +92,8 @@ export class ComponentUtils {
       const result = await forceListMetadata(
         metadataType,
         defaultOrg,
-        componentsPath
+        componentsPath,
+        folder
       );
       componentsList = this.buildComponentsList(
         metadataType,
