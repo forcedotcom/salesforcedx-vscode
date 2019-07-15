@@ -648,7 +648,7 @@
       },
       {
         "command": "sfdx.force.source.retrieve",
-        "title": "%forc_source_retrieve_display_text%",
+        "title": "%force_source_retrieve_display_text%",
         "icon": {
           "light": "resources/light/retrieve.svg",
           "dark": "resources/dark/retrieve.svg"
