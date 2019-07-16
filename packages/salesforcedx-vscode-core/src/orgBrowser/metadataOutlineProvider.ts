@@ -13,7 +13,7 @@ import { BrowserNode, ComponentUtils, NodeType, TypeUtils } from './index';
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
   private defaultOrg: string | undefined;
-  private toRefresh?: boolean;
+  private toRefresh: boolean = false;
 
   private internalOnDidChangeTreeData: vscode.EventEmitter<
     BrowserNode | undefined
