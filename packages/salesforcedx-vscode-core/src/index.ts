@@ -64,7 +64,11 @@ import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { MetadataOutlineProvider } from './orgBrowser';
+import {
+  BrowserNode,
+  ComponentUtils,
+  MetadataOutlineProvider
+} from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -413,6 +417,13 @@ async function setupOrgBrowser(
     'sfdx.force.metadata.view.refresh',
     async node => {
       await metadataProvider.refresh(node);
+    }
+  );
+
+  vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve',
+    async (node: BrowserNode) => {
+      await new ComponentUtils().retrieveComponent(node);
     }
   );
   extensionContext.subscriptions.push(treeView);

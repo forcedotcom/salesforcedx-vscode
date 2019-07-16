@@ -114,7 +114,11 @@
         },
         {
           "command": "sfdx.force.metadata.view.refresh",
-          "when": "view == metadata && viewItem == refreshable",
+          "when": "view == metadata && viewItem == refreshable"
+        },
+        {
+          "command": "sfdx.force.source.retrieve",
+          "when": "view == metadata && viewItem == component",
           "group": "inline"
         }
       ],
@@ -644,6 +648,14 @@
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.source.retrieve",
+        "title": "%force_source_retrieve_display_text%",
+        "icon": {
+          "light": "resources/light/retrieve.svg",
+          "dark": "resources/dark/retrieve.svg"
         }
       }
     ],

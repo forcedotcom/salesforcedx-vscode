@@ -40,6 +40,7 @@ export class BrowserNode extends vscode.TreeItem {
       case NodeType.MetadataCmp:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;
         this.iconPath = vscode.ThemeIcon.File;
+        this.contextValue = 'component';
         break;
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
