@@ -31,6 +31,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
       .withDescription(nls.localize('force_source_retrieve_text'))
       .withArg('force:source:retrieve')
       .withFlag('-m', this.metadataArg)
+      .withLogName('force_source_retrieve')
       .build();
   }
 }
