@@ -114,7 +114,8 @@
         },
         {
           "command": "sfdx.force.metadata.view.refresh",
-          "when": "view == metadata && viewItem == refreshable"
+          "when": "view == metadata && viewItem == refreshable",
+          "group": "inline"
         },
         {
           "command": "sfdx.force.source.retrieve",
