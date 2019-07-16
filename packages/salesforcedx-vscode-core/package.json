@@ -95,7 +95,7 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:display_tree_view"
+          "when": "config.salesforcedx-vscode-core.show-org-browser && sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         }
       ]
     },
@@ -111,6 +111,11 @@
         {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
+        },
+        {
+          "command": "sfdx.force.source.retrieve",
+          "when": "view == metadata && viewItem == component",
+          "group": "inline"
         }
       ],
       "editor/context": [
@@ -640,6 +645,14 @@
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
         }
+      },
+      {
+        "command": "sfdx.force.source.retrieve",
+        "title": "%force_source_retrieve_display_text%",
+        "icon": {
+          "light": "resources/light/retrieve.svg",
+          "dark": "resources/dark/retrieve.svg"
+        }
       }
     ],
     "configuration": {
@@ -680,6 +693,12 @@
           ],
           "default": false,
           "description": "%internal_dev_description%"
+        },
+        "salesforcedx-vscode-core.show-org-browser": {
+          "type": [
+            "boolean"
+          ],
+          "default": false
         }
       }
     },
