@@ -111,6 +111,11 @@
         {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
+        },
+        {
+          "command": "sfdx.force.source.retrieve",
+          "when": "view == metadata && viewItem == component",
+          "group": "inline"
         }
       ],
       "editor/context": [
@@ -639,6 +644,14 @@
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.source.retrieve",
+        "title": "%force_source_retrieve_display_text%",
+        "icon": {
+          "light": "resources/light/retrieve.svg",
+          "dark": "resources/dark/retrieve.svg"
         }
       }
     ],
