@@ -414,7 +414,14 @@ async function setupOrgBrowser(
   });
 
   vscode.commands.registerCommand(
-    'sfdx.force.metadata.view.refresh',
+    'sfdx.force.metadata.view.type.refresh',
+    async node => {
+      await metadataProvider.refresh(node);
+    }
+  );
+
+  vscode.commands.registerCommand(
+    'sfdx.force.metadata.view.component.refresh',
     async node => {
       await metadataProvider.refresh(node);
     }

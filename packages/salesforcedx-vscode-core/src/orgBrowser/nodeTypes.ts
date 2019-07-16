@@ -8,11 +8,11 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 
 export enum NodeType {
-  Org,
-  MetadataType,
-  MetadataCmp,
-  EmptyNode,
-  Folder
+  Org = 'org',
+  MetadataType = 'type',
+  MetadataCmp = 'component',
+  EmptyNode = 'empty',
+  Folder = 'folder'
 }
 
 export class BrowserNode extends vscode.TreeItem {
@@ -28,11 +28,8 @@ export class BrowserNode extends vscode.TreeItem {
   ) {
     super(label);
     this.type = type;
+    this.contextValue = type;
     this.fullName = fullName || label;
-    this.contextValue =
-      type === NodeType.MetadataType || type === NodeType.Folder
-        ? 'refreshable'
-        : undefined;
     switch (this.type) {
       case NodeType.Org:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
@@ -40,7 +37,6 @@ export class BrowserNode extends vscode.TreeItem {
       case NodeType.MetadataCmp:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;
         this.iconPath = vscode.ThemeIcon.File;
-        this.contextValue = 'component';
         break;
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;

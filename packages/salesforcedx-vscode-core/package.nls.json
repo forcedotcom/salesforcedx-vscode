@@ -54,6 +54,7 @@
   "force_source_delete_this_source_text": "SFDX: Delete This from Project and Org",
   "force_config_set_org_text": "SFDX: Set a Default Org",
   "internal_dev_description": "Specifies whether or not to set up internal development mode which provides limited SFDX commands.",
-  "refresh_text": "Refresh",
+  "refresh_types_text": "Refresh Types",
+  "refresh_components_text": "Refresh Components",
   "force_source_retrieve_display_text": "Retrieve Source from Org"
 }
