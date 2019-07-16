@@ -408,9 +408,13 @@ async function setupOrgBrowser(
       await metadataProvider.onViewChange();
     }
   });
-  vscode.commands.registerCommand('sfdx.force.metadata.view.refresh', () => {
-    return metadataProvider.refresh();
-  });
+
+  vscode.commands.registerCommand(
+    'sfdx.force.metadata.view.refresh',
+    async node => {
+      await metadataProvider.refresh(node);
+    }
+  );
   extensionContext.subscriptions.push(treeView);
 }
 
@@ -497,7 +501,7 @@ export async function activate(context: vscode.ExtensionContext) {
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  // await setupOrgBrowser(context, defaultUsernameorAlias);
+  await setupOrgBrowser(context, defaultUsernameorAlias);
   vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', false);
   if (isCLIInstalled()) {
     // Set context for defaultusername org

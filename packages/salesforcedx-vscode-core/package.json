@@ -94,8 +94,7 @@
       "metadata": [
         {
           "id": "metadata",
-          "name": "Metadata",
-          "when": "sfdx:display_tree_view"
+          "name": "Metadata"
         }
       ]
     },
@@ -111,6 +110,11 @@
         {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
+        },
+        {
+          "command": "sfdx.force.metadata.view.refresh",
+          "when": "view == metadata && viewItem == refreshable",
+          "group": "inline"
         }
       ],
       "editor/context": [
@@ -635,7 +639,7 @@
       },
       {
         "command": "sfdx.force.metadata.view.refresh",
-        "title": "%refresh_org_browser_text%",
+        "title": "%refresh_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"

@@ -16,6 +16,7 @@ export enum NodeType {
 }
 
 export class BrowserNode extends vscode.TreeItem {
+  public toRefresh: boolean = false;
   public readonly fullName: string;
   private _children: BrowserNode[] | undefined;
   private _parent: BrowserNode | undefined;
@@ -28,6 +29,10 @@ export class BrowserNode extends vscode.TreeItem {
     super(label);
     this.type = type;
     this.fullName = fullName || label;
+    this.contextValue =
+      type === NodeType.MetadataType || type === NodeType.Folder
+        ? 'refreshable'
+        : undefined;
     switch (this.type) {
       case NodeType.Org:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;

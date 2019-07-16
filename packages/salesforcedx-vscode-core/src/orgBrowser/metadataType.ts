@@ -74,12 +74,15 @@ export class TypeUtils {
     }
   }
 
-  public async loadTypes(defaultOrg: string): Promise<string[]> {
+  public async loadTypes(
+    defaultOrg: string,
+    forceRefresh?: boolean
+  ): Promise<string[]> {
     const typesFolder = await this.getTypesFolder(defaultOrg);
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
     let typesList: string[];
-    if (!fs.existsSync(typesPath)) {
+    if (forceRefresh || !fs.existsSync(typesPath)) {
       const result = await forceDescribeMetadata(typesFolder);
       typesList = this.buildTypesList(result, undefined);
     } else {
