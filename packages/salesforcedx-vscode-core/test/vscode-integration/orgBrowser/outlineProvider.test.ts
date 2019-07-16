@@ -196,19 +196,21 @@ describe('load org browser tree outline', () => {
     loadCmpStub.restore();
   });
 
-  it('should mark type and folder nodes as the only refreshable nodes', () => {
+  it('should set contextValue for nodes correctly', () => {
     const keys = Object.keys(NodeType).filter(
       k => typeof NodeType[k as any] === 'number'
     );
     keys
       .map(k => Number(NodeType[k as any]))
       .forEach(val => {
+        let expected;
         const node = new BrowserNode('Test', val);
         if (val === NodeType.Folder || val === NodeType.MetadataType) {
-          expect(node.contextValue).to.equal('refreshable');
-        } else {
-          expect(node.contextValue).to.be.undefined;
+          expected = 'refreshable';
+        } else if (val === NodeType.MetadataCmp) {
+          expected = 'component';
         }
+        expect(node.contextValue).to.equal(expected);
       });
   });
 
