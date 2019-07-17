@@ -1,3 +1,15 @@
+## 46.6.0 - July 18, 2019
+
+### Fixed
+
+#### salesforcedx-vscode/docs
+
+- Update Apex Refactor: Extract Local Variable documentaion and Apex Refactor: Extract to Local Constant demo gif [Apex Refactoring](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/refactoring) article ([PR #1484](https://github.com/forcedotcom/salesforcedx-vscode/pull/1484))
+
+#### salesforcedx-vscode-apex
+
+- Remove static modifier for `Extract Constant` when invoked from within an inner class ([PR #1484](https://github.com/forcedotcom/salesforcedx-vscode/pull/1484))
+
 ## 46.5.0 - July 11, 2019
 
 ### Fixed
