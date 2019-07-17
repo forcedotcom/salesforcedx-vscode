@@ -1,3 +1,19 @@
+## 46.6.0 - July 18, 2019
+
+### Fixed
+
+#### salesforcedx-vscode/docs
+
+- Apex Refactor: Extract Local Variable wording update, and Apex Refactor: Extract to Local Constant demo update [Apex Refactoring](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/refactoring) article ([PR #1484](https://github.com/forcedotcom/salesforcedx-vscode/pull/1484))
+
+#### salesforcedx-vscode-apex
+
+- Remove static modifier for `Extract Constant` when invoked from within an inner class ([PR #1484](https://github.com/forcedotcom/salesforcedx-vscode/pull/1484))
+
+#### salesforcedx-vscode-core
+
+- Fix for building on Netlify ([PR #1471](https://github.com/forcedotcom/salesforcedx-vscode/pull/1471))
+
 ## 46.5.0 - July 11, 2019
 
 ### Fixed
