@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode/docs
 
-- Apex Refactor: Extract Local Variable wording update, and Apex Refactor: Extract to Local Constant demo update [Apex Refactoring](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/refactoring) article ([PR #1484](https://github.com/forcedotcom/salesforcedx-vscode/pull/1484))
+- Update Apex Refactor: Extract Local Variable documentaion and Apex Refactor: Extract to Local Constant demo gif [Apex Refactoring](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/refactoring) article ([PR #1484](https://github.com/forcedotcom/salesforcedx-vscode/pull/1484))
 
 #### salesforcedx-vscode-apex
 
