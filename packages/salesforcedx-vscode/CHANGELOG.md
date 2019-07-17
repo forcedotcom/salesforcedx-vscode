@@ -10,10 +10,6 @@
 
 - Remove static modifier for `Extract Constant` when invoked from within an inner class ([PR #1484](https://github.com/forcedotcom/salesforcedx-vscode/pull/1484))
 
-#### salesforcedx-vscode-core
-
-- Fix for building on Netlify ([PR #1471](https://github.com/forcedotcom/salesforcedx-vscode/pull/1471))
-
 ## 46.5.0 - July 11, 2019
 
 ### Fixed
