@@ -102,7 +102,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "sfdx.force.metadata.view.refresh",
+          "command": "sfdx.force.metadata.view.type.refresh",
           "when": "view == metadata",
           "group": "navigation"
         }
@@ -111,6 +111,11 @@
         {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
+        },
+        {
+          "command": "sfdx.force.metadata.view.component.refresh",
+          "when": "view == metadata && viewItem =~ /(folder|type)/",
+          "group": "inline"
         },
         {
           "command": "sfdx.force.source.retrieve",
@@ -639,8 +644,16 @@
         "title": "%force_lightning_lwc_create_text%"
       },
       {
-        "command": "sfdx.force.metadata.view.refresh",
-        "title": "%refresh_org_browser_text%",
+        "command": "sfdx.force.metadata.view.type.refresh",
+        "title": "%refresh_types_text%",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.metadata.view.component.refresh",
+        "title": "%refresh_components_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"

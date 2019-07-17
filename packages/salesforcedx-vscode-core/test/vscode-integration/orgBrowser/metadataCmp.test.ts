@@ -177,4 +177,10 @@ describe('load metadata component data', () => {
     expect(buildComponentsStub.calledWith(metadataType, undefined, filePath)).to
       .be.true;
   });
+
+  it('should load components through cli if file exists and force is set to true', async () => {
+    fileExistsStub.returns(true);
+    await cmpUtil.loadComponents(defaultOrg, metadataType, undefined, true);
+    expect(cmdOutputStub.calledOnce).to.be.true;
+  });
 });

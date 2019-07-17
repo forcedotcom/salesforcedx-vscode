@@ -79,7 +79,8 @@ export class ComponentUtils {
   public async loadComponents(
     defaultOrg: string,
     metadataType: string,
-    folder?: string
+    folder?: string,
+    forceRefresh?: boolean
   ): Promise<string[]> {
     const componentsPath = await this.getComponentsPath(
       metadataType,
@@ -88,7 +89,7 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
-    if (!fs.existsSync(componentsPath)) {
+    if (forceRefresh || !fs.existsSync(componentsPath)) {
       const result = await forceListMetadata(
         metadataType,
         defaultOrg,

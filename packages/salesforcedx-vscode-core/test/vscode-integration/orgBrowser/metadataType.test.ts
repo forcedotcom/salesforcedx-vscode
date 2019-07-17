@@ -147,4 +147,10 @@ describe('load metadata types data', () => {
     expect(cmdOutputStub.called).to.equal(false);
     expect(buildTypesStub.calledWith(undefined, filePath)).to.be.true;
   });
+
+  it('should load metadata types through cli if file exists and force is set to true', async () => {
+    fileExistsStub.returns(true);
+    await typeUtil.loadTypes(defaultOrg, true);
+    expect(cmdOutputStub.calledOnce).to.be.true;
+  });
 });
