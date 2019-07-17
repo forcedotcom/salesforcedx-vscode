@@ -13,6 +13,7 @@ import { BrowserNode, ComponentUtils, NodeType, TypeUtils } from './index';
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
   private defaultOrg: string | undefined;
+  private toRefresh: boolean = false;
 
   private internalOnDidChangeTreeData: vscode.EventEmitter<
     BrowserNode | undefined
@@ -33,10 +34,15 @@ export class MetadataOutlineProvider
     this.defaultOrg = usernameOrAlias;
   }
 
-  public async refresh(): Promise<void> {
-    const usernameOrAlias = await this.getDefaultUsernameOrAlias();
-    this.defaultOrg = usernameOrAlias;
-    this.internalOnDidChangeTreeData.fire();
+  public async refresh(node?: BrowserNode): Promise<void> {
+    if (node && !node.toRefresh) {
+      node.toRefresh = true;
+    } else if (!this.toRefresh) {
+      const usernameOrAlias = await this.getDefaultUsernameOrAlias();
+      this.defaultOrg = usernameOrAlias;
+      this.toRefresh = true;
+    }
+    this.internalOnDidChangeTreeData.fire(node);
   }
 
   public getTreeItem(element: BrowserNode): vscode.TreeItem {
@@ -57,19 +63,19 @@ export class MetadataOutlineProvider
       return Promise.resolve([org]);
     }
 
-    if (!element.children) {
-      switch (element.type) {
-        case NodeType.Org:
-          element.setChildren(await this.getTypes(), NodeType.MetadataType);
-          break;
-        case NodeType.Folder:
-        case NodeType.MetadataType:
-          const type = TypeUtils.FOLDER_TYPES.has(element.fullName)
-            ? NodeType.Folder
-            : NodeType.MetadataCmp;
-          element.setChildren(await this.getComponents(element), type);
-          break;
-      }
+    switch (element.type) {
+      case NodeType.Org:
+        element.setChildren(await this.getTypes(), NodeType.MetadataType);
+        this.toRefresh = false;
+        break;
+      case NodeType.Folder:
+      case NodeType.MetadataType:
+        const type = TypeUtils.FOLDER_TYPES.has(element.fullName)
+          ? NodeType.Folder
+          : NodeType.MetadataCmp;
+        element.setChildren(await this.getComponents(element), type);
+        element.toRefresh = false;
+        break;
     }
     return Promise.resolve(element.children!);
   }
@@ -78,7 +84,7 @@ export class MetadataOutlineProvider
     const username = this.defaultOrg!;
     const typeUtil = new TypeUtils();
     try {
-      return await typeUtil.loadTypes(username);
+      return await typeUtil.loadTypes(username, this.toRefresh);
     } catch (e) {
       throw parseErrors(e);
     }
@@ -87,20 +93,28 @@ export class MetadataOutlineProvider
   public async getComponents(node: BrowserNode): Promise<string[]> {
     const cmpUtils = new ComponentUtils();
     try {
-      if (TypeUtils.FOLDER_TYPES.has(node.fullName)) {
-        const typeUtils = new TypeUtils();
-        return await cmpUtils.loadComponents(
-          this.defaultOrg!,
-          typeUtils.getFolderForType(node.fullName)
-        );
-      } else if (node.type === NodeType.Folder) {
-        return await cmpUtils.loadComponents(
-          this.defaultOrg!,
-          node.parent!.fullName,
-          node.fullName
-        );
+      let typeName;
+      let folder;
+      switch (node.type) {
+        case NodeType.Folder:
+          typeName = node.parent!.fullName;
+          folder = node.fullName;
+          break;
+        case NodeType.MetadataType:
+          if (TypeUtils.FOLDER_TYPES.has(node.fullName)) {
+            const typeUtils = new TypeUtils();
+            typeName = typeUtils.getFolderForType(node.fullName);
+            break;
+          }
+        default:
+          typeName = node.fullName;
       }
-      return await cmpUtils.loadComponents(this.defaultOrg!, node.fullName);
+      return await cmpUtils.loadComponents(
+        this.defaultOrg!,
+        typeName,
+        folder,
+        node.toRefresh
+      );
     } catch (e) {
       throw parseErrors(e);
     }

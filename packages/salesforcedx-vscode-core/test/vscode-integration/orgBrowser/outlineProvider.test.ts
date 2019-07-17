@@ -16,6 +16,7 @@ import {
   TypeUtils
 } from '../../../src/orgBrowser';
 
+/* tslint:disable:no-unused-expression */
 describe('load org browser tree outline', () => {
   const username = 'test-username@test1234.com';
   let metadataProvider: MetadataOutlineProvider;
@@ -193,6 +194,48 @@ describe('load org browser tree outline', () => {
     compareNodes(f2, folder2);
 
     loadCmpStub.restore();
+  });
+
+  it('should call loadComponents with force refresh', async () => {
+    const loadCmpStub = stub(
+      ComponentUtils.prototype,
+      'loadComponents'
+    ).returns([]);
+    const node = new BrowserNode('ApexClass', NodeType.MetadataType);
+
+    await metadataProvider.getChildren(node);
+    expect(loadCmpStub.getCall(0).args[3]).to.be.false;
+
+    await metadataProvider.refresh(node);
+    await metadataProvider.getChildren(node);
+    expect(loadCmpStub.getCall(1).args[3]).to.be.true;
+
+    await metadataProvider.getChildren(node);
+    expect(loadCmpStub.getCall(2).args[3]).to.be.false;
+
+    loadCmpStub.restore();
+  });
+
+  it('should call loadTypes with force refresh', async () => {
+    const loadTypesStub = stub(TypeUtils.prototype, 'loadTypes').returns([]);
+    const usernameStub = stub(
+      MetadataOutlineProvider.prototype,
+      'getDefaultUsernameOrAlias'
+    ).returns(username);
+    const node = new BrowserNode(username, NodeType.Org);
+
+    await metadataProvider.getChildren(node);
+    expect(loadTypesStub.getCall(0).args[1]).to.be.false;
+
+    await metadataProvider.refresh();
+    await metadataProvider.getChildren(node);
+    expect(loadTypesStub.getCall(1).args[1]).to.be.true;
+
+    await metadataProvider.getChildren(node);
+    expect(loadTypesStub.getCall(2).args[1]).to.be.false;
+
+    loadTypesStub.restore();
+    usernameStub.restore();
   });
 });
 
