@@ -13,6 +13,7 @@ import { BrowserNode, ComponentUtils, NodeType, TypeUtils } from './index';
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
   private defaultOrg: string | undefined;
+  private toRefresh: boolean = false;
 
   private internalOnDidChangeTreeData: vscode.EventEmitter<
     BrowserNode | undefined
@@ -33,10 +34,15 @@ export class MetadataOutlineProvider
     this.defaultOrg = usernameOrAlias;
   }
 
-  public async refresh(): Promise<void> {
-    const usernameOrAlias = await this.getDefaultUsernameOrAlias();
-    this.defaultOrg = usernameOrAlias;
-    this.internalOnDidChangeTreeData.fire();
+  public async refresh(node?: BrowserNode): Promise<void> {
+    if (node && !node.toRefresh) {
+      node.toRefresh = true;
+    } else if (!this.toRefresh) {
+      const usernameOrAlias = await this.getDefaultUsernameOrAlias();
+      this.defaultOrg = usernameOrAlias;
+      this.toRefresh = true;
+    }
+    this.internalOnDidChangeTreeData.fire(node);
   }
 
   public getTreeItem(element: BrowserNode): vscode.TreeItem {
@@ -59,48 +65,59 @@ export class MetadataOutlineProvider
 
     switch (element.type) {
       case NodeType.Org:
-        element.children = await this.getTypes();
+        element.setChildren(await this.getTypes(), NodeType.MetadataType);
+        this.toRefresh = false;
         break;
+      case NodeType.Folder:
       case NodeType.MetadataType:
-        element.children = await this.getComponents(element);
+        const type = TypeUtils.FOLDER_TYPES.has(element.fullName)
+          ? NodeType.Folder
+          : NodeType.MetadataCmp;
+        element.setChildren(await this.getComponents(element), type);
+        element.toRefresh = false;
         break;
     }
-    return Promise.resolve(element.children);
+    return Promise.resolve(element.children!);
   }
 
-  public async getTypes(): Promise<BrowserNode[]> {
+  public async getTypes(): Promise<string[]> {
     const username = this.defaultOrg!;
     const typeUtil = new TypeUtils();
     try {
-      const typesList = await typeUtil.loadTypes(username);
-      const nodeList = typesList.map(
-        type => new BrowserNode(type, NodeType.MetadataType)
-      );
-      return nodeList;
+      return await typeUtil.loadTypes(username, this.toRefresh);
     } catch (e) {
-      const errorNode = new BrowserNode(parseErrors(e), NodeType.EmptyNode);
-      return [errorNode];
+      throw parseErrors(e);
     }
   }
 
-  public async getComponents(
-    metadataType: BrowserNode
-  ): Promise<BrowserNode[]> {
-    const username = this.defaultOrg!;
-    const cmpUtil = new ComponentUtils();
-    const componentsList = await cmpUtil.loadComponents(
-      username,
-      metadataType.label!
-    );
-    const nodeList = componentsList.map(
-      cmp => new BrowserNode(cmp, NodeType.MetadataCmp)
-    );
-    if (nodeList.length === 0) {
-      nodeList.push(
-        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
+  public async getComponents(node: BrowserNode): Promise<string[]> {
+    const cmpUtils = new ComponentUtils();
+    try {
+      let typeName;
+      let folder;
+      switch (node.type) {
+        case NodeType.Folder:
+          typeName = node.parent!.fullName;
+          folder = node.fullName;
+          break;
+        case NodeType.MetadataType:
+          if (TypeUtils.FOLDER_TYPES.has(node.fullName)) {
+            const typeUtils = new TypeUtils();
+            typeName = typeUtils.getFolderForType(node.fullName);
+            break;
+          }
+        default:
+          typeName = node.fullName;
+      }
+      return await cmpUtils.loadComponents(
+        this.defaultOrg!,
+        typeName,
+        folder,
+        node.toRefresh
       );
+    } catch (e) {
+      throw parseErrors(e);
     }
-    return nodeList;
   }
 
   public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
@@ -113,7 +130,7 @@ export class MetadataOutlineProvider
   }
 }
 
-function parseErrors(error: string): string {
+function parseErrors(error: string): Error {
   const e = JSON.parse(error);
   let message: string;
   switch (e.name) {
@@ -127,6 +144,6 @@ function parseErrors(error: string): string {
       message = nls.localize('error_fetching_metadata');
       break;
   }
-  message += nls.localize('error_org_browser_text');
-  return message;
+  message += ' ' + nls.localize('error_org_browser_text');
+  return new Error(message);
 }
