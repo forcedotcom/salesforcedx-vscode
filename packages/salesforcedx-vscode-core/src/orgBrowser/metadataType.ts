@@ -32,7 +32,8 @@ export class TypeUtils {
     'InstalledPackage',
     'Profile',
     'ProfilePasswordPolicy',
-    'ProfileSessionSetting'
+    'ProfileSessionSetting',
+    'Scontrol
   ]);
 
   public async getTypesFolder(usernameOrAlias: string): Promise<string> {
