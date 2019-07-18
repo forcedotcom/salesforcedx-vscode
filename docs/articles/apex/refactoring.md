@@ -31,9 +31,9 @@ You can extract literals into constants. Literals include: String, Integer, Long
 
 You can extract expressions into local variables.
 
-1. In the editor, select an expression that you like to extract.
+1. In the editor, select an expression that you would like to extract.
 1. Click the lightbulb in the gutter and select 'Extract Variable'.
-1. The new field will be declared in the line above the declaration where the refactoring was invoked.
-1. The selected expression should now be replaced with the name of the new field.
+1. The new local variable will be declared in the line above the declaration where the refactoring was invoked.
+1. The selected expression should now be replaced with the name of the new local variable.
 
 ![GIF showing extract local variable other](../../images/extract-local-variable-other.gif)
