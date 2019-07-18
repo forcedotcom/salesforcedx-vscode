@@ -6,6 +6,7 @@
  */
 
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
 import * as fs from 'fs';
 import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
@@ -19,6 +20,7 @@ export type MetadataObject = {
   metaFile: boolean;
   suffix?: string;
   xmlName: string;
+  label: string;
 };
 export class TypeUtils {
   public static readonly FOLDER_TYPES = new Set([
@@ -75,9 +77,17 @@ export class TypeUtils {
       telemetryService.sendEventData('Metadata Types Quantity', undefined, {
         metadataTypes: metadataTypeObjects.length
       });
-      return metadataTypeObjects.sort((a, b) =>
-        a.xmlName > b.xmlName ? 1 : -1
-      );
+
+      // iterate metadataobjects and add labels
+      for (const mdTypeObject of metadataTypeObjects) {
+        mdTypeObject.label = nls
+          .localize(mdTypeObject.xmlName)
+          .startsWith(MISSING_LABEL_MSG)
+          ? mdTypeObject.xmlName
+          : nls.localize(mdTypeObject.xmlName);
+      }
+
+      return metadataTypeObjects.sort((a, b) => (a.label > b.label ? 1 : -1));
     } catch (e) {
       telemetryService.sendError(e);
       throw new Error(e);
@@ -100,7 +110,7 @@ export class TypeUtils {
     }
     return typesList;
   }
-
+  // need to look at this later
   public getFolderForType(metadataType: string): string {
     return `${metadataType === 'EmailTemplate' ? 'Email' : metadataType}Folder`;
   }
