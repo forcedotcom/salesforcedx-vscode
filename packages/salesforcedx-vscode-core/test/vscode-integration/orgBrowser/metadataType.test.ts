@@ -86,6 +86,19 @@ describe('build metadata types list', () => {
       expect(readFileStub.called).to.equal(true);
     }
   });
+
+  it('should filter out blacklisted metadata types', async () => {
+    const data = JSON.stringify({
+      status: 0,
+      result: {
+        metadataObjects: Array.from(TypeUtils.UNSUPPORTED_TYPES).map(
+          xmlName => ({ xmlName })
+        )
+      }
+    });
+    const types = await typeUtil.buildTypesList(data, undefined);
+    expect(types).to.be.empty;
+  });
 });
 
 describe('load metadata types data', () => {

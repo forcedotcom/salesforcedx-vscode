@@ -28,6 +28,13 @@ export class TypeUtils {
     'Document'
   ]);
 
+  public static readonly UNSUPPORTED_TYPES = new Set([
+    'InstalledPackage',
+    'Profile',
+    'ProfilePasswordPolicy',
+    'ProfileSessionSetting'
+  ]);
+
   public async getTypesFolder(usernameOrAlias: string): Promise<string> {
     if (!hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
@@ -60,7 +67,10 @@ export class TypeUtils {
         .metadataObjects as MetadataObject[];
       const metadataTypes = [];
       for (const type of metadataObjects) {
-        if (!isNullOrUndefined(type.xmlName)) {
+        if (
+          !isNullOrUndefined(type.xmlName) &&
+          !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName)
+        ) {
           metadataTypes.push(type.xmlName);
         }
       }
