@@ -6,6 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { MetadataObject } from './metadataType';
 
 export enum NodeType {
   Org = 'org',
@@ -18,13 +19,17 @@ export enum NodeType {
 export class BrowserNode extends vscode.TreeItem {
   public toRefresh: boolean = false;
   public readonly fullName: string;
+  public suffix?: string;
+  public directoryName?: string;
   private _children: BrowserNode[] | undefined;
   private _parent: BrowserNode | undefined;
 
   constructor(
     label: string,
     public readonly type: NodeType,
-    fullName?: string
+    fullName?: string,
+    suffix?: string,
+    directoryName?: string
   ) {
     super(label);
     this.type = type;
@@ -40,6 +45,8 @@ export class BrowserNode extends vscode.TreeItem {
         break;
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+        this.suffix = suffix;
+        this.directoryName = directoryName;
         break;
       case NodeType.Folder:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
@@ -64,6 +71,32 @@ export class BrowserNode extends vscode.TreeItem {
           ? fullName.substr(fullName.indexOf('/') + 1)
           : fullName;
       const child = new BrowserNode(label, type, fullName);
+      child._parent = this;
+      this._children!.push(child);
+    });
+  }
+
+  public setTypes(metadataObjects: MetadataObject[], type: NodeType) {
+    this._children = [];
+    if (metadataObjects.length === 0) {
+      this._children.push(
+        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
+      );
+    }
+    metadataObjects.forEach(metadataObject => {
+      const label =
+        this.type === NodeType.Folder
+          ? metadataObject.xmlName.substr(
+              metadataObject.xmlName.indexOf('/') + 1
+            )
+          : metadataObject.xmlName;
+      const child = new BrowserNode(
+        label,
+        type,
+        metadataObject.xmlName,
+        metadataObject.suffix,
+        metadataObject.directoryName
+      );
       child._parent = this;
       this._children!.push(child);
     });

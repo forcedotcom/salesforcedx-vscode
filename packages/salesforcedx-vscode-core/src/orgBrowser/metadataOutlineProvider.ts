@@ -8,7 +8,13 @@ import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
-import { BrowserNode, ComponentUtils, NodeType, TypeUtils } from './index';
+import {
+  BrowserNode,
+  ComponentUtils,
+  MetadataObject,
+  NodeType,
+  TypeUtils
+} from './index';
 
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
@@ -65,7 +71,7 @@ export class MetadataOutlineProvider
 
     switch (element.type) {
       case NodeType.Org:
-        element.setChildren(await this.getTypes(), NodeType.MetadataType);
+        element.setTypes(await this.getTypes(), NodeType.MetadataType);
         this.toRefresh = false;
         break;
       case NodeType.Folder:
@@ -80,7 +86,7 @@ export class MetadataOutlineProvider
     return Promise.resolve(element.children!);
   }
 
-  public async getTypes(): Promise<string[]> {
+  public async getTypes(): Promise<MetadataObject[]> {
     const username = this.defaultOrg!;
     const typeUtil = new TypeUtils();
     try {

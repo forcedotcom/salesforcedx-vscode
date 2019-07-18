@@ -16,6 +16,11 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import {
+  BaseTemplateCommand,
+  DefaultPathStrategy,
+  FilePathExistsChecker
+} from './templates/baseTemplateCommand';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   string
@@ -44,7 +49,8 @@ export async function forceSourceRetrieve(metadataArg: string) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    executor
+    executor,
+    new FilePathExistsChecker(['.cls'], new DefaultPathStrategy(), metadataArg)
   );
   await commandlet.run();
 }
