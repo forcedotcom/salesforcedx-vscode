@@ -12,7 +12,6 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import {
-  folderTypes,
   forceListMetadata,
   ForceListMetadataExecutor
 } from '../../../src/commands';
@@ -25,24 +24,25 @@ describe('Force List Metadata', () => {
       metadataType,
       defaultUsername
     );
-    const forceDescribeMetadataCmd = forceListMetadataExec.build({});
-    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
+    const forceListMetadataCmd = forceListMetadataExec.build({});
+    expect(forceListMetadataCmd.toCommand()).to.equal(
       `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal`
     );
   });
 
   it('Should build list metadata command with folder arg', async () => {
+    const metadataType = 'Report';
     const defaultUsername = 'test-username1@example.com';
-    for (const type of folderTypes) {
-      const forceListMetadataExec = new ForceListMetadataExecutor(
-        type,
-        defaultUsername
-      );
-      const forceDescribeMetadataCmd = forceListMetadataExec.build({});
-      expect(forceDescribeMetadataCmd.toCommand()).to.equal(
-        `sfdx force:mdapi:listmetadata -m ${type} -u ${defaultUsername} --json --loglevel fatal --folder unfiled$public`
-      );
-    }
+    const folder = 'SampleFolder';
+    const forceListMetadataExec = new ForceListMetadataExecutor(
+      metadataType,
+      defaultUsername,
+      folder
+    );
+    const forceDescribeMetadataCmd = forceListMetadataExec.build({});
+    expect(forceDescribeMetadataCmd.toCommand()).to.equal(
+      `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal --folder ${folder}`
+    );
   });
 
   it('Should write a file with metadata list output', async () => {

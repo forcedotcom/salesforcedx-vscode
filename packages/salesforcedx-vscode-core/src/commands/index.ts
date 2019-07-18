@@ -72,7 +72,10 @@ export {
   ForceDescribeMetadataExecutor
 } from './forceDescribeMetadata';
 export {
-  folderTypes,
   forceListMetadata,
   ForceListMetadataExecutor
 } from './forceListMetadata';
+export {
+  forceSourceRetrieve,
+  ForceSourceRetrieveExecutor
+} from './forceSourceRetrieve';

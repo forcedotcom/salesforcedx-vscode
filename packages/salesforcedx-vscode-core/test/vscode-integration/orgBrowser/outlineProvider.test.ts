@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { nls } from '../../../src/messages';
@@ -17,16 +18,20 @@ import {
 
 describe('load org browser tree outline', () => {
   const username = 'test-username@test1234.com';
+  let metadataProvider: MetadataOutlineProvider;
+
+  beforeEach(() => {
+    metadataProvider = new MetadataOutlineProvider(username);
+  });
 
   it('should load the root node with default org', async () => {
-    const metadataProvider = new MetadataOutlineProvider(username);
     const expectedNode = new BrowserNode(username, NodeType.Org);
     const orgNode = await metadataProvider.getChildren();
     expect(orgNode).to.deep.equal([expectedNode]);
   });
 
   it('should display emptyNode with error message if default org is not set', async () => {
-    const metadataProvider = new MetadataOutlineProvider(undefined);
+    metadataProvider = new MetadataOutlineProvider(undefined);
     const expectedNode = new BrowserNode(
       nls.localize('missing_default_org'),
       NodeType.EmptyNode
@@ -36,55 +41,92 @@ describe('load org browser tree outline', () => {
   });
 
   it('should load metadata type nodes when tree is created', async () => {
-    const metadataProvider = new MetadataOutlineProvider(username);
-    const orgNode = new BrowserNode(username, NodeType.Org);
-    const typesList = [
-      new BrowserNode('typeNode1', NodeType.MetadataType),
-      new BrowserNode('typeNode2', NodeType.MetadataType)
+    const expected = [
+      {
+        label: 'typeNode1',
+        type: NodeType.MetadataType,
+        fullName: 'typeNode1'
+      },
+      {
+        label: 'typeNode2',
+        type: NodeType.MetadataType,
+        fullName: 'typeNode2'
+      }
     ];
+    const orgNode = new BrowserNode(username, NodeType.Org);
     const getTypesStub = stub(
       MetadataOutlineProvider.prototype,
       'getTypes'
-    ).returns(typesList);
+    ).returns(expected.map(n => n.fullName));
     const typesNodes = await metadataProvider.getChildren(orgNode);
-    expect(typesNodes).to.deep.equal(typesList);
+
+    compareNodes(typesNodes, expected);
     getTypesStub.restore();
   });
 
-  it('should display emptyNode with error message if there is an error retrieving metadata types', async () => {
-    const metadataProvider = new MetadataOutlineProvider(username);
+  it('should throw error if trouble fetching types', async () => {
     const orgNode = new BrowserNode(username, NodeType.Org);
-    const emptyNode = new BrowserNode(
-      nls.localize('error_fetching_metadata') +
-        nls.localize('error_org_browser_text'),
-      NodeType.EmptyNode
-    );
     const loadTypesStub = stub(TypeUtils.prototype, 'loadTypes').throws(
       JSON.stringify('error')
     );
-    const typesNodes = await metadataProvider.getChildren(orgNode);
-    expect(typesNodes).to.deep.equal([emptyNode]);
+    try {
+      await metadataProvider.getChildren(orgNode);
+      fail('Should have thrown an error getting the children');
+    } catch (e) {
+      expect(e.message).to.equal(
+        `${nls.localize('error_fetching_metadata')} ${nls.localize(
+          'error_org_browser_text'
+        )}`
+      );
+    }
+    loadTypesStub.restore();
+  });
+
+  it('should throw error if trouble fetching components', async () => {
+    const typeNode = new BrowserNode('ApexClass', NodeType.MetadataType);
+    const loadTypesStub = stub(
+      ComponentUtils.prototype,
+      'loadComponents'
+    ).throws(JSON.stringify('error'));
+    try {
+      await metadataProvider.getChildren(typeNode);
+      fail('Should have thrown an error getting the children');
+    } catch (e) {
+      expect(e.message).to.equal(
+        `${nls.localize('error_fetching_metadata')} ${nls.localize(
+          'error_org_browser_text'
+        )}`
+      );
+    }
     loadTypesStub.restore();
   });
 
   it('should load metadata component nodes when a type node is selected', async () => {
-    const metadataProvider = new MetadataOutlineProvider(username);
-    const typeNode = new BrowserNode('ApexClass', NodeType.MetadataType);
-    const cmpsList = [
-      new BrowserNode('cmpNode1', NodeType.MetadataCmp),
-      new BrowserNode('cmpNode2', NodeType.MetadataCmp)
+    const expected = [
+      {
+        label: 'cmpNode1',
+        fullName: 'cmpNode1',
+        type: NodeType.MetadataCmp
+      },
+      {
+        label: 'cmpNode2',
+        fullName: 'cmpNode2',
+        type: NodeType.MetadataCmp
+      }
     ];
     const getCmpsStub = stub(
       MetadataOutlineProvider.prototype,
       'getComponents'
-    ).returns(cmpsList);
+    ).returns(expected.map(n => n.fullName));
+    const typeNode = new BrowserNode('ApexClass', NodeType.MetadataType);
+
     const cmpsNodes = await metadataProvider.getChildren(typeNode);
-    expect(cmpsNodes).to.deep.equal(cmpsList);
+    compareNodes(cmpsNodes, expected);
+
     getCmpsStub.restore();
   });
 
   it('should display emptyNode with error message if no components are present for a given type', async () => {
-    const metadataProvider = new MetadataOutlineProvider(username);
     const typeNode = new BrowserNode('ApexClass', NodeType.MetadataType);
     const emptyNode = new BrowserNode(
       nls.localize('empty_components'),
@@ -98,4 +140,67 @@ describe('load org browser tree outline', () => {
     expect(cmpsNodes).to.deep.equal([emptyNode]);
     loadCmpsStub.restore();
   });
+
+  it('should display folders and components that live in them when a folder type node is selected', async () => {
+    const folder1 = [
+      {
+        label: 'Sample_Template',
+        type: NodeType.MetadataCmp,
+        fullName: 'SampleFolder/Sample_Template'
+      },
+      {
+        label: 'Sample_Template2',
+        type: NodeType.MetadataCmp,
+        fullName: 'SampleFolder/Sample_Template2'
+      }
+    ];
+    const folder2 = [
+      {
+        label: 'Main',
+        type: NodeType.MetadataCmp,
+        fullName: 'SampleFolder2/Main'
+      }
+    ];
+    const folders = [
+      {
+        label: 'SampleFolder',
+        type: NodeType.Folder,
+        fullName: 'SampleFolder'
+      },
+      {
+        label: 'SampleFolder2',
+        type: NodeType.Folder,
+        fullName: 'SampleFolder2'
+      }
+    ];
+    const loadCmpStub = stub(ComponentUtils.prototype, 'loadComponents');
+    loadCmpStub
+      .withArgs(username, 'EmailFolder') // Also testing EmailTemplate queries EmailFolder
+      .returns(folders.map(n => n.fullName));
+    loadCmpStub
+      .withArgs(username, 'EmailTemplate', folders[0].fullName)
+      .returns(folder1.map(n => n.fullName));
+    loadCmpStub
+      .withArgs(username, 'EmailTemplate', folders[1].fullName)
+      .returns(folder2.map(n => n.fullName));
+
+    const testNode = new BrowserNode('EmailTemplate', NodeType.MetadataType);
+    const f = await metadataProvider.getChildren(testNode);
+    compareNodes(f, folders);
+    const f1 = await metadataProvider.getChildren(f[0]);
+    compareNodes(f1, folder1);
+    const f2 = await metadataProvider.getChildren(f[1]);
+    compareNodes(f2, folder2);
+
+    loadCmpStub.restore();
+  });
 });
+
+// Can't compare nodes w/ deep.equal because of circular parent node reference
+function compareNodes(actual: BrowserNode[], expected: any[]) {
+  expected.forEach((node, index) => {
+    Object.keys(node).forEach(key => {
+      expect((actual[index] as any)[key]).to.equal((node as any)[key]);
+    });
+  });
+}

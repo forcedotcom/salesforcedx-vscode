@@ -64,7 +64,11 @@ import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { MetadataOutlineProvider } from './orgBrowser';
+import {
+  BrowserNode,
+  ComponentUtils,
+  MetadataOutlineProvider
+} from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -411,6 +415,13 @@ async function setupOrgBrowser(
   vscode.commands.registerCommand('sfdx.force.metadata.view.refresh', () => {
     return metadataProvider.refresh();
   });
+  const cmpUtil = new ComponentUtils();
+  vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve',
+    async (node: BrowserNode) => {
+      await cmpUtil.retrieveComponent(node);
+    }
+  );
   extensionContext.subscriptions.push(treeView);
 }
 
@@ -497,8 +508,8 @@ export async function activate(context: vscode.ExtensionContext) {
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  // await setupOrgBrowser(context, defaultUsernameorAlias);
-  vscode.commands.executeCommand('setContext', 'sfdx:display_tree_view', false);
+  await setupOrgBrowser(context, defaultUsernameorAlias);
+
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType(defaultUsernameorAlias);

@@ -10,20 +10,20 @@ Features Provided by the Aura Components Extension
   - HTML portions
   - Embedded CSS and JavaScript portions
 
-  ![Colored syntax highlighting in a .js file from an Aura bundle](/salesforcedx-vscode/images/lightning_syntax.png)
+  ![Colored syntax highlighting in a .js file from an Aura bundle](../../images/lightning_syntax.png)
 
 - Code completion (invoke using Ctrl+Space)
 
   - HTML tags
 
-  ![Html Tag Completion](/salesforcedx-vscode/images/aura-tag-completion.png)
+  ![Html Tag Completion](../../images/aura-tag-completion.png)
 
-  ![Html Attribute Completion](/salesforcedx-vscode/images/aura-attribute-completion.png)
+  ![Html Attribute Completion](../../images/aura-attribute-completion.png)
 
   - CSS
   - JavaScript
 
-  ![Code-completion options in a .js file from an Aura bundle](/salesforcedx-vscode/images/lightning_completion.png)
+  ![Code-completion options in a .js file from an Aura bundle](../../images/lightning_completion.png)
 
 - Outline view (invoke using Ctrl+Shift+O on Windows or Linux, or Cmd+Shift+O on macOS)
-  ![List of symbols in a .js file from an Aura bundle](/salesforcedx-vscode/images/lightning_outline.png)
+  ![List of symbols in a .js file from an Aura bundle](../../images/lightning_outline.png)
