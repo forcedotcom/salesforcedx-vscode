@@ -79,3 +79,4 @@ export {
   forceSourceRetrieve,
   ForceSourceRetrieveExecutor
 } from './forceSourceRetrieve';
+export { forceSourceRetrieveCmp } from './forceSourceRetrieveCmp';

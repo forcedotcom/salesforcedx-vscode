@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import {
   Command,
   SfdxCommandBuilder
@@ -16,11 +15,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import {
-  BaseTemplateCommand,
-  DefaultPathStrategy,
-  FilePathExistsChecker
-} from './templates/baseTemplateCommand';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   string
@@ -49,8 +43,7 @@ export async function forceSourceRetrieve(metadataArg: string) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    executor,
-    new FilePathExistsChecker(['.cls'], new DefaultPathStrategy(), metadataArg)
+    executor
   );
   await commandlet.run();
 }

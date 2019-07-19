@@ -7,8 +7,7 @@
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as vscode from 'vscode';
-import { forceListMetadata, forceSourceRetrieve } from '../commands';
+import { forceListMetadata, forceSourceRetrieveCmp } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -120,6 +119,6 @@ export class ComponentUtils {
         : parentNode.fullName;
     const componentName = componentNode.fullName;
     const metadataArg = `${typeName}:${componentName}`;
-    await forceSourceRetrieve(componentName);
+    await forceSourceRetrieveCmp(componentNode);
   }
 }
