@@ -48,19 +48,19 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
   const typeName = typeNode.fullName;
   const dirName = typeNode.directoryName!;
   const componentName = componentNode.fullName;
-
-  let fileExts: string[];
+  // new func
+  let suffixes: string[];
   switch (typeName) {
     case 'LightningComponentBundle':
-      fileExts = LWC_DEFINITION_FILE_EXTS;
+      suffixes = LWC_DEFINITION_FILE_EXTS;
       break;
     case 'AuraDefinitionBundle':
-      fileExts = AURA_DEFINITION_FILE_EXTS;
+      suffixes = AURA_DEFINITION_FILE_EXTS;
       break;
     default:
-      fileExts = [typeNode.suffix!];
+      suffixes = [typeNode.suffix!];
   }
-  fileExts.forEach(ext => `.${ext!}-meta.xml`);
+  const fileExts = suffixes.map(suffix => `.${suffix!}-meta.xml`);
 
   const sourcePathStrategy = BUNDLE_TYPES.has(typeName)
     ? new BundlePathStrategy()
@@ -121,6 +121,7 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
   }
 
   private createFilesGlob(dirName: string, fileName: string): string {
+    // get package directory from util sfdx project
     const basePath = path.join('force-app', 'main', 'default', dirName);
     const filePaths = this.fileExts.map(fileExt =>
       this.sourcePathStrategy.getPathToSource(basePath, fileName, fileExt)

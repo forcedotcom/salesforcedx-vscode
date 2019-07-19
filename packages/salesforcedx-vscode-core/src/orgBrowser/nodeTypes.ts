@@ -21,6 +21,7 @@ export class BrowserNode extends vscode.TreeItem {
   public readonly fullName: string;
   public suffix?: string;
   public directoryName?: string;
+  public metadataObject?: MetadataObject;
   private _children: BrowserNode[] | undefined;
   private _parent: BrowserNode | undefined;
 
@@ -28,13 +29,13 @@ export class BrowserNode extends vscode.TreeItem {
     label: string,
     public readonly type: NodeType,
     fullName?: string,
-    suffix?: string,
-    directoryName?: string
+    metadataObject?: MetadataObject
   ) {
     super(label);
     this.type = type;
     this.contextValue = type;
     this.fullName = fullName || label;
+    this.metadataObject = metadataObject;
     switch (this.type) {
       case NodeType.Org:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
@@ -45,8 +46,8 @@ export class BrowserNode extends vscode.TreeItem {
         break;
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-        this.suffix = suffix;
-        this.directoryName = directoryName;
+        this.suffix = this.metadataObject!.suffix;
+        this.directoryName = this.metadataObject!.directoryName;
         break;
       case NodeType.Folder:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
@@ -58,7 +59,7 @@ export class BrowserNode extends vscode.TreeItem {
     }
   }
 
-  public setChildren(fullNames: string[], type: NodeType) {
+  public setComponents(fullNames: string[], type: NodeType) {
     this._children = [];
     if (fullNames.length === 0) {
       this._children.push(
@@ -84,18 +85,11 @@ export class BrowserNode extends vscode.TreeItem {
       );
     }
     metadataObjects.forEach(metadataObject => {
-      const label =
-        this.type === NodeType.Folder
-          ? metadataObject.xmlName.substr(
-              metadataObject.xmlName.indexOf('/') + 1
-            )
-          : metadataObject.xmlName;
       const child = new BrowserNode(
-        label,
-        type,
         metadataObject.xmlName,
-        metadataObject.suffix,
-        metadataObject.directoryName
+        type,
+        undefined,
+        metadataObject
       );
       child._parent = this;
       this._children!.push(child);

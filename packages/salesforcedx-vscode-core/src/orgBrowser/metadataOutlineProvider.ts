@@ -79,7 +79,7 @@ export class MetadataOutlineProvider
         const type = TypeUtils.FOLDER_TYPES.has(element.fullName)
           ? NodeType.Folder
           : NodeType.MetadataCmp;
-        element.setChildren(await this.getComponents(element), type);
+        element.setComponents(await this.getComponents(element), type);
         element.toRefresh = false;
         break;
     }
