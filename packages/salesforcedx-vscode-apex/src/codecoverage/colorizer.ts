@@ -157,10 +157,17 @@ export class CodeCoverage {
             covItem.name === getApexMemberName(editor.document.uri.fsPath)
         );
 
-        if (!codeCovItem) {
+        const isTestclass = editor.document
+          .getText()
+          .toLowerCase()
+          .includes('@istest');
+
+        if (!codeCovItem && !isTestclass) {
           throw new Error(
             nls.localize('colorizer_no_code_coverage_current_file')
           );
+        } else if (!codeCovItem) {
+          return;
         }
 
         for (const key in codeCovItem.lines) {
