@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  Command,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
   CancelResponse,
   ContinueResponse,
   PostconditionChecker
@@ -14,12 +18,13 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { BrowserNode, NodeType } from '../orgBrowser';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
+  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { ForceSourceRetrieveExecutor } from './index';
 import {
   BundlePathStrategy,
   DefaultPathStrategy,
@@ -29,6 +34,25 @@ import {
   AURA_DEFINITION_FILE_EXTS,
   LWC_DEFINITION_FILE_EXTS
 } from './templates/metadataTypeConstants';
+
+export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
+  string
+> {
+  private metadataArg: string;
+  constructor(metadataArg: string) {
+    super();
+    this.metadataArg = metadataArg;
+  }
+
+  public build(): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_source_retrieve_text'))
+      .withArg('force:source:retrieve')
+      .withFlag('-m', this.metadataArg)
+      .withLogName('force_source_retrieve')
+      .build();
+  }
+}
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
@@ -40,15 +64,7 @@ const BUNDLE_TYPES = new Set([
   'ExperienceBundle'
 ]);
 
-export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
-  const typeNode =
-    componentNode.parent!.type === NodeType.Folder
-      ? componentNode.parent!.parent!
-      : componentNode.parent!;
-  const typeName = typeNode.fullName;
-  const dirName = typeNode.directoryName!;
-  const componentName = componentNode.fullName;
-  // new func
+function generateSuffix(typeNode: BrowserNode, typeName: string): string[] {
   let suffixes: string[];
   switch (typeName) {
     case 'LightningComponentBundle':
@@ -60,7 +76,18 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
     default:
       suffixes = [typeNode.suffix!];
   }
-  const fileExts = suffixes.map(suffix => `.${suffix!}-meta.xml`);
+  return suffixes.map(suffix => `.${suffix!}-meta.xml`);
+}
+
+export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
+  const typeNode =
+    componentNode.parent!.type === NodeType.Folder
+      ? componentNode.parent!.parent!
+      : componentNode.parent!;
+  const typeName = typeNode.fullName;
+  const dirName = typeNode.directoryName!;
+  const componentName = componentNode.fullName;
+  const fileExts = generateSuffix(typeNode, typeName);
 
   const sourcePathStrategy = BUNDLE_TYPES.has(typeName)
     ? new BundlePathStrategy()
@@ -103,7 +130,7 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
 
   public async check(): Promise<ContinueResponse<{}> | CancelResponse> {
     const files = await vscode.workspace.findFiles(
-      this.createFilesGlob(this.dirName, this.componentName)
+      await this.createFilesGlob(this.dirName, this.componentName)
     );
     if (files.length === 0) {
       return { type: 'CONTINUE', data: {} };
@@ -120,8 +147,12 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
     return { type: 'CANCEL' };
   }
 
-  private createFilesGlob(dirName: string, fileName: string): string {
+  private async createFilesGlob(
+    dirName: string,
+    fileName: string
+  ): Promise<string> {
     // get package directory from util sfdx project
+    const packageDirectory = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const basePath = path.join('force-app', 'main', 'default', dirName);
     const filePaths = this.fileExts.map(fileExt =>
       this.sourcePathStrategy.getPathToSource(basePath, fileName, fileExt)

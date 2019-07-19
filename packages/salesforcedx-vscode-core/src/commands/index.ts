@@ -76,7 +76,6 @@ export {
   ForceListMetadataExecutor
 } from './forceListMetadata';
 export {
-  forceSourceRetrieve,
+  forceSourceRetrieveCmp,
   ForceSourceRetrieveExecutor
-} from './forceSourceRetrieve';
-export { forceSourceRetrieveCmp } from './forceSourceRetrieveCmp';
+} from './forceSourceRetrieveCmp';

@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
 import {
-  forceSourceRetrieve,
+  forceSourceRetrieveCmp,
   ForceSourceRetrieveExecutor
 } from '../../../src/commands';
 
