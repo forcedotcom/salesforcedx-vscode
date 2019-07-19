@@ -36,11 +36,11 @@ import {
   ColorPresentationRequest,
   DocumentColorRequest,
   ServerCapabilities as CPServerCapabilities
-} from 'vscode-languageserver-protocol/lib/protocol.colorProvider.proposed';
+} from 'vscode-languageserver-protocol';
 import {
   ConfigurationParams,
   ConfigurationRequest
-} from 'vscode-languageserver-protocol/lib/protocol.configuration.proposed';
+} from 'vscode-languageserver-protocol';
 
 import { format } from './modes/formatting';
 import { pushAll } from './utils/arrays';
@@ -452,12 +452,9 @@ connection.onRequest(DocumentColorRequest.type, params => {
 connection.onRequest(ColorPresentationRequest.type, params => {
   const document = documents.get(params.textDocument.uri);
   if (document) {
-    const mode = languageModes.getModeAtPosition(
-      document,
-      params.colorInfo.range.start
-    );
+    const mode = languageModes.getModeAtPosition(document, params.range.start);
     if (mode && mode.getColorPresentations) {
-      return mode.getColorPresentations(document, params.colorInfo);
+      return mode.getColorPresentations(document, params as ColorInformation);
     }
   }
   return [];
