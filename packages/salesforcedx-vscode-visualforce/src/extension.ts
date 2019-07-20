@@ -19,6 +19,7 @@ import {
   TextDocument
 } from 'vscode';
 import {
+  BaseLanguageClient,
   LanguageClient,
   LanguageClientOptions,
   RequestType,
@@ -29,13 +30,13 @@ import {
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';
 
-import { ConfigurationFeature } from 'vscode-languageclient/lib/configuration.proposed';
+import { ConfigurationFeature } from 'vscode-languageclient/lib/configuration';
 import {
   ColorPresentationParams,
   ColorPresentationRequest,
   DocumentColorParams,
   DocumentColorRequest
-} from 'vscode-languageserver-protocol/lib/protocol.colorProvider.proposed';
+} from 'vscode-languageserver-protocol';
 import { telemetryService } from './telemetry';
 
 // tslint:disable-next-line:no-namespace
@@ -144,10 +145,8 @@ export async function activate(context: ExtensionContext) {
             textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
               colorContext.document
             ),
-            colorInfo: {
-              range: client.code2ProtocolConverter.asRange(colorContext.range),
-              color
-            }
+            range: client.code2ProtocolConverter.asRange(colorContext.range),
+            color
           };
           return client
             .sendRequest(ColorPresentationRequest.type, params)

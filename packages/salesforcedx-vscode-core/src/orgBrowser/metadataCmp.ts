@@ -58,7 +58,10 @@ export class ComponentUtils {
       if (!isNullOrUndefined(cmpArray)) {
         cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
-          if (!isNullOrUndefined(cmp.fullName)) {
+          if (
+            !isNullOrUndefined(cmp.fullName) &&
+            cmp.manageableState === 'unmanaged'
+          ) {
             components.push(cmp.fullName);
           }
         }
