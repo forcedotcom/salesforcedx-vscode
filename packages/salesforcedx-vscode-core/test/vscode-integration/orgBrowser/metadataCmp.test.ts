@@ -76,8 +76,16 @@ describe('build metadata components list', () => {
     const fileData = JSON.stringify({
       status: 0,
       result: [
-        { fullName: 'fakeName2', type: 'ApexClass' },
-        { fullName: 'fakeName1', type: 'ApexClass' }
+        {
+          fullName: 'fakeName2',
+          type: 'ApexClass',
+          manageableState: 'unmanaged'
+        },
+        {
+          fullName: 'fakeName1',
+          type: 'ApexClass',
+          manageableState: 'unmanaged'
+        }
       ]
     });
     const fullNames = cmpUtil.buildComponentsList(
@@ -98,8 +106,16 @@ describe('build metadata components list', () => {
     const fileData = JSON.stringify({
       status: 0,
       result: [
-        { fullName: 'fakeName2', type: 'ApexClass' },
-        { fullName: 'fakeName1', type: 'ApexClass' }
+        {
+          fullName: 'fakeName2',
+          type: 'ApexClass',
+          manageableState: 'unmanaged'
+        },
+        {
+          fullName: 'fakeName1',
+          type: 'ApexClass',
+          manageableState: 'unmanaged'
+        }
       ]
     });
     readFileStub.returns(fileData);
@@ -114,6 +130,34 @@ describe('build metadata components list', () => {
       expect(fullNames[1]).to.equal('fakeName2');
       expect(readFileStub.called).to.equal(true);
     }
+  });
+
+  it('should only return unmanaged components', async () => {
+    const type = 'ApexClass';
+    const states = [
+      'unmanaged',
+      'installed',
+      'released',
+      'deleted',
+      'depricated'
+    ];
+    const fileData = {
+      status: 0,
+      result: states.map((s, i) => ({
+        fullName: `fakeName${i}`,
+        type,
+        manageableState: s
+      }))
+    };
+
+    const fullNames = cmpUtil.buildComponentsList(
+      type,
+      JSON.stringify(fileData),
+      undefined
+    );
+
+    expect(fullNames.length).to.equal(1);
+    expect(fullNames[0]).to.equal('fakeName0');
   });
 });
 
