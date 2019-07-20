@@ -229,16 +229,12 @@
           "description": "%java_home_description%"
         },
         "salesforcedx-vscode-apex.enable-semantic-errors": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%apex_semantic_errors_description%"
         },
         "salesforcedx-vscode-apex.enable-sobject-refresh-on-startup": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
         }
