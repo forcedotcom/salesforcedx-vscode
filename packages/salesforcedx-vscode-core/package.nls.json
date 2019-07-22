@@ -56,5 +56,6 @@
   "internal_dev_description": "Specifies whether or not to set up internal development mode which provides limited SFDX commands.",
   "refresh_types_text": "Refresh Types",
   "refresh_components_text": "Refresh Components",
-  "force_source_retrieve_display_text": "Retrieve Source from Org"
+  "force_source_retrieve_display_text": "Retrieve Source from Org",
+  "org_browser_enabled_description": "(Beta) Specifies whether to show or hide the Org Browser view when a non-scratch org is set as the default org. See the [documentation](https://forcedotcom.github.io/salesforcedx-vscode/) to learn about the Org Browser."
 }
