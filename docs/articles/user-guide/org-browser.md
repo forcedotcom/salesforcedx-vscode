@@ -14,7 +14,6 @@ Because the Org Browser is in beta, you will first need to enable it in your use
 
 ## Overview
 
-
 ![Org Browser Overview](../../images/org_browser_overview.png)
 
 1. Button to open the Org Browser.
