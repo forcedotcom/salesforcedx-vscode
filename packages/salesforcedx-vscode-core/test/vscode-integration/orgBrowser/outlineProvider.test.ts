@@ -58,7 +58,7 @@ describe('load org browser tree outline', () => {
     const getTypesStub = stub(
       MetadataOutlineProvider.prototype,
       'getTypes'
-    ).returns(expected.map(n => n.fullName));
+    ).returns(expected);
     const typesNodes = await metadataProvider.getChildren(orgNode);
 
     compareNodes(typesNodes, expected);

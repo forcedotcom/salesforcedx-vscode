@@ -64,21 +64,20 @@ export class TypeUtils {
         metadataFile = fs.readFileSync(metadataTypesPath!, 'utf8');
       }
       const jsonObject = JSON.parse(metadataFile);
-      const metadataTypeObjects = jsonObject.result
+      let metadataTypeObjects = jsonObject.result
         .metadataObjects as MetadataObject[];
-      const filteredMetadata = [];
-      for (const type of metadataTypeObjects) {
-        if (
+      metadataTypeObjects = metadataTypeObjects.filter(
+        type =>
           !isNullOrUndefined(type.xmlName) &&
           !TypeUtils.UNSUPPORTED_TYPES.has(type.xmlName)
-        ) {
-          filteredMetadata.push(type);
-        }
-      }
+      );
+
       telemetryService.sendEventData('Metadata Types Quantity', undefined, {
         metadataTypes: metadataTypeObjects.length
       });
-      return filteredMetadata.sort((a, b) => (a.xmlName > b.xmlName ? 1 : -1));
+      return metadataTypeObjects.sort((a, b) =>
+        a.xmlName > b.xmlName ? 1 : -1
+      );
     } catch (e) {
       telemetryService.sendError(e);
       throw new Error(e);
@@ -101,7 +100,7 @@ export class TypeUtils {
     }
     return typesList;
   }
-  // need to look at this later
+
   public getFolderForType(metadataType: string): string {
     return `${metadataType === 'EmailTemplate' ? 'Email' : metadataType}Folder`;
   }
