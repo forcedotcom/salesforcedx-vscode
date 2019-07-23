@@ -221,10 +221,7 @@
       "title": "%configuration_title%",
       "properties": {
         "salesforcedx-vscode-apex.java.home": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": null,
           "description": "%java_home_description%"
         },
