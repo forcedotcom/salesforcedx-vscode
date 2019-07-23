@@ -155,10 +155,10 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
     } else {
       const overwrite = await notificationService.showWarningMessage(
         nls.localize('warning_prompt_cmp_file_overwrite', this.label),
-        nls.localize('warning_prompt_overwrite_confirm'),
+        nls.localize('warning_prompt_continue_confirm'),
         nls.localize('warning_prompt_overwrite_cancel')
       );
-      if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
+      if (overwrite === nls.localize('warning_prompt_continue_confirm')) {
         return { type: 'CONTINUE', data: {} };
       }
     }

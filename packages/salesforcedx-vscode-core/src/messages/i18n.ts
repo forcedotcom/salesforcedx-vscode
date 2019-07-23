@@ -127,6 +127,7 @@ export const messages = {
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_cmp_file_overwrite:
     'A file with the name %s already exists in your workspace. Retrieving the component may overwrite this file. Do you want to continue?',
+  warning_prompt_continue_confirm: 'Continue',
   warning_prompt_overwrite_confirm: 'Overwrite',
   warning_prompt_overwrite_cancel: 'Cancel',
   force_config_list_text: 'SFDX: List All Config Variables',

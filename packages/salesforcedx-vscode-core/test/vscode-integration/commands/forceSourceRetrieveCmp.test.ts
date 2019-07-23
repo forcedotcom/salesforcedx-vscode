@@ -119,7 +119,7 @@ describe('FilePathExistsChecker for Aura bundle', () => {
       warningSpy = sinon
         .stub(notificationService, 'showWarningMessage')
         .onFirstCall()
-        .returns(nls.localize('warning_prompt_overwrite_confirm'))
+        .returns(nls.localize('warning_prompt_continue_confirm'))
         .onSecondCall()
         .returns(nls.localize('warning_prompt_overwrite_cancel'));
     });
@@ -224,7 +224,7 @@ describe('FilePathExistsChecker for Apex class', () => {
       warningSpy = sinon
         .stub(notificationService, 'showWarningMessage')
         .onFirstCall()
-        .returns(nls.localize('warning_prompt_overwrite_confirm'))
+        .returns(nls.localize('warning_prompt_continue_confirm'))
         .onSecondCall()
         .returns(nls.localize('warning_prompt_overwrite_cancel'));
     });
