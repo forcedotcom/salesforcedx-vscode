@@ -140,10 +140,16 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
   }
 
   public async check(): Promise<ContinueResponse<{}> | CancelResponse> {
-    const files = await vscode.workspace.findFiles(
-      await this.createFilesGlob(this.dirName, this.componentName)
-    );
-    if (files.length === 0) {
+    const globs = await this.createFilesGlob(this.dirName, this.componentName);
+    const allFiles = [];
+    for (const glob of globs) {
+      const files = await vscode.workspace.findFiles(glob);
+      if (files.length > 0) {
+        allFiles.push(files);
+      }
+    }
+
+    if (allFiles.length === 0) {
       return { type: 'CONTINUE', data: {} };
     } else {
       const overwrite = await notificationService.showWarningMessage(
@@ -161,17 +167,18 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
   private async createFilesGlob(
     dirName: string,
     fileName: string
-  ): Promise<string> {
+  ): Promise<vscode.GlobPattern[]> {
     const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    const basePath = path.join(
-      packageDirectories[0],
-      'main',
-      'default',
-      dirName
+    const basePaths = packageDirectories.map(packageDir =>
+      path.join(packageDir, 'main', 'default', dirName)
     );
-    const filePaths = this.fileExts.map(fileExt =>
-      this.sourcePathStrategy.getPathToSource(basePath, fileName, fileExt)
-    );
-    return `{${filePaths.join(',')}}`;
+    const globs = [];
+    for (const bPath of basePaths) {
+      const filePaths = this.fileExts.map(fileExt =>
+        this.sourcePathStrategy.getPathToSource(bPath, fileName, fileExt)
+      );
+      globs.push(`{${filePaths.join(',')}}`);
+    }
+    return globs;
   }
 }
