@@ -2,7 +2,7 @@
 title: Org Browser
 ---
 
-The Org Browser feature allows you to view the available metadata types and their corresponding components in the default org. It is another option for retrieving metadata source without having to use a [manifest file](./org-development-model#the-manifest-packagexml-file). The Org Browser is only available when working against non-scratch orgs, such as a production, sandbox, or devhub org.
+The Org Browser feature allows you to view the available metadata types and their corresponding components in the default org. It is another option for retrieving metadata source without having to use a [manifest file](./org-development-model#the-manifest-packagexml-file). The Org Browser is only available when working against non-scratch orgs, such as sandboxes or dev orgs.
 
 > NOTICE: The Org Browser is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
 
