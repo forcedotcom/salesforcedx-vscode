@@ -125,6 +125,8 @@ export const messages = {
     'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
+  warning_prompt_cmp_file_overwrite:
+    'A file with the name %s already exists in your workspace. Do you want to overwrite it?',
   warning_prompt_overwrite_confirm: 'Overwrite',
   warning_prompt_overwrite_cancel: 'Cancel',
   force_config_list_text: 'SFDX: List All Config Variables',

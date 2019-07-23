@@ -17,7 +17,7 @@ export type MetadataObject = {
   directoryName: string;
   inFolder: boolean;
   metaFile: boolean;
-  suffix: string;
+  suffix?: string;
   xmlName: string;
 };
 export class TypeUtils {

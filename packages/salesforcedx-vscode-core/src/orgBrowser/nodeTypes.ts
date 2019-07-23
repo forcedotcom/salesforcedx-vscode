@@ -78,7 +78,6 @@ export class BrowserNode extends vscode.TreeItem {
   }
 
   public setTypes(metadataObjects: MetadataObject[], type: NodeType) {
-    console.log('set types');
     this._children = [];
     if (metadataObjects.length === 0) {
       this._children.push(
@@ -86,7 +85,6 @@ export class BrowserNode extends vscode.TreeItem {
       );
     }
     metadataObjects.forEach(metadataObject => {
-      console.log(metadataObject.xmlName);
       const child = new BrowserNode(
         metadataObject.xmlName,
         type,

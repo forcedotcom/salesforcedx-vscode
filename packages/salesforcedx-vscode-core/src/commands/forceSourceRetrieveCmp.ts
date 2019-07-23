@@ -64,7 +64,10 @@ const BUNDLE_TYPES = new Set([
   'ExperienceBundle'
 ]);
 
-function generateSuffix(typeNode: BrowserNode, typeName: string): string[] {
+export function generateSuffix(
+  typeNode: BrowserNode,
+  typeName: string
+): string[] {
   let suffixes: string[];
   switch (typeName) {
     case 'LightningComponentBundle':
@@ -74,9 +77,9 @@ function generateSuffix(typeNode: BrowserNode, typeName: string): string[] {
       suffixes = AURA_DEFINITION_FILE_EXTS;
       break;
     default:
-      suffixes = [typeNode.suffix!];
+      suffixes = [`.${typeNode.suffix!}`];
   }
-  return suffixes.map(suffix => `.${suffix!}-meta.xml`);
+  return suffixes.map(suffix => `${suffix!}-meta.xml`);
 }
 
 export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
@@ -87,6 +90,10 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
   const typeName = typeNode.fullName;
   const dirName = typeNode.directoryName!;
   const componentName = componentNode.fullName;
+  const label =
+    componentNode.parent!.type === NodeType.Folder
+      ? componentName.substr(componentName.indexOf('/') + 1)
+      : componentName;
   const fileExts = generateSuffix(typeNode, typeName);
 
   const sourcePathStrategy = BUNDLE_TYPES.has(typeName)
@@ -104,7 +111,8 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
       fileExts,
       sourcePathStrategy,
       componentName,
-      dirName
+      dirName,
+      label
     )
   );
   await commandlet.run();
@@ -115,17 +123,20 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
   private sourcePathStrategy: SourcePathStrategy;
   private componentName: string;
   private dirName: string;
+  private label: string;
 
   public constructor(
     fileExts: string[],
     sourcePathStrategy: SourcePathStrategy,
     componentName: string,
-    dirName: string
+    dirName: string,
+    label: string
   ) {
     this.fileExts = fileExts;
     this.sourcePathStrategy = sourcePathStrategy;
     this.componentName = componentName;
     this.dirName = dirName;
+    this.label = label;
   }
 
   public async check(): Promise<ContinueResponse<{}> | CancelResponse> {
@@ -136,7 +147,7 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
       return { type: 'CONTINUE', data: {} };
     } else {
       const overwrite = await notificationService.showWarningMessage(
-        nls.localize('warning_prompt_file_overwrite', this.componentName),
+        nls.localize('warning_prompt_cmp_file_overwrite', this.label),
         nls.localize('warning_prompt_overwrite_confirm'),
         nls.localize('warning_prompt_overwrite_cancel')
       );
@@ -151,9 +162,13 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
     dirName: string,
     fileName: string
   ): Promise<string> {
-    // get package directory from util sfdx project
-    const packageDirectory = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    const basePath = path.join('force-app', 'main', 'default', dirName);
+    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const basePath = path.join(
+      packageDirectories[0],
+      'main',
+      'default',
+      dirName
+    );
     const filePaths = this.fileExts.map(fileExt =>
       this.sourcePathStrategy.getPathToSource(basePath, fileName, fileExt)
     );
