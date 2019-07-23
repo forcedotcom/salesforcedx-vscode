@@ -55,7 +55,7 @@ describe('Generate Appropriate Suffix', () => {
     expect(suffixes).to.eql([`.${typeNode.metadataObject!.suffix}-meta.xml`]);
   });
 
-  it('should generate appropriate suffix if lightning or aura type', async () => {
+  it('should generate appropriate suffix if lightning type', async () => {
     const metadataObject = {
       xmlName: 'typeNode2',
       directoryName: 'testDirectory',

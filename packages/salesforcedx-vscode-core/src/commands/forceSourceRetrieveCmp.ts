@@ -19,6 +19,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { BrowserNode, NodeType } from '../orgBrowser';
 import { SfdxPackageDirectories } from '../sfdxProject';
+import { telemetryService } from '../telemetry';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -169,6 +170,10 @@ export class FilePathExistsChecker implements PostconditionChecker<{}> {
     fileName: string
   ): Promise<vscode.GlobPattern[]> {
     const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    telemetryService.sendEventData('Number of Package Directories', undefined, {
+      packageDirectories: packageDirectories.length
+    });
+
     const basePaths = packageDirectories.map(packageDir =>
       path.join(packageDir, 'main', 'default', dirName)
     );
