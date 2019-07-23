@@ -37,7 +37,8 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
       .withDescription(nls.localize('force_source_diff_text'))
       .withArg('force:source:diff')
       .withLogName('force_source_diff')
-      .withFlag('--sourcepath', data.filePath);
+      .withFlag('--sourcepath', data.filePath)
+      .withJson();
     return commandBuilder.build();
   }
 
@@ -49,7 +50,8 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
@@ -62,7 +64,6 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
 
     execution.processExitSubject.subscribe(async () => {
       this.logMetric(execution.command.logName, startTime);
-      console.log('------ stdOut ==> ', stdOut);
       try {
         const sanitized = stdOut.substring(
           stdOut.indexOf('{'),
@@ -71,9 +72,9 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
         // TODO: add a custom type here.
         // tslint:disable-next-line:no-shadowed-variable
         const response = JSON.parse(sanitized);
-        const remote = vscode.Uri.parse(response.remote);
-        const local = vscode.Uri.parse(response.local);
-        const filename = response.fileName;
+        const remote = vscode.Uri.parse(response.result.remote);
+        const local = vscode.Uri.parse(response.result.local);
+        const filename = response.result.fileName;
         let defaultUsernameorAlias: string | undefined;
         if (hasRootWorkspace()) {
           defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
@@ -126,7 +127,7 @@ export async function forceSourceDiff(sourceUri: vscode.Uri) {
       sourceUri = editor.document.uri;
     } else {
       const errorMessage = 'File is not apex';
-      telemetryService.sendError(errorMessage);
+      telemetryService.sendException('unsupported_type_on_diff', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
