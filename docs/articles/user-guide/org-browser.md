@@ -2,13 +2,13 @@
 title: Org Browser
 ---
 
-The Org Browser feature allows you to view the available metadata types and their corresponding components in the default org. It is another option for retrieving metadata source without having to use a [manifest file](./org-development-model#the-manifest-packagexml-file). The Org Browser is only available when working against non-scratch orgs, such as sandboxes or dev orgs.
+The Org Browser displays the available metadata types and their corresponding components in your default org. This feature allows you to retrieve metadata source without having to use a [manifest file](./org-development-model#the-manifest-packagexml-file). The Org Browser is only available when working against non-scratch orgs, such as sandboxes or dev orgs.
 
 > NOTICE: The Org Browser is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
 
-## Enable the org browser
+## Enabling the Org Browser
 
-Because the Org Browser is in beta, you will first need to enable it in your user or workspace settings. The setting is located under the "Salesforce Feature Previews" category. Alternatively, enter "Org Browser" in the search bar to find it. 
+Because the Org Browser is in beta, you will first need to enable it in your user or workspace settings. The feature flag is located under the "Salesforce Feature Previews" category. Alternatively, enter "Org Browser" in the search bar to find it. 
 
 ![Enable Org Browser](../../images/org_browser_setting.png)
 
@@ -16,15 +16,15 @@ Because the Org Browser is in beta, you will first need to enable it in your use
 
 ![Org Browser Overview](../../images/org_browser_overview.png)
 
-1. Button to open the Org Browser.
-2. Button to reload the available metadata types in the org.
-3. Default org you are viewing the metadata for.
+1. Open Org Browser
+2. Refresh available metadata types in org
+3. Default org
 4. Metadata type
-5. Metadata component whose type is the parent tree item.
-6. Button for refreshing the available components for the metadata type.
-7. Button for retrieving the source for the metadata component.
+5. Metadata component
+6. Refresh components for metadata type
+7. Retrieve source for metadata component
 
-Open the Org Browser by clicking on the cloud icon in the VS Code sidebar. If you don't see the icon, make sure your [default org](./default-org) is set to a non-scratch org and that you have enabled the setting as described above.
+Open the Org Browser by clicking on the cloud icon in the VS Code sidebar **(1)**. If you don't see the icon, make sure your [default org](./default-org) is set to a non-scratch org and the feature flag is enabled as described above.
 
 ## Listing Metadata
 
