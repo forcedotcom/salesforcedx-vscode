@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-visualforce
 
-- Update to the latest language server version ([PR #1486](https://github.com/forcedotcom/salesforcedx-vscode/pull/1486))
+- Update to the latest version of the Visualforce Language Server ([PR #1486](https://github.com/forcedotcom/salesforcedx-vscode/pull/1486))
 
 ## 46.6.0 - July 18, 2019
 
