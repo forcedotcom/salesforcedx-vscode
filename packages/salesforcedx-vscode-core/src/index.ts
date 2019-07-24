@@ -43,6 +43,7 @@ import {
   forceSourceDeploySourcePath,
   forceSourcePull,
   forceSourcePush,
+  forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePath,
   forceSourceStatus,
@@ -428,9 +429,9 @@ async function setupOrgBrowser(
   );
 
   vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve',
+    'sfdx.force.source.retrieve.component',
     async (node: BrowserNode) => {
-      await new ComponentUtils().retrieveComponent(node);
+      await forceSourceRetrieveCmp(node);
     }
   );
   extensionContext.subscriptions.push(treeView);
