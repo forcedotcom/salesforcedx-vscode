@@ -78,7 +78,6 @@ export class TypeUtils {
         metadataTypes: metadataTypeObjects.length
       });
 
-      // iterate metadataobjects and add labels
       for (const mdTypeObject of metadataTypeObjects) {
         mdTypeObject.label = nls
           .localize(mdTypeObject.xmlName)
@@ -110,7 +109,7 @@ export class TypeUtils {
     }
     return typesList;
   }
-  // need to look at this later
+
   public getFolderForType(metadataType: string): string {
     return `${metadataType === 'EmailTemplate' ? 'Email' : metadataType}Folder`;
   }
