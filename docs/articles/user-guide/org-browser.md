@@ -12,7 +12,7 @@ Because the Org Browser feature is in beta, you must enable the feature:
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 1. Under **Salesforce Feature Previews**, select **Org Browser: Enabled**.
 
-You can also enter Org Browser in the search box to find it and enable it. 
+You can also enter Org Browser in the search box and enable it. 
 
 ![Enable Org Browser](../../images/org_browser_setting.png)
 
@@ -34,13 +34,13 @@ When you open the Org Browser, all the metadata for the default org is saved in 
 
 ## Listing and Refreshing Metadata
 
-The Org Browser lists all the metadata type **(4)** in your default org. To view the components **(5)**, expand the metadata type. When you expand metadata types with folders such as Reports, Dashboards, Documents, and EmailTemplates, all the available folders are displayed. You can view the components in a folder by expanding it.
+The Org Browser lists all the metadata types **(4)** in your default org. To view the components **(5)**, expand the metadata type. When you expand metadata types with folders such as Reports, Dashboards, Documents, and EmailTemplates, all the available folders are displayed. You can view the components in a folder by expanding it.
 
 You can refresh metadata at org level, for a type, for folders in a type, and for components in a folder. Click refresh icon next to:
 - Org Browser **(2)** to refresh available metadata types in the org
 - metadata type **(6)** to get an updated list of components for the type
 - folder metadata type to update the folders in the type, but not the components in the folder
-- folder in a metadate type to referesh the components in it 
+- folder in a metadata type to refresh the components in it 
 
 ![Metadata type with folders](../../images/org_browser_folders.png)
 
