@@ -118,7 +118,7 @@
           "group": "inline"
         },
         {
-          "command": "sfdx.force.source.retrieve",
+          "command": "sfdx.force.source.retrieve.component",
           "when": "view == metadata && viewItem == component",
           "group": "inline"
         }
@@ -660,7 +660,7 @@
         }
       },
       {
-        "command": "sfdx.force.source.retrieve",
+        "command": "sfdx.force.source.retrieve.component",
         "title": "%force_source_retrieve_display_text%",
         "icon": {
           "light": "resources/light/retrieve.svg",
