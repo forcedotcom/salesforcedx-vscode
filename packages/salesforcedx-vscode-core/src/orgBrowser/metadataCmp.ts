@@ -7,11 +7,10 @@
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
-import { forceListMetadata, forceSourceRetrieve } from '../commands';
+import { forceListMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
-import { BrowserNode, NodeType } from './nodeTypes';
 
 export class ComponentUtils {
   public async getComponentsPath(
@@ -59,7 +58,10 @@ export class ComponentUtils {
       if (!isNullOrUndefined(cmpArray)) {
         cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
-          if (!isNullOrUndefined(cmp.fullName)) {
+          if (
+            !isNullOrUndefined(cmp.fullName) &&
+            cmp.manageableState === 'unmanaged'
+          ) {
             components.push(cmp.fullName);
           }
         }
@@ -79,7 +81,8 @@ export class ComponentUtils {
   public async loadComponents(
     defaultOrg: string,
     metadataType: string,
-    folder?: string
+    folder?: string,
+    forceRefresh?: boolean
   ): Promise<string[]> {
     const componentsPath = await this.getComponentsPath(
       metadataType,
@@ -88,7 +91,7 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
-    if (!fs.existsSync(componentsPath)) {
+    if (forceRefresh || !fs.existsSync(componentsPath)) {
       const result = await forceListMetadata(
         metadataType,
         defaultOrg,
@@ -108,16 +111,5 @@ export class ComponentUtils {
       );
     }
     return componentsList;
-  }
-
-  public async retrieveComponent(componentNode: BrowserNode) {
-    const parentNode = componentNode.parent!;
-    const typeName =
-      parentNode.type === NodeType.Folder
-        ? parentNode.parent!.fullName
-        : parentNode.fullName;
-    const componentName = componentNode.fullName;
-    const metadataArg = `${typeName}:${componentName}`;
-    await forceSourceRetrieve(metadataArg);
   }
 }

@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "46.5.0",
+  "version": "46.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.0.1",
-    "@salesforce/salesforcedx-utils-vscode": "46.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "46.6.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -36,7 +36,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "46.5.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "46.6.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -95,14 +95,14 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "config.salesforcedx-vscode-core.show-org-browser && sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "config.salesforcedx-vscode-core.orgBrowser.enabled && sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         }
       ]
     },
     "menus": {
       "view/title": [
         {
-          "command": "sfdx.force.metadata.view.refresh",
+          "command": "sfdx.force.metadata.view.type.refresh",
           "when": "view == metadata",
           "group": "navigation"
         }
@@ -113,7 +113,12 @@
           "when": "view == sfdx.force.tasks.view"
         },
         {
-          "command": "sfdx.force.source.retrieve",
+          "command": "sfdx.force.metadata.view.component.refresh",
+          "when": "view == metadata && viewItem =~ /(folder|type)/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdx.force.source.retrieve.component",
           "when": "view == metadata && viewItem == component",
           "group": "inline"
         }
@@ -639,15 +644,23 @@
         "title": "%force_lightning_lwc_create_text%"
       },
       {
-        "command": "sfdx.force.metadata.view.refresh",
-        "title": "%refresh_org_browser_text%",
+        "command": "sfdx.force.metadata.view.type.refresh",
+        "title": "%refresh_types_text%",
         "icon": {
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
         }
       },
       {
-        "command": "sfdx.force.source.retrieve",
+        "command": "sfdx.force.metadata.view.component.refresh",
+        "title": "%refresh_components_text%",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.source.retrieve.component",
         "title": "%force_source_retrieve_display_text%",
         "icon": {
           "light": "resources/light/retrieve.svg",
@@ -660,45 +673,34 @@
       "title": "%feature_previews_title%",
       "properties": {
         "salesforcedx-vscode-core.show-cli-success-msg": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "%show_cli_success_msg_description%"
         },
         "salesforcedx-vscode-core.retrieve-test-code-coverage": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
         },
         "salesforcedx-vscode-core.telemetry.enabled": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "%telemetry_enabled_description%"
         },
         "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
         },
         "salesforcedx-vscode-core.internal-development": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%internal_dev_description%"
         },
-        "salesforcedx-vscode-core.show-org-browser": {
-          "type": [
-            "boolean"
-          ],
-          "default": false
+        "salesforcedx-vscode-core.orgBrowser.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "%org_browser_enabled_description%"
         }
       }
     },
