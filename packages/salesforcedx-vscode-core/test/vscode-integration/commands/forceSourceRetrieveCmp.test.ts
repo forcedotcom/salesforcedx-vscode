@@ -43,7 +43,8 @@ describe('Generate Appropriate Suffix', () => {
       directoryName: 'testDirectory',
       suffix: 'cls',
       inFolder: false,
-      metaFile: false
+      metaFile: false,
+      label: 'Type Node 1'
     };
     const typeNode = new BrowserNode(
       'ApexClass',
@@ -60,7 +61,8 @@ describe('Generate Appropriate Suffix', () => {
       xmlName: 'typeNode2',
       directoryName: 'testDirectory',
       inFolder: false,
-      metaFile: false
+      metaFile: false,
+      label: 'Type Node 2'
     };
     const typeNode = new BrowserNode(
       'LightningComponentBundle',

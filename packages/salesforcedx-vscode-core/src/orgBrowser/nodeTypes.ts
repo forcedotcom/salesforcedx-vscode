@@ -86,9 +86,9 @@ export class BrowserNode extends vscode.TreeItem {
     }
     metadataObjects.forEach(metadataObject => {
       const child = new BrowserNode(
-        metadataObject.xmlName,
+        metadataObject.label,
         type,
-        undefined,
+        metadataObject.xmlName,
         metadataObject
       );
       child._parent = this;

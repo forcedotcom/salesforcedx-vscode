@@ -12,5 +12,6 @@ export {
   DEFAULT_LOCALE,
   Localization,
   Message,
-  MessageBundle
+  MessageBundle,
+  MISSING_LABEL_MSG
 } from './localization';
