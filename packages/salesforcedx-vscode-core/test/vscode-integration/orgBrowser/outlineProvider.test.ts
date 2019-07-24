@@ -100,7 +100,8 @@ describe('load org browser tree outline', () => {
       directoryName: 'testDirectory',
       suffix: 'cls',
       inFolder: false,
-      metaFile: false
+      metaFile: false,
+      label: 'Type Node 1'
     };
     const typeNode = new BrowserNode(
       'ApexClass',
@@ -149,7 +150,8 @@ describe('load org browser tree outline', () => {
       directoryName: 'testDirectory',
       suffix: 'cls',
       inFolder: false,
-      metaFile: false
+      metaFile: false,
+      label: 'Type Node 1'
     };
     const typeNode = new BrowserNode(
       'ApexClass',
@@ -169,7 +171,8 @@ describe('load org browser tree outline', () => {
       directoryName: 'classes',
       suffix: 'cls',
       inFolder: false,
-      metaFile: false
+      metaFile: false,
+      label: 'Type Node 1'
     };
     const typeNode = new BrowserNode(
       'ApexClass',
@@ -239,7 +242,8 @@ describe('load org browser tree outline', () => {
       directoryName: 'testDirectory',
       suffix: 'cls',
       inFolder: true,
-      metaFile: false
+      metaFile: false,
+      label: 'Type Node 1'
     };
 
     const testNode = new BrowserNode(
@@ -268,7 +272,8 @@ describe('load org browser tree outline', () => {
       directoryName: 'testDirectory',
       suffix: 'cls',
       inFolder: false,
-      metaFile: false
+      metaFile: false,
+      label: 'Type Node 1'
     };
     const node = new BrowserNode(
       'ApexClass',
