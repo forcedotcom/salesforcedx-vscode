@@ -68,10 +68,10 @@ describe('build metadata types list', () => {
 
   it('should return a sorted list of xmlNames when given a list of metadata types', async () => {
     readFileStub.returns(fileData);
-    const xmlNames = typeUtil.buildTypesList(fileData, undefined);
-    if (!isNullOrUndefined(xmlNames)) {
-      expect(xmlNames[0]).to.equal('FakeName1');
-      expect(xmlNames[1]).to.equal('FakeName2');
+    const types = typeUtil.buildTypesList(fileData, undefined);
+    if (!isNullOrUndefined(types)) {
+      expect(types[0].xmlName).to.equal('FakeName1');
+      expect(types[1].xmlName).to.equal('FakeName2');
     }
   });
 
@@ -79,10 +79,10 @@ describe('build metadata types list', () => {
     const filePath = '/test/metadata/metadataTypes.json';
     readFileStub.returns(fileData);
 
-    const xmlNames = typeUtil.buildTypesList(undefined, filePath);
-    if (!isNullOrUndefined(xmlNames)) {
-      expect(xmlNames[0]).to.equal('FakeName1');
-      expect(xmlNames[1]).to.equal('FakeName2');
+    const types = typeUtil.buildTypesList(undefined, filePath);
+    if (!isNullOrUndefined(types)) {
+      expect(types[0].xmlName).to.equal('FakeName1');
+      expect(types[1].xmlName).to.equal('FakeName2');
       expect(readFileStub.called).to.equal(true);
     }
   });
