@@ -10,6 +10,7 @@ import * as util from 'util';
 export const BASE_FILE_NAME = 'i18n';
 export const BASE_FILE_EXTENSION = 'js';
 export const DEFAULT_LOCALE = 'en';
+export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 
 export interface Config {
   locale: string;
@@ -49,7 +50,7 @@ export class Message implements LocalizationProvider {
 
     if (!possibleLabel) {
       console.warn(`Missing label for key: ${label}`);
-      possibleLabel = `!!! MISSING LABEL !!! ${label}`;
+      possibleLabel = `${MISSING_LABEL_MSG} ${label}`;
       if (args.length >= 1) {
         args.forEach(arg => {
           possibleLabel += ` (${arg})`;

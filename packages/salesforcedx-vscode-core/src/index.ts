@@ -43,6 +43,7 @@ import {
   forceSourceDeploySourcePath,
   forceSourcePull,
   forceSourcePush,
+  forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePath,
   forceSourceStatus,
@@ -412,14 +413,25 @@ async function setupOrgBrowser(
       await metadataProvider.onViewChange();
     }
   });
-  vscode.commands.registerCommand('sfdx.force.metadata.view.refresh', () => {
-    return metadataProvider.refresh();
-  });
-  const cmpUtil = new ComponentUtils();
+
   vscode.commands.registerCommand(
-    'sfdx.force.source.retrieve',
+    'sfdx.force.metadata.view.type.refresh',
+    async node => {
+      await metadataProvider.refresh(node);
+    }
+  );
+
+  vscode.commands.registerCommand(
+    'sfdx.force.metadata.view.component.refresh',
+    async node => {
+      await metadataProvider.refresh(node);
+    }
+  );
+
+  vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.component',
     async (node: BrowserNode) => {
-      await cmpUtil.retrieveComponent(node);
+      await forceSourceRetrieveCmp(node);
     }
   );
   extensionContext.subscriptions.push(treeView);
@@ -509,7 +521,6 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
   await setupOrgBrowser(context, defaultUsernameorAlias);
-
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType(defaultUsernameorAlias);

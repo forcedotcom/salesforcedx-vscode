@@ -16,6 +16,7 @@ import {
   TypeUtils
 } from '../../../src/orgBrowser';
 
+/* tslint:disable:no-unused-expression */
 describe('load org browser tree outline', () => {
   const username = 'test-username@test1234.com';
   let metadataProvider: MetadataOutlineProvider;
@@ -41,6 +42,18 @@ describe('load org browser tree outline', () => {
   });
 
   it('should load metadata type nodes when tree is created', async () => {
+    const metadataInfo = [
+      {
+        label: 'typeNode1',
+        type: NodeType.MetadataType,
+        xmlName: 'typeNode1'
+      },
+      {
+        label: 'typeNode2',
+        type: NodeType.MetadataType,
+        xmlName: 'typeNode2'
+      }
+    ];
     const expected = [
       {
         label: 'typeNode1',
@@ -57,9 +70,8 @@ describe('load org browser tree outline', () => {
     const getTypesStub = stub(
       MetadataOutlineProvider.prototype,
       'getTypes'
-    ).returns(expected.map(n => n.fullName));
+    ).returns(metadataInfo);
     const typesNodes = await metadataProvider.getChildren(orgNode);
-
     compareNodes(typesNodes, expected);
     getTypesStub.restore();
   });
@@ -83,11 +95,25 @@ describe('load org browser tree outline', () => {
   });
 
   it('should throw error if trouble fetching components', async () => {
-    const typeNode = new BrowserNode('ApexClass', NodeType.MetadataType);
-    const loadTypesStub = stub(
+    const metadataObject = {
+      xmlName: 'typeNode1',
+      directoryName: 'testDirectory',
+      suffix: 'cls',
+      inFolder: false,
+      metaFile: false,
+      label: 'Type Node 1'
+    };
+    const typeNode = new BrowserNode(
+      'ApexClass',
+      NodeType.MetadataType,
+      undefined,
+      metadataObject
+    );
+    const loadCmpsStub = stub(
       ComponentUtils.prototype,
       'loadComponents'
     ).throws(JSON.stringify('error'));
+
     try {
       await metadataProvider.getChildren(typeNode);
       fail('Should have thrown an error getting the children');
@@ -98,7 +124,7 @@ describe('load org browser tree outline', () => {
         )}`
       );
     }
-    loadTypesStub.restore();
+    loadCmpsStub.restore();
   });
 
   it('should load metadata component nodes when a type node is selected', async () => {
@@ -118,8 +144,21 @@ describe('load org browser tree outline', () => {
       MetadataOutlineProvider.prototype,
       'getComponents'
     ).returns(expected.map(n => n.fullName));
-    const typeNode = new BrowserNode('ApexClass', NodeType.MetadataType);
 
+    const metadataObject = {
+      xmlName: 'typeNode1',
+      directoryName: 'testDirectory',
+      suffix: 'cls',
+      inFolder: false,
+      metaFile: false,
+      label: 'Type Node 1'
+    };
+    const typeNode = new BrowserNode(
+      'ApexClass',
+      NodeType.MetadataType,
+      undefined,
+      metadataObject
+    );
     const cmpsNodes = await metadataProvider.getChildren(typeNode);
     compareNodes(cmpsNodes, expected);
 
@@ -127,7 +166,21 @@ describe('load org browser tree outline', () => {
   });
 
   it('should display emptyNode with error message if no components are present for a given type', async () => {
-    const typeNode = new BrowserNode('ApexClass', NodeType.MetadataType);
+    const metadataObject = {
+      xmlName: 'typeNode1',
+      directoryName: 'classes',
+      suffix: 'cls',
+      inFolder: false,
+      metaFile: false,
+      label: 'Type Node 1'
+    };
+    const typeNode = new BrowserNode(
+      'ApexClass',
+      NodeType.MetadataType,
+      undefined,
+      metadataObject
+    );
+
     const emptyNode = new BrowserNode(
       nls.localize('empty_components'),
       NodeType.EmptyNode
@@ -184,7 +237,21 @@ describe('load org browser tree outline', () => {
       .withArgs(username, 'EmailTemplate', folders[1].fullName)
       .returns(folder2.map(n => n.fullName));
 
-    const testNode = new BrowserNode('EmailTemplate', NodeType.MetadataType);
+    const metadataObject = {
+      xmlName: 'typeNode1',
+      directoryName: 'testDirectory',
+      suffix: 'cls',
+      inFolder: true,
+      metaFile: false,
+      label: 'Type Node 1'
+    };
+
+    const testNode = new BrowserNode(
+      'EmailTemplate',
+      NodeType.MetadataType,
+      undefined,
+      metadataObject
+    );
     const f = await metadataProvider.getChildren(testNode);
     compareNodes(f, folders);
     const f1 = await metadataProvider.getChildren(f[0]);
@@ -193,6 +260,61 @@ describe('load org browser tree outline', () => {
     compareNodes(f2, folder2);
 
     loadCmpStub.restore();
+  });
+
+  it('should call loadComponents with force refresh', async () => {
+    const loadCmpStub = stub(
+      ComponentUtils.prototype,
+      'loadComponents'
+    ).returns([]);
+    const metadataObject = {
+      xmlName: 'typeNode1',
+      directoryName: 'testDirectory',
+      suffix: 'cls',
+      inFolder: false,
+      metaFile: false,
+      label: 'Type Node 1'
+    };
+    const node = new BrowserNode(
+      'ApexClass',
+      NodeType.MetadataType,
+      undefined,
+      metadataObject
+    );
+
+    await metadataProvider.getChildren(node);
+    expect(loadCmpStub.getCall(0).args[3]).to.be.false;
+
+    await metadataProvider.refresh(node);
+    await metadataProvider.getChildren(node);
+    expect(loadCmpStub.getCall(1).args[3]).to.be.true;
+
+    await metadataProvider.getChildren(node);
+    expect(loadCmpStub.getCall(2).args[3]).to.be.false;
+
+    loadCmpStub.restore();
+  });
+
+  it('should call loadTypes with force refresh', async () => {
+    const loadTypesStub = stub(TypeUtils.prototype, 'loadTypes').returns([]);
+    const usernameStub = stub(
+      MetadataOutlineProvider.prototype,
+      'getDefaultUsernameOrAlias'
+    ).returns(username);
+    const node = new BrowserNode(username, NodeType.Org);
+
+    await metadataProvider.getChildren(node);
+    expect(loadTypesStub.getCall(0).args[1]).to.be.false;
+
+    await metadataProvider.refresh();
+    await metadataProvider.getChildren(node);
+    expect(loadTypesStub.getCall(1).args[1]).to.be.true;
+
+    await metadataProvider.getChildren(node);
+    expect(loadTypesStub.getCall(2).args[1]).to.be.false;
+
+    loadTypesStub.restore();
+    usernameStub.restore();
   });
 });
 

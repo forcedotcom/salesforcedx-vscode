@@ -6,28 +6,36 @@
  */
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { MetadataObject } from './metadataType';
 
 export enum NodeType {
-  Org,
-  MetadataType,
-  MetadataCmp,
-  EmptyNode,
-  Folder
+  Org = 'org',
+  MetadataType = 'type',
+  MetadataCmp = 'component',
+  EmptyNode = 'empty',
+  Folder = 'folder'
 }
 
 export class BrowserNode extends vscode.TreeItem {
+  public toRefresh: boolean = false;
   public readonly fullName: string;
+  public suffix?: string;
+  public directoryName?: string;
+  public metadataObject?: MetadataObject;
   private _children: BrowserNode[] | undefined;
   private _parent: BrowserNode | undefined;
 
   constructor(
     label: string,
     public readonly type: NodeType,
-    fullName?: string
+    fullName?: string,
+    metadataObject?: MetadataObject
   ) {
     super(label);
     this.type = type;
+    this.contextValue = type;
     this.fullName = fullName || label;
+    this.metadataObject = metadataObject;
     switch (this.type) {
       case NodeType.Org:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
@@ -35,10 +43,11 @@ export class BrowserNode extends vscode.TreeItem {
       case NodeType.MetadataCmp:
         this.collapsibleState = vscode.TreeItemCollapsibleState.None;
         this.iconPath = vscode.ThemeIcon.File;
-        this.contextValue = 'component';
         break;
       case NodeType.MetadataType:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+        this.suffix = this.metadataObject!.suffix;
+        this.directoryName = this.metadataObject!.directoryName;
         break;
       case NodeType.Folder:
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
@@ -50,7 +59,7 @@ export class BrowserNode extends vscode.TreeItem {
     }
   }
 
-  public setChildren(fullNames: string[], type: NodeType) {
+  public setComponents(fullNames: string[], type: NodeType) {
     this._children = [];
     if (fullNames.length === 0) {
       this._children.push(
@@ -63,6 +72,25 @@ export class BrowserNode extends vscode.TreeItem {
           ? fullName.substr(fullName.indexOf('/') + 1)
           : fullName;
       const child = new BrowserNode(label, type, fullName);
+      child._parent = this;
+      this._children!.push(child);
+    });
+  }
+
+  public setTypes(metadataObjects: MetadataObject[], type: NodeType) {
+    this._children = [];
+    if (metadataObjects.length === 0) {
+      this._children.push(
+        new BrowserNode(nls.localize('empty_components'), NodeType.EmptyNode)
+      );
+    }
+    metadataObjects.forEach(metadataObject => {
+      const child = new BrowserNode(
+        metadataObject.label,
+        type,
+        metadataObject.xmlName,
+        metadataObject
+      );
       child._parent = this;
       this._children!.push(child);
     });
