@@ -28,7 +28,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
@@ -99,7 +99,7 @@ class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
@@ -111,15 +111,17 @@ class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
-const executor = isSFDXContainerMode()
-  ? new ForceOrgOpenContainerExecutor()
-  : new ForceOrgOpenExecutor();
-const commandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  executor
-);
 
 export async function forceOrgOpen() {
+  const executor = isSFDXContainerMode()
+    ? new ForceOrgOpenContainerExecutor()
+    : new ForceOrgOpenExecutor();
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    executor
+  );
   await commandlet.run();
+
+  return executor;
 }
