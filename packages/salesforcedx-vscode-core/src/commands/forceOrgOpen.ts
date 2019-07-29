@@ -109,19 +109,21 @@ export class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
+export function getExecutor() {
+  return isSFDXContainerMode()
+    ? new ForceOrgOpenContainerExecutor()
+    : new ForceOrgOpenExecutor();
+}
+
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceOrgOpen() {
-  const executor = isSFDXContainerMode()
-    ? new ForceOrgOpenContainerExecutor()
-    : new ForceOrgOpenExecutor();
+  const executor = getExecutor();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
     executor
   );
   await commandlet.run();
-
-  return executor;
 }
