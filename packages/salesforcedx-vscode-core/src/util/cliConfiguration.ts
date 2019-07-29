@@ -32,5 +32,5 @@ export function showCLINotInstalledMessage() {
 }
 
 export function isSFDXContainerMode(): boolean {
-  return process.env.SFDX_CONTAINER_MODE === 'true';
+  return process.env.SFDX_CONTAINER_MODE ? true : false;
 }
