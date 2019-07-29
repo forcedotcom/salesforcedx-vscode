@@ -206,7 +206,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX VScode Core Unit Tests",
+      "name": "Launch Salesforce DX VS Code Core Unit Tests",
       "program": "${workspaceFolder}/packages/salesforcedx-vscode-core/node_modules/mocha/bin/_mocha",
       "args": [
         "--timeout",
