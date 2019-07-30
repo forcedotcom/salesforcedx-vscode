@@ -40,5 +40,32 @@ describe.only('force:org:open container parser', () => {
       orgOpenSuccessResult.result.username
     );
   });
-  it('should parse error info successfully', () => {});
+  it('should parse error info successfully', () => {
+    const orgOpenErrorResult: OrgOpenErrorResult = {
+      status: 1,
+      name: 'AuthDecryptError',
+      message:
+        'Failed to decipher the auth data. reason: Unssupported state or unable to authenticate data.',
+      exitCode: 1,
+      commandName: 'OrgOpenCommand',
+      stack: 'Pancakes',
+      warnings: []
+    };
+
+    const parser = new OrgOpenContainerResultParser(
+      JSON.stringify(orgOpenErrorResult)
+    );
+
+    expect(parser.openIsSuccessful()).to.be.false;
+
+    const cliRes: OrgOpenErrorResult = parser.getResult() as OrgOpenErrorResult;
+    expect(cliRes.status).to.equal(1);
+    expect(cliRes).to.be.an('object');
+    expect(cliRes.name).to.equal(orgOpenErrorResult.name);
+    expect(cliRes.message).to.equal(orgOpenErrorResult.message);
+    expect(cliRes.exitCode).to.equal(orgOpenErrorResult.exitCode);
+    expect(cliRes.commandName).to.equal(orgOpenErrorResult.commandName);
+    expect(cliRes.stack).to.equal(orgOpenErrorResult.stack);
+    expect(cliRes.warnings).to.be.an('array');
+  });
 });
