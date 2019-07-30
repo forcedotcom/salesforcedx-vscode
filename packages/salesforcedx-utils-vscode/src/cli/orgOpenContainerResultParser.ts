@@ -29,7 +29,11 @@ export class OrgOpenContainerResultParser {
 
   constructor(stdout: string) {
     try {
-      this.response = JSON.parse(stdout);
+      const sanitized = stdout.substring(
+        stdout.indexOf('{'),
+        stdout.lastIndexOf('}') + 1
+      );
+      this.response = JSON.parse(sanitized);
     } catch (e) {
       const err = new Error('Error parsing org open result');
       err.name = 'OrgOpenContainerParserFail';
