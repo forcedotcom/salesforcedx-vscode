@@ -137,7 +137,11 @@ export class MetadataOutlineProvider
 }
 
 function parseErrors(error: string): Error {
-  const e = JSON.parse(error);
+  const sanitized = error.substring(
+    error.indexOf('{'),
+    error.lastIndexOf('}') + 1
+  );
+  const e = JSON.parse(sanitized);
   let message: string;
   switch (e.name) {
     case 'RefreshTokenAuthError':

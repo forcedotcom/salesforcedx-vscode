@@ -13,7 +13,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
 import { SfdxCommandletExecutor } from '../commands';
-import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
 
 export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
@@ -37,7 +36,7 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
-      .withLogName(nls.localize('force_list_metadata'))
+      .withLogName('force_list_metadata')
       .withJson();
 
     if (this.folder) {
