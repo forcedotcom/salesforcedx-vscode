@@ -28,7 +28,7 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
     return new SfdxCommandBuilder()
       .withArg('force:mdapi:describemetadata')
       .withJson()
-      .withLogName('force_describe_metadata')
+      .withLogName('force_mdapi_describemetadata')
       .build();
   }
 }

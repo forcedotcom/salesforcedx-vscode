@@ -36,7 +36,7 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
-      .withLogName('force_list_metadata')
+      .withLogName('force_mdapi_listmetadata')
       .withJson();
 
     if (this.folder) {
