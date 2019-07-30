@@ -68,4 +68,15 @@ describe.only('force:org:open container parser', () => {
     expect(cliRes.stack).to.equal(orgOpenErrorResult.stack);
     expect(cliRes.warnings).to.be.an('array');
   });
+
+  it('should throw an error when cli does not respond with json result info', () => {
+    try {
+      new OrgOpenContainerResultParser(
+        'sfdx force:org:open --urlonly --json --loglevel fatal ended with exit code 0'
+      );
+    } catch (error) {
+      expect(error.name).to.equal('OrgOpenContainerParserFail');
+      expect(error.message).to.equal('Error parsing org open result');
+    }
+  });
 });
