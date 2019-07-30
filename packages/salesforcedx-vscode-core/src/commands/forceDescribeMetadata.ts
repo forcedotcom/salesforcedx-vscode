@@ -36,10 +36,20 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
 export async function forceDescribeMetadata(
   outputFolder: string
 ): Promise<string> {
+  const startTime = process.hrtime();
+  const forceDescribeMetadataExecutor = new ForceDescribeMetadataExecutor();
   const execution = new CliCommandExecutor(
-    new ForceDescribeMetadataExecutor().build({}),
+    forceDescribeMetadataExecutor.build({}),
     { cwd: getRootWorkspacePath() }
   ).execute();
+
+  execution.processExitSubject.subscribe(() => {
+    forceDescribeMetadataExecutor.logMetric(
+      execution.command.logName,
+      startTime
+    );
+  });
+
   if (!fs.existsSync(outputFolder)) {
     mkdir('-p', outputFolder);
   }
