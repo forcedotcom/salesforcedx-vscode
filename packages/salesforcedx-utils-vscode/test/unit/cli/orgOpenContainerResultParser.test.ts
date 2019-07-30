@@ -14,7 +14,7 @@ import {
 } from '../../../src/cli';
 
 // tslint:disable:no-unused-expression
-describe.only('force:org:open container parser', () => {
+describe('force:org:open container parser', () => {
   it('should parse success info successfully', () => {
     const orgOpenSuccessResult: OrgOpenSuccessResult = {
       status: 0,
@@ -67,6 +67,36 @@ describe.only('force:org:open container parser', () => {
     expect(cliRes.commandName).to.equal(orgOpenErrorResult.commandName);
     expect(cliRes.stack).to.equal(orgOpenErrorResult.stack);
     expect(cliRes.warnings).to.be.an('array');
+  });
+
+  it('Should parse success info successfully when provided along other info', () => {
+    //
+    const orgOpenSuccessResult: OrgOpenSuccessResult = {
+      status: 0,
+      result: {
+        orgId: '00Dxx0000000123',
+        url: 'www.openMeUpScotty.com',
+        username: 'krirk@enterprise.com'
+      }
+    };
+
+    const parser = new OrgOpenContainerResultParser(
+      `Warning: sfdx-cli update available from 7.7.0 to 7.14.0.${EOL} sfdx force:org:open --json --loglevel fatal ${EOL}
+      ${JSON.stringify(
+        orgOpenSuccessResult
+      )} ${EOL} sfdx force:org:open --json --loglevel fatal ended with exit code 0`
+    );
+
+    expect(parser.openIsSuccessful()).to.be.true;
+
+    const cliRes = parser.getResult() as OrgOpenSuccessResult;
+    expect(cliRes.status).to.be.equals(0);
+    expect(cliRes.result).to.be.an('object');
+    expect(cliRes.result.orgId).to.be.equals(orgOpenSuccessResult.result.orgId);
+    expect(cliRes.result.url).to.be.equals(orgOpenSuccessResult.result.url);
+    expect(cliRes.result.username).to.be.equals(
+      orgOpenSuccessResult.result.username
+    );
   });
 
   it('should throw an error when cli does not respond with json result info', () => {
