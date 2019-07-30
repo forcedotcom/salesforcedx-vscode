@@ -48,10 +48,7 @@
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "3.2.0",
-    "mocha-junit-reporter": "^1.13.0",
-    "mocha-multi-reporters": "^1.1.4",
     "mock-spawn": "0.2.6",
-    "nyc": "13",
     "sinon": "^2.3.6",
     "typescript": "3.1.6",
     "vscode": "1.1.17"
@@ -67,7 +64,6 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
-    "test:unit": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "test:vscode-integration": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ../../scripts/run-vscode-integration-tests",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
@@ -77,12 +73,6 @@
     "onCommand:sfdx.force.project.with.manifest.create",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov"
-    ]
-  },
   "main": "./out/src",
   "contributes": {
     "viewsContainers": {
