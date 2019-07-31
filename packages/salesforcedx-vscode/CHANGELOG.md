@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix for a NullPointerException that happens when analyzing a SOQL query ([PR #1514](https://github.com/forcedotcom/salesforcedx-vscode/pull/1514))
+- Fix NullPointerException in bind expressions when analyzing SOQL query ([PR #1514](https://github.com/forcedotcom/salesforcedx-vscode/pull/1514))
 
 #### salesforcedx-vscode-apex, salesforcedx-vscode-apex-debugger, salesforcedx-vscode-core, salesforcedx-vscode-lightning, salesforcedx-vscode-visualforce
 
@@ -14,7 +14,7 @@
 
 #### salesforcedx-vscode-core
 
-- Org Browser beta is publicly available. The [documentation](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) is now live on how to use the feature ([PR #1498](https://github.com/forcedotcom/salesforcedx-vscode/pull/1498))
+- Open beta for Org Browser feature. Refer to Org Browser [article](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) for setup instructions ([PR #1498](https://github.com/forcedotcom/salesforcedx-vscode/pull/1498))
 
 ## 46.7.0 - July 25, 2019
 
