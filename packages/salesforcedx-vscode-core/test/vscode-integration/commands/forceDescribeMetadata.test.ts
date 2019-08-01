@@ -27,18 +27,36 @@ describe('Force Describe Metadata', () => {
   });
 
   it('Should write a file with metadata describe output', async () => {
-    const outputFolder = '/test/folder/';
+    const subscribeStub = sinon
+      .stub(
+        CliCommandExecutor.prototype.execute().processExitSubject,
+        'subscribe'
+      )
+      .callsFake(() => {});
+    const logMetricStub = sinon
+      .stub(ForceDescribeMetadataExecutor.prototype, 'logMetric')
+      .withArgs('logName', [0, 1]);
+
+    const commandStub = sinon
+      .stub(CliCommandExecutor.prototype, 'execute')
+      .returns({ command: { logName: 'log' } });
+
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
+
+    const outputFolder = '/test/folder/';
     const resultData = '{status: 0}';
     const cmdOutputStub = sinon
       .stub(CommandOutput.prototype, 'getCmdResult')
       .returns(resultData);
-    const cliExecStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
+
     const result = await forceDescribeMetadata(outputFolder);
     expect(writeFileStub.calledOnce).to.equal(true);
     expect(result).to.equal(resultData);
+
     writeFileStub.restore();
     cmdOutputStub.restore();
-    cliExecStub.restore();
+    subscribeStub.restore();
+    // commandStub.restore();
+    logMetricStub.restore();
   });
 });

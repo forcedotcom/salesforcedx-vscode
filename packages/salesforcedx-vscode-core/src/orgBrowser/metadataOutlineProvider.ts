@@ -136,24 +136,29 @@ export class MetadataOutlineProvider
   }
 }
 
-function parseErrors(error: string): Error {
-  const sanitized = error.substring(
-    error.indexOf('{'),
-    error.lastIndexOf('}') + 1
-  );
-  const e = JSON.parse(sanitized);
-  let message: string;
-  switch (e.name) {
-    case 'RefreshTokenAuthError':
-      message = nls.localize('error_auth_token');
-      break;
-    case 'NoOrgFound':
-      message = nls.localize('error_no_org_found');
-      break;
-    default:
-      message = nls.localize('error_fetching_metadata');
-      break;
+export function parseErrors(error: string | any): Error {
+  try {
+    const errMsg = typeof error === 'string' ? error : error.message;
+    const sanitized = errMsg.substring(
+      errMsg.indexOf('{'),
+      errMsg.lastIndexOf('}') + 1
+    );
+    const e = JSON.parse(sanitized);
+    let message: string;
+    switch (e.name) {
+      case 'RefreshTokenAuthError':
+        message = nls.localize('error_auth_token');
+        break;
+      case 'NoOrgFound':
+        message = nls.localize('error_no_org_found');
+        break;
+      default:
+        message = nls.localize('error_fetching_metadata');
+        break;
+    }
+    message += ' ' + nls.localize('error_org_browser_text');
+    return new Error(message);
+  } catch (e) {
+    return new Error(e);
   }
-  message += ' ' + nls.localize('error_org_browser_text');
-  return new Error(message);
 }
