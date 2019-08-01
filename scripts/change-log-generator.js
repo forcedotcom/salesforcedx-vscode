@@ -78,13 +78,8 @@ rl.question('Is this the correct release branch? Y/n: ', input => {
     });
   }
   process.stdout.write('Release branch result: ' + latestReleaseBranch);
+  //shell.exec('git checkout ' + path.join('release', 'v' + latestReleaseBranch));
   rl.close();
+}).on('error', function(e) {
+  console.log('Reached unexpected error.', e);
 });
-
-var pathToUse = path.join('origin', 'release', 'v' + latestReleaseBranch);
-shell.exec(
-  'git checkout ' + pathToUse
-  // { silent: true }
-);
-shell.exec('npm install');
-shell.exec('npm run compile');
