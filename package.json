@@ -54,7 +54,8 @@
   },
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node": "10.2.0"
+    "node": "10.2.0",
+    "readline-sync": "^1.4.10"
   },
   "husky": {
     "hooks": {

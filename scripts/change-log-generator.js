@@ -1,12 +1,13 @@
 const process = require('process');
 const path = require('path');
 const shell = require('shelljs');
-const readline = require('readline');
+const readlineS = require('readline-sync');
 
 /*
  * Assumptions:
  * 1. You have shelljs installed globally using `npm install -g shelljs`.
  * 2. The release branch in question has already been cut.
+ * 3. readline-sync is installed using 'npm install readline-sync'
  */
 
 // Commands
@@ -50,7 +51,7 @@ function verifyUserReleaseBranch(input) {
   if (input && input.match(/^\d{2}\.\d\.\d/)) {
     return input;
   } else {
-    printError('Invalid release ' + input + '. Expected [xx.y.z].');
+    printError("Invalid release '" + input + "'. Expected format [xx.y.z].");
   }
 }
 
@@ -58,28 +59,31 @@ function verifyUserReleaseBranch(input) {
  * Prints the message to the error stream and exits the script.
  */
 function printError(errorMessage) {
-  process.stderr.write(errorMessage);
+  process.stderr.write(errorMessage + '\n');
   process.exit(-1);
 }
 
 var latestReleaseBranch = getLatestReleaseBranch();
-var rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false
-});
+var input = readlineS.question('Is this the correct release Branch? (Y/n): ');
 
-rl.question('Is this the correct release branch? Y/n: ', input => {
-  if (!isUserInputYorN(input)) {
-    printError('Expected Input: Y/n. Unknown user input: ' + input);
-  } else if (input.toUpperCase() == 'N') {
-    rl.question('Enter release branch in format xx.y.z: ', input => {
-      latestReleaseBranch = verifyUserReleaseBranch(input);
-    });
-  }
-  process.stdout.write('Release branch result: ' + latestReleaseBranch);
-  //shell.exec('git checkout ' + path.join('release', 'v' + latestReleaseBranch));
-  rl.close();
-}).on('error', function(e) {
-  console.log('Reached unexpected error.', e);
-});
+if (!isUserInputYorN(input)) {
+  printError('Expected Input: Y/n. Unknown user input: ' + input);
+} else if (input.toUpperCase() == 'N') {
+  input = readlineS.question('Enter release branch in format xx.y.z: ');
+  latestReleaseBranch = verifyUserReleaseBranch(input);
+}
+
+// TODO - verify branch doesn't already exist.
+var changeLogBranch = 'changeLogGenerated-v' + latestReleaseBranch;
+process.stdout.write('Release branch result: ' + latestReleaseBranch);
+shell.exec('git checkout ' + path.join('release', 'v' + latestReleaseBranch));
+shell.exec('git branch ' + changeLogBranch);
+shell.exec('git checkout ' + changeLogBranch);
+
+// At this point, our new branch for the change log should mirror the release branch.
+// Now we need to check the log for all of the commits that were added for this new release.
+var result = shell.exec('git log --oneline'); //.stdout.split('Updated SHA256', 1);
+console.log('Results from log: ' + result);
+
+// TODO - get all files for each of the commits.
+//shell.exec('git show --pretty="" --name-only <commit>');
