@@ -1,3 +1,21 @@
+## 46.8.0 - August 1, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix NullPointerException in bind expressions when analyzing SOQL query ([PR #1514](https://github.com/forcedotcom/salesforcedx-vscode/pull/1514))
+
+#### salesforcedx-vscode-apex, salesforcedx-vscode-apex-debugger, salesforcedx-vscode-core, salesforcedx-vscode-lightning, salesforcedx-vscode-visualforce
+
+- Remove unnecesssary images to reduce file size of extensions ([PR #1517](https://github.com/forcedotcom/salesforcedx-vscode/pull/1517))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Open beta for Org Browser feature. Refer to Org Browser [article](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) for setup instructions ([PR #1498](https://github.com/forcedotcom/salesforcedx-vscode/pull/1498))
+
 ## 46.7.0 - July 25, 2019
 
 ## Fixed
