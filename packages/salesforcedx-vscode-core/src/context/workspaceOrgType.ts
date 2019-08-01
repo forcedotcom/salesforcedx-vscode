@@ -23,15 +23,11 @@ export async function getWorkspaceOrgType(
     throw e;
   }
 
-  const email = /^\w+([\.$-]*\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
-    defaultUsernameOrAlias
-  );
-  const isUsername = email ? true : false;
   const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
 
   if (isNullOrUndefined(username)) {
     telemetryService.sendError(
-      `workspaceOrgType.getWorkspaceOrgType ran into an undefined username. Username email format = ${isUsername}`
+      'workspaceOrgType.getWorkspaceOrgType ran into an undefined username.'
     );
   }
 
