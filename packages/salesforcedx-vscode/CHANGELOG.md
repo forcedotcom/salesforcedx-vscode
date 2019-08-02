@@ -10,6 +10,10 @@
 
 - Remove unnecesssary images to reduce file size of extensions ([PR #1517](https://github.com/forcedotcom/salesforcedx-vscode/pull/1517))
 
+#### salesforcedx-vscode-core
+
+- Fix issue causing the core extension to fail during activation when using a long defaultusername ([PR #1526](https://github.com/forcedotcom/salesforcedx-vscode/pull/1526))
+
 ## Added
 
 #### salesforcedx-vscode-core
