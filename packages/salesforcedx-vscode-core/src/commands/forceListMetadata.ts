@@ -53,14 +53,20 @@ export async function forceListMetadata(
   outputPath: string,
   folder?: string
 ): Promise<string> {
+  const startTime = process.hrtime();
+  const forceListMetadataExecutor = new ForceListMetadataExecutor(
+    metadataType,
+    defaultUsernameOrAlias,
+    folder
+  );
   const execution = new CliCommandExecutor(
-    new ForceListMetadataExecutor(
-      metadataType,
-      defaultUsernameOrAlias,
-      folder
-    ).build({}),
+    forceListMetadataExecutor.build({}),
     { cwd: getRootWorkspacePath() }
   ).execute();
+
+  execution.processExitSubject.subscribe(() => {
+    forceListMetadataExecutor.logMetric(execution.command.logName, startTime);
+  });
 
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
