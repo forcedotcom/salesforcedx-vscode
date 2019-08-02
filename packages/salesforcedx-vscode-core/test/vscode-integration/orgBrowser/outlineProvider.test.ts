@@ -340,9 +340,8 @@ function compareNodes(actual: BrowserNode[], expected: any[]) {
 
 describe('parse errors and throw with appropriate message', () => {
   it('should return default message when given a dirty json', async () => {
-    const error =
-      '< Warning: sfdx-cli update available' +
-      JSON.stringify({ status: 1, name: 'RetrievingError' });
+    const error = `< Warning: sfdx-cli update available +
+      ${JSON.stringify({ status: 1, name: 'RetrievingError' })}`;
     const errorResponse = parseErrors(error);
     expect(errorResponse.message).to.equal(
       `${nls.localize('error_fetching_metadata')} ${nls.localize(
@@ -351,7 +350,23 @@ describe('parse errors and throw with appropriate message', () => {
     );
   });
 
-  it('should return authorization token message when throwing RefreshTokenAuthError', async () => {});
+  it('should return authorization token message when throwing RefreshTokenAuthError', async () => {
+    const error = JSON.stringify({ status: 1, name: 'RefreshTokenAuthError' });
+    const errorResponse = parseErrors(error);
+    expect(errorResponse.message).to.equal(
+      `${nls.localize('error_auth_token')} ${nls.localize(
+        'error_org_browser_text'
+      )}`
+    );
+  });
 
-  it('should return no org found message when throwing NoOrgFound error', async () => {});
+  it('should return no org found message when throwing NoOrgFound error', async () => {
+    const error = JSON.stringify({ status: 1, name: 'NoOrgFound' });
+    const errorResponse = parseErrors(error);
+    expect(errorResponse.message).to.equal(
+      `${nls.localize('error_no_org_found')} ${nls.localize(
+        'error_org_browser_text'
+      )}`
+    );
+  });
 });
