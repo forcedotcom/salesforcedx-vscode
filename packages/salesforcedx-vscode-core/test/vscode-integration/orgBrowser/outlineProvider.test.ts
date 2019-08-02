@@ -15,6 +15,7 @@ import {
   NodeType,
   TypeUtils
 } from '../../../src/orgBrowser';
+import { parseErrors } from '../../../src/orgBrowser/metadataOutlineProvider';
 
 /* tslint:disable:no-unused-expression */
 describe('load org browser tree outline', () => {
@@ -78,8 +79,12 @@ describe('load org browser tree outline', () => {
 
   it('should throw error if trouble fetching types', async () => {
     const orgNode = new BrowserNode(username, NodeType.Org);
-    const loadTypesStub = stub(TypeUtils.prototype, 'loadTypes').throws(
-      JSON.stringify('error')
+    const loadTypesStub = stub(TypeUtils.prototype, 'loadTypes').returns(
+      Promise.reject(
+        JSON.stringify({
+          name: 'Should throw an error'
+        })
+      )
     );
     try {
       await metadataProvider.getChildren(orgNode);
@@ -112,7 +117,13 @@ describe('load org browser tree outline', () => {
     const loadCmpsStub = stub(
       ComponentUtils.prototype,
       'loadComponents'
-    ).throws(JSON.stringify('error'));
+    ).returns(
+      Promise.reject(
+        JSON.stringify({
+          name: 'Should throw an error'
+        })
+      )
+    );
 
     try {
       await metadataProvider.getChildren(typeNode);
@@ -326,3 +337,36 @@ function compareNodes(actual: BrowserNode[], expected: any[]) {
     });
   });
 }
+
+describe('parse errors and throw with appropriate message', () => {
+  it('should return default message when given a dirty json', async () => {
+    const error = `< Warning: sfdx-cli update available +
+      ${JSON.stringify({ status: 1, name: 'RetrievingError' })}`;
+    const errorResponse = parseErrors(error);
+    expect(errorResponse.message).to.equal(
+      `${nls.localize('error_fetching_metadata')} ${nls.localize(
+        'error_org_browser_text'
+      )}`
+    );
+  });
+
+  it('should return authorization token message when throwing RefreshTokenAuthError', async () => {
+    const error = JSON.stringify({ status: 1, name: 'RefreshTokenAuthError' });
+    const errorResponse = parseErrors(error);
+    expect(errorResponse.message).to.equal(
+      `${nls.localize('error_auth_token')} ${nls.localize(
+        'error_org_browser_text'
+      )}`
+    );
+  });
+
+  it('should return no org found message when throwing NoOrgFound error', async () => {
+    const error = JSON.stringify({ status: 1, name: 'NoOrgFound' });
+    const errorResponse = parseErrors(error);
+    expect(errorResponse.message).to.equal(
+      `${nls.localize('error_no_org_found')} ${nls.localize(
+        'error_org_browser_text'
+      )}`
+    );
+  });
+});
