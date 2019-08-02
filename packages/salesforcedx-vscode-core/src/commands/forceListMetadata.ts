@@ -13,7 +13,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
 import { SfdxCommandletExecutor } from '../commands';
-import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
 
 export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
@@ -37,7 +36,7 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
       .withArg('force:mdapi:listmetadata')
       .withFlag('-m', this.metadataType)
       .withFlag('-u', this.defaultUsernameOrAlias)
-      .withLogName(nls.localize('force_list_metadata'))
+      .withLogName('force_mdapi_listmetadata')
       .withJson();
 
     if (this.folder) {
@@ -54,14 +53,20 @@ export async function forceListMetadata(
   outputPath: string,
   folder?: string
 ): Promise<string> {
+  const startTime = process.hrtime();
+  const forceListMetadataExecutor = new ForceListMetadataExecutor(
+    metadataType,
+    defaultUsernameOrAlias,
+    folder
+  );
   const execution = new CliCommandExecutor(
-    new ForceListMetadataExecutor(
-      metadataType,
-      defaultUsernameOrAlias,
-      folder
-    ).build({}),
+    forceListMetadataExecutor.build({}),
     { cwd: getRootWorkspacePath() }
   ).execute();
+
+  execution.processExitSubject.subscribe(() => {
+    forceListMetadataExecutor.logMetric(execution.command.logName, startTime);
+  });
 
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
