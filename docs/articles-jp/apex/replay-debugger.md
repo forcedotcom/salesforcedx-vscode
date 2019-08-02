@@ -1,5 +1,6 @@
 ---
-title: Apex Replay Debugger---
+title: Apex Replay Debugger
+---
 
 ## Apex Replay Debugger の設定
 

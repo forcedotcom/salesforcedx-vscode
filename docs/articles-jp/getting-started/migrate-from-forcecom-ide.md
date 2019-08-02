@@ -1,5 +1,6 @@
 ---
-title: Force.com IDE から VS Code 向け Salesforce 拡張機能への移行---
+title: Force.com IDE から VS Code 向け Salesforce 拡張機能への移行
+---
 
 どの組織でも Force.com IDE の使い慣れたワークフローに従って開発することができます。このトピックでは、既存のプロジェクトを Force.com IDE から VS Code に移行する 2 通りの手順について説明します。
 

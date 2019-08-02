@@ -1,5 +1,6 @@
 ---
-title: Salesforce CLI コマンドの実行---
+title: Salesforce CLI コマンドの実行
+---
 
 VS Code 向け Salesforce 拡張機能からコマンドを実行するには、Ctrl+Shift+P キー \(Windows、Linux\) または Cmd+Shift+P キー \(macOS\) を押し、コマンドパレットに**「SFDX」**と入力します。  
 ![コマンドパレット。SFDX コマンドを表示するように絞り込まれています。](../../images/sfdx_commands.png)
@@ -8,7 +9,7 @@ VS Code 向け Salesforce 拡張機能からコマンドを実行するには、
 ![ソースがスクラッチ組織に正常にプッシュされたことを伝える通知](../../images/command_success_notification.png)
 
 実行したコマンドの出力を確認するには、**[View \(表示\)]** > **[Output \(出力\)]** を選択して、ドロップダウンメニューから **[Salesforce CLI]** を選択します。または、完了通知の **[Show \(表示\)]** をクリックします。  
-![[Output \(出力\)] ビュー。Apex テスト実行の結果が表示されています。](../../images/output_view.png)
+![[Output (出力)] ビュー。Apex テスト実行の結果が表示されています。](../../images/output_view.png)
 
 ## 使用可能なコマンド
 

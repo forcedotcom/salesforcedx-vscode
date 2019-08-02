@@ -1,5 +1,6 @@
 ---
-title: 最初のプロジェクトの作成---
+title: 最初のプロジェクトの作成
+---
 
 このガイドは、Visual Studio Code を初めて使用する Salesforce 開発者が、無の状態からでも VS Code 向け Salesforce 拡張機能を使用してアプリケーションをリリースできるようにします。
 

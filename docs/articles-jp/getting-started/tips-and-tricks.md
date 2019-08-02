@@ -1,5 +1,6 @@
 ---
-title: ヒントとコツ---
+title: ヒントとコツ
+---
 
 ## VS Code 拡張機能を開発タスク別に整理
 
@@ -21,7 +22,7 @@ VS Code 拡張機能を開発タスク別に整理しておくと、現在取り
       1.  VS Code を開きます。
       1.  コマンドパレットを開くには、Cmd+Shift+P キー \(macOS\) または Ctrl+Shift+P キー \(Linux\) を押します。
       1.  **[Shell command: Install 'code' command in PATH \(シェルコマンド: PATH で 'code' コマンドを実行\)]** コマンドを実行します。
-          ![コマンドパレットから [Shell command: Install 'code' command in PATH \(シェルコマンド: PATH で 'code' コマンドを実行\)] を選択](../../images/invoke_shell_command.png)
+          ![コマンドパレットから [Shell command: Install 'code' command in PATH (シェルコマンド: PATH で 'code' コマンドを実行)] を選択](../../images/invoke_shell_command.png)
 
                 このコマンドで、任意のターミナルから直接 `code` を起動できます。
 

@@ -1,5 +1,6 @@
 ---
-title: 'FAQ: 一般’---
+title: 'FAQ: 一般'
+---
 
 ## VS Code 向け Salesforce 拡張機能は、Salesforce の正式サポートの対象ですか?
 

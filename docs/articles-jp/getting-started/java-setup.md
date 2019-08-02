@@ -1,5 +1,6 @@
 ---
-title: Java 設定---
+title: Java 設定
+---
 
 VS Code 向け Salesforce Apex 拡張機能に付属する Apex 言語サーバは、Java Platform, Standard Edition Development Kit \(JDK\) に依存しています。そのため、JDK バージョン 11 \(推奨\) と JDK バージョン 8 のいずれかのインストールが必要です。この拡張機能はデフォルトで、コンピュータ上の `JAVA_HOME` または `JDK_HOME` 環境変数を探し、ローカルの Java インストールを見つけようとします。拡張機能が Java インストールを見つけられない場合や、あなたが別のインストールを使用したい場合は、`salesforcedx-vscode-apex.java.home` 設定を変更します。
 

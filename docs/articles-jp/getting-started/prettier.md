@@ -1,12 +1,13 @@
 ---
-title: Salesforce プロジェクト用の Prettier コードフォーマッタの設定---
+title: Salesforce プロジェクト用の Prettier コードフォーマッタの設定
+---
 
 現在、Prettier は Aura コンポーネントと Lightning Web コンポーネント \(LWC\) のほか、`.json`、`.md`、`.html`、`.js` などの標準ファイル形式もサポートしています。Apex に対するサポートは[コミュニティ](https://github.com/dangmai/prettier-plugin-apex)で進められており、間もなく使用できるようになるものと思われます。
 
 Aura や LWC に Prettier を使用するためには、一定の設定が必要です。
 
 1. プロジェクトにまだ `package.json` がない場合は、`npm init` を実行します。
-デフォルトをすべて受け入れて構いません。
+   デフォルトをすべて受け入れて構いません。
 
 1. `npm install --save-dev --save-exact prettier` を実行して Prettier をインストールします。
 

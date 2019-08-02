@@ -1,5 +1,6 @@
 ---
-title: ワークスペース設定の編集---
+title: ワークスペース設定の編集
+---
 
 ワークスペース設定を編集するには、**[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** \(Windows、Linux\) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** \(macOS\) を選択します。各自の設定についての詳細は、『Visual Studio Code Docs』の[「User and Workspace Settings \(ユーザとワークスペースの設定\)」](https://code.visualstudio.com/docs/getstarted/settings)を参照してください。
 

@@ -1,5 +1,6 @@
 ---
-title: VS Code 向け Salesforce 拡張機能のインストール---
+title: VS Code 向け Salesforce 拡張機能のインストール
+---
 
 始める前にまず、必要なソフトウェアをコンピュータにインストールします。
 

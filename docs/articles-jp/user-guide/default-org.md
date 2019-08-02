@@ -1,5 +1,6 @@
 ---
-title: デフォルト組織の変更または起動---
+title: デフォルト組織の変更または起動
+---
 
 VS Code 向け Salesforce 拡張機能は、開発用のデフォルト組織として設定した組織に対してコマンドを実行します。[パッケージ開発モデル](package-development-model)では通常、デフォルト組織はスクラッチ組織です。[組織開発モデル](org-development-model)では通常、Sandbox、Developer Edition \(DE\) 組織、Trailhead Playground のいずれかです。
 

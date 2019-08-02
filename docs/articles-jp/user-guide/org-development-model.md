@@ -1,5 +1,6 @@
 ---
-title: VS Code を使用した組織開発モデル---
+title: VS Code を使用した組織開発モデル
+---
 
 組織開発モデルを採用する場合は、変更内容を手動で追跡し、変更セットを Sandbox にリリースしてから本番組織にリリースします\(他方、パッケージ開発モデルでは、ソースが追跡される組織で作業し、パッケージ化されたメタデータセットを使用して変更内容を組織間で移動します\)。詳細は、Trailhead の[「Org Development Model \(組織開発モデル\)」](https://trailhead.salesforce.com/content/learn/modules/org-development-model)モジュールを参照してください。
 

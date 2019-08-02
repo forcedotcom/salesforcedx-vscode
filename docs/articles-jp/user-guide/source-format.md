@@ -1,5 +1,6 @@
 ---
-title: ソース形式---
+title: ソース形式
+---
 
 VS Code 向け Salesforce 拡張機能でソースのプッシュ、プル、リリース、取得に使用するコマンドは、ファイルが \(メタデータ形式ではなく\) ソース形式であると想定しています。ソース形式は、バージョン管理システムで作業しやすいように最適化されています。詳細は、『Salesforce DX 開発者ガイド』の[「Salesforce DX プロジェクトの構造とソース形式」](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_source_file_format.htm)を参照してください。
 
