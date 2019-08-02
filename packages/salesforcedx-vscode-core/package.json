@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "46.7.0",
+  "version": "46.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.0.1",
-    "@salesforce/salesforcedx-utils-vscode": "46.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "46.8.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -36,7 +36,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "46.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "46.8.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -673,37 +673,27 @@
       "title": "%feature_previews_title%",
       "properties": {
         "salesforcedx-vscode-core.show-cli-success-msg": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "%show_cli_success_msg_description%"
         },
         "salesforcedx-vscode-core.retrieve-test-code-coverage": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
         },
         "salesforcedx-vscode-core.telemetry.enabled": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "%telemetry_enabled_description%"
         },
         "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
         },
         "salesforcedx-vscode-core.internal-development": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%internal_dev_description%"
         },
