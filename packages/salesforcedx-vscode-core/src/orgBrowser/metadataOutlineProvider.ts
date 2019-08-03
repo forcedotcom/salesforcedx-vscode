@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { extractJsonObject, isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -138,13 +138,13 @@ export class MetadataOutlineProvider
 
 export function parseErrors(error: string | any): Error {
   try {
+
     const errMsg = typeof error === 'string' ? error : error.message;
-    const sanitized = errMsg.substring(
-      errMsg.indexOf('{'),
-      errMsg.lastIndexOf('}') + 1
-    );
+    const sanitized = extractJsonObject(errMsg);
     const e = JSON.parse(sanitized);
+
     let message: string;
+
     switch (e.name) {
       case 'RefreshTokenAuthError':
         message = nls.localize('error_auth_token');

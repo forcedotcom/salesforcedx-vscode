@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { extractJsonObject } from '../helpers';
+
 export interface OrgCreateSuccessResult {
   status: number;
   result: {
@@ -28,10 +30,7 @@ export class OrgCreateResultParser {
 
   constructor(stdout: string) {
     try {
-      const sanitized = stdout.substring(
-        stdout.indexOf('{'),
-        stdout.lastIndexOf('}') + 1
-      );
+      const sanitized = extractJsonObject(stdout);
       this.response = JSON.parse(sanitized);
     } catch (e) {
       const err = new Error('Error parsing org create result');

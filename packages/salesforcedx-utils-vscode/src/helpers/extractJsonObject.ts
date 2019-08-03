@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { isNullOrUndefined } from './utils';
-export { extractJsonObject } from './extractJsonObject';
-
+export function extractJsonObject(str: string) {
+  return str.substring(
+    str.indexOf('{'),
+    str.lastIndexOf('}') + 1
+  );
+}
