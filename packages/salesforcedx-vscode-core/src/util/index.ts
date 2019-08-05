@@ -11,5 +11,9 @@ export {
   getRootWorkspacePath,
   hasRootWorkspace
 } from './rootWorkspace';
-export { isCLIInstalled, showCLINotInstalledMessage } from './cliConfiguration';
+export {
+  isCLIInstalled,
+  showCLINotInstalledMessage,
+  isSFDXContainerMode
+} from './cliConfiguration';
 export { ConfigSource, ConfigUtil } from './configUtil';

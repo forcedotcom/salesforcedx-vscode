@@ -40,3 +40,8 @@ export {
   OrgCreateErrorResult,
   OrgCreateResultParser
 } from './orgCreateResultParser';
+export {
+  OrgOpenSuccessResult,
+  OrgOpenContainerResultParser,
+  OrgOpenErrorResult
+} from './orgOpenContainerResultParser';

@@ -30,3 +30,7 @@ export function showCLINotInstalledMessage() {
   );
   window.showWarningMessage(showMessage);
 }
+
+export function isSFDXContainerMode(): boolean {
+  return process.env.SFDX_CONTAINER_MODE ? true : false;
+}
