@@ -15,10 +15,10 @@ export function isNullOrUndefined(object: any): object is null | undefined {
 
 export function extractJsonObject(str: string): any {
 
-  let firstBracketIndex = str.indexOf('{');
-  let lastBracketIndex = str.lastIndexOf('}');
+  const firstBracketIndex = str.indexOf('{');
+  const lastBracketIndex = str.lastIndexOf('}');
 
-  let jsonString = str.substring(
+  const jsonString = str.substring(
     firstBracketIndex,
     lastBracketIndex + 1
   );

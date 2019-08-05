@@ -13,14 +13,15 @@ describe('getConfigSource', () => {
 
   it('should extract a JSON string from larger string and then return as an object', async () => {
 
-    const exampleJsonString = JSON.stringify({ name: "exampleName", error: "exampleError" });
+    const exampleJsonString = JSON.stringify({ name: 'exampleName', error: 'exampleError' });
     const exampleString = `junk text <junk +text junk text ${exampleJsonString} junk text junk text junk text`;
 
     const testParse = extractJsonObject(exampleString);
 
-    expect(testParse.name).to.equal("exampleName");
-    expect(testParse.error).to.equal("exampleError");
+    expect(testParse.name).to.equal('exampleName');
+    expect(testParse.error).to.equal('exampleError');
 
   });
 
 });
+
