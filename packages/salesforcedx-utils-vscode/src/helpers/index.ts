@@ -6,4 +6,4 @@
  */
 
 export { isNullOrUndefined } from './utils';
-export { extractJsonObject } from './extractJsonObject';
+export { extractJsonObject } from './utils';

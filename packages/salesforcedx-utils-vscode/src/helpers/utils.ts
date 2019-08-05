@@ -12,3 +12,16 @@ export function isNullOrUndefined(object: any): object is null | undefined {
     return false;
   }
 }
+
+export function extractJsonObject(str: string): any {
+
+  let firstBracketIndex = str.indexOf('{');
+  let lastBracketIndex = str.lastIndexOf('}');
+
+  let jsonString = str.substring(
+    firstBracketIndex,
+    lastBracketIndex + 1
+  );
+
+  return JSON.parse(jsonString);
+}

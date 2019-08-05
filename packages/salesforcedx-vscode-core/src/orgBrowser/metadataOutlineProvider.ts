@@ -140,8 +140,7 @@ export function parseErrors(error: string | any): Error {
   try {
 
     const errMsg = typeof error === 'string' ? error : error.message;
-    const sanitized = extractJsonObject(errMsg);
-    const e = JSON.parse(sanitized);
+    const e = extractJsonObject(errMsg);
 
     let message: string;
 

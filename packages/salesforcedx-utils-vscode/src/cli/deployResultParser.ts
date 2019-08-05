@@ -40,8 +40,7 @@ export class ForceDeployResultParser {
 
   constructor(stdout: string) {
     try {
-      const sanitized = extractJsonObject(stdout);
-      this.response = JSON.parse(sanitized);
+      this.response = extractJsonObject(stdout);
     } catch (e) {
       const err = new Error('Error parsing deploy result');
       err.name = 'DeployParserFail';
