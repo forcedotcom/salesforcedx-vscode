@@ -206,29 +206,6 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX VS Code Core Unit Tests",
-      "program": "${workspaceFolder}/packages/salesforcedx-vscode-core/node_modules/mocha/bin/_mocha",
-      "args": [
-        "--timeout",
-        "999999",
-        "--colors",
-        "--recursive",
-        "${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/unit"
-      ],
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
-      "sourceMapPathOverrides": {
-        "../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/unit/*",
-        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///*": "*"
-      },
-      "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Launch Salesforce DX Visualforce Language Server Unit Tests",
       "program": "${workspaceFolder}/packages/salesforcedx-visualforce-language-server/node_modules/mocha/bin/_mocha",
       "args": [
