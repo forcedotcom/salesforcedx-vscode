@@ -1,12 +1,5 @@
 ## 46.9.0 - August 8, 2019
 
-## Fixed
-
-#### salesforcedx-vscode-core
-
-- Process errors not in JSON format to make them user friendly before displaying ([PR #1521](https://github.com/forcedotcom/salesforcedx-vscode/pull/1521))
-
-
 ## Added
 
 #### salesforcedx-utils-vscode
