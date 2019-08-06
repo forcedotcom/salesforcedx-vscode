@@ -1,3 +1,22 @@
+## 46.9.0 - August 8, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Process errors not in JSON format to make them user friendly before displaying ([PR #1521](https://github.com/forcedotcom/salesforcedx-vscode/pull/1521))
+
+
+## Added
+
+#### salesforcedx-utils-vscode
+
+- Use VS Code api to open browser in host machine when operating in container mode ([PR #1448](https://github.com/forcedotcom/salesforcedx-vscode/pull/1448))
+
+#### docs
+
+- Add Japanese translations for docs ([PR #1528](https://github.com/forcedotcom/salesforcedx-vscode/pull/1528))
+
 ## 46.8.0 - August 1, 2019
 
 ## Fixed
