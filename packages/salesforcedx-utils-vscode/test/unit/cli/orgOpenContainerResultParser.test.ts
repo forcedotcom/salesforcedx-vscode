@@ -40,6 +40,7 @@ describe('force:org:open container parser', () => {
       orgOpenSuccessResult.result.username
     );
   });
+
   it('should parse error info successfully', () => {
     const orgOpenErrorResult: OrgOpenErrorResult = {
       status: 1,
