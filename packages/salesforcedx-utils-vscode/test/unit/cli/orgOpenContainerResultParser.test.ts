@@ -15,16 +15,15 @@ import {
 
 // tslint:disable:no-unused-expression
 describe('force:org:open container parser', () => {
+  const orgOpenSuccessResult: OrgOpenSuccessResult = {
+    status: 0,
+    result: {
+      orgId: '00Dxx0000000123',
+      url: 'www.example.com',
+      username: 'test@example.com'
+    }
+  };
   it('should parse success info successfully', () => {
-    const orgOpenSuccessResult: OrgOpenSuccessResult = {
-      status: 0,
-      result: {
-        orgId: '00Dxx0000000123',
-        url: 'www.openMeUpScotty.com',
-        username: 'krirk@enterprise.com'
-      }
-    };
-
     const parser = new OrgOpenContainerResultParser(
       JSON.stringify(orgOpenSuccessResult)
     );
@@ -70,16 +69,6 @@ describe('force:org:open container parser', () => {
   });
 
   it('Should parse success info successfully when provided along other info', () => {
-    //
-    const orgOpenSuccessResult: OrgOpenSuccessResult = {
-      status: 0,
-      result: {
-        orgId: '00Dxx0000000123',
-        url: 'www.openMeUpScotty.com',
-        username: 'krirk@enterprise.com'
-      }
-    };
-
     const parser = new OrgOpenContainerResultParser(
       `Warning: sfdx-cli update available from 7.7.0 to 7.14.0.${EOL} sfdx force:org:open --json --loglevel fatal ${EOL}
       ${JSON.stringify(
