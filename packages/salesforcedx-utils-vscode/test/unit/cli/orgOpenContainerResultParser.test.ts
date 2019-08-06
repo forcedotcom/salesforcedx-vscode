@@ -23,6 +23,7 @@ describe('force:org:open container parser', () => {
       username: 'test@example.com'
     }
   };
+
   it('should parse success info successfully', () => {
     const parser = new OrgOpenContainerResultParser(
       JSON.stringify(orgOpenSuccessResult)
