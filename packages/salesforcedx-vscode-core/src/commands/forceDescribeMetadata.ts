@@ -6,6 +6,7 @@
  */
 
 import {
+  CliCommandExecution,
   CliCommandExecutor,
   Command,
   CommandOutput,
@@ -31,6 +32,15 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
       .withLogName('force_mdapi_describemetadata')
       .build();
   }
+
+  public attachLogging(
+    execution: CliCommandExecution,
+    startTime: [number, number]
+  ) {
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+  }
 }
 
 export async function forceDescribeMetadata(
@@ -49,6 +59,8 @@ export async function forceDescribeMetadata(
       startTime
     );
   });
+
+  // forceDescribeMetadataExecutor.attachLogging(execution, startTime);
 
   if (!fs.existsSync(outputFolder)) {
     mkdir('-p', outputFolder);

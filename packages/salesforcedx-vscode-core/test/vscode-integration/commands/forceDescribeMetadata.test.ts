@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Observable } from '@salesforce/salesforcedx-utils-vscode/node_modules/rxjs/Observable';
 import {
   CliCommandExecution,
   CliCommandExecutor,
@@ -26,19 +27,17 @@ describe('Force Describe Metadata', () => {
       `sfdx force:mdapi:describemetadata --json --loglevel fatal`
     );
   });
-  // skipped because of an issue stubbing a property
-  xit('Should write a file with metadata describe output', async () => {
-    const subscribeStub = sinon
-      .stub(
-        CliCommandExecutor.prototype.execute().processExitSubject,
-        'subscribe'
-      )
-      .callsFake(() => {});
 
-    const commandStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
-    const testStub = sinon
-      .stub(CliCommandExecution.prototype, 'command')
-      .returns({ logName: 'log' });
+  it('Should write a file with metadata describe output', async () => {
+    /*const loggingStub = sinon.stub(
+      ForceDescribeMetadataExecutor.prototype,
+      'attachLogging'
+    );*/
+    const execStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
+    const processStub = sinon.stub(
+      CliCommandExecution.prototype,
+      'processExitSubject'
+    );
 
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
 
@@ -54,8 +53,8 @@ describe('Force Describe Metadata', () => {
 
     writeFileStub.restore();
     cmdOutputStub.restore();
-    subscribeStub.restore();
-    commandStub.restore();
-    testStub.restore();
+    // loggingStub.restore();
+    execStub.restore();
+    processStub.restore();
   });
 });
