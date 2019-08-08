@@ -69,7 +69,7 @@ export class CliCommandExecutor {
       : options;
   }
 
-  public execute(cancellationToken?: CancellationToken): CliCommandExecution {
+  public execute(cancellationToken?: CancellationToken): CommandExecution {
     const childProcess = cross_spawn(
       this.command.command,
       this.command.args,

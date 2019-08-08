@@ -4,12 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Observable } from '@salesforce/salesforcedx-utils-vscode/node_modules/rxjs/Observable';
-import {
-  CliCommandExecution,
-  CliCommandExecutor,
-  CommandOutput
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';

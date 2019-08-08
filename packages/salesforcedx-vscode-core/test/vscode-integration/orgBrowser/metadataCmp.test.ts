@@ -163,7 +163,7 @@ describe('load metadata component data', () => {
   let getUsernameStub: SinonStub;
   let fileExistsStub: SinonStub;
   let buildComponentsStub: SinonStub;
-  let cliCommandStub: SinonStub;
+  let execStub: SinonStub;
   let cmdOutputStub: SinonStub;
   let writeFileStub: SinonStub;
   let getComponentsPathStub: SinonStub;
@@ -176,7 +176,7 @@ describe('load metadata component data', () => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
     fileExistsStub = stub(fs, 'existsSync');
     buildComponentsStub = stub(ComponentUtils.prototype, 'buildComponentsList');
-    cliCommandStub = stub(ForceListMetadataExecutor.prototype, 'execute');
+    execStub = stub(ForceListMetadataExecutor.prototype, 'execute');
     cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
     writeFileStub = stub(fs, 'writeFileSync');
     getComponentsPathStub = stub(
@@ -189,7 +189,7 @@ describe('load metadata component data', () => {
     getUsernameStub.restore();
     fileExistsStub.restore();
     buildComponentsStub.restore();
-    cliCommandStub.restore();
+    execStub.restore();
     cmdOutputStub.restore();
     writeFileStub.restore();
     getComponentsPathStub.restore();
