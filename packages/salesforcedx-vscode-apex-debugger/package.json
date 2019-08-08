@@ -181,7 +181,8 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.debug.exception.breakpoint"
+          "command": "sfdx.debug.exception.breakpoint",
+          "when": "sfdx:project_opened"
         }
       ]
     },
