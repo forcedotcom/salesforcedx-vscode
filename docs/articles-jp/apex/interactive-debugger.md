@@ -69,9 +69,9 @@ VS Code で初めて Apex デバッガを使用するときは、次の設定手
 
 デバッグセッション中に例外が発生した場合に、Apex デバッガの実行を停止するには、例外にブレークポイントを設定します。例外ブレークポイントに達すると、例外の原因となったコード行でデバッガが一時停止します。[Debug \(デバッグ\)] ビューの [Call Stack \(コールスタック\)] パネルに、例外の名前が表示されます。
 
-例外ブレークポイントを設定するには、Ctrl+Shift+P キー \(Windows、Linux\) または Cmd+Shift+P キー \(macOS\) を押してコマンドパレットを開き、**[Apex Debug: Configure Exceptions \(Apex デバッグ: 例外を設定\)]** を選択します。使用可能な例外のリストに、[exceptions in the `System` namespace](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) と、`Exception` を拡張するプロジェクトの Apex クラスが表示されます。リストから例外を選択して、**[Always break \(常に中断\)]** をクリックします。
+例外ブレークポイントを設定するには、Ctrl+Shift+P キー \(Windows、Linux\) または Cmd+Shift+P キー \(macOS\) を押してコマンドパレットを開き、**[SFDX: Configure Apex Debug Exceptions \(Apex デバッグ: 例外を設定\)]** を選択します。使用可能な例外のリストに、[exceptions in the `System` namespace](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) と、`Exception` を拡張するプロジェクトの Apex クラスが表示されます。リストから例外を選択して、**[Always break \(常に中断\)]** をクリックします。
 
-例外ブレークポイントを表示するには、**[Apex Debug: Configure Exceptions \(Apex デバッグ: 例外を設定\)]** を実行します。リストの上部に、有効なブレークポイントのある例外クラスが示され、`Always break` と表示されます。例外ブレークポイントを削除するには、リストから例外を選択して、**[Never break \(中断しない\)]** を選択します。
+例外ブレークポイントを表示するには、**[SFDX: Configure Apex Debug Exceptions \(Apex デバッグ: 例外を設定\)]** を実行します。リストの上部に、有効なブレークポイントのある例外クラスが示され、`Always break` と表示されます。例外ブレークポイントを削除するには、リストから例外を選択して、**[Never break \(中断しない\)]** を選択します。
 
 VS Code を閉じると、すべての例外ブレークポイントが削除されます\(ただし、行ブレークポイントは維持されます\)。
 
