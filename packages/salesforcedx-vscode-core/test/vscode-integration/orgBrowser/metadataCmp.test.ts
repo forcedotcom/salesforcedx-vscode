@@ -4,17 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CliCommandExecutor,
-  CommandOutput
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { fail } from 'assert';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { ComponentUtils, TypeUtils } from '../../../src/orgBrowser';
+import { ForceListMetadataExecutor } from '../../../src/commands';
+import { ComponentUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -179,7 +176,7 @@ describe('load metadata component data', () => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
     fileExistsStub = stub(fs, 'existsSync');
     buildComponentsStub = stub(ComponentUtils.prototype, 'buildComponentsList');
-    cliCommandStub = stub(CliCommandExecutor.prototype, 'execute');
+    cliCommandStub = stub(ForceListMetadataExecutor.prototype, 'execute');
     cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
     writeFileStub = stub(fs, 'writeFileSync');
     getComponentsPathStub = stub(
@@ -197,8 +194,8 @@ describe('load metadata component data', () => {
     writeFileStub.restore();
     getComponentsPathStub.restore();
   });
-  // skipped because of an issue stubbing a property
-  xit('should load metadata components through cli command if file does not exist', async () => {
+
+  it('should load metadata components through cli command if file does not exist', async () => {
     fileExistsStub.returns(false);
     const fileData = JSON.stringify({
       status: 0,
@@ -221,8 +218,8 @@ describe('load metadata component data', () => {
     expect(buildComponentsStub.calledWith(metadataType, undefined, filePath)).to
       .be.true;
   });
-  // skipped because of an issue stubbing a property
-  xit('should load components through cli if file exists and force is set to true', async () => {
+
+  it('should load components through cli if file exists and force is set to true', async () => {
     fileExistsStub.returns(true);
     await cmpUtil.loadComponents(defaultOrg, metadataType, undefined, true);
     expect(cmdOutputStub.calledOnce).to.be.true;

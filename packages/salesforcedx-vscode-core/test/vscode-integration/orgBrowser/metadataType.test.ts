@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CliCommandExecution,
   CliCommandExecutor,
   CommandOutput
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -14,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
+import { ForceDescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
@@ -119,7 +119,7 @@ describe('load metadata types data', () => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
     fileExistsStub = stub(fs, 'existsSync');
     buildTypesStub = stub(TypeUtils.prototype, 'buildTypesList');
-    cliCommandStub = stub(CliCommandExecutor.prototype, 'execute');
+    cliCommandStub = stub(ForceDescribeMetadataExecutor.prototype, 'execute');
     cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
     writeFileStub = stub(fs, 'writeFileSync');
     getTypesFolderStub = stub(TypeUtils.prototype, 'getTypesFolder').returns(
@@ -136,8 +136,8 @@ describe('load metadata types data', () => {
     writeFileStub.restore();
     getTypesFolderStub.restore();
   });
-  // skipped because of an issue stubbing a property
-  xit('should load metadata types through cli command if file does not exist', async () => {
+
+  it('should load metadata types through cli command if file does not exist', async () => {
     fileExistsStub.returns(false);
     const executionStub = stub(
       CliCommandExecutor.prototype.execute().processExitSubject,
@@ -166,8 +166,8 @@ describe('load metadata types data', () => {
     expect(cmdOutputStub.called).to.equal(false);
     expect(buildTypesStub.calledWith(undefined, filePath)).to.be.true;
   });
-  // skipped because of an issue stubbing a property
-  xit('should load metadata types through cli if file exists and force is set to true', async () => {
+
+  it('should load metadata types through cli if file exists and force is set to true', async () => {
     fileExistsStub.returns(true);
     await typeUtil.loadTypes(defaultOrg, true);
     expect(cmdOutputStub.calledOnce).to.be.true;

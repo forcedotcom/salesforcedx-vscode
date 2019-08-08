@@ -44,8 +44,8 @@ describe('Force List Metadata', () => {
       `sfdx force:mdapi:listmetadata -m ${metadataType} -u ${defaultUsername} --json --loglevel fatal --folder ${folder}`
     );
   });
-  // skipped because of an issue stubbing a property
-  xit('Should write a file with metadata list output', async () => {
+
+  it('Should write a file with metadata list output', async () => {
     const outputFolder = '/test/folder/';
     const metadataType = 'ApexClass';
     const defaultUsername = 'test-username1@example.com';
@@ -54,7 +54,7 @@ describe('Force List Metadata', () => {
     const cmdOutputStub = sinon
       .stub(CommandOutput.prototype, 'getCmdResult')
       .returns(resultData);
-    const cliExecStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
+    const execStub = sinon.stub(ForceListMetadataExecutor.prototype, 'execute');
     const result = await forceListMetadata(
       metadataType,
       defaultUsername,
@@ -64,6 +64,6 @@ describe('Force List Metadata', () => {
     expect(result).to.equal(resultData);
     writeFileStub.restore();
     cmdOutputStub.restore();
-    cliExecStub.restore();
+    execStub.restore();
   });
 });

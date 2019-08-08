@@ -29,16 +29,10 @@ describe('Force Describe Metadata', () => {
   });
 
   it('Should write a file with metadata describe output', async () => {
-    /*const loggingStub = sinon.stub(
+    const execStub = sinon.stub(
       ForceDescribeMetadataExecutor.prototype,
-      'attachLogging'
-    );*/
-    const execStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
-    const processStub = sinon.stub(
-      CliCommandExecution.prototype,
-      'processExitSubject'
+      'execute'
     );
-
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
 
     const outputFolder = '/test/folder/';
@@ -53,8 +47,6 @@ describe('Force Describe Metadata', () => {
 
     writeFileStub.restore();
     cmdOutputStub.restore();
-    // loggingStub.restore();
     execStub.restore();
-    processStub.restore();
   });
 });

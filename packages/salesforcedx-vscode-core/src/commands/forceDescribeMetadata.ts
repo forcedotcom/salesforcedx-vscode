@@ -33,35 +33,24 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
       .build();
   }
 
-  public attachLogging(
-    execution: CliCommandExecution,
-    startTime: [number, number]
-  ) {
+  public execute(): CliCommandExecution {
+    const startTime = process.hrtime();
+    const execution = new CliCommandExecutor(this.build({}), {
+      cwd: getRootWorkspacePath()
+    }).execute();
+
     execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
     });
+    return execution;
   }
 }
 
 export async function forceDescribeMetadata(
   outputFolder: string
 ): Promise<string> {
-  const startTime = process.hrtime();
   const forceDescribeMetadataExecutor = new ForceDescribeMetadataExecutor();
-  const execution = new CliCommandExecutor(
-    forceDescribeMetadataExecutor.build({}),
-    { cwd: getRootWorkspacePath() }
-  ).execute();
-
-  execution.processExitSubject.subscribe(() => {
-    forceDescribeMetadataExecutor.logMetric(
-      execution.command.logName,
-      startTime
-    );
-  });
-
-  // forceDescribeMetadataExecutor.attachLogging(execution, startTime);
-
+  const execution = forceDescribeMetadataExecutor.execute();
   if (!fs.existsSync(outputFolder)) {
     mkdir('-p', outputFolder);
   }
