@@ -58,6 +58,14 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css"
     />
+    {% assign folder = page.dir | slice: 0,10 %} {% if folder == '/articles/' %}
+    {% assign jpUrl = page.url | replace_first: '/articles/', '/articles-jp/' %}
+    <link
+      rel="alternate"
+      hreflang="jp"
+      href="{{ jpUrl | prepend: site.baseurl | prepend: site.url }}"
+    />
+    {%endif %}
   </head>
 
   <body>
