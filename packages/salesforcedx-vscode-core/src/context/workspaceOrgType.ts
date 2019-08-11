@@ -26,13 +26,14 @@ export async function getWorkspaceOrgType(
   const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
 
   if (isNullOrUndefined(username)) {
-    telemetryService.sendError(
+    telemetryService.sendException(
+      'get_workspace_org_type',
       'workspaceOrgType.getWorkspaceOrgType ran into an undefined username.'
     );
   }
 
   const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username!).catch(err =>
-    telemetryService.sendError(err)
+    telemetryService.sendException('get_workspace_org_type_scratch_org', err)
   );
   return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
@@ -47,7 +48,7 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
     const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
     setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
-    telemetryService.sendErrorEvent(e.message, e.stack);
+    telemetryService.sendException('send_workspace_org_type', e.message);
     switch (e.name) {
       case 'NamedOrgNotFound':
         // If the info for a default username cannot be found,

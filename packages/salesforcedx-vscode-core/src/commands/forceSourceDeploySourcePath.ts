@@ -65,7 +65,10 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
       const errorMessage = nls.localize(
         'force_source_deploy_select_file_or_directory'
       );
-      telemetryService.sendError(errorMessage);
+      telemetryService.sendException(
+        'force_source_deploy_with_sourcepath',
+        errorMessage
+      );
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
