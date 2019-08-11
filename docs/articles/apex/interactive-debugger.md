@@ -69,9 +69,9 @@ While a debugging session is in progress, any synchronous activity that runs a l
 
 To make Apex Debugger halt execution when an exception is thrown during a debugging session, set breakpoints on exceptions. When an exception breakpoint is hit, the debugger pauses on the line of code that caused the exception. The Call Stack panel in the Debug view shows the name of the exception.
 
-To set an exception breakpoint, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the command palette, then select **SFDX: Configure Apex Debug Exceptions**. The list of available exceptions includes the [exceptions in the `System` namespace](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) and the Apex classes in your project that extend `Exception`. Select an exception from the list, and then select **Always break**.
+To set an exception breakpoint, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the command palette, then select **Apex Debug: Configure Exceptions**. The list of available exceptions includes the [exceptions in the `System` namespace](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm) and the Apex classes in your project that extend `Exception`. Select an exception from the list, and then select **Always break**.
 
-To see your exception breakpoints, run **SFDX: Configure Apex Debug Exceptions**. The top of the list shows the exception classes that have active breakpoints, labeled `Always break`. To remove an exception breakpoint, select an exception from the list and then select **Never break**.
+To see your exception breakpoints, run **Apex Debug: Configure Exceptions**. The top of the list shows the exception classes that have active breakpoints, labeled `Always break`. To remove an exception breakpoint, select an exception from the list and then select **Never break**.
 
 When you close VS Code, all your exception breakpoints are removed. (Your line breakpoints, however, remain.)
 
