@@ -57,7 +57,7 @@ export class SourcePathChecker implements PostconditionChecker<string> {
       } catch (error) {
         telemetryService.sendException(
           'force_source_retrieve_with_sourcepath',
-          `Error while parsing oackage directories. ${error.message}`
+          `Error while parsing package directories. ${error.message}`
         );
       }
 

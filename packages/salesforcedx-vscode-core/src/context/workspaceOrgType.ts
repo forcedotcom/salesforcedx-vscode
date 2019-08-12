@@ -33,7 +33,10 @@ export async function getWorkspaceOrgType(
   }
 
   const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username!).catch(err =>
-    telemetryService.sendException('get_workspace_org_type_scratch_org', err)
+    telemetryService.sendException(
+      'get_workspace_org_type_scratch_org',
+      err.message
+    )
   );
   return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
 }
