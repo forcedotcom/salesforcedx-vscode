@@ -152,21 +152,31 @@ function startLWCLanguageServer(context: ExtensionContext) {
   context.subscriptions.push(client);
 }
 
+
+// User has not set one, use the eslint bundled with our extension
+// or if it is from salesforcedx-vscode-lwc, update since the path looks like
+// "eslint.nodePath": ".../.vscode/extensions/salesforce.salesforcedx-vscode-lwc-41.17.0/node_modules",
+// which contains the version number and needs to be updated on each extension
 export async function populateEslintSettingIfNecessary(
   context: ExtensionContext,
   config: WorkspaceConfiguration
 ) {
-  const nodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
+  const originalNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
+  let nodePath = config.get<string>(ESLINT_NODEPATH_CONFIG) || '';
+  const pathConfigs = nodePath.split(';');
 
-  // User has not set one, use the eslint bundled with our extension
-  // or if it is from salesforcedx-vscode-lwc, update since the path looks like
-  // "eslint.nodePath": ".../.vscode/extensions/salesforce.salesforcedx-vscode-lwc-41.17.0/node_modules",
-  // which contains the version number and needs to be updated on each extension
-  if (!nodePath || nodePath.includes(LWC_EXTENSION_NAME)) {
-    const eslintModule = context.asAbsolutePath(path.join('node_modules'));
+  // Remove existing LWC_EXTENSION_NAME because path contains version
+  const paths = pathConfigs.filter(p => !p.includes(LWC_EXTENSION_NAME))
+
+  // Put back current LWC extension path
+  paths.push(context.asAbsolutePath(path.join('node_modules')));
+
+  nodePath = paths.join(';');
+
+  if (nodePath !== originalNodePath) {
     await config.update(
       ESLINT_NODEPATH_CONFIG,
-      eslintModule,
+      nodePath,
       ConfigurationTarget.Workspace
     );
   }
