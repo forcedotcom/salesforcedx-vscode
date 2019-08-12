@@ -140,7 +140,8 @@ function displayError(message: string) {
   notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
-  telemetryService.sendError(
+  telemetryService.sendException(
+    'push_deploy_on_save_queue',
     `DeployOnSaveError: Documents were queued but a deployment was not triggered`
   );
 }

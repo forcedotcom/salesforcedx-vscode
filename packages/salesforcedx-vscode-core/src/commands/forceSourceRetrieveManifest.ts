@@ -43,7 +43,10 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
       const errorMessage = nls.localize(
         'force_source_retrieve_select_manifest'
       );
-      telemetryService.sendError(errorMessage);
+      telemetryService.sendException(
+        'force_source_retrieve_with_manifest',
+        errorMessage
+      );
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();

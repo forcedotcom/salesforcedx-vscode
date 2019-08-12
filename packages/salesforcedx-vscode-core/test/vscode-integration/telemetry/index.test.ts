@@ -18,6 +18,7 @@ describe('Telemetry', () => {
   let settings: SinonStub;
   let mockContext: MockContext;
   let reporter: SinonStub;
+  let exceptionEvent: SinonStub;
 
   describe('in dev mode', () => {
     beforeEach(() => {
@@ -85,12 +86,14 @@ describe('Telemetry', () => {
         'getTelemetryEnabled'
       ).returns(true);
       reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
+      exceptionEvent = stub(TelemetryReporter.prototype, 'sendExceptionEvent');
     });
 
     afterEach(() => {
       mShowInformation.restore();
       settings.restore();
       reporter.restore();
+      exceptionEvent.restore();
     });
 
     it('Should show telemetry info message', async () => {
@@ -243,6 +246,26 @@ describe('Telemetry', () => {
       telemetryService.sendEventData(eventName, property, measure);
 
       assert.calledWith(reporter, eventName, property, measure);
+    });
+
+    it('Should send data sendExceptionEvent', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
+
+      const telemetryService = TelemetryService.getInstance();
+      telemetryService.initializeService(mockContext, machineId);
+
+      telemetryService.sendException(
+        'error_name',
+        'this is a test error message'
+      );
+      assert.calledOnce(exceptionEvent);
+
+      assert.calledWith(
+        exceptionEvent,
+        'error_name',
+        'this is a test error message'
+      );
     });
   });
 });

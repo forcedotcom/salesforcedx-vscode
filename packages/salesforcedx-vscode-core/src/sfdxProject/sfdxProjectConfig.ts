@@ -65,7 +65,7 @@ export default class SfdxProjectConfig {
       );
     }
     notificationService.showErrorMessage(errorMessage);
-    telemetryService.sendError(errorMessage);
+    telemetryService.sendException('project_config', errorMessage);
   }
 
   public static async getInstance(): Promise<SfdxProjectJson> {

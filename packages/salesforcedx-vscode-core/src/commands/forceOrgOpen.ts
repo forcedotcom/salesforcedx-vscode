@@ -84,8 +84,9 @@ export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
         channelService.appendLine(
           nls.localize('force_org_open_default_scratch_org_container_error')
         );
-        telemetryService.sendError(
-          `forceOrgOpenContainer: There was an error when parsing the org open response ${error}`
+        telemetryService.sendException(
+          'force_org_open_container',
+          `There was an error when parsing the org open response ${error}`
         );
       }
     });

@@ -118,20 +118,14 @@ export async function getUserId(projectPath: string): Promise<string> {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
   if (isNullOrUndefined(defaultUsernameOrAlias)) {
     const err = nls.localize('error_no_default_username');
-    telemetryService.sendErrorEvent(
-      'Undefined username or alias when starting Apex Replay Debugger',
-      err
-    );
+    telemetryService.sendException('replay_debugger_undefined_username', err);
     throw new Error(err);
   }
 
   const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
   if (isNullOrUndefined(username)) {
     const err = nls.localize('error_no_default_username');
-    telemetryService.sendErrorEvent(
-      'Undefined username when starting Apex Replay Debugger',
-      err
-    );
+    telemetryService.sendException('replay_debugger_undefined_username', err);
     throw new Error(err);
   }
 

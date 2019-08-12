@@ -45,10 +45,7 @@ export class OrgAuthInfo {
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendErrorEvent(
-        'Unexpected error in OrgAuthInfo.getDefaultUsernameOrAlias',
-        err
-      );
+      telemetryService.sendException('get_default_username_alias', err.message);
       return undefined;
     }
   }
@@ -76,9 +73,9 @@ export class OrgAuthInfo {
       return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendErrorEvent(
-        'Unexpected error in OrgAuthInfo.getDefaultDevHubUsernameOrAlias',
-        err
+      telemetryService.sendException(
+        'get_default_devhub_username_alias',
+        err.message
       );
       return undefined;
     }

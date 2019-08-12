@@ -41,7 +41,7 @@ export class TypeUtils {
   public async getTypesFolder(usernameOrAlias: string): Promise<string> {
     if (!hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
-      telemetryService.sendError(err);
+      telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
     const workspaceRootPath = getRootWorkspacePath();
@@ -88,7 +88,10 @@ export class TypeUtils {
 
       return metadataTypeObjects.sort((a, b) => (a.label > b.label ? 1 : -1));
     } catch (e) {
-      telemetryService.sendError(e);
+      telemetryService.sendException(
+        'metadata_type_build_types_list',
+        e.message
+      );
       throw new Error(e);
     }
   }
