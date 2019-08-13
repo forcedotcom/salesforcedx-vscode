@@ -1,0 +1,9 @@
+{
+  "productTagLabels": {
+    "gus:vscode": "a1aB0000000BPyKIAW",
+    "gus:lwc": "a1aB0000000Bn8tIAC",
+    "gus:aura": "a1aB0000000MRAzIAO"
+  },
+  "defaultBuild": "sfdx.cli.46.x",
+  "statusWhenClosed": "CLOSED"
+}
