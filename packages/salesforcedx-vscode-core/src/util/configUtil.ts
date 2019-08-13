@@ -51,10 +51,7 @@ export class ConfigUtil {
           return localValue;
         }
       } catch (err) {
-        telemetryService.sendErrorEvent(
-          'Unexpected error in ConfigUtil.getConfigValue local',
-          err
-        );
+        telemetryService.sendException('get_config_value_local', err.message);
         return undefined;
       }
     }
@@ -66,10 +63,7 @@ export class ConfigUtil {
           return globalValue;
         }
       } catch (err) {
-        telemetryService.sendErrorEvent(
-          'Unexpected error in ConfigUtil.getConfigValue global',
-          err
-        );
+        telemetryService.sendException('get_config_value_global', err.message);
         return undefined;
       }
     }

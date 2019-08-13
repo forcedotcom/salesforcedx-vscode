@@ -94,8 +94,9 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
         } else {
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
           channelService.appendLine(errorResponse.message);
-          telemetryService.sendError(
-            `forceOrgCreate: Error ${errorResponse.message}`
+          telemetryService.sendException(
+            'force_org_create',
+            errorResponse.message
           );
         }
       } catch (err) {
@@ -103,8 +104,9 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
           nls.localize('force_org_create_result_parsing_error')
         );
         channelService.appendLine(err);
-        telemetryService.sendError(
-          `forceOrgCreate: Error while parsing org create response ${err}`
+        telemetryService.sendException(
+          'force_org_create',
+          `Error while parsing org create response ${err}`
         );
       }
     });

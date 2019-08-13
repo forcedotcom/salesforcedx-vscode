@@ -78,7 +78,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
           e.message =
             'Error while creating diagnostics for vscode problem view.';
         }
-        telemetryService.sendError(e.message);
+        telemetryService.sendException(e.name, e.message);
         console.error(e.message);
       }
       await DeployQueue.get().unlock();
