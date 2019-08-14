@@ -27,7 +27,7 @@ import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
-import { telemetryService } from '../telemetry';
+import { TelemetryData, telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export class CompositePreconditionChecker implements PreconditionChecker {
@@ -331,10 +331,27 @@ export abstract class SfdxCommandletExecutor<T>
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(() => {
-      this.logMetric(execution.command.logName, startTime);
+    let output = '';
+    execution.stdoutSubject.subscribe(realData => {
+      output += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(
+        execution.command.logName,
+        startTime,
+        await this.getTelemetryData(exitCode === 0, response, output)
+      );
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
+
+  protected getTelemetryData(
+    success: boolean,
+    response: ContinueResponse<T>,
+    output: string
+  ): TelemetryData | undefined {
+    return;
   }
 
   public abstract build(data: T): Command;

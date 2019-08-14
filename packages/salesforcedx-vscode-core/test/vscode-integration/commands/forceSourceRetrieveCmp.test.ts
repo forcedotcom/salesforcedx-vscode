@@ -25,13 +25,13 @@ import { BrowserNode, NodeType } from '../../../src/orgBrowser';
 
 describe('Force Source Retrieve', () => {
   it('should build source retrieve command', async () => {
-    const metadataArg = 'ApexClass:testComponent';
     const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
-      metadataArg
+      'ApexClass',
+      'testComponent'
     );
     const forceSourceRetrieveCmd = forceSourceRetrieveExec.build();
     expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-      `sfdx force:source:retrieve -m ${metadataArg}`
+      `sfdx force:source:retrieve -m ApexClass:testComponent`
     );
   });
 });
