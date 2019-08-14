@@ -328,7 +328,8 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     let output = '';
