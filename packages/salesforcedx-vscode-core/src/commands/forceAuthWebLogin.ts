@@ -29,7 +29,7 @@ import {
 } from '../notifications/index';
 import { SfdxProjectConfig } from '../sfdxProject';
 import { taskViewService } from '../statuses/index';
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, isSFDXContainerMode } from '../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -46,17 +46,25 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
   public build(data: AuthParams): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
-      .withArg('force:auth:web:login')
+    const command = new SfdxCommandBuilder().withDescription(
+      nls.localize('force_auth_web_login_authorize_org_text')
+    );
+    if (isSFDXContainerMode()) {
+      command
+        .withArg('force:auth:device:login')
+        .withLogName('force_auth_device_login');
+    } else {
+      command
+        .withArg('force:auth:web:login')
+        .withLogName('force_auth_web_login');
+    }
+    command
       .withFlag('--setalias', data.alias)
       .withFlag('--instanceurl', data.loginUrl)
-      .withArg('--setdefaultusername')
-      .withLogName('force_auth_web_login')
-      .build();
+      .withArg('--setdefaultusername');
+    return command.build();
   }
 }
-
 export abstract class ForceAuthDemoModeExecutor<
   T
 > extends SfdxCommandletExecutor<T> {
