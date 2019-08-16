@@ -1,3 +1,11 @@
+## 46.10.0 - August 15, 2019
+
+## Fixed
+
+#### salesforcedx-core
+
+- Rename `Apex Debug: Configure Exceptions` command to `SFDX: Configure Apex Debug Exceptions` and only enable it when working with a SFDX project ([PR #1533](https://github.com/forcedotcom/salesforcedx-vscode/pull/1533))
+
 ## 46.9.0 - August 8, 2019
 
 ## Added
