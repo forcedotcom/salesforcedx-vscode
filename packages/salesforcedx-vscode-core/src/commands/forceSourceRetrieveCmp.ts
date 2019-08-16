@@ -62,7 +62,8 @@ const BUNDLE_TYPES = new Set([
   'AuraDefinitionBundle',
   'LightningComponentBundle',
   'WaveTemplateBundle',
-  'ExperienceBundle'
+  'ExperienceBundle',
+  'CustomObject'
 ]);
 
 export function generateSuffix(
