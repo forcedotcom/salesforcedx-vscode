@@ -8,7 +8,7 @@
 import {
   CliCommandExecutor,
   Command,
-  CommandOutput,
+  DiffResultParser,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
@@ -64,30 +64,40 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
 
     execution.processExitSubject.subscribe(async () => {
       this.logMetric(execution.command.logName, startTime);
+
       try {
-        const sanitized = stdOut.substring(
-          stdOut.indexOf('{'),
-          stdOut.lastIndexOf('}') + 1
-        );
-        // TODO: add a custom type here.
-        // tslint:disable-next-line:no-shadowed-variable
-        const response = JSON.parse(sanitized);
-        const remote = vscode.Uri.parse(response.result.remote);
-        const local = vscode.Uri.parse(response.result.local);
-        const filename = response.result.fileName;
-        let defaultUsernameorAlias: string | undefined;
-        if (hasRootWorkspace()) {
-          defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-            false
+        const diffParser = new DiffResultParser(stdOut);
+        const diffParserSuccess = diffParser.getSuccessResponse();
+        const diffParserError = diffParser.getErrorResponse();
+
+        if (diffParser.isSuccessful() && diffParserSuccess) {
+          const diffResult = diffParserSuccess.result;
+          const remote = vscode.Uri.parse(diffResult.remote);
+          const local = vscode.Uri.parse(diffResult.local);
+          const filename = diffResult.fileName;
+
+          let defaultUsernameorAlias: string | undefined;
+          if (hasRootWorkspace()) {
+            defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+              false
+            );
+          }
+          vscode.commands.executeCommand(
+            'vscode.diff',
+            remote,
+            local,
+            nls.localize(
+              'force_source_diff_title',
+              defaultUsernameorAlias,
+              filename,
+              filename
+            )
           );
+        } else if (diffParserError) {
+          channelService.appendLine(diffParserError.message);
         }
-        vscode.commands.executeCommand(
-          'vscode.diff',
-          remote,
-          local,
-          `${defaultUsernameorAlias}//${filename} ↔ local//${filename}`
-        );
       } catch (e) {
+        telemetryService.sendException(e.name, e.message);
         const err = new Error('Error parsing diff result');
         err.name = 'DiffParserFail';
         throw err;
@@ -121,12 +131,17 @@ export class SourcePathGatherer
 }
 
 export async function forceSourceDiff(sourceUri: vscode.Uri) {
-  if (!sourceUri) {
+  if (sourceUri) {
     const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId !== 'apex') {
+    if (
+      editor &&
+      (editor.document.languageId === 'apex' ||
+        editor.document.languageId === 'visualforce' ||
+        editor.document.fileName.includes('aura'))
+    ) {
       sourceUri = editor.document.uri;
     } else {
-      const errorMessage = 'File is not apex';
+      const errorMessage = nls.localize('force_source_diff_unsupported_type');
       telemetryService.sendException('unsupported_type_on_diff', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
