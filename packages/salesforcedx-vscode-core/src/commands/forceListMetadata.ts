@@ -6,6 +6,7 @@
  */
 
 import {
+  CliCommandExecution,
   CliCommandExecutor,
   Command,
   CommandOutput,
@@ -45,6 +46,18 @@ export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {
 
     return builder.build();
   }
+
+  public execute(): CliCommandExecution {
+    const startTime = process.hrtime();
+    const execution = new CliCommandExecutor(this.build({}), {
+      cwd: getRootWorkspacePath()
+    }).execute();
+
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+    return execution;
+  }
 }
 
 export async function forceListMetadata(
@@ -53,21 +66,12 @@ export async function forceListMetadata(
   outputPath: string,
   folder?: string
 ): Promise<string> {
-  const startTime = process.hrtime();
   const forceListMetadataExecutor = new ForceListMetadataExecutor(
     metadataType,
     defaultUsernameOrAlias,
     folder
   );
-  const execution = new CliCommandExecutor(
-    forceListMetadataExecutor.build({}),
-    { cwd: getRootWorkspacePath() }
-  ).execute();
-
-  execution.processExitSubject.subscribe(() => {
-    forceListMetadataExecutor.logMetric(execution.command.logName, startTime);
-  });
-
+  const execution = forceListMetadataExecutor.execute();
   const cmdOutput = new CommandOutput();
   const result = await cmdOutput.getCmdResult(execution);
   fs.writeFileSync(outputPath, result);

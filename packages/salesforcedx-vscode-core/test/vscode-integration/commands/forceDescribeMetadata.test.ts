@@ -4,11 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CliCommandExecution,
-  CliCommandExecutor,
-  CommandOutput
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
@@ -26,20 +22,12 @@ describe('Force Describe Metadata', () => {
       `sfdx force:mdapi:describemetadata --json --loglevel fatal`
     );
   });
-  // skipped because of an issue stubbing a property
-  xit('Should write a file with metadata describe output', async () => {
-    const subscribeStub = sinon
-      .stub(
-        CliCommandExecutor.prototype.execute().processExitSubject,
-        'subscribe'
-      )
-      .callsFake(() => {});
 
-    const commandStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
-    const testStub = sinon
-      .stub(CliCommandExecution.prototype, 'command')
-      .returns({ logName: 'log' });
-
+  it('Should write a file with metadata describe output', async () => {
+    const execStub = sinon.stub(
+      ForceDescribeMetadataExecutor.prototype,
+      'execute'
+    );
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
 
     const outputFolder = '/test/folder/';
@@ -54,8 +42,6 @@ describe('Force Describe Metadata', () => {
 
     writeFileStub.restore();
     cmdOutputStub.restore();
-    subscribeStub.restore();
-    commandStub.restore();
-    testStub.restore();
+    execStub.restore();
   });
 });
