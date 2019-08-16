@@ -341,7 +341,7 @@ export abstract class SfdxCommandletExecutor<T>
       this.logMetric(
         execution.command.logName,
         startTime,
-        await this.getTelemetryData(exitCode === 0, response, output)
+       this.getTelemetryData(exitCode === 0, response, output)
       );
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
