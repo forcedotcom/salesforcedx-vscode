@@ -129,7 +129,7 @@ describe('build metadata components list', () => {
     }
   });
 
-  it('should return components only with "unmanaged" manageableState', async () => {
+  it('should only return "unmanaged" components if they have a manageableState', async () => {
     const type = 'ApexClass';
     const states = [
       'unmanaged',
