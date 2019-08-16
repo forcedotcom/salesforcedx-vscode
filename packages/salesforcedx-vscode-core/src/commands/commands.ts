@@ -337,7 +337,7 @@ export abstract class SfdxCommandletExecutor<T>
       output += realData.toString();
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(exitCode => {
       this.logMetric(
         execution.command.logName,
         startTime,
