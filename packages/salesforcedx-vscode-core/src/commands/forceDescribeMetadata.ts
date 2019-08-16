@@ -6,6 +6,7 @@
  */
 
 import {
+  CliCommandExecution,
   CliCommandExecutor,
   Command,
   CommandOutput,
@@ -31,25 +32,25 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
       .withLogName('force_mdapi_describemetadata')
       .build();
   }
+
+  public execute(): CliCommandExecution {
+    const startTime = process.hrtime();
+    const execution = new CliCommandExecutor(this.build({}), {
+      cwd: getRootWorkspacePath()
+    }).execute();
+
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+    return execution;
+  }
 }
 
 export async function forceDescribeMetadata(
   outputFolder: string
 ): Promise<string> {
-  const startTime = process.hrtime();
   const forceDescribeMetadataExecutor = new ForceDescribeMetadataExecutor();
-  const execution = new CliCommandExecutor(
-    forceDescribeMetadataExecutor.build({}),
-    { cwd: getRootWorkspacePath() }
-  ).execute();
-
-  execution.processExitSubject.subscribe(() => {
-    forceDescribeMetadataExecutor.logMetric(
-      execution.command.logName,
-      startTime
-    );
-  });
-
+  const execution = forceDescribeMetadataExecutor.execute();
   if (!fs.existsSync(outputFolder)) {
     mkdir('-p', outputFolder);
   }
