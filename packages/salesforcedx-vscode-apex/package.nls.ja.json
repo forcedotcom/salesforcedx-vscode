@@ -13,6 +13,6 @@
   "force_apex_test_last_method_run_text": "SFDX: 最後に呼び出されたテストメソッドを再実行",
   "force_apex_test_class_run_text": "SFDX: テストクラスを呼び出す",
   "force_apex_test_method_run_text": "SFDX: テストメソッドを呼び出す",
-  "force_sobjects_refresh": "SFDX: sObject 定義を更新",
-  "enable_sobject_refresh_on_startup_description": "プロジェクトにsObject 定義がない場合、拡張機能の有効化時にsObject 定義を自動的に更新する(true)か、しない(false)かを指定します。"
+  "force_sobjects_refresh": "SFDX: SObject の定義を更新",
+  "enable_sobject_refresh_on_startup_description": "プロジェクトにsObject の定義がない場合、拡張機能の有効化時にsObject の定義を自動的に更新する(true)か、しない(false)かを指定します。"
 }

@@ -9,5 +9,5 @@
   "stop_on_entry_text": "起動後にデバッガを停止する。もしfalseに設定した場合、デバッガはブレークポイントにヒットするまで実行されます。",
   "trace_text": "診断出力を生成します。これをtrue、false、またはカンマで区切った1つ以上のセレクタに設定できます。セレクタには、'all' (非常に詳細な出力。trueと同等)、'protocol'、'logfile'、'launch'、'breakpoints' があります。",
   "sfdx_update_checkpoints_in_org": "SFDX: 組織のチェックポイントをアップデート",
-  "sfdx_toggle_checkpoint": "SFDX: チェックポイントを切替"
+  "sfdx_toggle_checkpoint": "SFDX: チェックポイントを切り替え"
 }
