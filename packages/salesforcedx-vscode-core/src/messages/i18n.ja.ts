@@ -26,12 +26,12 @@ export const messages = {
 
   progress_notification_text: '%s を実行しています。',
 
-  notification_successful_execution_text: '%s が正常に実行されました。',
+  notification_successful_execution_text: '%s が正常に終了しました。',
   notification_canceled_execution_text: '%s がキャンセルされました。',
   notification_unsuccessful_execution_text: '%s が失敗しました。',
   notification_show_button_text: '表示',
   notification_show_in_status_bar_button_text: 'ステータスバーだけに表示',
-  notification_make_default_dev: 'Dev Hub 組織を認証',
+  notification_make_default_dev: 'DevHub 組織を認証',
 
   predicates_no_folder_opened_text:
     'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
@@ -43,7 +43,7 @@ export const messages = {
   status_bar_text: `$(x) %s`,
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
-  force_auth_web_login_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
+  force_auth_web_login_authorize_dev_hub_text: 'SFDX: DevHub 組織を認証',
   force_auth_web_login_authorize_org_text: 'SFDX: 組織を認証',
 
   parameter_directory_strict_not_available:
@@ -51,20 +51,19 @@ export const messages = {
 
   parameter_gatherer_enter_file_name: 'ファイル名を入力',
   parameter_gatherer_enter_dir_name:
-    'フォルダを入力 (Enter で確認または Esc でキャンセル)',
-  parameter_gatherer_enter_username_name: '対象ユーザ名を入力',
+    'フォルダを入力 (Enter で確認またはEsc でキャンセル)',
+  parameter_gatherer_enter_username_name: 'ユーザ名を入力',
   parameter_gatherer_enter_alias_name:
     '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
   parameter_gatherer_enter_custom_url:
-    'カスタムのログイン URL を入力またはデフォルトの URL を使用',
+    'カスタムのログイン URL を入力するかデフォルトの URL を使用',
   parameter_gatherer_enter_scratch_org_expiration_days:
-    'スクラッチ組織の有効日数を入力 (1 から 30 まで) またはデフォルト値 (7) を使用',
-  parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
-  parameter_gatherer_paste_forceide_url:
-    '設定から forceide:// の URL をペースト',
+    'スクラッチ組織の有効日数を入力(1から30まで) またはデフォルト値(7) を使用',
+  parameter_gatherer_enter_project_name: 'プロジェクトの名前を入力',
+  parameter_gatherer_paste_forceide_url: '設定から forceide:// のURLをペースト',
   parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',
   parameter_gatherer_invalid_forceide_url:
-    'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
+    "forceide:// 形式のURLが無効です。設定のApex デバッガのページに表示される forceide:// 形式のURLをコピー・ペーストしてください。From your subscriber's org, ",
 
   force_org_create_default_scratch_org_text:
     'SFDX: デフォルトのスクラッチ組織を作成...',
@@ -111,7 +110,7 @@ export const messages = {
   force_source_status_text:
     'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
-  force_apex_test_run_text: 'SFDX: Apex テストを呼び出す',
+  force_apex_test_run_text: 'SFDX: Apex テストを呼び出す...',
   force_apex_test_run_all_test_label: 'すべてのテスト',
   force_apex_test_run_all_tests_description_text:
     '現在のプロジェクトのすべてのテストを実行',
@@ -131,20 +130,14 @@ export const messages = {
   force_source_status_remote_text:
     'SFDX: デフォルトのスクラッチ組織の変更を参照',
   warning_prompt_file_overwrite:
-    '指定されたパスを使用した 1 つ以上の %s ファイルがワークスペース上に既に存在します。上書きしてもよろしいですか？',
+    '指定されたパスを使用した１つ以上の %s ファイルがワークスペース上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_dir_overwrite:
     '指定されたプロジェクト名は選択されたディレクトリ上に既に存在します。上書きしてもよろしいですか？',
+  warning_prompt_cmp_file_overwrite:
+    '同じ名前のファイル %s がワークスペース上に既に存在します。コンポーネントを取得するとファイルが上書きされる可能性があります。よろしいですか？',
   warning_prompt_continue_confirm: '続ける',
+  warning_prompt_overwrite_confirm: '上書き',
   warning_prompt_overwrite_cancel: 'キャンセル',
-  warning_prompt_overwrite_message:
-    '上書きしてもよろしいですか？ %s:%s?\n\n%s\n\n%s',
-  warning_prompt_overwrite: '上書き',
-  warning_prompt_overwrite_all: 'すべて上書き',
-  warning_prompt_skip: 'スキップ',
-  warning_prompt_skip_all: 'すべてスキップ',
-  warning_prompt_other_existing: '%s つの既存コンポーネント',
-  warning_prompt_other_not_shown:
-    '...表示されていない残り %s つのコンポーネント\n',
   force_config_list_text: 'SFDX: すべての設定変数を一覧表示',
   force_alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   force_org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
@@ -155,55 +148,47 @@ export const messages = {
     'Apex デバッガセッションが見つかりませんでした。',
   force_data_soql_query_input_text: 'SFDX: SOQL クエリを実行...',
   force_data_soql_query_selection_text:
-    'SFDX: 現在選択されているテキストで SOQL クエリを実行',
+    'SFDX: 現在選択されているテキストでSOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
   force_apex_execute_document_text:
-    'SFDX: エディタの内容で匿名 Apex コードを実行',
+    'SFDX: エディタの内容で匿名Apex コードを実行',
   force_apex_execute_selection_text:
-    'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
+    'SFDX: 現在選択されているテキストで匿名Apex コードを実行',
   force_project_create_text: 'SFDX: プロジェクトを作成',
   force_project_create_open_dialog_create_label: 'プロジェクトを作成',
-  force_project_create_standard_template:
-    '標準のプロジェクトテンプレート (デフォルト)',
-  force_project_create_standard_template_display_text: '標準',
-  force_project_create_empty_template_display_text: '空',
-  force_project_create_analytics_template_display_text: 'Analytics',
-  force_project_create_empty_template: '空のプロジェクトテンプレート',
-  force_project_create_analytics_template:
-    'Analytics のプロジェクトテンプレート',
   force_apex_trigger_create_text: 'SFDX: Apex トリガを作成',
   force_start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
   force_apex_debug_log_status_bar_text:
     '$(file-text) 詳細なログを記録しています。%s まで。',
   force_apex_debug_log_status_bar_hover_text:
-    'Apex および Visualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
+    'Apex およびVisualforce のデバッグログをログレベル %s で書き込んでいます。%s, %s まで。',
   force_stop_apex_debug_logging:
-    'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
+    'SFDX: Replay Debugger 用のApex デバッグログを無効化',
   isv_debug_bootstrap_step1_create_project:
-    'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
+    'SFDX: ISV デバッガ 設定 ステップ 1 / 7: プロジェクトを作成しています',
   isv_debug_bootstrap_step2_configure_project:
-    'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています',
+    'SFDX: ISV デバッガ 設定 ステップ 2 / 7: プロジェクトを設定しています',
   isv_debug_bootstrap_step2_configure_project_retrieve_namespace:
-    'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています: 名前空間を取得しています',
+    'SFDX: ISV デバッガ 設定 ステップ 2 / 7: プロジェクトを設定しています: 名前空間を取得しています',
   isv_debug_bootstrap_step3_retrieve_org_source:
-    'SFDX: ISV デバッガ 設定 ステップ 3/7: パッケージ化されていない Apex コードを取得しています',
+    'SFDX: ISV デバッガ 設定 ステップ 3 / 7: パッケージ化されていないApex コードを取得しています',
   isv_debug_bootstrap_step4_convert_org_source:
-    'SFDX: ISV デバッガ 設定 ステップ 4/7: パッケージ化されていない Apex コードを変換しています',
+    'SFDX: ISV デバッガ 設定 ステップ 4 / 7: パッケージ化されていないApex コードを変換しています',
   isv_debug_bootstrap_step5_list_installed_packages:
-    'SFDX: ISV デバッガ 設定 ステップ 5/7: インストール済みパッケージをクエリしています',
+    'SFDX: ISV デバッガ 設定 ステップ 5 / 7: インストール済みパッケージをクエリしています',
   isv_debug_bootstrap_step6_retrieve_packages_source:
-    'SFDX: ISV デバッガ 設定 ステップ 6/7: パッケージを取得しています',
+    'SFDX: ISV デバッガ 設定 ステップ 6 / 7: パッケージを取得しています',
   isv_debug_bootstrap_step7_convert_package_source:
-    'SFDX: ISV デバッガ 設定 ステップ 7/7: パッケージを変換しています: %s',
+    'SFDX: ISV デバッガ 設定 ステップ 7 / 7: パッケージを変換しています: %s',
   isv_debug_bootstrap_processing_package: 'パッケージを処理しています: %s',
   isv_debug_bootstrap_generate_launchjson: '起動構成ファイルを作成しています',
   isv_debug_bootstrap_open_project:
-    'プロジェクトを新しい Visual Studio Code のウィンドウで開いています',
+    'プロジェクトを新しいVisual Studio Codeのウィンドウで開いています',
 
   force_apex_log_get_text: 'SFDX: Apex デバッグログを取得...',
   force_apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
-  force_apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
+  force_apex_log_get_pick_log_text: '取得するApex デバッグログを選択',
   force_apex_log_list_text: 'Apex デバッグログを取得しています',
 
   error_creating_packagexml: 'package.xml の作成中にエラー: %s',
@@ -227,10 +212,10 @@ export const messages = {
   REST_API_description: 'REST API でクエリを実行',
   tooling_API_description: 'Tooling API でクエリを実行',
   telemetry_legal_dialog_message:
-    'VS Code のSalesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する] (%s)。',
+    'VS Code のSalesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   invalid_debug_level_id_error:
-    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
+    '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグのID に置き換えてください。',
   auth_project_label: 'プロジェクトのデフォルト',
   auth_project_detail: 'sfdx-project.json で定義されたログインURL を使用',
   auth_prod_label: '本番環境',
@@ -238,8 +223,8 @@ export const messages = {
   auth_sandbox_label: 'Sandbox',
   auth_sandbox_detail: 'test.salesforce.com',
   auth_custom_label: 'カスタム',
-  auth_custom_detail: 'カスタムログイン URL を入力',
-  auth_invalid_url: 'URL は http:// か https:// で始める必要があります。',
+  auth_custom_detail: 'カスタムログインURL を入力',
+  auth_invalid_url: 'URL はhttp:// か https:// で始める必要があります。',
   error_fetching_auth_info_text:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_no_package_directories_found_on_setup_text:
@@ -272,7 +257,7 @@ export const messages = {
   error_no_default_username:
     'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
   error_no_default_devhubusername:
-    'デフォルトの Dev Hub 組織が設定されていません。"SFDX: Dev Hub 組織を認証" を実行て組織を設定してください。',
+    'デフォルトの DevHub 組織が設定されていません。"SFDX: Dev Hub 組織を認証" を実行て組織を設定してください。',
   custom_output_directory: 'ディレクトリを選択',
   warning_using_global_username:
     'ローカルのプロジェクト設定にデフォルトのユーザ名が見つかりませんでした。グローバルのデフォルトユーザ名を使用します。"SFDX: 組織を認証" を実行して ローカルのプロジェクト設定にユーザ名を設定してください。',
@@ -286,15 +271,9 @@ export const messages = {
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
-  error_invalid_org_alias:
-    '別名にはアンダースコア、スペースと英数字のみを使用できます。',
-  error_invalid_expiration_days:
-    '日数には 1 から 30 までの数値を指定してください。',
   error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
   error_org_browser_text:
     '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
-  error_org_browser_init: '組織ブラウザが初期化されませんでした。',
-  error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
   force_list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',

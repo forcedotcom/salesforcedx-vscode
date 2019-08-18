@@ -20,7 +20,7 @@ export const messages = {
   session_language_server_error_text:
     'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
   session_no_entity_access_text:
-    '組織またはユーザに Apex をデバッグする権限がありません。',
+    '組織またはユーザにApex をデバッグする権限がありません。',
   session_started_text: 'Apex デバッガセッションを ID %s で開始しました。',
   session_terminated_text: 'ID %s のApex デバッガセッションを終了しました。',
   streaming_connected_text: 'Streaming API のチャネル %s に接続しました。',
@@ -30,7 +30,7 @@ export const messages = {
   streaming_handshake_timeout_text:
     'Streaming API のハンドシェイクがソケットのタイムアウトで失敗しました。接続を確認し、再実行してください。',
   hotswap_warn_text:
-    'Apex デバッガセッションの間に Apex クラスやトリガを修正することはできません。デバッグ完了後に変更を保存してください。',
+    'Apex デバッガセッションの間にApex クラスやトリガを修正することはできません。デバッグ完了後に変更を保存してください。',
   created_exception_breakpoint_text:
     '%s にブレークポイント例外を作成しました。',
   removed_exception_breakpoint_text:
@@ -40,5 +40,5 @@ export const messages = {
   idle_terminated_text:
     '%s 分間アイドル状態のため、デバッガセッションが終了されました。',
   invalid_isv_project_config:
-    'ISV デバッグ用のプロジェクト設定が無効か未完了です。設定の Apex デバッガのページに戻り、新しいパートナーデバッグセッションを開始し、再実行してください。'
+    'ISV デバッグ用のプロジェクト設定が無効か未完了です。設定のApex デバッガのページに戻り、新しいパートナーデバッグセッションを開始し、再実行してください。'
 };

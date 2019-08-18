@@ -21,9 +21,9 @@ export const messages = {
   source_jdk_home_env_var_text: '環境変数 JDK_HOME',
   source_java_home_env_var_text: '環境変数 JAVA_HOME',
   source_missing_text:
-    '指定されたフォルダ %s は存在しません。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
+    '%s points to a missing folder. Salesforce Apex 拡張機能の設定方法についての詳細は、[Java バージョンを設定する](%s) を参照してください。',
   java_runtime_missing_text:
-    'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java 設定](%s) を参照してください。',
+    'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java バージョンを設定する](%s) を参照してください。',
   force_sobjects_refresh: 'SFDX: SObject の定義を更新',
   force_apex_test_run_codeAction_description_text: 'Apex テストを実行',
   force_apex_test_run_codeAction_no_class_test_param_text:
@@ -35,7 +35,7 @@ export const messages = {
   force_test_view_no_tests_message: 'Apex テストが見つかりませんでした',
   force_test_view_show_error_title: 'エラーを表示',
   force_test_view_no_tests_description:
-    'プロジェクトに Apex テストメソッドがありません。Apex テストを実行するには、@isTest アノテーションまたは testMethod キーワードのあるメソッドを含むプロジェクトを開いてください。',
+    'プロジェクトにApex テストメソッドがありません。Apex テストを実行するには、@isTest アノテーションまたは testMethod キーワードのあるメソッドを含むプロジェクトを開いてください。',
   wrong_java_version_text:
     '実行には Java 8 が必要です。https://java.com/ja/download/ からダウンロードしてインストールしてください。詳細については、[Java バージョンを設定する](%s) を参照してください。',
 
@@ -54,8 +54,5 @@ export const messages = {
   force_sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   apex_language_server_failed_activate:
-    'Apex 言語サーバを有効化できませんでした。',
-  sobject_refresh_all: 'すべてのオブジェクト',
-  sobject_refresh_custom: 'カスタムオブジェクト',
-  sobject_refresh_standard: '標準オブジェクト'
+    'Apex 言語サーバを有効化できませんでした。'
 };
