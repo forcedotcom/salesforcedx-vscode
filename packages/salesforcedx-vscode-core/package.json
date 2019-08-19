@@ -146,7 +146,15 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|Controller\\.js|Renderer\\.js|Helper\\.js)$/"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceLangId == apex"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceLangId == visualforce"
         }
       ],
       "explorer/context": [
@@ -673,7 +681,7 @@
       },
       {
         "command": "sfdx.force.diff",
-        "title": "SFDX: Diff File Against Org"
+        "title": "%force_diff_against_org%"
       }
     ],
     "configuration": {

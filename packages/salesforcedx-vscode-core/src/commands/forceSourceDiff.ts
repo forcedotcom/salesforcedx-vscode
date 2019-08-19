@@ -11,11 +11,7 @@ import {
   DiffResultParser,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -24,27 +20,24 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 import {
+  FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
 
-export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
-  filePath: string;
-}> {
-  public build(data: { filePath: string }): Command {
+export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
+  public build(filePath: string): Command {
     const commandBuilder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_diff_text'))
       .withArg('force:source:diff')
       .withLogName('force_source_diff')
-      .withFlag('--sourcepath', data.filePath)
+      .withFlag('--sourcepath', filePath)
       .withJson();
     return commandBuilder.build();
   }
 
-  public async execute(
-    response: ContinueResponse<{ filePath: string }>
-  ): Promise<void> {
+  public async execute(response: ContinueResponse<string>): Promise<void> {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -70,7 +63,7 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
         const diffParserSuccess = diffParser.getSuccessResponse();
         const diffParserError = diffParser.getErrorResponse();
 
-        if (diffParser.isSuccessful() && diffParserSuccess) {
+        if (diffParserSuccess) {
           const diffResult = diffParserSuccess.result;
           const remote = vscode.Uri.parse(diffResult.remote);
           const local = vscode.Uri.parse(diffResult.local);
@@ -115,23 +108,8 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<{
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export class SourcePathGatherer
-  implements ParametersGatherer<{ filePath: string }> {
-  private sourcePath: string;
-
-  public constructor(uri: vscode.Uri) {
-    this.sourcePath = uri.fsPath;
-  }
-
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ filePath: string }>
-  > {
-    return { type: 'CONTINUE', data: { filePath: this.sourcePath } };
-  }
-}
-
 export async function forceSourceDiff(sourceUri: vscode.Uri) {
-  if (sourceUri) {
+  if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (
       editor &&
@@ -152,7 +130,7 @@ export async function forceSourceDiff(sourceUri: vscode.Uri) {
 
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
-    new SourcePathGatherer(sourceUri),
+    new FilePathGatherer(sourceUri),
     new ForceSourceDiffExecutor()
   );
   await commandlet.run();
