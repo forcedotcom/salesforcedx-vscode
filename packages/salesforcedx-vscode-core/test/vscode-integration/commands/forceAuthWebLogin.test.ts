@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
+  AuthParams,
   AuthParamsGatherer,
   createExecutor,
   DEFAULT_ALIAS,
@@ -205,25 +206,64 @@ describe('Auth Params Gatherer', () => {
   });
 });
 
-describe('Command chosen is based on results of isDemoMode()', () => {
-  let originalValue: any;
+describe('Force Auth Web Login is based on environment variables', () => {
+  describe('in demo mode', () => {
+    let originalValue: any;
 
-  beforeEach(() => {
-    originalValue = process.env.SFDX_ENV;
+    beforeEach(() => {
+      originalValue = process.env.SFDX_ENV;
+    });
+
+    afterEach(() => {
+      process.env.SFXD_ENV = originalValue;
+    });
+
+    it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
+      process.env.SFDX_ENV = 'DEMO';
+      expect(createExecutor() instanceof ForceAuthWebLoginDemoModeExecutor).to
+        .be.true;
+    });
+
+    it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
+      process.env.SFDX_ENV = '';
+      expect(createExecutor() instanceof ForceAuthWebLoginExecutor).to.be.true;
+    });
   });
 
-  afterEach(() => {
-    process.env.SFXD_ENV = originalValue;
-  });
+  describe('in container mode', () => {
+    afterEach(() => {
+      delete process.env.SFDX_CONTAINER_MODE;
+    });
+    it('Should use force:auth:web:login when container mode is not defined', () => {
+      const authWebLogin = new ForceAuthWebLoginExecutor();
+      const authWebLoginCommand = authWebLogin.build(
+        ({} as unknown) as AuthParams
+      );
+      expect(authWebLoginCommand.toCommand()).to.equal(
+        'sfdx force:auth:web:login --setalias  --instanceurl  --setdefaultusername'
+      );
+    });
 
-  it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
-    process.env.SFDX_ENV = 'DEMO';
-    expect(createExecutor() instanceof ForceAuthWebLoginDemoModeExecutor).to.be
-      .true;
-  });
+    it('Should use force:auth:web:login when container mode is empty', () => {
+      process.env.SFDX_CONTAINER_MODE = '';
+      const authWebLogin = new ForceAuthWebLoginExecutor();
+      const authWebLoginCommand = authWebLogin.build(
+        ({} as unknown) as AuthParams
+      );
+      expect(authWebLoginCommand.toCommand()).to.equal(
+        'sfdx force:auth:web:login --setalias  --instanceurl  --setdefaultusername'
+      );
+    });
 
-  it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
-    process.env.SFDX_ENV = '';
-    expect(createExecutor() instanceof ForceAuthWebLoginExecutor).to.be.true;
+    it('Should use force:auth:device:login when container mode is defined', () => {
+      process.env.SFDX_CONTAINER_MODE = 'true';
+      const authWebLogin = new ForceAuthWebLoginExecutor();
+      const authWebLoginCommand = authWebLogin.build(
+        ({} as unknown) as AuthParams
+      );
+      expect(authWebLoginCommand.toCommand()).to.equal(
+        'sfdx force:auth:device:login --setalias  --instanceurl  --setdefaultusername'
+      );
+    });
   });
 });
