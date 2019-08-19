@@ -57,44 +57,7 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
 
     execution.processExitSubject.subscribe(async () => {
       this.logMetric(execution.command.logName, startTime);
-
-      try {
-        const diffParser = new DiffResultParser(stdOut);
-        const diffParserSuccess = diffParser.getSuccessResponse();
-        const diffParserError = diffParser.getErrorResponse();
-
-        if (diffParserSuccess) {
-          const diffResult = diffParserSuccess.result;
-          const remote = vscode.Uri.parse(diffResult.remote);
-          const local = vscode.Uri.parse(diffResult.local);
-          const filename = diffResult.fileName;
-
-          let defaultUsernameorAlias: string | undefined;
-          if (hasRootWorkspace()) {
-            defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-              false
-            );
-          }
-          vscode.commands.executeCommand(
-            'vscode.diff',
-            remote,
-            local,
-            nls.localize(
-              'force_source_diff_title',
-              defaultUsernameorAlias,
-              filename,
-              filename
-            )
-          );
-        } else if (diffParserError) {
-          channelService.appendLine(diffParserError.message);
-        }
-      } catch (e) {
-        telemetryService.sendException(e.name, e.message);
-        const err = new Error('Error parsing diff result');
-        err.name = 'DiffParserFail';
-        throw err;
-      }
+      await handleDiffResponse(stdOut);
     });
 
     notificationService.reportCommandExecutionStatus(
@@ -103,6 +66,46 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
     );
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+}
+
+export async function handleDiffResponse(stdOut: string) {
+  try {
+    const diffParser = new DiffResultParser(stdOut);
+    const diffParserSuccess = diffParser.getSuccessResponse();
+    const diffParserError = diffParser.getErrorResponse();
+
+    if (diffParserSuccess) {
+      const diffResult = diffParserSuccess.result;
+      const remote = vscode.Uri.file(diffResult.remote);
+      const local = vscode.Uri.file(diffResult.local);
+      const filename = diffResult.fileName;
+
+      let defaultUsernameorAlias: string | undefined;
+      if (hasRootWorkspace()) {
+        defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+          false
+        );
+      }
+      vscode.commands.executeCommand(
+        'vscode.diff',
+        remote,
+        local,
+        nls.localize(
+          'force_source_diff_title',
+          defaultUsernameorAlias,
+          filename,
+          filename
+        )
+      );
+    } else if (diffParserError) {
+      channelService.appendLine(diffParserError.message);
+    }
+  } catch (e) {
+    telemetryService.sendException(e.name, e.message);
+    const err = new Error('Error parsing diff result');
+    err.name = 'DiffParserFail';
+    throw err;
   }
 }
 

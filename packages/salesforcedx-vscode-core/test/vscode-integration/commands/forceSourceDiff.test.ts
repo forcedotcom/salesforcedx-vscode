@@ -7,12 +7,33 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-
-import { ForceSourceDiffExecutor } from '../../../src/commands/forceSourceDiff';
-
+import { SinonStub, stub } from 'sinon';
+import { commands, Uri } from 'vscode';
+import { channelService } from '../../../src/channels';
+import {
+  ForceSourceDiffExecutor,
+  handleDiffResponse
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
+// tslint:disable:no-unused-expression
 describe('Force Source Diff', () => {
+  let appendLineStub: SinonStub;
+  let uriFileSpy: SinonStub;
+  let vscodeDiffSpy: SinonStub;
+
+  beforeEach(() => {
+    appendLineStub = stub(channelService, 'appendLine');
+    uriFileSpy = stub(Uri, 'file');
+    vscodeDiffSpy = stub(commands, 'executeCommand');
+  });
+
+  afterEach(() => {
+    appendLineStub.restore();
+    uriFileSpy.restore();
+    vscodeDiffSpy.restore();
+  });
+
   it('Should build the source diff command', () => {
     const apexTestClassPath = path.join('path', 'to', 'apex', 'testApex.cls');
     const sourceDiff = new ForceSourceDiffExecutor();
@@ -23,5 +44,40 @@ describe('Force Source Diff', () => {
     expect(sourceDiffCommand.description).to.equal(
       nls.localize('force_source_diff_text')
     );
+  });
+
+  it('Should handle successful diff response', async () => {
+    const diffSuccessfulResponse = {
+      status: 0,
+      result: {
+        remote:
+          '/Users/testUser/testProject/.sfdx/orgs/user@example.com/diffCache/classes/testClass.cls',
+        local:
+          '/Users/testUser/testProject/force-app/main/default/classes/testClass.cls',
+        fileName: 'testClass.cls'
+      }
+    };
+    await handleDiffResponse(JSON.stringify(diffSuccessfulResponse));
+    expect(uriFileSpy.calledTwice).to.be.true;
+    expect(vscodeDiffSpy.calledOnce).to.be.true;
+    expect(vscodeDiffSpy.getCall(0).args[0]).to.equal('vscode.diff');
+  });
+
+  it('Should handle errors from diff reponse', async () => {
+    const diffErrorResponse = {
+      status: 1,
+      name: 'Error',
+      message:
+        'The path could not be found in the project. Specify a path that exists in the file system.',
+      exitCode: 1,
+      commandName: 'Diff',
+      stack:
+        'Error: The path could not be found in the project. Specify a path that exists in the file system.',
+      warnings: {}
+    };
+    await handleDiffResponse(JSON.stringify(diffErrorResponse));
+    expect(uriFileSpy.calledTwice).to.be.false;
+    expect(vscodeDiffSpy.calledOnce).to.be.false;
+    expect(appendLineStub.called).to.be.true;
   });
 });
