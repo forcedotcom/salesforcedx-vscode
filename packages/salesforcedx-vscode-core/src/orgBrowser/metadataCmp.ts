@@ -58,11 +58,12 @@ export class ComponentUtils {
       if (!isNullOrUndefined(cmpArray)) {
         cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
+          const { fullName, manageableState } = cmp;
           if (
-            !isNullOrUndefined(cmp.fullName) &&
-            cmp.manageableState === 'unmanaged'
+            !isNullOrUndefined(fullName) &&
+            (!manageableState || manageableState === 'unmanaged')
           ) {
-            components.push(cmp.fullName);
+            components.push(fullName);
           }
         }
       }
