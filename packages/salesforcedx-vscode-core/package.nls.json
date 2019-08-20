@@ -57,5 +57,6 @@
   "refresh_types_text": "Refresh Types",
   "refresh_components_text": "Refresh Components",
   "force_source_retrieve_display_text": "Retrieve Source from Org",
-  "org_browser_enabled_description": "(Beta) Indicates whether the Org Browser view is displayed when the default org is a non-scratch org. See Org Browser [documentation](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser)."
+  "org_browser_enabled_description": "(Beta) Indicates whether the Org Browser view is displayed when the default org is a non-scratch org. See Org Browser [documentation](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser).",
+  "force_diff_against_org": "SFDX: Diff File Against Org"
 }
