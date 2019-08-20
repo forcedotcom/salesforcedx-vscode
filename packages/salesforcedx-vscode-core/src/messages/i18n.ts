@@ -455,5 +455,10 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
-  XOrgHub: 'X Org Hubs'
+  XOrgHub: 'X Org Hubs',
+
+  force_source_diff_text: 'SFDX: Diff File Against Org',
+  force_source_diff_unsupported_type:
+    'Diff for this metadata type is currently not supported',
+  force_source_diff_title: '%s//%s ↔ local//%s'
 };

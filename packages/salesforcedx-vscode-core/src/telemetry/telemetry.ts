@@ -21,6 +21,11 @@ interface CommandMetric {
   executionTime?: string;
 }
 
+export interface TelemetryData {
+  properties?: { [key: string]: string };
+  measurements?: { [key: string]: number };
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private context: vscode.ExtensionContext | undefined;
@@ -155,12 +160,9 @@ export class TelemetryService {
     }
   }
 
-  public sendError(errorMsg: string): void {
+  public sendException(name: string, message: string): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('coreError', {
-        extensionName: EXTENSION_NAME,
-        errorMsg
-      });
+      this.reporter.sendExceptionEvent(name, message);
     }
   }
 
@@ -171,16 +173,6 @@ export class TelemetryService {
   ): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       this.reporter.sendTelemetryEvent(eventName, properties, measures);
-    }
-  }
-
-  public sendErrorEvent(errorMsg: string, callstack: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('error', {
-        extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg,
-        errorStack: callstack
-      });
     }
   }
 

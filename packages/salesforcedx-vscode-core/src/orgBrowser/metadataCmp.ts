@@ -20,7 +20,7 @@ export class ComponentUtils {
   ): Promise<string> {
     if (!hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
-      telemetryService.sendError(err);
+      telemetryService.sendException('metadata_cmp_workspace', err);
       throw new Error(err);
     }
 
@@ -58,11 +58,12 @@ export class ComponentUtils {
       if (!isNullOrUndefined(cmpArray)) {
         cmpArray = cmpArray instanceof Array ? cmpArray : [cmpArray];
         for (const cmp of cmpArray) {
+          const { fullName, manageableState } = cmp;
           if (
-            !isNullOrUndefined(cmp.fullName) &&
-            cmp.manageableState === 'unmanaged'
+            !isNullOrUndefined(fullName) &&
+            (!manageableState || manageableState === 'unmanaged')
           ) {
-            components.push(cmp.fullName);
+            components.push(fullName);
           }
         }
       }
@@ -73,7 +74,7 @@ export class ComponentUtils {
       );
       return components.sort();
     } catch (e) {
-      telemetryService.sendError(e);
+      telemetryService.sendException('metadata_cmp_build_cmp_list', e.message);
       throw new Error(e);
     }
   }

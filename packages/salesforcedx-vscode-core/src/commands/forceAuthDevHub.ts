@@ -6,6 +6,14 @@
  */
 
 import {
+  CliCommandExecutor,
+  Command,
+  SfdxCommandBuilder,
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+
+import { isSFDXContainerMode } from '../util';
+
+import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -19,12 +27,6 @@ import { isDemoMode } from '../modes/demo-mode';
 import * as vscode from 'vscode';
 
 import {
-  CliCommandExecutor,
-  Command,
-  SfdxCommandBuilder,
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
-import {
   ContinueResponse,
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 
@@ -35,14 +37,18 @@ import { ConfigFile } from '@salesforce/core';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize('force_auth_web_login_authorize_dev_hub_text')
-      )
-      .withArg('force:auth:web:login')
-      .withArg('--setdefaultdevhubusername')
-      .withLogName('force_auth_dev_hub')
-      .build();
+    const command = new SfdxCommandBuilder().withDescription(
+      nls.localize('force_auth_web_login_authorize_dev_hub_text')
+    );
+    if (isSFDXContainerMode()) {
+      command
+        .withArg('force:auth:device:login')
+        .withLogName('force_auth_device_dev_hub');
+    } else {
+      command.withArg('force:auth:web:login').withLogName('force_auth_dev_hub');
+    }
+    command.withArg('--setdefaultdevhubusername');
+    return command.build();
   }
 
   public async execute(response: ContinueResponse<any>): Promise<void> {

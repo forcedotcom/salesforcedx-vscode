@@ -41,6 +41,7 @@ import {
   forceSourceDeployManifest,
   forceSourceDeployMultipleSourcePaths,
   forceSourceDeploySourcePath,
+  forceSourceDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
@@ -301,6 +302,11 @@ function registerCommands(
     forceConfigSet
   );
 
+  const forceDiffFile = vscode.commands.registerCommand(
+    'sfdx.force.diff',
+    forceSourceDiff
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -310,6 +316,7 @@ function registerCommands(
     forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
+    forceDiffFile,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
@@ -473,7 +480,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
     if (!isCLIInstalled()) {
       showCLINotInstalledMessage();
-      telemetryService.sendError(
+      telemetryService.sendException(
+        'core_internal_no_cli',
         'Salesforce CLI is not installed, internal dev mode'
       );
     }
@@ -527,7 +535,10 @@ export async function activate(context: vscode.ExtensionContext) {
     await orgList.registerDefaultUsernameWatcher(context);
   } else {
     showCLINotInstalledMessage();
-    telemetryService.sendError('Salesforce CLI is not installed');
+    telemetryService.sendException(
+      'core_no_cli',
+      'Salesforce CLI is not installed'
+    );
   }
 
   // Register filewatcher for push or deploy on save

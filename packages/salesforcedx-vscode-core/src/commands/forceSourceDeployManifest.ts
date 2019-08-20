@@ -43,7 +43,10 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
       manifestUri = editor.document.uri;
     } else {
       const errorMessage = nls.localize('force_source_deploy_select_manifest');
-      telemetryService.sendError(errorMessage);
+      telemetryService.sendException(
+        'force_source_deploy_with_manifest',
+        errorMessage
+      );
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();

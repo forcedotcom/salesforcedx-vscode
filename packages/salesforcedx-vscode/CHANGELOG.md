@@ -1,3 +1,23 @@
+## 46.10.0 - August 15, 2019
+
+## Fixed
+
+#### salesforcedx-core
+
+- Rename `Apex Debug: Configure Exceptions` command to `SFDX: Configure Apex Debug Exceptions` and only enable it when working with a SFDX project ([PR #1533](https://github.com/forcedotcom/salesforcedx-vscode/pull/1533))
+
+## 46.9.0 - August 8, 2019
+
+## Added
+
+#### salesforcedx-utils-vscode
+
+- Use VS Code API to open browser in the host machine when operating in headless environment ([PR #1448](https://github.com/forcedotcom/salesforcedx-vscode/pull/1448))
+
+#### docs
+
+- Include Japanese translation for Salesforce Extensions for VS Code documentation ([PR #1528](https://github.com/forcedotcom/salesforcedx-vscode/pull/1528)) ([Japanese documentation](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/docs/articles-jp))
+
 ## 46.8.0 - August 1, 2019
 
 ## Fixed
