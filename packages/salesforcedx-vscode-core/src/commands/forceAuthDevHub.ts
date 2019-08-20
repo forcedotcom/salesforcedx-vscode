@@ -6,11 +6,6 @@
  */
 
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
-import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -20,6 +15,23 @@ import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
 import { nls } from '../messages';
 import { isDemoMode } from '../modes/demo-mode';
+
+import * as vscode from 'vscode';
+
+import {
+  CliCommandExecutor,
+  Command,
+  SfdxCommandBuilder,
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+
+import {
+  ContinueResponse,
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+
+import { getRootWorkspacePath, withoutQuotes, defaultDevHubUserNameKey } from '../util';
+import { ConfigSource, ConfigUtil } from '../util/index';
+import { isNullOrUndefined } from 'util';
+import { ConfigFile } from '@salesforce/core';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
@@ -32,6 +44,59 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
       .withLogName('force_auth_dev_hub')
       .build();
   }
+
+  public async execute(response: ContinueResponse<any>): Promise<void> {
+
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: getRootWorkspacePath()
+    }).execute(cancellationToken);
+
+    execution.processExitSubject.subscribe(async () => {
+
+      const globalDevHubName = await this.getDevNubHame(ConfigSource.Global);
+      if (isNullOrUndefined(globalDevHubName)) {
+
+        const localDevHubName = await this.getDevNubHame(ConfigSource.Local);
+        if (isNullOrUndefined(localDevHubName) === false) {
+          this.setGlobal(String(localDevHubName));
+        }
+      }
+
+    });
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
+
+  private async setGlobal(newUsername: string) {
+
+    const homeDirectory = require('os').homedir();
+    const configFileName = 'sfdx-config.json';
+
+    const globalConfig = await ConfigFile.create({
+      isGlobal: true,
+      rootFolder: homeDirectory,
+      filename: configFileName
+    });
+
+    globalConfig.set(defaultDevHubUserNameKey, newUsername);
+    await globalConfig.write();
+  }
+
+  public async getDevNubHame(source: ConfigSource.Global | ConfigSource.Local) {
+
+    const configValue = await ConfigUtil.getConfigValue(defaultDevHubUserNameKey, source);
+
+    if (isNullOrUndefined(configValue)) {
+      return undefined;
+    }
+
+    const devHubName = withoutQuotes(configValue);
+    return devHubName;
+  }
+
 }
 
 export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {

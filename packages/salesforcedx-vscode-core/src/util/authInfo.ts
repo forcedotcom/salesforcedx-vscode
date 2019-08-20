@@ -11,10 +11,9 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil } from './index';
+import { ConfigSource, ConfigUtil, withoutQuotes, defaultDevHubUserNameKey, defaultUserNameKey } from './index';
 
-const defaultUserNameKey = 'defaultusername';
-const defaultDevHubUserNameKey = 'defaultdevhubusername';
+
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
@@ -42,7 +41,9 @@ export class OrgAuthInfo {
           );
         }
       }
-      return JSON.stringify(defaultUserName).replace(/\"/g, '');
+
+      return withoutQuotes(defaultUserName);
+
     } catch (err) {
       console.error(err);
       telemetryService.sendErrorEvent(
@@ -54,11 +55,13 @@ export class OrgAuthInfo {
   }
 
   public static async getDefaultDevHubUsernameOrAlias(
-    enableWarning: boolean
+    enableWarning: boolean,
+    configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
     try {
       const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        defaultDevHubUserNameKey
+        defaultDevHubUserNameKey,
+        configSource
       );
       if (isUndefined(defaultDevHubUserName)) {
         const showButtonText = nls.localize('notification_make_default_dev');

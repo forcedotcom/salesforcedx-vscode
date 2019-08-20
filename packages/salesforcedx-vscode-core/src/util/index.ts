@@ -16,4 +16,4 @@ export {
   showCLINotInstalledMessage,
   isSFDXContainerMode
 } from './cliConfiguration';
-export { ConfigSource, ConfigUtil } from './configUtil';
+export { ConfigSource, ConfigUtil, withoutQuotes, defaultDevHubUserNameKey, defaultUserNameKey } from './configUtil';
