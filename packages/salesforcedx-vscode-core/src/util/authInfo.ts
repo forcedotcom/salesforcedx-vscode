@@ -11,8 +11,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil, withoutQuotes, defaultDevHubUserNameKey, defaultUserNameKey } from './index';
-
+import { ConfigSource, ConfigUtil, defaultDevHubUserNameKey, defaultUserNameKey, withoutQuotes } from './index';
 
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(

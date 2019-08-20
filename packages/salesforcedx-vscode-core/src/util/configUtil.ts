@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import { AnyJson } from '@salesforce/ts-types';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from './index';
-import { AnyJson } from '@salesforce/ts-types';
 
 export enum ConfigSource {
   Local,

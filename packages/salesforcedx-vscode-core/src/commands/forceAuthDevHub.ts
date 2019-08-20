@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigFile } from '@salesforce/core';
+
 import {
   CliCommandExecutor,
   Command,
-  SfdxCommandBuilder,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 import { isSFDXContainerMode } from '../util';
@@ -26,14 +28,14 @@ import { isDemoMode } from '../modes/demo-mode';
 
 import * as vscode from 'vscode';
 
-import {
-  ContinueResponse,
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-
-import { getRootWorkspacePath, withoutQuotes, defaultDevHubUserNameKey } from '../util';
-import { ConfigSource, ConfigUtil } from '../util/index';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { isNullOrUndefined } from 'util';
-import { ConfigFile } from '@salesforce/core';
+import {
+  defaultDevHubUserNameKey,
+  getRootWorkspacePath,
+  withoutQuotes
+} from '../util';
+import { ConfigSource, ConfigUtil } from '../util/index';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
@@ -52,7 +54,6 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public async execute(response: ContinueResponse<any>): Promise<void> {
-
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -61,23 +62,19 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async () => {
-
       const globalDevHubName = await this.getDevNubHame(ConfigSource.Global);
       if (isNullOrUndefined(globalDevHubName)) {
-
         const localDevHubName = await this.getDevNubHame(ConfigSource.Local);
         if (isNullOrUndefined(localDevHubName) === false) {
-          this.setGlobal(String(localDevHubName));
+          await this.setGlobal(String(localDevHubName));
         }
       }
-
     });
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
   private async setGlobal(newUsername: string) {
-
     const homeDirectory = require('os').homedir();
     const configFileName = 'sfdx-config.json';
 
@@ -92,8 +89,10 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public async getDevNubHame(source: ConfigSource.Global | ConfigSource.Local) {
-
-    const configValue = await ConfigUtil.getConfigValue(defaultDevHubUserNameKey, source);
+    const configValue = await ConfigUtil.getConfigValue(
+      defaultDevHubUserNameKey,
+      source
+    );
 
     if (isNullOrUndefined(configValue)) {
       return undefined;
@@ -102,7 +101,6 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     const devHubName = withoutQuotes(configValue);
     return devHubName;
   }
-
 }
 
 export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
