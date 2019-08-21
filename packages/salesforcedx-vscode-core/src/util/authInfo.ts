@@ -11,7 +11,13 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil, defaultDevHubUserNameKey, defaultUserNameKey, withoutQuotes } from './index';
+import {
+  ConfigSource,
+  ConfigUtil,
+} from './index';
+
+export const defaultUserNameKey = 'defaultusername';
+export const defaultDevHubUserNameKey = 'defaultdevhubusername';
 
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
@@ -41,7 +47,7 @@ export class OrgAuthInfo {
         }
       }
 
-      return withoutQuotes(defaultUserName);
+      return JSON.stringify(defaultUserName).replace(/\"/g, '');
 
     } catch (err) {
       console.error(err);

@@ -6,7 +6,6 @@
  */
 
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
-import { AnyJson } from '@salesforce/ts-types';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
 import { telemetryService } from '../telemetry';
@@ -17,9 +16,6 @@ export enum ConfigSource {
   Global,
   None
 }
-
-export const defaultUserNameKey = 'defaultusername';
-export const defaultDevHubUserNameKey = 'defaultdevhubusername';
 
 // This class should be reworked or removed once the ConfigAggregator correctly checks
 // local as well as global configs. It's also worth noting that ConfigAggregator, according
@@ -74,8 +70,4 @@ export class ConfigUtil {
     }
     return undefined;
   }
-}
-
-export function withoutQuotes(item: AnyJson) {
-  return JSON.stringify(item).replace(/\"/g, '');
 }

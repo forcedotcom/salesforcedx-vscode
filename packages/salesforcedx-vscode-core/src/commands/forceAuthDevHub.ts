@@ -5,15 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigFile } from '@salesforce/core';
-
 import {
   CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-
-import { isSFDXContainerMode } from '../util';
 
 import {
   EmptyParametersGatherer,
@@ -21,21 +17,21 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
-import { nls } from '../messages';
-import { isDemoMode } from '../modes/demo-mode';
-
-import * as vscode from 'vscode';
-
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { isNullOrUndefined } from 'util';
 import {
   defaultDevHubUserNameKey,
   getRootWorkspacePath,
-  withoutQuotes
 } from '../util';
-import { ConfigSource, ConfigUtil } from '../util/index';
+
+import { ConfigFile } from '@salesforce/core';
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as vscode from 'vscode';
+import { nls } from '../messages';
+import { isDemoMode } from '../modes/demo-mode';
+import { isSFDXContainerMode } from '../util';
+import { ConfigSource, OrgAuthInfo } from '../util/index';
+import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
@@ -62,11 +58,19 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async () => {
-      const globalDevHubName = await this.getDevNubHame(ConfigSource.Global);
+      const globalDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+        false,
+        ConfigSource.Global
+      );
+
       if (isNullOrUndefined(globalDevHubName)) {
-        const localDevHubName = await this.getDevNubHame(ConfigSource.Local);
+        const localDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+          false,
+          ConfigSource.Local
+        );
+
         if (isNullOrUndefined(localDevHubName) === false) {
-          await this.setGlobal(String(localDevHubName));
+          await this.setGlobalDefaultDevHub(String(localDevHubName));
         }
       }
     });
@@ -74,7 +78,7 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  private async setGlobal(newUsername: string) {
+  private async setGlobalDefaultDevHub(newUsername: string) {
     const homeDirectory = require('os').homedir();
     const configFileName = 'sfdx-config.json';
 
@@ -86,20 +90,6 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
 
     globalConfig.set(defaultDevHubUserNameKey, newUsername);
     await globalConfig.write();
-  }
-
-  public async getDevNubHame(source: ConfigSource.Global | ConfigSource.Local) {
-    const configValue = await ConfigUtil.getConfigValue(
-      defaultDevHubUserNameKey,
-      source
-    );
-
-    if (isNullOrUndefined(configValue)) {
-      return undefined;
-    }
-
-    const devHubName = withoutQuotes(configValue);
-    return devHubName;
   }
 }
 
