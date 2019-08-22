@@ -56,7 +56,6 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      console.log('exitcode ===> ', exitCode);
       this.logMetric(execution.command.logName, startTime);
       await handleDiffResponse(exitCode, stdOut);
     });
