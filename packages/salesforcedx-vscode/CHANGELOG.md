@@ -18,6 +18,10 @@
 
 - Add retrieval of standard objects for the Org Browser ([PR #1571](https://github.com/forcedotcom/salesforcedx-vscode/pull/1571))
 
+### docs
+
+- Added documentation for ([Source Diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff)) ([PR #1580](https://github.com/forcedotcom/salesforcedx-vscode/pull/1580))
+
 ## 46.10.0 - August 15, 2019
 
 ## Fixed
