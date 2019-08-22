@@ -8,18 +8,16 @@ The Source Diff command allows you to diff metadata types against your default o
 
 ## Setup
 
-Because the Source Diff feature is in beta, you must first install a Salesforce CLI plugin:
-
-1. In your terminal, run `sfdx plugins:install @salesforce/sfdx-diff`
-1. Once the install is complete you should see `@salesforce/sfdx-diff` as part of your installed plugins when running `sfdx plugins`
+Because the Source Diff feature is in beta, you must install a Salesforce CLI plugin. From the terminal, run `sfdx plugins:install @salesforce/sfdx-diff`.
+After the installation is complete, `@salesforce/sfdx-diff` appears in the list of installed plugins when running `sfdx plugins`.
 
 ## Usage
 
-Starting in version `46.11.0` you'll now get a new menu option `SFDX: Diff File Against Org` when right-clicking on an open metadata file.
+Starting in version `46.11.0`, a new menu option `SFDX: Diff File Against Org` appears when you right-click an open metadata file.
 
 ![Source Diff command](../../images/source_diff.png)
 
-Because source diff is in beta, there is a limited set of metadata supported. The list of supported metadata is the following:
+Source Diff currently supports the following metadata:
 
 - Apex Class
 - Apex Trigger
