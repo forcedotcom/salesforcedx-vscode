@@ -15,23 +15,27 @@ import {
   handleDiffResponse
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
+import { notificationService } from '../../../src/notifications';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Diff', () => {
   let appendLineStub: SinonStub;
   let uriFileSpy: SinonStub;
   let vscodeDiffSpy: SinonStub;
+  let notificationStub: SinonStub;
 
   beforeEach(() => {
     appendLineStub = stub(channelService, 'appendLine');
     uriFileSpy = stub(Uri, 'file');
     vscodeDiffSpy = stub(commands, 'executeCommand');
+    notificationStub = stub(notificationService, 'showErrorMessage');
   });
 
   afterEach(() => {
     appendLineStub.restore();
     uriFileSpy.restore();
     vscodeDiffSpy.restore();
+    notificationStub.restore();
   });
 
   it('Should build the source diff command', () => {
@@ -57,7 +61,7 @@ describe('Force Source Diff', () => {
         fileName: 'testClass.cls'
       }
     };
-    await handleDiffResponse(JSON.stringify(diffSuccessfulResponse));
+    await handleDiffResponse(0, JSON.stringify(diffSuccessfulResponse));
     expect(uriFileSpy.calledTwice).to.be.true;
     expect(vscodeDiffSpy.calledOnce).to.be.true;
     expect(vscodeDiffSpy.getCall(0).args[0]).to.equal('vscode.diff');
@@ -75,9 +79,20 @@ describe('Force Source Diff', () => {
         'Error: The path could not be found in the project. Specify a path that exists in the file system.',
       warnings: {}
     };
-    await handleDiffResponse(JSON.stringify(diffErrorResponse));
+    await handleDiffResponse(0, JSON.stringify(diffErrorResponse));
     expect(uriFileSpy.calledTwice).to.be.false;
     expect(vscodeDiffSpy.calledOnce).to.be.false;
     expect(appendLineStub.called).to.be.true;
+  });
+
+  it('Should display error message when diff plugin is not installed', async () => {
+    await handleDiffResponse(127, '');
+    expect(uriFileSpy.notCalled).to.be.true;
+    expect(vscodeDiffSpy.notCalled).to.be.true;
+    expect(appendLineStub.called).to.be.true;
+    expect(notificationStub.calledOnce).to.be.true;
+    expect(notificationStub.getCall(0).args[0]).to.equal(
+      nls.localize('force_source_diff_command_not_found')
+    );
   });
 });
