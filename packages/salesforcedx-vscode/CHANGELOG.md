@@ -1,3 +1,27 @@
+## 46.11.0 - August 22, 2019
+
+## Fixed
+
+#### salesforcedx-core
+
+- Add custom objects as a bundle for retrieving in the Org Browser ([PR #1569](https://github.com/forcedotcom/salesforcedx-vscode/pull/1569))
+
+#### docs
+
+- Fix documentation link for ([Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser)) in user and workspace settings ([PR #1565](https://github.com/forcedotcom/salesforcedx-vscode/pull/1565))
+
+## Added
+
+#### salesforcedx-core
+
+- Open beta for Diff Plugin that allows you to diff local metadata against an org ([PR #1568](https://github.com/forcedotcom/salesforcedx-vscode/pull/1568))
+
+- Add retrieval of standard objects for the Org Browser ([PR #1571](https://github.com/forcedotcom/salesforcedx-vscode/pull/1571))
+
+#### docs
+
+- Add documentation for ([Source Diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff)) ([PR #1580](https://github.com/forcedotcom/salesforcedx-vscode/pull/1580))
+
 ## 46.10.0 - August 15, 2019
 
 ## Fixed
