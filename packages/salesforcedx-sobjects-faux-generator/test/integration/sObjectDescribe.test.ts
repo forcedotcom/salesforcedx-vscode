@@ -5,18 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import rimraf = require('rimraf');
+// import rimraf = require('rimraf');
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
-import * as path from 'path';
+import * as sinon from 'sinon';
+// import * as path from 'path';
 import {
+  ForceListSObjectSchemaExecutor,
   SObjectCategory,
   SObjectDescribe
 } from '../../src/describe/sObjectDescribe';
-import * as util from './integrationTestUtil';
-
+// import * as util from './integrationTestUtil';
+const sobjectdescribe = new SObjectDescribe();
 // The CustomObjects are all identical in terms of fields, just different ones to test batch
 // and multiple objects for testing describeGlobal
-const PROJECT_NAME = `project_${new Date().getTime()}`;
+/* const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
 const CUSTOM_OBJECT2_NAME = 'MyCustomObject2__c';
 const CUSTOM_OBJECT3_NAME = 'MyCustomObject3__c';
@@ -26,11 +29,47 @@ const SIMPLE_OBJECT_SOURCE_FOLDER = 'simpleObjectAndField';
 const sobjectdescribe = new SObjectDescribe();
 const MIN_CUSTOMOBJECT_NUM_FIELDS = 9;
 const CUSTOMOBJECT_NUMBERFIELD_PRECISION = 18;
+*/
 
 // tslint:disable:no-unused-expression
-describe('Fetch sObjects', function() {
-  // tslint:disable-next-line:no-invalid-this
-  this.timeout(180000);
+describe('Fetch sObjects', () => {
+  it('Should build the schema sobject list command', async () => {
+    const sobjectType = 'all';
+    const username = 'user@example.com';
+    const schemaSObjectList = new ForceListSObjectSchemaExecutor();
+    const schemaSObjectListCommand = schemaSObjectList.build(
+      sobjectType,
+      username
+    );
+
+    expect(schemaSObjectListCommand.toCommand()).to.equal(
+      `sfdx force:schema:sobject:list --sobjecttypecategory ${sobjectType} --json --loglevel fatal --targetusername ${username}`
+    );
+  });
+
+  it('Should return sobjects when running describeGlobal', async () => {
+    const responseData = {
+      status: 0,
+      result: ['MyCustomObject2__c', 'MyCustomObject3__c', 'MyCustomObject__c']
+    };
+    const cmdOutputStub = sinon
+      .stub(CommandOutput.prototype, 'getCmdResult')
+      .returns(JSON.stringify(responseData));
+    const execStub = sinon.stub(
+      ForceListSObjectSchemaExecutor.prototype,
+      'execute'
+    );
+    const result = await sobjectdescribe.describeGlobal(
+      process.cwd(),
+      SObjectCategory.CUSTOM,
+      'user@example.com'
+    );
+    expect(result).to.deep.equal(responseData.result);
+    cmdOutputStub.restore();
+    execStub.restore();
+  });
+
+  /* this.timeout(180000);
   let username: string;
 
   before(async () => {
@@ -124,5 +163,5 @@ describe('Fetch sObjects', function() {
     // expect(cmdOutput.name).to.be.equal('Account');
     // expect(cmdOutput.custom).to.be.false;
     // expect(cmdOutput.fields.length).to.be.least(59);
-  });
+  }); */
 });

@@ -6,7 +6,9 @@
  */
 
 import {
+  CliCommandExecution,
   CliCommandExecutor,
+  Command,
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -165,10 +167,32 @@ export enum SObjectCategory {
 
 type SubRequest = { method: string; url: string };
 type BatchRequest = { batchRequests: SubRequest[] };
-
 type SubResponse = { statusCode: number; result: SObject };
-
 type BatchResponse = { hasErrors: boolean; results: SubResponse[] };
+
+export class ForceListSObjectSchemaExecutor {
+  public build(type: string, username?: string): Command {
+    const command = new SfdxCommandBuilder()
+      .withArg('force:schema:sobject:list')
+      .withFlag('--sobjecttypecategory', type)
+      .withJson();
+    if (username) {
+      command.withFlag('--targetusername', username);
+    }
+    return command.build();
+  }
+
+  public execute(
+    projectPath: string,
+    type: string,
+    username?: string
+  ): CliCommandExecution {
+    const execution = new CliCommandExecutor(this.build(type, username), {
+      cwd: projectPath
+    }).execute();
+    return execution;
+  }
+}
 
 export class SObjectDescribe {
   private accessToken?: string;
@@ -180,62 +204,17 @@ export class SObjectDescribe {
   private readonly sobjectsPart: string = 'sobjects';
   private readonly batchPart: string = 'composite/batch';
 
-  public async describeSObject(
-    projectPath: string,
-    type: string,
-    username?: string
-  ): Promise<SObject> {
-    await this.setupConnection(projectPath, username);
-
-    const urlElements = [
-      this.instanceUrl,
-      this.servicesPath,
-      this.getVersion(),
-      this.sobjectsPart,
-      type,
-      'describe'
-    ];
-
-    const requestUrl = urlElements.join('/');
-
-    const options: XHROptions = {
-      type: 'GET',
-      url: requestUrl,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `OAuth ${this.accessToken}`,
-        'User-Agent': 'salesforcedx-extension',
-        'Sforce-Call-Options': `client=${CLIENT_ID}`
-      }
-    };
-
-    try {
-      const response: XHRResponse = await xhr(options);
-      const sobject = JSON.parse(response.responseText) as SObject;
-      return Promise.resolve(sobject);
-    } catch (error) {
-      const xhrResponse: XHRResponse = error;
-      return Promise.reject(xhrResponse.responseText);
-    }
-  }
-
   public async describeGlobal(
     projectPath: string,
     type: SObjectCategory,
     username?: string
   ): Promise<string[]> {
-    const builder = new SfdxCommandBuilder()
-      .withArg('force:schema:sobject:list')
-      .withFlag('--sobjecttypecategory', type.toString());
-    if (username) {
-      builder.args.push('--targetusername', username);
-    }
-    const command = builder.withJson().build();
-    const execution = new CliCommandExecutor(command, {
-      cwd: projectPath
-    }).execute();
-
+    const forceListSObjectSchemaExecutor = new ForceListSObjectSchemaExecutor();
+    const execution = forceListSObjectSchemaExecutor.execute(
+      projectPath,
+      type,
+      username
+    );
     const cmdOutput = new CommandOutput();
     let result: string;
     try {
@@ -244,6 +223,7 @@ export class SObjectDescribe {
       return Promise.reject(e);
     }
     try {
+      // TODO: this should be a parser like the one for org:create
       const sobjects = JSON.parse(result).result as string[];
       return Promise.resolve(sobjects);
     } catch (e) {
