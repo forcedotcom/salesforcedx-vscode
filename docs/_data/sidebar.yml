@@ -32,7 +32,7 @@
       url: /articles/user-guide/default-org
     - title: Org Browser
       url: /articles/user-guide/org-browser
-      - title: Source Diff
+    - title: Source Diff
       url: /articles/user-guide/source-diff
     - title: Demo Mode
       url: /articles/user-guide/demo-mode
