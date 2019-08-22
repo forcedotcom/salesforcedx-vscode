@@ -14,13 +14,13 @@
 
 #### salesforcedx-core
 
-- Open beta for Diff Plugin. Allow diffing for local metadata against an org ([PR #1568](https://github.com/forcedotcom/salesforcedx-vscode/pull/1568))
+- Open beta for Diff Plugin that allows you to diff local metadata against an org ([PR #1568](https://github.com/forcedotcom/salesforcedx-vscode/pull/1568))
 
 - Add retrieval of standard objects for the Org Browser ([PR #1571](https://github.com/forcedotcom/salesforcedx-vscode/pull/1571))
 
 #### docs
 
-- Added documentation for ([Source Diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff)) ([PR #1580](https://github.com/forcedotcom/salesforcedx-vscode/pull/1580))
+- Add documentation for ([Source Diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff)) ([PR #1580](https://github.com/forcedotcom/salesforcedx-vscode/pull/1580))
 
 ## 46.10.0 - August 15, 2019
 
