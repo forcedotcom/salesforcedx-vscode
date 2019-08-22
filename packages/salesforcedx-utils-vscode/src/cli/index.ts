@@ -45,3 +45,8 @@ export {
   OrgOpenContainerResultParser,
   OrgOpenErrorResult
 } from './orgOpenContainerResultParser';
+export {
+  DiffErrorResponse,
+  DiffResultParser,
+  DiffSuccessResponse
+} from './diffResultParser';

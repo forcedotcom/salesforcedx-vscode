@@ -40,25 +40,57 @@ describe('Force Auth Web Login For Dev Hub in Demo  Mode', () => {
   });
 });
 
-describe('Command chosen is based on results of isDemoMode()', () => {
-  let originalValue: any;
+describe('Force Auth Dev Hub is based on environment variables', () => {
+  describe('in demo mode', () => {
+    let originalValue: any;
 
-  beforeEach(() => {
-    originalValue = process.env.SFDX_ENV;
+    beforeEach(() => {
+      originalValue = process.env.SFDX_ENV;
+    });
+
+    afterEach(() => {
+      process.env.SFXD_ENV = originalValue;
+    });
+
+    it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
+      process.env.SFDX_ENV = 'DEMO';
+      expect(createExecutor() instanceof ForceAuthDevHubDemoModeExecutor).to.be
+        .true;
+    });
+
+    it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
+      process.env.SFDX_ENV = '';
+      expect(createExecutor() instanceof ForceAuthDevHubExecutor).to.be.true;
+    });
   });
 
-  afterEach(() => {
-    process.env.SFXD_ENV = originalValue;
-  });
+  describe('in container mode', () => {
+    afterEach(() => {
+      delete process.env.SFDX_CONTAINER_MODE;
+    });
+    it('Should use force:auth:web:login when container mode is not defined', () => {
+      const authWebLogin = new ForceAuthDevHubExecutor();
+      const authWebLoginCommand = authWebLogin.build({});
+      expect(authWebLoginCommand.toCommand()).to.equal(
+        'sfdx force:auth:web:login --setdefaultdevhubusername'
+      );
+    });
+    it('Should use force:auth:web:login when container mode is empty', () => {
+      process.env.SFDX_CONTAINER_MODE = '';
+      const authWebLogin = new ForceAuthDevHubExecutor();
+      const authWebLoginCommand = authWebLogin.build({});
+      expect(authWebLoginCommand.toCommand()).to.equal(
+        'sfdx force:auth:web:login --setdefaultdevhubusername'
+      );
+    });
 
-  it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
-    process.env.SFDX_ENV = 'DEMO';
-    expect(createExecutor() instanceof ForceAuthDevHubDemoModeExecutor).to.be
-      .true;
-  });
-
-  it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
-    process.env.SFDX_ENV = '';
-    expect(createExecutor() instanceof ForceAuthDevHubExecutor).to.be.true;
+    it('Should use force:auth:device:login when container mode is defined', () => {
+      process.env.SFDX_CONTAINER_MODE = 'pickles';
+      const authWebLogin = new ForceAuthDevHubExecutor();
+      const authWebLoginCommand = authWebLogin.build({});
+      expect(authWebLoginCommand.toCommand()).to.equal(
+        'sfdx force:auth:device:login --setdefaultdevhubusername'
+      );
+    });
   });
 });
