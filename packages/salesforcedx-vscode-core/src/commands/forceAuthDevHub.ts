@@ -19,14 +19,14 @@ import {
 } from './commands';
 
 import {
-  defaultDevHubUserNameKey,
-  getRootWorkspacePath,
+  getRootWorkspacePath
 } from '../util';
 
 import { ConfigFile } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
+import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { isDemoMode } from '../modes/demo-mode';
 import { isSFDXContainerMode } from '../util';
@@ -69,8 +69,8 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
           ConfigSource.Local
         );
 
-        if (isNullOrUndefined(localDevHubName) === false) {
-          await this.setGlobalDefaultDevHub(String(localDevHubName));
+        if (localDevHubName) {
+          await this.setGlobalDefaultDevHub(localDevHubName);
         }
       }
     });
@@ -79,16 +79,16 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   private async setGlobalDefaultDevHub(newUsername: string) {
+
     const homeDirectory = require('os').homedir();
-    const configFileName = 'sfdx-config.json';
 
     const globalConfig = await ConfigFile.create({
       isGlobal: true,
       rootFolder: homeDirectory,
-      filename: configFileName
+      filename: SFDX_PROJECT_FILE
     });
 
-    globalConfig.set(defaultDevHubUserNameKey, newUsername);
+    globalConfig.set(DEFAULT_DEV_HUB_USERNAME_KEY, newUsername);
     await globalConfig.write();
   }
 }
