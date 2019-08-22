@@ -8,7 +8,7 @@
 
 #### docs
 
-- Fix Org Browser documentation link ([PR #1565](https://github.com/forcedotcom/salesforcedx-vscode/pull/1565))
+- Fix Org Browser documentation link in ([Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser)) ([PR #1565](https://github.com/forcedotcom/salesforcedx-vscode/pull/1565))
 
 ## Added
 
