@@ -4,7 +4,7 @@
 
 #### salesforcedx-core
 
-- Add CustomObjects as a bundle type for retrieval with the Org Browser ([PR #1569](https://github.com/forcedotcom/salesforcedx-vscode/pull/1569))
+- Add custom objects as a bundle for retrieving in the Org Browser ([PR #1569](https://github.com/forcedotcom/salesforcedx-vscode/pull/1569))
 
 #### docs
 
