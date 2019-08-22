@@ -55,9 +55,10 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
       stdOut += realData.toString();
     });
 
-    execution.processExitSubject.subscribe(async () => {
+    execution.processExitSubject.subscribe(async exitCode => {
+      console.log('exitcode ===> ', exitCode);
       this.logMetric(execution.command.logName, startTime);
-      await handleDiffResponse(stdOut);
+      await handleDiffResponse(exitCode, stdOut);
     });
 
     notificationService.reportCommandExecutionStatus(
@@ -69,8 +70,14 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
   }
 }
 
-export async function handleDiffResponse(stdOut: string) {
+export async function handleDiffResponse(
+  exitCode: number | undefined,
+  stdOut: string
+) {
   try {
+    if (exitCode === 127) {
+      throw new Error(nls.localize('force_source_diff_command_not_found'));
+    }
     const diffParser = new DiffResultParser(stdOut);
     const diffParserSuccess = diffParser.getSuccessResponse();
     const diffParserError = diffParser.getErrorResponse();
@@ -102,10 +109,9 @@ export async function handleDiffResponse(stdOut: string) {
       channelService.appendLine(diffParserError.message);
     }
   } catch (e) {
+    notificationService.showErrorMessage(e.message);
+    channelService.appendLine(e.message);
     telemetryService.sendException(e.name, e.message);
-    const err = new Error('Error parsing diff result');
-    err.name = 'DiffParserFail';
-    throw err;
   }
 }
 
@@ -118,7 +124,8 @@ export async function forceSourceDiff(sourceUri: vscode.Uri) {
       editor &&
       (editor.document.languageId === 'apex' ||
         editor.document.languageId === 'visualforce' ||
-        editor.document.fileName.includes('aura'))
+        editor.document.fileName.includes('aura') ||
+        editor.document.fileName.includes('lwc'))
     ) {
       sourceUri = editor.document.uri;
     } else {
