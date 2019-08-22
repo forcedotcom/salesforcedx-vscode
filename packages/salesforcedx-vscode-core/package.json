@@ -146,7 +146,7 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|Controller\\.js|Renderer\\.js|Helper\\.js)$/"
+          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg)$/"
         },
         {
           "command": "sfdx.force.diff",
