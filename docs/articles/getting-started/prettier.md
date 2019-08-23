@@ -2,14 +2,14 @@
 title: Set Up the Prettier Code Formatter for Salesforce Projects
 ---
 
-Currently, Prettier supports Aura and Lightning Web Components (LWC) as well as standard file formats like `.json`, `.md`, `.html`, and `.js`. Support for Apex is being worked on by the [community](https://github.com/dangmai/prettier-plugin-apex) and should be available soon.
+Currently, Prettier supports Apex, Aura, and Lightning Web Components (LWC) as well as standard file formats like `.json`, `.md`, `.html`, and `.js`.
 
-Using Prettier for Aura and LWC requires some configuration.
+Using Prettier for Apex, Aura, and LWC requires some configuration.
 
 1. If you don’t already have a `package.json` in your project, run: `npm init`  
    You can accept all the defaults.
 
-1. Install Prettier by running: `npm install --save-dev --save-exact prettier`
+1. Install Prettier by running: `npm install --save-dev --save-exact prettier prettier-plugin-apex`
 
 1. Create a Prettier configuration file called `.prettierrc`, in the root of your project, with the following content.
 
