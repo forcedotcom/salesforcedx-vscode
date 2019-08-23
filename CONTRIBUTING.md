@@ -1,7 +1,7 @@
 ## Contributing
 
 1. Familiarize yourself with the codebase by reading the [docs](docs), in
-   particular the [development](docs/developing.md) doc.
+   particular the [development](contributing/developing.md) doc.
 1. Create a new issue before starting your project so that we can keep track of
    what you are trying to add/fix. That way, we can also offer suggestions or
    let you know if there is already an effort in progress.
