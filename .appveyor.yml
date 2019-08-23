@@ -17,7 +17,7 @@ environment:
   SFDX_AUTOUPDATE_DISABLE: true
   SFDX_DOMAIN_RETRY: 300
   matrix:
-    - vscode: test:unit-and-system-tests
+    - vscode: test:unit
     - vscode: test:integration-tests-without-system-tests
 
 install:
