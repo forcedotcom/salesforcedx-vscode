@@ -234,12 +234,11 @@ export class SObjectDescribe {
   public async describeSObjectBatch(
     projectPath: string,
     types: string[],
-    nextToProcess: number,
-    username?: string
+    nextToProcess: number
   ): Promise<SObject[]> {
     const batchSize = 25;
 
-    await this.setupConnection(projectPath, username);
+    await this.setupConnection(projectPath);
 
     const batchRequest: BatchRequest = { batchRequests: [] };
 
@@ -298,6 +297,8 @@ export class SObjectDescribe {
       return Promise.reject(xhrResponse.responseText);
     }
   }
+
+  // LUIS TODO: 1 get defaultusername, then get the session id, url and api version
 
   // get the token and url by calling the org - short term, should really be able to get it from the sfdx project
   // also set the proper target apiVersion
