@@ -23,7 +23,7 @@ import { SpawnOptions } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
-import * as sanitizeFilename from 'sanitize-filename';
+import sanitizeFilename = require('sanitize-filename');
 import * as shell from 'shelljs';
 import { URL } from 'url';
 import * as vscode from 'vscode';
