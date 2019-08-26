@@ -33,12 +33,20 @@ describe('Diagnostics', () => {
     errorCollection.dispose();
   });
 
-  it('Should prevent diagnostics from generating range with negative positions', () => {
+  it('Should prevent generating range with negative positions', () => {
     const range = getRange('0', '-12');
     expect(range.start.line).to.eql(1);
     expect(range.start.character).to.eql(1);
     expect(range.end.line).to.eql(1);
     expect(range.end.character).to.eql(1);
+  });
+
+  it('Should convert to 0 based index for range', () => {
+    const range = getRange('1', '2');
+    expect(range.start.line).to.equal(0);
+    expect(range.start.character).to.equal(1);
+    expect(range.end.line).to.equal(0);
+    expect(range.end.character).to.equal(1);
   });
 
   it('Should create diagnostics based off of deploy error results', () => {
