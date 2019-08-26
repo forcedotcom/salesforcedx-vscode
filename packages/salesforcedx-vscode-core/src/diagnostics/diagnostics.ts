@@ -74,10 +74,8 @@ export function getRange(
   lineNumber: string,
   columnNumber: string
 ): vscode.Range {
-  const ln = Number(lineNumber) - 1;
-  const col = Number(columnNumber) - 1;
-  return new vscode.Range(
-    new vscode.Position(ln, col),
-    new vscode.Position(ln, col)
-  );
+  const ln = Number(lineNumber);
+  const col = Number(columnNumber);
+  const pos = new vscode.Position(ln > 0 ? ln : 1, col > 0 ? col : 1);
+  return new vscode.Range(pos, pos);
 }
