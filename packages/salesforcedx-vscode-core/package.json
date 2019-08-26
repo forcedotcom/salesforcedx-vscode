@@ -712,11 +712,6 @@
           "type": "boolean",
           "default": false,
           "description": "%internal_dev_description%"
-        },
-        "salesforcedx-vscode-core.orgBrowser.enabled": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "%org_browser_enabled_description%"
         }
       }
     },
