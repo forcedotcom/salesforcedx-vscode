@@ -35,10 +35,10 @@ describe('Diagnostics', () => {
 
   it('Should prevent generating range with negative positions', () => {
     const range = getRange('0', '-12');
-    expect(range.start.line).to.eql(1);
-    expect(range.start.character).to.eql(1);
-    expect(range.end.line).to.eql(1);
-    expect(range.end.character).to.eql(1);
+    expect(range.start.line).to.eql(0);
+    expect(range.start.character).to.eql(0);
+    expect(range.end.line).to.eql(0);
+    expect(range.end.character).to.eql(0);
   });
 
   it('Should convert to 0 based index for range', () => {
