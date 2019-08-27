@@ -6,17 +6,6 @@ The Org Browser displays the available metadata types and their corresponding co
 
 > NOTICE: The Org Browser feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
 
-## Enabling the Org Browser
-
-Because the Org Browser feature is in beta, you must enable the feature:
-
-1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-1. Under **Salesforce Feature Previews**, select **Org Browser: Enabled**.
-
-You can also enter Org Browser in the search box and enable it.
-
-![Enable Org Browser](../../images/org_browser_setting.png)
-
 ## Opening the Org Browser
 
 ![Org Browser Overview](../../images/org_browser_overview.png)
