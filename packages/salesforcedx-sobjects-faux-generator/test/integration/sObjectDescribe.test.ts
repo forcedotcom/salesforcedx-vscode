@@ -1,49 +1,52 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// import rimraf = require('rimraf');
+import { AuthInfo } from '@salesforce/core';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-// import * as path from 'path';
+import { SinonStub, stub } from 'sinon';
+import { ConfigUtil } from '../../src/describe/configUtil';
 import {
   ForceListSObjectSchemaExecutor,
   SObjectCategory,
   SObjectDescribe
 } from '../../src/describe/sObjectDescribe';
-// import * as util from './integrationTestUtil';
-const sobjectdescribe = new SObjectDescribe();
-// The CustomObjects are all identical in terms of fields, just different ones to test batch
-// and multiple objects for testing describeGlobal
-/* const PROJECT_NAME = `project_${new Date().getTime()}`;
-const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
-const CUSTOM_OBJECT2_NAME = 'MyCustomObject2__c';
-const CUSTOM_OBJECT3_NAME = 'MyCustomObject3__c';
-const CUSTOM_FIELDNAME = 'MyCustomField__c';
-const SIMPLE_OBJECT_SOURCE_FOLDER = 'simpleObjectAndField';
 
 const sobjectdescribe = new SObjectDescribe();
-const MIN_CUSTOMOBJECT_NUM_FIELDS = 9;
-const CUSTOMOBJECT_NUMBERFIELD_PRECISION = 18;
-*/
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
+  let getUsername: SinonStub;
+  let authInfo: SinonStub;
+
+  beforeEach(() => {
+    getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
+    authInfo = stub(AuthInfo, 'create').returns({
+      getConnectionOptions() {
+        return {
+          accessToken: '00Dxx000thisIsATestToken',
+          instanceUrl: 'https://na1.salesforce.com'
+        };
+      }
+    });
+  });
+
+  afterEach(() => {
+    getUsername.restore();
+    authInfo.restore();
+  });
+
   it('Should build the schema sobject list command', async () => {
     const sobjectType = 'all';
-    const username = 'user@example.com';
     const schemaSObjectList = new ForceListSObjectSchemaExecutor();
-    const schemaSObjectListCommand = schemaSObjectList.build(
-      sobjectType,
-      username
-    );
+    const schemaSObjectListCommand = schemaSObjectList.build(sobjectType);
 
     expect(schemaSObjectListCommand.toCommand()).to.equal(
-      `sfdx force:schema:sobject:list --sobjecttypecategory ${sobjectType} --json --loglevel fatal --targetusername ${username}`
+      `sfdx force:schema:sobject:list --sobjecttypecategory ${sobjectType} --json --loglevel fatal`
     );
   });
 
@@ -52,116 +55,64 @@ describe('Fetch sObjects', () => {
       status: 0,
       result: ['MyCustomObject2__c', 'MyCustomObject3__c', 'MyCustomObject__c']
     };
-    const cmdOutputStub = sinon
-      .stub(CommandOutput.prototype, 'getCmdResult')
-      .returns(JSON.stringify(responseData));
-    const execStub = sinon.stub(
-      ForceListSObjectSchemaExecutor.prototype,
-      'execute'
+    const cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult').returns(
+      JSON.stringify(responseData)
     );
+    const execStub = stub(ForceListSObjectSchemaExecutor.prototype, 'execute');
     const result = await sobjectdescribe.describeGlobal(
       process.cwd(),
-      SObjectCategory.CUSTOM,
-      'user@example.com'
+      SObjectCategory.CUSTOM
     );
     expect(result).to.deep.equal(responseData.result);
     cmdOutputStub.restore();
     execStub.restore();
   });
 
-  /* this.timeout(180000);
-  let username: string;
-
-  before(async () => {
-    const customFields: util.CustomFieldInfo[] = [
-      new util.CustomFieldInfo(CUSTOM_OBJECT_NAME, [
-        `${CUSTOM_OBJECT_NAME}.${CUSTOM_FIELDNAME}`
-      ]),
-      new util.CustomFieldInfo(CUSTOM_OBJECT2_NAME, [
-        `${CUSTOM_OBJECT2_NAME}.${CUSTOM_FIELDNAME}`
-      ]),
-      new util.CustomFieldInfo(CUSTOM_OBJECT3_NAME, [
-        `${CUSTOM_OBJECT3_NAME}.${CUSTOM_FIELDNAME}`
-      ])
-    ];
-
-    username = await util.initializeProject(
-      PROJECT_NAME,
-      SIMPLE_OBJECT_SOURCE_FOLDER,
-      customFields
+  it('Should build the sobject describe url', () => {
+    expect(sobjectdescribe.buildSObjectDescribeURL('testObject')).to.equal(
+      'v46.0/sobjects/testObject/describe'
     );
   });
 
-  after(async () => {
-    if (username) {
-      await util.deleteScratchOrg(username);
-    }
-    const projectPath = path.join(process.cwd(), PROJECT_NAME);
-    rimraf.sync(projectPath);
+  it('Should build the batch request url', async () => {
+    await sobjectdescribe.getConnectionData('test/project/uri');
+    expect(sobjectdescribe.buildBatchRequestURL()).to.equal(
+      'https://na1.salesforce.com/services/data/v46.0/composite/batch'
+    );
   });
 
-  it('Should be able to call describeGlobal', async () => {
-    const objs = [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2_NAME, CUSTOM_OBJECT3_NAME];
-    const cmdOutput = await sobjectdescribe.describeGlobal(
-      process.cwd(),
-      SObjectCategory.CUSTOM,
-      username
-    );
-    expect(cmdOutput.length).to.be.equal(3);
-    expect(cmdOutput[0]).to.be.oneOf(objs);
-    expect(cmdOutput[1]).to.be.oneOf(objs);
-    expect(cmdOutput[2]).to.be.oneOf(objs);
-    expect(cmdOutput[0]).to.not.equal(cmdOutput[1]);
-    expect(cmdOutput[0]).to.not.equal(cmdOutput[2]);
-    expect(cmdOutput[1]).to.not.equal(cmdOutput[2]);
+  it('Should build the api version', () => {
+    expect(sobjectdescribe.getVersion()).to.equal('v46.0');
   });
 
-  it('Should be able to call describeSObject on custom object', async () => {
-    const cmdOutput = await sobjectdescribe.describeSObject(
-      process.cwd(),
-      CUSTOM_OBJECT_NAME,
-      username
-    );
-    expect(cmdOutput.name).to.be.equal(CUSTOM_OBJECT_NAME);
-    expect(cmdOutput.custom).to.be.true;
-    expect(cmdOutput.fields.length).to.be.least(MIN_CUSTOMOBJECT_NUM_FIELDS);
-    const customField = cmdOutput.fields[cmdOutput.fields.length - 1];
-    expect(customField.custom).to.be.true;
-    expect(customField.precision).to.be.equal(
-      CUSTOMOBJECT_NUMBERFIELD_PRECISION
-    );
-    expect(customField.scale).to.be.equal(0);
-    expect(customField.name).to.be.equal('MyCustomField__c');
+  it('Should create batch request body', () => {
+    const sobjectTypes = ['object1', 'object2', 'object3'];
+    const testBatchReq = {
+      batchRequests: [
+        { method: 'GET', url: 'v46.0/sobjects/object1/describe' },
+        { method: 'GET', url: 'v46.0/sobjects/object2/describe' },
+        { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
+      ]
+    };
+    const requestBody = sobjectdescribe.buildBatchRequestBody(sobjectTypes, 0);
+    expect(requestBody).to.deep.equals(testBatchReq);
   });
 
-  it('Should be able to call describeSObjectBatch on custom objects', async () => {
-    const cmdOutput = await sobjectdescribe.describeSObjectBatch(
-      process.cwd(),
-      [CUSTOM_OBJECT_NAME, CUSTOM_OBJECT2_NAME, CUSTOM_OBJECT3_NAME],
-      0,
-      username
+  /* it('Should return sobjects when calling describeSObjectBatch', async () => {
+    const sobjectTypes = ['object1', 'object2', 'object3'];
+
+    const batchResponse = await sobjectdescribe.describeSObjectBatch(
+      'test/project/uri',
+      sobjectTypes,
+      0
     );
-    expect(cmdOutput[0].name).to.be.equal(CUSTOM_OBJECT_NAME);
-    expect(cmdOutput[0].custom).to.be.true;
-    expect(cmdOutput[0].fields.length).to.be.least(MIN_CUSTOMOBJECT_NUM_FIELDS);
-    const customField = cmdOutput[0].fields[cmdOutput[0].fields.length - 1];
-    expect(customField.name).to.be.equal('MyCustomField__c');
-
-    expect(cmdOutput[1].name).to.be.equal(CUSTOM_OBJECT2_NAME);
-    expect(cmdOutput[1].custom).to.be.true;
-    expect(cmdOutput[1].fields.length).to.be.least(MIN_CUSTOMOBJECT_NUM_FIELDS);
-
-    expect(cmdOutput[2].name).to.be.equal(CUSTOM_OBJECT3_NAME);
-  });
-
-  it('Should be able to call describeSObject on standard object', async () => {
-    // const cmdOutput = await sobjectdescribe.describeSObject(
-    //   process.cwd(),
-    //   'Account',
-    //   username
-    // );
-    // expect(cmdOutput.name).to.be.equal('Account');
-    // expect(cmdOutput.custom).to.be.false;
-    // expect(cmdOutput.fields.length).to.be.least(59);
+    expect(1, requests.length);
+    requests[0].respond(
+      200,
+      { 'Content-Type': 'application/json' },
+      '[{ "id": 12, "comment": "Hey there" }]'
+    );
+    console.log('batchResponse ==>', batchResponse);
+    expect(batchResponse).to.deep.equals('');
   }); */
 });
