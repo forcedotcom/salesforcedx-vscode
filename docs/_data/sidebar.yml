@@ -24,6 +24,8 @@
       url: /articles/user-guide/org-development-model
     - title: Package Development
       url: /articles/user-guide/package-development-model
+    - title: Remote Development
+      url: /articles/user-guide/remote-development
     - title: CLI Commands
       url: /articles/user-guide/cli-commands
     - title: Source Format
