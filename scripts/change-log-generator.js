@@ -106,7 +106,7 @@ function getCommitsAsListOfMaps() {
   var commits = shell
     .exec('git log --oneline', { silent: true })
     .stdout.trim()
-    .split(new RegExp(/\n\d+ Updated SHA256/), 1)
+    .split('Updated SHA256', 1)
     .toString()
     .split('\n');
   console.log('commits: ' + commits);
