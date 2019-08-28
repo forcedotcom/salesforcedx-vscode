@@ -12,6 +12,7 @@ const process = require('process');
 const path = require('path');
 const shell = require('shelljs');
 const readline = require('readline-sync');
+const fs = require('fs');
 
 // Constants
 const CHANGE_LOG_PATH = path.join(
@@ -28,6 +29,7 @@ const PR_NUM = 'PR NUM';
 const COMMIT = 'COMMIT';
 const MESSAGE = 'MESSAGE';
 const FILES = 'FILES';
+const PACKAGES = 'PACKAGES';
 
 /**
  * Gets the latest release branch from git. Retrieves all remote branches
@@ -119,7 +121,8 @@ function buildMapFromCommit(commit) {
       map[PR_NUM] = pr[0];
       map[COMMIT] = commitNum[0];
       map[MESSAGE] = message.trim();
-      map[FILES] = getFilesChangedForCommit(commitNum[0]);
+      map[FILES] = getFilesChangedForCommit(map[COMMIT]);
+      map[PACKAGES] = getPackageHeader(map[FILES]);
     }
   }
   return map;
@@ -131,9 +134,50 @@ function getFilesChangedForCommit(commitNumber) {
     .exec('git show --pretty="" --name-only ' + commitNumber, { silent: true })
     .stdout.trim()
     .toString()
-    .replace('\n', ',');
+    .replace(/\n/g, ',');
   packageHeader = filesChanged;
   return packageHeader;
+}
+
+function getPackageHeader(filesChanged) {
+  var packageHeaders = new Set();
+  filesChanged.split(',').forEach(function(filePath) {
+    if (
+      filePath &&
+      !filePath.includes('/images/') &&
+      !filePath.includes('/test/')
+    ) {
+      if (filePath.includes('docs/')) {
+        packageHeaders.add('docs');
+      } else {
+        packageHeaders.add(filePath.replace('packages/', '').split('/')[0]);
+      }
+    }
+  });
+  return packageHeaders;
+}
+
+function getChangeLog(releaseBranch, commitsAsArrayOfMaps) {
+  var text =
+    releaseBranch.toString().replace('\n', '') +
+    ' - (INSERT RELEASE DATE [Month Day, Year])\n';
+  text += '\n## Fixed\nINSERT ENTRIES\n\n## Added\nINSERT ENTRIES\n\n';
+  commitsAsArrayOfMaps.forEach(function(map) {
+    var pr = map[PR_NUM].replace('^[d]', '');
+    var message =
+      '- ' +
+      map[MESSAGE].trim() +
+      ' ([PR #' +
+      pr +
+      ']' +
+      '(https://github.com/forcedotcom/salesforcedx-vscode/pull/' +
+      pr +
+      '))\n';
+    map[PACKAGES].forEach(function(packageName) {
+      text += '#### ' + packageName + '\n' + message;
+    });
+  });
+  return text;
 }
 
 /**
@@ -149,4 +193,7 @@ validateReleaseBranch(releaseBranch);
 getNewChangeLogBranch(releaseBranch);
 
 var commitsAsArrayOfMaps = getCommitsAsListOfMaps();
-console.log(commitsAsArrayOfMaps);
+var result = getChangeLog(releaseBranch, commitsAsArrayOfMaps);
+console.log(
+  '\nInsert the following changes into ' + CHANGE_LOG_PATH + ':\n' + result
+);
