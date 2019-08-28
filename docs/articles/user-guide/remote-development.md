@@ -36,8 +36,6 @@ Let’s use a sample project we provide and try remote development in Docker con
 1. Clone the [sample repository](https://github.com/forcedotcom/vscode-remote-try-sfdx). The `.devcontainer` folder in the sample project contains the `devcontainer.json` file that defines how to configure the dev container, the Dockerfile to use, and the extensions to install. For details, see [Creating a devcontainer.json file](https://code.visualstudio.com/docs/remote/containers#_creating-a-devcontainerjson-file) and [devcontainer.json reference](https://code.visualstudio.com/docs/remote/containers#_devcontainerjson-reference).
 1. Run `Remote-Containers: Open Folder in Container` from the Command Palette and open the project you cloned. VS code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps into the container, and the side bar shows **Dev Container: Salesforce Project**. The container will pre-install and configure Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
 
-   > NOTE: Make sure you clear `salesforcedx-vscode-apex.java.home` from your local settings because it overrides the default setting in the container environment.
-
    ![Dev Coontainer](../../images/devcontainer.png)
 
 1. From the Command Palette, run the `SFDX:Authorize a Dev Hub` in the container. From the Output panel (below the editor region), you can get the user code and the verification URL required to complete the authorization.
