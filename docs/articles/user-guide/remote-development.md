@@ -19,19 +19,19 @@ Refer to VS Code documentation if you want to understand more about remote devel
 To start remote development in dev container, install:
 
 - Docker Desktop. For system requirements and installation instructions, see:
-  - [Windows](https://docs.docker.com/docker-for-windows/install/): Currently docker desktop for windows supports only Linux Containers and [not Windows Containers](https://code.visualstudio.com/docs/remote/containers#_known-limitations). During the install process, ensure you use the default option of Linux Containers.
+  - [Windows](https://docs.docker.com/docker-for-windows/install/): Currently Docker desktop for windows supports only Linux Containers and [not Windows Containers](https://code.visualstudio.com/docs/remote/containers#_known-limitations). During the install process, ensure you use the default option of Linux Containers.
   - [Mac](https://docs.docker.com/docker-for-mac/install/)
   - [Linux](https://docs.docker.com/install/linux/docker-ce/centos/)
 - Latest version of [VS Code](https://code.visualstudio.com/download)
 - Latest version of [VS Code Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
   After you install VS Code and Docker Desktop for your operating system:
   - For Windows, set source code locations you want to open in a container. In Docker, right-click and select **Settings** / **Preferences** > **Shared Drives** / **File Sharing**. See [Container tips](https://code.visualstudio.com/docs/remote/troubleshooting#_container-tips) if you hit trouble with sharing.
-  - For Linux, see [supported platforms](https://docs.docker.com/install/#supported-platforms). From the terminal, run `sudo usermod -aG docker $USER` to add your user to the docker group. This setting takes effect after you sign out and back in again.
+  - For Linux, see [supported platforms](https://docs.docker.com/install/#supported-platforms). From the terminal, run `sudo usermod -aG docker $USER` to add your user to the `docker` group. This setting takes effect after you sign out and back in again.
 - Latest version of the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)
 
 ## Try a Dev Container with a Sample Project
 
-Let’s use a sample project we provide and try remote development in docker container with Salesforce Extension.
+Let’s use a sample project we provide and try remote development in Docker container with Salesforce Extension.
 
 1. Clone the [sample repository](https://github.com/forcedotcom/vscode-remote-try-sfdx). The `.devcontainer` folder in the sample project contains the `devcontainer.json` file that defines how to configure the dev container, the Dockerfile to use, and the extensions to install. For details, see [Creating a devcontainer.json file](https://code.visualstudio.com/docs/remote/containers#_creating-a-devcontainerjson-file) and [devcontainer.json reference](https://code.visualstudio.com/docs/remote/containers#_devcontainerjson-reference).
 1. Run `Remote-Containers: Open Folder in Container` from the Command Palette and open the project you cloned. VS code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps into the container, and the side bar shows **Dev Container: Salesforce Project**. The container will pre-install and configure Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
