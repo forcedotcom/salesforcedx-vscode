@@ -443,6 +443,10 @@
         {
           "command": "sfdx.internal.lightning.interface.create",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "false"
         }
       ]
     },
