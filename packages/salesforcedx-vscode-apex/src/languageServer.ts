@@ -75,9 +75,12 @@ async function createServer(
 }
 
 function deleteDbIfExists(): void {
-  if (vscode.workspace.rootPath) {
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders[0]
+  ) {
     const dbPath = path.join(
-      vscode.workspace.rootPath,
+      vscode.workspace.workspaceFolders[0].uri.fsPath,
       '.sfdx',
       'tools',
       'apex.db'
