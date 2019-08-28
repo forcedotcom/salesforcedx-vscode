@@ -6,12 +6,16 @@
  */
 
 import { expect } from 'chai';
+
+import { ConfigSource, OrgAuthInfo } from '../../../src/util/index';
 import {
   createExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../src/commands/forceAuthDevHub';
 import { nls } from '../../../src/messages';
+import { SinonStub, stub, spy } from 'sinon'; //
+import Sinon = require('sinon');
 
 // tslint:disable:no-unused-expression
 describe('Force Auth Web Login for Dev Hub', () => {
@@ -25,6 +29,50 @@ describe('Force Auth Web Login for Dev Hub', () => {
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
     );
   });
+});
+
+describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecutor', () => {
+
+  let getDefaultDevHubUsernameStub: SinonStub;
+  let setGlobalDefaultDevHubStub: SinonStub;
+  const authWebLogin = ForceAuthDevHubExecutor.prototype
+
+  beforeEach(() => {
+    getDefaultDevHubUsernameStub = stub(OrgAuthInfo, 'getDefaultDevHubUsernameOrAlias');
+    setGlobalDefaultDevHubStub = stub(authWebLogin, 'setGlobalDefaultDevHub');
+  });
+
+  afterEach(() => {
+    getDefaultDevHubUsernameStub.restore();
+    setGlobalDefaultDevHubStub.restore();
+
+  });
+
+  it('Should set global dev hub if there is no global already, but a local has been defined', async () => {
+
+    getDefaultDevHubUsernameStub.onCall(0).returns(undefined);
+    getDefaultDevHubUsernameStub.onCall(1).returns("test@test.com");
+
+    await authWebLogin.configureDefaultDevHubLocation();
+
+    expect(setGlobalDefaultDevHubStub.called).to.equal(true);
+    expect(getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Global)).to.equal(true);
+    expect(getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Local)).to.equal(true);
+    expect(getDefaultDevHubUsernameStub.calledTwice).to.be.true;
+  });
+
+  it('Should do nothing if there is no local dev hub to refer to', async () => {
+
+    getDefaultDevHubUsernameStub.returns(undefined);
+
+    await authWebLogin.configureDefaultDevHubLocation();
+
+    expect(setGlobalDefaultDevHubStub.called).to.equal(false);
+    expect(getDefaultDevHubUsernameStub.calledTwice).to.equal(true);
+    expect(getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Global)).to.equal(true);
+    expect(getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Local)).to.equal(true);
+  });
+
 });
 
 describe('Force Auth Web Login For Dev Hub in Demo  Mode', () => {
@@ -84,7 +132,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
       );
     });
 
-    it('Should use force:auth:device:login when container mode is defined', () => {
+    it('Should use force:auth:device:login when container mode is defined Cade', () => {
       process.env.SFDX_CONTAINER_MODE = 'pickles';
       const authWebLogin = new ForceAuthDevHubExecutor();
       const authWebLoginCommand = authWebLogin.build({});

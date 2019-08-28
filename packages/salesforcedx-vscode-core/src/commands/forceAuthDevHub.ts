@@ -57,28 +57,30 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(async () => {
-      const globalDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
-        false,
-        ConfigSource.Global
-      );
-
-      if (isNullOrUndefined(globalDevHubName)) {
-        const localDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
-          false,
-          ConfigSource.Local
-        );
-
-        if (localDevHubName) {
-          await this.setGlobalDefaultDevHub(localDevHubName);
-        }
-      }
-    });
+    execution.processExitSubject.subscribe(this.configureDefaultDevHubLocation.bind(this));
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
-  private async setGlobalDefaultDevHub(newUsername: string) {
+  public async configureDefaultDevHubLocation() {
+    const globalDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+      false,
+      ConfigSource.Global
+    );
+
+    if (isNullOrUndefined(globalDevHubName)) {
+      const localDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+        false,
+        ConfigSource.Local
+      );
+
+      if (localDevHubName) {
+        await this.setGlobalDefaultDevHub(localDevHubName);
+      }
+    }
+  }
+
+  public async setGlobalDefaultDevHub(newUsername: string): Promise<void> {
 
     const homeDirectory = require('os').homedir();
 
