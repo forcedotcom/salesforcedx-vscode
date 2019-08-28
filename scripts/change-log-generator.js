@@ -5,6 +5,13 @@
  * 1. You have shelljs installed globally using `npm install -g shelljs`.
  * 2. The release branch in question has already been cut.
  * 3. readline-sync is installed using 'npm install readline-sync'
+ *
+ * This does not currently take into consideration:
+ * 1. External contributions
+ * 2. Duplicates (ex file changes made in both salesforcedx-apex-debugger and salesforcedx-apex-replay-debugger)
+ * 3. Non-salesforce package contributions aside from doc updates
+ * 4. Situations where we should not be adding the entry in the changelog
+ * 5. Adding vs. Fixed
  */
 
 // Imports
@@ -23,6 +30,7 @@ const CHANGE_LOG_PATH = path.join(
 );
 const CHANGE_LOG_BRANCH = 'changeLog-v';
 const RELEASE_REGEX = new RegExp(/^\d{2}\.\d{1,2}\.\d/);
+const GIT_HUB_URL = 'https://github.com/forcedotcom/salesforcedx-vscode/pull/';
 
 // Map Keys
 const PR_NUM = 'PR NUM';
@@ -75,7 +83,7 @@ function validateReleaseBranch(releaseBranch) {
       "Invalid release '" + releaseBranch + "'. Expected format [xx.yy.z]."
     );
   }
-  process.stdout.write('Using release branch: ' + releaseBranch);
+  process.stdout.write('Using release branch: ' + releaseBranch + '\n');
 }
 
 /**
@@ -101,6 +109,7 @@ function getCommitsAsListOfMaps() {
     .split(new RegExp(/\n\d+ Updated SHA256/), 1)
     .toString()
     .split('\n');
+  console.log('commits: ' + commits);
   var result = [];
   for (var i = 0; i < commits.length; i++) {
     var commitMap = buildMapFromCommit(commits[i]);
@@ -122,7 +131,7 @@ function buildMapFromCommit(commit) {
       map[COMMIT] = commitNum[0];
       map[MESSAGE] = message.trim();
       map[FILES] = getFilesChangedForCommit(map[COMMIT]);
-      map[PACKAGES] = getPackageHeader(map[FILES]);
+      map[PACKAGES] = getPackageHeaders(map[FILES]);
     }
   }
   return map;
@@ -139,7 +148,8 @@ function getFilesChangedForCommit(commitNumber) {
   return packageHeader;
 }
 
-function getPackageHeader(filesChanged) {
+// TODO - breakup into smaller pieces
+function getPackageHeaders(filesChanged) {
   var packageHeaders = new Set();
   filesChanged.split(',').forEach(function(filePath) {
     if (
@@ -150,34 +160,63 @@ function getPackageHeader(filesChanged) {
       if (filePath.includes('docs/')) {
         packageHeaders.add('docs');
       } else {
-        packageHeaders.add(filePath.replace('packages/', '').split('/')[0]);
+        var packageName = filePath.replace('packages/', '').split('/')[0];
+        if (packageName.startsWith('salesforce')) {
+          packageHeaders.add(packageName);
+        }
       }
     }
   });
+  if (packageHeaders.has('salesforcedx-vscode-core')) {
+    packageHeaders.forEach(function(packageName) {
+      if (packageName != 'salesforcedx-vscode-core' && packageName != 'docs') {
+        packageHeaders.delete(packageName);
+      }
+    });
+  }
   return packageHeaders;
 }
 
+// TODO - would like to change this to something similar to how messages are generated.
+// This way we're only replacing pieces of a standard format.
+// TODO - documentation
 function getChangeLog(releaseBranch, commitsAsArrayOfMaps) {
   var text =
     releaseBranch.toString().replace('\n', '') +
-    ' - (INSERT RELEASE DATE [Month Day, Year])\n';
-  text += '\n## Fixed\nINSERT ENTRIES\n\n## Added\nINSERT ENTRIES\n\n';
-  commitsAsArrayOfMaps.forEach(function(map) {
-    var pr = map[PR_NUM].replace('^[d]', '');
-    var message =
-      '- ' +
-      map[MESSAGE].trim() +
-      ' ([PR #' +
-      pr +
-      ']' +
-      '(https://github.com/forcedotcom/salesforcedx-vscode/pull/' +
-      pr +
-      '))\n';
-    map[PACKAGES].forEach(function(packageName) {
-      text += '#### ' + packageName + '\n' + message;
+    ' - (INSERT RELEASE DATE [Month Day, Year])\n' +
+    '\n## Fixed\nINSERT ENTRIES\n\n## Added\nINSERT ENTRIES\n\n';
+  var messagesByPackage = {};
+
+  Object.values(commitsAsArrayOfMaps).forEach(function(commitMap) {
+    var message = buildChangeLogLine(commitMap);
+    commitMap[PACKAGES].forEach(function(packageName) {
+      messagesByPackage[packageName] = messagesByPackage[packageName] || [];
+      messagesByPackage[packageName].push(message);
+    });
+  });
+
+  Object.keys(messagesByPackage).forEach(function(packageName) {
+    text += '\n#### ' + packageName + '\n';
+    Object.values(messagesByPackage[packageName]).forEach(function(message) {
+      text += message;
     });
   });
   return text;
+}
+
+function buildChangeLogLine(map) {
+  var pr = map[PR_NUM].replace(/[^\d]/g, '');
+  return (
+    '- ' +
+    map[MESSAGE].trim() +
+    ' ([PR #' +
+    pr +
+    ']' +
+    '(' +
+    GIT_HUB_URL +
+    pr +
+    '))\n'
+  );
 }
 
 /**
