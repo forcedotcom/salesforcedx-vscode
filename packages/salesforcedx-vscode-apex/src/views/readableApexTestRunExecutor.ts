@@ -46,7 +46,7 @@ export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExec
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: vscode.workspace.rootPath
+      cwd: vscode.workspace.workspaceFolders![0].uri.fsPath
     }).execute(cancellationToken);
 
     super.attachExecution(
