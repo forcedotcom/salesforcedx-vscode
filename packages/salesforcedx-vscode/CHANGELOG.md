@@ -4,8 +4,8 @@
 
 #### salesforcedx-vscode-core
 
-- Fix diagnostic information when pushing or deploying source ([PR #1597](https://github.com/forcedotcom/salesforcedx-vscode/pull/1597)
-- Remove org browser flag ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+- Fix issue with displaying errors in the Problem View when deploying code ([PR #1597](https://github.com/forcedotcom/salesforcedx-vscode/pull/1597)
+- Org Browser is now enabled by default. Removed the option to disable this setting through the Settings editor ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
 
 #### docs
 
