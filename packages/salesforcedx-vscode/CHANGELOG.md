@@ -1,3 +1,22 @@
+# 46.12.0 - August 29, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix diagnostics error when pushing/deploying source ([PR #1597](https://github.com/forcedotcom/salesforcedx-vscode/pull/1597)
+- Remove org browser flag ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+
+#### docs
+
+- Remove org browser flag doc references ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+
+## Added
+
+#### docs
+
+- Open beta for remote development that allows you to use a container as a full-featured development environment ([PR #1609](https://github.com/forcedotcom/salesforcedx-vscode/pull/1609))
+
 ## 46.11.0 - August 22, 2019
 
 ## Fixed
