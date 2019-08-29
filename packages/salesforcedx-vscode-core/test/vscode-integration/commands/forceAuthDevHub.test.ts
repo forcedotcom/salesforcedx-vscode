@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigFile } from '@salesforce/core';
 import { expect } from 'chai';
-
 import { ConfigSource, OrgAuthInfo } from '../../../src/util/index';
 import {
   createExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../src/commands/forceAuthDevHub';
+import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { SinonStub, stub, spy } from 'sinon'; //
 import Sinon = require('sinon');
@@ -66,11 +67,23 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
     getDefaultDevHubUsernameStub.returns(undefined);
 
     await authWebLogin.configureDefaultDevHubLocation();
-
     expect(setGlobalDefaultDevHubStub.called).to.equal(false);
     expect(getDefaultDevHubUsernameStub.calledTwice).to.equal(true);
     expect(getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Global)).to.equal(true);
     expect(getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Local)).to.equal(true);
+  });
+
+  it('Should call set and write on the config file', async () => {
+
+    const configWrite = stub(ConfigFile.prototype, 'write');
+    const configSet = stub(ConfigFile.prototype, 'set');
+    setGlobalDefaultDevHubStub.restore();
+
+    const testUsername = "test@test.com"
+    await authWebLogin.setGlobalDefaultDevHub(testUsername);
+
+    expect(configWrite.calledOnce).to.equal(true);
+    expect(configSet.calledOnce).to.equal(true);
   });
 
 });
@@ -132,7 +145,7 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
       );
     });
 
-    it('Should use force:auth:device:login when container mode is defined Cade', () => {
+    it('Should use force:auth:device:login when container mode is defined', () => {
       process.env.SFDX_CONTAINER_MODE = 'pickles';
       const authWebLogin = new ForceAuthDevHubExecutor();
       const authWebLoginCommand = authWebLogin.build({});
