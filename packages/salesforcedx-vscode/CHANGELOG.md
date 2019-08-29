@@ -15,7 +15,7 @@
 
 #### docs
 
-- Open beta for remote development that allows you to use a container as a full-featured development environment ([PR #1609](https://github.com/forcedotcom/salesforcedx-vscode/pull/1609))
+- Open beta for ([Remote Development](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/remote-development)) that allows you to use a container as a full-featured development environment ([PR #1609](https://github.com/forcedotcom/salesforcedx-vscode/pull/1609))
 
 ## 46.11.0 - August 22, 2019
 
