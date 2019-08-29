@@ -1,3 +1,22 @@
+# 46.12.0 - August 29, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix issue with displaying errors in the Problem View when deploying code ([PR #1597](https://github.com/forcedotcom/salesforcedx-vscode/pull/1597)
+- Org Browser is now enabled by default. Removed the option to disable this setting through the Settings editor ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+
+#### docs
+
+- Remove references to enabling Org Browser ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+
+## Added
+
+#### docs
+
+- Open beta for ([Remote Development](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/remote-development)) that allows you to use a container as a full-featured development environment ([PR #1609](https://github.com/forcedotcom/salesforcedx-vscode/pull/1609))
+
 ## 46.11.0 - August 22, 2019
 
 ## Fixed
