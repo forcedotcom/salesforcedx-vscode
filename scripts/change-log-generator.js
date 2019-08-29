@@ -86,15 +86,13 @@ function validateReleaseBranch(releaseBranch) {
   process.stdout.write('Using release branch: ' + releaseBranch + '\n');
 }
 
-/**
- * Checks out the release branch specified. Builds a new change log
- * branch using the release branch as its base.
- */
 function getNewChangeLogBranch(releaseBranch) {
   var changeLogBranch = CHANGE_LOG_BRANCH + releaseBranch;
-  shell.exec('git checkout ' + path.join('release', 'v' + releaseBranch));
-  shell.exec('git branch ' + changeLogBranch);
-  shell.exec('git checkout ' + changeLogBranch);
+  shell.exec(
+    'git checkout -b ' +
+      changeLogBranch +
+      path.join('release', 'v' + releaseBranch)
+  );
 }
 
 /**
