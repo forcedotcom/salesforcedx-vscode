@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "46.11.0",
+  "version": "46.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.0.1",
-    "@salesforce/salesforcedx-utils-vscode": "46.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "46.12.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -36,7 +36,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "46.11.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "46.12.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -95,7 +95,7 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "config.salesforcedx-vscode-core.orgBrowser.enabled && sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         }
       ]
     },
@@ -712,11 +712,6 @@
           "type": "boolean",
           "default": false,
           "description": "%internal_dev_description%"
-        },
-        "salesforcedx-vscode-core.orgBrowser.enabled": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "%org_browser_enabled_description%"
         }
       }
     },
