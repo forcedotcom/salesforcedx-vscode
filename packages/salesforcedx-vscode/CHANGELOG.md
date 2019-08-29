@@ -4,12 +4,12 @@
 
 #### salesforcedx-vscode-core
 
-- Fix diagnostics error when pushing/deploying source ([PR #1597](https://github.com/forcedotcom/salesforcedx-vscode/pull/1597)
+- Fix diagnostic information when pushing or deploying source ([PR #1597](https://github.com/forcedotcom/salesforcedx-vscode/pull/1597)
 - Remove org browser flag ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
 
 #### docs
 
-- Remove org browser flag doc references ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+- Remove references to enabling Org Browser ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
 
 ## Added
 
