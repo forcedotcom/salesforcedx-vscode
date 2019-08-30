@@ -14,12 +14,12 @@ import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
   DefaultPathStrategy,
+  FileInOutputDir,
   FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  SinglePackageDirectory
+  SfdxWorkspaceChecker
 } from '../commands';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
@@ -61,9 +61,7 @@ export async function forceApexTriggerCreate() {
     ),
     new ForceApexTriggerCreateExecutor(),
     new FilePathExistsChecker(
-      [APEX_TRIGGER_EXTENSION],
-      new DefaultPathStrategy(),
-      new SinglePackageDirectory(),
+      new FileInOutputDir(APEX_TRIGGER_EXTENSION),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('apex_trigger_message_name')

@@ -78,62 +78,69 @@ export class BundlePathStrategy implements SourcePathStrategy {
   }
 }
 
-export interface GlobStrategy {
-  globs(
-    selection: DirFileNameSelection,
-    pathStrategy: SourcePathStrategy,
-    extensionsToCheck: string[]
+export abstract class GlobStrategy {
+  protected readonly pathStrategy: SourcePathStrategy;
+  protected readonly extensionsToCheck: string[];
+
+  constructor(pathStrategy: SourcePathStrategy, extensionsToCheck: string[]) {
+    this.pathStrategy = pathStrategy;
+    this.extensionsToCheck = extensionsToCheck;
+  }
+
+  public abstract globs(
+    selection: DirFileNameSelection
   ): Promise<vscode.GlobPattern[]>;
 }
 
-export class SinglePackageDirectory implements GlobStrategy {
-  public globs(
-    selection: DirFileNameSelection,
-    pathStrategy: SourcePathStrategy,
-    extensionsToCheck: string[]
-  ) {
+class SingleOutputDirectory extends GlobStrategy {
+  public globs(selection: DirFileNameSelection) {
+    // outputdir expected as path
     const { outputdir, fileName } = selection;
-    const filePaths = extensionsToCheck.map(extension =>
-      pathStrategy.getPathToSource(outputdir, fileName, extension)
+    const filePaths = this.extensionsToCheck.map(fileExtension =>
+      this.pathStrategy.getPathToSource(outputdir, fileName, fileExtension)
     );
     return Promise.resolve([`{${filePaths.join(',')}}`]);
   }
 }
 
-export class AllPackageDirectories implements GlobStrategy {
+export class BundleInOutputDir extends SingleOutputDirectory {
+  constructor(withFileExtensions: string[]) {
+    super(new BundlePathStrategy(), withFileExtensions);
+  }
+}
+
+export class FileInOutputDir extends SingleOutputDirectory {
+  constructor(withFileExtension: string) {
+    super(new DefaultPathStrategy(), [withFileExtension]);
+  }
+}
+
+export class AllPackageDirectories extends GlobStrategy {
   public async globs(
-    selection: DirFileNameSelection,
-    pathStrategy: SourcePathStrategy,
-    extensionsToCheck: string[]
+    selection: DirFileNameSelection
   ): Promise<vscode.GlobPattern[]> {
+    // outputdir expected as just a name
     const { outputdir, fileName } = selection;
-    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const globs: vscode.GlobPattern[] = [];
+
+    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
     packageDirectories.forEach(packageDir => {
       const basePath = path.join(packageDir, 'main', 'default', outputdir);
-      const filePaths = extensionsToCheck.map(extension =>
-        pathStrategy.getPathToSource(basePath, fileName, extension)
+      const filePaths = this.extensionsToCheck.map(extension =>
+        this.pathStrategy.getPathToSource(basePath, fileName, extension)
       );
       globs.push(`{${filePaths.join(',')}}`);
     });
+
     return globs;
   }
 }
 export class FilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
-  private extensionsToCheck: string[];
-  private sourcePathStrategy: SourcePathStrategy;
   private globStrategy: GlobStrategy;
   private warningMessage: string;
 
-  public constructor(
-    extensionsToCheck: string[],
-    sourcePathStrategy: SourcePathStrategy,
-    globStrategy: GlobStrategy,
-    warningMessage: string
-  ) {
-    this.extensionsToCheck = extensionsToCheck;
-    this.sourcePathStrategy = sourcePathStrategy;
+  public constructor(globStrategy: GlobStrategy, warningMessage: string) {
     this.globStrategy = globStrategy;
     this.warningMessage = warningMessage;
   }
@@ -142,32 +149,30 @@ export class FilePathExistsChecker
     inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
   ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
-      const globs = await this.globStrategy.globs(
-        inputs.data,
-        this.sourcePathStrategy,
-        this.extensionsToCheck
-      );
-
-      const files = [];
-      for (const g of globs) {
-        const result = await vscode.workspace.findFiles(g);
-        files.push(...result);
-      }
-
-      if (files.length === 0) {
-        return inputs;
-      }
-
-      const overwrite = await notificationService.showWarningMessage(
-        this.warningMessage,
-        nls.localize('warning_prompt_continue_confirm'),
-        nls.localize('warning_prompt_overwrite_cancel')
-      );
-      if (overwrite === nls.localize('warning_prompt_continue_confirm')) {
+      const globs = await this.globStrategy.globs(inputs.data);
+      if (!(await this.filesExist(globs)) || (await this.promptOverwrite())) {
         return inputs;
       }
     }
     return { type: 'CANCEL' };
+  }
+
+  private async filesExist(globs: vscode.GlobPattern[]): Promise<boolean> {
+    const files = [];
+    for (const g of globs) {
+      const result = await vscode.workspace.findFiles(g);
+      files.push(...result);
+    }
+    return files.length > 0;
+  }
+
+  private async promptOverwrite(): Promise<boolean> {
+    const overwrite = await notificationService.showWarningMessage(
+      this.warningMessage,
+      nls.localize('warning_prompt_continue_confirm'),
+      nls.localize('warning_prompt_overwrite_cancel')
+    );
+    return overwrite === nls.localize('warning_prompt_continue_confirm');
   }
 }
 

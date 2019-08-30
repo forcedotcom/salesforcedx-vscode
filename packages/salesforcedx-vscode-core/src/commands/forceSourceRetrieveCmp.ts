@@ -9,18 +9,13 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  CancelResponse,
   ContinueResponse,
   DirFileNameSelection,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as path from 'path';
-import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { BrowserNode, NodeType } from '../orgBrowser';
-import { SfdxPackageDirectories } from '../sfdxProject';
-import { TelemetryData, telemetryService } from '../telemetry';
+import { TelemetryData } from '../telemetry';
 import {
   AllPackageDirectories,
   BundlePathStrategy,
@@ -133,9 +128,7 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
     new DirFileNameGatherer(dirName, componentName),
     executor,
     new FilePathExistsChecker(
-      fileExts,
-      sourcePathStrategy,
-      new AllPackageDirectories(),
+      new AllPackageDirectories(sourcePathStrategy, fileExts),
       nls.localize('warning_prompt_cmp_file_overwrite', label)
     )
   );

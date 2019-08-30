@@ -14,14 +14,14 @@ import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import {
+  BundleInOutputDir,
   BundlePathStrategy,
   CompositeParametersGatherer,
   FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  SinglePackageDirectory
+  SfdxWorkspaceChecker
 } from '../commands';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
@@ -72,9 +72,7 @@ export async function forceLightningAppCreate() {
     ),
     new ForceLightningAppCreateExecutor(),
     new FilePathExistsChecker(
-      AURA_DEFINITION_FILE_EXTS,
-      new BundlePathStrategy(),
-      new SinglePackageDirectory(),
+      new BundleInOutputDir(AURA_DEFINITION_FILE_EXTS),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('aura_bundle_message_name')

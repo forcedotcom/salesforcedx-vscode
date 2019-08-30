@@ -14,12 +14,12 @@ import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
   DefaultPathStrategy,
+  FileInOutputDir,
   FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  SinglePackageDirectory
+  SfdxWorkspaceChecker
 } from '../commands';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
@@ -62,9 +62,7 @@ export async function forceApexClassCreate() {
     ),
     new ForceApexClassCreateExecutor(),
     new FilePathExistsChecker(
-      [APEX_CLASS_EXTENSION],
-      new DefaultPathStrategy(),
-      new SinglePackageDirectory(),
+      new FileInOutputDir(APEX_CLASS_EXTENSION),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('apex_class_message_name')

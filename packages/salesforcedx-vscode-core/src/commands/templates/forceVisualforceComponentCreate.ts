@@ -14,12 +14,12 @@ import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
   DefaultPathStrategy,
+  FileInOutputDir,
   FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  SinglePackageDirectory
+  SfdxWorkspaceChecker
 } from '../commands';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
@@ -62,9 +62,7 @@ export async function forceVisualforceComponentCreate() {
     ),
     new ForceVisualForceComponentCreateExecutor(),
     new FilePathExistsChecker(
-      [VISUALFORCE_COMPONENT_EXTENSION],
-      new DefaultPathStrategy(),
-      new SinglePackageDirectory(),
+      new FileInOutputDir(VISUALFORCE_COMPONENT_EXTENSION),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('visualforce_component_message_name')
