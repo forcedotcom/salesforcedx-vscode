@@ -7,16 +7,15 @@
 
 import { ConfigFile } from '@salesforce/core';
 import { expect } from 'chai';
-import { ConfigSource, OrgAuthInfo } from '../../../src/util/index';
+import { sandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import {
   createExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../src/commands/forceAuthDevHub';
-import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_PROJECT_FILE } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import { SinonStub, stub, spy } from 'sinon'; //
-import Sinon = require('sinon');
+import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../src/constants';
+import { ConfigSource, OrgAuthInfo } from '../../../src/util/index';
 
 // tslint:disable:no-unused-expression
 describe('Force Auth Web Login for Dev Hub', () => {
@@ -36,23 +35,30 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
 
   let getDefaultDevHubUsernameStub: SinonStub;
   let setGlobalDefaultDevHubStub: SinonStub;
-  const authWebLogin = ForceAuthDevHubExecutor.prototype
+  let configWriteStub: SinonStub;
+  let configSetStub: SinonStub;
+  let configCreateSpy: SinonSpy;
+
+  const authWebLogin = ForceAuthDevHubExecutor.prototype;
+  let sb: SinonSandbox;
 
   beforeEach(() => {
-    getDefaultDevHubUsernameStub = stub(OrgAuthInfo, 'getDefaultDevHubUsernameOrAlias');
-    setGlobalDefaultDevHubStub = stub(authWebLogin, 'setGlobalDefaultDevHub');
+    sb = sandbox.create()
+    getDefaultDevHubUsernameStub = sb.stub(OrgAuthInfo, 'getDefaultDevHubUsernameOrAlias');
+    setGlobalDefaultDevHubStub = sb.stub(authWebLogin, 'setGlobalDefaultDevHub');
+    configWriteStub = sb.stub(ConfigFile.prototype, 'write');
+    configSetStub = sb.stub(ConfigFile.prototype, 'set');
+    configCreateSpy = sb.spy(ConfigFile, "create");
   });
 
   afterEach(() => {
-    getDefaultDevHubUsernameStub.restore();
-    setGlobalDefaultDevHubStub.restore();
-
+    sb.restore();
   });
 
   it('Should set global dev hub if there is no global already, but a local has been defined', async () => {
 
     getDefaultDevHubUsernameStub.onCall(0).returns(undefined);
-    getDefaultDevHubUsernameStub.onCall(1).returns("test@test.com");
+    getDefaultDevHubUsernameStub.onCall(1).returns('test@test.com');
 
     await authWebLogin.configureDefaultDevHubLocation();
 
@@ -67,6 +73,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
     getDefaultDevHubUsernameStub.returns(undefined);
 
     await authWebLogin.configureDefaultDevHubLocation();
+
     expect(setGlobalDefaultDevHubStub.called).to.equal(false);
     expect(getDefaultDevHubUsernameStub.calledTwice).to.equal(true);
     expect(getDefaultDevHubUsernameStub.calledWith(false, ConfigSource.Global)).to.equal(true);
@@ -75,15 +82,15 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
 
   it('Should call set and write on the config file', async () => {
 
-    const configWrite = stub(ConfigFile.prototype, 'write');
-    const configSet = stub(ConfigFile.prototype, 'set');
     setGlobalDefaultDevHubStub.restore();
+    const testUsername = 'test@test.com';
 
-    const testUsername = "test@test.com"
     await authWebLogin.setGlobalDefaultDevHub(testUsername);
 
-    expect(configWrite.calledOnce).to.equal(true);
-    expect(configSet.calledOnce).to.equal(true);
+    expect(configCreateSpy.getCall(0).args[0].isGlobal).to.be.true;
+    expect(configSetStub.calledWith(DEFAULT_DEV_HUB_USERNAME_KEY, testUsername)).to.equal(true);
+    expect(configWriteStub.calledOnce).to.equal(true);
+    expect(configSetStub.calledOnce).to.equal(true);
   });
 
 });
