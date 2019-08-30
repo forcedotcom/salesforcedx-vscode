@@ -20,16 +20,16 @@ See: [Java Configuration](getting-started/java-setup)
 See [Installing the Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli). If after installing the Salesforce CLI you see the error 'Salesforce CLI is not installed', this likely means that the Salesforce CLI was not added to your path. Follow these steps for verifying and adding the Salesforce CLI to your Windows path variable.
 
 1. From your `Windows Search` look for `Edit the system environment variables`.
-   ![Windows Search](../images/troubleshooting_set_cli_path.1.png)
+   <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.1.png" alt="Windows Search">
 
 1. From `System Properties` click `Environment Variables`.
-   ![System Properties](../images/troubleshooting_set_cli_path.2.png)
+   <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.2.png" alt="System Properties">
 
 1. Double click on `Path` under `User Variables`.
-   ![User Variables](../images/troubleshooting_set_cli_path.3.png)
+   <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.3.png" alt="User Variables">
 
 1. Verify Salesforce CLI is listed as an entry.
-   ![Path View](../images/troubleshooting_set_cli_path.4.png)
+   <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.4.png" alt="Path View">
 
 1. If the Salesforce CLI is not listed as an entry, add it by clicking the `New` button and pasting the path `C:\Program Files\Salesforce CLI\bin` (adjust this path if you installed the cli into a different directory).
 
