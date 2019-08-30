@@ -6,6 +6,7 @@
  */
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
+export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 export const CLIENT_ID = 'sfdx-vscode';
 export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;

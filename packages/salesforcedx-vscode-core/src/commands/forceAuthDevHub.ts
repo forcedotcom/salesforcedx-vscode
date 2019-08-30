@@ -25,8 +25,9 @@ import {
 import { ConfigFile } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { homedir } from 'os';
 import * as vscode from 'vscode';
-import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_PROJECT_FILE } from '../constants';
+import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_CONFIG_FILE } from '../constants';
 import { nls } from '../messages';
 import { isDemoMode } from '../modes/demo-mode';
 import { isSFDXContainerMode } from '../util';
@@ -57,18 +58,20 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(this.configureDefaultDevHubLocation.bind(this));
+    execution.processExitSubject.subscribe(() => this.configureDefaultDevHubLocation());
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
   public async configureDefaultDevHubLocation() {
+
     const globalDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
       false,
       ConfigSource.Global
     );
 
     if (isNullOrUndefined(globalDevHubName)) {
+
       const localDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
         false,
         ConfigSource.Local
@@ -82,12 +85,12 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
 
   public async setGlobalDefaultDevHub(newUsername: string): Promise<void> {
 
-    const homeDirectory = require('os').homedir();
+    const homeDirectory = homedir();
 
     const globalConfig = await ConfigFile.create({
       isGlobal: true,
       rootFolder: homeDirectory,
-      filename: SFDX_PROJECT_FILE
+      filename: SFDX_CONFIG_FILE
     });
 
     globalConfig.set(DEFAULT_DEV_HUB_USERNAME_KEY, newUsername);
