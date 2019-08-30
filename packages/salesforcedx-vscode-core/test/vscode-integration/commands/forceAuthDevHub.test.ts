@@ -13,8 +13,8 @@ import {
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../src/commands/forceAuthDevHub';
-import { nls } from '../../../src/messages';
 import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../src/constants';
+import { nls } from '../../../src/messages';
 import { ConfigSource, OrgAuthInfo } from '../../../src/util/index';
 
 // tslint:disable:no-unused-expression
@@ -43,12 +43,12 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   let sb: SinonSandbox;
 
   beforeEach(() => {
-    sb = sandbox.create()
+    sb = sandbox.create();
     getDefaultDevHubUsernameStub = sb.stub(OrgAuthInfo, 'getDefaultDevHubUsernameOrAlias');
     setGlobalDefaultDevHubStub = sb.stub(authWebLogin, 'setGlobalDefaultDevHub');
     configWriteStub = sb.stub(ConfigFile.prototype, 'write');
     configSetStub = sb.stub(ConfigFile.prototype, 'set');
-    configCreateSpy = sb.spy(ConfigFile, "create");
+    configCreateSpy = sb.spy(ConfigFile, 'create');
   });
 
   afterEach(() => {
