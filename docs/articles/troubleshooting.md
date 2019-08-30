@@ -15,6 +15,17 @@ If you donâ€™t see any SFDX commands in the command palette, make sure that youâ
 
 See: [Java Configuration](getting-started/java-setup)
 
+## Set Salesforce CLI Path (Windows)
+
+See [Installing the Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli). If after installing the cli you see the error 'Salesforce CLI is not installed', this likely means that the Salesforce CLI was not added to your path. Follow these steps for verifying and adding the Salesforce CLI to your Windows path variable.
+
+1. From your [Windows Search](../images/troubleshooting_set_cli_path.1.png) look for `Edit the system environment variables`.
+1. From [System Properties](../images/troubleshooting_set_cli_path.2.png) click `Environment Variables`.
+1. Double click on [Path](../images/troubleshooting_set_cli_path.3.png) under `User Variables`.
+1. Verify [Salesforce CLI](<(../images/troubleshooting_set_cli_path.4.png)>) is listed as an entry.
+1. If it is not present, add it by clicking the `New` button and pasting the path `C:\Program Files\Salesforce CLI\bin` (adjust this path if you installed the cli into a different directory).
+1. Click the `OK` button.
+
 ## Monitor Apex Language Server Output
 
 The Apex Language Server is an implementation of the [Language Server Protocol](https://github.com/Microsoft/language-server-protocol) 3.0 specification. The Language Server Protocol allows a tool (in this case, VS Code) to communicate with a language smartness provider (the server). VS Code uses the Apex Language Server to show outlines of Apex classes and triggers, code-completion suggestions, and syntactic errors. To see all diagnostic information from the Apex Language Server, select **View** > **Output**, then choose **Apex Language Server** from the dropdown menu. The diagnostic information gives you insights into the progress of the language server and shows the problems encountered.
