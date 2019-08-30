@@ -75,7 +75,7 @@ export async function forceLightningAppCreate() {
     ),
     new ForceLightningAppCreateExecutor(),
     new FilePathExistsChecker(
-      GlobStrategyFactory.createBundleInOutputDirStrategy(
+      GlobStrategyFactory.createCheckBundleInGivenPath(
         ...AURA_DEFINITION_FILE_EXTS
       ),
       nls.localize(

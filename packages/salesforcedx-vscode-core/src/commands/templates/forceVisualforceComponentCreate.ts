@@ -65,7 +65,7 @@ export async function forceVisualforceComponentCreate() {
     ),
     new ForceVisualForceComponentCreateExecutor(),
     new FilePathExistsChecker(
-      GlobStrategyFactory.createFileInOutputDirStrategy(
+      GlobStrategyFactory.createCheckFileInGivenPath(
         VISUALFORCE_COMPONENT_EXTENSION
       ),
       nls.localize(

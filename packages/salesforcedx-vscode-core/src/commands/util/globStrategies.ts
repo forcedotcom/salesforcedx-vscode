@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { GlobPattern } from 'vscode';
@@ -21,7 +27,7 @@ abstract class BaseGlobStrategy implements GlobStrategy {
   ): Promise<GlobPattern[]>;
 }
 
-class SingleOutputDirectory extends BaseGlobStrategy {
+class CheckGivenPath extends BaseGlobStrategy {
   public globs(selection: DirFileNameSelection) {
     // outputdir expected as path
     const { outputdir, fileName } = selection;
@@ -32,7 +38,7 @@ class SingleOutputDirectory extends BaseGlobStrategy {
   }
 }
 
-class AllPackages extends BaseGlobStrategy {
+class CheckAllPackages extends BaseGlobStrategy {
   public async globs(selection: DirFileNameSelection): Promise<GlobPattern[]> {
     // outputdir expected as just a name
     const { outputdir, fileName } = selection;
@@ -56,37 +62,37 @@ export interface GlobStrategy {
 }
 
 export class GlobStrategyFactory {
-  public static createFileInOutputDirStrategy(
+  public static createCheckFileInGivenPath(
     ...withFileExtensions: string[]
-  ): SingleOutputDirectory {
-    return new SingleOutputDirectory(
+  ): CheckGivenPath {
+    return new CheckGivenPath(
       PathStrategyFactory.createDefaultStrategy(),
       withFileExtensions
     );
   }
 
-  public static createBundleInOutputDirStrategy(
+  public static createCheckBundleInGivenPath(
     ...withFileExtensions: string[]
-  ): SingleOutputDirectory {
-    return new SingleOutputDirectory(
+  ): CheckGivenPath {
+    return new CheckGivenPath(
       PathStrategyFactory.createBundleStrategy(),
       withFileExtensions
     );
   }
 
-  public static createFileInAllPackagesStrategy(
+  public static createCheckFileInAllPackages(
     ...withFileExtensions: string[]
-  ): AllPackages {
-    return new AllPackages(
+  ): CheckAllPackages {
+    return new CheckAllPackages(
       PathStrategyFactory.createDefaultStrategy(),
       withFileExtensions
     );
   }
 
-  public static createBundleInAllPackagesStrategy(
+  public static createCheckBundleInAllPackages(
     ...withFileExtensions: string[]
-  ): AllPackages {
-    return new AllPackages(
+  ): CheckAllPackages {
+    return new CheckAllPackages(
       PathStrategyFactory.createBundleStrategy(),
       withFileExtensions
     );

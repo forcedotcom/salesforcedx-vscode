@@ -64,7 +64,7 @@ export async function forceApexTriggerCreate() {
     ),
     new ForceApexTriggerCreateExecutor(),
     new FilePathExistsChecker(
-      GlobStrategyFactory.createFileInOutputDirStrategy(APEX_TRIGGER_EXTENSION),
+      GlobStrategyFactory.createCheckFileInGivenPath(APEX_TRIGGER_EXTENSION),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('apex_trigger_message_name')

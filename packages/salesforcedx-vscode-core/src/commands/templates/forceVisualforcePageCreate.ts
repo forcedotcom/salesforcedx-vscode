@@ -65,7 +65,7 @@ export async function forceVisualforcePageCreate() {
     ),
     new ForceVisualForcePageCreateExecutor(),
     new FilePathExistsChecker(
-      GlobStrategyFactory.createFileInOutputDirStrategy(
+      GlobStrategyFactory.createCheckFileInGivenPath(
         VISUALFORCE_PAGE_EXTENSION
       ),
       nls.localize(

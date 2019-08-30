@@ -74,7 +74,7 @@ export async function forceLightningLwcCreate() {
     new CompositeParametersGatherer(fileNameGatherer, outputDirGatherer),
     new ForceLightningLwcCreateExecutor(),
     new FilePathExistsChecker(
-      GlobStrategyFactory.createBundleInOutputDirStrategy(
+      GlobStrategyFactory.createCheckBundleInGivenPath(
         ...LWC_DEFINITION_FILE_EXTS
       ),
       nls.localize(

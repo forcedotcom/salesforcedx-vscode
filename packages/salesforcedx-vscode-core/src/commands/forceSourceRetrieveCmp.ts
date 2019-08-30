@@ -115,8 +115,8 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
   const fileExts = generateSuffix(typeNode, typeName);
 
   const globStrategy = BUNDLE_TYPES.has(typeName)
-    ? GlobStrategyFactory.createBundleInAllPackagesStrategy(...fileExts)
-    : GlobStrategyFactory.createFileInAllPackagesStrategy(...fileExts);
+    ? GlobStrategyFactory.createCheckBundleInAllPackages(...fileExts)
+    : GlobStrategyFactory.createCheckFileInAllPackages(...fileExts);
 
   const executor = new ForceSourceRetrieveExecutor(typeName, componentName);
 

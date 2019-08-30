@@ -65,7 +65,7 @@ export async function forceApexClassCreate() {
     ),
     new ForceApexClassCreateExecutor(),
     new FilePathExistsChecker(
-      GlobStrategyFactory.createFileInOutputDirStrategy(APEX_CLASS_EXTENSION),
+      GlobStrategyFactory.createCheckFileInGivenPath(APEX_CLASS_EXTENSION),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('apex_class_message_name')
