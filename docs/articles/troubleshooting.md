@@ -22,8 +22,8 @@ See [Installing the Salesforce CLI](https://developer.salesforce.com/tools/sfdxc
 1. From your [Windows Search](../images/troubleshooting_set_cli_path.1.png) look for `Edit the system environment variables`.
 1. From [System Properties](../images/troubleshooting_set_cli_path.2.png) click `Environment Variables`.
 1. Double click on [Path](../images/troubleshooting_set_cli_path.3.png) under `User Variables`.
-1. Verify [Salesforce CLI](<(../images/troubleshooting_set_cli_path.4.png)>) is listed as an entry.
-1. If it is not present, add it by clicking the `New` button and pasting the path `C:\Program Files\Salesforce CLI\bin` (adjust this path if you installed the cli into a different directory).
+1. Verify [Salesforce CLI](../images/troubleshooting_set_cli_path.4.png) is listed as an entry.
+1. If the Salesforce CLI is not listed as an entry, add it by clicking the `New` button and pasting the path `C:\Program Files\Salesforce CLI\bin` (adjust this path if you installed the cli into a different directory).
 1. Click the `OK` button.
 
 ## Monitor Apex Language Server Output
