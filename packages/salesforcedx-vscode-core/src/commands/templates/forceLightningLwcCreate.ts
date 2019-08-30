@@ -14,17 +14,16 @@ import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import {
+  BundlePathStrategy,
   CompositeParametersGatherer,
+  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  SinglePackageDirectory
 } from '../commands';
-import {
-  BaseTemplateCommand,
-  BundlePathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
@@ -74,7 +73,11 @@ export async function forceLightningLwcCreate() {
     new FilePathExistsChecker(
       LWC_DEFINITION_FILE_EXTS,
       new BundlePathStrategy(),
-      nls.localize('lwc_message_name')
+      new SinglePackageDirectory(),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('lwc_message_name')
+      )
     )
   );
   await commandlet.run();

@@ -13,16 +13,15 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
+  DefaultPathStrategy,
+  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  SinglePackageDirectory
 } from '../commands';
-import {
-  BaseTemplateCommand,
-  DefaultPathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   VISUALFORCE_COMPONENT_DIRECTORY,
   VISUALFORCE_COMPONENT_EXTENSION
@@ -65,7 +64,11 @@ export async function forceVisualforceComponentCreate() {
     new FilePathExistsChecker(
       [VISUALFORCE_COMPONENT_EXTENSION],
       new DefaultPathStrategy(),
-      nls.localize('visualforce_component_message_name')
+      new SinglePackageDirectory(),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('visualforce_component_message_name')
+      )
     )
   );
   await commandlet.run();

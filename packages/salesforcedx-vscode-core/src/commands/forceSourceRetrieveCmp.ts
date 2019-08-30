@@ -11,7 +11,8 @@ import {
 import {
   CancelResponse,
   ContinueResponse,
-  PostconditionChecker
+  DirFileNameSelection,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -21,23 +22,21 @@ import { BrowserNode, NodeType } from '../orgBrowser';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { TelemetryData, telemetryService } from '../telemetry';
 import {
-  EmptyParametersGatherer,
+  AllPackageDirectories,
+  BundlePathStrategy,
+  DefaultPathStrategy,
+  FilePathExistsChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import {
-  BundlePathStrategy,
-  DefaultPathStrategy,
-  SourcePathStrategy
-} from './templates/baseTemplateCommand';
 import {
   AURA_DEFINITION_FILE_EXTS,
   LWC_DEFINITION_FILE_EXTS
 } from './templates/metadataTypeConstants';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
-  string
+  DirFileNameSelection
 > {
   private typeName: string;
   private componentName: string;
@@ -68,9 +67,6 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-
 const BUNDLE_TYPES = new Set([
   'AuraDefinitionBundle',
   'LightningComponentBundle',
@@ -97,6 +93,21 @@ export function generateSuffix(
   return suffixes.map(suffix => `${suffix!}-meta.xml`);
 }
 
+class DirFileNameGatherer implements ParametersGatherer<DirFileNameSelection> {
+  private outputdir: string;
+  private fileName: string;
+  constructor(outputdir: string, fileName: string) {
+    this.outputdir = outputdir;
+    this.fileName = fileName;
+  }
+  public async gather(): Promise<ContinueResponse<DirFileNameSelection>> {
+    return {
+      type: 'CONTINUE',
+      data: { outputdir: this.outputdir, fileName: this.fileName }
+    };
+  }
+}
+
 export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
   const typeNode =
     componentNode.parent!.type === NodeType.Folder
@@ -118,85 +129,15 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
   const executor = new ForceSourceRetrieveExecutor(typeName, componentName);
 
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
+    new SfdxWorkspaceChecker(),
+    new DirFileNameGatherer(dirName, componentName),
     executor,
     new FilePathExistsChecker(
       fileExts,
       sourcePathStrategy,
-      componentName,
-      dirName,
-      label
+      new AllPackageDirectories(),
+      nls.localize('warning_prompt_cmp_file_overwrite', label)
     )
   );
   await commandlet.run();
-}
-
-export class FilePathExistsChecker implements PostconditionChecker<{}> {
-  private fileExts: string[];
-  private sourcePathStrategy: SourcePathStrategy;
-  private componentName: string;
-  private dirName: string;
-  private label: string;
-
-  public constructor(
-    fileExts: string[],
-    sourcePathStrategy: SourcePathStrategy,
-    componentName: string,
-    dirName: string,
-    label: string
-  ) {
-    this.fileExts = fileExts;
-    this.sourcePathStrategy = sourcePathStrategy;
-    this.componentName = componentName;
-    this.dirName = dirName;
-    this.label = label;
-  }
-
-  public async check(): Promise<ContinueResponse<{}> | CancelResponse> {
-    const globs = await this.createFilesGlob(this.dirName, this.componentName);
-    const allFiles = [];
-    for (const glob of globs) {
-      const files = await vscode.workspace.findFiles(glob);
-      if (files.length > 0) {
-        allFiles.push(files);
-      }
-    }
-
-    if (allFiles.length === 0) {
-      return { type: 'CONTINUE', data: {} };
-    } else {
-      const overwrite = await notificationService.showWarningMessage(
-        nls.localize('warning_prompt_cmp_file_overwrite', this.label),
-        nls.localize('warning_prompt_continue_confirm'),
-        nls.localize('warning_prompt_overwrite_cancel')
-      );
-      if (overwrite === nls.localize('warning_prompt_continue_confirm')) {
-        return { type: 'CONTINUE', data: {} };
-      }
-    }
-    return { type: 'CANCEL' };
-  }
-
-  private async createFilesGlob(
-    dirName: string,
-    fileName: string
-  ): Promise<vscode.GlobPattern[]> {
-    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    telemetryService.sendEventData('Number of Package Directories', undefined, {
-      packageDirectories: packageDirectories.length
-    });
-
-    const basePaths = packageDirectories.map(packageDir =>
-      path.join(packageDir, 'main', 'default', dirName)
-    );
-    const globs = [];
-    for (const bPath of basePaths) {
-      const filePaths = this.fileExts.map(fileExt =>
-        this.sourcePathStrategy.getPathToSource(bPath, fileName, fileExt)
-      );
-      globs.push(`{${filePaths.join(',')}}`);
-    }
-    return globs;
-  }
 }

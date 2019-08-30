@@ -7,10 +7,8 @@
 
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
-  PostconditionChecker
+  DirFileNameSelection
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
@@ -22,6 +20,7 @@ import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
+import { SourcePathStrategy } from '../commands';
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
@@ -80,81 +79,4 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   protected abstract getFileExtension(): string;
 
   protected abstract getDefaultDirectory(): string;
-}
-
-export interface SourcePathStrategy {
-  getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
-}
-
-export class DefaultPathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
-    return path.join(dirPath, `${fileName}${fileExt}`);
-  }
-}
-export class BundlePathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
-    const bundleName = fileName;
-    return path.join(dirPath, bundleName, `${fileName}${fileExt}`);
-  }
-}
-
-export class FilePathExistsChecker
-  implements PostconditionChecker<DirFileNameSelection> {
-  private fileExtensionsToCheck: string[];
-  private sourcePathStrategy: SourcePathStrategy;
-  private metadataLabel: string;
-  public constructor(
-    fileExtensionsToCheck: string[],
-    sourcePathStrategy: SourcePathStrategy,
-    metadataLabel: string
-  ) {
-    this.fileExtensionsToCheck = fileExtensionsToCheck;
-    this.sourcePathStrategy = sourcePathStrategy;
-    this.metadataLabel = metadataLabel;
-  }
-
-  public async check(
-    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
-  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      const outputDir = inputs.data.outputdir;
-      const fileName = inputs.data.fileName;
-      const files = await vscode.workspace.findFiles(
-        this.createFilesGlob(outputDir, fileName)
-      );
-      // If file does not exist then create it, otherwise prompt user to overwrite the file
-      if (files.length === 0) {
-        return inputs;
-      } else {
-        const overwrite = await notificationService.showWarningMessage(
-          nls.localize('warning_prompt_file_overwrite', this.metadataLabel),
-          nls.localize('warning_prompt_overwrite_confirm'),
-          nls.localize('warning_prompt_overwrite_cancel')
-        );
-        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
-          return inputs;
-        }
-      }
-    }
-    return { type: 'CANCEL' };
-  }
-
-  private createFilesGlob(outputDir: string, fileName: string): string {
-    const filePaths = this.fileExtensionsToCheck.map(fileExtension =>
-      this.sourcePathStrategy.getPathToSource(
-        outputDir,
-        fileName,
-        fileExtension
-      )
-    );
-    return `{${filePaths.join(',')}}`;
-  }
 }

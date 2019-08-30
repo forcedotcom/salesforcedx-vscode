@@ -13,6 +13,7 @@ import {
 import {
   CancelResponse,
   ContinueResponse,
+  DirFileNameSelection,
   ParametersGatherer,
   PostconditionChecker,
   PreconditionChecker
@@ -50,6 +51,123 @@ export class EmptyPostChecker implements PostconditionChecker<any> {
     inputs: ContinueResponse<any> | CancelResponse
   ): Promise<ContinueResponse<any> | CancelResponse> {
     return inputs;
+  }
+}
+
+export interface SourcePathStrategy {
+  getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
+}
+
+export class DefaultPathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    return path.join(dirPath, `${fileName}${fileExt}`);
+  }
+}
+export class BundlePathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    const bundleName = fileName;
+    return path.join(dirPath, bundleName, `${fileName}${fileExt}`);
+  }
+}
+
+export interface GlobStrategy {
+  globs(
+    selection: DirFileNameSelection,
+    pathStrategy: SourcePathStrategy,
+    extensionsToCheck: string[]
+  ): Promise<vscode.GlobPattern[]>;
+}
+
+export class SinglePackageDirectory implements GlobStrategy {
+  public globs(
+    selection: DirFileNameSelection,
+    pathStrategy: SourcePathStrategy,
+    extensionsToCheck: string[]
+  ) {
+    const { outputdir, fileName } = selection;
+    const filePaths = extensionsToCheck.map(extension =>
+      pathStrategy.getPathToSource(outputdir, fileName, extension)
+    );
+    return Promise.resolve([`{${filePaths.join(',')}}`]);
+  }
+}
+
+export class AllPackageDirectories implements GlobStrategy {
+  public async globs(
+    selection: DirFileNameSelection,
+    pathStrategy: SourcePathStrategy,
+    extensionsToCheck: string[]
+  ): Promise<vscode.GlobPattern[]> {
+    const { outputdir, fileName } = selection;
+    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const globs: vscode.GlobPattern[] = [];
+    packageDirectories.forEach(packageDir => {
+      const basePath = path.join(packageDir, 'main', 'default', outputdir);
+      const filePaths = extensionsToCheck.map(extension =>
+        pathStrategy.getPathToSource(basePath, fileName, extension)
+      );
+      globs.push(`{${filePaths.join(',')}}`);
+    });
+    return globs;
+  }
+}
+export class FilePathExistsChecker
+  implements PostconditionChecker<DirFileNameSelection> {
+  private extensionsToCheck: string[];
+  private sourcePathStrategy: SourcePathStrategy;
+  private globStrategy: GlobStrategy;
+  private warningMessage: string;
+
+  public constructor(
+    extensionsToCheck: string[],
+    sourcePathStrategy: SourcePathStrategy,
+    globStrategy: GlobStrategy,
+    warningMessage: string
+  ) {
+    this.extensionsToCheck = extensionsToCheck;
+    this.sourcePathStrategy = sourcePathStrategy;
+    this.globStrategy = globStrategy;
+    this.warningMessage = warningMessage;
+  }
+
+  public async check(
+    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
+  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const globs = await this.globStrategy.globs(
+        inputs.data,
+        this.sourcePathStrategy,
+        this.extensionsToCheck
+      );
+
+      const files = [];
+      for (const g of globs) {
+        const result = await vscode.workspace.findFiles(g);
+        files.push(...result);
+      }
+
+      if (files.length === 0) {
+        return inputs;
+      }
+
+      const overwrite = await notificationService.showWarningMessage(
+        this.warningMessage,
+        nls.localize('warning_prompt_continue_confirm'),
+        nls.localize('warning_prompt_overwrite_cancel')
+      );
+      if (overwrite === nls.localize('warning_prompt_continue_confirm')) {
+        return inputs;
+      }
+    }
+    return { type: 'CANCEL' };
   }
 }
 
@@ -341,7 +459,7 @@ export abstract class SfdxCommandletExecutor<T>
       this.logMetric(
         execution.command.logName,
         startTime,
-       this.getTelemetryData(exitCode === 0, response, output)
+        this.getTelemetryData(exitCode === 0, response, output)
       );
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
