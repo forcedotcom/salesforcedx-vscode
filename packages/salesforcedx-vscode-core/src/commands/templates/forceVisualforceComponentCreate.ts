@@ -13,14 +13,17 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  DefaultPathStrategy,
-  FileInOutputDir,
-  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
+import {
+  FilePathExistsChecker,
+  GlobStrategyFactory,
+  PathStrategyFactory,
+  SourcePathStrategy
+} from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   VISUALFORCE_COMPONENT_DIRECTORY,
@@ -39,7 +42,7 @@ export class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand
       .build();
   }
 
-  public sourcePathStrategy = new DefaultPathStrategy();
+  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createDefaultStrategy();
 
   public getDefaultDirectory() {
     return VISUALFORCE_COMPONENT_DIRECTORY;
@@ -62,7 +65,9 @@ export async function forceVisualforceComponentCreate() {
     ),
     new ForceVisualForceComponentCreateExecutor(),
     new FilePathExistsChecker(
-      new FileInOutputDir(VISUALFORCE_COMPONENT_EXTENSION),
+      GlobStrategyFactory.createFileInOutputDirStrategy(
+        VISUALFORCE_COMPONENT_EXTENSION
+      ),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('visualforce_component_message_name')

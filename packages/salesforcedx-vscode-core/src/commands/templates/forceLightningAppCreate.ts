@@ -14,15 +14,18 @@ import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import {
-  BundleInOutputDir,
-  BundlePathStrategy,
   CompositeParametersGatherer,
-  FilePathExistsChecker,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../commands';
+import {
+  FilePathExistsChecker,
+  GlobStrategyFactory,
+  PathStrategyFactory,
+  SourcePathStrategy
+} from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
@@ -50,7 +53,7 @@ export class ForceLightningAppCreateExecutor extends BaseTemplateCommand {
     return builder.build();
   }
 
-  public sourcePathStrategy = new BundlePathStrategy();
+  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createBundleStrategy();
 
   public getDefaultDirectory() {
     return AURA_DIRECTORY;
@@ -72,7 +75,9 @@ export async function forceLightningAppCreate() {
     ),
     new ForceLightningAppCreateExecutor(),
     new FilePathExistsChecker(
-      new BundleInOutputDir(AURA_DEFINITION_FILE_EXTS),
+      GlobStrategyFactory.createBundleInOutputDirStrategy(
+        ...AURA_DEFINITION_FILE_EXTS
+      ),
       nls.localize(
         'warning_prompt_file_overwrite',
         nls.localize('aura_bundle_message_name')

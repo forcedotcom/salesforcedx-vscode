@@ -16,11 +16,10 @@ import * as vscode from 'vscode';
 import { SfdxCommandletExecutor } from '..';
 import { channelService } from '../../channels';
 import { SelectOutputDir } from '../../commands';
-import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
-import { SourcePathStrategy } from '../commands';
+import { SourcePathStrategy } from '../util';
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
