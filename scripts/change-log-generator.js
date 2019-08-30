@@ -95,9 +95,7 @@ function validateReleaseBranch(releaseBranch) {
 function getNewChangeLogBranch(releaseBranch) {
   var changeLogBranch = CHANGE_LOG_BRANCH + releaseBranch;
   shell.exec(
-    'git checkout -b ' +
-      changeLogBranch +
-      path.join('release', 'v' + releaseBranch)
+    'git checkout -b ' + changeLogBranch + 'release/v' + releaseBranch
   );
 }
 
@@ -218,7 +216,8 @@ function filterPackageNames(packageHeaders) {
   return filteredHeaders;
 }
 
-function writeChangeLog(changelogText) {
+function writeChangeLog(releaseBranch) {
+  var changelogText = getChangeLogText(releaseBranch);
   var data = fs.readFileSync(CHANGE_LOG_PATH);
   var fd = fs.openSync(CHANGE_LOG_PATH, 'w+');
   var buffer = Buffer.from(changelogText.toString());
@@ -238,14 +237,13 @@ function exitWithError(errorMessage) {
 var releaseBranch = getReleaseBranch();
 validateReleaseBranch(releaseBranch);
 getNewChangeLogBranch(releaseBranch);
-
-var result = getChangeLogText(releaseBranch);
-writeChangeLog(result);
+writeChangeLog(releaseBranch);
 
 console.log('\nChange log has been written to ' + CHANGE_LOG_PATH + '\n');
 console.log('Next Steps:');
 console.log("  1) Remove entries that shouldn't be included in the release.");
+console.log('  2) Add documentation links as needed.');
 console.log(
-  "  2) Move entries to the correlating 'Added' or 'Fixed' section header."
+  "  3) Move entries to the correlating 'Added' or 'Fixed' section header."
 );
 console.log('  3) Commit, push, and open your PR for team review.');
