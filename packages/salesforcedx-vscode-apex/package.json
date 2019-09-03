@@ -24,7 +24,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-tmlanguage": "1.1.0",
+    "@salesforce/apex-tmlanguage": "1.2.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "46.12.0",
     "@salesforce/salesforcedx-utils-vscode": "46.12.0",
     "expand-home-dir": "0.0.3",
