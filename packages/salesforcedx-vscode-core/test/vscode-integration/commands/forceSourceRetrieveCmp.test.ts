@@ -10,18 +10,14 @@
 // import * as sinon from 'sinon';
 // import * as vscode from 'vscode';
 // import {
-//   FilePathExistsChecker,
 //   ForceSourceRetrieveExecutor,
 //   generateSuffix
 // } from '../../../src/commands';
-// import {
-//   BundlePathStrategy,
-//   DefaultPathStrategy
-// } from '../../../src/commands/templates/baseTemplateCommand';
 // import { LWC_DEFINITION_FILE_EXTS } from '../../../src/commands/templates/metadataTypeConstants';
 // import { nls } from '../../../src/messages';
 // import { notificationService } from '../../../src/notifications';
 // import { BrowserNode, NodeType } from '../../../src/orgBrowser';
+// import { FilePathExistsChecker, GlobStrategyFactory } from '../../../src/commands/util';
 
 // describe('Force Source Retrieve', () => {
 //   it('should build source retrieve command', async () => {
@@ -143,10 +139,9 @@
 //       );
 //       findFilesStub.returns([testFile]);
 //       const postChecker = new FilePathExistsChecker(
-//         fileExts,
-//         new BundlePathStrategy(),
-//         'testLWC',
-//         'aura',
+//         GlobStrategyFactory.createCheckBundleInAllPackages(...fileExts),
+//         // 'testLWC',
+//         // 'aura',
 //         'testLWC'
 //       );
 

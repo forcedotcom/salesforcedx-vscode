@@ -8,16 +8,13 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ContinueResponse,
-  DirFileNameSelection,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { join } from 'path';
 import { nls } from '../messages';
 import { BrowserNode, NodeType } from '../orgBrowser';
 import { TelemetryData } from '../telemetry';
 import {
+  DirFileNameGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -84,21 +81,6 @@ export function generateSuffix(
       suffixes = [`.${typeNode.suffix!}`];
   }
   return suffixes.map(suffix => `${suffix!}-meta.xml`);
-}
-
-class DirFileNameGatherer implements ParametersGatherer<DirFileNameSelection> {
-  private outputdir: string;
-  private fileName: string;
-  constructor(outputdir: string, fileName: string) {
-    this.outputdir = outputdir;
-    this.fileName = fileName;
-  }
-  public async gather(): Promise<ContinueResponse<DirFileNameSelection>> {
-    return {
-      type: 'CONTINUE',
-      data: { outputdir: this.outputdir, fileName: this.fileName }
-    };
-  }
 }
 
 export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
