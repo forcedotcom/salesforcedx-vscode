@@ -27,9 +27,12 @@ abstract class BaseGlobStrategy implements GlobStrategy {
   ): Promise<GlobPattern[]>;
 }
 
+/**
+ * Create glob patterns that exactly match the given DirFileNameSelection.
+ * outuptdir in selection expected as a fully resolved path.
+ */
 class CheckGivenPath extends BaseGlobStrategy {
   public globs(selection: DirFileNameSelection) {
-    // outputdir expected as path
     const { outputdir, fileName } = selection;
     const filePaths = this.extensionsToCheck.map(fileExtension =>
       this.pathStrategy.getPathToSource(outputdir, fileName, fileExtension)
@@ -38,22 +41,22 @@ class CheckGivenPath extends BaseGlobStrategy {
   }
 }
 
+/**
+ * Create glob patterns for each package directory in the workspace. outputdir
+ * in selection expected as path that will be the suffix of the fully qualified
+ * package directory path. E.g. outputdir: main/default/classes
+ */
 class CheckAllPackages extends BaseGlobStrategy {
   public async globs(selection: DirFileNameSelection): Promise<GlobPattern[]> {
-    // outputdir expected as just a name
     const { outputdir, fileName } = selection;
-    const globs: GlobPattern[] = [];
-
     const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    packageDirectories.forEach(packageDir => {
-      const basePath = path.join(packageDir, 'main', 'default', outputdir);
+    return packageDirectories.map(packageDir => {
+      const basePath = path.join(packageDir, outputdir);
       const filePaths = this.extensionsToCheck.map(extension =>
         this.pathStrategy.getPathToSource(basePath, fileName, extension)
       );
-      globs.push(`{${filePaths.join(',')}}`);
+      return `{${filePaths.join(',')}}`;
     });
-
-    return globs;
   }
 }
 

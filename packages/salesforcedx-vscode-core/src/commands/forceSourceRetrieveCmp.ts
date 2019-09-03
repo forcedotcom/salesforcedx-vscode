@@ -13,6 +13,7 @@ import {
   DirFileNameSelection,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { join } from 'path';
 import { nls } from '../messages';
 import { BrowserNode, NodeType } from '../orgBrowser';
 import { TelemetryData } from '../telemetry';
@@ -122,7 +123,7 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
 
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new DirFileNameGatherer(dirName, componentName),
+    new DirFileNameGatherer(join('main', 'default', dirName), componentName),
     executor,
     new FilePathExistsChecker(
       globStrategy,
