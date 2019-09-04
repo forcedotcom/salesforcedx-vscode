@@ -4,13 +4,23 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix various syntax highlighting issues with Apex ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628))
+- Fix syntax highlighting issue with String when clauses in Apex switch statements ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #967](https://github.com/forcedotcom/salesforcedx-vscode/issues/967))
+
+- Fix syntax highlighting issue with block comments without spaces ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #921](https://github.com/forcedotcom/salesforcedx-vscode/issues/921))
+
+- Fix syntax highlighting issue with Apex namespace names in Apex class names ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628))
+
+#### salesforcedx-vscode-core
+
+- Prevent 'SFDX: Diff File Against Org' command from appearing when a non-sfdx project is opened ([PR #1608](https://github.com/forcedotcom/salesforcedx-vscode/pull/1608), [Issue #1600](https://github.com/forcedotcom/salesforcedx-vscode/issues/1600))
+
+- Update documentation link when guiding user to fix Java configuration ([PR #1602](https://github.com/forcedotcom/salesforcedx-vscode/pull/1602))
 
 ## Added
 
 #### docs
 
-- Add documentation for setting up Windows PATH variable to use the Salesforce CLI ([PR #1621](https://github.com/forcedotcom/salesforcedx-vscode/pull/1621)) 
+- Add documentation for setting up Windows PATH variable to use the Salesforce CLI ([PR #1621](https://github.com/forcedotcom/salesforcedx-vscode/pull/1621))
 
 # 46.12.0 - August 29, 2019
 
