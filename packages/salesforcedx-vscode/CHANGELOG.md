@@ -20,7 +20,7 @@
 
 #### docs
 
-- Add documentation for setting up Windows PATH variable to use the Salesforce CLI ([PR #1621](https://github.com/forcedotcom/salesforcedx-vscode/pull/1621))
+- Add documentation for setting up Windows PATH variable under [Set Salesforce CLI Path (Windows)](https://forcedotcom.github.io/salesforcedx-vscode/articles/troubleshooting#set-salesforce-cli-path-windows)([PR #1621](https://github.com/forcedotcom/salesforcedx-vscode/pull/1621))
 
 # 46.12.0 - August 29, 2019
 
