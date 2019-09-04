@@ -1,3 +1,17 @@
+46.13.0 - September 5, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix various syntax highlighting issues with Apex ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628))
+
+## Added
+
+#### docs
+
+- Add documentation for setting up Windows PATH variable to use the Salesforce CLI ([PR #1621](https://github.com/forcedotcom/salesforcedx-vscode/pull/1621)) 
+
 # 46.12.0 - August 29, 2019
 
 ## Fixed
