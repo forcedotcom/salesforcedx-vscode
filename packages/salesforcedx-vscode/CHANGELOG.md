@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix syntax highlighting issue with String when clauses in Apex switch statements ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #967](https://github.com/forcedotcom/salesforcedx-vscode/issues/967))
+- Fix syntax highlighting issue with String literals for `when` values in Apex Switch Statements ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #967](https://github.com/forcedotcom/salesforcedx-vscode/issues/967))
 
 - Fix syntax highlighting issue with block comments without spaces ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #921](https://github.com/forcedotcom/salesforcedx-vscode/issues/921))
 
@@ -12,7 +12,7 @@
 
 #### salesforcedx-vscode-core
 
-- Prevent 'SFDX: Diff File Against Org' command from appearing when a non-sfdx project is opened ([PR #1608](https://github.com/forcedotcom/salesforcedx-vscode/pull/1608), [Issue #1600](https://github.com/forcedotcom/salesforcedx-vscode/issues/1600))
+- Prevent `SFDX: Diff File Against Org` command from appearing when a non-SFDX project is opened ([PR #1608](https://github.com/forcedotcom/salesforcedx-vscode/pull/1608), [Issue #1600](https://github.com/forcedotcom/salesforcedx-vscode/issues/1600))
 
 - Update documentation link when guiding user to fix Java configuration ([PR #1602](https://github.com/forcedotcom/salesforcedx-vscode/pull/1602))
 
