@@ -29,6 +29,7 @@ if (parseInt(major) !== 10 || parseInt(minor) < 2) {
 }
 
 // Checks that you have access to our bucket on AWS
+/*
 const awsExitCode = shell.exec(
   'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',
   {
@@ -40,7 +41,7 @@ if (awsExitCode !== 0) {
     'You do not have the s3 command line installed or you do not have access to the aws s3 bucket.'
   );
   process.exit(-1);
-}
+} */
 
 // Checks that you have access to the salesforce publisher
 const publishers = shell.exec('vsce ls-publishers', { silent: true }).stdout;
@@ -112,9 +113,10 @@ shell.exec('./scripts/concatenate-sha256.js');
 shell.rm('./SHA256');
 
 // Push the SHA256 to AWS
+/*
 shell.exec(
   'aws s3 cp ./SHA256.md s3://dfc-data-production/media/vscode/SHA256.md'
-);
+); */
 
 // Add SHA256 to git
 shell.exec(`git add SHA256.md`);
