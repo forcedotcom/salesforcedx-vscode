@@ -12,7 +12,7 @@
 
 #### salesforcedx-vscode-core
 
-- Prevent `SFDX: Diff File Against Org` command from appearing when a non-SFDX project is opened ([PR #1608](https://github.com/forcedotcom/salesforcedx-vscode/pull/1608), [Issue #1600](https://github.com/forcedotcom/salesforcedx-vscode/issues/1600))
+- Prevent `SFDX: Diff File Against Org` from appearing in the Command Palette when a non-SFDX project is opened. ([PR #1608](https://github.com/forcedotcom/salesforcedx-vscode/pull/1608), [Issue #1600](https://github.com/forcedotcom/salesforcedx-vscode/issues/1600))
 
 - Update documentation link when guiding users to fix Java configuration ([PR #1602](https://github.com/forcedotcom/salesforcedx-vscode/pull/1602))
 
