@@ -7,7 +7,9 @@
 
 import { AuthInfo } from '@salesforce/core';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { fail } from 'assert';
 import { expect } from 'chai';
+import { XHRResponse } from 'request-light';
 import { SinonStub, stub } from 'sinon';
 import { ConfigUtil } from '../../src/describe/configUtil';
 import {
@@ -15,6 +17,7 @@ import {
   SObjectCategory,
   SObjectDescribe
 } from '../../src/describe/sObjectDescribe';
+import { mockDescribeResponse } from './mockData';
 
 const sobjectdescribe = new SObjectDescribe();
 
@@ -22,6 +25,7 @@ const sobjectdescribe = new SObjectDescribe();
 describe('Fetch sObjects', () => {
   let getUsername: SinonStub;
   let authInfo: SinonStub;
+  let xhrMock: SinonStub;
 
   beforeEach(() => {
     getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
@@ -33,11 +37,13 @@ describe('Fetch sObjects', () => {
         };
       }
     });
+    xhrMock = stub(SObjectDescribe.prototype, 'runRequest');
   });
 
   afterEach(() => {
     getUsername.restore();
     authInfo.restore();
+    xhrMock.restore();
   });
 
   it('Should build the schema sobject list command', async () => {
@@ -98,21 +104,93 @@ describe('Fetch sObjects', () => {
     expect(requestBody).to.deep.equals(testBatchReq);
   });
 
-  /* it('Should return sobjects when calling describeSObjectBatch', async () => {
+  it('Should create the correct xhr options', () => {
     const sobjectTypes = ['object1', 'object2', 'object3'];
+    const testBatchReq = {
+      batchRequests: [
+        { method: 'GET', url: 'v46.0/sobjects/object1/describe' },
+        { method: 'GET', url: 'v46.0/sobjects/object2/describe' },
+        { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
+      ]
+    };
+    const xhrOptions = sobjectdescribe.buildXHROptions(sobjectTypes, 0);
+    expect(xhrOptions).to.not.be.empty;
+    expect(xhrOptions.type).to.be.equal('POST');
+    expect(xhrOptions.url).to.be.equal(
+      'https://na1.salesforce.com/services/data/v46.0/composite/batch'
+    );
+    expect(xhrOptions.headers).to.deep.equal({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: 'OAuth 00Dxx000thisIsATestToken',
+      'User-Agent': 'salesforcedx-extension',
+      'Sforce-Call-Options': 'client=sfdx-vscode'
+    });
+    expect(xhrOptions.data).to.be.equal(JSON.stringify(testBatchReq));
+  });
+
+  it('Should return sobjects when calling describeSObjectBatch', async () => {
+    const sobjectTypes = ['ApexPageInfo'];
+    xhrMock.returns(
+      Promise.resolve({
+        status: 200,
+        responseText: JSON.stringify(mockDescribeResponse)
+      } as XHRResponse)
+    );
 
     const batchResponse = await sobjectdescribe.describeSObjectBatch(
       'test/project/uri',
       sobjectTypes,
       0
     );
-    expect(1, requests.length);
-    requests[0].respond(
-      200,
-      { 'Content-Type': 'application/json' },
-      '[{ "id": 12, "comment": "Hey there" }]'
+
+    expect(xhrMock.calledOnce).to.equal(true);
+    expect(batchResponse).to.be.an('array');
+    expect(batchResponse.length).to.be.equal(1);
+    expect(batchResponse[0]).to.deep.equal(
+      mockDescribeResponse.results[0].result
     );
-    console.log('batchResponse ==>', batchResponse);
-    expect(batchResponse).to.deep.equals('');
-  }); */
+  });
+
+  it('Should throw error when response errors out', async () => {
+    const sobjectTypes = ['ApexPageInfo'];
+    xhrMock.returns(
+      Promise.reject({
+        status: 400,
+        responseText: 'Unexpected error'
+      } as XHRResponse)
+    );
+
+    try {
+      await sobjectdescribe.describeSObjectBatch(
+        'test/project/uri',
+        sobjectTypes,
+        0
+      );
+      fail('An error was expected');
+    } catch (err) {
+      expect(err).to.be.equal('Unexpected error');
+    }
+
+    expect(xhrMock.calledOnce).to.equal(true);
+  });
+
+  it('Should throw error when authentication errors out', async () => {
+    const sobjectdescribeException = new SObjectDescribe();
+    const sobjectTypes = ['ApexPageInfo'];
+    authInfo.throws(new Error('Unexpected error in Auth phase'));
+
+    try {
+      await sobjectdescribeException.describeSObjectBatch(
+        'test/project/uri',
+        sobjectTypes,
+        0
+      );
+      fail('An error was expected');
+    } catch (err) {
+      expect(err).to.be.equal('Unexpected error in Auth phase');
+    }
+
+    expect(authInfo.calledOnce).to.equal(true);
+  });
 });

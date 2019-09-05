@@ -262,18 +262,10 @@ export class SObjectDescribe {
     return batchRequest;
   }
 
-  public async describeSObjectBatch(
-    projectPath: string,
-    types: string[],
-    nextToProcess: number
-  ): Promise<SObject[]> {
-    if (!this.accessToken || !this.instanceUrl) {
-      await this.getConnectionData(projectPath);
-    }
-
+  public buildXHROptions(types: string[], nextToProcess: number): XHROptions {
     const batchRequest = this.buildBatchRequestBody(types, nextToProcess);
 
-    const options: XHROptions = {
+    return {
       type: 'POST',
       url: this.buildBatchRequestURL(),
       headers: {
@@ -284,10 +276,25 @@ export class SObjectDescribe {
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       },
       data: JSON.stringify(batchRequest)
-    };
+    } as XHROptions;
+  }
 
+  public async runRequest(options: XHROptions): Promise<XHRResponse> {
+    return xhr(options);
+  }
+
+  public async describeSObjectBatch(
+    projectPath: string,
+    types: string[],
+    nextToProcess: number
+  ): Promise<SObject[]> {
     try {
-      const response: XHRResponse = await xhr(options);
+      if (!this.accessToken || !this.instanceUrl) {
+        await this.getConnectionData(projectPath);
+      }
+
+      const options: XHROptions = this.buildXHROptions(types, nextToProcess);
+      const response: XHRResponse = await this.runRequest(options);
       const batchResponse = JSON.parse(response.responseText) as BatchResponse;
       const fetchedObjects: SObject[] = [];
       let i = nextToProcess;
@@ -302,17 +309,26 @@ export class SObjectDescribe {
       }
       return Promise.resolve(fetchedObjects);
     } catch (error) {
-      const xhrResponse: XHRResponse = error;
-      return Promise.reject(xhrResponse.responseText);
+      const errorMsg = error.hasOwnProperty('responseText')
+        ? error.responseText
+        : error.message;
+      return Promise.reject(errorMsg);
     }
   }
 
   public async getConnectionData(projectPath: string) {
-    const username = await ConfigUtil.getUsername(projectPath);
-    const authInfo = await AuthInfo.create({ username });
-    const opts = authInfo.getConnectionOptions();
-    this.accessToken = opts.accessToken;
-    this.instanceUrl = opts.instanceUrl;
+    try {
+      const username = await ConfigUtil.getUsername(projectPath);
+      const authInfo = await AuthInfo.create({ username });
+      const opts = authInfo.getConnectionOptions();
+      this.accessToken = opts.accessToken;
+      this.instanceUrl = opts.instanceUrl;
+    } catch (err) {
+      const error = new Error();
+      error.name = 'Authentication Error';
+      error.message = err.message;
+      throw error;
+    }
   }
 
   public getVersion(): string {
