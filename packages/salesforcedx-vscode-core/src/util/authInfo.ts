@@ -8,14 +8,14 @@ import { Aliases, AuthInfo } from '@salesforce/core';
 import { isUndefined } from 'util';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { DEFAULT_DEV_HUB_USERNAME_KEY, DEFAULT_USERNAME_KEY } from '../constants';
+import {
+  DEFAULT_DEV_HUB_USERNAME_KEY,
+  DEFAULT_USERNAME_KEY
+} from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import {
-  ConfigSource,
-  ConfigUtil
-} from './index';
+import { ConfigSource, ConfigUtil } from './index';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
@@ -45,7 +45,6 @@ export class OrgAuthInfo {
       }
 
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
-
     } catch (err) {
       console.error(err);
       telemetryService.sendException('get_default_username_alias', err.message);

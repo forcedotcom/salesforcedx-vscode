@@ -18,9 +18,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands';
 
-import {
-  getRootWorkspacePath
-} from '../util';
+import { getRootWorkspacePath } from '../util';
 
 import { ConfigFile } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
@@ -58,20 +56,20 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(() => this.configureDefaultDevHubLocation());
+    execution.processExitSubject.subscribe(() =>
+      this.configureDefaultDevHubLocation()
+    );
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
 
   public async configureDefaultDevHubLocation() {
-
     const globalDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
       false,
       ConfigSource.Global
     );
 
     if (isNullOrUndefined(globalDevHubName)) {
-
       const localDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
         false,
         ConfigSource.Local
@@ -84,7 +82,6 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public async setGlobalDefaultDevHub(newUsername: string): Promise<void> {
-
     const homeDirectory = homedir();
 
     const globalConfig = await ConfigFile.create({
