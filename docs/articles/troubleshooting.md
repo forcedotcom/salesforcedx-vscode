@@ -17,23 +17,21 @@ See: [Java Configuration](getting-started/java-setup)
 
 ## Set Salesforce CLI Path (Windows)
 
-See [Installing the Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli). If after installing the Salesforce CLI you see the error 'Salesforce CLI is not installed', this likely means that the Salesforce CLI was not added to your path. Follow these steps for verifying and adding the Salesforce CLI to your Windows path variable.
+See [Installing the Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli). After installing Salesforce CLI, if you get the error 'Salesforce CLI is not installed', most likely Salesforce CLI is not added as a path variable. To verify or add Salesforce CLI to your Windows path variable:
 
-1. From your `Windows Search` look for `Edit the system environment variables`.
+1. Search for `Edit the system environment variables`.
    <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.1.png" alt="Windows Search">
 
-1. From `System Properties` click `Environment Variables`.
+1. In `System Properties`, click `Environment Variables`.
    <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.2.png" alt="System Properties">
 
-1. Double click on `Path` under `User Variables`.
+1. Under `User Variables`, double-click `Path` .
    <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.3.png" alt="User Variables">
 
-1. Verify Salesforce CLI is listed as an entry.
+1. Verify Salesforce CLI is listed as an entry. Otherwise, click New and paste the path where you installed CLI. For example, `C:\Program Files\Salesforce CLI\bin` 
    <img align="center" width="80%" height="80%" src="../images/troubleshooting_set_cli_path.4.png" alt="Path View">
 
-1. If the Salesforce CLI is not listed as an entry, add it by clicking the `New` button and pasting the path `C:\Program Files\Salesforce CLI\bin` (adjust this path if you installed the cli into a different directory).
-
-1. Click the `OK` button.
+1. Click `OK`.
 
 ## Monitor Apex Language Server Output
 
