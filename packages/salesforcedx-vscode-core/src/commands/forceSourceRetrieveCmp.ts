@@ -14,7 +14,6 @@ import { nls } from '../messages';
 import { BrowserNode, NodeType } from '../orgBrowser';
 import { TelemetryData } from '../telemetry';
 import {
-  DirFileNameGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -24,6 +23,7 @@ import {
   LWC_DEFINITION_FILE_EXTS
 } from './templates/metadataTypeConstants';
 import { FilePathExistsChecker, GlobStrategyFactory } from './util';
+import { SimpleGatherer } from './util';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   DirFileNameSelection
@@ -101,12 +101,13 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
     ? GlobStrategyFactory.createCheckBundleInAllPackages(...fileExts)
     : GlobStrategyFactory.createCheckFileInAllPackages(...fileExts);
 
-  const executor = new ForceSourceRetrieveExecutor(typeName, componentName);
-
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new DirFileNameGatherer(join('main', 'default', dirName), componentName),
-    executor,
+    new SimpleGatherer<DirFileNameSelection>({
+      outputdir: join('main', 'default', dirName),
+      fileName: componentName
+    }),
+    new ForceSourceRetrieveExecutor(typeName, componentName),
     new FilePathExistsChecker(
       globStrategy,
       nls.localize('warning_prompt_cmp_file_overwrite', label)

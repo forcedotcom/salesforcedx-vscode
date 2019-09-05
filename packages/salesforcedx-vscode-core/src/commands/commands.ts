@@ -127,22 +127,6 @@ export class FilePathGatherer implements ParametersGatherer<string> {
   }
 }
 
-export class DirFileNameGatherer
-  implements ParametersGatherer<DirFileNameSelection> {
-  private outputdir: string;
-  private fileName: string;
-  constructor(outputdir: string, fileName: string) {
-    this.outputdir = outputdir;
-    this.fileName = fileName;
-  }
-  public async gather(): Promise<ContinueResponse<DirFileNameSelection>> {
-    return {
-      type: 'CONTINUE',
-      data: { outputdir: this.outputdir, fileName: this.fileName }
-    };
-  }
-}
-
 export type FileSelection = { file: string };
 export class FileSelector implements ParametersGatherer<FileSelection> {
   private readonly include: string;
