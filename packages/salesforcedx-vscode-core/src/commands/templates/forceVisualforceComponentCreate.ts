@@ -19,10 +19,12 @@ import {
   SfdxWorkspaceChecker
 } from '../commands';
 import {
-  BaseTemplateCommand,
-  DefaultPathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+  FilePathExistsChecker,
+  GlobStrategyFactory,
+  PathStrategyFactory,
+  SourcePathStrategy
+} from '../util';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   VISUALFORCE_COMPONENT_DIRECTORY,
   VISUALFORCE_COMPONENT_EXTENSION
@@ -40,7 +42,7 @@ export class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand
       .build();
   }
 
-  public sourcePathStrategy = new DefaultPathStrategy();
+  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createDefaultStrategy();
 
   public getDefaultDirectory() {
     return VISUALFORCE_COMPONENT_DIRECTORY;
@@ -63,9 +65,13 @@ export async function forceVisualforceComponentCreate() {
     ),
     new ForceVisualForceComponentCreateExecutor(),
     new FilePathExistsChecker(
-      [VISUALFORCE_COMPONENT_EXTENSION],
-      new DefaultPathStrategy(),
-      nls.localize('visualforce_component_message_name')
+      GlobStrategyFactory.createCheckFileInGivenPath(
+        VISUALFORCE_COMPONENT_EXTENSION
+      ),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('visualforce_component_message_name')
+      )
     )
   );
   await commandlet.run();

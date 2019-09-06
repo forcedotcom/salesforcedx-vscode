@@ -21,10 +21,12 @@ import {
   SfdxWorkspaceChecker
 } from '../commands';
 import {
-  BaseTemplateCommand,
-  BundlePathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+  FilePathExistsChecker,
+  GlobStrategyFactory,
+  PathStrategyFactory,
+  SourcePathStrategy
+} from '../util';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
@@ -52,7 +54,7 @@ export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
     return builder.build();
   }
 
-  public sourcePathStrategy = new BundlePathStrategy();
+  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createBundleStrategy();
 
   public getDefaultDirectory() {
     return LWC_DIRECTORY;
@@ -72,9 +74,13 @@ export async function forceLightningLwcCreate() {
     new CompositeParametersGatherer(fileNameGatherer, outputDirGatherer),
     new ForceLightningLwcCreateExecutor(),
     new FilePathExistsChecker(
-      LWC_DEFINITION_FILE_EXTS,
-      new BundlePathStrategy(),
-      nls.localize('lwc_message_name')
+      GlobStrategyFactory.createCheckBundleInGivenPath(
+        ...LWC_DEFINITION_FILE_EXTS
+      ),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('lwc_message_name')
+      )
     )
   );
   await commandlet.run();

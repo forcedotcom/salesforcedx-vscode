@@ -19,10 +19,12 @@ import {
   SfdxWorkspaceChecker
 } from '../commands';
 import {
-  BaseTemplateCommand,
-  DefaultPathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+  FilePathExistsChecker,
+  GlobStrategyFactory,
+  PathStrategyFactory,
+  SourcePathStrategy
+} from '../util';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   APEX_CLASS_DIRECTORY,
   APEX_CLASS_EXTENSION
@@ -40,7 +42,7 @@ export class ForceApexClassCreateExecutor extends BaseTemplateCommand {
       .build();
   }
 
-  public sourcePathStrategy = new DefaultPathStrategy();
+  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createDefaultStrategy();
 
   public getDefaultDirectory() {
     return APEX_CLASS_DIRECTORY;
@@ -63,9 +65,11 @@ export async function forceApexClassCreate() {
     ),
     new ForceApexClassCreateExecutor(),
     new FilePathExistsChecker(
-      [APEX_CLASS_EXTENSION],
-      new DefaultPathStrategy(),
-      nls.localize('apex_class_message_name')
+      GlobStrategyFactory.createCheckFileInGivenPath(APEX_CLASS_EXTENSION),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('apex_class_message_name')
+      )
     )
   );
   await commandlet.run();
