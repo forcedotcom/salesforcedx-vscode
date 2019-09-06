@@ -4,19 +4,21 @@
  * Assumptions:
  * 1. You have shelljs installed globally using `npm install -g shelljs`.
  * 2. The release branch in question has already been cut.
- * 3. readline-sync is installed using 'npm install readline-sync'
  *
  * This does not currently take into consideration:
  * 1. External contributions
  * 2. Duplicates (ex file changes made in both salesforcedx-apex-debugger and salesforcedx-apex-replay-debugger)
  * 3. Non-salesforce package contributions aside from doc updates
  * 4. Adding vs. Fixed vs. Ignore in change log
+ *
+ * Overriding Default Values:
+ * 1. Override the release: --release=[releaseVersion]. Example: npm run --release=46.7.0 build-change-log
+ * 2. Override logging [will cause verbose logging]: Example: npm run -v build-change-log
  */
 
 const process = require('process');
 const path = require('path');
 const shell = require('shelljs');
-const readline = require('readline-sync');
 const fs = require('fs');
 const util = require('util');
 
@@ -28,11 +30,10 @@ const CHANGE_LOG_PATH = path.join(
   'CHANGELOG.md'
 );
 const CHANGE_LOG_BRANCH = 'changeLog-v';
-const ADD_LOGGING = false;
 
 // Change log values
 const LOG_HEADER =
-  '## %s - (INSERT RELEASE DATE [Month Day, Year])\n' +
+  '# %s - (INSERT RELEASE DATE [Month Day, Year])\n' +
   '\n## Fixed\nMOVE ENTRIES FROM BELOW\n\n## Added\nMOVE ENTRIES FROM BELOW\n';
 const SECTION_HEADER = '\n#### %s\n';
 const MESSAGE_FORMAT =
@@ -67,30 +68,26 @@ function getLatestReleaseBranch() {
     .split(' ', 1)
     .toString()
     .replace('\n', '');
-  process.stdout.write('Latest Release Branch: ' + latestReleaseBranch);
+  process.stdout.write('Latest Release Branch: ' + latestReleaseBranch + '\n');
   return latestReleaseBranch;
 }
 
 function getReleaseBranch() {
-  var releaseBranch = getLatestReleaseBranch();
-  var input = readline.question('\nIs this branch correct? (Y/n): ');
-  if (!input) {
-    exitWithError('Invalid input. Expected Input: Y/n.');
-  } else if (input.toUpperCase() != 'Y' && input.toUpperCase() != 'N') {
-    exitWithError('Expected Input: Y/n. Unknown user input: ' + input);
-  } else if (input.toUpperCase() == 'N') {
-    releaseBranch = readline.question('Enter release branch (xx.yy.z): ');
+  var releaseIndex = process.argv.indexOf('--release');
+  if (releaseIndex > -1) {
+    return process.argv[releaseIndex + 1];
   }
-  return releaseBranch;
+  return getLatestReleaseBranch();
 }
 
 function validateReleaseBranch(releaseBranch) {
   if (!(releaseBranch && RELEASE_REGEX.exec(releaseBranch))) {
-    printError(
+    process.exit(-1);
+    console.log(
       "Invalid release '" + releaseBranch + "'. Expected format [xx.yy.z]."
     );
   }
-  process.stdout.write('Using release branch: ' + releaseBranch + '\n');
+  process.stdout.write('Using release branch: ' + releaseBranch + '\n\n');
 }
 
 function getNewChangeLogBranch(releaseBranch) {
@@ -142,15 +139,15 @@ function parseCommits() {
     .split('Updated SHA256', 1)
     .toString()
     .split('\n');
-  if (ADD_LOGGING) {
-    console.log('Commits to Parse: ' + commits);
-  }
+  if (ADD_VERBOSE_LOGGING) console.log('Commits to Parse:\n');
   for (var i = 0; i < commits.length; i++) {
+    if (ADD_VERBOSE_LOGGING) console.log(commits[i] + '\n');
     var commitMap = buildMapFromCommit(commits[i]);
     if (commitMap && Object.keys(commitMap).length > 0) {
-      results.push(buildMapFromCommit(commits[i]));
+      results.push(commitMap);
     }
   }
+  if (ADD_VERBOSE_LOGGING) console.log('Commits as Maps:\n' + results);
   return results;
 }
 
@@ -167,9 +164,6 @@ function buildMapFromCommit(commit) {
       map[FILES] = getFilesChanged(map[COMMIT]);
       map[PACKAGES] = getPackageHeaders(map[FILES]);
     }
-  }
-  if (ADD_LOGGING) {
-    console.log(map);
   }
   return map;
 }
@@ -233,14 +227,8 @@ function writeChangeLog(releaseBranch) {
   fs.closeSync(fd);
 }
 
-/**
- * Prints the message to the error stream and exits the script.
- */
-function exitWithError(errorMessage) {
-  process.stderr.write(errorMessage + '\n');
-  process.exit(-1);
-}
-
+console.log("Starting script 'change-log-generator'\n");
+let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
 var releaseBranch = getReleaseBranch();
 validateReleaseBranch(releaseBranch);
 getNewChangeLogBranch(releaseBranch);
@@ -251,6 +239,7 @@ console.log('Next Steps:');
 console.log("  1) Remove entries that shouldn't be included in the release.");
 console.log('  2) Add documentation links as needed.');
 console.log(
-  "  3) Move entries to the correlating 'Added' or 'Fixed' section header."
+  '     Format: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)'
 );
-console.log('  3) Commit, push, and open your PR for team review.');
+console.log("  3) Move entries to the 'Added' or 'Fixed' section header.");
+console.log('  4) Commit, push, and open your PR for team review.');
