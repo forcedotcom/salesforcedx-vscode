@@ -28,11 +28,12 @@ const CHANGE_LOG_PATH = path.join(
   'CHANGELOG.md'
 );
 const CHANGE_LOG_BRANCH = 'changeLog-v';
+const ADD_LOGGING = false;
 
 // Change log values
 const LOG_HEADER =
-  '%s - (INSERT RELEASE DATE [Month Day, Year])\n' +
-  '\n## Fixed\nMOVE ENTRIES FROM BELOW\n\n## Added\nMOVE ENTRIES FROM BELOW\n\n';
+  '## %s - (INSERT RELEASE DATE [Month Day, Year])\n' +
+  '\n## Fixed\nMOVE ENTRIES FROM BELOW\n\n## Added\nMOVE ENTRIES FROM BELOW\n';
 const SECTION_HEADER = '\n#### %s\n';
 const MESSAGE_FORMAT =
   '\n- %s ([PR #%s](https://github.com/forcedotcom/salesforcedx-vscode/pull/%s))\n';
@@ -95,7 +96,7 @@ function validateReleaseBranch(releaseBranch) {
 function getNewChangeLogBranch(releaseBranch) {
   var changeLogBranch = CHANGE_LOG_BRANCH + releaseBranch;
   shell.exec(
-    'git checkout -b ' + changeLogBranch + 'release/v' + releaseBranch
+    'git checkout -b ' + changeLogBranch + ' origin/release/v' + releaseBranch
   );
 }
 
@@ -108,7 +109,7 @@ function getChangeLogText(releaseBranch) {
       changeLogText += message;
     });
   });
-  return changeLogText;
+  return changeLogText + '\n';
 }
 
 /**
@@ -141,6 +142,9 @@ function parseCommits() {
     .split('Updated SHA256', 1)
     .toString()
     .split('\n');
+  if (ADD_LOGGING) {
+    console.log('Commits to Parse: ' + commits);
+  }
   for (var i = 0; i < commits.length; i++) {
     var commitMap = buildMapFromCommit(commits[i]);
     if (commitMap && Object.keys(commitMap).length > 0) {
@@ -163,6 +167,9 @@ function buildMapFromCommit(commit) {
       map[FILES] = getFilesChanged(map[COMMIT]);
       map[PACKAGES] = getPackageHeaders(map[FILES]);
     }
+  }
+  if (ADD_LOGGING) {
+    console.log(map);
   }
   return map;
 }
