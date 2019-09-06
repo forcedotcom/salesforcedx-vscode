@@ -27,7 +27,7 @@ import { notificationService, ProgressNotification } from '../notifications';
 import { isSfdxProjectOpened } from '../predicates';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
-import { telemetryService } from '../telemetry';
+import { TelemetryData, telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export class CompositePreconditionChecker implements PreconditionChecker {
@@ -328,13 +328,36 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
-    execution.processExitSubject.subscribe(() => {
-      this.logMetric(execution.command.logName, startTime);
+    let output = '';
+    execution.stdoutSubject.subscribe(realData => {
+      output += realData.toString();
+    });
+
+    execution.processExitSubject.subscribe(exitCode => {
+      const telemetryData = this.getTelemetryData(
+        exitCode === 0,
+        response,
+        output
+      );
+      let properties;
+      if (telemetryData) {
+        properties = telemetryData.properties;
+      }
+      this.logMetric(execution.command.logName, startTime, properties);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
+
+  protected getTelemetryData(
+    success: boolean,
+    response: ContinueResponse<T>,
+    output: string
+  ): TelemetryData | undefined {
+    return;
   }
 
   public abstract build(data: T): Command;

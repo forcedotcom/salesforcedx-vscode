@@ -1,3 +1,78 @@
+# 46.13.0 - September 5, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix syntax highlighting for literal `when` values of String type in Apex switch statement ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #967](https://github.com/forcedotcom/salesforcedx-vscode/issues/967))
+
+- Fix syntax highlighting for block comments without spaces ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #921](https://github.com/forcedotcom/salesforcedx-vscode/issues/921))
+
+- Fix syntax highlighting for namespace names in Apex classes ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628))
+
+#### salesforcedx-vscode-core
+
+- Prevent `SFDX: Diff File Against Org` from appearing in the Command Palette when a non-SFDX project is opened. ([PR #1608](https://github.com/forcedotcom/salesforcedx-vscode/pull/1608), [Issue #1600](https://github.com/forcedotcom/salesforcedx-vscode/issues/1600))
+
+- Update documentation link when guiding users to fix Java configuration ([PR #1602](https://github.com/forcedotcom/salesforcedx-vscode/pull/1602))
+
+## Added
+
+#### docs
+
+- Add troubleshooting steps for setting up Windows PATH variable in [Set Salesforce CLI Path (Windows)](https://forcedotcom.github.io/salesforcedx-vscode/articles/troubleshooting#set-salesforce-cli-path-windows)([PR #1621](https://github.com/forcedotcom/salesforcedx-vscode/pull/1621))
+
+# 46.12.0 - August 29, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix issue with displaying errors in the Problem View when deploying code ([PR #1597](https://github.com/forcedotcom/salesforcedx-vscode/pull/1597)
+- Org Browser is now enabled by default. Removed the option to disable this setting through the Settings editor ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+
+#### docs
+
+- Remove references to enabling Org Browser ([PR #1598](https://github.com/forcedotcom/salesforcedx-vscode/pull/1598))
+
+## Added
+
+#### docs
+
+- Open beta for ([Remote Development](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/remote-development)) that allows you to use a container as a full-featured development environment ([PR #1609](https://github.com/forcedotcom/salesforcedx-vscode/pull/1609))
+
+## 46.11.0 - August 22, 2019
+
+## Fixed
+
+#### salesforcedx-core
+
+- Add custom objects as a bundle for retrieving in the Org Browser ([PR #1569](https://github.com/forcedotcom/salesforcedx-vscode/pull/1569))
+
+#### docs
+
+- Fix documentation link for ([Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser)) in user and workspace settings ([PR #1565](https://github.com/forcedotcom/salesforcedx-vscode/pull/1565))
+
+## Added
+
+#### salesforcedx-core
+
+- Open beta for Diff Plugin that allows you to diff local metadata against an org ([PR #1568](https://github.com/forcedotcom/salesforcedx-vscode/pull/1568))
+
+- Add retrieval of standard objects for the Org Browser ([PR #1571](https://github.com/forcedotcom/salesforcedx-vscode/pull/1571))
+
+#### docs
+
+- Add documentation for ([Source Diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff)) ([PR #1580](https://github.com/forcedotcom/salesforcedx-vscode/pull/1580))
+
+## 46.10.0 - August 15, 2019
+
+## Fixed
+
+#### salesforcedx-core
+
+- Rename `Apex Debug: Configure Exceptions` command to `SFDX: Configure Apex Debug Exceptions` and only enable it when working with a SFDX project ([PR #1533](https://github.com/forcedotcom/salesforcedx-vscode/pull/1533))
+
 ## 46.9.0 - August 8, 2019
 
 ## Added

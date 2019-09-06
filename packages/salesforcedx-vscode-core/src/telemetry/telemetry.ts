@@ -21,6 +21,11 @@ interface CommandMetric {
   executionTime?: string;
 }
 
+export interface TelemetryData {
+  properties?: { [key: string]: string };
+  measurements?: { [key: string]: number };
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private context: vscode.ExtensionContext | undefined;

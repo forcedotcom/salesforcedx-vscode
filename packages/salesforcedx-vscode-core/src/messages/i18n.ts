@@ -455,5 +455,12 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
-  XOrgHub: 'X Org Hubs'
+  XOrgHub: 'X Org Hubs',
+
+  force_source_diff_text: 'SFDX: Diff File Against Org',
+  force_source_diff_unsupported_type:
+    'Diff for this metadata type is currently not supported',
+  force_source_diff_title: '%s//%s ↔ local//%s',
+  force_source_diff_command_not_found:
+    'This command requires installing the @salesforce/sfdx-diff plugin. For detailed instructions go to https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff'
 };

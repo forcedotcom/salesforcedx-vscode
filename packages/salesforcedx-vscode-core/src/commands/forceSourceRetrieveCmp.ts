@@ -19,7 +19,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { BrowserNode, NodeType } from '../orgBrowser';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { telemetryService } from '../telemetry';
+import { TelemetryData, telemetryService } from '../telemetry';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -39,19 +39,32 @@ import {
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   string
 > {
-  private metadataArg: string;
-  constructor(metadataArg: string) {
+  private typeName: string;
+  private componentName: string;
+
+  constructor(typeName: string, componentName: string) {
     super();
-    this.metadataArg = metadataArg;
+    this.typeName = typeName;
+    this.componentName = componentName;
   }
 
   public build(): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_retrieve_text'))
       .withArg('force:source:retrieve')
-      .withFlag('-m', this.metadataArg)
+      .withFlag('-m', `${this.typeName}:${this.componentName}`)
       .withLogName('force_source_retrieve')
       .build();
+  }
+
+  protected getTelemetryData(): TelemetryData {
+    // needs to be updated when implementing support for multiple components/types
+    const retrievedTypes: any = [{ type: this.typeName, quantity: 1 }];
+    return {
+      properties: {
+        metadataCount: JSON.stringify(retrievedTypes)
+      }
+    };
   }
 }
 
@@ -62,7 +75,8 @@ const BUNDLE_TYPES = new Set([
   'AuraDefinitionBundle',
   'LightningComponentBundle',
   'WaveTemplateBundle',
-  'ExperienceBundle'
+  'ExperienceBundle',
+  'CustomObject'
 ]);
 
 export function generateSuffix(
@@ -101,8 +115,7 @@ export async function forceSourceRetrieveCmp(componentNode: BrowserNode) {
     ? new BundlePathStrategy()
     : new DefaultPathStrategy();
 
-  const metadataArg = `${typeName}:${componentName}`;
-  const executor = new ForceSourceRetrieveExecutor(metadataArg);
+  const executor = new ForceSourceRetrieveExecutor(typeName, componentName);
 
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
