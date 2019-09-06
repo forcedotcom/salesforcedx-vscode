@@ -47,11 +47,11 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   }
 
   protected getTelemetryData(): TelemetryData {
-    const retrievedTypes: any = {};
-    retrievedTypes[this.typeName] = 1;
+    // needs to be updated when implementing support for multiple components/types
+    const retrievedTypes: any = [{ type: this.typeName, quantity: 1 }];
     return {
       properties: {
-        'org-browser/retrievedTypes': JSON.stringify(retrievedTypes)
+        metadataCount: JSON.stringify(retrievedTypes)
       }
     };
   }

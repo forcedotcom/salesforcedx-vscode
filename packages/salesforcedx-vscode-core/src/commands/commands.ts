@@ -339,11 +339,16 @@ export abstract class SfdxCommandletExecutor<T>
     });
 
     execution.processExitSubject.subscribe(exitCode => {
-      this.logMetric(
-        execution.command.logName,
-        startTime,
-        this.getTelemetryData(exitCode === 0, response, output)
+      const telemetryData = this.getTelemetryData(
+        exitCode === 0,
+        response,
+        output
       );
+      let properties;
+      if (telemetryData) {
+        properties = telemetryData.properties;
+      }
+      this.logMetric(execution.command.logName, startTime, properties);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
