@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import { join } from 'path';
 import { stub } from 'sinon';
 import { GlobStrategyFactory } from '../../../../src/commands/util';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
@@ -17,7 +18,7 @@ describe('Glob Strategies', () => {
       const strategy = GlobStrategyFactory.createCheckFileInGivenPath('.a');
       const globs = await strategy.globs(testInput);
       expect(globs.length).to.equal(1);
-      expect(globs[0]).to.equal('{/test/folder/test.a}');
+      expect(globs[0]).to.equal(`{${join('/test', 'folder', 'test.a')}}`);
     });
   });
 
@@ -34,9 +35,11 @@ describe('Glob Strategies', () => {
       );
       const globs = await strategy.globs(testInput);
       expect(globs.length).to.equal(2);
+      const p1Base = join('/p1', 'test', 'folder');
+      const p2Base = join('/p2', 'test', 'folder');
       expect(globs).to.eql([
-        '{/p1/test/folder/test.a,/p1/test/folder/test.b}',
-        '{/p2/test/folder/test.a,/p2/test/folder/test.b}'
+        `{${join(p1Base, 'test.a')},${join(p1Base, 'test.b')}}`,
+        `{${join(p2Base, 'test.a')},${join(p2Base, 'test.b')}}`
       ]);
       packageDirStub.restore();
     });
