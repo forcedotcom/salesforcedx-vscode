@@ -1,1 +1,1 @@
-baseurl: '' # the subpath of your site, e.g. /blog
+baseurl: '/docs/vscode' # the subpath of your site, e.g. /blog
