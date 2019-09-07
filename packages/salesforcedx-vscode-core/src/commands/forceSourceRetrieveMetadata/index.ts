@@ -33,3 +33,5 @@ export interface RetrieveMetadataTrigger {
    */
   describer(): RetrieveDescriber;
 }
+
+export type SelectionAndType = DirFileNameSelection & { type: string };

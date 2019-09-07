@@ -14,7 +14,11 @@ import {
   DirFileNameSelection,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
+import {
+  RetrieveDescriber,
+  RetrieveMetadataTrigger,
+  SelectionAndType
+} from '.';
 import { nls } from '../../messages';
 import { BrowserNode } from '../../orgBrowser';
 import { TelemetryData } from '../../telemetry';
@@ -28,8 +32,19 @@ import {
   LWC_DEFINITION_FILE_EXTS
 } from '../templates/metadataTypeConstants';
 import { FilePathExistsChecker, GlobStrategyFactory } from '../util';
+import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 
-export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<{}> {
+const BUNDLE_TYPES = new Set([
+  'AuraDefinitionBundle',
+  'CustomObject',
+  'ExperienceBundle',
+  'LightningComponentBundle',
+  'WaveTemplateBundle'
+]);
+
+export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
+  SelectionAndType[]
+> {
   private describer: RetrieveDescriber;
 
   constructor(describer: RetrieveDescriber) {
@@ -47,41 +62,30 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<{}> {
       .build();
   }
 
-  // protected getTelemetryData(
-  //   success: boolean,
-  //   response: ContinueResponse<WithType[]>
-  // ): TelemetryData {
-  //   const retrievedTypes: any = {};
-  //   retrievedTypes[this.typeName] = 1;
-  //   return {
-  //     properties: {
-  //       'org-browser/retrievedTypes': JSON.stringify(retrievedTypes)
-  //     }
-  //   };
-  // }
-}
-
-const BUNDLE_TYPES = new Set([
-  'AuraDefinitionBundle',
-  'LightningComponentBundle',
-  'WaveTemplateBundle',
-  'ExperienceBundle',
-  'CustomObject'
-]);
-
-export function generateSuffix(typeNode: BrowserNode): string[] {
-  let suffixes: string[];
-  switch (typeNode.fullName) {
-    case 'LightningComponentBundle':
-      suffixes = LWC_DEFINITION_FILE_EXTS;
-      break;
-    case 'AuraDefinitionBundle':
-      suffixes = AURA_DEFINITION_FILE_EXTS;
-      break;
-    default:
-      suffixes = [`.${typeNode.suffix!}`];
+  protected getTelemetryData(
+    success: boolean,
+    response: ContinueResponse<SelectionAndType[]>
+  ): TelemetryData {
+    const quantities = this.getNumberOfRetrievedTypes(response.data);
+    const rows = Object.keys(quantities).map(type => {
+      return { type, quantity: quantities[type] };
+    });
+    return {
+      properties: {
+        metadataCount: JSON.stringify(rows)
+      }
+    };
   }
-  return suffixes.map(suffix => `${suffix!}-meta.xml`);
+
+  private getNumberOfRetrievedTypes(data: SelectionAndType[]): any {
+    const quantities: { [key: string]: number } = {};
+    data.forEach(selection => {
+      quantities[selection.type] = quantities[selection.type]
+        ? quantities[selection.type] + 1
+        : 1;
+    });
+    return quantities;
+  }
 }
 
 export async function forceSourceRetrieveCmp(trigger: RetrieveMetadataTrigger) {
@@ -104,17 +108,17 @@ export async function forceSourceRetrieveCmp(trigger: RetrieveMetadataTrigger) {
   await commandlet.run();
 }
 
-class RetrieveComponentOutputGatherer
-  implements ParametersGatherer<DirFileNameSelection[]> {
-  private describer: RetrieveDescriber;
-
-  constructor(describer: RetrieveDescriber) {
-    this.describer = describer;
+export function generateSuffix(typeNode: BrowserNode): string[] {
+  let suffixes: string[];
+  switch (typeNode.fullName) {
+    case 'LightningComponentBundle':
+      suffixes = LWC_DEFINITION_FILE_EXTS;
+      break;
+    case 'AuraDefinitionBundle':
+      suffixes = AURA_DEFINITION_FILE_EXTS;
+      break;
+    default:
+      suffixes = [`.${typeNode.suffix!}`];
   }
-
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<DirFileNameSelection[]>
-  > {
-    return { type: 'CONTINUE', data: this.describer.gatherOutputLocations() };
-  }
+  return suffixes.map(suffix => `${suffix!}-meta.xml`);
 }
