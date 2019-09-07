@@ -14,9 +14,10 @@ export { forceSourceRetrieveCmp } from './forceSourceRetrieveCmp';
 export interface RetrieveDescriber {
   /**
    * Reducer for building the force:source:retrieve metadata argument
+   * @param data optional data to use while building the argument
    * @returns parameter for metadata argument (-m)
    */
-  buildMetadataArg(): string;
+  buildMetadataArg(data?: DirFileNameWithType[]): string;
 
   /**
    * Gather list of file output locations
@@ -34,4 +35,5 @@ export interface RetrieveMetadataTrigger {
   describer(): RetrieveDescriber;
 }
 
-export type SelectionAndType = DirFileNameSelection & { type: string };
+/** A DirFileNameSelection with an additional 'type' property */
+export type DirFileNameWithType = DirFileNameSelection & { type: string };

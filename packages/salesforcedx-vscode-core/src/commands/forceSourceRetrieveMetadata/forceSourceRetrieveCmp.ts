@@ -15,9 +15,9 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  DirFileNameWithType,
   RetrieveDescriber,
-  RetrieveMetadataTrigger,
-  SelectionAndType
+  RetrieveMetadataTrigger
 } from '.';
 import { nls } from '../../messages';
 import { BrowserNode } from '../../orgBrowser';
@@ -43,7 +43,7 @@ const BUNDLE_TYPES = new Set([
 ]);
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
-  SelectionAndType[]
+  DirFileNameWithType[]
 > {
   private describer: RetrieveDescriber;
 
@@ -52,19 +52,19 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     this.describer = describer;
   }
 
-  public build(): Command {
+  public build(data: DirFileNameWithType[]): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_retrieve_text'))
       .withLogName('force_source_retrieve')
       .withArg('force:source:retrieve')
       .withArg('-m')
-      .withArg(this.describer.buildMetadataArg())
+      .withArg(this.describer.buildMetadataArg(data))
       .build();
   }
 
   protected getTelemetryData(
     success: boolean,
-    response: ContinueResponse<SelectionAndType[]>
+    response: ContinueResponse<DirFileNameWithType[]>
   ): TelemetryData {
     const quantities = this.getNumberOfRetrievedTypes(response.data);
     const rows = Object.keys(quantities).map(type => {
@@ -77,7 +77,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     };
   }
 
-  private getNumberOfRetrievedTypes(data: SelectionAndType[]): any {
+  private getNumberOfRetrievedTypes(data: DirFileNameWithType[]): any {
     const quantities: { [key: string]: number } = {};
     data.forEach(selection => {
       quantities[selection.type] = quantities[selection.type]
@@ -89,13 +89,14 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 }
 
 export async function forceSourceRetrieveCmp(trigger: RetrieveMetadataTrigger) {
+  // This section assumes triggers are only BrowserNodes at this point
   const typeNode = ((trigger as unknown) as BrowserNode).getAssociatedTypeNode();
   const fileExts = generateSuffix(typeNode);
   const globStrategy = BUNDLE_TYPES.has(typeNode.fullName)
     ? GlobStrategyFactory.createCheckBundleInAllPackages(...fileExts)
     : GlobStrategyFactory.createCheckFileInAllPackages(...fileExts);
-  const retrieveDescriber = trigger.describer();
 
+  const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),

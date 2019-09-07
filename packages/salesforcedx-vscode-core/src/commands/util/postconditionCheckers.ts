@@ -14,9 +14,10 @@ import { GlobPattern, workspace } from 'vscode';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
+import { DirFileNameWithType } from '../forceSourceRetrieveMetadata';
 import { GlobStrategy } from './globStrategies';
 
-type InputsType = DirFileNameSelection | DirFileNameSelection[];
+type InputsType = DirFileNameWithType | DirFileNameWithType[];
 type ContinueOrCancel = ContinueResponse<InputsType> | CancelResponse;
 
 export class FilePathExistsChecker implements PostconditionChecker<InputsType> {
@@ -30,7 +31,7 @@ export class FilePathExistsChecker implements PostconditionChecker<InputsType> {
 
   public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (inputs.type === 'CONTINUE') {
-      let exists: DirFileNameSelection[] = [];
+      let exists: DirFileNameWithType[] = [];
       if (inputs.data instanceof Array) {
         for (const dirFile of inputs.data) {
           if (await this.fileExists(dirFile)) {
@@ -41,9 +42,16 @@ export class FilePathExistsChecker implements PostconditionChecker<InputsType> {
         exists = (await this.fileExists(inputs.data)) ? [inputs.data] : [];
       }
 
-      if (exists.length === 0 || (await this.promptOverwrite())) {
-        return inputs;
+      if (exists.length > 0) {
+        const toSkip = await this.promptOverwrite(exists);
+        if (inputs.data instanceof Array) {
+          if (!toSkip || toSkip.size === inputs.data.length) {
+            return { type: 'CANCEL' };
+          }
+          inputs.data = inputs.data.filter(selection => !toSkip.has(selection));
+        }
       }
+      return inputs;
     }
     return { type: 'CANCEL' };
   }
@@ -58,11 +66,44 @@ export class FilePathExistsChecker implements PostconditionChecker<InputsType> {
     return files.length > 0;
   }
 
-  private async promptOverwrite(): Promise<boolean> {
-    const overwrite = await notificationService.showWarningModal(
-      this.warningMessage,
-      nls.localize('warning_prompt_continue_confirm')
-    );
-    return overwrite === nls.localize('warning_prompt_continue_confirm');
+  private async promptOverwrite(
+    exists: InputsType
+  ): Promise<Set<DirFileNameWithType> | undefined> {
+    if (!(exists instanceof Array)) {
+      exists = [exists];
+    }
+    const skip = new Set<DirFileNameWithType>();
+    // tslint:disable-next-line:prefer-for-of
+    for (let i = 0; i < exists.length; i++) {
+      const choices = ['Overwrite'];
+      if (skip.size > 0 || skip.size !== exists.length - 1) {
+        choices.push('Skip');
+      }
+      if (i < exists.length - 1) {
+        choices.push(
+          `Overwrite All (${exists.length - i})`,
+          `Skip All (${exists.length - i})`
+        );
+      }
+      const choice = await notificationService.showWarningModal(
+        this.warningMessage,
+        ...choices
+      );
+      switch (choice) {
+        case 'Overwrite':
+          break;
+        case 'Skip':
+          skip.add(exists[i]);
+          break;
+        case `Overwrite All (${exists.length - i})`:
+          return skip;
+        case `Skip All (${exists.length - i})`:
+          return new Set(exists.slice(i));
+        default:
+          // Cancel
+          return;
+      }
+    }
+    return skip;
   }
 }

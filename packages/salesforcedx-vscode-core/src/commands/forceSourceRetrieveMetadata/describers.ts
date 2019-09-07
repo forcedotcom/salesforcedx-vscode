@@ -6,7 +6,7 @@
  */
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { join } from 'path';
-import { RetrieveDescriber, SelectionAndType } from '.';
+import { DirFileNameWithType, RetrieveDescriber } from '.';
 import { BrowserNode } from '../../orgBrowser';
 
 abstract class NodeDescriber implements RetrieveDescriber {
@@ -20,7 +20,7 @@ abstract class NodeDescriber implements RetrieveDescriber {
 
   public abstract gatherOutputLocations(): DirFileNameSelection[];
 
-  protected buildOutput(node: BrowserNode): SelectionAndType {
+  protected buildOutput(node: BrowserNode): DirFileNameWithType {
     const typeNode = node.getAssociatedTypeNode();
     return {
       outputdir: join('main', 'default', typeNode.directoryName!),
@@ -31,7 +31,16 @@ abstract class NodeDescriber implements RetrieveDescriber {
 }
 
 class TypeNodeDescriber extends NodeDescriber {
-  public buildMetadataArg(): string {
+  public buildMetadataArg(data?: DirFileNameWithType[]): string {
+    if (data && data.length < this.node.children!.length) {
+      return data.reduce((acc, current, index) => {
+        acc += `${current.type}:${current.fileName}`;
+        if (index < data.length - 1) {
+          acc += ',';
+        }
+        return acc;
+      }, '');
+    }
     return this.node.fullName;
   }
 
