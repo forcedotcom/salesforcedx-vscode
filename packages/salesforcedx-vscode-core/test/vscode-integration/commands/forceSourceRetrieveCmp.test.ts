@@ -9,21 +9,22 @@ import { expect } from 'chai';
 import {
   ForceSourceRetrieveExecutor,
   generateSuffix
-} from '../../../src/commands';
+} from '../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { LWC_DEFINITION_FILE_EXTS } from '../../../src/commands/templates/metadataTypeConstants';
 import { BrowserNode, NodeType } from '../../../src/orgBrowser';
 
 describe('Force Source Retrieve', () => {
-  // it('should build source retrieve command', async () => {
-  //   const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
-  //     'ApexClass',
-  //     'testComponent'
-  //   );
-  //   const forceSourceRetrieveCmd = forceSourceRetrieveExec.build();
-  //   expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-  //     `sfdx force:source:retrieve -m ApexClass:testComponent`
-  //   );
-  // });
+  it('should build source retrieve command', async () => {
+    throw new Error('Rewrite this test!');
+    // const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
+    //   'ApexClass',
+    //   'testComponent'
+    // );
+    // const forceSourceRetrieveCmd = forceSourceRetrieveExec.build();
+    // expect(forceSourceRetrieveCmd.toCommand()).to.equal(
+    //   `sfdx force:source:retrieve -m ApexClass:testComponent`
+    // );
+  });
 });
 
 describe('Generate Appropriate Suffix', () => {
@@ -42,10 +43,9 @@ describe('Generate Appropriate Suffix', () => {
       undefined,
       metadataObject
     );
-    const suffixes = generateSuffix(typeNode, 'ApexClass');
+    const suffixes = generateSuffix(typeNode);
     expect(suffixes).to.eql([`.${typeNode.metadataObject!.suffix}-meta.xml`]);
   });
-
   it('should generate appropriate suffix if lightning type', async () => {
     const metadataObject = {
       xmlName: 'typeNode2',
@@ -61,7 +61,7 @@ describe('Generate Appropriate Suffix', () => {
       metadataObject
     );
     const expected = LWC_DEFINITION_FILE_EXTS.map(ext => `${ext!}-meta.xml`);
-    const suffixes = generateSuffix(typeNode, 'LightningComponentBundle');
+    const suffixes = generateSuffix(typeNode);
     expect(suffixes).to.eql(expected);
   });
 });
