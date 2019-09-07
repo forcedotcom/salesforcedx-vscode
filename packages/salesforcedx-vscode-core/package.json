@@ -119,7 +119,7 @@
         },
         {
           "command": "sfdx.force.source.retrieve.component",
-          "when": "view == metadata && viewItem == component",
+          "when": "view == metadata && viewItem =~ /(type|component)/",
           "group": "inline"
         }
       ],

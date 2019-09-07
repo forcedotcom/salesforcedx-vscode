@@ -14,16 +14,16 @@ import { LWC_DEFINITION_FILE_EXTS } from '../../../src/commands/templates/metada
 import { BrowserNode, NodeType } from '../../../src/orgBrowser';
 
 describe('Force Source Retrieve', () => {
-  it('should build source retrieve command', async () => {
-    const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
-      'ApexClass',
-      'testComponent'
-    );
-    const forceSourceRetrieveCmd = forceSourceRetrieveExec.build();
-    expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-      `sfdx force:source:retrieve -m ApexClass:testComponent`
-    );
-  });
+  // it('should build source retrieve command', async () => {
+  //   const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
+  //     'ApexClass',
+  //     'testComponent'
+  //   );
+  //   const forceSourceRetrieveCmd = forceSourceRetrieveExec.build();
+  //   expect(forceSourceRetrieveCmd.toCommand()).to.equal(
+  //     `sfdx force:source:retrieve -m ApexClass:testComponent`
+  //   );
+  // });
 });
 
 describe('Generate Appropriate Suffix', () => {
