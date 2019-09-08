@@ -10,6 +10,7 @@ import {
   DirFileNameSelection,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { format } from 'util';
 import { GlobPattern, workspace } from 'vscode';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
@@ -30,30 +31,40 @@ export class FilePathExistsChecker implements PostconditionChecker<InputsType> {
   }
 
   public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
-    if (inputs.type === 'CONTINUE') {
-      let exists: DirFileNameWithType[] = [];
-      if (inputs.data instanceof Array) {
-        for (const dirFile of inputs.data) {
-          if (await this.fileExists(dirFile)) {
-            exists.push(dirFile);
-          }
-        }
-      } else {
-        exists = (await this.fileExists(inputs.data)) ? [inputs.data] : [];
-      }
-
-      if (exists.length > 0) {
-        const toSkip = await this.promptOverwrite(exists);
-        if (inputs.data instanceof Array) {
-          if (!toSkip || toSkip.size === inputs.data.length) {
-            return { type: 'CANCEL' };
-          }
-          inputs.data = inputs.data.filter(selection => !toSkip.has(selection));
-        }
-      }
-      return inputs;
+    if (inputs.type === 'CANCEL') {
+      return { type: 'CANCEL' };
     }
-    return { type: 'CANCEL' };
+    const existingFiles = await this.getExistingFiles(inputs.data);
+    if (existingFiles.length > 0) {
+      const toSkip = await this.promptOverwrite(existingFiles);
+      // cancel command if cancel clicked or if skipping every file to be retrieved
+      if (
+        !toSkip ||
+        (inputs.data instanceof Array && toSkip.size === inputs.data.length)
+      ) {
+        return { type: 'CANCEL' };
+      }
+      if (inputs.data instanceof Array) {
+        inputs.data = inputs.data.filter(selection => !toSkip.has(selection));
+      }
+    }
+    return inputs;
+  }
+
+  private async getExistingFiles(
+    foundFiles: InputsType
+  ): Promise<DirFileNameWithType[]> {
+    let exists: DirFileNameWithType[] = [];
+    if (foundFiles instanceof Array) {
+      for (const dirFile of foundFiles) {
+        if (await this.fileExists(dirFile)) {
+          exists.push(dirFile);
+        }
+      }
+    } else {
+      exists = (await this.fileExists(foundFiles)) ? [foundFiles] : [];
+    }
+    return exists;
   }
 
   private async fileExists(selection: DirFileNameSelection): Promise<boolean> {
@@ -67,43 +78,80 @@ export class FilePathExistsChecker implements PostconditionChecker<InputsType> {
   }
 
   private async promptOverwrite(
-    exists: InputsType
+    existingFiles: DirFileNameWithType[]
   ): Promise<Set<DirFileNameWithType> | undefined> {
-    if (!(exists instanceof Array)) {
-      exists = [exists];
-    }
-    const skip = new Set<DirFileNameWithType>();
+    const skipped = new Set<DirFileNameWithType>();
     // tslint:disable-next-line:prefer-for-of
-    for (let i = 0; i < exists.length; i++) {
-      const choices = ['Overwrite'];
-      if (skip.size > 0 || skip.size !== exists.length - 1) {
-        choices.push('Skip');
-      }
-      if (i < exists.length - 1) {
-        choices.push(
-          `Overwrite All (${exists.length - i})`,
-          `Skip All (${exists.length - i})`
-        );
-      }
+    for (let i = 0; i < existingFiles.length; i++) {
+      const options = this.buildDialogOptions(existingFiles, skipped, i);
       const choice = await notificationService.showWarningModal(
-        this.warningMessage,
-        ...choices
+        this.buildDialogMessage(existingFiles, i),
+        ...options
       );
       switch (choice) {
         case 'Overwrite':
           break;
         case 'Skip':
-          skip.add(exists[i]);
+          skipped.add(existingFiles[i]);
           break;
-        case `Overwrite All (${exists.length - i})`:
-          return skip;
-        case `Skip All (${exists.length - i})`:
-          return new Set(exists.slice(i));
+        case `Overwrite All (${existingFiles.length - i})`:
+          return skipped;
+        case `Skip All (${existingFiles.length - i})`:
+          return new Set(existingFiles.slice(i));
         default:
           // Cancel
           return;
       }
     }
-    return skip;
+    return skipped;
+  }
+
+  private buildDialogMessage(
+    existingFiles: DirFileNameWithType[],
+    currentIndex: number
+  ) {
+    const existingLength = existingFiles.length;
+    const current = existingFiles[currentIndex];
+    let body = '';
+    // tslint:disable-next-line:prefer-for-of
+    for (let j = currentIndex + 1; j < existingLength; j++) {
+      if (j === 10) {
+        body += `...${existingLength -
+          currentIndex -
+          10 +
+          1} other files not shown`;
+        break;
+      }
+      body += `${existingFiles[j].fileName}\n`;
+    }
+    const otherFilesCount = existingLength - currentIndex - 1;
+    return format(
+      this.warningMessage,
+      current.type,
+      current.fileName,
+      otherFilesCount > 0
+        ? `${otherFilesCount} other existing components:`
+        : '',
+      body
+    );
+  }
+
+  private buildDialogOptions(
+    existingFiles: DirFileNameWithType[],
+    skipped: Set<DirFileNameWithType>,
+    index: number
+  ) {
+    const choices = ['Overwrite'];
+    const numOfExistingFiles = existingFiles.length;
+    if (skipped.size > 0 || skipped.size !== numOfExistingFiles - 1) {
+      choices.push('Skip');
+    }
+    if (index < numOfExistingFiles - 1) {
+      choices.push(
+        `Overwrite All (${numOfExistingFiles - index})`,
+        `Skip All (${numOfExistingFiles - index})`
+      );
+    }
+    return choices;
   }
 }

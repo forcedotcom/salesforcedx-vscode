@@ -32,6 +32,7 @@ abstract class NodeDescriber implements RetrieveDescriber {
 
 class TypeNodeDescriber extends NodeDescriber {
   public buildMetadataArg(data?: DirFileNameWithType[]): string {
+    // data expected as final components to fetch after postchecker prompt
     if (data && data.length < this.node.children!.length) {
       return data.reduce((acc, current, index) => {
         acc += `${current.type}:${current.fileName}`;

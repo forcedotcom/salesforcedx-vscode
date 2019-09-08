@@ -80,9 +80,8 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   private getNumberOfRetrievedTypes(data: DirFileNameWithType[]): any {
     const quantities: { [key: string]: number } = {};
     data.forEach(selection => {
-      quantities[selection.type] = quantities[selection.type]
-        ? quantities[selection.type] + 1
-        : 1;
+      const current = quantities[selection.type];
+      quantities[selection.type] = current ? current + 1 : 1;
     });
     return quantities;
   }
@@ -103,7 +102,7 @@ export async function forceSourceRetrieveCmp(trigger: RetrieveMetadataTrigger) {
     new ForceSourceRetrieveExecutor(retrieveDescriber),
     new FilePathExistsChecker(
       globStrategy,
-      nls.localize('warning_prompt_cmp_file_overwrite', 'somethin')
+      nls.localize('warning_prompt_component_overwrite')
     )
   );
   await commandlet.run();
