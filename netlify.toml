@@ -16,6 +16,6 @@
 
   [context.production]
     [[redirects]]
-      from = "/:splat"
-      to = "/tools/vscode/*"
+      from = "/tools/vscode/*"
+      to = "/:splat"
       status = 200
