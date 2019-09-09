@@ -12,3 +12,8 @@
 
   # Default build command.
   command = "jekyll build"
+
+[[redirects]]
+  from = "/tools/vscode/*"
+  to = "/*"
+  status = 200
