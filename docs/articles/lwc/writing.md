@@ -1,6 +1,5 @@
 ---
 title: Write Lighting Web Components
-redirect_from: '/articles/frameworks/lwc'
 ---
 
 Features Provided by the Lightning Web Components Extension

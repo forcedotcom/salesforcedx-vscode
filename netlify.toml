@@ -12,3 +12,10 @@
 
   # Default build command.
   command = "jekyll build"
+
+
+  [context.production]
+    [[redirects]]
+      from = "/:splat"
+      to = "/tools/vscode/*"
+      status = 200
