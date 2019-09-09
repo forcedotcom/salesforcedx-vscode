@@ -11,4 +11,4 @@
   publish = "docs/_site/"
 
   # Default build command.
-  command = "jekyll build --config _config.yml,_config.netlify.yml"
+  command = "jekyll build --config _config.yml"
