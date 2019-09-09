@@ -24,10 +24,16 @@ gem install jekyll bundler
 bundle install
 ```
 
+## Install Netlify CLI
+
+```
+npm install netlify-cli -g
+```
+
 ## Start the Server
 
 ```
-bundle exec jekyll serve
+netlify dev
 ```
 
-Navigate to: http://127.0.0.1:4000/tools/vscode/
+Navigate to: http://127.0.0.1:8888/tools/vscode/

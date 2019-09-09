@@ -16,18 +16,15 @@
 title: Salesforce Extensions for Visual Studio Code
 baseurl: '/tools/vscode' # the subpath of your site, e.g. /blog
 url: 'https://forcedotcom.github.io' # the base hostname & protocol for your site, e.g. http://example.com
-github_username: forcedotcom
 
 # Build settings
-markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter_opts:
     disable: true
-theme: minima
+
 plugins:
   - jekyll-feed
-  - jekyll-octicons
   - jekyll-sitemap
   - jekyll-redirect-from
 
@@ -43,14 +40,3 @@ defaults:
       path: 'articles-jp'
     values:
       sitemap: false
-# Exclude from processing.
-# The following items will not be processed, by default. Create a custom list
-# to override the default setting.
-# exclude:
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
