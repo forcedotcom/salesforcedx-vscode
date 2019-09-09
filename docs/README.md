@@ -15,6 +15,7 @@ export CPPFLAGS="-I/usr/local/opt/ruby/include"
 ```
 
 ## Install Jekyll
+
 https://jekyllrb.com/docs/
 
 ```
@@ -29,4 +30,4 @@ bundle install
 bundle exec jekyll serve
 ```
 
-Navigate to: http://127.0.0.1:4000/salesforcedx-vscode/
+Navigate to: http://127.0.0.1:4000/tools/vscode/
