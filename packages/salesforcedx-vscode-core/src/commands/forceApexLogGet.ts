@@ -17,7 +17,6 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
-import * as moment from 'moment';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
@@ -90,15 +89,30 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
         mkdir('-p', logDir);
       }
 
-      const date = moment(new Date(response.data.startTime)).format(
-        'YYYYMMDDhhmmss'
-      );
+      const utcDate = response.data.startTime; // 2019-09-10T04:34:28+0000
+      const localDate = new Date(utcDate);
+      const date = getLogDateFormat(localDate);
+
       const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
       fs.writeFileSync(logPath, resultJson.result.log);
       const document = await vscode.workspace.openTextDocument(logPath);
       vscode.window.showTextDocument(document);
     }
   }
+}
+
+function getLogDateFormat(localDate: Date): string {
+  const month2Digit = makeDoubleDigit(localDate.getMonth() + 1);
+  const date2Digit = makeDoubleDigit(localDate.getDate());
+  const hour2Digit = makeDoubleDigit(localDate.getHours());
+  const mins2Digit = makeDoubleDigit(localDate.getMinutes());
+  const sec2Digit = makeDoubleDigit(localDate.getSeconds());
+
+  return `${localDate.getFullYear()}${month2Digit}${date2Digit}${hour2Digit}${mins2Digit}${sec2Digit}`;
+}
+
+function makeDoubleDigit(currentDigit: number): string {
+  return ('0' + currentDigit).slice(-2);
 }
 
 export type ApexDebugLogIdStartTime = {
@@ -135,16 +149,29 @@ export class LogFileSelector
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
+
+        const utcDate = logInfo.StartTime; // 2019-09-10T04:34:28+0000
+        const localDate = new Date(utcDate);
+
+        const options = {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        };
+
+        const localDateFormatted = localDate.toLocaleDateString(
+          undefined,
+          options
+        );
+
         return {
           id: logInfo.Id,
           label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
-          startTime: moment(new Date(logInfo.StartTime)).format(
-            'M/DD/YYYY, h:mm:s a'
-          ),
-          detail:
-            moment(new Date(logInfo.StartTime)).format('M/DD/YYYY, h:mm:s a') +
-            ' - ' +
-            logInfo.Status.substr(0, 150),
+          startTime: localDateFormatted,
+          detail: localDateFormatted + ' - ' + logInfo.Status.substr(0, 150),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });
