@@ -12,8 +12,8 @@
  * 4. Adding vs. Fixed vs. Ignore in change log
  *
  * Overriding Default Values:
- * 1. Override the release: --release=[releaseVersion]. Example: npm run --release=46.7.0 build-change-log
- * 2. Override logging [will cause verbose logging]: Example: npm run -v build-change-log
+ * 1. Override the release. Example: npm run build-change-log -- -r 46.7.0
+ * 2. Add verbose logging. Example: npm run build-change-log -- -v
  */
 
 const process = require('process');
@@ -73,7 +73,7 @@ function getLatestReleaseBranch() {
 }
 
 function getReleaseBranch() {
-  var releaseIndex = process.argv.indexOf('--release');
+  var releaseIndex = process.argv.indexOf('-r');
   if (releaseIndex > -1) {
     return process.argv[releaseIndex + 1];
   }
@@ -139,15 +139,13 @@ function parseCommits() {
     .split('Updated SHA256', 1)
     .toString()
     .split('\n');
-  if (ADD_VERBOSE_LOGGING) console.log('Commits to Parse:\n');
+  if (ADD_VERBOSE_LOGGING) console.log('\nCommit Parsing Results...');
   for (var i = 0; i < commits.length; i++) {
-    if (ADD_VERBOSE_LOGGING) console.log(commits[i] + '\n');
     var commitMap = buildMapFromCommit(commits[i]);
     if (commitMap && Object.keys(commitMap).length > 0) {
       results.push(commitMap);
     }
   }
-  if (ADD_VERBOSE_LOGGING) console.log('Commits as Maps:\n' + results);
   return results;
 }
 
@@ -164,6 +162,11 @@ function buildMapFromCommit(commit) {
       map[FILES] = getFilesChanged(map[COMMIT]);
       map[PACKAGES] = getPackageHeaders(map[FILES]);
     }
+  }
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nCommit: ' + commit);
+    console.log('Commit Map:');
+    console.log(map);
   }
   return map;
 }
