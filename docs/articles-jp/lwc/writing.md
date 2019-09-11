@@ -1,6 +1,5 @@
 ---
 title: Lightning Web コンポーネントの記述
-redirect_from: '/articles/frameworks/lwc'
 ---
 
 Lightning Web コンポーネント拡張機能で提供される機能
