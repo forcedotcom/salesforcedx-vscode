@@ -1,3 +1,14 @@
+# 46.14.0 - September 12, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Refactor FilePathExistsChecker for command usage in preparation of org browser multi-retrieve work ([PR #1629](https://github.com/forcedotcom/salesforcedx-vscode/pull/1629))
+
+- `SFDX: Authorize a Dev Hub` will now set the global default dev hub if it has not already been set ([PR #1614](https://github.com/forcedotcom/salesforcedx-vscode/pull/1614))
+
+
 # 46.13.0 - September 5, 2019
 
 ## Fixed
