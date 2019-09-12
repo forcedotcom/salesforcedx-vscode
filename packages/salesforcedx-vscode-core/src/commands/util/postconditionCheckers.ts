@@ -125,12 +125,12 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
         break;
       }
       const { fileName, type } = foundComponents[j];
-      body += `${nls.localize(type)}:${fileName}\n`;
+      body += `${type}:${fileName}\n`;
     }
     const otherFilesCount = existingLength - currentIndex - 1;
     return format(
       nls.localize('warning_prompt_metadata_overwrite'),
-      nls.localize(current.type),
+      current.type,
       current.fileName,
       otherFilesCount > 0
         ? `${otherFilesCount} other existing components:`

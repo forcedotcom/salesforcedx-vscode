@@ -8,7 +8,6 @@
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ContinueResponse,
-  DirFileNameSelection,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';

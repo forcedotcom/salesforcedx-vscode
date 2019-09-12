@@ -9,10 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  DirFileNameSelection,
-  LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';

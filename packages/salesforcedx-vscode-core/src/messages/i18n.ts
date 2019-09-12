@@ -128,7 +128,7 @@ export const messages = {
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_metadata_overwrite:
-    'Are you sure you want to overwrite the %s %s?\n\n%s\n\n%s',
+    'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
   warning_prompt_continue_confirm: 'Continue',
   warning_prompt_overwrite_confirm: 'Overwrite',
   warning_prompt_overwrite_cancel: 'Cancel',
