@@ -10,8 +10,7 @@
 
 #### docs
 
-- Updated docs site for DSC ([PR #1642](https://github.com/forcedotcom/salesforcedx-vscode/pull/1642))
-
+- Update info such as redirects and version in [salesforcedx-vscode/docs](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/docs) ([PR #1642](https://github.com/forcedotcom/salesforcedx-vscode/pull/1642))
 
 # 46.13.0 - September 5, 2019
 
