@@ -13,14 +13,15 @@ export { forceSourceRetrieveCmp } from './forceSourceRetrieveCmp';
  */
 export interface RetrieveDescriber {
   /**
-   * Reducer for building the force:source:retrieve metadata argument
+   * Builds the force:source:retrieve metadata argument
    * @param data optional data to use while building the argument
    * @returns parameter for metadata argument (-m)
    */
   buildMetadataArg(data?: LocalComponent[]): string;
 
   /**
-   * Gather list of file output locations
+   * Gather list of components to be retrieved
+   * @returns local representations of components
    */
   gatherOutputLocations(): Promise<LocalComponent[]>;
 }

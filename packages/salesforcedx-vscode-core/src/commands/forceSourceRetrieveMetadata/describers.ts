@@ -9,7 +9,6 @@ import { join } from 'path';
 import { RetrieveDescriber } from '.';
 import { BrowserNode } from '../../orgBrowser';
 import { SfdxPackageDirectories } from '../../sfdxProject';
-import { MetadataDictionary } from '../../util/metadataDictionary';
 
 abstract class NodeDescriber implements RetrieveDescriber {
   protected node: BrowserNode;
