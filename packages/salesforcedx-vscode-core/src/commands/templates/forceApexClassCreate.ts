@@ -9,7 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
@@ -20,8 +20,8 @@ import {
 } from '../commands';
 import {
   FilePathExistsChecker,
-  GlobStrategyFactory,
   PathStrategyFactory,
+  SimpleGatherer,
   SourcePathStrategy
 } from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';
@@ -31,7 +31,7 @@ import {
 } from './metadataTypeConstants';
 
 export class ForceApexClassCreateExecutor extends BaseTemplateCommand {
-  public build(data: DirFileNameSelection): Command {
+  public build(data: LocalComponent): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_class_create_text'))
       .withArg('force:apex:class:create')
@@ -59,18 +59,13 @@ const outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
 export async function forceApexClassCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(
+    new CompositeParametersGatherer<LocalComponent>(
       fileNameGatherer,
-      outputDirGatherer
+      outputDirGatherer,
+      new SimpleGatherer({ type: 'ApexClass' })
     ),
     new ForceApexClassCreateExecutor(),
-    new FilePathExistsChecker(
-      GlobStrategyFactory.createCheckFileInGivenPath(APEX_CLASS_EXTENSION),
-      nls.localize(
-        'warning_prompt_file_overwrite',
-        nls.localize('apex_class_message_name')
-      )
-    )
+    new FilePathExistsChecker()
   );
   await commandlet.run();
 }

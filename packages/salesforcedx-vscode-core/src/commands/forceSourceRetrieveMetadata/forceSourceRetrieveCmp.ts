@@ -9,41 +9,22 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
-  ParametersGatherer
+  LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  DirFileNameWithType,
-  RetrieveDescriber,
-  RetrieveMetadataTrigger
-} from '.';
+import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
 import { nls } from '../../messages';
-import { BrowserNode } from '../../orgBrowser';
 import { TelemetryData } from '../../telemetry';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../commands';
-import {
-  AURA_DEFINITION_FILE_EXTS,
-  LWC_DEFINITION_FILE_EXTS
-} from '../templates/metadataTypeConstants';
-import { FilePathExistsChecker, GlobStrategyFactory } from '../util';
+import { FilePathExistsChecker } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 
-const BUNDLE_TYPES = new Set([
-  'AuraDefinitionBundle',
-  'CustomObject',
-  'ExperienceBundle',
-  'LightningComponentBundle',
-  'WaveTemplateBundle'
-]);
-
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
-  DirFileNameWithType[]
+  LocalComponent[]
 > {
   private describer: RetrieveDescriber;
 
@@ -52,7 +33,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     this.describer = describer;
   }
 
-  public build(data: DirFileNameWithType[]): Command {
+  public build(data: LocalComponent[]): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_retrieve_text'))
       .withLogName('force_source_retrieve')
@@ -64,7 +45,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 
   protected getTelemetryData(
     success: boolean,
-    response: ContinueResponse<DirFileNameWithType[]>
+    response: ContinueResponse<LocalComponent[]>
   ): TelemetryData {
     const quantities = this.getNumberOfRetrievedTypes(response.data);
     const rows = Object.keys(quantities).map(type => {
@@ -77,7 +58,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     };
   }
 
-  private getNumberOfRetrievedTypes(data: DirFileNameWithType[]): any {
+  private getNumberOfRetrievedTypes(data: LocalComponent[]): any {
     const quantities: { [key: string]: number } = {};
     data.forEach(selection => {
       const current = quantities[selection.type];
@@ -88,37 +69,12 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 }
 
 export async function forceSourceRetrieveCmp(trigger: RetrieveMetadataTrigger) {
-  // This section assumes triggers are only BrowserNodes at this point
-  const typeNode = ((trigger as unknown) as BrowserNode).getAssociatedTypeNode();
-  const fileExts = generateSuffix(typeNode);
-  const globStrategy = BUNDLE_TYPES.has(typeNode.fullName)
-    ? GlobStrategyFactory.createCheckBundleInAllPackages(...fileExts)
-    : GlobStrategyFactory.createCheckFileInAllPackages(...fileExts);
-
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
     new ForceSourceRetrieveExecutor(retrieveDescriber),
-    new FilePathExistsChecker(
-      globStrategy,
-      nls.localize('warning_prompt_component_overwrite')
-    )
+    new FilePathExistsChecker()
   );
   await commandlet.run();
-}
-
-export function generateSuffix(typeNode: BrowserNode): string[] {
-  let suffixes: string[];
-  switch (typeNode.fullName) {
-    case 'LightningComponentBundle':
-      suffixes = LWC_DEFINITION_FILE_EXTS;
-      break;
-    case 'AuraDefinitionBundle':
-      suffixes = AURA_DEFINITION_FILE_EXTS;
-      break;
-    default:
-      suffixes = [`.${typeNode.suffix!}`];
-  }
-  return suffixes.map(suffix => `${suffix!}-meta.xml`);
 }

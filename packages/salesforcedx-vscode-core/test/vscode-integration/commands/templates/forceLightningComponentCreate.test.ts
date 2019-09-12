@@ -31,7 +31,8 @@ describe('Force Lightning Component Create', () => {
     const fileName = 'myAuraCmp';
     const lwcCreateCommand = lightningCmpCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:component:create --componentname ${fileName} --outputdir ${outputDirPath}`
@@ -57,7 +58,8 @@ describe('Force Lightning Component Create', () => {
     const fileName = 'internalCmp';
     const lwcCreateCommand = lightningCmpCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:component:create --componentname ${fileName} --outputdir ${outputDirPath} --internal`

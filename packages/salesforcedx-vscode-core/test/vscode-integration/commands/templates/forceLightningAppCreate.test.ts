@@ -31,7 +31,8 @@ describe('Force Lightning App Create', () => {
     const fileName = 'lightningApp';
     const lightningAppCreateCommand = lightningAppCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lightningAppCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:app:create --appname ${fileName} --outputdir ${outputDirPath}`
@@ -57,7 +58,8 @@ describe('Force Lightning App Create', () => {
     const fileName = 'lightningInternalApp';
     const lightningAppCreateCommand = lightningAppCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lightningAppCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:app:create --appname ${fileName} --outputdir ${outputDirPath} --internal`

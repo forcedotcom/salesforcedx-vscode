@@ -36,7 +36,19 @@ export interface ParametersGatherer<T> {
 // Selection
 ////////////
 
-export type DirFileNameSelection = {
+/**
+ * Representation of a metadata component to be written to the local workspace
+ */
+export type LocalComponent = {
+  /** name of the component (FullName in the API) */
   fileName: string;
+
+  /** relative workspace path to save the component */
   outputdir: string;
+
+  /** the component's metadata type */
+  type: string;
+
+  /** optional suffix to overwrite in case metadata dictionary does not have it */
+  suffix?: string;
 };

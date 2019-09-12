@@ -23,7 +23,8 @@ describe('Force Visualforce Component Create', () => {
     const fileName = 'myVFCmp';
     const vfCmpCreateCommand = visualforceCmpCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'ApexComponent'
     });
     expect(vfCmpCreateCommand.toCommand()).to.equal(
       `sfdx force:visualforce:component:create --componentname ${fileName} --label ${fileName} --outputdir ${outputDirPath}`

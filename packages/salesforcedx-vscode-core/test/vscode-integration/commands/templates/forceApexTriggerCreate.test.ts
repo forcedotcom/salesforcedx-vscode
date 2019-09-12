@@ -18,7 +18,8 @@ describe('Force Apex Trigger Create', () => {
     const fileName = 'myTrigger';
     const triggerCreateCommand = triggerCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'ApexTrigger'
     });
     expect(triggerCreateCommand.toCommand()).to.equal(
       `sfdx force:apex:trigger:create --triggername ${fileName} --outputdir ${outputDirPath}`

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 export { RetrieveDescriberFactory } from './describers';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveCmp';
 
@@ -17,12 +17,12 @@ export interface RetrieveDescriber {
    * @param data optional data to use while building the argument
    * @returns parameter for metadata argument (-m)
    */
-  buildMetadataArg(data?: DirFileNameWithType[]): string;
+  buildMetadataArg(data?: LocalComponent[]): string;
 
   /**
    * Gather list of file output locations
    */
-  gatherOutputLocations(): DirFileNameSelection[];
+  gatherOutputLocations(): Promise<LocalComponent[]>;
 }
 
 /**
@@ -34,6 +34,3 @@ export interface RetrieveMetadataTrigger {
    */
   describer(): RetrieveDescriber;
 }
-
-/** A DirFileNameSelection with an additional 'type' property */
-export type DirFileNameWithType = DirFileNameSelection & { type: string };

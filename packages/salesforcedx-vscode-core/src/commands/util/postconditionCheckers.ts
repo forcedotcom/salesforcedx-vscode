@@ -7,44 +7,39 @@
 import {
   CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
+  LocalComponent,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { format } from 'util';
-import { workspace } from 'vscode';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { DirFileNameWithType } from '../forceSourceRetrieveMetadata';
-import { GlobStrategy } from './globStrategies';
+import { getRootWorkspacePath } from '../../util';
+import { MetadataDictionary } from '../../util/metadataDictionary';
+import { PathStrategyFactory } from './sourcePathStrategies';
 
-type SingleOrArray = DirFileNameWithType | DirFileNameWithType[];
-type ContinueOrCancel = ContinueResponse<SingleOrArray> | CancelResponse;
+type OneOrMany = LocalComponent | LocalComponent[];
+type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
 /* tslint:disable-next-line:prefer-for-of */
-export class FilePathExistsChecker
-  implements PostconditionChecker<SingleOrArray> {
-  private globStrategy: GlobStrategy;
-  private warningMessage: string;
-
-  public constructor(globStrategy: GlobStrategy, warningMessage: string) {
-    this.globStrategy = globStrategy;
-    this.warningMessage = warningMessage;
-  }
-
+export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
   public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (inputs.type === 'CONTINUE') {
       const { data } = inputs;
       // normalize data into a list when processing
-      const gatheredFiles = data instanceof Array ? data : [data];
-      const existingFiles = await this.getExistingFiles(gatheredFiles);
-      if (existingFiles.length > 0) {
-        const toSkip = await this.promptOverwrite(existingFiles);
+      const componentsToCheck = data instanceof Array ? data : [data];
+      const foundComponents = componentsToCheck.filter(component =>
+        this.componentExists(component)
+      );
+      if (foundComponents.length > 0) {
+        const toSkip = await this.promptOverwrite(foundComponents);
         // cancel command if cancel clicked or if skipping every file to be retrieved
-        if (!toSkip || toSkip.size === gatheredFiles.length) {
+        if (!toSkip || toSkip.size === componentsToCheck.length) {
           return { type: 'CANCEL' };
         }
         if (data instanceof Array) {
-          inputs.data = gatheredFiles.filter(
+          inputs.data = componentsToCheck.filter(
             selection => !toSkip.has(selection)
           );
         }
@@ -54,69 +49,74 @@ export class FilePathExistsChecker
     return { type: 'CANCEL' };
   }
 
-  private async getExistingFiles(
-    gatheredFiles: DirFileNameWithType[]
-  ): Promise<DirFileNameWithType[]> {
-    const exists: DirFileNameWithType[] = [];
-    for (const dirFile of gatheredFiles) {
-      if (await this.fileExists(dirFile)) {
-        exists.push(dirFile);
-      }
-    }
-    return exists;
+  private componentExists(component: LocalComponent) {
+    const { fileName, type, outputdir } = component;
+    const info = MetadataDictionary.getInfo(type);
+    const pathStrategy = info
+      ? info.pathStrategy
+      : PathStrategyFactory.createDefaultStrategy();
+    return this.getFileExtensions(component).some(extension => {
+      const path = join(
+        getRootWorkspacePath(),
+        pathStrategy.getPathToSource(outputdir, fileName, extension)
+      );
+      return existsSync(path);
+    });
   }
 
-  private async fileExists(selection: DirFileNameSelection): Promise<boolean> {
-    const files = [];
-    const globs = await this.globStrategy.globs(selection);
-    for (const g of globs) {
-      const result = await workspace.findFiles(g);
-      files.push(...result);
+  private getFileExtensions(component: LocalComponent) {
+    const info = MetadataDictionary.getInfo(component.type);
+    let metadataSuffix;
+    if (component.suffix) {
+      metadataSuffix = component.suffix;
+    } else if (info && info.suffix) {
+      metadataSuffix = info.suffix;
+    } else {
+      throw new Error(`Missing suffix for ${component.type}`);
     }
-    return files.length > 0;
+    const extensions = [`.${metadataSuffix}-meta.xml`];
+    if (info && info.extensions) {
+      extensions.push(...info.extensions);
+    }
+    return extensions;
   }
 
-  /**
-   * Warn the user of potential files to overwrite
-   * @param existingFiles to potentially overwrite
-   * @returns files that should not be overwritten or undefined if operation cancelled
-   */
   private async promptOverwrite(
-    existingFiles: DirFileNameWithType[]
-  ): Promise<Set<DirFileNameWithType> | undefined> {
-    const skipped = new Set<DirFileNameWithType>();
-    for (let i = 0; i < existingFiles.length; i++) {
-      const options = this.buildDialogOptions(existingFiles, skipped, i);
+    foundComponents: LocalComponent[]
+  ): Promise<Set<LocalComponent> | undefined> {
+    const skipped = new Set<LocalComponent>();
+    for (let i = 0; i < foundComponents.length; i++) {
+      const options = this.buildDialogOptions(foundComponents, skipped, i);
       const choice = await notificationService.showWarningModal(
-        this.buildDialogMessage(existingFiles, i),
+        this.buildDialogMessage(foundComponents, i),
         ...options
       );
       switch (choice) {
         case 'Overwrite':
           break;
         case 'Skip':
-          skipped.add(existingFiles[i]);
+          skipped.add(foundComponents[i]);
           break;
-        case `Overwrite All (${existingFiles.length - i})`:
+        case `Overwrite All (${foundComponents.length - i})`:
           return skipped;
-        case `Skip All (${existingFiles.length - i})`:
-          return new Set(existingFiles.slice(i));
+        case `Skip All (${foundComponents.length - i})`:
+          return new Set(foundComponents.slice(i));
         default:
-          // Cancel
-          return;
+          return; // Cancel
       }
     }
     return skipped;
   }
 
   private buildDialogMessage(
-    existingFiles: DirFileNameWithType[],
+    foundComponents: LocalComponent[],
     currentIndex: number
   ) {
-    const existingLength = existingFiles.length;
-    const current = existingFiles[currentIndex];
+    const existingLength = foundComponents.length;
+    const current = foundComponents[currentIndex];
     let body = '';
     for (let j = currentIndex + 1; j < existingLength; j++) {
+      // Truncate components to show if there are more than 10 remaining
       if (j === currentIndex + 10) {
         body += `...${existingLength -
           currentIndex -
@@ -124,13 +124,13 @@ export class FilePathExistsChecker
           1} other files not shown\n`;
         break;
       }
-      const { fileName, type } = existingFiles[j];
-      body += `${type}:${fileName}\n`;
+      const { fileName, type } = foundComponents[j];
+      body += `${nls.localize(type)}:${fileName}\n`;
     }
     const otherFilesCount = existingLength - currentIndex - 1;
     return format(
-      this.warningMessage,
-      current.type,
+      nls.localize('warning_prompt_metadata_overwrite'),
+      nls.localize(current.type),
       current.fileName,
       otherFilesCount > 0
         ? `${otherFilesCount} other existing components:`
@@ -140,12 +140,12 @@ export class FilePathExistsChecker
   }
 
   private buildDialogOptions(
-    existingFiles: DirFileNameWithType[],
-    skipped: Set<DirFileNameWithType>,
+    foundComponents: LocalComponent[],
+    skipped: Set<LocalComponent>,
     currentIndex: number
   ) {
     const choices = ['Overwrite'];
-    const numOfExistingFiles = existingFiles.length;
+    const numOfExistingFiles = foundComponents.length;
     if (skipped.size > 0 || skipped.size !== numOfExistingFiles - 1) {
       choices.push('Skip');
     }

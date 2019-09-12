@@ -6,10 +6,7 @@
  */
 
 import { expect } from 'chai';
-import {
-  ForceSourceRetrieveExecutor,
-  generateSuffix
-} from '../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
+import { ForceSourceRetrieveExecutor } from '../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { LWC_DEFINITION_FILE_EXTS } from '../../../src/commands/templates/metadataTypeConstants';
 import { BrowserNode, NodeType } from '../../../src/orgBrowser';
 
@@ -24,44 +21,5 @@ describe('Force Source Retrieve', () => {
     // expect(forceSourceRetrieveCmd.toCommand()).to.equal(
     //   `sfdx force:source:retrieve -m ApexClass:testComponent`
     // );
-  });
-});
-
-describe('Generate Appropriate Suffix', () => {
-  it('should generate suffix based on metadata object info', async () => {
-    const metadataObject = {
-      xmlName: 'typeNode1',
-      directoryName: 'testDirectory',
-      suffix: 'cls',
-      inFolder: false,
-      metaFile: false,
-      label: 'Type Node 1'
-    };
-    const typeNode = new BrowserNode(
-      'ApexClass',
-      NodeType.MetadataType,
-      undefined,
-      metadataObject
-    );
-    const suffixes = generateSuffix(typeNode);
-    expect(suffixes).to.eql([`.${typeNode.metadataObject!.suffix}-meta.xml`]);
-  });
-  it('should generate appropriate suffix if lightning type', async () => {
-    const metadataObject = {
-      xmlName: 'typeNode2',
-      directoryName: 'testDirectory',
-      inFolder: false,
-      metaFile: false,
-      label: 'Type Node 2'
-    };
-    const typeNode = new BrowserNode(
-      'LightningComponentBundle',
-      NodeType.MetadataType,
-      undefined,
-      metadataObject
-    );
-    const expected = LWC_DEFINITION_FILE_EXTS.map(ext => `${ext!}-meta.xml`);
-    const suffixes = generateSuffix(typeNode);
-    expect(suffixes).to.eql(expected);
   });
 });

@@ -31,7 +31,8 @@ describe('Force Lightning Event Create', () => {
     const fileName = 'myAuraEvent';
     const lwcCreateCommand = lightningEventCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:event:create --eventname ${fileName} --outputdir ${outputDirPath}`
@@ -57,7 +58,8 @@ describe('Force Lightning Event Create', () => {
     const fileName = 'internalEvent';
     const lwcCreateCommand = lightningEventCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:event:create --eventname ${fileName} --outputdir ${outputDirPath} --internal`

@@ -18,7 +18,8 @@ describe('Force Visualforce Page Create', () => {
     const fileName = 'myVFPage';
     const vfPageCreateCommand = visualforcePageCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'ApexPage'
     });
     expect(vfPageCreateCommand.toCommand()).to.equal(
       `sfdx force:visualforce:page:create --pagename ${fileName} --label ${fileName} --outputdir ${outputDirPath}`

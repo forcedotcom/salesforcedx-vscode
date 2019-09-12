@@ -31,7 +31,8 @@ describe('Force Lightning Interface Create', () => {
     const fileName = 'myAuraInterface';
     const lwcCreateCommand = lightningInterfaceCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:interface:create --interfacename ${fileName} --outputdir ${outputDirPath}`
@@ -57,7 +58,8 @@ describe('Force Lightning Interface Create', () => {
     const fileName = 'internalInterface';
     const lwcCreateCommand = lightningInterfaceCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: outputDirPath,
+      type: 'AuraDefinitionBundle'
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:interface:create --interfacename ${fileName} --outputdir ${outputDirPath} --internal`
