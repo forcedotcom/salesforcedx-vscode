@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- `SFDX: Authorize a Dev Hub` will now set the global default dev hub if it has not already been set ([PR #1614](https://github.com/forcedotcom/salesforcedx-vscode/pull/1614))
+- Set global default Dev Hub when running `SFDX: Authorize a Dev Hub`, if not already set ([PR #1614](https://github.com/forcedotcom/salesforcedx-vscode/pull/1614))
 
 ## Added
 
