@@ -37,3 +37,13 @@ netlify dev
 ```
 
 Navigate to: http://127.0.0.1:8888/tools/vscode/
+
+## Updating Header, Head, and Footer Includes
+
+The `footer.html`, `head.html`, and `header.html` files are pulled from the DSC docs API. Do not update them by hand.
+
+To pull the latest changes run:
+
+```
+npm run update-externals
+```

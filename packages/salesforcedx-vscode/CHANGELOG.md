@@ -1,3 +1,17 @@
+# 46.14.0 - September 12, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Set global default Dev Hub when running `SFDX: Authorize a Dev Hub`, if not already set ([PR #1614](https://github.com/forcedotcom/salesforcedx-vscode/pull/1614))
+
+## Added
+
+#### docs
+
+- Update info such as redirects and version in [salesforcedx-vscode/docs](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/docs) ([PR #1642](https://github.com/forcedotcom/salesforcedx-vscode/pull/1642))
+
 # 46.13.0 - September 5, 2019
 
 ## Fixed
