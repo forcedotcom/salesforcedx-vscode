@@ -32,6 +32,13 @@ const getExternalHtml = function(url, cb) {
 
 const writeFile = function(dest, html) {
   html = prettier.format(html, { parser: 'html' });
+  html =
+    `{% comment %}
+=========================================================================== 
+This document is automatically generated and should not be edited manually.
+===========================================================================
+{% endcomment %}
+` + html;
   fs.writeFileSync(dest, html, 'utf8');
 };
 
@@ -39,7 +46,7 @@ getExternalHtml(
   'https://developer.salesforce.com/sections/dsc-head.json',
   function(dom) {
     const html = dom.window.document.querySelector('div > div').innerHTML;
-    writeFile('../docs/_includes/head.html', html);
+    writeFile('../docs/_includes/head.generated.html', html);
   }
 );
 
@@ -48,7 +55,7 @@ getExternalHtml(
   function(dom) {
     let html = dom.window.document.querySelector('header').outerHTML;
     html = html.replace('"=""', ''); // HACK: There is some invalid HTML in this file
-    writeFile('../docs/_includes/header.html', html);
+    writeFile('../docs/_includes/header.generated.html', html);
   }
 );
 
@@ -56,6 +63,6 @@ getExternalHtml(
   'https://developer.salesforce.com/sections/dsc-footer.json',
   function(dom) {
     const html = dom.window.document.querySelector('footer').outerHTML;
-    writeFile('../docs/_includes/footer.html', html);
+    writeFile('../docs/_includes/footer.generated.html', html);
   }
 );
