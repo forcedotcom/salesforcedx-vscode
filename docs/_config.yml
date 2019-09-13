@@ -40,6 +40,11 @@ defaults:
     values:
       layout: 'default'
   - scope:
+      path: 'articles'
+    values:
+      layout: 'article'
+  - scope:
       path: 'articles-jp'
     values:
+      layout: 'article'
       sitemap: false
