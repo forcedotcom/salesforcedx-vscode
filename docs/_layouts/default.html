@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>{{ page.title }}</title>
+    {% include head.generated.html %}
     <!-- Google Tag Manager -->
     <script>
       (function(w, d, s, l, i) {
@@ -80,7 +81,7 @@
     ></noscript>
     <!-- End Google Tag Manager (noscript) -->
     <div class="site-page-wrapper" id="site-page-wrapper" tabindex="-1">
-      {% include sidebar.html %}
+      {% include header.generated.html %} {% include sidebar.html %}
       <main
         class="site-main slds-order_1"
         role="main"
@@ -106,7 +107,7 @@
           </div>
         </div>
       </main>
-      {% include footer.html %}
+      {% include footer.generated.html %}
     </div>
     <script>
       let tags = document.getElementsByTagName('h2');

@@ -6,21 +6,31 @@
  */
 
 import {
+  CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
-import { isSFDXContainerMode } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
-import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
+import { getRootWorkspacePath } from '../util';
+
+import { ConfigFile } from '@salesforce/core';
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { homedir } from 'os';
+import * as vscode from 'vscode';
+import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_CONFIG_FILE } from '../constants';
 import { nls } from '../messages';
 import { isDemoMode } from '../modes/demo-mode';
+import { isSFDXContainerMode } from '../util';
+import { ConfigSource, OrgAuthInfo } from '../util/index';
+import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
@@ -36,6 +46,52 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     }
     command.withArg('--setdefaultdevhubusername');
     return command.build();
+  }
+
+  public async execute(response: ContinueResponse<any>): Promise<void> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: getRootWorkspacePath()
+    }).execute(cancellationToken);
+
+    execution.processExitSubject.subscribe(() =>
+      this.configureDefaultDevHubLocation()
+    );
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+  }
+
+  public async configureDefaultDevHubLocation() {
+    const globalDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+      false,
+      ConfigSource.Global
+    );
+
+    if (isNullOrUndefined(globalDevHubName)) {
+      const localDevHubName = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+        false,
+        ConfigSource.Local
+      );
+
+      if (localDevHubName) {
+        await this.setGlobalDefaultDevHub(localDevHubName);
+      }
+    }
+  }
+
+  public async setGlobalDefaultDevHub(newUsername: string): Promise<void> {
+    const homeDirectory = homedir();
+
+    const globalConfig = await ConfigFile.create({
+      isGlobal: true,
+      rootFolder: homeDirectory,
+      filename: SFDX_CONFIG_FILE
+    });
+
+    globalConfig.set(DEFAULT_DEV_HUB_USERNAME_KEY, newUsername);
+    await globalConfig.write();
   }
 }
 

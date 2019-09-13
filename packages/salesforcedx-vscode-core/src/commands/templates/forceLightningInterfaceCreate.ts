@@ -21,10 +21,12 @@ import {
   SfdxWorkspaceChecker
 } from '../commands';
 import {
-  BaseTemplateCommand,
-  BundlePathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+  FilePathExistsChecker,
+  GlobStrategyFactory,
+  PathStrategyFactory,
+  SourcePathStrategy
+} from '../util';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
@@ -51,7 +53,7 @@ export class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
     return builder.build();
   }
 
-  public sourcePathStrategy = new BundlePathStrategy();
+  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createBundleStrategy();
 
   public getDefaultDirectory() {
     return AURA_DIRECTORY;
@@ -74,9 +76,13 @@ export async function forceLightningInterfaceCreate() {
     ),
     new ForceLightningInterfaceCreateExecutor(),
     new FilePathExistsChecker(
-      AURA_DEFINITION_FILE_EXTS,
-      new BundlePathStrategy(),
-      nls.localize('aura_bundle_message_name')
+      GlobStrategyFactory.createCheckBundleInGivenPath(
+        ...AURA_DEFINITION_FILE_EXTS
+      ),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('aura_bundle_message_name')
+      )
     )
   );
   await commandlet.run();
