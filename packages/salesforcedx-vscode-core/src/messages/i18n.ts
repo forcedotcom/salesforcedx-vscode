@@ -127,11 +127,14 @@ export const messages = {
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
-  warning_prompt_metadata_overwrite:
+  warning_prompt_overwrite_message:
     'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
-  warning_prompt_continue_confirm: 'Continue',
-  warning_prompt_overwrite_confirm: 'Overwrite',
-  warning_prompt_overwrite_cancel: 'Cancel',
+  warning_prompt_overwrite: 'Overwrite',
+  warning_prompt_overwrite_all: 'Overwrite All',
+  warning_prompt_skip: 'Skip',
+  warning_prompt_skip_all: 'Skip All',
+  warning_prompt_other_existing: '%s other existing components',
+  warning_prompt_other_not_shown: '...%s other components not shown\n',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',

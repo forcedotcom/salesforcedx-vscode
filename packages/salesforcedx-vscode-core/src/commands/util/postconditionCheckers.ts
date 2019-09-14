@@ -81,7 +81,7 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
     return extensions;
   }
 
-  private async promptOverwrite(
+  public async promptOverwrite(
     foundComponents: LocalComponent[]
   ): Promise<Set<LocalComponent> | undefined> {
     const skipped = new Set<LocalComponent>();
@@ -91,15 +91,16 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
         this.buildDialogMessage(foundComponents, i),
         ...options
       );
+      const othersCount = foundComponents.length - 1;
       switch (choice) {
-        case 'Overwrite':
+        case nls.localize('warning_prompt_overwrite'):
           break;
-        case 'Skip':
+        case nls.localize('warning_prompt_skip'):
           skipped.add(foundComponents[i]);
           break;
-        case `Overwrite All (${foundComponents.length - i})`:
+        case `${nls.localize('warning_prompt_overwrite_all')} (${othersCount})`:
           return skipped;
-        case `Skip All (${foundComponents.length - i})`:
+        case `${nls.localize('warning_prompt_skip_all')} (${othersCount})`:
           return new Set(foundComponents.slice(i));
         default:
           return; // Cancel
@@ -118,10 +119,8 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
     for (let j = currentIndex + 1; j < existingLength; j++) {
       // Truncate components to show if there are more than 10 remaining
       if (j === currentIndex + 10) {
-        body += `...${existingLength -
-          currentIndex -
-          10 +
-          1} other files not shown\n`;
+        const otherCount = existingLength - currentIndex - 11;
+        body += nls.localize('warning_prompt_other_not_shown', otherCount);
         break;
       }
       const { fileName, type } = foundComponents[j];
@@ -129,11 +128,11 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
     }
     const otherFilesCount = existingLength - currentIndex - 1;
     return format(
-      nls.localize('warning_prompt_metadata_overwrite'),
+      nls.localize('warning_prompt_overwrite_message'),
       current.type,
       current.fileName,
       otherFilesCount > 0
-        ? `${otherFilesCount} other existing components:`
+        ? nls.localize('warning_prompt_other_existing', otherFilesCount)
         : '',
       body
     );
@@ -144,15 +143,16 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
     skipped: Set<LocalComponent>,
     currentIndex: number
   ) {
-    const choices = ['Overwrite'];
+    const choices = [nls.localize('warning_prompt_overwrite')];
     const numOfExistingFiles = foundComponents.length;
     if (skipped.size > 0 || skipped.size !== numOfExistingFiles - 1) {
-      choices.push('Skip');
+      choices.push(nls.localize('warning_prompt_skip'));
     }
     if (currentIndex < numOfExistingFiles - 1) {
+      const othersCount = numOfExistingFiles - currentIndex;
       choices.push(
-        `Overwrite All (${numOfExistingFiles - currentIndex})`,
-        `Skip All (${numOfExistingFiles - currentIndex})`
+        `${nls.localize('warning_prompt_overwrite_all')} (${othersCount})`,
+        `${nls.localize('warning_prompt_skip_all')} (${othersCount})`
       );
     }
     return choices;
