@@ -17,6 +17,7 @@ import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { getRootWorkspacePath } from '../../../../src/util';
 import { MetadataDictionary } from '../../../../src/util/metadataDictionary';
+import { format } from 'util';
 
 const env = sandbox.create();
 
@@ -90,15 +91,60 @@ describe('Postcondition Checkers', () => {
 
     describe('Overwrite Dialog Message', () => {
       it('Should show every action when there are multiple components to overwrite', () => {
-        const components = generateComponents(2);
-        // checker.promptOverwrite();
+        checker.promptOverwrite(generateComponents(2));
+
+        expect(modalStub.firstCall.args.slice(1)).to.eql([
+          nls.localize('warning_prompt_overwrite'),
+          nls.localize('warning_prompt_skip'),
+          `${nls.localize('warning_prompt_overwrite_all')} (2)`,
+          `${nls.localize('warning_prompt_skip_all')} (2)`
+        ]);
       });
 
-      it('Should only show overwrite and cancel for one component', () => {});
+      it('Should only show overwrite and cancel for one component', () => {
+        checker.promptOverwrite(generateComponents(1));
 
-      it('Should show correct message for one component', () => {});
+        expect(modalStub.firstCall.args.slice(1)).to.eql([
+          nls.localize('warning_prompt_overwrite')
+        ]);
+      });
 
-      it('Should show correct message for 1 < components <= 10 ', () => {});
+      it('Should show correct message for one component', () => {
+        const components = generateComponents(1);
+        checker.promptOverwrite(components);
+
+        const { fileName, type } = components[0];
+        expect(modalStub.firstCall.args[0]).to.equal(
+          nls.localize(
+            'warning_prompt_overwrite_message',
+            type,
+            fileName,
+            '',
+            ''
+          )
+        );
+      });
+
+      it('Should show correct message for 1 < components <= 10 ', () => {
+        const components = generateComponents(5);
+        let expectedBody = '';
+        for (const component of components.slice(1)) {
+          expectedBody += `${component.type}:${component.fileName}\n`;
+        }
+
+        checker.promptOverwrite(components);
+
+        const { fileName, type } = components[0];
+        expect(modalStub.firstCall.args[0]).to.equal(
+          nls.localize(
+            'warning_prompt_overwrite_message',
+            type,
+            fileName,
+            nls.localize('warning_prompt_other_existing', 4),
+            expectedBody
+          )
+        );
+      });
 
       it('Should show correct message for components > 10', () => {});
     });

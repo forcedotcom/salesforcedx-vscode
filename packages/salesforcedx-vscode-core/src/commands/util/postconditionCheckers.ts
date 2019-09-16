@@ -91,7 +91,7 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
         this.buildDialogMessage(foundComponents, i),
         ...options
       );
-      const othersCount = foundComponents.length - 1;
+      const othersCount = foundComponents.length - i;
       switch (choice) {
         case nls.localize('warning_prompt_overwrite'):
           break;
@@ -118,7 +118,7 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
     let body = '';
     for (let j = currentIndex + 1; j < existingLength; j++) {
       // Truncate components to show if there are more than 10 remaining
-      if (j === currentIndex + 10) {
+      if (j === currentIndex + 11) {
         const otherCount = existingLength - currentIndex - 11;
         body += nls.localize('warning_prompt_other_not_shown', otherCount);
         break;
@@ -127,8 +127,8 @@ export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
       body += `${type}:${fileName}\n`;
     }
     const otherFilesCount = existingLength - currentIndex - 1;
-    return format(
-      nls.localize('warning_prompt_overwrite_message'),
+    return nls.localize(
+      'warning_prompt_overwrite_message',
       current.type,
       current.fileName,
       otherFilesCount > 0
