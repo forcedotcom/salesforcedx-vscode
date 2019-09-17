@@ -33,7 +33,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     this.describer = describer;
   }
 
-  public build(data: LocalComponent[]): Command {
+  public build(data?: LocalComponent[]): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_retrieve_text'))
       .withLogName('force_source_retrieve')
