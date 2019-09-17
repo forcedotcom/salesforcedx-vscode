@@ -6,12 +6,16 @@
  */
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
-import { stub } from 'sinon';
+import { sandbox, SinonStub } from 'sinon';
 import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { BrowserNode, NodeType } from '../../../../src/orgBrowser';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 
+const env = sandbox.create();
+
 describe('Retrieve Metadata Describers', () => {
+  let packageStub: SinonStub;
+
   const node = new BrowserNode('Test', NodeType.MetadataType, 'TestType', {
     suffix: '.t',
     directoryName: 'tests',
@@ -21,67 +25,31 @@ describe('Retrieve Metadata Describers', () => {
     label: 'TestType'
   });
   node.setComponents(['Test1', 'Test2', 'Test3'], NodeType.MetadataCmp);
+
+  beforeEach(() => {
+    packageStub = env.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths');
+    packageStub.returns(['p1', 'p2']);
+  });
+
+  afterEach(() => env.restore());
+
   describe('TypeNodeDescriber', () => {
     const describer = RetrieveDescriberFactory.createTypeNodeDescriber(node);
+
     it('Should correctly build metadata argument for all child nodes', () => {
       expect(describer.buildMetadataArg()).to.equal('TestType');
     });
 
     it('Should correctly build metadata argument for subset of child nodes', () => {
-      const components: LocalComponent[] = [
-        { fileName: 'Test1', outputdir: '', type: 'TestType' },
-        { fileName: 'Test2', outputdir: '', type: 'TestType' }
-      ];
-      expect(describer.buildMetadataArg(components)).to.equal(
+      expect(describer.buildMetadataArg(generateComponents(2))).to.equal(
         'TestType:Test1,TestType:Test2'
       );
     });
 
     it('Should gather LocalComponents for each child node', async () => {
-      const packageStub = stub(
-        SfdxPackageDirectories,
-        'getPackageDirectoryPaths'
+      expect(await describer.gatherOutputLocations()).to.eql(
+        generateComponents(3)
       );
-      packageStub.returns(['p1', 'p2']);
-      expect(await describer.gatherOutputLocations()).to.eql([
-        {
-          fileName: 'Test1',
-          outputdir: 'p1/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        },
-        {
-          fileName: 'Test1',
-          outputdir: 'p2/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        },
-        {
-          fileName: 'Test2',
-          outputdir: 'p1/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        },
-        {
-          fileName: 'Test2',
-          outputdir: 'p2/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        },
-        {
-          fileName: 'Test3',
-          outputdir: 'p1/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        },
-        {
-          fileName: 'Test3',
-          outputdir: 'p2/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        }
-      ]);
-      packageStub.restore();
     });
   });
 
@@ -94,26 +62,24 @@ describe('Retrieve Metadata Describers', () => {
     });
 
     it('Should correctly gather a LocalComponent', async () => {
-      const packageStub = stub(
-        SfdxPackageDirectories,
-        'getPackageDirectoryPaths'
+      expect(await describer.gatherOutputLocations()).to.eql(
+        generateComponents(1)
       );
-      packageStub.returns(['p1', 'p2']);
-      expect(await describer.gatherOutputLocations()).to.eql([
-        {
-          fileName: 'Test1',
-          outputdir: 'p1/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        },
-        {
-          fileName: 'Test1',
-          outputdir: 'p2/main/default/tests',
-          type: 'TestType',
-          suffix: '.t'
-        }
-      ]);
-      packageStub.restore();
     });
   });
+
+  function generateComponents(count: number): LocalComponent[] {
+    const components = [];
+    for (let i = 1; i <= count; i++) {
+      for (let j = 1; j <= 2; j++) {
+        components.push({
+          fileName: `Test${i}`,
+          outputdir: `p${j}/main/default/tests`,
+          type: 'TestType',
+          suffix: '.t'
+        });
+      }
+    }
+    return components;
+  }
 });
