@@ -1,6 +1,6 @@
 # Lightning Web Components for Visual Studio Code
 
-This extension provides code-editing features for the Lightning Web Components programming model, which is part of the Lightning Component framework. It uses the default HTML language server from VS Code to provide syntax highlighting, code completion, an outline view of your files, and a Salesforce Lightning Design System (SLDS) linter.
+This extension provides code-editing features for the Lightning Web Components programming model, which is part of the Lightning Component framework. It uses the default HTML language server from VS Code to provide syntax highlighting, code completion, and an outline view of your files.
 
 **DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
