@@ -37,4 +37,12 @@ Using Prettier for Apex, Aura, and LWC requires some configuration.
 
 1. If you want to ensure that all your files are formatted, enable the setting `editor.formatOnSave` in VS Code. For information about configuring your settings, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code docs.
 
+1. Apex Prettier runs slower than most other formatters. In some cases formatting will not succeed because VS Code will time out the operation after 500ms. In order to ensure Apex code has enough time to format your documents we recommend changing the VS Code settings as follows.
+
+   ```json
+   {
+     "editor.formatOnSaveTimeout": 5000
+   }
+   ```
+
 If you want to format your files each time that you commit changes to your Git repository, [set up a Git hook](https://prettier.io/docs/en/precommit.html).
