@@ -10,6 +10,16 @@ import { expect } from 'chai';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { ForceSourceRetrieveExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 
+class TestDescriber implements RetrieveDescriber {
+  public buildMetadataArg(data?: LocalComponent[]): string {
+    return data ? `${data[0].type}:${data[0].fileName}` : 'TestType:Test1';
+  }
+
+  public gatherOutputLocations(): Promise<LocalComponent[]> {
+    throw new Error('Method not implemented.');
+  }
+}
+
 describe('Force Source Retrieve', () => {
   const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
     new TestDescriber()
@@ -29,13 +39,3 @@ describe('Force Source Retrieve', () => {
     );
   });
 });
-
-class TestDescriber implements RetrieveDescriber {
-  public buildMetadataArg(data?: LocalComponent[]): string {
-    return data ? `${data[0].type}:${data[0].fileName}` : 'TestType:Test1';
-  }
-
-  public gatherOutputLocations(): Promise<LocalComponent[]> {
-    throw new Error('Method not implemented.');
-  }
-}

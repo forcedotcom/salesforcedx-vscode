@@ -36,8 +36,8 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     pathStrategy: PathStrategyFactory.createDefaultStrategy(),
     extensions: ['.trigger']
   },
-  aurabundledefinition: {
-    type: 'AuraBundleDefinition',
+  auradefinitionbundle: {
+    type: 'AuraDefinitionBundle',
     suffix: 'cmp',
     directory: 'aura',
     pathStrategy: PathStrategyFactory.createBundleStrategy(),
