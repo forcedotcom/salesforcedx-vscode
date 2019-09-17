@@ -10,5 +10,6 @@ export {
   SObjectDescribe,
   SObject,
   ChildRelationship,
-  Field
+  Field,
+  ForceListSObjectSchemaExecutor
 } from './sObjectDescribe';

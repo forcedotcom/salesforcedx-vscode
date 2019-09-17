@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "46.14.0",
+    "@salesforce/core": "2.0.1",
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
@@ -40,8 +41,9 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test": "npm run test:unit",
-    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json"
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "test:integration": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json"
   },
   "nyc": {
     "reporter": [
