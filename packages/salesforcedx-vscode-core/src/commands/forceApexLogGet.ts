@@ -12,6 +12,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  getYYYYMMddHHmmssDateFormat,
+  optionYYYYMMddHHmmss
+} from '@salesforce/salesforcedx-utils-vscode/out/src/date';
+import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
@@ -89,30 +93,14 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
         mkdir('-p', logDir);
       }
 
-      const utcDate = response.data.startTime; // 2019-09-10T04:34:28+0000
-      const localDate = new Date(utcDate);
-      const date = getLogDateFormat(localDate);
-
+      const localUTCDate = new Date(response.data.startTime);
+      const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
       const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
       fs.writeFileSync(logPath, resultJson.result.log);
       const document = await vscode.workspace.openTextDocument(logPath);
       vscode.window.showTextDocument(document);
     }
   }
-}
-
-function getLogDateFormat(localDate: Date): string {
-  const month2Digit = makeDoubleDigit(localDate.getMonth() + 1);
-  const date2Digit = makeDoubleDigit(localDate.getDate());
-  const hour2Digit = makeDoubleDigit(localDate.getHours());
-  const mins2Digit = makeDoubleDigit(localDate.getMinutes());
-  const sec2Digit = makeDoubleDigit(localDate.getSeconds());
-
-  return `${localDate.getFullYear()}${month2Digit}${date2Digit}${hour2Digit}${mins2Digit}${sec2Digit}`;
-}
-
-function makeDoubleDigit(currentDigit: number): string {
-  return ('0' + currentDigit).slice(-2);
 }
 
 export type ApexDebugLogIdStartTime = {
@@ -149,22 +137,10 @@ export class LogFileSelector
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
-
-        const utcDate = logInfo.StartTime; // 2019-09-10T04:34:28+0000
-        const localDate = new Date(utcDate);
-
-        const options = {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        };
-
-        const localDateFormatted = localDate.toLocaleDateString(
+        const localUTCDate = new Date(logInfo.StartTime);
+        const localDateFormatted = localUTCDate.toLocaleDateString(
           undefined,
-          options
+          optionYYYYMMddHHmmss
         );
 
         return {
