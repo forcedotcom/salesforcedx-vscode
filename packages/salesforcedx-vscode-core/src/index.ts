@@ -221,6 +221,11 @@ function registerCommands(
     forceLightningLwcCreate
   );
 
+  const forceLightningLwcOssCreateCmd = vscode.commands.registerCommand(
+    'lwc.oss.create',
+    forceLightningLwcCreate
+  );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -493,9 +498,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Context
   let sfdxProjectOpened = false;
+  let lwcOssProjectOpened = false;
   if (hasRootWorkspace()) {
     const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
+  }
+
+  if (hasRootWorkspace()) {
+    const files = await vscode.workspace.findFiles('lwc-services.config.json');
+    lwcOssProjectOpened = files && files.length > 0;
   }
 
   let replayDebuggerExtensionInstalled = false;
@@ -516,6 +527,12 @@ export async function activate(context: vscode.ExtensionContext) {
     'setContext',
     'sfdx:project_opened',
     sfdxProjectOpened
+  );
+
+  vscode.commands.executeCommand(
+    'setContext',
+    'lwcoss:project_opened',
+    lwcOssProjectOpened
   );
 
   let defaultUsernameorAlias: string | undefined;
