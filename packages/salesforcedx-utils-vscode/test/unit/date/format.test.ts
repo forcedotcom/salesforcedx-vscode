@@ -21,7 +21,7 @@ describe('Date format utility', () => {
     expect(doubleDigit).to.equal('09');
   });
 
-  it('Should return a the same two character string when provided a double digit number', () => {
+  it('Should return the same two character string when provided with a double digit number', () => {
     const singleDigit = 13;
     const doubleDigit = makeDoubleDigit(singleDigit);
     expect(doubleDigit).to.equal('13');
