@@ -813,13 +813,14 @@ html {
   }
 }
 
-.site-sidebar {
-  border-right: 1px solid #d8dee6;
+.site-masthead,
+.site-content {
+  border-left: 1px solid #d8dee6;
 }
 
 @media (min-width: 48em) {
   .site-sidebar {
-    position: fixed;
+    position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
@@ -900,7 +901,7 @@ html {
   margin-bottom: 0.625rem;
   width: 100%;
   height: 3rem;
-  background: url('../images/logo.svg') 50% 50% no-repeat;
+  /* background: url('../images/logo.svg') 50% 50% no-repeat; */
 }
 
 @media (min-width: 48em) {
@@ -3618,4 +3619,15 @@ blockquote {
 
 #navigation button {
   cursor: default;
+}
+
+.site-main-content .article-feedback {
+  opacity: 0.8;
+  margin-top: 40px;
+}
+.site-main-content
+  .article-feedback
+  a:not(.slds-tabs--default__link):not(.slds-button) {
+  opacity: 0.8;
+  text-decoration: none;
 }

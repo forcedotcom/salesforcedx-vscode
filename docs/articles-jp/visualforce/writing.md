@@ -1,6 +1,5 @@
 ---
 title: Visualforce の記述
-redirect_from: '/articles/frameworks/visualforce'
 ---
 
 Visualforce 拡張機能が提供する機能

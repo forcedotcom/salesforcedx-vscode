@@ -32,7 +32,6 @@ import {
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
 import {
-  AURA_DEFINITION_FILE_EXTS,
   AURA_DIRECTORY,
   AURA_INTERFACE_EXTENSION
 } from './metadataTypeConstants';

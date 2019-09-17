@@ -12,7 +12,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { format } from 'util';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { getRootWorkspacePath } from '../../util';
