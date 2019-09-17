@@ -818,7 +818,6 @@ html {
   border-left: 1px solid #d8dee6;
 }
 
-
 @media (min-width: 48em) {
   .site-sidebar {
     position: absolute;
@@ -3620,4 +3619,15 @@ blockquote {
 
 #navigation button {
   cursor: default;
+}
+
+.site-main-content .article-feedback {
+  opacity: 0.8;
+  margin-top: 40px;
+}
+.site-main-content
+  .article-feedback
+  a:not(.slds-tabs--default__link):not(.slds-button) {
+  opacity: 0.8;
+  text-decoration: none;
 }
