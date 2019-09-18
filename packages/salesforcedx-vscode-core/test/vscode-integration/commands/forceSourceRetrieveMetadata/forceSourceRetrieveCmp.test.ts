@@ -7,8 +7,8 @@
 
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
-import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import { ForceSourceRetrieveExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
+import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveCmp';
+import { ForceSourceRetrieveExecutor } from '../../../../src/commands/forceSourceRetrieveCmp/forceSourceRetrieveCmp';
 
 class TestDescriber implements RetrieveDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {

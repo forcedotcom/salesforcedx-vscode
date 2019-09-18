@@ -7,7 +7,7 @@
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import { sandbox, SinonStub } from 'sinon';
-import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveMetadata';
+import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveCmp';
 import { BrowserNode, NodeType } from '../../../../src/orgBrowser';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 

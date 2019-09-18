@@ -4,7 +4,7 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
+import { RetrieveDescriber } from '../forceSourceRetrieveCmp';
 
 export class SimpleGatherer<T> implements ParametersGatherer<T> {
   private input: T;

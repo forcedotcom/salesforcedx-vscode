@@ -9,7 +9,7 @@ import {
   RetrieveDescriber,
   RetrieveDescriberFactory,
   RetrieveMetadataTrigger
-} from '../commands/forceSourceRetrieveMetadata';
+} from '../commands/forceSourceRetrieveCmp';
 import { nls } from '../messages';
 import { MetadataObject } from './metadataType';
 

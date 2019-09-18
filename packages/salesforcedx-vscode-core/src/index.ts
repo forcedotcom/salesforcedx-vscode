@@ -60,7 +60,7 @@ import {
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
-import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
+import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveCmp';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
