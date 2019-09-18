@@ -6,6 +6,7 @@
  */
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import { normalize } from 'path';
 import { sandbox, SinonStub } from 'sinon';
 import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { BrowserNode, NodeType } from '../../../../src/orgBrowser';
@@ -74,7 +75,7 @@ describe('Retrieve Metadata Describers', () => {
       for (let j = 1; j <= 2; j++) {
         components.push({
           fileName: `Test${i}`,
-          outputdir: `p${j}/main/default/tests`,
+          outputdir: normalize(`p${j}/main/default/tests`),
           type: 'TestType',
           suffix: '.t'
         });
