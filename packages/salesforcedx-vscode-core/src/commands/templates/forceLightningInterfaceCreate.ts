@@ -9,7 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
@@ -22,8 +22,8 @@ import {
 } from '../commands';
 import {
   FilePathExistsChecker,
+  GlobStrategyFactory,
   PathStrategyFactory,
-  SimpleGatherer,
   SourcePathStrategy
 } from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';
@@ -38,7 +38,7 @@ import {
 } from './metadataTypeConstants';
 
 export class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
-  public build(data: LocalComponent): Command {
+  public build(data: DirFileNameSelection): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_interface_create_text'))
       .withArg('force:lightning:interface:create')
@@ -65,18 +65,25 @@ export class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
 }
 
 const fileNameGatherer = new SelectFileName();
-const typeGatherer = new SimpleGatherer({ type: 'AuraDefinitionBundle' });
+const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 
 export async function forceLightningInterfaceCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(
+    new CompositeParametersGatherer<DirFileNameSelection>(
       fileNameGatherer,
-      new SelectOutputDir(AURA_DIRECTORY, true),
-      typeGatherer
+      outputDirGatherer
     ),
     new ForceLightningInterfaceCreateExecutor(),
-    new FilePathExistsChecker()
+    new FilePathExistsChecker(
+      GlobStrategyFactory.createCheckBundleInGivenPath(
+        ...AURA_DEFINITION_FILE_EXTS
+      ),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('aura_bundle_message_name')
+      )
+    )
   );
   await commandlet.run();
 }
@@ -86,8 +93,7 @@ export async function forceInternalLightningInterfaceCreate(sourceUri: Uri) {
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
-      new FileInternalPathGatherer(sourceUri),
-      typeGatherer
+      new FileInternalPathGatherer(sourceUri)
     ),
     new ForceLightningInterfaceCreateExecutor()
   );

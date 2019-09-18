@@ -23,6 +23,7 @@ abstract class NodeDescriber implements RetrieveDescriber {
 
   protected async buildOutput(node: BrowserNode): Promise<LocalComponent[]> {
     const typeNode = node.getAssociatedTypeNode();
+    // create cmp for every package directory to accommodate for the cli retrieve bug
     const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
     return packageDirectories.map(directory => ({
       fileName: node.fullName,
@@ -35,15 +36,18 @@ abstract class NodeDescriber implements RetrieveDescriber {
 
 class TypeNodeDescriber extends NodeDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
-    // data expected as final components to fetch after postchecker prompt
-    if (data && data.length < this.node.children!.length) {
-      return data.reduce((acc, current, index) => {
-        acc += `${current.type}:${current.fileName}`;
-        if (index < data.length - 1) {
-          acc += ',';
-        }
-        return acc;
-      }, '');
+    if (data) {
+      const dedupe = new Set<string>(); // filter dupes caused by cli bug. See buildOutput in parent class
+      data.forEach(c => dedupe.add(`${c.type}:${c.fileName}`));
+      if (dedupe.size < this.node.children!.length) {
+        return Array.from(dedupe).reduce((acc, current, index) => {
+          acc += current;
+          if (index < dedupe.size - 1) {
+            acc += ',';
+          }
+          return acc;
+        }, '');
+      }
     }
     return this.node.fullName;
   }

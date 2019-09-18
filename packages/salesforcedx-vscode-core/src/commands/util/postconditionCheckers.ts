@@ -7,12 +7,14 @@
 import {
   CancelResponse,
   ContinueResponse,
+  DirFileNameSelection,
   LocalComponent,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { format } from 'util';
+import { GlobPattern, workspace } from 'vscode';
+import { GlobStrategy } from '.';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { getRootWorkspacePath } from '../../util';
@@ -22,8 +24,51 @@ import { PathStrategyFactory } from './sourcePathStrategies';
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
+// TODO: Replace with ComponentOverwritePrompt in subsequent PR
+export class FilePathExistsChecker
+  implements PostconditionChecker<DirFileNameSelection> {
+  private globStrategy: GlobStrategy;
+  private warningMessage: string;
+
+  public constructor(globStrategy: GlobStrategy, warningMessage: string) {
+    this.globStrategy = globStrategy;
+    this.warningMessage = warningMessage;
+  }
+
+  public async check(
+    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
+  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const globs = await this.globStrategy.globs(inputs.data);
+      if (!(await this.filesExist(globs)) || (await this.promptOverwrite())) {
+        return inputs;
+      }
+    }
+    return { type: 'CANCEL' };
+  }
+
+  private async filesExist(globs: GlobPattern[]): Promise<boolean> {
+    const files = [];
+    for (const g of globs) {
+      const result = await workspace.findFiles(g);
+      files.push(...result);
+    }
+    return files.length > 0;
+  }
+
+  private async promptOverwrite(): Promise<boolean> {
+    const overwrite = await notificationService.showWarningMessage(
+      this.warningMessage,
+      nls.localize('warning_prompt_continue_confirm'),
+      nls.localize('warning_prompt_overwrite_cancel')
+    );
+    return overwrite === nls.localize('warning_prompt_continue_confirm');
+  }
+}
+
 /* tslint:disable-next-line:prefer-for-of */
-export class FilePathExistsChecker implements PostconditionChecker<OneOrMany> {
+export class OverwriteComponentPrompt
+  implements PostconditionChecker<OneOrMany> {
   public async check(inputs: ContinueOrCancel): Promise<ContinueOrCancel> {
     if (inputs.type === 'CONTINUE') {
       const { data } = inputs;

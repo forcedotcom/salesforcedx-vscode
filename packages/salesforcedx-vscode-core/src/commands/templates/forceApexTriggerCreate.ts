@@ -9,7 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
@@ -20,8 +20,8 @@ import {
 } from '../commands';
 import {
   FilePathExistsChecker,
+  GlobStrategyFactory,
   PathStrategyFactory,
-  SimpleGatherer,
   SourcePathStrategy
 } from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';
@@ -31,7 +31,7 @@ import {
 } from './metadataTypeConstants';
 
 export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
-  public build(data: LocalComponent): Command {
+  public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_trigger_create_text'))
       .withArg('force:apex:trigger:create')
@@ -52,16 +52,24 @@ export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
   }
 }
 
+const fileNameGatherer = new SelectFileName();
+const outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_DIRECTORY);
+
 export async function forceApexTriggerCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer<LocalComponent>(
-      new SelectFileName(),
-      new SelectOutputDir(APEX_TRIGGER_DIRECTORY),
-      new SimpleGatherer({ type: 'ApexTrigger' })
+    new CompositeParametersGatherer<DirFileNameSelection>(
+      fileNameGatherer,
+      outputDirGatherer
     ),
     new ForceApexTriggerCreateExecutor(),
-    new FilePathExistsChecker()
+    new FilePathExistsChecker(
+      GlobStrategyFactory.createCheckFileInGivenPath(APEX_TRIGGER_EXTENSION),
+      nls.localize(
+        'warning_prompt_file_overwrite',
+        nls.localize('apex_trigger_message_name')
+      )
+    )
   );
   await commandlet.run();
 }

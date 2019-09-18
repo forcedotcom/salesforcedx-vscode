@@ -18,8 +18,7 @@ describe('Force Apex Class Create', () => {
     const fileName = 'myClass';
     const classCreateCommand = classCreate.build({
       fileName,
-      outputdir: outputDirPath,
-      type: 'ApexClass'
+      outputdir: outputDirPath
     });
     expect(classCreateCommand.toCommand()).to.equal(
       `sfdx force:apex:class:create --classname ${fileName} --template DefaultApexClass --outputdir ${outputDirPath}`

@@ -20,8 +20,8 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../commands';
-import { FilePathExistsChecker } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   LocalComponent[]
@@ -74,7 +74,7 @@ export async function forceSourceRetrieveCmp(trigger: RetrieveMetadataTrigger) {
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
     new ForceSourceRetrieveExecutor(retrieveDescriber),
-    new FilePathExistsChecker()
+    new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }

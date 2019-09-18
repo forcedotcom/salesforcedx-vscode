@@ -31,8 +31,7 @@ describe('Force Lightning Web Component Create', () => {
     const fileName = 'myLWC';
     const lwcCreateCommand = lightningLWCCreate.build({
       fileName,
-      outputdir: outputDirPath,
-      type: 'LightningComponentBundle'
+      outputdir: outputDirPath
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:component:create --type lwc --componentname ${fileName} --outputdir ${outputDirPath}`
@@ -58,8 +57,7 @@ describe('Force Lightning Web Component Create', () => {
     const fileName = 'internalLWC';
     const lwcCreateCommand = lightningLWCCreate.build({
       fileName,
-      outputdir: outputDirPath,
-      type: 'LightningComponentBundle'
+      outputdir: outputDirPath
     });
     expect(lwcCreateCommand.toCommand()).to.equal(
       `sfdx force:lightning:component:create --type lwc --componentname ${fileName} --outputdir ${outputDirPath} --internal`

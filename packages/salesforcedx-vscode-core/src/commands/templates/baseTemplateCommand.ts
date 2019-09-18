@@ -8,7 +8,7 @@
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ContinueResponse,
-  LocalComponent
+  DirFileNameSelection
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
@@ -22,9 +22,9 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
 import { SourcePathStrategy } from '../util';
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
-  LocalComponent
+  DirFileNameSelection
 > {
-  public execute(response: ContinueResponse<LocalComponent>): void {
+  public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
