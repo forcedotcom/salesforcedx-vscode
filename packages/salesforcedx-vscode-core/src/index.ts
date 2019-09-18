@@ -53,6 +53,7 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
+  lwcOssCreate,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -221,9 +222,9 @@ function registerCommands(
     forceLightningLwcCreate
   );
 
-  const forceLightningLwcOssCreateCmd = vscode.commands.registerCommand(
+  const lwcOssCreateCmd = vscode.commands.registerCommand(
     'lwc.oss.create',
-    forceLightningLwcCreate
+    lwcOssCreate
   );
 
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
@@ -347,6 +348,7 @@ function registerCommands(
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
+    lwcOssCreateCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
@@ -498,15 +500,23 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Context
   let sfdxProjectOpened = false;
+
   let lwcOssProjectOpened = false;
+
+  const lwcOssFiles = await vscode.workspace.findFiles(
+    '**/lwc-services.config.js'
+  );
+  lwcOssProjectOpened = lwcOssFiles && lwcOssFiles.length > 0;
+
+  vscode.commands.executeCommand(
+    'setContext',
+    'lwcoss:project_opened',
+    lwcOssProjectOpened
+  );
+
   if (hasRootWorkspace()) {
     const files = await vscode.workspace.findFiles('**/sfdx-project.json');
     sfdxProjectOpened = files && files.length > 0;
-  }
-
-  if (hasRootWorkspace()) {
-    const files = await vscode.workspace.findFiles('lwc-services.config.json');
-    lwcOssProjectOpened = files && files.length > 0;
   }
 
   let replayDebuggerExtensionInstalled = false;
@@ -527,12 +537,6 @@ export async function activate(context: vscode.ExtensionContext) {
     'setContext',
     'sfdx:project_opened',
     sfdxProjectOpened
-  );
-
-  vscode.commands.executeCommand(
-    'setContext',
-    'lwcoss:project_opened',
-    lwcOssProjectOpened
   );
 
   let defaultUsernameorAlias: string | undefined;

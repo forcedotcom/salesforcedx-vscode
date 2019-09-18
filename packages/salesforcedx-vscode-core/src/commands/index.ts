@@ -47,7 +47,8 @@ export {
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
   forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  forceVisualforcePageCreate,
+  lwcOssCreate
 } from './templates';
 export { forceDebuggerStop } from './forceDebuggerStop';
 export { forceConfigList } from './forceConfigList';

@@ -21,6 +21,12 @@ export class InternalDevWorkspaceChecker implements PreconditionChecker {
   }
 }
 
+export class LwcOssWorkspaceChecker implements PreconditionChecker {
+  public check(): boolean {
+    return !fs.existsSync('**/lwc-services.config.js');
+  }
+}
+
 export class FileInternalPathGatherer
   implements ParametersGatherer<{ outputdir: string }> {
   private filePath: string;

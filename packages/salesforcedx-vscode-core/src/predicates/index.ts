@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { IsSfdxProjectOpened } from './salesforcePredicates';
+import {
+  IsLwcOssProjectOpened,
+  IsSfdxProjectOpened
+} from './salesforcePredicates';
 
+export const isLwcOssProjectOpened = new IsLwcOssProjectOpened();
 export const isSfdxProjectOpened = new IsSfdxProjectOpened();

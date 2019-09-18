@@ -37,6 +37,8 @@ export const messages = {
     'No folder opened. Open a Salesforce DX project in VS Code.',
   predicates_no_sfdx_project_found_text:
     'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
+  predicates_no_lwc_oss_project_found_text:
+    'No lwc-services.config.js found in the root directory of your open project. Open a create-lwc-app project in VS Code.',
 
   task_view_running_message: '[Running] %s',
 

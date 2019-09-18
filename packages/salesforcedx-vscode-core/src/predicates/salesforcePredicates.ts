@@ -12,7 +12,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { workspace } from 'vscode';
-import { SFDX_PROJECT_FILE } from '../constants';
+import { LWC_OSS_CONFIG_FILE, SFDX_PROJECT_FILE } from '../constants';
 import { nls } from '../messages';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
@@ -29,6 +29,26 @@ export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
       return PredicateResponse.of(
         false,
         nls.localize('predicates_no_sfdx_project_found_text')
+      );
+    } else {
+      return PredicateResponse.true();
+    }
+  }
+}
+
+export class IsLwcOssProjectOpened implements Predicate<typeof workspace> {
+  public apply(item: typeof workspace): PredicateResponse {
+    if (!hasRootWorkspace()) {
+      return PredicateResponse.of(
+        false,
+        nls.localize('predicates_no_folder_opened_text')
+      );
+    } else if (
+      !fs.existsSync(path.join(getRootWorkspacePath(), LWC_OSS_CONFIG_FILE))
+    ) {
+      return PredicateResponse.of(
+        false,
+        nls.localize('predicates_no_lwc_oss_project_found_text')
       );
     } else {
       return PredicateResponse.true();

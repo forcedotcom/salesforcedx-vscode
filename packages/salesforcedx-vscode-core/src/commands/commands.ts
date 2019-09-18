@@ -25,7 +25,7 @@ import { isNullOrUndefined } from 'util';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
-import { isSfdxProjectOpened } from '../predicates';
+import { isLwcOssProjectOpened, isSfdxProjectOpened } from '../predicates';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { taskViewService } from '../statuses';
 import { TelemetryData, telemetryService } from '../telemetry';
@@ -57,6 +57,17 @@ export class EmptyPostChecker implements PostconditionChecker<any> {
 export class SfdxWorkspaceChecker implements PreconditionChecker {
   public check(): boolean {
     const result = isSfdxProjectOpened.apply(vscode.workspace);
+    if (!result.result) {
+      notificationService.showErrorMessage(result.message);
+      return false;
+    }
+    return true;
+  }
+}
+
+export class LwcOssWorkspaceChecker implements PreconditionChecker {
+  public check(): boolean {
+    const result = isLwcOssProjectOpened.apply(vscode.workspace);
     if (!result.result) {
       notificationService.showErrorMessage(result.message);
       return false;
