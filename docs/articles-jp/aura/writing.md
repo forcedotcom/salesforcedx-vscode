@@ -1,6 +1,5 @@
 ---
 title: Aura コンポーネントの記述
-redirect_from: '/articles/frameworks/aura'
 ---
 
 ## 構文の強調表示

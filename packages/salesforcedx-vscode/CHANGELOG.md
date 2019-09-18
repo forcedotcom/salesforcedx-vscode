@@ -1,3 +1,41 @@
+# 46.14.0 - September 12, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Set global default Dev Hub when running `SFDX: Authorize a Dev Hub`, if not already set ([PR #1614](https://github.com/forcedotcom/salesforcedx-vscode/pull/1614))
+
+## Added
+
+#### docs
+
+- Update info such as redirects and version in [salesforcedx-vscode/docs](https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/docs) ([PR #1642](https://github.com/forcedotcom/salesforcedx-vscode/pull/1642))
+
+# 46.13.0 - September 5, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix syntax highlighting for literal `when` values of String type in Apex switch statement ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #967](https://github.com/forcedotcom/salesforcedx-vscode/issues/967))
+
+- Fix syntax highlighting for block comments without spaces ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628), [Issue #921](https://github.com/forcedotcom/salesforcedx-vscode/issues/921))
+
+- Fix syntax highlighting for namespace names in Apex classes ([PR #1628](https://github.com/forcedotcom/salesforcedx-vscode/pull/1628))
+
+#### salesforcedx-vscode-core
+
+- Prevent `SFDX: Diff File Against Org` from appearing in the Command Palette when a non-SFDX project is opened. ([PR #1608](https://github.com/forcedotcom/salesforcedx-vscode/pull/1608), [Issue #1600](https://github.com/forcedotcom/salesforcedx-vscode/issues/1600))
+
+- Update documentation link when guiding users to fix Java configuration ([PR #1602](https://github.com/forcedotcom/salesforcedx-vscode/pull/1602))
+
+## Added
+
+#### docs
+
+- Add troubleshooting steps for setting up Windows PATH variable in [Set Salesforce CLI Path (Windows)](https://forcedotcom.github.io/salesforcedx-vscode/articles/troubleshooting#set-salesforce-cli-path-windows)([PR #1621](https://github.com/forcedotcom/salesforcedx-vscode/pull/1621))
+
 # 46.12.0 - August 29, 2019
 
 ## Fixed

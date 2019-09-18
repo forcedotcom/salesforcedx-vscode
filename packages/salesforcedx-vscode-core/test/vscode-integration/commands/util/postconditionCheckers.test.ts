@@ -178,9 +178,7 @@ describe('Postcondition Checkers', () => {
 
       it('Should show correct message for 1 < components <= 10 ', async () => {
         const components = generateComponents(2);
-        const expectedBody = `${components[1].type}:${
-          components[1].fileName
-        }\n`;
+        const expectedBody = `${components[1].type}:${components[1].fileName}\n`;
 
         await doPrompt(components, [undefined]);
 

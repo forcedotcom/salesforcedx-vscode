@@ -1,10 +1,11 @@
 {
   "name": "docs",
-  "version": "46.12.0",
+  "version": "46.14.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "reformat": "node ../scripts/reformat-docs-with-prettier.js"
+    "reformat": "node ../scripts/reformat-docs-with-prettier.js",
+    "update-externals": "node ../scripts/update-docs-externals.js"
   },
   "author": "",
   "license": "ISC"
