@@ -43,7 +43,7 @@ describe('Date format utility', () => {
       optionYYYYMMddHHmmss
     );
 
-    const dateTimeFormatRegex = /([0-9]{2})(\/)([0-9]{2})(\/)([0-9]{4})(\,)\s([0-9])(:)([0-9]{2})(:)([0-9]{2})\s(AM|PM)/;
+    const dateTimeFormatRegex = /([0-9]{2})(\/)([0-9]{2})(\/)([0-9]{4})(\,)\s([0-9]{1,2})(:)([0-9]{2})(:)([0-9]{2})\s(AM|PM)/;
     expect(dateTimeFormatRegex.test(localDateFormatted)).to.equal(true);
   });
 
@@ -56,7 +56,7 @@ describe('Date format utility', () => {
       optionHHmm
     );
 
-    const timeFormatRegex = /([0-9])(:)([0-9]{2})\s(AM|PM)/;
+    const timeFormatRegex = /([0-9]{1,2})(:)([0-9]{2})\s(AM|PM)/;
     expect(timeFormatRegex.test(localTimeFormatted)).to.equal(true);
   });
 
