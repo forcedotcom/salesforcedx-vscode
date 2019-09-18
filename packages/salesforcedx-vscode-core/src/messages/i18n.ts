@@ -125,8 +125,12 @@ export const messages = {
   force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
+  warning_prompt_file_overwrite:
+    'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
+  warning_prompt_continue_confirm: 'Continue',
+  warning_prompt_overwrite_cancel: 'Cancel',
   warning_prompt_overwrite_message:
     'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
   warning_prompt_overwrite: 'Overwrite',
