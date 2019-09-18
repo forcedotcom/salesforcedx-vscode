@@ -6,7 +6,7 @@ View outlines of Apex classes and triggers, see code-completion suggestions, and
 
 ## View Code-Completion Suggestions
 
-To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter. To change the global pre-selection behavior see [Intellisense - Suggest selection](https://code.visualstudio.com/docs/editor/intellisense).
+To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter. To change how suggestions are pre-selected, see [IntelliSense - Suggestion selection](https://code.visualstudio.com/docs/editor/intellisense).
 ![Animation showing code completion of a System.debug() statement](../../images/apex_completion.gif)
 
 ## Insert Code Snippets
