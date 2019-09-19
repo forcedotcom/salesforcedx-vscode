@@ -1,3 +1,11 @@
+# 46.15.0 - September 19, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs.
+
 # 46.14.0 - September 12, 2019
 
 ## Fixed
