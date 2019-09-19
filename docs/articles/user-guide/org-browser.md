@@ -37,6 +37,8 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 
 ## Retrieving Components
 
-You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](../getting-started/first-project#the-sfdx-projectjson-file) file. If a local version of the component exists, you'll be prompted to confirm before overwriting it.
+You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](../getting-started/first-project#the-sfdx-projectjson-file) file.
 
-![Overwrite local component](../../images/org_browser_overwrite.png)
+You may also retrieve multiple components at a time by clicking the retrieve button next to a metadata type. This will fetch all of the components in the default org for that particular type. If any components will be overwritten by the operation, a prompt will appear allowing you to choose how to handle each component.
+
+![Overwrite components](../../images/overwrite-prompt.png)

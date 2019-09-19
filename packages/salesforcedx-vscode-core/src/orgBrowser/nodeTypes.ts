@@ -123,7 +123,7 @@ export class BrowserNode extends vscode.TreeItem
       }
     }
     throw new Error(
-      `Node ${this.fullName} does not have a parent metadata type node`
+      `Node of type ${this.type} does not have a parent metadata type node`
     );
   }
 
