@@ -25,6 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.2.0",
+    "@salesforce/core": "2.0.1",
     "@salesforce/salesforcedx-sobjects-faux-generator": "46.15.0",
     "@salesforce/salesforcedx-utils-vscode": "46.15.0",
     "expand-home-dir": "0.0.3",
