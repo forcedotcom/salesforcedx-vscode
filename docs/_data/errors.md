@@ -21,7 +21,7 @@ at ModuleRegistry.resolveExports (talon.js:11765)
 at ModuleRegistry.addModule (talon.js:11750)
 at ModuleRegistry.define (talon.js:11719)
 ```
-For more information about which modules the local development server supports, see Supported Salesforce Modules.
+For more information about which modules the local development server supports, see [Supported Salesforce Modules](/supported-modules.md).
 
 ## Using a Nonexistent Component
 
