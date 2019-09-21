@@ -70,7 +70,10 @@ export async function activate(context: ExtensionContext) {
   );
 
   // Check if we have a valid project structure
-  if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
+  if (
+    getActivationMode() === 'autodetect' &&
+    !lspCommon.isAura(workspaceType)
+  ) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     console.log(
       'Aura LSP - autodetect did not find a valid project structure, exiting....'
