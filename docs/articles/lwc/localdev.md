@@ -1,4 +1,6 @@
-# Local Development (Beta)
+---
+title: Local Development Server (Beta)
+---
 
 The Local Development server is an SFDX CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
 
