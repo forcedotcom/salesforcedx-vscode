@@ -68,7 +68,7 @@
     - title: Writing
       url: /articles/lwc/writing
     - title: Local Development Server
-      baseUrl: /articles/lwc/localdev.md
+      url: /articles/lwc/localdev.md
 
 - title: Visualforce
   baseUrl: /articles/visualforce/
