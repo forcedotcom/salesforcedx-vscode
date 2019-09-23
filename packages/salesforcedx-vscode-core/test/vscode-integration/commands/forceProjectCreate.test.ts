@@ -13,10 +13,11 @@ import * as vscode from 'vscode';
 import {
   ForceProjectCreateExecutor,
   PathExistsChecker,
-  ProjectNameAndPath,
+  ProjectNameAndPathAndTemplate,
   SelectProjectFolder,
   SelectProjectName
 } from '../../../src/commands/forceProjectCreate';
+import { projectTemplateEnum } from '../../../src/commands/util/projectTemplateEnum';
 import { nls } from '../../../src/messages';
 import { getRootWorkspacePath } from '../../../src/util';
 
@@ -120,7 +121,11 @@ describe('Force Project Create', () => {
       const checker = new PathExistsChecker();
       const response = await checker.check({
         type: 'CONTINUE',
-        data: { projectName: PROJECT_NAME, projectUri: PROJECT_DIR[0].fsPath }
+        data: {
+          projectName: PROJECT_NAME,
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
+        }
       });
       expect(showWarningBoxSpy.calledOnce).to.be.true;
       expect(response.type).to.equal('CANCEL');
@@ -128,9 +133,13 @@ describe('Force Project Create', () => {
 
     it('Should return inputs if project path is in use and user selects No', async () => {
       const checker = new PathExistsChecker();
-      const inputs: ContinueResponse<ProjectNameAndPath> = {
+      const inputs: ContinueResponse<ProjectNameAndPathAndTemplate> = {
         type: 'CONTINUE',
-        data: { projectName: PROJECT_NAME, projectUri: PROJECT_DIR[0].fsPath }
+        data: {
+          projectName: PROJECT_NAME,
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
+        }
       };
       const response = await checker.check(inputs);
       expect(showWarningBoxSpy.calledTwice).to.be.true;
@@ -142,11 +151,12 @@ describe('Force Project Create', () => {
 
     it('Should return inputs if project path is not in use', async () => {
       const checker = new PathExistsChecker();
-      const inputs: ContinueResponse<ProjectNameAndPath> = {
+      const inputs: ContinueResponse<ProjectNameAndPathAndTemplate> = {
         type: 'CONTINUE',
         data: {
           projectName: 'someOtherProject',
-          projectUri: PROJECT_DIR[0].fsPath
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
         }
       };
       const response = await checker.check(inputs);
@@ -163,7 +173,8 @@ describe('Force Project Create', () => {
       const forceProjectCreateBuilder = new ForceProjectCreateExecutor();
       const createCommand = forceProjectCreateBuilder.build({
         projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
       });
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
@@ -181,7 +192,8 @@ describe('Force Project Create', () => {
       });
       const createCommand = forceProjectCreateBuilder.build({
         projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
       });
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
