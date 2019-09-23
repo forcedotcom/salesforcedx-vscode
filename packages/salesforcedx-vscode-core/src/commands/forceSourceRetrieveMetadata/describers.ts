@@ -23,7 +23,7 @@ abstract class NodeDescriber implements RetrieveDescriber {
 
   protected async buildOutput(node: BrowserNode): Promise<LocalComponent[]> {
     const typeNode = node.getAssociatedTypeNode();
-    // create cmp for every package directory to accommodate for the cli retrieve bug
+    // TODO: Only create one cmp when cli bug (W-6558000) fixed
     const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
     return packageDirectories.map(directory => ({
       fileName: node.fullName,

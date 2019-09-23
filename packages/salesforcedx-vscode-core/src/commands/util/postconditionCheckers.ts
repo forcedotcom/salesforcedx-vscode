@@ -17,6 +17,7 @@ import { GlobPattern, workspace } from 'vscode';
 import { GlobStrategy } from '.';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
+import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
 import { MetadataDictionary } from '../../util/metadataDictionary';
 import { PathStrategyFactory } from './sourcePathStrategies';
@@ -24,7 +25,7 @@ import { PathStrategyFactory } from './sourcePathStrategies';
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
-// TODO: Replace with ComponentOverwritePrompt in subsequent PR
+// TODO: Replace with ComponentOverwritePrompt in subsequent PR (W-6610854)
 export class FilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {
   private globStrategy: GlobStrategy;
@@ -117,7 +118,13 @@ export class OverwriteComponentPrompt
     } else if (info && info.suffix) {
       metadataSuffix = info.suffix;
     } else {
-      throw new Error(`Missing suffix for ${component.type}`);
+      notificationService.showErrorMessage(
+        'Error checking workspace for existing components'
+      );
+      telemetryService.sendException(
+        'OverwriteComponentPromptException',
+        `Missing suffix for ${component.type}`
+      );
     }
     const extensions = [`.${metadataSuffix}-meta.xml`];
     if (info && info.extensions) {
