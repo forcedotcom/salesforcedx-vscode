@@ -68,10 +68,10 @@
     - title: Writing
       url: /articles/lwc/writing
     - title: Local Development Server
-      baseUrl: /articles/lwc/localdev/
+      baseUrl: /articles/localdev/
       children
         - title: Getting Started
-          url: /articles/lwc/localdev/getting-started
+          url: /articles/localdev/getting-started
 
 - title: Visualforce
   baseUrl: /articles/visualforce/

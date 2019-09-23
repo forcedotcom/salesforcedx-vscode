@@ -1,91 +1,81 @@
-- title: Get Started
+- title: 使用開始
   baseUrl: /articles/getting-started/
   children:
-    - title: Installation
+    - title: インストール
       url: /articles/getting-started/install
-    - title: First Project
+    - title: 最初のプロジェクト
       url: /articles/getting-started/first-project
-    - title: 'Migrate: Force.com IDE'
+    - title: '移行Force.com IDE'
       url: /articles/getting-started/migrate-from-forcecom-ide
-    - title: Recommended Extensions
+    - title: 推奨の拡張機能
       url: /articles/getting-started/recommended-extensions
-    - title: Settings
+    - title: 設定
       url: /articles/getting-started/settings
-    - title: Prettier Code Formatter
+    - title: Prettier コードフォーマッタ
       url: /articles/getting-started/prettier
-    - title: Tips & Tricks
+    - title: ヒントとコツ
       url: /articles/getting-started/tips-and-tricks
-    - title: Java Setup
+    - title: Java 設定
       url: /articles/getting-started/java-setup
-- title: User Guide
+- title: ユーザガイド
   baseUrl: /articles/user-guide/
   children:
-    - title: Org Development
+    - title: 組織開発
       url: /articles/user-guide/org-development-model
-    - title: Package Development
+    - title: パッケージ開発
       url: /articles/user-guide/package-development-model
-    - title: CLI Commands
+    - title: CLI コマンド
       url: /articles/user-guide/cli-commands
-    - title: Source Format
+    - title: ソース形式
       url: /articles/user-guide/source-format
-    - title: Default Org
+    - title: デフォルト組織
       url: /articles/user-guide/default-org
-    - title: Org Browser
+    - title: 組織のブラウザ
       url: /articles/user-guide/org-browser
-    - title: Remote Containers
-      url: /articles/user-guide/remote-development
-    - title: Source Diff
-      url: /articles/user-guide/source-diff
-    - title: Demo Mode
+    - title: デモモード
       url: /articles/user-guide/demo-mode
 - title: Apex
   baseUrl: /articles/apex/
   children:
-    - title: Writing
+    - title: 作成
       url: /articles/apex/writing
-    - title: Testing
+    - title: テスト
       url: /articles/apex/testing
-    - title: Refactoring
+    - title: リファクタリング
       url: /articles/apex/refactoring
-    - title: Quick Fix
+    - title: クイック修正
       url: /articles/apex/quick-fix
     - title: Replay Debugger
       url: /articles/apex/replay-debugger
-    - title: Interactive Debugger
+    - title: 対話型デバッガ
       url: /articles/apex/interactive-debugger
-    - title: ISV Debugger
+    - title: ISV デバッガ
       url: /articles/apex/isv-debugger
-    - title: Language Server
-      url: /articles/apex/language-server`
+    - title: 言語サーバ
+      url: /articles/apex/language-server
 - title: Aura
   baseUrl: /articles/aura/
   children:
-    - title: Writing
+    - title: 作成
       url: /articles/aura/writing
-- title: Lighting Web Components
+- title: Lightning Web コンポーネント
   baseUrl: /articles/lwc/
   children:
-    - title: Writing
+    - title: 作成
       url: /articles/lwc/writing
-    - title: Local Development Server
-      baseUrl: /articles/lwc/localdev/
-      children
-        - title: Getting Started
-          url: /articles/lwc/localdev/getting-started
-
 - title: Visualforce
   baseUrl: /articles/visualforce/
   children:
-    - title: Writing
+    - title: 作成
       url: /articles/visualforce/writing
 - title: FAQ
   baseUrl: /articles/faq/
   children:
-    - title: General
+    - title: 一般
       url: /articles/faq/general
-    - title: Telemetry
+    - title: テレメトリ
       url: /articles/faq/telemetry
-- title: Troubleshooting
+- title: トラブルシューティング
   url: /articles/troubleshooting
-- title: Bugs and Feedback
+- title: バグとフィードバック
   url: /articles/bugs-and-feedback
