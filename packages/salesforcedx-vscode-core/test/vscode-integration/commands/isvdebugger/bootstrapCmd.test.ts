@@ -11,6 +11,7 @@ import {
   IsvDebugBootstrapConfig,
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging/bootstrapCmd';
+import { projectTemplateEnum } from '../../../../src/commands/util/projectTemplateEnum';
 import { nls } from '../../../../src/messages';
 import { getRootWorkspacePath } from '../../../../src/util';
 
@@ -155,7 +156,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
         }
       );
       expect(createCommand.toCommand()).to.equal(
@@ -176,7 +178,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
         }
       );
       expect(configureCommand.toCommand()).to.equal(
@@ -195,7 +198,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
         }
       );
       expect(command.toCommand()).to.equal(
@@ -229,7 +233,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         sessionId: SESSION_ID,
         orgName: PROJECT_NAME,
         projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: 'standard'
       });
       expect(command.toCommand()).to.equal(
         `sfdx force:mdapi:retrieve --retrievetargetdir ${
@@ -250,7 +255,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         sessionId: SESSION_ID,
         orgName: PROJECT_NAME,
         projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
         `sfdx force:mdapi:convert --rootdir ${path.join(
@@ -270,7 +276,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         sessionId: SESSION_ID,
         orgName: PROJECT_NAME,
         projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
       });
       expect(command.toCommand()).to.equal(
         `sfdx force:package:installed:list --targetusername ${SESSION_ID} --json --loglevel fatal`
@@ -289,7 +296,8 @@ describe('ISV Debugging Project Bootstrap Command', () => {
           sessionId: SESSION_ID,
           orgName: PROJECT_NAME,
           projectName: PROJECT_NAME,
-          projectUri: PROJECT_DIR[0].fsPath
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
         },
         packageNames
       );
