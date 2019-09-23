@@ -70,6 +70,8 @@
 - title: Local Development Server
   baseUrl: /articles/localdev/
   children:
+    - title: Writing
+      url: /articles/localdev/writing
     - title: Getting Started
       url: /articles/localdev/getting-started
     - title: Supported Modules
