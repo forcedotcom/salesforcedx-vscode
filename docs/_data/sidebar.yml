@@ -67,21 +67,8 @@
   children:
     - title: Writing
       url: /articles/lwc/writing
-- title: Local Development Server
-  baseUrl: /articles/localdev/
-  children:
-    - title: Writing
-      url: /articles/localdev/writing
-    - title: Getting Started
-      url: /articles/localdev/getting-started
-    - title: Supported Modules
-      url: /articles/localdev/supported-modules
-    - title: Considerations
-      url: /articles/localdev/considerations
-    - title: Common Errors
-      url: /articles/localdev/errors
-
-
+    - title: Local Development Server
+      url: /articles/lwc/localdev
 - title: Visualforce
   baseUrl: /articles/visualforce/
   children:
