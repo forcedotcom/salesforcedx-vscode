@@ -6,6 +6,21 @@ The Local Development server is an SFDX CLI plugin that configures and runs a Li
 
 **Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server/issues/new). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
 
+[Setup](#setup)
+    * [System Requirements](#system-requirements)
+    * [Installation](#installation)
+[Working With Salesforce Modules](#working-with-salesforce-modules)
+    * [Supported Modules](#supported-modules)
+    *   [Partially Supported Modules](#partially-supported-modules)
+    *   [Unsupported Modules](#unsupported-modules)
+[Considerations](#considerations)
+[Common Errors](#common-errors)
+    * [Using an Unsupported Dependency](#using-an-unsupported-dependency)
+    * [Using a Nonexistent Component](#using-a-nonexistent-component)
+    * [Using a Component in a Nonexistent Namespace](#using-a-component-in-a-nonexistent-namespace)
+
+
+
 **Setup**
 -----
 
@@ -187,6 +202,8 @@ For more information about which modules the local development server supports, 
 
 This error message occurs when you try to use a component that isn't included in your local project or used globally. Here, the local development service cannot find the component `c-clockzzz`.
 
+![Screenshot of unsupported dependency error](../../images/localdev_error_component.png)
+
 ```
 Uncaught Error: Could not resolve entry (c/clockzzz)
 at error (:3333/Users/<path-to-workspace>/Dev/lwc-dev-server/node_modules/rollup/dist/rollup.js:3460)
@@ -196,6 +213,8 @@ at :3333/<path-to-workspace>/lwc-dev-server/node_modules/rollup/dist/rollup.js:2
 ## Using a Component in a Nonexistent Namespace
 
 If you use a namespace that either wasn't created in your org or that isn't part of the Component library, the local development server will produce this error.
+
+![Screenshot of unsupported dependency error](../../images/localdev_error_namespace.png)
 
 ```
 talon.js:11847 Uncaught Error: Cannot resolve module 'force'
