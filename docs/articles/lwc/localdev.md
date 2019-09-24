@@ -10,7 +10,7 @@ The Local Development server is an SFDX CLI plugin that configures and runs a Li
     * [System Requirements](#system-requirements)
     * [Installation](#installation)
     * [Troubleshooting](#troubleshooting)
-    * [Configuration for Projects](#configuration-for-projects-(optional))
+    * [Configuration for Projects (Optional)](#configuration-for-projects)
 * [Working With Salesforce Modules](#working-with-salesforce-modules)
     * [Supported Modules](#supported-modules)
     * [Partially Supported Modules](#partially-supported-modules)
