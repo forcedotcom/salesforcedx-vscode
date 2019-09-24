@@ -9,13 +9,14 @@ import { expect } from 'chai';
 import { normalize } from 'path';
 import { sandbox, SinonStub } from 'sinon';
 import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import { BrowserNode, NodeType } from '../../../../src/orgBrowser';
+import { BrowserNode, NodeType, OrgBrowser } from '../../../../src/orgBrowser';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 
 const env = sandbox.create();
 
 describe('Retrieve Metadata Describers', () => {
   let packageStub: SinonStub;
+  let refreshStub: SinonStub;
 
   const node = new BrowserNode('Test', NodeType.MetadataType, 'TestType', {
     suffix: '.t',
@@ -28,8 +29,12 @@ describe('Retrieve Metadata Describers', () => {
   node.setComponents(['Test1', 'Test2', 'Test3'], NodeType.MetadataCmp);
 
   beforeEach(() => {
-    packageStub = env.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths');
-    packageStub.returns(['p1', 'p2']);
+    packageStub = env
+      .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+      .returns(['p1', 'p2']);
+    refreshStub = env
+      .stub(OrgBrowser.prototype, 'refreshAndExpand')
+      .callsFake(() => '');
   });
 
   afterEach(() => env.restore());
@@ -50,6 +55,15 @@ describe('Retrieve Metadata Describers', () => {
     it('Should gather LocalComponents for each child node', async () => {
       expect(await describer.gatherOutputLocations()).to.eql(
         generateComponents(3)
+      );
+    });
+
+    it('Should refresh the available components before gathering', async () => {
+      refreshStub.callsFake(() => {
+        node.setComponents(['Test1'], NodeType.MetadataCmp);
+      });
+      expect(await describer.gatherOutputLocations()).to.eql(
+        generateComponents(1)
       );
     });
   });
