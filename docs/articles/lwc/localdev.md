@@ -4,7 +4,7 @@ title: Local Development Server (Beta)
 
 The Local Development server is an SFDX CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
 
-**Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server/issues/new). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
+**Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server-feedback/issues). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
 
 * [Setup](#setup)
     * [System Requirements](#system-requirements)
@@ -23,7 +23,7 @@ The Local Development server is an SFDX CLI plugin that configures and runs a Li
 
 
 **Setup**
------
+---------
 
 ## System Requirements
 - Developer Hub-enabled org
@@ -129,7 +129,7 @@ Here's an example that shows the available configuration parameters.
 ```
 
 **Working With Salesforce Modules**
--------------------------------
+-----------------------------------
 
 The Local Development server is an SFDX CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
 
@@ -151,8 +151,8 @@ These modules work with the local development server, but behave differently fro
 
 
 | **Module Name**      | **Local Development Behavior** |
-| ----------- | ----------- |
-| `@salesforce/i18n`      | The locale is set to US/English locale. For local development, all imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in production.       |
+| ----------------     | ------------------------------ |
+| `@salesforce/i18n`   |    The locale is set to US/English locale. For local development, all imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in production.       |
 | `@salesforce/user`   | You can include `@salesforce/user` when working in local development. User ID is not supported, and local development assigns it a value of `undefined`. The value of `isGuest` always returns true.         |
 
 ## Unsupported Modules
@@ -165,7 +165,7 @@ The local development server throws an error if you try to preview any component
 
 
 **Considerations**
---------------
+------------------
 - The local development server supports Lightning web components only. It does not support Aura components. 
 - Don't connect to a production Salesforce org with the local development server. Local development uses data in real time. If you authenticate to a production org, then you will modify or overwrite data in production. 
 - You can't specify or change attribute values for your components on the component preview page. Components render with their default attribute values. For example, let's say you're writing a clock component. To view the component, the clock needs to know your timezone, which requires setting a timezone attribute. We recommend setting a default timezone in the code. If you can't specify a default value, create a wrapper component that creates the clock and sets the proper attributes. To prevent confusion, make sure to give your wrapper component a name that clarifies it is for testing purposes only. 
@@ -175,7 +175,7 @@ The local development server throws an error if you try to preview any component
 - Salesforce Standard Design Tokens and Custom Tokens in CSS files aren't supported. For more information about Design Tokens and Custom Tokens, see the [Salesforce Lightning Design System](https://www.lightningdesignsystem.com/design-tokens/). 
 
 **Common Errors**
--------------
+-----------------
 
 Here are common errors that you may run into while working with the local development server.
 
