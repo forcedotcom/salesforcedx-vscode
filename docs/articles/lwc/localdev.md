@@ -6,7 +6,7 @@ The Local Development server is an SFDX CLI plugin that configures and runs a Li
 
 **Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server/issues/new). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
 
-[Setup](#setup)
+* [Setup](#setup)
     * [System Requirements](#system-requirements)
 
 
