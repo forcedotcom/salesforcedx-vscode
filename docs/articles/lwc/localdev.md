@@ -94,8 +94,9 @@ For more information on this command, view Help for the Local Development Server
 
 ```sh-session
 $ sfdx force:lightning:lwc:start
-(node:78804) [ENOENT] Error: spawn lwc-dev-server ENOENT
-ERROR running force:lightning:lwc:start:  Must pass a username and/or OAuth options when creating an AuthInfo instance.
+Starting LWC Local Development.
+    Dev Hub Org: mydevhub
+    Scratch Org: undefined - We can't find an active scratch org for this Dev Hub. Create one by following the steps in Create Scratch Orgs in the Salesforce DX Developer Guide (https://sfdc.co/cuuVX4) or the Local Development Server Getting Started.
 ```
 
 If you see this error, make sure that you authenticate to your Dev Hub and create a scratch org. 
