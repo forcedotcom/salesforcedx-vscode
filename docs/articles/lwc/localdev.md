@@ -159,8 +159,7 @@ These modules work with the local development server, but behave differently fro
 
 The local development server throws an error if you try to preview any components that use these modules.
 
-`@salesforce/contentAssetUrl`
-
+`@salesforce/contentAssetUrl`\
 `@salesforce/apexContinuation`
 
 
@@ -172,6 +171,7 @@ The local development server throws an error if you try to preview any component
 - SLDS CSS and icons are included with the local development plugin, and are automatically included on every page. If you notice differences between how some SLDS classes render in local development versus how they do on your Salesforce instance, they may be running different versions. In the beta release, you cannot modify the version of SLDS, and it won't sync with the version you're running on your instance. 
 - In local development, component UI is rendered locally on your machine. However, data manipulation code like calls to the uiRecordApi wire adapters and Apex controllers get sent to your authenticated Salesforce org. This means that creating, editing, and deleting records or data are reflected in the org, in addition to what is displayed on your local machine. Don't authenticate the SFDX CLI to a production Salesforce org.
 - Flexipages aren't supported.
+- Locker is not supported. 
 - Salesforce Standard Design Tokens and Custom Tokens in CSS files aren't supported. For more information about Design Tokens and Custom Tokens, see the [Salesforce Lightning Design System](https://www.lightningdesignsystem.com/design-tokens/). 
 
 **Common Errors**
