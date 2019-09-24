@@ -25,6 +25,7 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:auth:logout --all --noprompt`: **SFDX: Log Out from All Authorized Orgs**
 - `force:auth:web:login --setdefaultdevhubusername`, `force:auth:device:login` (in remote development): **SFDX: Authorize a Dev Hub**
 - `force:config:list`: **SFDX: List All Config Variables**
+- `force:config:set --isvebuggerSid --isvDebuggerUrl --instanceUrl`: **Create and Set Up Project for ISV Debugging** (step 2)
 - `force:data:record:create --sobjecttype --values --usetoolingapi`: **Turn On Apex Debug Log for Replay Debugger**
 - `force:data:record:delete --sobjecttype --sobjectid --usetoolingapi`: **Turn Off Apex Debug Log for Replay Debugger**
 - `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
@@ -33,6 +34,9 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:lightning:component:create ...`: **SFDX: Create Lightning Web Component**
 - `force:lightning:event:create ...`: **SFDX: Create Lightning Event**
 - `force:lightning:interface:create ...`: **SFDX: Create Lightning Interface**
+- `force:mdapi:retrieve --retrievetargetdir --unpacked --targetusername`: **Create and Set Up Project for ISV Debugging** (step 4)
+- `force:mdapi:convert --rooter --outputdir force-app`: **Create and Set Up Project for ISV Debugging** (step 5)
+- `force:package:installed:list --targetusername`: **Create and Set Up Project for ISV Debugging** (step 6)
 - `force:org:create --setdefaultusername ...`: **SFDX: Create a Default Scratch Org**
 - `force:org:display`: **SFDX: Display Org Details for Default Org**
 - `force:org:display --targetusername ...`: **SFDX: Display Org Details...**
