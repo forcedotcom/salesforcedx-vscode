@@ -146,10 +146,10 @@ Here's an example that shows the available configuration parameters.
 These modules work with the local development server, but behave differently from how they do in a production org. 
 
 
-| **Module Name**      |    | **Local Development Behavior** |
-| ----------------     |    |------------------------------ |
-| `@salesforce/i18n`   |    |    The locale is set to US/English locale. For local development, all imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in production.       |
-| `@salesforce/user`   |    | You can include `@salesforce/user` when working in local development. User ID is not supported, and local development assigns it a value of `undefined`. The value of `isGuest` always returns true.         |
+| **Module Name**      |    |   | **Local Development Behavior** |
+| ----------------     |    |   |------------------------------ |
+| `@salesforce/i18n`   |    |   |    The locale is set to US/English locale. For local development, all imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in production.       |
+| `@salesforce/user`   |    |   | You can include `@salesforce/user` when working in local development. User ID is not supported, and local development assigns it a value of `undefined`. The value of `isGuest` always returns true.         |
 
 ## Unsupported Modules
 
