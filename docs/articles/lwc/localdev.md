@@ -166,7 +166,7 @@ Here are common errors that you may run into while working with the local develo
 
 This error occurs when you use an unsupported Salesforce module. In this example, a user tries to import an unsupported dependency called userPermission: `import userPermission from '@salesforce/userPermission';`
 
-![Screenshot of unsupported dependency error](../../images/localdev_error_dependency.com)
+![Screenshot of unsupported dependency error](../../images/localdev_error_dependency.png)
 
 ```
 talon.js:3554 Uncaught Error: Unknown scope, cannot resolve dependency 'userPermission'
