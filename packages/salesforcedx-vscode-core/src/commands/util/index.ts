@@ -9,5 +9,8 @@ export {
   PathStrategyFactory
 } from './sourcePathStrategies';
 export { GlobStrategy, GlobStrategyFactory } from './globStrategies';
-export { FilePathExistsChecker } from './postconditionCheckers';
+export {
+  FilePathExistsChecker,
+  OverwriteComponentPrompt
+} from './postconditionCheckers';
 export { SimpleGatherer } from './parameterGatherers';
