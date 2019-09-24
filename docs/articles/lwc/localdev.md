@@ -133,12 +133,12 @@ Here's an example that shows the available configuration parameters.
 
 ## Supported Modules
 
-| **Module Name**      | **Local Development Behavior** |
-| ----------- | ----------- |
-| `@salesforce/resourceUrl`      | Imports static resources into your Salesforce org using the structure: `import <resourceName> from '@salesforce/resourceUrl'`. Static resources are copied and served from the SFDX project location on your filesystem to the local development server.       |
-| `@salesforce/label`   | Custom Labels are resolved from the SFDX project directory `labels/CustomLabels.labels-meta.xml`. The local development server displays a placeholder for labels that it either can't find or that you created in Setup but didn't sync to your local filesystem. The placeholder looks like this: `{unknown label: foo}`. In the case where your label is not in your org, SFDX returns an error when you push your code.         |
-| `@salesforce/apex`   | Apex requests are proxied to your scratch org.        |
-| `@salesforce/schema`   | Follows the same behavior described in the _Lightning Web Components Developer Guide_ [reference](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules).          |
+| **Module Name**      |    | **Local Development Behavior** |
+| ----------- |     | ----------- |
+| `@salesforce/resourceUrl`      |  | Imports static resources into your Salesforce org using the structure: `import <resourceName> from '@salesforce/resourceUrl'`. Static resources are copied and served from the SFDX project location on your filesystem to the local development server.       |
+| `@salesforce/label`   |   | Custom Labels are resolved from the SFDX project directory `labels/CustomLabels.labels-meta.xml`. The local development server displays a placeholder for labels that it either can't find or that you created in Setup but didn't sync to your local filesystem. The placeholder looks like this: `{unknown label: foo}`. In the case where your label is not in your org, SFDX returns an error when you push your code.         |
+| `@salesforce/apex`   |    | Apex requests are proxied to your scratch org.        |
+| `@salesforce/schema`   |  | Follows the same behavior described in the _Lightning Web Components Developer Guide_ [reference](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules).          |
 
 
 ## Partially Supported Modules
