@@ -131,10 +131,6 @@ Here's an example that shows the available configuration parameters.
 **Working With Salesforce Modules**
 -----------------------------------
 
-The Local Development server is an SFDX CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
-
-**Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server/issues/new). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
-
 ## Supported Modules
 
 | **Module Name**      | **Local Development Behavior** |
@@ -150,17 +146,17 @@ The Local Development server is an SFDX CLI plugin that configures and runs a Li
 These modules work with the local development server, but behave differently from how they do in a production org. 
 
 
-| **Module Name**      | **Local Development Behavior** |
-| ----------------     | ------------------------------ |
-| `@salesforce/i18n`   |    The locale is set to US/English locale. For local development, all imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in production.       |
-| `@salesforce/user`   | You can include `@salesforce/user` when working in local development. User ID is not supported, and local development assigns it a value of `undefined`. The value of `isGuest` always returns true.         |
+| **Module Name**      |    | **Local Development Behavior** |
+| ----------------     |    |------------------------------ |
+| `@salesforce/i18n`   |    |    The locale is set to US/English locale. For local development, all imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in production.       |
+| `@salesforce/user`   |    | You can include `@salesforce/user` when working in local development. User ID is not supported, and local development assigns it a value of `undefined`. The value of `isGuest` always returns true.         |
 
 ## Unsupported Modules
 
 The local development server throws an error if you try to preview any components that use these modules.
 
-`@salesforce/contentAssetUrl`\
-`@salesforce/apexContinuation`
+- `@salesforce/contentAssetUrl`
+- `@salesforce/apexContinuation`
 
 
 **Considerations**
