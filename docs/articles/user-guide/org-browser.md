@@ -18,7 +18,7 @@ The Org Browser displays the available metadata types and their corresponding co
 6. Refresh components for metadata type
 7. Retrieve source for metadata component
 
-To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./default-org) is set to a non-scratch org and the feature is enabled.
+To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./default-org) is set to a non-scratch org.
 
 When you open the Org Browser, all the metadata for the default org is saved in your local project under the .sfdx directory to minimize the number of calls to the org.
 
@@ -37,6 +37,8 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 
 ## Retrieving Components
 
-You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](../getting-started/first-project#the-sfdx-projectjson-file) file. If a local version of the component exists, you'll be prompted to confirm before overwriting it.
+You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](../getting-started/first-project#the-sfdx-projectjson-file) file.
 
-![Overwrite local component](../../images/org_browser_overwrite.png)
+You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you'll be prompted to select how to proceed.
+
+![Overwrite components](../../images/overwrite-prompt.png)

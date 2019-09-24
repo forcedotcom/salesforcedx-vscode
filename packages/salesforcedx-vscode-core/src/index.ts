@@ -60,17 +60,14 @@ import {
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
+import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import {
-  BrowserNode,
-  ComponentUtils,
-  MetadataOutlineProvider
-} from './orgBrowser';
+import { MetadataOutlineProvider } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -437,8 +434,8 @@ async function setupOrgBrowser(
 
   vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.component',
-    async (node: BrowserNode) => {
-      await forceSourceRetrieveCmp(node);
+    async (trigger: RetrieveMetadataTrigger) => {
+      await forceSourceRetrieveCmp(trigger);
     }
   );
   extensionContext.subscriptions.push(treeView);
