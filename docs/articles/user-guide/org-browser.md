@@ -43,6 +43,6 @@ You can also retrieve multiple components from the default org by clicking the r
 
 ![Overwrite components](../../images/overwrite-prompt.png)
 
-When the CLI retrieves components by a metadata type, the Org Browser needs an up-to-date list of all of the components to be retrieved. This is so the extensions can accurately check the local workspace for existing components.
+When the CLI retrieves components by a metadata type, the Org Browser needs an up-to-date list of all of the components to be retrieved. Therefore, the Org Browser will automatically refresh the component list before retrieving by a type. This is so the extensions can accurately check the local workspace for existing components.
 
 > Because of the asynchronous nature of the Metadata API, there exists the possibility for a simultaneous deploy and retrieve to enter a race condition. This could result in retrieving unexpected components. Keep this in mind if there are deploys happening while using the Org Browser.
