@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { extractJsonObject, isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
+  extractJsonObject,
+  isNullOrUndefined
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -53,6 +56,10 @@ export class MetadataOutlineProvider
 
   public getTreeItem(element: BrowserNode): vscode.TreeItem {
     return element;
+  }
+
+  public getParent(element: BrowserNode) {
+    return element.parent;
   }
 
   public async getChildren(element?: BrowserNode): Promise<BrowserNode[]> {
@@ -138,7 +145,6 @@ export class MetadataOutlineProvider
 
 export function parseErrors(error: string | any): Error {
   try {
-
     const errMsg = typeof error === 'string' ? error : error.message;
     const e = extractJsonObject(errMsg);
 

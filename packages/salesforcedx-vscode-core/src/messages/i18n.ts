@@ -273,6 +273,8 @@ export const messages = {
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
+  error_org_browser_init: 'Org Browser has not been initialized',
+  error_overwrite_prompt: 'Error checking workspace for existing components',
   force_list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
