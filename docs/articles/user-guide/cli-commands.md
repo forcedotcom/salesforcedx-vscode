@@ -46,12 +46,14 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:project:create --template standard --manifest ...`: **SFDX: Create Project with Manifest**
 - `force:source:delete`: **SFDX: Delete from Project and Org**
 - `force:source:deploy`: **SFDX: Deploy Source to Org**
+- `force:source:deploy --sourcepath`: **SFDX: Deploy This Source to Org**
 - `force:source:deploy --manifest ...`: **SFDX: Deploy Source in Manifest to Org**
 - `force:source:pull`: **SFDX: Pull Source from Default Scratch Org**
 - `force:source:pull --forceoverwrite`: **SFDX: Pull Source from Default Scratch Org and Override Conflicts**
 - `force:source:push`: **SFDX: Push Source to Default Scratch Org**
 - `force:source:push --forceoverwrite`: **SFDX: Push Source to Default Scratch Org and Override Conflicts**
 - `force:source:retrieve`: **SFDX: Retrieve Source from Org**
+- `force:source:retrieve --sourcepath`: **SFDX: Retrieve This Source from Org**
 - `force:source:retrieve --manifest ...`: **SFDX: Retrieve Source in Manifest from Org**
 - `force:source:status`: **SFDX: View All Changes (Local and in Default Scratch Org)**
 - `force:source:status --local`: **SFDX: View Local Changes**
