@@ -36,7 +36,7 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:lightning:event:create ...`: **SFDX: Create Lightning Event**
 - `force:lightning:interface:create ...`: **SFDX: Create Lightning Interface**
 - `force:mdapi:retrieve --retrievetargetdir --unpacked --targetusername`: **SFDX: Create and Set Up Project for ISV Debugging** (step 4)
-- `force:mdapi:convert --rooter --outputdir force-app`: **Create and Set Up Project for ISV Debugging** (step 5)
+- `force:mdapi:convert --rootdir --outputdir force-app`: **SFDX: Create and Set Up Project for ISV Debugging** (step 5)
 - `force:package:installed:list --targetusername`: **Create and Set Up Project for ISV Debugging** (step 6)
 - `force:org:create --setdefaultusername ...`: **SFDX: Create a Default Scratch Org**
 - `force:org:display`: **SFDX: Display Org Details for Default Org**
