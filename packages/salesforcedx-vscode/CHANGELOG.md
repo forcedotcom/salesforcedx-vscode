@@ -12,11 +12,11 @@
 
 #### docs
 
-- Added retrieve multiple components documentation for [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+- Add retrieve multiple components documentation for [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
 
-- Added links to the bottom of articles for feedback and bugs ([PR #1646](https://github.com/forcedotcom/salesforcedx-vscode/pull/1646))
+- Add links at the bottom of the articles to provide feedback and log bugs ([PR #1646](https://github.com/forcedotcom/salesforcedx-vscode/pull/1646))
 
-- Added recommended timeout setting for [Prettier](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) setup ([PR #1647](https://github.com/forcedotcom/salesforcedx-vscode/pull/1647))
+- Add recommended timeout setting for [Prettier](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) setup ([PR #1647](https://github.com/forcedotcom/salesforcedx-vscode/pull/1647))
 
 - Added dropdown pre-selection setting info for use in [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
 
