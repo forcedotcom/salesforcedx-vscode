@@ -25,7 +25,7 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:auth:logout --all --noprompt`: **SFDX: Log Out from All Authorized Orgs**
 - `force:auth:web:login --setdefaultdevhubusername`, `force:auth:device:login --setdefaultdevhubusername` (in remote development): **SFDX: Authorize a Dev Hub**
 - `force:config:list`: **SFDX: List All Config Variables**
-- `force:config:set --isvebuggerSid --isvDebuggerUrl --instanceUrl`: **Create and Set Up Project for ISV Debugging** (step 2)
+- `force:config:set --isvDebuggerSid --isvDebuggerUrl --instanceUrl`: **SFDX: Create and Set Up Project for ISV Debugging** (step 2)
 - `force:data:record:create --sobjecttype --values --usetoolingapi`: **Turn On Apex Debug Log for Replay Debugger**
 - `force:data:record:delete --sobjecttype --sobjectid --usetoolingapi`: **Turn Off Apex Debug Log for Replay Debugger**
 - `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
