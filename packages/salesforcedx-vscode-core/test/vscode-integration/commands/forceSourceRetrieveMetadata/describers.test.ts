@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import { normalize } from 'path';
 import { sandbox, SinonStub } from 'sinon';
 import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import { BrowserNode, NodeType, OrgBrowser } from '../../../../src/orgBrowser';
+import { BrowserNode, NodeType, orgBrowser } from '../../../../src/orgBrowser';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 
 const env = sandbox.create();
@@ -32,9 +32,7 @@ describe('Retrieve Metadata Describers', () => {
     packageStub = env
       .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
       .returns(['p1', 'p2']);
-    refreshStub = env
-      .stub(OrgBrowser.prototype, 'refreshAndExpand')
-      .callsFake(() => '');
+    refreshStub = env.stub(orgBrowser, 'refreshAndExpand').callsFake(() => '');
   });
 
   afterEach(() => env.restore());
