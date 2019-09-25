@@ -31,7 +31,8 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
 - `force:data:soql:query ...`: **SFDX: Execute SOQL Query...**
 - `force:lightning:app:create ...`: **SFDX: Create Lightning App**
-- `force:lightning:component:create ...`: **SFDX: Create Lightning Web Component**
+- `force:lightning:component:create ...`: **SFDX: Create Lightning Component**
+- `force:lightning:component:create --type lwc ...`: **SFDX: Create Lightning Web Component**
 - `force:lightning:event:create ...`: **SFDX: Create Lightning Event**
 - `force:lightning:interface:create ...`: **SFDX: Create Lightning Interface**
 - `force:mdapi:retrieve --retrievetargetdir --unpacked --targetusername`: **Create and Set Up Project for ISV Debugging** (step 4)
