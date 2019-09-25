@@ -27,7 +27,7 @@ These Salesforce CLI commands are available in Salesforce Extensions for VS Code
 - `force:config:list`: **SFDX: List All Config Variables**
 - `force:config:set --isvDebuggerSid --isvDebuggerUrl --instanceUrl`: **SFDX: Create and Set Up Project for ISV Debugging** (step 2)
 - `force:data:record:create --sobjecttype --values --usetoolingapi`: **Turn On Apex Debug Log for Replay Debugger**
-- `force:data:record:delete --sobjecttype --sobjectid --usetoolingapi`: **Turn Off Apex Debug Log for Replay Debugger**
+- `force:data:record:delete --sobjecttype --sobjectid --usetoolingapi`: **SFDX: Turn Off Apex Debug Log for Replay Debugger**
 - `force:data:soql:query`: **SFDX: Execute SOQL Query with Currently Selected Text**
 - `force:data:soql:query ...`: **SFDX: Execute SOQL Query...**
 - `force:lightning:app:create ...`: **SFDX: Create Lightning App**
