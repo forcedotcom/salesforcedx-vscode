@@ -1,3 +1,25 @@
+# 46.16.0 - September 26, 2019
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Retrieve Multiple Components by Metadata Type ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+
+#### salesforcedx-sobjects-faux-generator, salesforcedx-vscode-apex
+
+- Select SObject category for Refresh SObject Definitions command ([PR #1681](https://github.com/forcedotcom/salesforcedx-vscode/pull/1681))
+
+#### docs
+
+- Added retrieve multiple components documentation for [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+
+- Added links to the bottom of articles for feedback and bugs ([PR #1646](https://github.com/forcedotcom/salesforcedx-vscode/pull/1646))
+
+- Added recommended timeout setting for [Prettier](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) setup ([PR #1647](https://github.com/forcedotcom/salesforcedx-vscode/pull/1647))
+
+- Added dropdown pre-selection setting info for use in [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
+
 # 46.15.0 - September 19, 2019
 
 ### Fixed
