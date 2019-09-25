@@ -19,7 +19,7 @@ export class OrgBrowser {
 
   private constructor() {}
 
-  public static get(): OrgBrowser {
+  public static getInstance(): OrgBrowser {
     if (!this.instance) {
       this.instance = new OrgBrowser();
     }

@@ -7,7 +7,7 @@
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { join } from 'path';
 import { RetrieveDescriber } from '.';
-import { BrowserNode, OrgBrowser } from '../../orgBrowser';
+import { BrowserNode, orgBrowser } from '../../orgBrowser';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 
 abstract class NodeDescriber implements RetrieveDescriber {
@@ -53,7 +53,7 @@ class TypeNodeDescriber extends NodeDescriber {
   }
 
   public async gatherOutputLocations(): Promise<LocalComponent[]> {
-    await OrgBrowser.get().refreshAndExpand(this.node);
+    await orgBrowser.refreshAndExpand(this.node);
     const components = [];
     for (const child of this.node.children!) {
       components.push(...(await this.buildOutput(child)));

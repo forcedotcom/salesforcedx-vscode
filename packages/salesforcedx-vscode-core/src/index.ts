@@ -67,7 +67,7 @@ import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { OrgBrowser } from './orgBrowser';
+import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -405,20 +405,19 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
 async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext
 ): Promise<void> {
-  const browser = OrgBrowser.get();
-  await browser.init(extensionContext);
+  await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.type.refresh',
     async node => {
-      await browser.refreshAndExpand(node);
+      await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.component.refresh',
     async node => {
-      await browser.refreshAndExpand(node);
+      await orgBrowser.refreshAndExpand(node);
     }
   );
 
