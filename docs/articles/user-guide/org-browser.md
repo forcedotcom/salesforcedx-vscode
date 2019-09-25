@@ -42,3 +42,7 @@ You can retrieve a component to your local project by clicking the retrieve butt
 You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you'll be prompted to select how to proceed.
 
 ![Overwrite components](../../images/overwrite-prompt.png)
+
+When the CLI retrieves components by a metadata type, the Org Browser needs an up-to-date list of all of the components to be retrieved. This is so the extensions can accurately check the local workspace for existing components.
+
+> Because of the asynchronous nature of the Metadata API, there exists the possibility for a simultaneous deploy and retrieve to enter a race condition. This could result in retrieving unexpected components. Keep this in mind if there are deploys happening while using the Org Browser.
