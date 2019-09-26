@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-core
 
-- Retrieve Multiple Components by Metadata Type ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+- Update Org Browser to retrieve all instances of a metadata type ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
 
 #### salesforcedx-sobjects-faux-generator, salesforcedx-vscode-apex
 
-- Select SObject category for Refresh SObject Definitions command ([PR #1681](https://github.com/forcedotcom/salesforcedx-vscode/pull/1681))
+- Allow selecting SObject category (custom, standard or all) when running `SFDX: Refresh SObject Definitions` ([PR #1681](https://github.com/forcedotcom/salesforcedx-vscode/pull/1681))
 
 #### docs
 
