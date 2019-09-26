@@ -8,5 +8,6 @@
 export {
   FauxClassGenerator,
   SObjectRefreshResult,
-  SObjectRefreshSource
+  SObjectRefreshSource,
+  SObjectRefreshSelection
 } from './fauxClassGenerator';

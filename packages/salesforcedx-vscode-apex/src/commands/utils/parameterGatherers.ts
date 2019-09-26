@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
-import { SObjectRefreshSource } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import {
+  SObjectRefreshSelection,
+  SObjectRefreshSource
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
   CancelResponse,
   ContinueResponse,
@@ -14,13 +17,8 @@ import {
 import { window } from 'vscode';
 import { nls } from '../../messages';
 
-export type RefreshSelection = {
-  category: SObjectCategory;
-  source: SObjectRefreshSource;
-};
-
 export class SObjectRefreshGatherer
-  implements ParametersGatherer<RefreshSelection> {
+  implements ParametersGatherer<SObjectRefreshSelection> {
   private source?: SObjectRefreshSource;
 
   public constructor(source?: SObjectRefreshSource) {
@@ -28,7 +26,7 @@ export class SObjectRefreshGatherer
   }
 
   public async gather(): Promise<
-    ContinueResponse<RefreshSelection> | CancelResponse
+    ContinueResponse<SObjectRefreshSelection> | CancelResponse
   > {
     let category: SObjectCategory | undefined = SObjectCategory.ALL;
     if (!this.source || this.source === SObjectRefreshSource.Manual) {

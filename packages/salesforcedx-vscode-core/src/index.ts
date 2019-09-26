@@ -70,9 +70,11 @@ import { notificationService, ProgressNotification } from './notifications';
 import { MetadataOutlineProvider } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
+import { SfdxPackageDirectories } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 import {
+  getRootWorkspacePath,
   hasRootWorkspace,
   isCLIInstalled,
   showCLINotInstalledMessage
@@ -560,6 +562,7 @@ export async function activate(context: vscode.ExtensionContext) {
     CompositeParametersGatherer,
     EmptyParametersGatherer,
     getDefaultUsernameOrAlias,
+    getRootWorkspacePath,
     getUserId,
     isCLIInstalled,
     notificationService,
@@ -570,6 +573,7 @@ export async function activate(context: vscode.ExtensionContext) {
     SfdxCommandlet,
     SfdxCommandletExecutor,
     sfdxCoreSettings,
+    SfdxPackageDirectories,
     SfdxWorkspaceChecker,
     taskViewService,
     telemetryService
