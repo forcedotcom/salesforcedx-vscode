@@ -1,3 +1,27 @@
+# 46.16.0 - September 26, 2019
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Update Org Browser to retrieve all instances of a metadata type ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+
+#### salesforcedx-sobjects-faux-generator, salesforcedx-vscode-apex
+
+- Allow selecting SObject category (custom, standard or all) when running `SFDX: Refresh SObject Definitions` ([PR #1681](https://github.com/forcedotcom/salesforcedx-vscode/pull/1681))
+
+#### docs
+
+- Add retrieve multiple components documentation for [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+
+- Add links at the bottom of the articles to provide feedback and log bugs ([PR #1646](https://github.com/forcedotcom/salesforcedx-vscode/pull/1646))
+
+- Add recommended timeout setting for [Prettier](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) setup ([PR #1647](https://github.com/forcedotcom/salesforcedx-vscode/pull/1647))
+
+- Add pre-selection settings for [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) auto-complete dropdown list ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
+
+- Add [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) documentation for LWC ([PR #1676](https://github.com/forcedotcom/salesforcedx-vscode/pull/1676)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
+
 # 46.15.0 - September 19, 2019
 
 ### Fixed

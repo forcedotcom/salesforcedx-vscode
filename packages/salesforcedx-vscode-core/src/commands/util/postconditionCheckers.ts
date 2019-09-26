@@ -119,7 +119,7 @@ export class OverwriteComponentPrompt
       metadataSuffix = info.suffix;
     } else {
       notificationService.showErrorMessage(
-        'Error checking workspace for existing components'
+        nls.localize('error_overwrite_prompt')
       );
       telemetryService.sendException(
         'OverwriteComponentPromptException',
