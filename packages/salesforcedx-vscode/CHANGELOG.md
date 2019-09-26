@@ -18,7 +18,9 @@
 
 - Add recommended timeout setting for [Prettier](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) setup ([PR #1647](https://github.com/forcedotcom/salesforcedx-vscode/pull/1647))
 
-- Added dropdown pre-selection setting info for use in [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
+- Add pre-selection settings for [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) auto-complete dropdown list ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
+
+- Add [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) documentation for lwc ([PR #1676](https://github.com/forcedotcom/salesforcedx-vscode/pull/1676)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
 
 # 46.15.0 - September 19, 2019
 
