@@ -63,8 +63,6 @@
   children:
     - title: 作成
       url: /articles/lwc/writing
-    - title: Local Development
-      url: /articles/lwc/localdev
 - title: Visualforce
   baseUrl: /articles/visualforce/
   children:

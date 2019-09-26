@@ -20,8 +20,6 @@
 
 - Add pre-selection settings for [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) auto-complete dropdown list ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
 
-- Add [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) documentation for LWC ([PR #1676](https://github.com/forcedotcom/salesforcedx-vscode/pull/1676)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
-
 # 46.15.0 - September 19, 2019
 
 ### Fixed
