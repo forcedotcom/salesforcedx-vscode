@@ -21,6 +21,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  CancelResponse,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -44,16 +45,50 @@ const {
 } = sfdxCoreExports;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
+export type RefreshSelection = {
+  category: SObjectCategory;
+  source: SObjectRefreshSource;
+};
+
 export class SObjectRefreshGatherer
-  implements ParametersGatherer<SObjectRefreshSource> {
-  private source: SObjectRefreshSource | undefined;
+  implements ParametersGatherer<RefreshSelection> {
+  private source?: SObjectRefreshSource;
+
   public constructor(source?: SObjectRefreshSource) {
     this.source = source;
   }
-  public async gather(): Promise<ContinueResponse<SObjectRefreshSource>> {
+
+  public async gather(): Promise<
+    ContinueResponse<RefreshSelection> | CancelResponse
+  > {
+    let category = SObjectCategory.ALL;
+    if (!this.source || this.source === SObjectRefreshSource.Manual) {
+      const options = [
+        nls.localize('sobject_refresh_all'),
+        nls.localize('sobject_refresh_custom'),
+        nls.localize('sobject_refresh_standard')
+      ];
+      const choice = await vscode.window.showQuickPick(options);
+      switch (choice) {
+        case options[0]:
+          category = SObjectCategory.ALL;
+          break;
+        case options[1]:
+          category = SObjectCategory.CUSTOM;
+          break;
+        case options[2]:
+          category = SObjectCategory.STANDARD;
+          break;
+        default:
+          return { type: 'CANCEL' };
+      }
+    }
     return {
       type: 'CONTINUE',
-      data: this.source || SObjectRefreshSource.Manual
+      data: {
+        category,
+        source: this.source || SObjectRefreshSource.Manual
+      }
     };
   }
 }
@@ -69,7 +104,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
   }
 
   public async execute(
-    response: ContinueResponse<SObjectRefreshSource>
+    response: ContinueResponse<RefreshSelection>
   ): Promise<void> {
     if (ForceGenerateFauxClassesExecutor.isActive) {
       vscode.window.showErrorMessage(
@@ -95,8 +130,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
     );
 
     let progressLocation = vscode.ProgressLocation.Notification;
-    const refreshSource = response.data;
-    if (refreshSource !== SObjectRefreshSource.Manual) {
+    if (response.data.source !== SObjectRefreshSource.Manual) {
       progressLocation = vscode.ProgressLocation.Window;
     }
     ProgressNotification.show(
@@ -116,9 +150,10 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
     try {
       const result = await gen.generate(
         vscode.workspace.workspaceFolders![0].uri.fsPath,
-        SObjectCategory.ALL,
-        refreshSource
+        response.data.category,
+        response.data.source
       );
+
       console.log('Generate success ' + result.data);
       this.logMetric(commandName, startTime, result.data);
     } catch (result) {

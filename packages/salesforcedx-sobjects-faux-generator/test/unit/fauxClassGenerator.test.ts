@@ -1,6 +1,11 @@
 import * as chai from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import { join } from 'path';
+import { rm } from 'shelljs';
+import { SOBJECTS_DIR } from '../../src';
+import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
+import { SObjectCategory } from '../../src/describe';
 import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 
@@ -337,5 +342,42 @@ describe('SObject faux class generator', () => {
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String StringField;');
     expect(classText).to.include('Double DoubleField;');
+  });
+
+  describe('Clean SObject Folders', () => {
+    const gen = getGenerator();
+    const sobjectsFolder = join(process.cwd(), SOBJECTS_DIR);
+    const standardFolder = join(sobjectsFolder, STANDARDOBJECTS_DIR);
+    const customFolder = join(sobjectsFolder, CUSTOMOBJECTS_DIR);
+
+    beforeEach(() => {
+      fs.mkdirSync(sobjectsFolder);
+      fs.mkdirSync(standardFolder);
+      fs.mkdirSync(customFolder);
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(sobjectsFolder)) {
+        rm('-rf', sobjectsFolder);
+      }
+    });
+
+    it('Should remove standardObjects folder when category is STANDARD', () => {
+      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
+      expect(fs.existsSync(customFolder));
+      expect(!fs.existsSync(standardFolder));
+    });
+
+    it('Should remove customObjects folder when category is CUSTOM', () => {
+      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.CUSTOM);
+      expect(!fs.existsSync(customFolder));
+      expect(fs.existsSync(standardFolder));
+    });
+
+    it('Should remove base sobjects folder when category is ALL', () => {
+      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
+      expect(!fs.existsSync(customFolder));
+      expect(!fs.existsSync(standardFolder));
+    });
   });
 });
