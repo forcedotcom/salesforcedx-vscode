@@ -67,6 +67,8 @@
   children:
     - title: Writing
       url: /articles/lwc/writing
+    - title: Local Development
+      url: /articles/lwc/localdev
 - title: Visualforce
   baseUrl: /articles/visualforce/
   children:
