@@ -1,8 +1,8 @@
 ---
-title: Local Development Server (Beta)
+title: Local Development (Beta)
 ---
 
-The Local Development server is an SFDX CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
+The Local Development Server is an SFDX CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
 
 **Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server-feedback/issues). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
 
@@ -11,10 +11,11 @@ The Local Development server is an SFDX CLI plugin that configures and runs a Li
     * [Installation](#installation)
     * [Troubleshooting](#troubleshooting)
     * [Configuration for Projects (Optional)](#configuration-for-projects)
-* [Working With Salesforce Modules](#working-with-salesforce-modules)
+* [Working With Modules and Components](#working-with-modules-and-components)
     * [Supported Modules](#supported-modules)
     * [Partially Supported Modules](#partially-supported-modules)
     * [Unsupported Modules](#unsupported-modules)
+    * [Unsupported Components](#unsupported-components)
 * [Considerations](#considerations)
 * [Common Errors](#common-errors)
     * [Using an Unsupported Dependency](#using-an-unsupported-dependency)
@@ -27,7 +28,7 @@ The Local Development server is an SFDX CLI plugin that configures and runs a Li
 
 ## System Requirements
 - Developer Hub-enabled org
-- Most recent stable version of Safari, Chrome, Firefox, or Edge web browser 
+- Most recent stable version of Chrome, Firefox, or Edge web browser. Local development does not support Safari in the beta release.
 - Windows—Windows 7 (64-bit and 32-bit) or later
 - Mac—macOS 10.11 or later
 - Linux—Ubuntu 14.0.4 or later
@@ -37,13 +38,13 @@ To develop Lightning web components, use your favorite code editor. We recommend
 
 ## Installation
 
-1. Open a new terminal window and run the following command to install the Local Development Server. 
+1. Open a new terminal window and run the following command to install the local development server. 
 
 ```sh
 sfdx plugins:install lwc-dev-server
 ```
 
-2. Check for updates to the Local Development Server.
+2. Check for updates to the local development server.
 
 ```sh
 sfdx plugins:update
@@ -54,7 +55,7 @@ sfdx plugins:update
 ```sh
 git clone git@github.com:trailheadapps/lwc-recipes.git
 ```
-4. If you're not in the project's root directory already, `cd` into it. The root of the directory has the file `package.json` in it. 
+4. If you're not in the the `lwc-recipes` root directory already, `cd` into it. 
 
 ```sh
 cd lwc-recipes
@@ -78,7 +79,7 @@ sfdx force:org:create -s -f config/project-scratch-def.json -a "LWC"
 
 “LWC” is an alias for the scratch org that you can use in other Salesforce CLI commands.
 
-To create a scratch org, specify a scratch org definition file. This example uses the scratch org definition file, project-scratch-def.json that is included in `lwc-recipes`. For other projects, create your own. For more information, see the instructions for [Create Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_create.htm) in the *Salesforce DX Developer Guide*.
+To create a scratch org, specify a scratch org definition file. This example uses the scratch org definition file, `project-scratch-def.json` that is included in `lwc-recipes`. For other projects, create your own. For more information, see the instructions for [Create Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_create.htm) in the *Salesforce DX Developer Guide*.
 
 9. Start the server.
 
@@ -86,9 +87,9 @@ To create a scratch org, specify a scratch org definition file. This example use
 sfdx force:lightning:lwc:start
 ```
 
-For more information on this command, view Help for the Local Development Server by running `sfdx force:lightning:lwc:start --help`.
-
 10. View the server at [http://localhost:3333/](http://localhost:3333/). 
+
+For more information on local development commands, view the local development documentation by running sfdx force:lightning:lwc:<commandName> --help. 
 
 ## Troubleshooting
 
@@ -103,7 +104,7 @@ If you see this error, make sure that you authenticate to your Dev Hub and creat
 
 ## Configuration for Projects (Optional)
 
-SFDX automatically configures your project out of the box, but if you want to provide additional information for the server, add a localdevserver.config.json file at the base of your project. 
+SFDX automatically configures your project out of the box, but if you need to override configuration for the server, add a localdevserver.config.json file at the base of your project. 
 
 Here's an example that shows the available configuration parameters.
 
@@ -119,7 +120,7 @@ Here's an example that shows the available configuration parameters.
     "modulesSourceDirectory": "src/", 
 
     // Where are your static assets.
-    "staticResourcesDirectory": "",
+    "staticResourcesDirectory": "staticresources",
 
     // The address port for your local server. Defaults to 3333
     "port": 3333,
@@ -129,10 +130,13 @@ Here's an example that shows the available configuration parameters.
 }
 ```
 
-**Working With Salesforce Modules**
+**Working With Modules and Components**
 -----------------------------------
 
 ## Supported Modules
+
+The local development server supports the following modules. Modules refer to `@salesforce` modules and modules imported without `@salesforce`, like `lightning/empApi`. For more information about how these modules work with Lightning web components, see [`@salesforce` Modules](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules) in the *Lightning Web Components Developer Guide*.
+
 
 | **Module Name**      |    | **Local Development Behavior** |
 | ----------- |     | ----------- |
@@ -162,6 +166,16 @@ The local development server throws an error if you try to preview any component
 
 - `@salesforce/contentAssetUrl`
 - `@salesforce/apexContinuation`
+- `lightning/empApi`
+- `lightning/platformShowToastEvent`
+
+## Unsupported Components
+
+The local development server throws an error if you try to use the following components.
+
+- `lightning-file-upload`
+- `lightning-formatted-address`
+- `lightning-map`
 
 
 **Considerations**
@@ -173,7 +187,7 @@ The local development server throws an error if you try to preview any component
 - In local development, component UI is rendered locally on your machine. However, data manipulation code like calls to the uiRecordApi wire adapters and Apex controllers get sent to your authenticated Salesforce org. This means that creating, editing, and deleting records or data are reflected in the org, in addition to what is displayed on your local machine. Don't authenticate the SFDX CLI to a production Salesforce org.
 - Flexipages aren't supported.
 - Locker is not supported. 
-- Salesforce Standard Design Tokens and Custom Tokens in CSS files aren't supported. For more information about Design Tokens and Custom Tokens, see the [Salesforce Lightning Design System](https://www.lightningdesignsystem.com/design-tokens/). 
+- Salesforce Standard Design Tokens and Custom Tokens in CSS files aren't supported. For more information about Design Tokens and Custom Tokens, see the [Salesforce Lightning Design System](https://www.lightningdesignsystem.com/design-tokens/).
 
 **Common Errors**
 -----------------
@@ -203,7 +217,7 @@ For more information about which modules the local development server supports, 
 
 ## Using a Nonexistent Component
 
-This error message occurs when you try to use a component that isn't included in your local project or used globally. Here, the local development service cannot find the component `c-clockzzz`.
+This error message occurs when you try to use a component that isn't included in your local project or used globally. Here, the local development server cannot find the component `c-clockzzz`.
 
 ![Screenshot of unsupported dependency error](../../images/localdev_error_component.png)
 
