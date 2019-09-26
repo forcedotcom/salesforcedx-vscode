@@ -10,26 +10,25 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
+  CliCommandExecution,
+  CliCommandExecutor,
   Command,
   LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+import { SObjectRefreshGatherer } from './utils';
+import { RefreshSelection } from './utils/parameterGatherers';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -45,51 +44,20 @@ const {
 } = sfdxCoreExports;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
-export type RefreshSelection = {
-  category: SObjectCategory;
-  source: SObjectRefreshSource;
-};
-
-export class SObjectRefreshGatherer
-  implements ParametersGatherer<RefreshSelection> {
-  private source?: SObjectRefreshSource;
-
-  public constructor(source?: SObjectRefreshSource) {
-    this.source = source;
+export class ForceListSObjectSchemaExecutor {
+  public build(type: string): Command {
+    return new SfdxCommandBuilder()
+      .withArg('force:schema:sobject:list')
+      .withFlag('--sobjecttypecategory', type)
+      .withJson()
+      .build();
   }
 
-  public async gather(): Promise<
-    ContinueResponse<RefreshSelection> | CancelResponse
-  > {
-    let category = SObjectCategory.ALL;
-    if (!this.source || this.source === SObjectRefreshSource.Manual) {
-      const options = [
-        nls.localize('sobject_refresh_all'),
-        nls.localize('sobject_refresh_custom'),
-        nls.localize('sobject_refresh_standard')
-      ];
-      const choice = await vscode.window.showQuickPick(options);
-      switch (choice) {
-        case options[0]:
-          category = SObjectCategory.ALL;
-          break;
-        case options[1]:
-          category = SObjectCategory.CUSTOM;
-          break;
-        case options[2]:
-          category = SObjectCategory.STANDARD;
-          break;
-        default:
-          return { type: 'CANCEL' };
-      }
-    }
-    return {
-      type: 'CONTINUE',
-      data: {
-        category,
-        source: this.source || SObjectRefreshSource.Manual
-      }
-    };
+  public execute(projectPath: string, type: string): CliCommandExecution {
+    const execution = new CliCommandExecutor(this.build(type), {
+      cwd: projectPath
+    }).execute();
+    return execution;
   }
 }
 

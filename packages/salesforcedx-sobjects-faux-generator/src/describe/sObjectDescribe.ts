@@ -165,7 +165,8 @@ export interface DescribeSObjectResult {
 export enum SObjectCategory {
   ALL = 'ALL',
   STANDARD = 'STANDARD',
-  CUSTOM = 'CUSTOM'
+  CUSTOM = 'CUSTOM',
+  PROJECT = 'PROJECT'
 }
 
 type SubRequest = { method: string; url: string };
