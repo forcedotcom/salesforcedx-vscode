@@ -6,7 +6,7 @@ To run a command from Salesforce Extensions for VS Code, press Ctrl+Shift+P (Win
 ![Command palette, filtered to show SFDX commands](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/sfdx_commands.png)
 
 When a command finishes running (due to success, failure, or cancellation), a notification displays at the lower-right corner of the window.  
-![Notification that source was successfully pushed to a scratch org](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/command_success_notification.png)
+![Notification that source was successfully pushed to a scratch org](/salesforcedx-vscode/images/command_success_notification.png)
 
 To see the output of the commands that you run, select **View** > **Output**, and then select **Salesforce CLI** from the dropdown menu. Alternatively, click **Show** in the completion notification.  
 ![Output view, showing the results of an Apex test run](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-core/images/output_view.png)
