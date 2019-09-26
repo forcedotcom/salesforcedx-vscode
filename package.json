@@ -26,6 +26,7 @@
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish.js",
+    "build-change-log": "node scripts/change-log-generator.js",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test",
     "test:unit": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
     "test:unit-and-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:unit && npm run coverage:system-tests",
