@@ -67,7 +67,7 @@ import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import { MetadataOutlineProvider } from './orgBrowser';
+import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { SfdxPackageDirectories } from './sfdxProject';
@@ -405,32 +405,21 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
 }
 
 async function setupOrgBrowser(
-  extensionContext: vscode.ExtensionContext,
-  defaultUsernameOrAlias?: string
+  extensionContext: vscode.ExtensionContext
 ): Promise<void> {
-  const metadataProvider = new MetadataOutlineProvider(defaultUsernameOrAlias);
-
-  const treeView = vscode.window.createTreeView('metadata', {
-    treeDataProvider: metadataProvider
-  });
-
-  treeView.onDidChangeVisibility(async () => {
-    if (treeView.visible) {
-      await metadataProvider.onViewChange();
-    }
-  });
+  await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.type.refresh',
     async node => {
-      await metadataProvider.refresh(node);
+      await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.component.refresh',
     async node => {
-      await metadataProvider.refresh(node);
+      await orgBrowser.refreshAndExpand(node);
     }
   );
 
@@ -440,7 +429,6 @@ async function setupOrgBrowser(
       await forceSourceRetrieveCmp(trigger);
     }
   );
-  extensionContext.subscriptions.push(treeView);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -527,7 +515,7 @@ export async function activate(context: vscode.ExtensionContext) {
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  await setupOrgBrowser(context, defaultUsernameorAlias);
+  await setupOrgBrowser(context);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType(defaultUsernameorAlias);
