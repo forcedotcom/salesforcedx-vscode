@@ -54,5 +54,8 @@ export const messages = {
   force_sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   apex_language_server_failed_activate:
-    'Unable to activate the Apex Language Server'
+    'Unable to activate the Apex Language Server',
+  sobject_refresh_all: 'All SObjects',
+  sobject_refresh_custom: 'Custom SObjects',
+  sobject_refresh_standard: 'Standard SObjects'
 };
