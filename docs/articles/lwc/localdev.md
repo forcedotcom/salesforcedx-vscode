@@ -28,7 +28,7 @@ The Local Development Server is an SFDX CLI plugin that configures and runs a Li
 
 ## System Requirements
 - Developer Hub-enabled org
-- Most recent stable version of Chrome, Firefox, or Edge web browser. Local development does not support Safari in the beta release.
+- Most recent stable version of Chrome, Firefox, Safari, or Edge web browser
 - Windows—Windows 7 (64-bit and 32-bit) or later
 - Mac—macOS 10.11 or later
 - Linux—Ubuntu 14.0.4 or later
@@ -41,7 +41,7 @@ To develop Lightning web components, use your favorite code editor. We recommend
 1. Open a new terminal window and run the following command to install the local development server. 
 
 ```sh
-sfdx plugins:install lwc-dev-server
+sfdx plugins:install @salesforce/lwc-dev-server
 ```
 
 2. Check for updates to the local development server.
