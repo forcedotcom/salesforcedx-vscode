@@ -10,28 +10,24 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshSelection,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
-  CliCommandExecution,
-  CliCommandExecutor,
   Command,
-  CommandOutput,
   LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
-import { SObjectRefreshGatherer } from './utils';
+import { nls } from '../../messages';
+import { telemetryService } from '../../telemetry';
+import { SObjectRefreshGatherer } from '../utils';
+import { SObjectCollector } from './sobjectCollector';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -43,34 +39,34 @@ const {
   notificationService,
   ProgressNotification,
   SfdxCommandlet,
-  SfdxPackageDirectories,
   SfdxWorkspaceChecker,
   taskViewService
 } = sfdxCoreExports;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
-export class ForceListSObjectSchemaExecutor {
-  public build(type: string): Command {
-    return new SfdxCommandBuilder()
-      .withArg('force:schema:sobject:list')
-      .withFlag('--sobjecttypecategory', type)
-      .withJson()
-      .build();
-  }
+// export class ForceListSObjectSchemaExecutor extends SfdxCommandletExecutor<
+//   string
+// > {
+//   public build(data: string): Command {
+//     return new SfdxCommandBuilder()
+//       .withArg('force:schema:sobject:list')
+//       .withFlag('--sobjecttypecategory', data)
+//       .withJson()
+//       .build();
+//   }
 
-  public async execute(type: string): Promise<string[]> {
-    // error handle this better
-    const execution = new CliCommandExecutor(this.build(type), {
-      cwd: getRootWorkspacePath()
-    }).execute();
-    try {
-      const result = await new CommandOutput().getCmdResult(execution);
-      return extractJsonObject(result).result as string[];
-    } catch (e) {
-      return Promise.reject(e);
-    }
-  }
-}
+//   public async execute(type: string): Promise<string[]> {
+//     const execution = new CliCommandExecutor(this.build(type), {
+//       cwd: getRootWorkspacePath()
+//     }).execute();
+//     try {
+//       const result = await new CommandOutput().getCmdResult(execution);
+//       return extractJsonObject(result).result as string[];
+//     } catch (e) {
+//       return Promise.reject(e);
+//     }
+//   }
+// }
 
 export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
@@ -127,21 +123,10 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
 
     const commandName = execution.command.logName;
     try {
-      let sobjects: string[] = [];
-      switch (response.data.category) {
-        case SObjectCategory.ALL:
-        case SObjectCategory.CUSTOM:
-        case SObjectCategory.STANDARD:
-          const listExecutor = new ForceListSObjectSchemaExecutor();
-          sobjects = await listExecutor.execute(response.data.category);
-          break;
-        case SObjectCategory.PROJECT:
-          sobjects = Array.from(await this.getLocalObjects());
-      }
       const result = await gen.generate(
         getRootWorkspacePath(),
         response.data,
-        sobjects
+        await SObjectCollector.getSObjects(response.data.category)
       );
 
       console.log('Generate success ' + result.data);
@@ -161,28 +146,14 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
     ForceGenerateFauxClassesExecutor.isActive = false;
     return;
   }
-
-  private async getLocalObjects(): Promise<Set<string>> {
-    const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    const foundFiles = await vscode.workspace.findFiles(
-      `{${packageDirectories.join(',')}}/**/objects/*/*.object-meta.xml`
-    );
-    const objectNames = foundFiles.map(
-      file => path.basename(file.fsPath).split('.')[0]
-    );
-    return new Set<string>(objectNames);
-  }
 }
-
-const workspaceChecker = new SfdxWorkspaceChecker();
 
 export async function forceGenerateFauxClassesCreate(
   source?: SObjectRefreshSource
 ) {
-  const parameterGatherer = new SObjectRefreshGatherer(source);
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
+    new SfdxWorkspaceChecker(),
+    new SObjectRefreshGatherer(source),
     new ForceGenerateFauxClassesExecutor()
   );
   await commandlet.run();

@@ -12,4 +12,7 @@ export {
   forceApexTestMethodRunCodeActionDelegate,
   ForceApexTestRunCodeActionExecutor
 } from './forceApexTestRunCodeAction';
-export { forceGenerateFauxClassesCreate, initSObjectDefinitions } from './forceGenerateFauxClasses';
+export {
+  forceGenerateFauxClassesCreate,
+  initSObjectDefinitions
+} from './forceGenerateFauxClasses/forceGenerateFauxClasses';
