@@ -152,9 +152,7 @@ export class SelectProjectTemplate
     const projectTemplate = selection
       ? selection.label
       : projectTemplateEnum.standard;
-    return projectTemplate
-      ? { type: 'CONTINUE', data: { projectTemplate } }
-      : { type: 'CANCEL' };
+    return { type: 'CONTINUE', data: { projectTemplate } };
   }
 }
 export class SelectProjectName implements ParametersGatherer<ProjectName> {
