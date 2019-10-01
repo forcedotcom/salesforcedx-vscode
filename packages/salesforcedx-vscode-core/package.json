@@ -214,6 +214,18 @@
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg)$/"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceLangId == apex"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceLangId == visualforce"
+        },
+        {
           "command": "sfdx.force.source.retrieve.source.path",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
