@@ -144,7 +144,7 @@ export class SelectProjectTemplate
       ),
       new ProjectTemplateItem(
         projectTemplateEnum.analytics,
-        'force_project_create_empty_template'
+        'force_project_create_analytics_template'
       )
     ];
 
