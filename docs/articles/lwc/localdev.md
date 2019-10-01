@@ -2,7 +2,7 @@
 title: Local Development (Beta)
 ---
 
-The Local Development Server is an Salesforce CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
+The Local Development Server is a Salesforce CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
 
 **Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server-feedback/issues). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
 
@@ -40,27 +40,27 @@ To develop Lightning web components, use your favorite code editor. We recommend
 
 1. Open a new terminal window and run the following command to install the local development server. 
 
-```sh
-sfdx plugins:install @salesforce/lwc-dev-server
-```
+                ```sh
+                sfdx plugins:install @salesforce/lwc-dev-server
+                ```
 
 2. Check for updates to the local development server.
 
-```sh
-sfdx plugins:update
-```
+                ```sh
+                sfdx plugins:update
+                ```
 
 3. Navigate to your SFDX project, or clone one that has Lightning web components. In this example, we are using `lwc-recipes`.
 
-```sh
-git clone git@github.com:trailheadapps/lwc-recipes.git
-```
+                ```sh
+                git clone git@github.com:trailheadapps/lwc-recipes.git
+                ```
 
 4. If you're not in the the `lwc-recipes` root directory already, `cd` into it. 
 
-```sh
-cd lwc-recipes
-```
+                ```sh
+                cd lwc-recipes
+                ```
 
 5. Add the `.localdevserver` folder in your SFDX project to your `.gitignore` file. Do not modify files inside of this folder.
 
@@ -68,9 +68,9 @@ cd lwc-recipes
 
 7. Following the instructions in the *Salesforce DX Developer Guide*, log in using your Dev Hub credentials. Running the following command opens a login window in your browser.
 
-```sh
-sfdx force:auth:web:login -d -a <myhuborg>
-```
+                ```sh
+                sfdx force:auth:web:login -d -a <myhuborg>
+                ```
 
 8. In local development, requests to Lightning Data Service and Apex go to scratch orgs, similar to how they go to your production org. To create a scratch org, run this command from the command line. Here, “LWC” is an alias for the scratch org that you can use in other Salesforce CLI commands.
 
