@@ -2,7 +2,7 @@
 title: Local Development (Beta)
 ---
 
-The Local Development Server is an SFDX CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
+The Local Development Server is an Salesforce CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
 
 **Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server-feedback/issues). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
 
@@ -184,7 +184,7 @@ The local development server throws an error if you try to use the following com
 - Don't connect to a production Salesforce org with the local development server. Local development uses data in real time. If you authenticate to a production org, then you will modify or overwrite data in production. 
 - You can't specify or change attribute values for your components on the component preview page. Components render with their default attribute values. For example, let's say you're writing a clock component. To view the component, the clock needs to know your timezone, which requires setting a timezone attribute. We recommend setting a default timezone in the code. If you can't specify a default value, create a wrapper component that creates the clock and sets the proper attributes. To prevent confusion, make sure to give your wrapper component a name that clarifies it is for testing purposes only. 
 - SLDS CSS and icons are included with the local development plugin, and are automatically included on every page. If you notice differences between how some SLDS classes render in local development versus how they do on your Salesforce instance, they may be running different versions. In the beta release, you cannot modify the version of SLDS, and it won't sync with the version you're running on your instance. 
-- In local development, component UI is rendered locally on your machine. However, data manipulation code like calls to the uiRecordApi wire adapters and Apex controllers get sent to your authenticated Salesforce org. This means that creating, editing, and deleting records or data are reflected in the org, in addition to what is displayed on your local machine. Don't authenticate the SFDX CLI to a production Salesforce org.
+- In local development, component UI is rendered locally on your machine. However, data manipulation code like calls to the uiRecordApi wire adapters and Apex controllers get sent to your authenticated Salesforce org. This means that creating, editing, and deleting records or data are reflected in the org, in addition to what is displayed on your local machine. Don't authenticate the Salesforce CLI to a production Salesforce org.
 - Flexipages aren't supported.
 - Locker is not supported. 
 - Salesforce Standard Design Tokens and Custom Tokens in CSS files aren't supported. For more information about Design Tokens and Custom Tokens, see the [Salesforce Lightning Design System](https://www.lightningdesignsystem.com/design-tokens/).
