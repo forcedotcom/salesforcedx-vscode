@@ -55,6 +55,7 @@ sfdx plugins:update
 ```sh
 git clone git@github.com:trailheadapps/lwc-recipes.git
 ```
+
 4. If you're not in the the `lwc-recipes` root directory already, `cd` into it. 
 
 ```sh
@@ -85,13 +86,13 @@ The scratch org definition defines the org edition, features, org preferences, a
 sfdx force:source:push
 ```
 
-9. Start the server.
+10. Start the server.
 
 ```sh
 sfdx force:lightning:lwc:start
 ```
 
-10. View the server at [http://localhost:3333/](http://localhost:3333/). 
+11. View the server at [http://localhost:3333/](http://localhost:3333/). 
 
 For more information on local development commands, view the local development documentation by running sfdx force:lightning:lwc:<commandName> --help. 
 
