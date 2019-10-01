@@ -460,6 +460,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Api
     const internalApi: any = {
+      channelService,
+      EmptyParametersGatherer,
+      isCLIInstalled,
+      notificationService,
+      OrgAuthInfo,
+      ProgressNotification,
+      SfdxCommandlet,
+      SfdxCommandletExecutor,
+      sfdxCoreSettings,
+      SfdxWorkspaceChecker,
       telemetryService
     };
 
