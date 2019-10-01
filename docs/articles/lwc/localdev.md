@@ -65,21 +65,25 @@ cd lwc-recipes
 
 6. Authorize a Developer Hub (Dev Hub) by following the steps in [Enable Dev Hub In Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the *Salesforce DX Developer Guide*. A Dev Hub is the main Salesforce org that you and your team use to create and manage your scratch orgs, temporary environments for developing on the Salesforce platform. You need the Dev Hub to create a scratch org in a later step.
 
-7. Following the instructions in the *Salesforce DX Developer Guide*, log in using your Dev Hub credentials. Running the following command spawns a login window in your browser.
+7. Following the instructions in the *Salesforce DX Developer Guide*, log in using your Dev Hub credentials. Running the following command opens a login window in your browser.
 
 ```sh
 sfdx force:auth:web:login -d -a <myhuborg>
 ```
 
-8. In local development, requests to Lightning Data Service and Apex go to scratch orgs, similar to how they go to your production org. To create a scratch org, run this command from the command line.
+8. In local development, requests to Lightning Data Service and Apex go to scratch orgs, similar to how they go to your production org. To create a scratch org, run this command from the command line. Here, “LWC” is an alias for the scratch org that you can use in other Salesforce CLI commands.
 
 ```sh
 sfdx force:org:create -s -f config/project-scratch-def.json -a "LWC"
 ```
 
-“LWC” is an alias for the scratch org that you can use in other Salesforce CLI commands.
+The scratch org definition defines the org edition, features, org preferences, and other options. This example uses the scratch org definition file, `project-scratch-def.json` that is included in `lwc-recipes`. For other projects, create your own. For more information, see the instructions for [Create Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_create.htm) in the *Salesforce DX Developer Guide*.
 
-To create a scratch org, specify a scratch org definition file. This example uses the scratch org definition file, `project-scratch-def.json` that is included in `lwc-recipes`. For other projects, create your own. For more information, see the instructions for [Create Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_create.htm) in the *Salesforce DX Developer Guide*.
+9. Push your code to your scratch org. 
+
+```sh
+sfdx force:source:push
+```
 
 9. Start the server.
 
