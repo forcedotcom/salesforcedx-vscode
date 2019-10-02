@@ -60,11 +60,11 @@ export const messages = {
   parameter_gatherer_enter_scratch_org_expiration_days:
     'スクラッチ組織の有効日数を入力 (1 から 30 まで) またはデフォルト値 (7) を使用',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
-  parameter_gatherer_paste_forceide_url: '設定から forceide:// の URL をペースト',
-  parameter_gatherer_paste_forceide_url_placeholder:
-    '設定の forceide:// URL',
+  parameter_gatherer_paste_forceide_url:
+    '設定から forceide:// の URL をペースト',
+  parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',
   parameter_gatherer_invalid_forceide_url:
-    "forceide:// 形式の URL が無効です。設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。From your subscriber's org, ",
+    'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
   force_org_create_default_scratch_org_text:
     'SFDX: デフォルトのスクラッチ組織を作成...',
@@ -117,14 +117,19 @@ export const messages = {
     '現在のプロジェクトのすべてのテストを実行',
 
   force_apex_class_create_text: 'SFDX: Apex クラスを作成',
-  force_visualforce_component_create_text: 'SFDX: Visualforce コンポーネントを作成',
+  force_visualforce_component_create_text:
+    'SFDX: Visualforce コンポーネントを作成',
   force_visualforce_page_create_text: 'SFDX: Visualforce ページを作成',
-  force_lightning_app_create_text: 'SFDX: Lightning Aura アプリケーションを作成',
-  force_lightning_component_create_text: 'SFDX: Lightning Aura コンポーネントを作成',
+  force_lightning_app_create_text:
+    'SFDX: Lightning Aura アプリケーションを作成',
+  force_lightning_component_create_text:
+    'SFDX: Lightning Aura コンポーネントを作成',
   force_lightning_event_create_text: 'SFDX: Lightning Aura イベントを作成',
-  force_lightning_interface_create_text: 'SFDX: Lightning Aura インタフェースを作成',
+  force_lightning_interface_create_text:
+    'SFDX: Lightning Aura インタフェースを作成',
   force_source_status_local_text: 'SFDX: ローカルの変更を表示',
-  force_source_status_remote_text: 'SFDX: デフォルトのスクラッチ組織の変更を参照',
+  force_source_status_remote_text:
+    'SFDX: デフォルトのスクラッチ組織の変更を参照',
   warning_prompt_file_overwrite:
     '指定されたパスを使用した 1 つ以上の %s ファイルがワークスペース上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_dir_overwrite:
@@ -140,7 +145,8 @@ export const messages = {
   force_org_display_username_text: 'SFDX: 組織の詳細を表示...',
   force_debugger_query_session_text: 'Apex デバッガセッションをクエリ',
   force_debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
-  force_debugger_stop_none_found_text: 'Apex デバッガセッションが見つかりませんでした。',
+  force_debugger_stop_none_found_text:
+    'Apex デバッガセッションが見つかりませんでした。',
   force_data_soql_query_input_text: 'SFDX: SOQL クエリを実行...',
   force_data_soql_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
@@ -187,7 +193,8 @@ export const messages = {
   force_apex_log_list_text: 'Apex デバッグログを取得しています',
 
   error_creating_packagexml: 'package.xml の作成中にエラー: %s',
-  error_extracting_org_source: 'ダウンロードされたApex ソースの抽出中にエラー: %s',
+  error_extracting_org_source:
+    'ダウンロードされたApex ソースの抽出中にエラー: %s',
   error_extracting_packages: 'パッケージの抽出中にエラー: %s',
   error_updating_sfdx_project: 'sfdx-project.json の更新中にエラー: %s',
   error_writing_installed_package_info:
@@ -233,7 +240,7 @@ export const messages = {
   missing_default_org: 'デフォルトの組織が未設定',
   force_config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file:
-    "sfdx-project.json ファイル (%s)をパースできませんでした。パースエラー: %s",
+    'sfdx-project.json ファイル (%s)をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
   table_header_errors: 'ERRORS',
