@@ -12,6 +12,10 @@
 
 - Add Diff command to the File Explorer right-click menu ([PR #1688](https://github.com/forcedotcom/salesforcedx-vscode/pull/1688), [Issue #1666](https://github.com/forcedotcom/salesforcedx-vscode/issues/1666))
 
+#### docs
+
+- Add documentation for LWC local development ([PR #1687](https://github.com/forcedotcom/salesforcedx-vscode/pull/1687))
+
 # 46.16.0 - September 26, 2019
 
 ## Added
