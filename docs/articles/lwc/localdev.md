@@ -40,27 +40,28 @@ To develop Lightning web components, use your favorite code editor. We recommend
 
 1. Open a new terminal window and run the following command to install the local development server. 
 
-                ```sh
-                sfdx plugins:install @salesforce/lwc-dev-server
-                ```
+    ```sh
+    sfdx plugins:install @salesforce/lwc-dev-server
+    ```
 
 2. Check for updates to the local development server.
 
-                ```sh
-                sfdx plugins:update
-                ```
+    ```sh
+    sfdx plugins:update
+    ```
 
 3. Navigate to your SFDX project, or clone one that has Lightning web components. In this example, we are using `lwc-recipes`.
 
-                ```sh
-                git clone git@github.com:trailheadapps/lwc-recipes.git
-                ```
+    
+    ```sh
+    git clone git@github.com:trailheadapps/lwc-recipes.git
+    ```
 
 4. If you're not in the the `lwc-recipes` root directory already, `cd` into it. 
 
-                ```sh
-                cd lwc-recipes
-                ```
+    ```sh
+    cd lwc-recipes
+    ```
 
 5. Add the `.localdevserver` folder in your SFDX project to your `.gitignore` file. Do not modify files inside of this folder.
 
@@ -68,29 +69,29 @@ To develop Lightning web components, use your favorite code editor. We recommend
 
 7. Following the instructions in the *Salesforce DX Developer Guide*, log in using your Dev Hub credentials. Running the following command opens a login window in your browser.
 
-                ```sh
-                sfdx force:auth:web:login -d -a <myhuborg>
-                ```
+    ```sh
+    sfdx force:auth:web:login -d -a <myhuborg>
+    ```
 
 8. In local development, requests to Lightning Data Service and Apex go to scratch orgs, similar to how they go to your production org. To create a scratch org, run this command from the command line. Here, “LWC” is an alias for the scratch org that you can use in other Salesforce CLI commands.
 
-```sh
-sfdx force:org:create -s -f config/project-scratch-def.json -a "LWC"
-```
+    ```sh
+    sfdx force:org:create -s -f config/project-scratch-def.json -a "LWC"
+    ```
 
 The scratch org definition defines the org edition, features, org preferences, and other options. This example uses the scratch org definition file, `project-scratch-def.json` that is included in `lwc-recipes`. For other projects, create your own. For more information, see the instructions for [Create Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_create.htm) in the *Salesforce DX Developer Guide*.
 
 9. Push your code to your scratch org. 
 
-```sh
-sfdx force:source:push
-```
+    ```sh
+    sfdx force:source:push
+    ```
 
 10. Start the server.
 
-```sh
-sfdx force:lightning:lwc:start
-```
+    ```sh
+    sfdx force:lightning:lwc:start
+    ```
 
 11. View the server at [http://localhost:3333/](http://localhost:3333/). 
 
