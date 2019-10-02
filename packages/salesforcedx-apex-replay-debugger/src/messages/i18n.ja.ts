@@ -23,16 +23,16 @@ export const messages = {
   no_log_file_text:
     'ログファイルが見つからないか、ファイルにログの行が含まれていません。',
   incorrect_log_levels_text:
-    'ログは、ログレベルをApex が FINEST レベルに、Visualforce が FINER レベルで生成する必要があります。',
+    'ログは、ログカテゴリを Apex が FINEST レベルに、Visualforce が FINER レベルで生成する必要があります。',
   unable_to_retrieve_org_info: 'OrgInfo の取得ができませんでした',
   heap_dump_error:
     'ヒープダンプ情報を取得する際に問題が発生しました。メッセージ=%s, エラーコード=%s, ヒープダンプ情報=%s',
   heap_dump_error_wrap_up_text:
-    'ヒープダンプ情報を取得する際に問題が発生しました。詳細については、上記のメッセージを参照してください。指定された1行または複数行について、詳細なヒープダンプ変数の情報が使用できません。',
+    'ヒープダンプ情報を取得する際に問題が発生しました。詳細については、上記のメッセージを参照してください。指定された行について、詳細なヒープダンプ変数の情報が使用できません。',
   fetching_heap_dump:
     'サーバからヒープダンプ情報を取得しています。ヒープダンプ情報=%s',
   malformed_log_line:
     "不正な HEAP_DUMP のログの行が見つかりました。この行をスキップします。ログの行番号=%d、ログの行='%s'",
   reconcile_heapdump_error:
-    'ヒープダンプ情報を取得する際に問題が発生しました。%s. Tooling API を使用して ApexExecutionOverlayResult オブジェクトのレコード(ID %s)を削除してください。ターミナルから、"sfdx force:data:record:delete -t -s ApexExecutionOverlayResult -i %s" を実行してください。'
+    'ヒープダンプ情報を取得する際に問題が発生しました: %s。 Tooling API を使用して ApexExecutionOverlayResult オブジェクトのレコード (ID %s) を削除してください。ターミナルから、"sfdx force:data:record:delete -t -s ApexExecutionOverlayResult -i %s" を実行してください。'
 };

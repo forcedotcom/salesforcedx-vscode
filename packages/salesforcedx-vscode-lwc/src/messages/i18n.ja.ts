@@ -17,5 +17,5 @@
  */
 export const messages = {
   salesforcedx_vscode_core_not_installed_text:
-    'salesforce.salesforcedx-vscode-lwc を有効化できませんでした。最新バージョンのsalesforce.salesforcedx-vscode-core がインストールされ、有効化されていることを確認してください。'
+    'salesforce.salesforcedx-vscode-lwc を有効化できませんでした。最新バージョンの salesforce.salesforcedx-vscode-core がインストールされ、有効化されていることを確認してください。'
 };
