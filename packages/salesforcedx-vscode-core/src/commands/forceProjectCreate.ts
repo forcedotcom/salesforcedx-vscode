@@ -38,11 +38,9 @@ type forceProjectCreateOptions = {
 
 export class ProjectTemplateItem implements vscode.QuickPickItem {
   public label: string;
-  public name: string;
   public description: string;
   constructor(name: string, description: string) {
     this.label = name;
-    this.name = name;
     this.description = nls.localize(description);
   }
 }
@@ -152,7 +150,9 @@ export class SelectProjectTemplate
     const projectTemplate = selection
       ? selection.label
       : projectTemplateEnum.standard;
-    return { type: 'CONTINUE', data: { projectTemplate } };
+    return projectTemplate
+      ? { type: 'CONTINUE', data: { projectTemplate } }
+      : { type: 'CANCEL' };
   }
 }
 export class SelectProjectName implements ParametersGatherer<ProjectName> {
