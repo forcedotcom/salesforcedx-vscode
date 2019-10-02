@@ -21,9 +21,9 @@ export const messages = {
   source_jdk_home_env_var_text: '環境変数 JDK_HOME',
   source_java_home_env_var_text: '環境変数 JAVA_HOME',
   source_missing_text:
-    '%s points to a missing folder. Salesforce Apex 拡張機能の設定方法についての詳細は、[Java バージョンを設定する](%s) を参照してください。',
+    '指定されたフォルダ %s は存在しません。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
   java_runtime_missing_text:
-    'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java バージョンを設定する](%s) を参照してください。',
+    'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java 設定](%s) を参照してください。',
   force_sobjects_refresh: 'SFDX: SObject の定義を更新',
   force_apex_test_run_codeAction_description_text: 'Apex テストを実行',
   force_apex_test_run_codeAction_no_class_test_param_text:

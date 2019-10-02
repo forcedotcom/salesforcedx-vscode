@@ -24,7 +24,7 @@ export const messages = {
   checkpoints_can_only_be_on_valid_apex_source:
     'チェックポイントApex ソースの有効な行に設定できます。無効なチェックポイントの位置 : URI=%s, 行=%s',
   local_source_is_out_of_sync_with_the_server:
-    'ローカルソースはサーバーと同期していません。ローカルで行った変更を組織に転送し、組織で行った変更をローカルプロジェクトにプルしてください。',
+    'ローカルソースはサーバーと同期していません。ローカルで行った変更を組織にプッシュし、組織で行った変更をローカルプロジェクトにプルしてください。',
   long_command_start: '開始しています',
   long_command_end: '終了しています',
   sfdx_update_checkpoints_in_org: 'SFDX: 組織のチェックポイントを更新',

@@ -64,7 +64,7 @@ export const messages = {
     '設定から forceide:// の URL をペースト',
   parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',
   parameter_gatherer_invalid_forceide_url:
-    "forceide:// 形式の URL が無効です。設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。From your subscriber's org, ",
+    'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
   force_org_create_default_scratch_org_text:
     'SFDX: デフォルトのスクラッチ組織を作成...',
