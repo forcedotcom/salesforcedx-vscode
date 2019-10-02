@@ -20,13 +20,13 @@ export const messages = {
   session_language_server_error_text:
     'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
   up_to_five_checkpoints:
-    '最大5 つのうち、%s つのチェックポイントを設定しています。5つ以下になるようチェックポイントを削除または無効化してください。',
+    '最大 5 つのうち、%s つのチェックポイントを設定しています。5 つ以下になるようチェックポイントを削除または無効化してください。',
   checkpoints_can_only_be_on_valid_apex_source:
     'チェックポイントApex ソースの有効な行に設定できます。無効なチェックポイントの位置 : URI=%s, 行=%s',
   local_source_is_out_of_sync_with_the_server:
     'ローカルソースはサーバーと同期していません。ローカルで行った変更を組織に転送し、組織で行った変更をローカルプロジェクトにプルしてください。',
   long_command_start: '開始しています',
-  long_command_end: '終了しました',
+  long_command_end: '終了しています',
   sfdx_update_checkpoints_in_org: 'SFDX: 組織のチェックポイントを更新',
   checkpoint_creation_status_org_info:
     'ステップ 1/6: 組織の情報を取得しています。',
@@ -41,7 +41,7 @@ export const messages = {
   checkpoint_creation_status_processing_complete_success:
     'ステップ 6/6: チェックポイントが正常に作成されたことを確認しています。',
   checkpoint_upload_in_progress:
-    '組織へチェックポイントを更新しています。チェックポイントを新たに追加、削除する前に更新の完了をお待ちください。',
+    '組織へのチェックポイントの更新が進行中です。チェックポイントを新たに追加、削除する前に更新の完了をお待ちください。',
   checkpoint_upload_error_wrap_up_message:
     'チェックポイントにはエラーがあります。出力されるエラーを修正し、%s を再度実行してください。',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.

@@ -35,7 +35,7 @@ export const messages = {
   force_test_view_no_tests_message: 'Apex テストが見つかりませんでした',
   force_test_view_show_error_title: 'エラーを表示',
   force_test_view_no_tests_description:
-    'プロジェクトにApex テストメソッドがありません。Apex テストを実行するには、@isTest アノテーションまたは testMethod キーワードのあるメソッドを含むプロジェクトを開いてください。',
+    'プロジェクトに Apex テストメソッドがありません。Apex テストを実行するには、@isTest アノテーションまたは testMethod キーワードのあるメソッドを含むプロジェクトを開いてください。',
   wrong_java_version_text:
     '実行には Java 8 が必要です。https://java.com/ja/download/ からダウンロードしてインストールしてください。詳細については、[Java バージョンを設定する](%s) を参照してください。',
 
