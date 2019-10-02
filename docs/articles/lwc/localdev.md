@@ -81,6 +81,7 @@ To develop Lightning web components, use your favorite code editor. We recommend
 
     The scratch org definition defines the org edition, features, org preferences, and other options. This example uses the scratch org definition file, `project-scratch-def.json` that is included in `lwc-recipes`. For other projects, create your own. For more information, see the instructions for [Create Scratch Orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_create.htm) in the *Salesforce DX Developer Guide*.
 
+
 9. Push your code to your scratch org. 
 
     ```sh
