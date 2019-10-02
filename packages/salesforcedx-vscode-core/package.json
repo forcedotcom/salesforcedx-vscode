@@ -145,7 +145,7 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg)$/"
+          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg|permissionset-meta.xml|layout-meta.xml)$/"
         },
         {
           "command": "sfdx.force.diff",
@@ -215,7 +215,7 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg)$/"
+          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg|permissionset-meta.xml|layout-meta.xml)$/"
         },
         {
           "command": "sfdx.force.diff",
