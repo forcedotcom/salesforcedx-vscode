@@ -50,28 +50,18 @@ describe('Force Project Create', () => {
       quickPickSpy.restore();
     });
 
-    it('Should return standard template if project template is undefined', async () => {
+    it('Should return cancel if project template is undefined', async () => {
       const gatherer = new SelectProjectTemplate();
       const response = await gatherer.gather();
       expect(quickPickSpy.calledOnce).to.be.true;
-      expect(response.type).to.equal('CONTINUE');
-      if (response.type === 'CONTINUE') {
-        expect(response.data.projectTemplate).to.equal(
-          projectTemplateEnum.standard
-        );
-      }
+      expect(response.type).to.equal('CANCEL');
     });
 
-    it('Should return standard template if user input is empty string', async () => {
+    it('Should return cancel if user input is empty string', async () => {
       const gatherer = new SelectProjectTemplate();
       const response = await gatherer.gather();
       expect(quickPickSpy.calledTwice).to.be.true;
-      expect(response.type).to.equal('CONTINUE');
-      if (response.type === 'CONTINUE') {
-        expect(response.data.projectTemplate).to.equal(
-          projectTemplateEnum.standard
-        );
-      }
+      expect(response.type).to.equal('CANCEL');
     });
 
     it('Should return Continue with inputted project template if project template set', async () => {
