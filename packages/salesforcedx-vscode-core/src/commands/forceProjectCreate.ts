@@ -147,9 +147,7 @@ export class SelectProjectTemplate
     ];
 
     const selection = await vscode.window.showQuickPick(items);
-    const projectTemplate = selection
-      ? selection.label
-      : projectTemplateEnum.standard;
+    const projectTemplate = selection && selection.label;
     return projectTemplate
       ? { type: 'CONTINUE', data: { projectTemplate } }
       : { type: 'CANCEL' };
