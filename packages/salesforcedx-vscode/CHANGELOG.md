@@ -1,3 +1,21 @@
+# 46.17.0 - October 3, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Remove Internal-development option from the Settings editor ([PR #1689](https://github.com/forcedotcom/salesforcedx-vscode/pull/1689), [Issue #1670](https://github.com/forcedotcom/salesforcedx-vscode/issues/1670), [Issue #1678](https://github.com/forcedotcom/salesforcedx-vscode/issues/1678))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add `SFDX: Diff File Against Org` command to the context menu of metadata in the Explorer ([PR #1688](https://github.com/forcedotcom/salesforcedx-vscode/pull/1688), [Issue #1666](https://github.com/forcedotcom/salesforcedx-vscode/issues/1666))
+
+#### docs
+
+- Update documentation for LWC local development ([PR #1687](https://github.com/forcedotcom/salesforcedx-vscode/pull/1687))
+
 # 46.16.0 - September 26, 2019
 
 ## Added
