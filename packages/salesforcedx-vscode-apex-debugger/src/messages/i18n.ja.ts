@@ -24,5 +24,5 @@ export const messages = {
   language_client_not_ready:
     '言語サーバからブレークポイントの情報を取得できませんでした。言語サーバが起動していません。',
   isv_debug_config_environment_error:
-    '環境を設定している際に VS Code の Salesforce 拡張機能で問題が発生しました。一部の機能が動作しない可能性があります。詳細については、[ヘルプ] から [開発者ツールの切り替え] を選択するか、~/.sfdx/sfdx.log 内の Salesforce CLI のログを確認してください。'
+    '環境を設定している際に VS Code の Salesforce 拡張機能で問題が発生しました。一部の機能が動作しない可能性があります。詳細については、[ヘルプ] > [開発者ツールの切り替え] を参照するか、~/.sfdx/sfdx.log 内のSalesforce CLI のログを確認してください。'
 };
