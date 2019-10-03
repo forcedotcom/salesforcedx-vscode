@@ -4,13 +4,13 @@
 
 #### salesforcedx-vscode-core
 
-- Remove internal development mode from settings menu ([PR #1689](https://github.com/forcedotcom/salesforcedx-vscode/pull/1689), [Issue #1670](https://github.com/forcedotcom/salesforcedx-vscode/issues/1670), [Issue #1678](https://github.com/forcedotcom/salesforcedx-vscode/issues/1678))
+- Remove Internal-development option from the Settings editor ([PR #1689](https://github.com/forcedotcom/salesforcedx-vscode/pull/1689), [Issue #1670](https://github.com/forcedotcom/salesforcedx-vscode/issues/1670), [Issue #1678](https://github.com/forcedotcom/salesforcedx-vscode/issues/1678))
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Add Diff command to the File Explorer right-click menu ([PR #1688](https://github.com/forcedotcom/salesforcedx-vscode/pull/1688), [Issue #1666](https://github.com/forcedotcom/salesforcedx-vscode/issues/1666))
+- Add `SFDX: Diff File Against Org` command to the context menu of metadata in the Explorer ([PR #1688](https://github.com/forcedotcom/salesforcedx-vscode/pull/1688), [Issue #1666](https://github.com/forcedotcom/salesforcedx-vscode/issues/1666))
 
 #### docs
 
