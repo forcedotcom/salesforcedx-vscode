@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>{{ page.title }}</title>
+    <base href="{{ site.baseurl | prepend: site.url }}/" />
     {% include head.generated.html %}
     <!-- Google Tag Manager -->
     <script>
@@ -50,16 +51,17 @@
     />
     <link
       rel="canonical"
-      href="https://developer.salesforce.com/tools/vscode{{ page.url | replace_first: '.html', '' }}"
+      href="https://developer.salesforce.com/tools/vscode{{ page.url }}"
     />
-    {% assign folder = page.dir | slice: 0,10 %} {% if folder == '/articles/' %}
-    {% assign jpUrl = page.url | replace_first: '/articles/', '/articles-jp/' %}
+    {% if page.lang == 'en' %} {% assign jpurl = page.url | replace: '/en/',
+    '/jp/' %} {% if page.url == '/' %} {% assign jpurl = page.url | append:
+    'jp/' %}{% endif %}
     <link
       rel="alternate"
       hreflang="jp"
-      href="https://developer.salesforce.com/tools/vscode{{ jpUrl | replace_first: '.html', '' }}"
+      href="https://developer.salesforce.com/tools/vscode{{ jpurl }}"
     />
-    {%endif %}
+    {% endif %}
   </head>
 
   <body>
