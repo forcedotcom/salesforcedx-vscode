@@ -14,7 +14,7 @@ lang: jp
 
 ## Java バージョンの設定
 
-関連資料: [Java の設定](getting-started/java-setup)
+関連資料: [Java の設定](./jp/getting-started/java-setup)
 
 ## Apex 言語サーバの出力の監視
 
@@ -42,7 +42,7 @@ Apex コードのリリースに時間がかかる場合は、組織の `Compile
 
 ## その他のリソース
 
-Apex デバッガのトラブルシューティング情報については、[「Apex 対話型デバッガ」](../apex/interactive-debugger)を参照してください。
+Apex デバッガのトラブルシューティング情報については、[「Apex 対話型デバッガ」](./jp/apex/interactive-debugger)を参照してください。
 
 VS Code の一般的な情報については、[『Visual Studio Code Docs』](https://code.visualstudio.com/docs)を参照してください。
 

@@ -9,7 +9,7 @@ This article describes how to work with orgs that don’t have source tracking, 
 
 ![Demo](./images/changeset-demo.gif)
 
-> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
+> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
 
 ## Get Started
 
@@ -65,7 +65,7 @@ To retrieve source from an org without source tracking (from an org that’s not
   > NOTE: The retrieval occurs only on metadata that’s nested (in the file tree) under the item you select. For example, if you right-click the `classes` folder, all Apex classes that **currently exist in that directory** are retrieved or deployed. Running a retrieve operation on a directory like `classes` doesn’t retrieve all Apex classes on the org; it retrieves updates only to classes that already exist in the folder. If you want to retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve your source using the manifest file. (Or, you can use a terminal to run `sfdx force:source:retrieve --metadata ApexClass:YourApexClass`.)
 - In a source file that’s open in the editor, right-click anywhere in the editing pane. Select **SFDX: Retrieve This Source File from Org**.
 - With a source file open in the editor, open the command palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS) and run **SFDX: Retrieve This Source File from Org**.
-- Clicking the retrieve button next to a component in the [Org Browser](./org-browser) (Beta).
+- Clicking the retrieve button next to a component in the [Org Browser](./en/org-browser) (Beta).
 
 ## Deploy Source
 

@@ -12,7 +12,7 @@ Apex Debugger allows customers to debug their Apex code in sandboxes and scratch
 - Complete standard debugging actions, including step into, over, and out, and run to breakpoint.
 - Output your results to the Debug Console.
 
-To debug subscribers’ sandbox orgs, use [ISV Customer Debugger](isv-debugger), which is part of the Apex Interactive Debugger extension.
+To debug subscribers’ sandbox orgs, use [ISV Customer Debugger](./en/apex/isv-debugger), which is part of the Apex Interactive Debugger extension.
 
 ## Set Up Apex Debugger
 

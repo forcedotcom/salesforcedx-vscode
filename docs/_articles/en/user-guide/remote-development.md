@@ -7,7 +7,7 @@ lang: en
 
 Salesforce Extension for VS Code supports remote development and allows you to use a container as a full-featured development environment. You can open a project mounted into the container and edit with full code completions, code navigation, debugging, and more.
 
-> NOTICE: The remote development feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
+> NOTICE: The remote development feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./bugs-and-feedback).
 
 Refer to VS Code documentation if you want to understand more about remote development:
 

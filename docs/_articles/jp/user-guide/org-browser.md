@@ -3,9 +3,9 @@ title: Org Browser
 lang: jp
 ---
 
-The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier and simpler to retrieve metadata source, without having to use a [manifest file](./org-development-model#the-manifest-packagexml-file). The Org Browser is available only in non-scratch orgs such as sandboxes or dev orgs.
+The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier and simpler to retrieve metadata source, without having to use a [manifest file](./jp/user-guide/org-development-model#the-manifest-packagexml-file). The Org Browser is available only in non-scratch orgs such as sandboxes or dev orgs.
 
-> NOTICE: The Org Browser feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
+> NOTICE: The Org Browser feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./jp/bugs-and-feedback).
 
 ## Opening the Org Browser
 
@@ -19,7 +19,7 @@ The Org Browser displays the available metadata types and their corresponding co
 6. Refresh components for metadata type
 7. Retrieve source for metadata component
 
-To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./default-org) is set to a non-scratch org.
+To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./jp/user-guide/default-org) is set to a non-scratch org.
 
 When you open the Org Browser, all the metadata for the default org is saved in your local project under the .sfdx directory to minimize the number of calls to the org.
 
@@ -38,7 +38,7 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 
 ## Retrieving Components
 
-You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](../getting-started/first-project#the-sfdx-projectjson-file) file.
+You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](./jp/getting-started/first-project#the-sfdx-projectjson-file) file.
 
 You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you'll be prompted to select how to proceed.
 

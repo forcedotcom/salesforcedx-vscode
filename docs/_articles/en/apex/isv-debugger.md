@@ -42,7 +42,7 @@ The code from your subscriber’s org is your subscriber’s intellectual proper
 
 ## ISV Customer Debugger Considerations
 
-For general Apex Debugger limitations and known issues, see [Considerations](interactive-debugger#considerations) in the Apex Interactive Debugger article. When working with ISV Customer Debugger, keep these additional considerations in mind.
+For general Apex Debugger limitations and known issues, see [Considerations](./en/apex/interactive-debugger#considerations) in the Apex Interactive Debugger article. When working with ISV Customer Debugger, keep these additional considerations in mind.
 
 - You can debug only sandbox orgs.
 - You can debug only one customer at a time. However, if you purchase Apex Debugger licenses, you can debug multiple customers at once. An Apex Debugger license also lets you debug in your sandboxes and scratch orgs.

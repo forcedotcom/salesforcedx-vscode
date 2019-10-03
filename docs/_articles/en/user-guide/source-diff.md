@@ -5,7 +5,7 @@ lang: en
 
 The Source Diff command allows you to diff metadata types against your default org. This feature makes it easier to visualize the changes between your local project and the metadata in your org.
 
-> NOTICE: The Source Diff feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
+> NOTICE: The Source Diff feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
 
 ## Setup
 

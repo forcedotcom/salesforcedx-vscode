@@ -5,7 +5,7 @@ lang: en
 
 You can develop against any org using the same workflows you are accustomed to using with Force.com IDE. This article walks through two techniques for migrating your existing project from Force.com IDE to VS Code.
 
-> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](../bugs-and-feedback).
+> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
 
 ## Why You Need to Migrate
 
@@ -17,7 +17,7 @@ Every Salesforce project in VS Code must include a `sfdx-project.json` file. Thi
 
 ### 2. Source Format
 
-Salesforce projects use a new format and directory structure for local metadata called [source format](../user-guide/source-format). This format is optimized for working with version control. It has characteristics such as objects that are expanded into multiple directories and files, and the ability to work directly with static resources. However, this also means you can’t just open your existing project in VS Code and expect it to work. You need to convert it to the new format.
+Salesforce projects use a new format and directory structure for local metadata called [source format](./en/user-guide/source-format). This format is optimized for working with version control. It has characteristics such as objects that are expanded into multiple directories and files, and the ability to work directly with static resources. However, this also means you can’t just open your existing project in VS Code and expect it to work. You need to convert it to the new format.
 
 ## Decide Which Migration Process to Use
 
@@ -31,11 +31,11 @@ The second approach, which allows you to convert existing projects, is more comp
 
 ## Migrate Using a Manifest (`package.xml`) File (easy)
 
-If you already have a `package.xml` file in your Force.com IDE project, you can easily move that project to a new VS Code project in just a few steps. Before you begin, ensure that you have your machine configured correctly for [Salesforce Development with VS Code](../getting-started/install).
+If you already have a `package.xml` file in your Force.com IDE project, you can easily move that project to a new VS Code project in just a few steps. Before you begin, ensure that you have your machine configured correctly for [Salesforce Development with VS Code](./en/getting-started/install).
 
 1. Open VS Code and create a project. From the start screen of VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to bring up the command palette. To search for the project-creation command, start typing `SFDX: Create Project with Manifest`. Press Enter when you’ve selected the command.
 
-   ![Create Project With Manifest](../../create-project-with-manifest.png)
+   ![Create Project With Manifest](./images/create-project-with-manifest.png)
 
 1. Select the location of your project and click `Create Project`.
 1. Next, copy the contents of the `package.xml` file that you used in your Force.com IDE project.
@@ -49,11 +49,11 @@ If you already have a `package.xml` file in your Force.com IDE project, you can 
 1. In the VS Code editor, right-click inside the `package.xml` file and select **SFDX: Retrieve Source in Manifest from Org**.
 1. The source downloads into the directory specified in the `sfdx-project.json` file. The default is `force-app/main/default`.
 
-Your project is now migrated from Force.com IDE to VS Code. You can continue to work as normal using your new code editor. For more information about this process, see [Org Development Model](../user-guide/org-development-model).
+Your project is now migrated from Force.com IDE to VS Code. You can continue to work as normal using your new code editor. For more information about this process, see [Org Development Model](./en/user-guide/org-development-model).
 
 ## Migrate by Conversion (advanced)
 
-The second option for migrating your project is an in-place conversion. This option is a bit more complex, but it doesn’t require you to download all your metadata and it provides the option of preserving version control history. Before you begin, ensure you have your machine configured correctly for [Salesforce Development with VS Code](../getting-started/install)
+The second option for migrating your project is an in-place conversion. This option is a bit more complex, but it doesn’t require you to download all your metadata and it provides the option of preserving version control history. Before you begin, ensure you have your machine configured correctly for [Salesforce Development with VS Code](./en/getting-started/install)
 
 1. To begin, let’s assume your project is in the following format.
 
@@ -109,7 +109,7 @@ The second option for migrating your project is an in-place conversion. This opt
    $ mv ./src ./src_old
    ```
 
-1. Now that you’ve set up your project, it’s time to convert your metadata to [source format](../user-guide/source-format). To convert, run the following command.
+1. Now that you’ve set up your project, it’s time to convert your metadata to [source format](./en/user-guide/source-format). To convert, run the following command.
 
 
     ```bash

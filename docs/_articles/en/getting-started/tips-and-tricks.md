@@ -45,7 +45,7 @@ Organizing your VS Code extensions by development task can help you avoid having
 
 1.  Select **View** > **Extensions**.
 
-1.  Install the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension (and any [other extensions](recommended-extensions) that you use for Salesforce development).
+1.  Install the [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) extension (and any [other extensions](./en/getting-started/recommended-extensions) that you use for Salesforce development).
 
 1.  The next time you’re working on a Salesforce DX project, you can launch VS Code using `code-sfdx` and all your extensions will be there.
 

@@ -3,7 +3,7 @@ title: Write Apex Code
 lang: en
 ---
 
-View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. The Apex extension is powered by the [Apex Language Server](language-server).
+View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. The Apex extension is powered by the [Apex Language Server](./en/apex/language-server).
 
 ## View Code-Completion Suggestions
 
