@@ -32,6 +32,10 @@
       url: /articles/user-guide/default-org
     - title: 組織のブラウザ
       url: /articles/user-guide/org-browser
+    - title: Remote Containers
+      url: /articles/user-guide/remote-development
+    - title: Source Diff
+      url: /articles/user-guide/source-diff
     - title: デモモード
       url: /articles/user-guide/demo-mode
 - title: Apex
