@@ -3631,3 +3631,17 @@ blockquote {
   opacity: 0.8;
   text-decoration: none;
 }
+
+.language-picker {
+  padding: 0 1rem;
+  margin-left: 1rem;
+}
+
+.language-picker a {
+  display: inline;
+  padding: 0;
+}
+
+.language-picker a.is-selected {
+  font-weight: bold;
+}

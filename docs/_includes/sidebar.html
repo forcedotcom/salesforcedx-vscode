@@ -51,6 +51,27 @@
         </button>
       </div>
     </form>
+    <div class="language-picker">
+      {% assign jpurl = page.url | replace: '/en/', '/jp/' %} {% if page.url ==
+      '/' %} {% assign jpurl = page.url | append: 'jp/' %} {% endif %} {% assign
+      enurl = page.url | replace: '/jp/', '/en/' %} {% if page.url == '/jp/' %}
+      {% assign enurl = '/' %}{% endif %}
+      <a
+        class="{% if page.lang == 'en' %}is-selected{% endif %}"
+        href="{{ enurl | prepend: site.baseurl }}"
+        hreflang="en"
+        translate="no"
+        >English</a
+      >
+      |
+      <a
+        class="{% if page.lang == 'jp' %}is-selected{% endif %}"
+        href="{{ jpurl | prepend: site.baseurl }}"
+        hreflang="jp"
+        translate="no"
+        >日本語</a
+      >
+    </div>
   </div>
   <div
     id="site-navigation"
