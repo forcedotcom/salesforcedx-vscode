@@ -14,7 +14,7 @@
 
 #### docs
 
-- Add documentation for LWC local development ([PR #1687](https://github.com/forcedotcom/salesforcedx-vscode/pull/1687))
+- Update documentation for LWC local development ([PR #1687](https://github.com/forcedotcom/salesforcedx-vscode/pull/1687))
 
 # 46.16.0 - September 26, 2019
 
