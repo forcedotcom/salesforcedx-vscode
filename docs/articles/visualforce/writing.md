@@ -1,6 +1,5 @@
 ---
 title: Write Visualforce
-redirect_from: '/articles/frameworks/visualforce'
 ---
 
 Features Provided by the Visualforce Extension
