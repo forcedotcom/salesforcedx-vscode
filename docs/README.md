@@ -47,3 +47,18 @@ To pull the latest changes run:
 ```
 npm run update-externals
 ```
+
+## Localization
+
+The site is localized in english and japanese. All articles must specify their language (`en` or `jp`) in the front matter:
+
+```
+---
+title: My Page
+lang: en
+---
+```
+
+When adding new articles, you MUST add them in both the `_articles/en` and `_articles/jp` directories. When creating a new article in english simply copy it exactly to the `_articles/jp` directory so the content is availible when navigating the site in both lagugages. The article will be localized on the next localization pass.
+
+When updating the `_/data/sidebar.yml` file, titles must specify both the `en` and `jp` versions. If you are adding an new item in english simply copy the english value to the japanese value and it will be translated on the next localization pass.
