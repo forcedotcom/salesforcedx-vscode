@@ -4,11 +4,11 @@ title: Source Format
 
 The commands that Salesforce Extensions for VS Code uses to push, pull, deploy, and retrieve your source assume that your files are in source format (rather than metadata format). Source format is optimized for working with version control systems. For details, see [Salesforce DX Project Structure and Source Format](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_source_file_format.htm) in the _Salesforce DX Developer Guide_.
 
-Because Force.com IDE used metadata format, you can’t directly open your Force.com IDE projects in VS Code. You must either convert your metadata to source format (using `sfdx force:mdapi:convert`) or create a new project and then retrieve the metadata from your org using the manifest (`package.xml` file) that you used in your previous IDE.
+Because legacy tools such as, Force.com IDE used the metadata format, you can’t directly open your such projects in VS Code. You must either convert your metadata to source format (using `sfdx force:mdapi:convert`) or create a new project and then retrieve the metadata from your org using the manifest (`package.xml` file) that you used in your previous IDE.
 
 ## Convert Metadata to Source Format and Maintain Git History
 
-If you have a massive Salesforce project that is in metadata format and tracked in Git, a bulk convert to the new source format loses all the revision history. This is because Git has built in limits and it fails to detect the enormous amount of changes that happen at the same time. The solution is to convert the project to source format in smaller chunks so that you can maintain the revision history. Let’s take the [dreamhouse](https://github.com/dreamhouseapp/dreamhouse-sfdx) project as example to follow the conversion steps.
+If you have a Salesforce project that is in metadata format and tracked in Git, a bulk convert to the new source format loses all the revision history. This is because Git has built in limits and it fails to detect the enormous amount of changes that happen at the same time. The solution is to convert the project to source format in smaller chunks so that you can maintain the revision history. Let’s take the [dreamhouse](https://github.com/dreamhouseapp/dreamhouse-sfdx) project as example to follow the conversion steps.
 
 Here is a snapshot of the code structure in metadata format in the `./metadata` folder.
 
@@ -38,7 +38,7 @@ Here is a snapshot of the code structure in metadata format in the `./metadata` 
 
 Follow these steps to convert the project from metadata to source format, without losing the Git history:
 
-1. Create a temporary SFDX project outside of the Git repo.
+1. Create a temporary SFDX project outside of the Git repo. This temporary project has the structure and a configuration file as required by a Salesforce project.
 
    `$ sfdx force:project:create -n tempproj`
 
@@ -48,7 +48,7 @@ Follow these steps to convert the project from metadata to source format, withou
 
    Now you have two copies of the project, one in the original location and the other in the new directory `temproj`, where the project files after converting them to the source format are stored.
 
-1. Move the `sfdx-project.json` file and the `config` folder.
+1. Move the `sfdx-project.json` file and the `config` folder. The `sfdx-project.json` file identifies the directory as a Salesforce project.
 
    `$ mv ./tempproj/sfdx-project.json ./project/sfdx-project.json`
 
@@ -60,7 +60,7 @@ Follow these steps to convert the project from metadata to source format, withou
 
    `$ git commit -m "Created sfdx-project.json and config"`
 
-1. Create the new folder structure.
+1. Create the new folder structure as required by a Salesforce project.
 
    `$ mkdir ./project/force-app`
 
@@ -68,13 +68,13 @@ Follow these steps to convert the project from metadata to source format, withou
 
    `$ mkdir ./project/force-app/main/default`
 
-With the folder structure in place, you can now start start converting the metadata format to source format.
+With the folder structure in place, you can now start converting the metadata format to source format.
 
 ## Convert Simple Metadata Types
 
 If the metadata type is composed of one or two files (a source file and a metadata.xml file or only a single xml file), you can:
 
-1. Copy the entire folder (for example, triggers) of the converted source to its new location.
+1. Copy the entire folder (for example, triggers) of the converted source from the temporary project to the appropriate new folder.
 
    `$ mv ./tempproj/force-app/main/default/triggers`
    `./project/force-app/main/default/triggers`
@@ -115,7 +115,7 @@ These commands set the rename detection limit and convert to source format in a 
 
 If the new format is of expanded source type where a single metadata item is split into multiple files (for example, Custom Objects), a good approach to convert:
 
-1. Create the folder structure.
+1. Create the folder structure as required by a Salesforce project.
 
    `$ mkdir ./project/force-app/main/default/objects`
 
