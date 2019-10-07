@@ -1,0 +1,71 @@
+I"�<h2 id="organize-your-vs-code-extensions-by-development-task">Organize Your VS Code Extensions by Development Task</h2>
+
+<p>Organizing your VS Code extensions by development task can help you avoid having extensions provide functionality that’s not useful for the task at hand. Having only the extensions that you need helps minimize the VS Code startup time and ensures that shortcut keys don’t interfere with one another. Here’s how to set up VS Code to launch with only the extensions for working with Salesforce.</p>
+
+<ol>
+  <li>
+    <p>Add a <code>code-sfdx</code> alias to your shell’s startup script.</p>
+
+    <ul>
+      <li>
+        <p>Windows</p>
+
+        <ol>
+          <li>When you install VS Code, install <code>code</code> as part of your prompt. See <a href="https://code.visualstudio.com/docs/setup/windows#_installation">Visual Studio Code on Windows</a> in the Visual Studio Code docs for details.</li>
+          <li>Open Git Bash. (Git Bash is installed as part of Salesforce CLI.)</li>
+          <li>Check whether you have a .bashrc file. If you don’t, create it by running:<br />
+<code>touch .bashrc</code></li>
+          <li>Add this line to your .bashrc file.<br />
+<code>alias code-sfdx='code --extensions-dir ~/.sfdx-code'</code></li>
+        </ol>
+      </li>
+      <li>
+        <p>macOS or Linux</p>
+
+        <ol>
+          <li>Open VS Code.</li>
+          <li>To open the command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Linux).</li>
+          <li>
+            <p>Run the command <strong>Shell command: Install ‘code’ command in PATH</strong>.
+<img src="../../images/invoke_shell_command.png" alt="From the command palette, choose Shell command: Install 'code' command in PATH" /></p>
+
+            <pre><code>  This command lets you invoke `code` directly from your favorite terminal.
+</code></pre>
+          </li>
+          <li>
+            <p>In your favorite terminal, open your shell’s startup script.</p>
+
+            <p>If you’re using Bash, the startup script is typically your <code>.bashrc</code> or <code>.bash_profile</code> file. If you’re using Z Shell, it’s typically your <code>.zshrc</code> file. If you don’t have a file with these names, create a file called <code>.bashrc</code> in your home directory (for example, in <code>Macintosh HD/users/yourName</code>).</p>
+          </li>
+          <li>Add this line to your shell’s startup script.<br />
+<code>alias code-sfdx='code --extensions-dir ~/.sfdx-code'</code></li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Either open a new terminal window or run one of the following commands from your current terminal.<br />
+<code>source .bashrc</code><br />
+<code>source .bash_profile</code><br />
+<code>source .zshrc</code></p>
+  </li>
+  <li>
+    <p>From the terminal, run <code>code-sfdx</code> to launch an instance of VS Code that has only your extensions.</p>
+
+    <blockquote>
+      <p>NOTE: The first time you launch <code>code-sfdx</code>, it has no extensions because it’s a fresh instance VS Code.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Select <strong>View</strong> &gt; <strong>Extensions</strong>.</p>
+  </li>
+  <li>
+    <p>Install the <a href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Salesforce Extension Pack</a> extension (and any <a href="recommended-extensions">other extensions</a> that you use for Salesforce development).</p>
+  </li>
+  <li>
+    <p>The next time you’re working on a Salesforce DX project, you can launch VS Code using <code>code-sfdx</code> and all your extensions will be there.</p>
+  </li>
+</ol>
+
+<p>You can have as many aliases as you want, with as many <code>extensions-dir</code> directories as you need to help organize your extensions.</p>
+:ET

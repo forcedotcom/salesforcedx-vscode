@@ -1,0 +1,86 @@
+I"T<p>Apex クラスやトリガのアウトラインを表示して、コード補完候補を確認し、コードの構文エラーを見つけます。Apex 拡張機能は <a href="language-server">Apex 言語サーバ</a>を基盤とします。</p>
+
+<h2 id="コード補完候補の表示">コード補完候補の表示</h2>
+
+<p><code>.cls</code> または <code>.trigger</code> ファイルで作業中に Ctrl+スペースキーを押すと、コード補完候補が表示されます。候補間を移動する場合は、矢印キーを使用します。リストの候補をオートコンプリートするには、Enter キーを押します。<br />
+<img src="../../images/apex_completion.gif" alt="System.debug() ステートメントのコード補完を示すアニメーション" /></p>
+
+<h2 id="コードスニペットの挿入">コードスニペットの挿入</h2>
+
+<p><code>.cls</code> または <code>.trigger</code> ファイルで作業中に使用可能な Apex コードスニペットを表示するには、<strong>[Insert Snippet (スニペットの挿入)]</strong> を実行します。スニペットは、クラスやインターフェースの定義、各種のステートメントなどで使用できます。これらのコードスニペットは、コード補完候補としても使用できます。</p>
+
+<h2 id="定義の表示または定義への移動">定義の表示または定義への移動</h2>
+
+<p>次の定義をプレビューや表示したり、定義に移動することができます。</p>
+
+<ul>
+  <li>ユーザ定義の Apex
+    <ul>
+      <li>クラス (拡張クラスの定義に基づく)</li>
+      <li>コンストラクタ</li>
+      <li>インターフェース (拡張クラスの定義に基づく)</li>
+      <li>メソッド</li>
+      <li>プロパティ</li>
+      <li>変数 (ローカル変数とクラス変数)</li>
+    </ul>
+  </li>
+  <li>標準オブジェクト
+    <ul>
+      <li>項目 (標準項目とカスタム項目)</li>
+      <li>オブジェクト定義</li>
+    </ul>
+  </li>
+  <li>カスタムオブジェクト
+    <ul>
+      <li>項目</li>
+      <li>オブジェクト定義</li>
+    </ul>
+  </li>
+</ul>
+
+<p>(標準オブジェクトとカスタムオブジェクトの操作についての詳細は、このトピックの<a href="#enable-code-smartness-for-sobjects">「sObject のコードスマートネスの有効化」</a>セクションを参照してください。)</p>
+
+<p>定義をプレビューするには、Ctrl キー (Windows、Linux) または Cmd キー (macOS) を押したまま、定義を表示する項目にカーソルを置きます。</p>
+
+<p>定義を表示するには、項目を右クリックして <strong>[Peek Definition (定義をここに表示)]</strong> を選択するか、Alt+F12 キーを押します。</p>
+
+<p>定義の場所に移動するには、項目を右クリックして <strong>[Go to Definition (定義へ移動)]</strong> を選択するか、F12 キーを押します。<br />
+<img src="../../images/apex_go_to_definition.gif" alt="定義のプレビューや表示と定義への移動" /></p>
+
+<h2 id="すべての参照の検索">すべての参照の検索</h2>
+
+<p>次のユーザ定義の Apex への参照はすべて検索できます。</p>
+
+<ul>
+  <li>クラス</li>
+  <li>クラス変数</li>
+  <li>列挙</li>
+  <li>インターフェース</li>
+  <li>メソッド</li>
+  <li>プロパティ</li>
+</ul>
+
+<p>項目への参照を検索するには、項目を右クリックして <strong>[Find All References (すべての参照の検索)]</strong> を選択するか、Shift+F12 キーを押します。</p>
+
+<h2 id="コードの構文エラーのチェック">コードの構文エラーのチェック</h2>
+
+<p><code>;</code>、<code>}</code>、<code>)</code> を付け忘れると、エディタに赤い波線で構文エラーがマークされます。</p>
+
+<p>また、下部のペインの [Problems (問題)] ビューにも構文エラーがリストされます。問題をダブルクリックして、ソースファイルに移動します。<br />
+<img src="../../images/apex_problems.png" alt="[Problems (問題)] ビュー。Apex クラスにセミコロンを付け忘れていることが示されています。" /></p>
+
+<h2 id="apex-クラスまたはトリガのアウトラインの表示">Apex クラスまたはトリガのアウトラインの表示</h2>
+
+<p>Apex アウトラインビューには、エディタに開いている Apex クラスまたはトリガの構造が示されます。ファイルの記号をリストするには、Ctrl+Shift+O キー (Windows、Linux) または Cmd+Shift+O キー (macOS) を押します。記号の 1 つに移動するには、リストでその記号を選択します。<br />
+<img src="../../images/apex_outline.png" alt="アウトラインビュー。Apex クラスの記号が表示されています。" /></p>
+
+<h2 id="sobject-のコードスマートネスの有効化">sObject のコードスマートネスの有効化</h2>
+
+<p>標準およびカスタムオブジェクトとその項目 (標準オブジェクトのカスタム項目を含む) の Apex 拡張機能のコードスマートネス機能を有効にするには、Ctrl+Shift+P キー (Windows、Linux) または Cmd+Shift+P キー (macOS) を押し、コマンドパレットから <strong>[SFDX: Refresh SObject Definitions (SFDX: SObject の定義を更新)]</strong> を選択します。</p>
+
+<p>sObject の定義を更新すると、VS Code がデフォルト組織を使用して偽の Apex クラスを生成します。これらの偽のクラスは、デフォルトのスクラッチ組織で管理ユーザがアクセスできる標準およびカスタムオブジェクト、または Sandbox や DE 組織のログインユーザを表します。こうしたクラスは、ローカルワークステーションの非表示のディレクトリに保存されます。偽のクラスを編集しないでください! sObject の定義を更新するたびに、偽のクラスが削除され再生成されます。sObject を変更するには、オブジェクトの <code>.object-meta.xml</code> と <code>.field-meta.xml</code> ファイルを変更 (して ** [SFDX: Push Source to Default Scratch Org (SFDX: ソースをデフォルトのスクラッチ組織にプッシュ)]** または <strong>[SFDX: Deploy Source to Org (SFDX: 組織にソースをリリース)]</strong> を実行) するか、組織で宣言的に変更を実行 (して <strong>[SFDX: Pull Source from Default Scratch Org (SFDX: デフォルトのスクラッチ組織からソースをプル)]</strong> または <strong>[SFDX: Retrieve Source from Org (SFDX: 組織からソースを取得)]</strong> を実行) します。ユーザは新規カスタムオブジェクトへのアクセス権を自動的に取得しないため、必要に応じてユーザに新しい権限を割り当てるようにします。コマンドラインから権限を割り当てるには、<code>sfdx force:user:permset:assign -n YourPermSetName</code> を実行します。</p>
+
+<p>Salesforce CLI インテグレーション拡張機能 (Salesforce Extension Pack に付属) を初めて起動するときに、プロジェクトに偽のクラスが 1 つもない場合は、バックグラウンドで <strong>[SFDX: Refresh SObject Definitions (SFDX: SObject の定義を更新)]</strong> が実行されます。</p>
+
+<p>標準またはカスタムオブジェクトやその項目を追加あるいは編集したら、必ず <strong>[SFDX: Refresh SObject Definitions (SFDX: SObject の定義を更新)]</strong> を再度実行します。</p>
+:ET

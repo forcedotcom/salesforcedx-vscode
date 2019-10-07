@@ -1,0 +1,54 @@
+I"�<p>このガイドは、Visual Studio Code を初めて使用する Salesforce 開発者が、無の状態からでも VS Code 向け Salesforce 拡張機能を使用してアプリケーションをリリースできるようにします。</p>
+
+<h2 id="パート-1-プロジェクトの作成">パート 1: プロジェクトの作成</h2>
+
+<p>VS Code 向け Salesforce 拡張機能では、開発者の 2 種類のプロセスまたはモデルがサポートされています。ここでは、これらのモデルについて説明します。どちらのモデルも長所と短所があり、完全サポートされています。</p>
+
+<h3 id="組織開発モデル">組織開発モデル</h3>
+
+<p>組織開発モデルでは、Sandbox、Developer Edition (DE) 組織、Trailhead Playground、場合によっては本番組織に直接接続し、コードの取得やリリースを直接行うことができます。このモデルは、Force.COM IDE や MavensMate などのツールを使用してこれまで行ってきたタイプの開発と似ています。</p>
+
+<p>このモデルで開発を始める場合は、<a href="../user-guide/org-development-model">「VS Code を使用した組織開発モデル」</a>を参照してください。</p>
+
+<p>ソースが追跡されない組織 (Sandbox、DE 組織、Trailhead Playground など) で開発する場合は、<code>SFDX: Create Project with Manifest</code> コマンドを使用してプロジェクトを作成します。別のコマンドを使用した場合は、このコマンドで作成し直したほうがよい場合があります。</p>
+
+<p>ソースが追跡されない組織で作業する場合は、<code>SFDX: Deploy Source to Org</code> と <code>SFDX: Retrieve Source from Org</code> コマンドを使用します。<code>Push</code> と <code>Pull</code> コマンドは、ソースを追跡する組織 (スクラッチ組織) のみで機能します。</p>
+
+<h3 id="パッケージ開発モデル">パッケージ開発モデル</h3>
+
+<p>サポートされている 2 つ目のモデルをパッケージ開発モデルといいます。このモデルでは、1 つのパッケージとして組織にリリースされる自己完結型のアプリケーションやライブラリを作成できます。これらのパッケージは通常、ソースを追跡する組織 (スクラッチ組織) で開発されます。この開発モデルは、組織のソース追跡、ソース管理、継続的なインテグレーションやリリースなどを使用した、新しいタイプのソフトウェア開発プロセスに向いています。</p>
+
+<p>新規プロジェクトを始める場合は、パッケージ開発モデルを検討することをお勧めします。このモデルで開発を始める場合は、<a href="../user-guide/package-development-model">「VS Code を使用したパッケージ開発モデル」</a>を参照してください。</p>
+
+<p>スクラッチ組織で開発する場合は、<code>SFDX: Create Project</code> コマンドを使用してプロジェクトを作成します。別のコマンドを使用した場合は、このコマンドで作成し直したほうがよい場合があります。</p>
+
+<p>ソースを追跡する組織で作業する場合は、<code>SFDX: Push Source to Org</code> と <code>SFDX: Pull Source from Org</code> コマンドを使用します。スクラッチ組織で <code>Retrieve</code> と <code>Deploy</code> コマンドを使用しないでください。</p>
+
+<h2 id="sfdx-projectjson-ファイル"><code>sfdx-project.json</code> ファイル</h2>
+
+<p><code>sfdx-project.json</code> ファイルには、プロジェクトに役立つ設定情報が含まれています。このファイルについての詳細は、『Salesforce DX 開発者ガイド』の<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm">「Salesforce DX プロジェクトの設定」</a>を参照してください。</p>
+
+<p>この拡張機能を使い始めるうえで、このファイルの最も重要な要素は <code>sfdcLoginUrl</code> と <code>packageDirectories</code> プロパティです。</p>
+
+<p><code>sfdcLoginUrl</code> は、組織の承認時に使用するデフォルトのログイン URL を指定します。</p>
+
+<p><code>packageDirectories</code> ファイルパスは、プロジェクトのメタデータファイルが保存されている場所を VS Code と Salesforce CLI に伝えます。ファイルにパッケージディレクトリを 1 つ以上設定している必要があります。デフォルト設定は以下のとおりです。<code>path</code> という <code>packageDirectories</code> プロパティを <code>force-app</code> に設定すると、デフォルトでメタデータが <code>force-app</code> ディレクトリに格納されます。このディレクトリを <code>src</code> などに変更したい場合は、単に <code>path</code> の値を変更し、参照先のディレクトリが存在することを確認します。</p>
+
+<pre><code class="language-json">"packageDirectories" : [
+    {
+      "path": "force-app",
+      "default": true
+    }
+]
+</code></pre>
+
+<h2 id="パート-2-ソースの操作">パート 2: ソースの操作</h2>
+
+<p>スクラッチ組織での開発についての詳細は、<a href="../user-guide/package-development-model">「VS Code を使用したパッケージ開発モデル」</a>を参照してください。</p>
+
+<p>ソースを追跡しない組織での開発についての詳細は、<a href="../user-guide/org-development-model">「VS Code を使用した組織開発モデル」</a>を参照してください。</p>
+
+<h2 id="パート-3-本番へのリリース">パート 3: 本番へのリリース</h2>
+
+<p>コードを Visual Studio Code から直接本番にリリースしないでください。deploy および retrieve コマンドは、トランザクション操作をサポートしていないため、リリースの途中で失敗することがあります。また、deploy と retrieve コマンドは、本番へのリリースに必要なテストを実行しません。変更内容を本番にリリースする場合は、<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_dev2gp.htm">パッケージ化</a>を行うか、<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_source.htm#cli_reference_convert">ソースをメタデータ形式に変換</a>して、<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_mdapi.htm#cli_reference_deploy">metadata deploy コマンドを使用</a>します。</p>
+:ET

@@ -1,0 +1,6 @@
+I"w<p>VS Code 向け Salesforce 拡張機能でソースのプッシュ、プル、リリース、取得に使用するコマンドは、ファイルが (メタデータ形式ではなく) ソース形式であると想定しています。ソース形式は、バージョン管理システムで作業しやすいように最適化されています。詳細は、『Salesforce DX 開発者ガイド』の<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_source_file_format.htm">「Salesforce DX プロジェクトの構造とソース形式」</a>を参照してください。</p>
+
+<p>Force.com IDE ではメタデータ形式を使用していたため、VS Code で Force.com IDE プロジェクトを開くことはできません。このトピックで説明するコマンドを操作するには、メタデータをソース形式に変換するか (<code>sfdx force:mdapi:convert</code> を使用)、新しいプロジェクトを作成して、以前の IDE で使っていたマニフェスト (<code>package.xml</code> ファイル) を使用して組織からメタデータを取得します。</p>
+
+<p>ソース形式への変換と Git 履歴の管理についての詳細は、<a href="https://ntotten.com/2018/05/11/convert-metadata-to-source-format-while-maintain-git-history/">このブログ投稿</a>を参照してください。</p>
+:ET

@@ -1,0 +1,26 @@
+I"�
+<p>You can run Apex tests from within a file or from the Apex Tests sidebar. The sidebar provides other useful features for working with your tests.</p>
+
+<h2 id="explore-your-apex-tests">Explore Your Apex Tests</h2>
+
+<p>The Apex Tests sidebar provides several features. Here, you can see all your Apex tests at a glance. You can run one test method, the test methods in one class, or all your tests. You can view the results of your last test run. And you can jump from those results to the corresponding lines in your code. To access this sidebar, click the beaker icon (hover text: Test) in the view bar on the left side of the VS Code window. (If you don’t see this icon, make sure that the project you have open in VS Code contains an <code>sfdx-project.json</code> file in its root directory.)</p>
+
+<p>To run selected tests, in the Apex Tests view, hover over the name of a test method or class to reveal a play icon. Click the play icon (hover text: Run Single Test) to run a test method or all the methods in a class. To run all your tests, click the larger play icon at the top of the Apex Tests view (hover text: Run Tests).</p>
+
+<p>After you run tests, the blue icons next to your classes and methods change to green icons (for passing tests) or red icons (for failing tests). To see details about your test runs, hover over the name of a test class in the sidebar.</p>
+
+<p>To jump to the definition of a test class, a test method that passed, or a method that you haven’t run yet, click its name in the sidebar. If you click the name of a failed test method, you jump to the assert statement that failed.</p>
+
+<p>To clear your test results, click the refresh icon at the top of the sidebar (hover text: Refresh Tests).</p>
+
+<h2 id="run-apex-tests-from-within-a-file">Run Apex Tests from Within a File</h2>
+
+<p>To run Apex tests, in your <code>.cls</code> file, click <strong>Run Test</strong> or <strong>Run All Tests</strong> above the definition of an Apex test method or class.<br />
+<img src="../../images/apex_test_run.gif" alt="Running Apex tests using the Run Test and Run All Tests code lenses" /></p>
+
+<p>Results from your test run display in the Output panel. The Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Ctrl (Windows or Linux) or Cmd (macOS) and click that stack trace.</p>
+
+<p>After you run Apex tests, two new commands are available in the command palette: <strong>SFDX: Re-Run Last Invoked Apex Test Class</strong> and <strong>SFDX: Re-Run Last Invoked Apex Test Method</strong>.</p>
+
+<p>To retrieve code coverage results when you run Apex tests, edit your workspace settings and set <code>salesforcedx-vscode-core.retrieve-test-code-coverage</code> to <code>true</code>.</p>
+:ET

@@ -1,0 +1,6 @@
+I"�<p>VS Code 向け Salesforce 拡張機能は、開発用のデフォルト組織として設定した組織に対してコマンドを実行します。<a href="package-development-model">パッケージ開発モデル</a>では通常、デフォルト組織はスクラッチ組織です。<a href="org-development-model">組織開発モデル</a>では通常、Sandbox、Developer Edition (DE) 組織、Trailhead Playground のいずれかです。</p>
+
+<p>開発に使用する組織を設定または変更するには、VS Code のフッターに表示されている組織名かコンセントアイコン (<svg class="octicon octicon-plug" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M14 6V5h-4V3H8v1H6c-1.03 0-1.77.81-2 2L3 7c-1.66 0-3 1.34-3 3v2h1v-2c0-1.11.89-2 2-2l1 1c.25 1.16.98 2 2 2h2v1h2v-2h4V9h-4V6h4z"></path></svg>) をクリックします。次に、別の組織を選択するか、<strong>[SFDX: Set a Default Org (デフォルト組織を設定)]</strong> を選択して、新しい組織を承認します。または、コマンドパレットを開き、<strong>[SFDX: Authorize an Org (SFDX: 組織を承認)]</strong> または <strong>[SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)]</strong> を実行します。</p>
+
+<p>デフォルト組織を開いて、変更内容をテストしたり、宣言型ツールを使用できるようにするには、フッターのブラウザアイコン (<svg class="octicon octicon-browser" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5 3h1v1H5V3zM3 3h1v1H3V3zM1 3h1v1H1V3zm12 10H1V5h12v8zm0-9H7V3h6v1zm1-1c0-.55-.45-1-1-1H1c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V3z"></path></svg>) をクリックします。または、コマンドパレットを開き、<strong>[SFDX: Open Default Org (SFDX: デフォルト組織を開く)]</strong> を実行します。</p>
+:ET

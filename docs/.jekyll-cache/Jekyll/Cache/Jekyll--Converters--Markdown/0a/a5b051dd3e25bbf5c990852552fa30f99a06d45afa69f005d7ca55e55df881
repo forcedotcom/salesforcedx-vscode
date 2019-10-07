@@ -1,0 +1,73 @@
+I"�<h2 id="syntax-highlighting">Syntax Highlighting</h2>
+
+<p>The Aura Components Extension offers syntax highlighting for Aura markup, HTML, CSS, and JavaScript on .cmp, .component, .app files and more. This example shows syntax highlighting for JavaScript.</p>
+
+<p><img src="../../images/V2_lightning_syntax.png" alt="Colored syntax highlighting in a .js file from an Aura bundle" /></p>
+
+<h2 id="code-completion">Code Completion</h2>
+
+<p>Invoke code completion with Ctrl+Space when you’re working with Aura markup. View additional information about tag names and attributes directly in the editor.</p>
+
+<h4 id="tags">Tags</h4>
+
+<p><img src="../../images/V2_aura_tag_completion.png" alt="Aura Tag Completion" /></p>
+
+<ul>
+  <li><strong>Note:</strong> If you have any Lightning Web Components in your workspace, those components will also appear in the list of suggested completions. The Lightning Web Component suggestions will be displayed with the proper Aura syntax.</li>
+</ul>
+
+<h4 id="attributes">Attributes</h4>
+
+<p><img src="../../images/V2_aura_attribute_completion.png" alt="Aura Attribute Completion" /></p>
+
+<h2 id="view-component-documentation-on-hover">View Component Documentation on Hover</h2>
+
+<p>Hovering over a component name or attribute shows component documentation in the editor, as well as links to the Component Library. You can see reference documentation for Aura components and Lightning web components nested within Aura components.</p>
+
+<p>Here’s reference documentation for the <code>lightning:card</code> component.
+<img src="../../images/V2_comp_reference_aura.png" alt="Aura Component Reference" /></p>
+
+<h2 id="view-or-jump-to-definitions">View or Jump to Definitions</h2>
+
+<p>You can preview, view, or go to definitions of:</p>
+
+<ul>
+  <li>Aura Tags</li>
+  <li>LWC Tags</li>
+  <li>JavaScript
+    <ul>
+      <li>Methods</li>
+      <li>Variables</li>
+    </ul>
+  </li>
+</ul>
+
+<p>To preview a definition, hold down Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.</p>
+
+<p>To view a definition, right-click the item and select Peek Definition, or press Alt+F12.</p>
+
+<p>To jump to the location of a definition, right-click the item and select Go to Definition, or press F12.</p>
+
+<h2 id="outline-view">Outline view</h2>
+
+<p>Outline view allows you to see the outline of your component—i.e. its HTML tags and JavaScript properties. Invoke it with Ctrl+Shift+O on Windows and Linux and Cmd+Shift+O on Mac.</p>
+
+<p><img src="../../images/V2_outline_view.png" alt="List of symbols in a .js file from an Aura bundle" /></p>
+
+<h2 id="lightning-explorer-beta">Lightning Explorer (Beta)</h2>
+
+<p>As a beta feature, Lightning Explorer View is a preview and isn’t part of the “Services” under your master subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this feature within any particular time frame or at all, and we can discontinue it at any time. Lightning Explorer is for evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally to your use of this feature. The use of this feature is governed by the <a href="https://trailblazer.me/resource/documents/documents/pdf/TermsOfUse_en_US.pdf">Salesforce.com Program Agreement</a>. If you encounter any problems, or want to request an enhancement, open a Github issue.</p>
+
+<p>Lightning Explorer lets you view reference documentation for both Aura components and Lightning web components. To enable it, go to <strong>Preferences &gt; Settings</strong>. Enter <code>lightning explorer</code> in the search bar. Then, click the checkbox next to <strong>salesforcedx-vscode-lightning:Show Lightning Explorer</strong>.</p>
+
+<p><img src="../../images/V2_show_lightning_explorer.png" alt="Show Lightning Explorer" /></p>
+
+<p>To use Lightning Explorer, click the lightning bolt icon on the left hand side of the screen. Click a namespace to see all of the available components. Lightning web components and Aura have different lightning icons.</p>
+
+<p><img src="../../images/V2_click_lightning_icon.png" alt="Click Lightning Explorer" />
+Under the c namespace, we’ve selected the Lightning web component <code>c-wire-get-object-info</code>. When you click on the name of the component, its corresponding file shows up in the main code panel.</p>
+
+<p>Here’s the Aura component <code>force:inputField</code>. The blue icon to the right of the component name opens your browser to the component reference in the Component Library.
+<img src="../../images/V2_input_field_comp_lib.png" alt="Open Component Library" />
+Your custom Aura components and documentation are also available in the Aura Components extension. To learn more about writing documentation for your Aura components, see the <a href="https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/components_documentation.htm">Lightning Aura Components Developer Guide</a>.</p>
+:ET

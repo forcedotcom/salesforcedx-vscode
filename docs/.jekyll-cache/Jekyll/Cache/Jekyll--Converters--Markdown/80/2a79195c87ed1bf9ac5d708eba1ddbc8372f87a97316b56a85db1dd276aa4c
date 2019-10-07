@@ -1,0 +1,33 @@
+I"Ô	<p>This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.</p>
+
+<p><span>Download using the links below, or read the <a href="/tools/vscode/articles/getting-started/install">installation instructions</a>.<span><br /><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a></span></span></p>
+
+<p><img src="/tools/vscode/images/overview.gif" alt="GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests" /></p>
+
+<h2 id="additional-resources">Additional Resources</h2>
+
+<ul>
+  <li>Trailhead: <a href="https://trailhead.salesforce.com/trails/sfdx_get_started">Get Started with Salesforce DX</a></li>
+  <li><a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup">Salesforce DX Setup Guide</a></li>
+  <li><a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev">Salesforce DX Developer Guide</a></li>
+</ul>
+
+<h2 id="dreamforce-session-videos">Dreamforce Session Videos</h2>
+
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=lQ-ZpCRKYM0">Salesforce Development with Visual Studio Code</a></li>
+  <li><a href="https://www.youtube.com/watch?v=hw9LBvjo4PQ">Be An Efficient Salesforce Developer with VS Code</a></li>
+  <li><a href="https://www.youtube.com/watch?v=J-9ILFRqcwg">Moving to Visual Studio Code for Force.com IDE Developers</a></li>
+</ul>
+
+<h3 id="open-source">Open Source</h3>
+
+<ul>
+  <li><a href="https://github.com/forcedotcom/salesforcedx-vscode/wiki/Roadmap">Roadmap</a></li>
+  <li><a href="https://github.com/forcedotcom/salesforcedx-vscode">Github Repository</a></li>
+</ul>
+
+<h2 id="bugs-and-feedback">Bugs and Feedback</h2>
+
+<p>To report issues with Salesforce Extensions for VS Code, open a <a href="https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Bug_report.md">bug on GitHub</a>. If you would like to suggest a feature, create a <a href="https://github.com/forcedotcom/salesforcedx-vscode/issues/new?template=Feature_request.md">feature request on GitHub</a>.</p>
+:ET

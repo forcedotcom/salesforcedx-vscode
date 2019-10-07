@@ -1,0 +1,87 @@
+I"<h2 id="overview">Overview</h2>
+
+<p>Salesforce Extension for VS Code supports remote development and allows you to use a container as a full-featured development environment. You can open a project mounted into the container and edit with full code completions, code navigation, debugging, and more.</p>
+
+<blockquote>
+  <p>NOTICE: The remote development feature is currently in beta. If you find any bugs or have feedback, <a href="../bugs-and-feedback">open a GitHub issue</a>.</p>
+</blockquote>
+
+<p>Refer to VS Code documentation if you want to understand more about remote development:</p>
+
+<ul>
+  <li>Use a <a href="https://www.docker.com/">Docker container</a> as your <a href="https://code.visualstudio.com/docs/remote/containers#_indepth-setting-up-a-folder-to-run-in-a-container">development container</a></li>
+  <li>Provide <a href="https://code.visualstudio.com/docs/remote/remote-overview">full-featured development environment</a></li>
+  <li>Switch your development environment by <a href="https://code.visualstudio.com/docs/remote/containers">connecting to a container</a></li>
+</ul>
+
+<h2 id="install">Install</h2>
+
+<p>To start remote development in dev container, install:</p>
+
+<ul>
+  <li>Docker Desktop. For system requirements and installation instructions, see:
+    <ul>
+      <li><a href="https://docs.docker.com/docker-for-windows/install/">Windows</a>: Currently Docker desktop for windows supports only Linux Containers and <a href="https://code.visualstudio.com/docs/remote/containers#_known-limitations">not Windows Containers</a>. During the install process, ensure you use the default option of Linux Containers.</li>
+      <li><a href="https://docs.docker.com/docker-for-mac/install/">Mac</a></li>
+      <li><a href="https://docs.docker.com/install/linux/docker-ce/centos/">Linux</a></li>
+    </ul>
+  </li>
+  <li>Latest version of <a href="https://code.visualstudio.com/download">VS Code</a></li>
+  <li>Latest version of <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack">VS Code Remote Development Extension Pack</a>.
+After you install VS Code and Docker Desktop for your operating system:
+    <ul>
+      <li>For Windows, set source code locations you want to open in a container. In Docker, right-click and select <strong>Settings</strong> / <strong>Preferences</strong> &gt; <strong>Shared Drives</strong> / <strong>File Sharing</strong>. See <a href="https://code.visualstudio.com/docs/remote/troubleshooting#_container-tips">Container tips</a> if you hit trouble with sharing.</li>
+      <li>For Linux, see <a href="https://docs.docker.com/install/#supported-platforms">supported platforms</a>. From the terminal, run <code>sudo usermod -aG docker $USER</code> to add your user to the <code>docker</code> group. This setting takes effect after you sign out and back in again.</li>
+    </ul>
+  </li>
+  <li>Latest version of the <a href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Salesforce Extension Pack</a></li>
+</ul>
+
+<h2 id="try-a-dev-container-with-a-sample-project">Try a Dev Container with a Sample Project</h2>
+
+<p>Let’s use a sample project we provide and try remote development in Docker container with Salesforce Extension.</p>
+
+<ol>
+  <li>Clone the <a href="https://github.com/forcedotcom/vscode-remote-try-sfdx">sample repository</a>. The <code>.devcontainer</code> folder in the sample project contains the <code>devcontainer.json</code> file that defines how to configure the dev container, the Dockerfile to use, and the extensions to install. For details, see <a href="https://code.visualstudio.com/docs/remote/containers#_creating-a-devcontainerjson-file">Creating a devcontainer.json file</a> and <a href="https://code.visualstudio.com/docs/remote/containers#_devcontainerjson-reference">devcontainer.json reference</a>.</li>
+  <li>
+    <p>Run <code>Remote-Containers: Open Folder in Container</code> from the Command Palette and open the project you cloned. VS code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps into the container, and the side bar shows <strong>Dev Container: Salesforce Project</strong>. The container will pre-install and configure Java, Git, Salesforce CLI, and all other extensions defined in the <code>devcontainer.json</code> file.</p>
+
+    <p><img src="../../images/devcontainer.png" alt="Dev Coontainer" /></p>
+  </li>
+  <li>From the Command Palette, run the <code>SFDX:Authorize a Dev Hub</code> in the container. From the Output panel (below the editor region), you can get the user code and the verification URL required to complete the authorization.
+If you are logged in to an org that you don’t want to authorize as a Dev Hub, make sure you log out. Otherwise you’ll not be prompted to enter the credentials for the org you want to authorize.
+After the authorization is complete, the message <code>SFDX: Authorize a Dev Hub successfully ran</code> is displayed. In case the success message is not displayed, check if you have the correct user code and try again. If the login page doesn’t prompt you to re-enter the code, terminate the command and run it again.
+If you are interested, read more about <a href="https://help.salesforce.com/articleView?id=remoteaccess_oauth_device_flow.htm&amp;type=5">Device Authentication Flow</a>.
+<img src="../../images/authorize_message.png" alt="Authorize Success Message" /></li>
+  <li>
+    <p>Run <code>SFDX: Create a Default Scratch Org</code>.</p>
+
+    <p>You’re all set to use the container as a full-featured development environment.</p>
+  </li>
+</ol>
+
+<h2 id="open-a-project-in-a-dev-container">Open a Project in a Dev Container</h2>
+
+<ol>
+  <li>Open an existing project you want to work with or create a new project.</li>
+  <li>From the Command Palette, run <code>Remote-Container: Add Development Container Configuration Files</code>.
+If you are unable to see this command, make sure that you have installed the latest version of VS Code Remote Development Extension Pack.
+<img src="../../images/add_dev_container.png" alt="Add Dev Container Config Files" /></li>
+  <li>Select <strong>Salesforce Project</strong> from the list of templates to add <code>SFDX .devcontainer</code> folder. VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container.</li>
+  <li>
+    <p>Click <code>Reopen in Container</code> to build a dev container. Now the side bar shows <strong>Dev Container: Salesforce Project</strong>.</p>
+
+    <p>You’ve set up a dev container for an existing project to use as your full-time development environment.</p>
+  </li>
+</ol>
+
+<p>See Also (VS Code documentation):</p>
+
+<ul>
+  <li><a href="https://code.visualstudio.com/docs/remote/containers#_opening-a-terminal">Opening a Terminal in a Container</a></li>
+  <li><a href="https://code.visualstudio.com/docs/remote/containers#_debugging-in-a-container">Debugging in a Container</a></li>
+  <li><a href="https://code.visualstudio.com/docs/remote/containers#_container-specific-settings">Container Specific Settings</a></li>
+  <li><a href="https://code.visualstudio.com/docs/remote/containers#_known-limitations">Known Limitations</a></li>
+  <li><a href="https://code.visualstudio.com/docs/remote/containers#_common-questions">Common Questions</a></li>
+</ul>
+:ET

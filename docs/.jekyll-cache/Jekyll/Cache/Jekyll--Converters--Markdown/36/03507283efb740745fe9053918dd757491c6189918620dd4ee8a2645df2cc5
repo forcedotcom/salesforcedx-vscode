@@ -1,0 +1,29 @@
+I"o<p>Visualforce 拡張機能が提供する機能</p>
+
+<ul>
+  <li>
+    <p>コード補完 (Ctrl+スペースキーで起動)</p>
+
+    <ul>
+      <li>標準 Visualforce コンポーネント (タグと属性)、Salesforce ドキュメントが付属</li>
+      <li>HTML タグ</li>
+      <li>CSS</li>
+      <li>JavaScript
+<img src="../../images/visualforce_completion.png" alt="コード補完オプションと .page ファイルの関連ドキュメント" /></li>
+    </ul>
+  </li>
+  <li>
+    <p>各種ファイル (<code>.page</code>、<code>.component</code>、<code>.app</code> など) の一部のセクションの構文の強調表示</p>
+
+    <ul>
+      <li>HTML プロパティ</li>
+      <li>CSS と JavaScript の埋め込み部分
+<img src="../../images/visualforce_syntax.png" alt=".page ファイルの構文の色分けされた強調表示" /></li>
+    </ul>
+  </li>
+  <li>
+    <p>[Outline (アウトライン)] ビュー (Windows、Linux は Ctrl+Shift+O キー、macOS は Cmd+Shift+O キーで起動)
+<img src="../../images/visualforce_outline.png" alt=".page ファイルの記号のリスト" /></p>
+  </li>
+</ul>
+:ET

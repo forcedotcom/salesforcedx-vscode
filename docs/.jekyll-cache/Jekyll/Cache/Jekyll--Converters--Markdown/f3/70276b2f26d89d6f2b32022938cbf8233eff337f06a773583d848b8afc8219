@@ -1,0 +1,30 @@
+I"�<p>始める前にまず、必要なソフトウェアをコンピュータにインストールします。</p>
+
+<h2 id="visual-studio-code">Visual Studio Code</h2>
+
+<p>macOS、Windows、Linux のいずれかを実行しているコンピュータに Visual Studio Code をインストールします。VS Code には<a href="https://code.visualstudio.com/docs/supporting/requirements">システム要件</a>がさほどないため、大半のコンピュータで適切に機能します。</p>
+
+<p>Visual Studio Code をインストールするには、<a href="https://code.visualstudio.com">https://code.visualstudio.com</a> にアクセスし、緑の大きな <strong>[Download (ダウンロード)]</strong> ボタンをクリックします。ダウンロードが済んだら、インストーラを開き、手順に従ってインストールを完了します。</p>
+
+<h2 id="java-platform-standard-edition-development-kit">Java Platform, Standard Edition Development Kit</h2>
+
+<p>Visual Studio Code 向け Salesforce 拡張機能の一部の機能は、Java Platform, Standard Edition Development Kit (JDK) に依存しています。JDK のバージョン 8 とバージョン 11 のいずれかをインストールしている必要があります。</p>
+
+<p>JDK のバージョン 11 または 8 をまだインストールしていない場合は、<a href="java-setup">Java のインストールおよび設定方法の説明</a>を参照してください。</p>
+
+<h2 id="salesforce-cli">Salesforce CLI</h2>
+
+<p>Salesforce CLI は、Salesforce 組織に対してコマンドを実行したり、ローカルマシン上のソースファイルを操作したりするために使用します。VS Code 向け Salesforce 拡張機能では Salesforce CLI をバックグラウンドで使用するため、CLI を直接使用する予定がなくても、マシンにインストールする必要があります。</p>
+
+<p>Salesforce CLI のインストールについての詳細は、<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm">『Salesforce DX 設定ガイド』</a>を参照してください。</p>
+
+<h2 id="visual-studio-code-向け-salesforce-拡張機能">Visual Studio Code 向け Salesforce 拡張機能</h2>
+
+<p>VS Code 向け Salesforce 拡張機能の連動関係をインストールしたら、Visual Studio Marketplace から Salesforce Extension Pack 拡張機能をインストールします。この機能パックには、Visual Studio Code を使用して Salesforce アプリケーションを開発するために必要なものがすべて揃っています。</p>
+
+<p>この拡張機能をインストールするには、<a href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode</a> にアクセスして、緑の <strong>[Install (インストール)]</strong> ボタンをクリックします。インストールプロセスで、Visual Studio Code を開くように指示されます。Visual Studio Code が開くと、右下にダイアログボックスが開き、拡張機能をインストールするよう指示されます。<strong>[Install (インストール)]</strong> をクリックして続行します。</p>
+
+<p><img src="../../images/install-salesforce-extensions-dialog.png" alt="拡張機能のインストール" /></p>
+
+<p>拡張機能がインストールされると、青い <strong>[Reload (再読み込み)]</strong> ボタンが表示されます。Visual Studio Code を再読み込みして、インストールを完了するには、このボタンをクリックします (あるいは Visual Studio Code を閉じてもう一度開きます)。</p>
+:ET

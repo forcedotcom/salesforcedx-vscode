@@ -1,0 +1,102 @@
+I"�(<p>組織開発モデルを採用する場合は、変更内容を手動で追跡し、変更セットを Sandbox にリリースしてから本番組織にリリースします(他方、パッケージ開発モデルでは、ソースが追跡される組織で作業し、パッケージ化されたメタデータセットを使用して変更内容を組織間で移動します)。詳細は、Trailhead の<a href="https://trailhead.salesforce.com/content/learn/modules/org-development-model">「Org Development Model (組織開発モデル)」</a>モジュールを参照してください。</p>
+
+<p>このトピックでは、Visual Studio Code のソースを追跡しない組織 (Sandbox、Developer Edition (DE) 組織、Trailhead Playground など) で作業する方法を説明します。</p>
+
+<p><img src="../../images/changeset-demo.gif" alt="デモ" /></p>
+
+<blockquote>
+  <p>注意: このトピックで取り上げる機能はベータ版です。バグを見つけた場合やフィードバックがある場合は、<a href="../bugs-and-feedback">GitHub の問題を登録</a>してください。</p>
+</blockquote>
+
+<h2 id="使用開始">使用開始</h2>
+
+<p>まず、VS Code を開いてプロジェクトを作成します。マニフェストを使用してプロジェクトを作成する場合は、コマンドパレットを開き (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キーを押す)、<strong>[SFDX: Create Project with Manifest (SFDX: マニフェストを使用してプロジェクトを作成)]</strong> を実行します。</p>
+
+<p><img src="../../images/create-project-with-manifest.png" alt="プロジェクトの作成" /></p>
+
+<p>次に、開発を行う組織を承認します。ログインプロセスを開始するには、コマンドパレットを開き、<strong>[SFDX: Authorize an Org (SFDX: 組織を承認)]</strong> を実行します。</p>
+
+<p><img src="../../images/authorize-org-command.png" alt="組織の承認" /></p>
+
+<p>ログイン URL を選択してプロジェクトに名前を付けると、ブラウザが開き、組織にログインできます。ログインが済んだら、ブラウザを閉じて VS Code に戻ります。</p>
+
+<h2 id="マニフェスト-packagexml-ファイル">マニフェスト (<code>package.xml</code>) ファイル</h2>
+
+<p>Sandbox、DE 組織、Trailhead Playground に接続している場合、作業するすべてのメタデータを組織から取得する一番簡単な方法は、<code>package.xml</code> ファイルを使用することです。このファイルがまだない場合は、提供されたファイルを更新するか、<code>manifest</code> ディレクトリに <code>package.xml</code> ファイルを作成します。</p>
+
+<p>取得する各種のメタデータ型をこのファイルに追加します。<code>package.xml</code> ファイルについての詳細は、『メタデータ API 開発者ガイド』の<a href="https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm">「package.xml マニフェストファイルのサンプル」</a>を参照してください。</p>
+
+<p><a href="#retrieve-source">ソースを取得</a>すると、プロジェクトが次のような構造になります。</p>
+
+<pre><code class="language-text">your-app
+├── README.md
+├── sfdx-project.json
+├── .sfdx
+├── .vscode
+│   ├── extensions.json
+│   └── settings.json
+├── force-app
+|   └── main
+|       └── default
+|           ├── aura
+|           ├── classes
+|           └── objects
+└── manifest
+    └── package.xml
+</code></pre>
+
+<h2 id="ソースの取得">ソースの取得</h2>
+
+<p>組織を承認したら、その組織からソースを取得します。Salesforce ユーザインターフェースで変更を行った後、その変更内容をデフォルト組織から取得します(変更内容は必ず追跡します。組織開発モデルを使用する場合は、変更が自動的に追跡されません)。</p>
+
+<blockquote>
+  <p>注意: 組織からソースを取得すると、ソースファイルのローカルバージョンが上書きされます。</p>
+</blockquote>
+
+<p><img src="../../images/retrieve-source-from-org.png" alt="組織からソースを取得" /></p>
+
+<p>ソースを追跡せずに (スクラッチ組織ではない) 組織からソースを取得する手順は、次のとおりです。</p>
+
+<ul>
+  <li>Visual Studio Code エクスプローラまたはエディタでマニフェストを右クリックし、<strong>[SFDX: Retrieve Source in Manifest from Org (SFDX: 組織からマニフェストのソースを取得)]</strong> を選択します。</li>
+  <li>エディタにマニフェストファイルを開いたまま、コマンドパレットを開き (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キーを押す)、<strong>[SFDX: Retrieve Source in Manifest from Org (SFDX: 組織からマニフェストのソースを取得)]</strong> を実行します。</li>
+  <li>Visual Studio Code エクスプローラで、ソースファイルまたはディレクトリを右クリックします。<strong>[SFDX: Retrieve Source from Org (SFDX: 組織からソースを取得)]</strong> を選択します。
+    <blockquote>
+      <p>注意: 取得は、(ファイルツリーの) 選択した項目の下位にネストされているメタデータでのみ実行されます。たとえば、<code>classes</code> フォルダを右クリックすると、<strong>そのディレクトリに既存する</strong>すべての Apex クラスが取得またはリリースされます。<code>classes</code> などのディレクトリで取得操作を実行した場合、組織のすべての Apex クラスが取得されるわけではありません。そのフォルダに既存のクラスに対する更新のみが取得されます。新しい Apex クラスを取得する場合は、そのクラス (またはすべての Apex クラス) を <code>package.xml</code> ファイルに追加し、マニフェストファイルを使用してソースを取得します(また、ターミナルを使用して <code>sfdx force:source:retrieve --metadata ApexClass:YourApexClass</code> を実行することもできます)。</p>
+    </blockquote>
+  </li>
+  <li>エディタに開いているソースファイルで、編集ペインの任意の場所を右クリックします。<strong>[SFDX: Retrieve This Source File from Org (SFDX: 組織からこのソースファイルを取得)]</strong> を選択します。</li>
+  <li>エディタにソースファイルを開いたまま、コマンドパレットを開き (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キーを押す)、<strong>[SFDX: Retrieve This Source File from Org (SFDX: 組織からこのソースファイルを取得)]</strong> を実行します。</li>
+</ul>
+
+<h2 id="ソースのリリース">ソースのリリース</h2>
+
+<p>コードに変更を行った後、その変更内容を組織にリリースします。</p>
+
+<blockquote>
+  <p>注意: ソースを組織にリリースすると、組織のメタデータがソースファイルのローカルバージョンで上書きされます。</p>
+</blockquote>
+
+<p><img src="../../images/deploy-source-to-org.png" alt="ソースを組織にリリース" /></p>
+
+<p>ソースを追跡せずに (スクラッチ組織ではない) 組織にソースをリリースする手順は、次のとおりです。</p>
+
+<ul>
+  <li>Visual Studio Code エクスプローラまたはエディタでマニフェストを右クリックし、<strong>[SFDX: Deploy Source in Manifest to Org (SFDX: 組織にマニフェストのソースをリリース)]</strong> を選択します。</li>
+  <li>エディタにマニフェストファイルを開いたまま、コマンドパレットを開き (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キーを押す)、<strong>[SFDX: Deploy Source in Manifest to Org (SFDX: 組織にマニフェストのソースをリリース)]</strong> を実行します。</li>
+  <li>Visual Studio Code エクスプローラで、ソースファイルまたはディレクトリを右クリックします。<strong>[SFDX: Deploy Source to Org (SFDX: 組織にソースをリリース)]</strong> を選択します。</li>
+  <li>エディタに開いているソースファイルで、編集ペインの任意の場所を右クリックします。<strong>[SFDX: Deploy This Source File to Org (SFDX: 組織にこのソースファイルをリリース)]</strong> を選択します。</li>
+  <li>エディタにソースファイルを開いたまま、コマンドパレットを開き (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キーを押す)、<strong>[SFDX: Deploy This Source File to Org (SFDX: 組織にこのソースファイルをリリース)]</strong> を実行します。</li>
+  <li>ファイルを保存するたびにリリースするには、ユーザまたはワークスペースの <code>salesforcedx-vscode-core.push-or-deploy-on-save.enabled</code> 設定を <code>true</code> にします。</li>
+</ul>
+
+<h2 id="ソースの削除">ソースの削除</h2>
+
+<p>プロジェクトと、ソースが追跡されない組織からソースを削除する手順は、次のとおりです。</p>
+
+<ul>
+  <li>Visual Studio Code エクスプローラで、マニフェスト、ソースファイル、ディレクトリのいずれかを右クリックします。<strong>[SFDX: Delete from Project and Org (SFDX: プロジェクトおよび組織から削除)]</strong> を選択します。</li>
+  <li>エディタで開いているファイルを右クリックし、<strong>[SFDX: Delete This from Project and Org (SFDX: プロジェクトおよび組織からこれを削除)]</strong> を選択します。</li>
+  <li>エディタにソースファイルを開いたまま、コマンドパレットを開き (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キーを押す)、<strong>[SFDX: Delete from Project and Org (SFDX: プロジェクトおよび組織から削除)]</strong> を実行します。</li>
+</ul>
+:ET

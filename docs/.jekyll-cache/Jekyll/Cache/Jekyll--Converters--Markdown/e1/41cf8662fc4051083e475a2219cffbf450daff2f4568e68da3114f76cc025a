@@ -1,0 +1,49 @@
+I"u<p>ISV Customer Debugger covers a gap in what you can do with Apex Debugger. As an ISV, you can debug your own code. As a subscriber, you can debug your own code. However, because of the protections against seeing managed code, subscribers can’t debug ISV code in their orgs. With ISV Customer Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org.</p>
+
+<p>An ISV can reproduce issues in the specific environment, so problems can be diagnosed more quickly. You can debug only sandbox orgs.</p>
+
+<h2 id="configure-isv-customer-debugger">Configure ISV Customer Debugger</h2>
+
+<p>ISV Customer Debugger is part of the Apex Interactive Debugger (<code>salesforcedx-vscode-apex-debugger</code>) extension, so you don’t need to install anything other than the Salesforce Extension Pack and its prerequisites. You can debug only sandbox orgs.</p>
+
+<ol>
+  <li>Log in to your subscriber’s sandbox via your License Management Org (LMO). If you’re not familiar with this process, see the <em>ISVforce Guide</em>. For information on how to obtain login access to your subscriber’s org, see <a href="https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/lma_requesting_login_access.htm">Request Login Access from a Customer</a>. For information on how to log in via the Subscriber Support Console, see <a href="https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/lma_logging_in_to_sub_org.htm">Logging In to Subscriber Orgs</a>.</li>
+  <li>In your subscriber’s org, from Setup, enter <strong>Apex Debugger</strong> in the Quick Find box, then click <strong>Apex Debugger</strong>.</li>
+  <li>Click <strong>Start Partner Debugging Session</strong>.</li>
+  <li>In the Using Salesforce Extensions for VS Code section, to copy the <code>forceide://</code> URL, click <strong>Copy to Clipboard</strong>.</li>
+  <li>In VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the command palette, then run <strong>SFDX: Create and Set Up Project for ISV Debugging</strong>.</li>
+  <li>When directed, paste the <code>forceide://</code> URL into the prompt, and press Enter.</li>
+  <li>When directed, either accept the default project name or enter a name for your debugging project, and press Enter.</li>
+  <li>Choose a location to store the project, and click <strong>Create Project</strong>.</li>
+  <li>Wait for the project generation process to finish. VS Code retrieves your packaged metadata, your subscriber’s metadata, and skeleton classes for other packages in the org, converts them to source format, and creates a Salesforce DX project. VS Code also creates a launch configuration (<code>launch.json</code> file) for the project. This process can take a long time, especially for orgs that contain lots of metadata, so feel free to leave it running and check back later. You can monitor the progress in the output panel at the bottom of VS Code. To show the output panel, select <strong>View</strong> &gt; <strong>Output</strong>, then select <strong>Salesforce CLI</strong> from the dropdown menu in the corner of the Output tab.<br />
+When the project is ready, VS Code opens it for you in a new window.</li>
+  <li>In the new window, from the Explorer view, open an Apex class or trigger that you want to set breakpoints in.</li>
+  <li>To set a breakpoint, click the gutter to the left of the line numbers.</li>
+  <li>Switch to the Debug view.</li>
+  <li>To launch Apex Debugger, click the play icon next to the launch configuration dropdown menu.</li>
+</ol>
+
+<h2 id="debug-your-subscribers-org">Debug Your Subscriber’s Org</h2>
+
+<p>With one noteworthy exception, debugging a subscriber’s org works the same way that debugging other orgs does. The exception: You can’t break on Apex events triggered by other users in the org. Only the Login As user can trigger Apex breakpoint hit events.</p>
+
+<p>See the rest of this README for information about Apex Debugger. For general information about debugging in VS Code, see <a href="https://code.visualstudio.com/docs/editor/debugging">Debugging</a> in the Visual Studio Code docs.</p>
+
+<h2 id="renew-a-debugging-session">Renew a Debugging Session</h2>
+
+<p>If your session expires, start a new session from Setup using all the same steps that you followed when you started the original session.</p>
+
+<h2 id="protect-your-subscribers-intellectual-property">Protect Your Subscriber’s Intellectual Property</h2>
+
+<p>The code from your subscriber’s org is your subscriber’s intellectual property. We advise against keeping it around after you’re done debugging. Delete the entire project from the location where you stored it during the setup process. Never store your subscriber’s metadata in your version control system. When you start a new debugging session later, VS Code downloads the metadata for you again.</p>
+
+<h2 id="isv-customer-debugger-considerations">ISV Customer Debugger Considerations</h2>
+
+<p>For general Apex Debugger limitations and known issues, see <a href="interactive-debugger#considerations">Considerations</a> in the Apex Interactive Debugger article. When working with ISV Customer Debugger, keep these additional considerations in mind.</p>
+
+<ul>
+  <li>You can debug only sandbox orgs.</li>
+  <li>You can debug only one customer at a time. However, if you purchase Apex Debugger licenses, you can debug multiple customers at once. An Apex Debugger license also lets you debug in your sandboxes and scratch orgs.</li>
+  <li>When you click Return to subscriber overview, your debugging session terminates. Stay logged in to your subscriber’s org while you debug, and return to your LMO only when you’re done debugging.</li>
+</ul>
+:ET

@@ -1,0 +1,117 @@
+I"=<p>The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code depends upon the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of either JDK version 11 (Recommended) or JDK version 8. By default, the extension attempts to locate your local Java installation by looking for a <code>JAVA_HOME</code> or <code>JDK_HOME</code> environment variable on your computer. If the extension cannot find your Java installation, or if you want it to use a different installation, change the <code>salesforcedx-vscode-apex.java.home</code> setting.</p>
+
+<ol>
+  <li>Select <strong>File</strong> &gt; <strong>Preferences</strong> &gt; <strong>Settings</strong> (Windows or Linux) or <strong>Code</strong> &gt; <strong>Preferences</strong> &gt; <strong>Settings</strong> (macOS).</li>
+  <li>Search for <code>apex</code>.</li>
+  <li>Change the <code>salesforcedx-vscode-apex.java.home</code> setting to the full pathname of your Java Runtime. Do <strong>not</strong> set it to the Java executable itself.</li>
+</ol>
+
+<p><img src="../../images/apex-java-home-setting.png" alt="Apex Java Setting" /></p>
+
+<p>Below you will find instructions on how to download and configure different versions of Java.</p>
+
+<h2 id="adoptopenjdk">AdoptOpenJDK</h2>
+
+<p><a href="https://adoptopenjdk.net/">AdoptOpenJDK</a> provides prebuilt OpenJDK binaries for free without authentication or complications.</p>
+
+<ol>
+  <li>Navigate to <a href="https://adoptopenjdk.net/?variant=openjdk11&amp;jvmVariant=hotspot">AdoptOpenJDK</a></li>
+  <li>Select <strong>OpenJDK 11 (LTS)</strong></li>
+  <li>Select <strong>HotSpot</strong></li>
+  <li>Click the <strong>Latest Release</strong> button to download.</li>
+  <li>Once the file is downloaded open it and complete the installation steps.</li>
+</ol>
+
+<p>Inside Visual Studio Code, you will need to set the <code>salesforcedx-vscode-apex.java.home</code> to one of the following values.</p>
+
+<p>MacOS:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home"
+}
+</code></pre>
+
+<p>Windows:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\AdoptOpenJDK\\jdk-11.0.3.7-hotspot"
+}
+</code></pre>
+
+<h2 id="zulu">Zulu</h2>
+
+<p>Zulu Java builds are TCK-tested and free to download and use without restrictions.</p>
+
+<ol>
+  <li>Navigate to the <a href="https://www.azul.com/downloads/zulu/">Zulu download page</a></li>
+  <li>Select version <strong>11</strong></li>
+  <li>Select your OS</li>
+  <li>Download the installer</li>
+  <li>For macOS download the zip or dmg version.</li>
+  <li>For Windows Download the “11”, “JDK”, “Client” version.</li>
+  <li>Once the file is downloaded open it and complete the installation steps.</li>
+</ol>
+
+<p>Inside Visual Studio Code, you will need to set the <code>salesforcedx-vscode-apex.java.home</code> to one of the following values.</p>
+
+<p>MacOS:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-11.jdk/Contents/Home"
+}
+</code></pre>
+
+<p>Windows:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Zulu\\zulu-11"
+}
+</code></pre>
+
+<h2 id="oracle-java-11-officially-test">Oracle Java 11 (Officially Test)</h2>
+
+<ol>
+  <li>Navigate to the <a href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">download page</a></li>
+  <li>Click the <strong>Download</strong> button for <strong>Java SE 11.x.y (LTS)</strong></li>
+  <li>Accept the license agreement</li>
+  <li>Click the download link that applies to your OS</li>
+  <li>For macOS download the dmg version.</li>
+  <li>For Windows Download exe version.</li>
+  <li>If prompted to login, you will need to login with your Oracle account.</li>
+  <li>Once the file is downloaded open it and complete the installation steps.</li>
+</ol>
+
+<p>Inside Visual Studio Code, you will need to set the <code>salesforcedx-vscode-apex.java.home</code> to one of the following values.</p>
+
+<p>MacOS:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk-11.0.3.jdk/Contents/Home"
+}
+</code></pre>
+
+<p>Windows:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk11.0.3"
+}
+</code></pre>
+
+<h2 id="oracle-java-8-legacy">Oracle Java 8 (Legacy)</h2>
+
+<p>If you are still running Java 8 the values for <code>salesforcedx-vscode-apex.java.home</code> are as follows.</p>
+
+<p>MacOS:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home"
+}
+</code></pre>
+
+<p>Windows:</p>
+
+<pre><code class="language-json">{
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk1.8.0_131"
+}
+</code></pre>
+:ET

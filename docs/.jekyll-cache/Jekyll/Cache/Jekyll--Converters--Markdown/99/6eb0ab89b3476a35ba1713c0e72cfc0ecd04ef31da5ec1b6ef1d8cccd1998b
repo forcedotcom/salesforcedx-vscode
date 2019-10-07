@@ -1,0 +1,25 @@
+I"�<h2 id="salesforce-がデータを集めるのはなぜですか">Salesforce がデータを集めるのはなぜですか?</h2>
+
+<p>Salesforce では、VS Code 向け Salesforce 拡張機能を向上させるために、利用状況データと総計値を収集しています。</p>
+
+<h2 id="どのようなデータが収集されるのですか">どのようなデータが収集されるのですか?</h2>
+
+<p>Salesforce では、拡張機能の利用状況に関連する匿名情報 (どのコマンドが実行されたかなど) のほか、パフォーマンスやエラーのデータを収集しています。</p>
+
+<h2 id="テレメトリレポートを無効にするにはどうすればよいですか">テレメトリレポートを無効にするにはどうすればよいですか?</h2>
+
+<p>利用状況データを Salesforce に送信したくない場合は、<code>salesforcedx-vscode-core.telemetry.enabled</code> 設定を <code>false</code> にしてください。</p>
+
+<p>Windows または Linux では、<strong>[File (ファイル)]</strong> &gt; <strong>[Preferences (基本設定)]</strong> &gt; <strong>[Settings (設定)]</strong> を選択します。macOS では、<strong>[Code (コード)]</strong> &gt; <strong>[Preferences (基本設定)]</strong> &gt; <strong>[Settings (設定)]</strong> を選択します。次に、VS Code シェルからのテレメトリイベントをすべてオフにして、テレメトリレポートを無効にするには、次のオプションを追加します。</p>
+
+<pre><code class="language-json">"salesforcedx-vscode-core.telemetry.enabled": false
+</code></pre>
+
+<blockquote>
+  <p>重要: このオプションを有効にするためには、VS Code を再起動する必要があります。</p>
+</blockquote>
+
+<blockquote>
+  <p>注意: また、グローバルテレメトリ設定 <code>telemetry.enableTelemetry</code> も用意しています。<code>false</code> に設定すると、Salesforce テレメトリが無効になります。詳細は、<a href="https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting">Microsoft のドキュメント</a>を参照してください。</p>
+</blockquote>
+:ET

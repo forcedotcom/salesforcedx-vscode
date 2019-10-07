@@ -1,0 +1,6 @@
+I"ƒ<p>To edit your workspace settings, select <strong>File</strong> &gt; <strong>Preferences</strong> &gt; <strong>Settings</strong> (Windows or Linux) or <strong>Code</strong> &gt; <strong>Preferences</strong> &gt; <strong>Settings</strong> (macOS). For information about configuring your settings, see <a href="https://code.visualstudio.com/docs/getstarted/settings">User and Workspace Settings</a> in the Visual Studio Code docs.</p>
+
+<p>To stop Salesforce CLI success messages from showing as pop-up information messages, click <strong>Show Only in Status Bar</strong> in a success message. This button overrides the <code>salesforcedx-vscode-core.show-cli-success-msg</code> value in your default settings. It changes the Workspace Settings value to <code>false</code>. Setting this value to <code>false</code> makes the success messages appear in the status bar (in VS Codeâ€™s footer) instead of as information messages. If you decide that you liked the information messages after all, change the value back to <code>true</code>.</p>
+
+<p>To see the other settings for this extension pack, search the settings for <code>salesforcedx-vscode</code>.</p>
+:ET

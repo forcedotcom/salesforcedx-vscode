@@ -1,0 +1,41 @@
+I"i<p>Features Provided by the Lightning Web Components Extension</p>
+
+<ul>
+  <li>
+    <p>Notification of HTML and JavaScript file errors or compiler warnings</p>
+  </li>
+  <li>
+    <p>ESLint configuration for Lightning web components</p>
+
+    <ul>
+      <li>Errors and warnings appear in JavaScript files</li>
+      <li>Hover over code to display warning messages</li>
+      <li>Click the displayed message for available code actions</li>
+    </ul>
+  </li>
+  <li>
+    <p>Auto-completion for resources in JavaScript files</p>
+
+    <ul>
+      <li>Static resources</li>
+      <li>Custom label imports</li>
+      <li>Lightning web components imports from the core <code>lwc</code> module</li>
+    </ul>
+  </li>
+  <li>
+    <p>Auto-completion for resources in HTML files</p>
+
+    <ul>
+      <li>Tags and attributes for standard <code>lightning</code> namespace Lightning web components</li>
+      <li>Tags and attributes for custom <code>c</code> namespace Lightning web components</li>
+      <li>Lightning web components directives in related HTML files</li>
+    </ul>
+  </li>
+  <li>
+    <p>Help documentation when you hover over standard <code>lightning</code> namespace Lightning web components or attributes</p>
+  </li>
+  <li>
+    <p>Click navigation from HTML files to the main JavaScript file for custom <code>c</code> namespace Lightning web components and attributes</p>
+  </li>
+</ul>
+:ET

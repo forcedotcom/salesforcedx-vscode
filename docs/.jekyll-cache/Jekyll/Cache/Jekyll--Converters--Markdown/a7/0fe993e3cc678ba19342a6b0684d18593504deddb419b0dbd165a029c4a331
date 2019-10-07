@@ -1,0 +1,29 @@
+I"ó<p>Features Provided by the Visualforce Extension</p>
+
+<ul>
+  <li>
+    <p>Code completion (invoke using Ctrl+Space)</p>
+
+    <ul>
+      <li>Standard Visualforce components (tags and attributes), with Salesforce documentation</li>
+      <li>HTML tags</li>
+      <li>CSS</li>
+      <li>JavaScript
+<img src="../../images/visualforce_completion.png" alt="Code-completion options and associated documentation in a .page file" /></li>
+    </ul>
+  </li>
+  <li>
+    <p>Syntax highlighting in some sections of various files (<code>.page</code>, <code>.component</code>, <code>.app</code>, and so on)</p>
+
+    <ul>
+      <li>HTML portions</li>
+      <li>Embedded CSS and JavaScript portions
+<img src="../../images/visualforce_syntax.png" alt="Colored syntax highlighting in a .page file" /></li>
+    </ul>
+  </li>
+  <li>
+    <p>Outline view (invoke using Ctrl+Shift+O on Windows or Linux, or Cmd+Shift+O on macOS)
+<img src="../../images/visualforce_outline.png" alt="List of symbols in a .page file" /></p>
+  </li>
+</ul>
+:ET

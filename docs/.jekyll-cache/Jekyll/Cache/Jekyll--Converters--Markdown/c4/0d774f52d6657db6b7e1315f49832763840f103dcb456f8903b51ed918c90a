@@ -1,0 +1,162 @@
+I"�<p>The commands that Salesforce Extensions for VS Code uses to push, pull, deploy, and retrieve your source assume that your files are in source format (rather than metadata format). Source format is optimized for working with version control systems. For details, see <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_source_file_format.htm">Salesforce DX Project Structure and Source Format</a> in the <em>Salesforce DX Developer Guide</em>.</p>
+
+<p>Because Force.com IDE used metadata format, you can’t directly open your Force.com IDE projects in VS Code. You must either convert your metadata to source format (using <code>sfdx force:mdapi:convert</code>) or create a new project and then retrieve the metadata from your org using the manifest (<code>package.xml</code> file) that you used in your previous IDE.</p>
+
+<h2 id="convert-metadata-to-source-format-and-maintain-git-history">Convert Metadata to Source Format and Maintain Git History</h2>
+
+<p>If you have a massive Salesforce project that is in metadata format and tracked in Git, a bulk convert to the new source format loses all the revision history. This is because Git has built in limits and it fails to detect the enormous amount of changes that happen at the same time. The solution is to convert the project to source format in smaller chunks so that you can maintain the revision history. Let’s take the <a href="https://github.com/dreamhouseapp/dreamhouse-sfdx">dreamhouse</a> project as example to follow the conversion steps.</p>
+
+<p>Here is a snapshot of the code structure in metadata format in the <code>./metadata</code> folder.</p>
+
+<pre><code class="language-text">.
+├── README.md
+└─── metadata
+├── objectTranslations
+├── objects
+│ ├── Bot_Command\_\_c.object
+│ └── ...
+├── package.xml
+├── pages
+├── pathAssistants
+├── permissionsets
+├── quickActions
+├── remoteSiteSettings
+├── reports
+├── staticresources
+│ ├── leaflet.resource
+│ ├── leaflet.resource-meta.xml
+│ └── ...
+├── tabs
+├── triggers
+└── workflows
+</code></pre>
+
+<p>Follow these steps to convert the project from metadata to source format, without losing the Git history:</p>
+
+<ol>
+  <li>
+    <p>Create a temporary SFDX project outside of the Git repo.</p>
+
+    <p><code>$ sfdx force:project:create -n tempproj</code></p>
+  </li>
+  <li>
+    <p>Convert the project in metadata into a temporary project.</p>
+
+    <p><code>$ sfdx force:mdapi:convert --rootdir ./project/metadata --outputdir ./tempproj</code></p>
+
+    <p>Now you have two copies of the project, one in the original location and the other in the new directory <code>temproj</code>, where the project files after converting them to the source format are stored.</p>
+  </li>
+  <li>
+    <p>Move the <code>sfdx-project.json</code> file and the <code>config</code> folder.</p>
+
+    <p><code>$ mv ./tempproj/sfdx-project.json ./project/sfdx-project.json</code></p>
+
+    <p><code>$ mv ./tempproj/confg ./project/config</code></p>
+  </li>
+  <li>
+    <p>Commit these changes to the repo.</p>
+
+    <p><code>$ git add -A</code></p>
+
+    <p><code>$ git commit -m "Created sfdx-project.json and config"</code></p>
+  </li>
+  <li>
+    <p>Create the new folder structure.</p>
+
+    <p><code>$ mkdir ./project/force-app</code></p>
+
+    <p><code>$ mkdir ./project/force-app/main</code></p>
+
+    <p><code>$ mkdir ./project/force-app/main/default</code></p>
+  </li>
+</ol>
+
+<p>With the folder structure in place, you can now start start converting the metadata format to source format.</p>
+
+<h2 id="convert-simple-metadata-types">Convert Simple Metadata Types</h2>
+
+<p>If the metadata type is composed of one or two files (a source file and a metadata.xml file or only a single xml file), you can:</p>
+
+<ol>
+  <li>
+    <p>Copy the entire folder (for example, triggers) of the converted source to its new location.</p>
+
+    <p><code>$ mv ./tempproj/force-app/main/default/triggers</code>
+<code>./project/force-app/main/default/triggers</code></p>
+  </li>
+  <li>
+    <p>Delete the old metadata.</p>
+
+    <p><code>$ rm -rf ./project/metadata/triggers</code></p>
+  </li>
+  <li>
+    <p>Commit your changes.</p>
+
+    <p><code>$ git add -A</code></p>
+
+    <p><code>$ git commit -m "Converted triggers to source format"</code></p>
+  </li>
+</ol>
+
+<p>Repeat these steps to convert for all the files or folders that contain simple metadata format.</p>
+
+<p>If the changes are not detected correctly, the metadata folder may have too many files. In such cases, setting rename detection limit for merge allows all renames in a single commit. Use the <a href="https://git-scm.com/docs/git-config/1.5.6.5#git-config-mergerenameLimit">merge.renameLimit</a> variable to set this rename limit. Note that this option doesn’t work for custom objects.</p>
+
+<p>These commands set the rename detection limit and convert to source format in a single commit.</p>
+
+<pre><code class="language-text">`$ git config merge.renameLimit 999999`
+
+`$ sfdx force:mdapi:convert -r src -d src2`
+
+`$ rm -rf src`
+
+`$ mv src2 src`
+
+`$ git add -A`
+
+`$ git commit -m "Converted from metadata to source format"`
+
+`$ git config --unset merge.renameLimit # Return the git config option to the default`
+</code></pre>
+
+<h2 id="convert-metadata-with-expanded-source">Convert Metadata with Expanded Source</h2>
+
+<p>If the new format is of expanded source type where a single metadata item is split into multiple files (for example, Custom Objects), a good approach to convert:</p>
+
+<ol>
+  <li>
+    <p>Create the folder structure.</p>
+
+    <p><code>$ mkdir ./project/force-app/main/default/objects</code></p>
+
+    <p><code>$ mkdir ./project/force-app/main/default/objects/MyObject__c</code></p>
+  </li>
+  <li>
+    <p>Move the metadata format file to the source format location.</p>
+
+    <p><code>$ mv ./project/metadata/objects/MyObject__c.object /</code>
+<code>./project/force-app/main/default/objects/MyObject__c/MyObject__c.object-meta.xml</code></p>
+  </li>
+  <li>
+    <p>Commit the change.</p>
+
+    <p><code>$ git add -A</code></p>
+
+    <p><code>$ git commit -m "Moved MyObject to source format location"</code></p>
+  </li>
+  <li>
+    <p>Move the source formatted files to the source format location and also overwrite the old metadata formatted version in that location.</p>
+
+    <p><code>$ mv -f ./tempproj/force-app/main/default/objects/MyObject__c/**/*.* ./project/force-app/main/default/objects/MyObject__c</code></p>
+  </li>
+  <li>
+    <p>Commit the change.</p>
+
+    <p><code>$ git add -A</code></p>
+
+    <p><code>$ git commit -m "Converted MyObject to source format"</code></p>
+  </li>
+</ol>
+
+<p>Repeat these steps to convert all the metadata items that are split into multiple files.</p>
+:ET

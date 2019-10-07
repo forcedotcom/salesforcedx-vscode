@@ -1,0 +1,30 @@
+I"*<p>Before you get started, install the required software on your computer.</p>
+
+<h2 id="visual-studio-code">Visual Studio Code</h2>
+
+<p>Install Visual Studio Code on any computer running macOS, Windows, or Linux. VS Code’s <a href="https://code.visualstudio.com/docs/supporting/requirements">system requirements</a> are fairly small, so it should run well on most computers.</p>
+
+<p>To install Visual Studio Code visit <a href="https://code.visualstudio.com">https://code.visualstudio.com</a> and click the big green <strong>Download</strong> button. After the download finishes, open the installer and follow the steps to complete the installation.</p>
+
+<h2 id="java-platform-standard-edition-development-kit">Java Platform, Standard Edition Development Kit</h2>
+
+<p>Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 8 or version 11 of the JDK installed.</p>
+
+<p>If you don’t already have version 11 or 8 of the JDK installed, see the <a href="java-setup">instructions on how to install and configure Java</a>.</p>
+
+<h2 id="salesforce-cli">Salesforce CLI</h2>
+
+<p>Salesforce CLI is used to execute commands against Salesforce orgs and work with source files on your local machine. Salesforce Extensions for VS Code uses Salesforce CLI behind the scenes, so even if you don’t want to use the CLI directly you need to install it on your machine.</p>
+
+<p>For information about installing Salesforce CLI, see the <em><a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm">Salesforce DX Setup Guide</a></em>.</p>
+
+<h2 id="salesforce-extensions-for-visual-studio-code">Salesforce Extensions for Visual Studio Code</h2>
+
+<p>After you’ve installed Salesforce Extensions for VS Code’s dependencies, install the Salesforce Extension Pack extension from the Visual Studio Marketplace. The extension pack contains everything you need to develop Salesforce apps using Visual Studio Code.</p>
+
+<p>To install the extensions, visit <a href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode</a> and click the green <strong>Install</strong> button. The installation process prompts you to open Visual Studio Code. After Visual Studio Code opens, a dialog box opens in the lower right corner, asking you to install the extension. Click <strong>Install</strong> to proceed.</p>
+
+<p><img src="../../images/install-salesforce-extensions-dialog.png" alt="Install Extension" /></p>
+
+<p>After the extensions are installed, you see a blue <strong>Reload</strong> button. To reload Visual Studio Code and finish the installation, click the button (or close and reopen Visual Studio Code).</p>
+:ET

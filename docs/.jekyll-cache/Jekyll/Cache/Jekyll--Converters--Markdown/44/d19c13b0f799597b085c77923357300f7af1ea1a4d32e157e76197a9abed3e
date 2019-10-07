@@ -1,0 +1,181 @@
+I"�.<p>Apex Debugger allows customers to debug their Apex code in sandboxes and scratch orgs, in real time, using VS Code as the client. You can use it to:</p>
+
+<ul>
+  <li>Set breakpoints in Apex classes and triggers.</li>
+  <li>View variables, including sObject types, collections, and Apex System types.</li>
+  <li>View the call stack, including triggers activated by Apex Data Manipulation Language (DML), method-to-method calls, and variables.</li>
+  <li>Interact with global classes, exceptions, and triggers from your installed managed packages. (When you inspect objects that have managed types that aren’t visible to you, only global variables are displayed in the variable inspection pane.)</li>
+  <li>Complete standard debugging actions, including step into, over, and out, and run to breakpoint.</li>
+  <li>Output your results to the Debug Console.</li>
+</ul>
+
+<p>To debug subscribers’ sandbox orgs, use <a href="isv-debugger">ISV Customer Debugger</a>, which is part of the Apex Interactive Debugger extension.</p>
+
+<h2 id="set-up-apex-debugger">Set Up Apex Debugger</h2>
+
+<p>The first time that you use Apex Debugger in VS Code, complete these setup steps.</p>
+
+<ol>
+  <li>Add the <code>DebugApex</code> feature to the scratch org definition files for all the types of scratch orgs that you plan to debug:<br />
+<code>"features": "DebugApex"</code></li>
+  <li>In VS Code, run <strong>SFDX: Create a Default Scratch Org</strong>.</li>
+  <li>Choose a scratch org definition file that includes the <code>DebugApex</code> feature.</li>
+  <li>When your scratch org is ready, assign permissions for Apex Debugger to the org’s admin user.
+    <ol>
+      <li>In VS Code, run <strong>SFDX: Open Default Org</strong>.</li>
+      <li>In your browser, from Setup, enter <code>Permission Sets</code> in the Quick Find box, then select <strong>Permission Sets</strong>.</li>
+      <li>Click <strong>New</strong>.</li>
+      <li>Give the permission set a name that you can remember, such as <code>Debug Apex</code>.</li>
+      <li>In the “Select the type of users who will use this permission set” section, choose <strong>None</strong> from the User License dropdown list. Choosing None lets you assign the permission set to more than one type of user.</li>
+      <li>Save your changes.</li>
+      <li>Click <strong>System Permissions</strong>.</li>
+      <li>Click <strong>Edit</strong>.</li>
+      <li>Enable <strong>Debug Apex</strong>. The other permissions that Debug Apex requires are added automatically.</li>
+      <li>Save your changes.</li>
+      <li>Click <strong>Manage Assignments</strong>.</li>
+      <li>Click <strong>Add Assignments</strong>.</li>
+      <li>Select the users to whom you want to assign the permission set, and then click <strong>Assign</strong>.</li>
+      <li>Click <strong>Done</strong>.</li>
+    </ol>
+  </li>
+  <li><strong>Optional</strong>: In VS Code, run <strong>SFDX: Pull Source from Default Scratch Org</strong>. Then, add your new permission set to your source control repository. If you have a copy of the permission set in your Salesforce DX project, you can assign permissions to scratch org users by running <code>sfdx force:user:permset:assign -n Your_Perm_Set_Name</code>.</li>
+  <li>In VS Code, create a launch configuration for Apex Debugger.
+    <ol>
+      <li>To open the Debug view, in the VS Code Activity Bar, click the bug icon (hover text: Debug).</li>
+      <li>To create a <code>launch.json</code> file, click the gear icon (hover text: Configure or Fix launch.json) and then select <strong>Apex Debugger</strong>. (If you’ve already created this file, clicking the gear icon opens the file.)</li>
+      <li>Within the <code>"configurations"</code> array, add a <code>"Launch Apex Debugger"</code> configuration. The minimum information it should contain:
+        <pre><code class="language-json">"configurations": [
+  {
+    "name": "Launch Apex Debugger",
+    "type": "apex",
+    "request": "launch",
+    "sfdxProject": "${workspaceRoot}"
+  }
+]
+</code></pre>
+      </li>
+      <li>Save your <code>launch.json</code> file. Each project needs only one <code>launch.json</code> file, even if you work with multiple scratch orgs. This file lives in the project’s <code>.vscode</code> directory.</li>
+    </ol>
+  </li>
+</ol>
+
+<blockquote>
+  <p>NOTE: There is an unofficial debugger extension that conflicts with ours: https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug. Disable that extension while using ours.</p>
+</blockquote>
+
+<h2 id="debug-your-code">Debug Your Code</h2>
+
+<p>Nice job! You’ve set up Apex Debugger. Now, set breakpoints and start a debugging session. Then, debug your code.</p>
+
+<p>To set a line breakpoint, open a <code>.cls</code> or <code>.trigger</code> file and click the column to the left of the line numbers. Active breakpoints are red. Inactive breakpoints are grey. You can see a list of your breakpoints in the Breakpoints panel of the Debug view.</p>
+
+<p>To start a debugging session, from the configuration dropdown menu at the top of the Debug view, select <strong>Launch Apex Debugger</strong>. Then, click the green play icon (hover text: Start Debugging).</p>
+
+<p>While a debugging session is in progress, any synchronous activity that runs a line of code with a breakpoint causes execution to halt at the breakpoint. While execution is paused, you can inspect the call stack and see the current values of your variables. You can also step through your code, using the Debug actions pane that appears at the top of the editor while a debugging session is in progress, and watch those values change. You can debug up to two threads at a time. For more information, see <a href="https://code.visualstudio.com/docs/editor/debugging">Debugging</a> in the Visual Studio Code docs.</p>
+
+<h2 id="set-exception-breakpoints">Set Exception Breakpoints</h2>
+
+<p>To make Apex Debugger halt execution when an exception is thrown during a debugging session, set breakpoints on exceptions. When an exception breakpoint is hit, the debugger pauses on the line of code that caused the exception. The Call Stack panel in the Debug view shows the name of the exception.</p>
+
+<p>To set an exception breakpoint, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the command palette, then select <strong>SFDX: Configure Apex Debug Exceptions</strong>. The list of available exceptions includes the <a href="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm">exceptions in the <code>System</code> namespace</a> and the Apex classes in your project that extend <code>Exception</code>. Select an exception from the list, and then select <strong>Always break</strong>.</p>
+
+<p>To see your exception breakpoints, run <strong>SFDX: Configure Apex Debug Exceptions</strong>. The top of the list shows the exception classes that have active breakpoints, labeled <code>Always break</code>. To remove an exception breakpoint, select an exception from the list and then select <strong>Never break</strong>.</p>
+
+<p>When you close VS Code, all your exception breakpoints are removed. (Your line breakpoints, however, remain.)</p>
+
+<h2 id="whitelist-users-and-request-types">Whitelist Users and Request Types</h2>
+
+<p>To filter which requests are debugged, edit your <code>launch.json</code> file to set up whitelisting. (The <code>launch.json</code> file lives in your project’s <code>.vscode</code> directory.) If you don’t use whitelisting, all events in your org trigger debugging during a debugging session. Whitelist users or request types to focus only on the events that are relevant to the problem you’re debugging.</p>
+
+<p>Add filters to the <code>"Launch Apex Debugger"</code> configuration:</p>
+
+<pre><code class="language-json">"configurations": [
+  {
+    "name": "Launch Apex Debugger",
+    "type": "apex",
+    "request": "launch",
+    "sfdxProject": "${workspaceRoot}"
+    "userIdFilter": [],
+    "requestTypeFilter": [],
+    "entryPointFilter": ""
+  }
+]
+</code></pre>
+
+<p>To auto-complete potential request type values for <code>"requestTypeFilter"</code>, press Ctrl+Space.</p>
+
+<p>To filter by entry point, enter a regular expression as the value for <code>"entryPointFilter"</code>. For example, to whitelist requests made by the Visualforce page <code>MyPage</code>, enter <code>".*/apex/MyPage.apexp"</code>.</p>
+
+<h2 id="considerations">Considerations</h2>
+
+<p>Keep these limitations and known issues in mind when working with Apex Debugger.</p>
+
+<h3 id="general-considerations">General Considerations</h3>
+
+<ul>
+  <li>
+    <p>If you edit Apex classes while a debugging session is in progress, your breakpoints might not match your debugging output after you save your changes.</p>
+  </li>
+  <li>
+    <p>Your debugging session is orphaned when you close VS Code before stopping your session. If you have an orphaned session, you can’t start a new session. To stop your active session, in VS Code, run <strong>SFDX: Stop Apex Debugger Session</strong>. To manage your Dev Hub’s Apex Debugger sessions, go to Apex Debugger in Setup.</p>
+  </li>
+  <li>Eval functionality isn’t available.</li>
+  <li>Hot swapping isn’t permitted. These actions kill your debugging session:
+    <ul>
+      <li>Installing or uninstalling a package</li>
+      <li>Saving changes that cause your org’s metadata to recompile</li>
+    </ul>
+  </li>
+  <li>You can’t save changes to these items during a debugging session:
+    <ul>
+      <li>Apex classes or triggers</li>
+      <li>Visualforce pages or components</li>
+      <li>Lightning resources</li>
+      <li>Permissions or preferences</li>
+      <li>Custom fields or custom objects</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="considerations-for-entry-points">Considerations for Entry Points</h3>
+
+<p>These entry points aren’t supported:</p>
+
+<ul>
+  <li>Asynchronously executed code, including asynchronous tests
+    <blockquote>
+      <p><strong>Tip</strong>: Code that’s between a pair of <code>startTest</code> and <code>stopTest</code> methods can run synchronously. To debug your asynchronous functionality, use these methods within your tests.</p>
+    </blockquote>
+  </li>
+  <li>Batch, Queueable, and Scheduled Apex</li>
+  <li>Inbound email</li>
+  <li>Code with the <code>@future</code> annotation</li>
+</ul>
+
+<h3 id="considerations-for-breakpoints">Considerations for Breakpoints</h3>
+
+<ul>
+  <li>You can’t set conditional breakpoints.</li>
+  <li>Breakpoints set on a <code>get</code> or <code>set</code> method must be within the method’s body.</li>
+  <li>You can’t set breakpoints in or step through Execute Anonymous blocks. However, when you hit a breakpoint using Execute Anonymous, we show your Execute Anonymous frame in the stack. To view your Execute Anonymous code’s variables, click this line in the stack.</li>
+</ul>
+
+<h3 id="considerations-for-variables">Considerations for Variables</h3>
+
+<ul>
+  <li>You can’t watch variables.</li>
+  <li>Variable inspection in dynamic Visualforce and Lightning components isn’t supported.</li>
+  <li>You can’t drill into the instance variables of Apex library objects. To view these objects’ contents, use their <code>toString</code> methods.</li>
+  <li>Variables declared within a loop are visible outside of the loop.</li>
+  <li>Drill into variables to see their children’s values. For example, if you run the query <code>[SELECT Id, ContactId, Contact.accountId, Contact.Account.ownerId FROM Case]</code>, your results are nested as follows.
+    <pre><code class="language-text">Case
+--&gt; Contact
+-----&gt; contactId
+-----&gt; Account
+--------&gt; accountId
+--------&gt; ownerId
+</code></pre>
+  </li>
+  <li>When you perform a SOQL query for variables from the EntityDefinition table, your results include the <code>durableId</code> even if you don’t explicitly <code>SELECT</code> that variable.</li>
+</ul>
+:ET

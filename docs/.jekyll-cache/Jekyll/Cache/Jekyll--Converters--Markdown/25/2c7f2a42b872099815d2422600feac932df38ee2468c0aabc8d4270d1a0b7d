@@ -1,0 +1,32 @@
+I"C<p>The Source Diff command allows you to diff metadata types against your default org. This feature makes it easier to visualize the changes between your local project and the metadata in your org.</p>
+
+<blockquote>
+  <p>NOTICE: The Source Diff feature is currently in beta. If you find any bugs or have feedback, <a href="../bugs-and-feedback">open a GitHub issue</a>.</p>
+</blockquote>
+
+<h2 id="setup">Setup</h2>
+
+<p>Because the Source Diff feature is in beta, you must install a Salesforce CLI plugin. From the terminal, run <code>sfdx plugins:install @salesforce/sfdx-diff</code>.
+After the installation is complete, <code>@salesforce/sfdx-diff</code> appears in the list of installed plugins when running <code>sfdx plugins</code>.</p>
+
+<h2 id="usage">Usage</h2>
+
+<p>Starting in version <code>46.11.0</code>, a new menu option <code>SFDX: Diff File Against Org</code> appears when you right-click an open metadata file.</p>
+
+<p><img src="../../images/source_diff.png" alt="Source Diff command" /></p>
+
+<p>Source Diff currently supports the following metadata:</p>
+
+<ul>
+  <li>Apex Class</li>
+  <li>Apex Trigger</li>
+  <li>Aura Application</li>
+  <li>Aura Component</li>
+  <li>Aura Event</li>
+  <li>Aura Interface</li>
+  <li>Aura Token</li>
+  <li>Lightning Web Component</li>
+  <li>Visualforce Page</li>
+  <li>Visualforce Component</li>
+</ul>
+:ET

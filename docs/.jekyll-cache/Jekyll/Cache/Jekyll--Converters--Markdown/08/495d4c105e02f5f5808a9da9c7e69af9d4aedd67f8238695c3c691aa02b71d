@@ -1,0 +1,181 @@
+I"�?<p>Apex デバッガを使用すると、顧客が VS Code をクライアントとして使用して、Sandbox 組織やスクラッチ組織の Apex コードをリアルタイムでデバッグできます。このデバッガは次の目的で使用できます。</p>
+
+<ul>
+  <li>Apex クラスおよびトリガにブレークポイントを設定する。</li>
+  <li>sObject 型、コレクション、Apex システム型などの変数を表示する。</li>
+  <li>Apex データ操作言語 (DML) で有効化されたトリガ、メソッド間のコール、変数などのコールスタックを表示する。</li>
+  <li>インストールされた管理パッケージのグローバルクラス、例外、トリガを操作する(表示されない管理型のオブジェクトを検査する場合は、変数検査ペインにグローバル変数のみが表示されます)。</li>
+  <li>ステップイン、ステップオーバー、ステップアウトなどの標準的なデバッグ操作を行い、ブレークポイントまで実行する。</li>
+  <li>デバッグコンソールに結果を出力する。</li>
+</ul>
+
+<p>登録者の Sandbox 組織をデバッグするには、<a href="isv-debugger">ISV カスタマーデバッガ</a>を使用します。このデバッガは Apex 対話型デバッガ拡張機能に付属します。</p>
+
+<h2 id="apex-デバッガの設定">Apex デバッガの設定</h2>
+
+<p>VS Code で初めて Apex デバッガを使用するときは、次の設定手順を実行します。</p>
+
+<ol>
+  <li>デバッグする予定の全種類のスクラッチ組織で、<code>DebugApex</code> 機能をスクラッチ組織定義ファイルに追加します。<br />
+<code>"features": "DebugApex"</code></li>
+  <li>VS Code で、<strong>[SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)]</strong> を実行します。</li>
+  <li><code>DebugApex</code> 機能を含むスクラッチ組織定義ファイルを選択します。</li>
+  <li>スクラッチ組織の準備ができたら、組織の管理ユーザに Apex デバッガの権限を割り当てます。
+    <ol>
+      <li>VS Code で、<strong>[SFDX: Open Default Org (SFDX: デフォルト組織を開く)]</strong> を実行します。</li>
+      <li>ブラウザの [設定] で、[クイック検索] ボックスに「<code>Permission Sets</code>」と入力し、<strong>[権限セット]</strong> を選択します。</li>
+      <li><strong>[新規]</strong> をクリックします。</li>
+      <li>権限セットに覚えやすい名前を付けます (<code>Debug Apex</code> など)。</li>
+      <li>[この権限セットを使用するユーザ種別の選択] セクションで、[ユーザライセンス] ドロップダウンリストから <strong>[なし]</strong> を選択します。[なし] を選択すると、権限セットを複数の種別のユーザに割り当てることができます。</li>
+      <li>変更内容を保存します。</li>
+      <li><strong>[システム権限]</strong> をクリックします。</li>
+      <li><strong>[編集]</strong> をクリックします。</li>
+      <li><strong>[Apex のデバッグ]</strong> を有効にします。[Apex のデバッグ] に必要な他の権限も自動的に追加されます。</li>
+      <li>変更内容を保存します。</li>
+      <li><strong>[割り当ての管理]</strong> をクリックします。</li>
+      <li><strong>[割り当てを追加]</strong> をクリックします。</li>
+      <li>権限セットを割り当てるユーザを選択して、<strong>[割り当て]</strong> をクリックします。</li>
+      <li><strong>[完了]</strong> をクリックします。</li>
+    </ol>
+  </li>
+  <li><strong>省略可能</strong>: VS Code で、<strong>[SFDX: Pull Source from Default Scratch Org (SFDX: デフォルトのスクラッチ組織からソースをプル)]</strong> を実行します。次に、新しい権限セットをソース制御リポジトリに追加します。Salesforce DX プロジェクトに権限セットのコピーがある場合は、<code>sfdx force:user:permset:assign -n Your_Perm_Set_Name</code> を実行してスクラッチ組織ユーザに権限を割り当てることができます。</li>
+  <li>VS Code で、Apex デバッガの起動設定を作成します。
+    <ol>
+      <li>[Debug (デバッグ)] ビューを開くには、VS Code の [Activity Bar (アクティビティバー)] で、バグアイコン (フロート表示テキスト: [Debug (デバッグ)]) をクリックします。</li>
+      <li><code>launch.json</code> ファイルを作成するには、ギアアイコン (フロート表示テキスト: [Configure or Fix launch.json (launch.json の設定または修正)]) をクリックして、<strong>[Apex Debugger (Apex デバッガ)]</strong> を選択します(このファイルをすでに作成している場合は、ギアアイコンをクリックするとファイルが開きます)。</li>
+      <li><code>"configurations"</code> 配列内に、<code>"Launch Apex Debugger"</code> 設定を追加します。少なくとも次の情報が必要です。
+        <pre><code class="language-json">"configurations": [
+  {
+    "name": "Launch Apex Debugger",
+    "type": "apex",
+    "request": "launch",
+    "sfdxProject": "${workspaceRoot}"
+  }
+]
+</code></pre>
+      </li>
+      <li><code>launch.json</code> ファイルを保存します。複数のスクラッチ組織で作業する場合でも、各プロジェクトに必要な <code>launch.json</code> ファイルは 1 つのみです。このファイルは、プロジェクトの <code>.vscode</code> ディレクトリに常駐します。</li>
+    </ol>
+  </li>
+</ol>
+
+<blockquote>
+  <p>注意: Salesforce の機能と競合する非公式のデバッガ拡張機能が存在します (https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug)。Salesforce の機能を使用中はこの拡張機能を無効にしてください。</p>
+</blockquote>
+
+<h2 id="コードのデバッグ">コードのデバッグ</h2>
+
+<p>やりました! Apex デバッガが設定されました。次は、ブレークポイントを設定してデバッグセッションを開始します。その後、コードをデバッグします。</p>
+
+<p>行ブレークポイントを設定するには、<code>.cls</code> または <code>.trigger</code> ファイルを開き、行番号の左側にある列をクリックします。有効なブレークポイントは赤で表示されます。無効なブレークポイントはグレーで表示されます。[Debug (デバッグ)] ビューの [Breakpoints (ブレークポイント)] パネルにブレークポイントのリストを表示できます。</p>
+
+<p>デバッグセッションを開始するには、[Debug (デバッグ)] ビューの上部にある設定ドロップダウンメニューから、<strong>[Launch Apex Debugger (Apex デバッガの起動)]</strong> を選択します。次に、緑の再生アイコン (フロート表示テキスト: [Start Debugging (デバッグの開始)]) をクリックします。</p>
+
+<p>デバッグセッションの進行中は、ブレークポイントが設定されたコード行を実行する同期アクティビティがあると、ブレークポイントの時点で実行が停止します。実行が一時停止している間に、コールスタックを調べて変数の現在の値を確認するとよいでしょう。デバッグセッションの進行中にエディタの上部に表示される [Debug (デバッグ)] アクションペインを使用してコードをステップ実行し、値の変化を確認することも考えられます。一度に最大 2 つのスレッドをデバッグできます。詳細は、『Visual Studio Code Docs』の<a href="https://code.visualstudio.com/docs/editor/debugging">「Debugging (デバッグ)」</a>を参照してください。</p>
+
+<h2 id="例外ブレークポイントの設定">例外ブレークポイントの設定</h2>
+
+<p>デバッグセッション中に例外が発生した場合に、Apex デバッガの実行を停止するには、例外にブレークポイントを設定します。例外ブレークポイントに達すると、例外の原因となったコード行でデバッガが一時停止します。[Debug (デバッグ)] ビューの [Call Stack (コールスタック)] パネルに、例外の名前が表示されます。</p>
+
+<p>例外ブレークポイントを設定するには、Ctrl+Shift+P キー (Windows、Linux) または Cmd+Shift+P キー (macOS) を押してコマンドパレットを開き、<strong>[SFDX: Configure Apex Debug Exceptions (Apex デバッグ: 例外を設定)]</strong> を選択します。使用可能な例外のリストに、<a href="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_exception_methods.htm">exceptions in the <code>System</code> namespace</a> と、<code>Exception</code> を拡張するプロジェクトの Apex クラスが表示されます。リストから例外を選択して、<strong>[Always break (常に中断)]</strong> をクリックします。</p>
+
+<p>例外ブレークポイントを表示するには、<strong>[SFDX: Configure Apex Debug Exceptions (Apex デバッグ: 例外を設定)]</strong> を実行します。リストの上部に、有効なブレークポイントのある例外クラスが示され、<code>Always break</code> と表示されます。例外ブレークポイントを削除するには、リストから例外を選択して、<strong>[Never break (中断しない)]</strong> を選択します。</p>
+
+<p>VS Code を閉じると、すべての例外ブレークポイントが削除されます(ただし、行ブレークポイントは維持されます)。</p>
+
+<h2 id="ユーザと要求種別のホワイトリスト登録">ユーザと要求種別のホワイトリスト登録</h2>
+
+<p>デバッグする要求を絞り込むには、<code>launch.json</code> ファイルを編集してホワイトリスト登録を設定します(<code>launch.json</code> ファイルは、プロジェクトの <code>.vscode</code> ディレクトリに常駐します)。ホワイトリスト登録を使用しない場合は、デバッグセッション中、組織のすべてのイベントによってデバッグがトリガされます。ユーザまたは要求種別をホワイトリストに登録すると、デバッグしている問題に関連するイベントのみに着目できます。</p>
+
+<p><code>"Launch Apex Debugger"</code> 設定に次の検索条件を追加します。</p>
+
+<pre><code class="language-json">"configurations": [
+  {
+    "name": "Launch Apex Debugger",
+    "type": "apex",
+    "request": "launch",
+    "sfdxProject": "${workspaceRoot}"
+    "userIdFilter": [],
+    "requestTypeFilter": [],
+    "entryPointFilter": ""
+  }
+]
+</code></pre>
+
+<p><code>"requestTypeFilter"</code> の要求種別候補の値をオートコンプリートするには、Ctrl+スペースキーを押します。</p>
+
+<p>エントリポイントで絞り込むには、正規表現を <code>"entryPointFilter"</code> の値として入力します。たとえば、<code>MyPage</code> Visualforce ページで作成された要求をホワイトリストに登録するには、「<code>".*/apex/MyPage.apexp"</code>」と入力します。</p>
+
+<h2 id="考慮事項">考慮事項</h2>
+
+<p>Apex デバッガを使用するときは、次の考慮事項と既知の問題に留意します。</p>
+
+<h3 id="一般的な考慮事項">一般的な考慮事項</h3>
+
+<ul>
+  <li>
+    <p>デバッグセッションの進行中に Apex クラスを編集すると、変更内容を保存した後に、ブレークポイントがデバッグの出力と一致しなくなることがあります。</p>
+  </li>
+  <li>
+    <p>デバッグセッションを停止する前に VS Code を閉じると、そのセッションが孤立します。孤立したセッションがある場合は、新しいセッションを開始できません。有効なセッションを停止するには、VS Code で、<strong>[SFDX: Stop Apex Debugger Session (SFDX: Apex デバッガセッションを停止)]</strong> を実行します。Dev Hub の Apex デバッガセッションを管理するには、[設定] の [Apex デバッガ] に移動します。</p>
+  </li>
+  <li>評価機能は使用できません。</li>
+  <li>ホットスワップは認められません。次のアクションを行うと、デバッグセッションが強制終了します。
+    <ul>
+      <li>パッケージのインストールまたはアンインストール</li>
+      <li>組織のメタデータを再コンパイルする変更の保存</li>
+    </ul>
+  </li>
+  <li>デバッグセッション中に次の項目に対する変更を保存することはできません。
+    <ul>
+      <li>Apex クラスまたはトリガ</li>
+      <li>Visualforce ページまたはコンポーネント</li>
+      <li>Lightning リソース</li>
+      <li>権限または設定</li>
+      <li>カスタム項目またはカスタムオブジェクト</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="エントリポイントに関する考慮事項">エントリポイントに関する考慮事項</h3>
+
+<p>次のエントリポイントはサポートされていません。</p>
+
+<ul>
+  <li>非同期に実行されるコード (非同期テストを含む)
+    <blockquote>
+      <p><strong>ヒント</strong>: <code>startTest</code> メソッドと <code>stopTest</code> メソッドのペアの間にあるコードは同期的に実行できます。非同期機能をデバッグするには、テスト内で次のメソッドを使用します。</p>
+    </blockquote>
+  </li>
+  <li>バッチ Apex、キュー可能 Apex、スケジュール済み Apex</li>
+  <li>受信メール</li>
+  <li><code>@future</code> アノテーションのあるコード</li>
+</ul>
+
+<h3 id="ブレークポイントに関する考慮事項">ブレークポイントに関する考慮事項</h3>
+
+<ul>
+  <li>条件付きブレークポイントを設定することはできません。</li>
+  <li><code>get</code> メソッドまたは <code>set</code> メソッドに設定されたブレークポイントは、そのメソッドのボディ内にある必要があります。</li>
+  <li>ブレークポイントを匿名実行ブロックに設定したり、匿名実行ブロックをステップ実行することはできません。ただし、匿名実行を使用してブレークポイントに達した場合は、スタック内に匿名実行フレームが表示されます。匿名実行コードの変数を表示するには、スタック内のこの行をクリックします。</li>
+</ul>
+
+<h3 id="変数に関する考慮事項">変数に関する考慮事項</h3>
+
+<ul>
+  <li>変数を監視することはできません。</li>
+  <li>Visualforce や Lightning の動的コンポーネントの変数検査はサポートされていません。</li>
+  <li>Apex ライブラリオブジェクトのインスタンス変数をドリルインすることはできません。これらのオブジェクトのコンテンツを表示するには、その <code>toString</code> メソッドを使用します。</li>
+  <li>ループ内で宣言された変数は、ループ外にも表示できます。</li>
+  <li>変数の子の値を確認するには、その変数をドリルインします。たとえば、<code>[SELECT Id, ContactId, Contact.accountId, Contact.Account.ownerId FROM Case]</code> クエリを実行すると、結果が次のようにネストされます。
+    <pre><code class="language-text">Case
+--&gt; Contact
+-----&gt; contactId
+-----&gt; Account
+--------&gt; accountId
+--------&gt; ownerId
+</code></pre>
+  </li>
+  <li>EntityDefinition テーブルから変数に SOQL クエリを実行すると、その変数を明示的に <code>SELECT</code> していなくても、結果に <code>durableId</code> が含まれます。</li>
+</ul>
+:ET

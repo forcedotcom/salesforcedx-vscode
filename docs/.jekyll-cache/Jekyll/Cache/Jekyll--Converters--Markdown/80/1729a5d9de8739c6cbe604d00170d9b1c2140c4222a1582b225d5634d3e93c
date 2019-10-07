@@ -1,0 +1,36 @@
+I"�<p>In addition to the extension pack shipped by Salesforce, the following extensions are useful for Salesforce developers.</p>
+
+<h2 id="apex-pmd">Apex PMD</h2>
+
+<p>Allows you to run Apex static analysis directly in VS Code on Apex and Visualforce files.</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd">https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd</a></p>
+
+<h2 id="prettier">Prettier</h2>
+
+<p>Keeping your code consistent and nicely formatted is important in any programming language. Prettier supports formatting for many files used by Salesforce developers, such as JavaScript and CSS files.</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode">https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode</a></p>
+
+<blockquote>
+  <p>NOTE: Unfortunately, Prettier doesn’t support Apex (a member of the community is <a href="https://github.com/dangmai/prettier-plugin-apex">working on it</a> though).</p>
+</blockquote>
+
+<h2 id="xml">XML</h2>
+
+<p>VS Code doesn’t ship with rich XML tools by default. This extension, built by Red Hat, provides language support for for XML documents such as the <code>-meta.xml</code> or <code>package.xml</code> files in your VS Code project.</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml">https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml</a></p>
+
+<h2 id="github-pull-requests">GitHub Pull Requests</h2>
+
+<p>This extension makes working with GitHub even easier.</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github">https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github</a></p>
+
+<h2 id="gitlens">GitLens</h2>
+
+<p>Supercharge the Git capabilities built into VS Code: Visualize code authorship at a glance via Git blame annotations and code lenses, navigate and explore Git repositories, gain valuable insights via powerful comparison commands, and more.</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens">https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens</a></p>
+:ET

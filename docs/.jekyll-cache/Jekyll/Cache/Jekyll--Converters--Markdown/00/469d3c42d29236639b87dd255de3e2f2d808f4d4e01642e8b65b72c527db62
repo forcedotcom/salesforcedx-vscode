@@ -1,0 +1,52 @@
+I"�<p>VS Code 向け Salesforce 拡張機能からコマンドを実行するには、Ctrl+Shift+P キー (Windows、Linux) または Cmd+Shift+P キー (macOS) を押し、コマンドパレットに<strong>「SFDX」</strong>と入力します。<br />
+<img src="../../images/sfdx_commands.png" alt="コマンドパレット。SFDX コマンドを表示するように絞り込まれています。" /></p>
+
+<p>コマンドの実行が (成功、失敗、キャンセルにより) 終了すると、ウィンドウの上部に通知が表示されます。<br />
+<img src="../../images/command_success_notification.png" alt="ソースがスクラッチ組織に正常にプッシュされたことを伝える通知" /></p>
+
+<p>実行したコマンドの出力を確認するには、<strong>[View (表示)]</strong> &gt; <strong>[Output (出力)]</strong> を選択して、ドロップダウンメニューから <strong>[Salesforce CLI]</strong> を選択します。または、完了通知の <strong>[Show (表示)]</strong> をクリックします。<br />
+<img src="../../images/output_view.png" alt="[Output (出力)] ビュー。Apex テスト実行の結果が表示されています。" /></p>
+
+<h2 id="使用可能なコマンド">使用可能なコマンド</h2>
+
+<p>VS Code 向け Salesforce 拡張機能では、以下の Salesforce CLI コマンドを使用できます。</p>
+
+<ul>
+  <li><code>force:alias:list</code>: <strong>SFDX: List All Aliases (SFDX: すべてのエイリアスをリスト)</strong></li>
+  <li><code>force:apex:class:create ...</code>: <strong>SFDX: Create Apex Class (SFDX: Apex クラスを作成)</strong></li>
+  <li><code>force:apex:execute</code>: <strong>SFDX: Execute Anonymous Apex with Currently Selected Text (SFDX: 現在選択されているテキストを使用して匿名 Apex を実行)</strong></li>
+  <li><code>force:apex:execute --apexcodefile</code>: <strong>SFDX: Execute Anonymous Apex with Editor Contents (SFDX: エディタのコンテンツを使用して匿名 Apex を実行)</strong></li>
+  <li><code>force:apex:log:get ...</code>: <strong>SFDX: Get Apex Debug Logs… (SFDX: Apex デバッグログを取得…)</strong></li>
+  <li><code>force:apex:test:run --resultformat human ...</code>: <strong>SFDX: Invoke Apex Tests… (SFDX: Apex テストを呼び出し…)</strong></li>
+  <li><code>force:apex:trigger:create ...</code>: <strong>SFDX: Create Apex Trigger (SFDX: Apex トリガを作成)</strong></li>
+  <li><code>force:auth:logout --all --noprompt</code>: <strong>SFDX: Log Out from All Authorized Orgs (SFDX: 承認済みのすべての組織からログアウト)</strong></li>
+  <li><code>force:auth:web:login --setdefaultdevhubusername</code>: <strong>SFDX: Authorize a Dev Hub (SFDX: Dev Hub を承認)</strong></li>
+  <li><code>force:config:list</code>: <strong>SFDX: List All Config Variables (SFDX: すべての設定変数をリスト)</strong></li>
+  <li><code>force:data:soql:query</code>: <strong>SFDX: Execute SOQL Query with Currently Selected Text (SFDX: 現在選択されているテキストを使用して SOQL クエリを実行)</strong></li>
+  <li><code>force:data:soql:query ...</code>: <strong>SFDX: Execute SOQL Query… (SFDX: SOQL クエリを実行…)</strong></li>
+  <li><code>force:lightning:app:create ...</code>: <strong>SFDX: Create Lightning App (SFDX: Lightning アプリケーションを作成)</strong></li>
+  <li><code>force:lightning:component:create ...</code>: <strong>SFDX: Create Lightning Component (SFDX: Lightning コンポーネントを作成)</strong></li>
+  <li><code>force:lightning:event:create ...</code>: <strong>SFDX: Create Lightning Event (SFDX: Lightning イベントを作成)</strong></li>
+  <li><code>force:lightning:interface:create ...</code>: <strong>SFDX: Create Lightning Interface (SFDX: Lightning インターフェースを作成)</strong></li>
+  <li><code>force:org:create --setdefaultusername ...</code>: <strong>SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)</strong></li>
+  <li><code>force:org:display</code>: <strong>SFDX: Display Org Details for Default Scratch Org (SFDX: デフォルトのスクラッチ組織の詳細を表示)</strong></li>
+  <li><code>force:org:display --targetusername ...</code>: <strong>SFDX: Display Org Details… (SFDX: 組織の詳細を表示…)</strong></li>
+  <li><code>force:org:open</code>: <strong>SFDX: Open Default Org (SFDX: デフォルト組織を開く)</strong></li>
+  <li><code>force:project:create --template standard ...</code>: <strong>SFDX: Create Project (SFDX: プロジェクトを作成)</strong></li>
+  <li><code>force:project:create --template standard --manifest ...</code>: <strong>SFDX: Create Project with Manifest (SFDX: マニフェストを使用してプロジェクトを作成)</strong></li>
+  <li><code>force:source:delete</code>: <strong>SFDX: Delete from Project and Org (SFDX: プロジェクトおよび組織から削除)</strong> (ベータ)</li>
+  <li><code>force:source:deploy</code>: <strong>SFDX: Deploy Source to Org (SFDX: 組織にソースをリリース)</strong> (ベータ)</li>
+  <li><code>force:source:deploy --manifest ...</code>: <strong>SFDX: Deploy Source in Manifest to Org (SFDX: 組織にマニフェストのソースをリリース)</strong> (ベータ)</li>
+  <li><code>force:source:pull</code>: <strong>SFDX: Pull Source from Default Scratch Org (SFDX: デフォルトのスクラッチ組織からソースをプル)</strong></li>
+  <li><code>force:source:pull --forceoverwrite</code>: <strong>SFDX: Pull Source from Default Scratch Org and Override Conflicts (SFDX: ソースをデフォルトのスクラッチ組織からプルして競合を上書き)</strong></li>
+  <li><code>force:source:push</code>: <strong>SFDX: Push Source to Default Scratch Org (SFDX: ソースをデフォルトのスクラッチ組織にプッシュ)</strong></li>
+  <li><code>force:source:push --forceoverwrite</code>: <strong>SFDX: Push Source to Default Scratch Org and Override Conflicts (SFDX: ソースをデフォルトのスクラッチ組織にプッシュして競合を上書き)</strong></li>
+  <li><code>force:source:retrieve</code>: <strong>SFDX: Retrieve Source from Org (SFDX: 組織からソースを取得)</strong> (ベータ)</li>
+  <li><code>force:source:retrieve --manifest ...</code>: <strong>SFDX: Retrieve Source in Manifest from Org (SFDX: 組織からマニフェストのソースを取得)</strong> (ベータ)</li>
+  <li><code>force:source:status</code>: <strong>SFDX: View All Changes (Local and in Default Scratch Org) (SFDX: すべての変更を表示 (ローカルとデフォルトのスクラッチ組織内))</strong></li>
+  <li><code>force:source:status --local</code>: <strong>SFDX: View Local Changes (SFDX: ローカルの変更を表示)</strong></li>
+  <li><code>force:source:status --remote</code>: <strong>SFDX: View Changes in Default Scratch Org (SFDX: デフォルトのスクラッチ組織の変更を表示)</strong></li>
+  <li><code>force:visualforce:component:create ...</code>: <strong>SFDX: Create Visualforce Component (SFDX: Visualforce コンポーネントを作成)</strong></li>
+  <li><code>force:visualforce:page:create ...</code>: <strong>SFDX: Create Visualforce Page (SFDX: Visualforce ページを作成)</strong></li>
+</ul>
+:ET

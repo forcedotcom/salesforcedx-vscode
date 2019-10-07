@@ -1,0 +1,6 @@
+I"<p>If you’re setting up a machine to use for demos at a conference (or for other public use), set up demo mode. When in demo mode, VS Code warns users who authorize business or production orgs of the potential security risks of using these orgs on shared machines.</p>
+
+<p>To activate demo mode, add an environment variable called <code>SFDX_ENV</code> and set its value to <code>DEMO</code>: <code>SFDX_ENV=DEMO</code>.</p>
+
+<p>When you’re done with your event, run <strong>SFDX: Log Out from All Authorized Orgs</strong>.</p>
+:ET

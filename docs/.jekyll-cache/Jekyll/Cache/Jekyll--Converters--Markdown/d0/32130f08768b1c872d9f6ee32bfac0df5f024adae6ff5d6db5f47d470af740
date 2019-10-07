@@ -1,0 +1,6 @@
+I"<p>ワークスペース設定を編集するには、<strong>[File (ファイル)]</strong> &gt; <strong>[Preferences (基本設定)]</strong> &gt; <strong>[Settings (設定)]</strong> (Windows、Linux) または <strong>[Code (コード)]</strong> &gt; <strong>[Preferences (基本設定)]</strong> &gt; <strong>[Settings (設定)]</strong> (macOS) を選択します。各自の設定についての詳細は、『Visual Studio Code Docs』の<a href="https://code.visualstudio.com/docs/getstarted/settings">「User and Workspace Settings (ユーザとワークスペースの設定)」</a>を参照してください。</p>
+
+<p>Salesforce CLI の成功メッセージがポップアップ情報メッセージとして表示されないようにするには、成功メッセージの <strong>[Show Only in Status Bar (ステータスバーのみに表示)]</strong> をクリックします。このボタンはデフォルト設定の <code>salesforcedx-vscode-core.show-cli-success-msg</code> の値を上書きします。また、ワークスペース設定の値を <code>false</code> に変更します。この値を <code>false</code> に設定すると、成功メッセージが、情報メッセージとしてではなく、(VS Code のフッターの) ステータスバーに表示されます。情報メッセージに戻したいと思ったときは、値を <code>true</code> に変更し直します。</p>
+
+<p>この機能パックの他の設定を確認するには、<code>salesforcedx-vscode</code> の設定を検索します。</p>
+:ET

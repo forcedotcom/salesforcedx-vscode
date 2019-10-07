@@ -1,0 +1,71 @@
+I"S<h2 id="vs-code-拡張機能を開発タスク別に整理">VS Code 拡張機能を開発タスク別に整理</h2>
+
+<p>VS Code 拡張機能を開発タスク別に整理しておくと、現在取り組んでいるタスクには必要のない拡張機能をしまっておくことができます。必要な拡張機能だけがあれば、VS Code の起動時間が短縮され、ショートカットキーが干渉し合うこともありません。Salesforce と連携する拡張機能のみが起動するように VS Code を設定する手順は、次のとおりです。</p>
+
+<ol>
+  <li>
+    <p>シェルの起動スクリプトに <code>code-sfdx</code> エイリアスを追加します。</p>
+
+    <ul>
+      <li>
+        <p>Windows</p>
+
+        <ol>
+          <li>VS Code をインストールするときに、<code>code</code> をプロンプトの一部としてインストールします。詳細は、『Visual Studio Code Docs』の<a href="https://code.visualstudio.com/docs/setup/windows#_installation">「Visual Studio Code on Windows (Windows の Visual Studio Code)」</a>を参照してください。</li>
+          <li>Git Bash を開きます(Git Bash は Salesforce CLI の一部としてインストールされています)。</li>
+          <li>.bashrc ファイルがあるかどうかを確認します。ない場合は、次のコマンドを実行して作成します。<br />
+<code>touch .bashrc</code></li>
+          <li>.bashrc ファイルに次の行を追加します。<br />
+<code>alias code-sfdx='code --extensions-dir ~/.sfdx-code'</code></li>
+        </ol>
+      </li>
+      <li>
+        <p>macOS または Linux</p>
+
+        <ol>
+          <li>VS Code を開きます。</li>
+          <li>コマンドパレットを開くには、Cmd+Shift+P キー (macOS) または Ctrl+Shift+P キー (Linux) を押します。</li>
+          <li>
+            <p><strong>[Shell command: Install ‘code’ command in PATH (シェルコマンド: PATH で ‘code’ コマンドを実行)]</strong> コマンドを実行します。
+<img src="../../images/invoke_shell_command.png" alt="コマンドパレットから [Shell command: Install 'code' command in PATH (シェルコマンド: PATH で 'code' コマンドを実行)] を選択" /></p>
+
+            <pre><code>  このコマンドで、任意のターミナルから直接 `code` を起動できます。
+</code></pre>
+          </li>
+          <li>
+            <p>任意のターミナルで、シェルの起動スクリプトを開きます。</p>
+
+            <p>Bash を使用している場合、起動スクリプトは通常 <code>.bashrc</code> または <code>.bash_profile</code> ファイルです。Z Shell を使用している場合は、通常 <code>.zshrc</code> ファイルです。上記の名前のファイルがない場合は、ホームディレクトリ (<code>Macintosh HD/users/yourName</code> など) で <code>.bashrc</code> というファイルを作成します。</p>
+          </li>
+          <li>シェルの起動スクリプトに次の行を追加します。<br />
+<code>alias code-sfdx='code --extensions-dir ~/.sfdx-code'</code></li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>新しいターミナルウィンドウを開くか、現在のターミナルから次のいずれかのコマンドを実行します。<br />
+<code>source .bashrc</code><br />
+<code>source .bash_profile</code><br />
+<code>source .zshrc</code></p>
+  </li>
+  <li>
+    <p>ターミナルから、<code>code-sfdx</code> を実行して、各自の拡張機能のみを含める VS Code のインスタンスを起動します。</p>
+
+    <blockquote>
+      <p>注意: <code>code-sfdx</code> を初めて起動するときは、VS Code の真新しいインスタンスのため、拡張機能が 1 つもありません。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p><strong>[View (表示)]</strong> &gt; <strong>[Extensions (拡張機能)]</strong> を選択します。</p>
+  </li>
+  <li>
+    <p><a href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Salesforce Extension Pack</a> 拡張機能 (と Salesforce の開発に使用する<a href="recommended-extensions">他の拡張機能</a>) をインストールします。</p>
+  </li>
+  <li>
+    <p>次回 Salesforce DX プロジェクトで作業するときに、<code>code-sfdx</code> を使用して、拡張機能が揃った VS Code を起動できます。</p>
+  </li>
+</ol>
+
+<p>エイリアスはいくつでも追加でき、<code>extensions-dir</code> ディレクトリも拡張機能を整理するために必要なだけ設定できます。</p>
+:ET

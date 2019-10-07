@@ -1,0 +1,251 @@
+I"tF<h2 id="overview">Overview</h2>
+
+<p>Salesforce Extensions for VS Code supports Org Development and Package Development models to authorize, create and switch orgs in your project:</p>
+
+<ul>
+  <li><strong>Org Development Model</strong>: Allows you work with orgs that don’t have source tracking, such as sandbox, Developer Edition (DE) org, Trailhead Playground, or even a production org to retrieve and deploy code directly.</li>
+  <li><strong>Package Development Model</strong>: Allows you to create self-contained applications or libraries that are deployed to your org as a single package. These packages are typically developed against source-tracked orgs such as scratch orgs. This development model uses org source tracking, source control, and continuous integration and deployment.</li>
+</ul>
+
+<p>Salesforce Extensions for VS Code runs commands against the org that you’ve set as your default org for development.</p>
+
+<h2 id="org-development-model">Org Development Model</h2>
+
+<p>Use the Org development model work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in Visual Studio Code. With this development model, you must track changes manually and deploy sets of changes to sandboxes and then to your production org. See the <a href="https://trailhead.salesforce.com/content/learn/modules/org-development-model">Org Development Model</a> Trailhead module.</p>
+
+<p><img src="../../images/changeset-demo.gif" alt="Demo" /></p>
+
+<p>To start developing with this model:</p>
+
+<ul>
+  <li>Create a project and use manifest or Org Browser to retrieve and deploy source.</li>
+  <li>Use the Org Picker to authorize an org you want develop against.</li>
+  <li>Retrieve Source from the default org.</li>
+  <li>Deploy Source to the default org.</li>
+</ul>
+
+<h2 id="create-project-with-manifest">Create Project with Manifest</h2>
+
+<p>To create developing against non-source-tracked orgs:</p>
+
+<ol>
+  <li>Open the VS Code editor and from the Command Palette, run <strong>SFDX: Create Project with Manifest</strong>.</li>
+</ol>
+
+<p><img src="../../images/create-project-with-manifest.png" alt="Create project" /></p>
+
+<ol>
+  <li>In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select the command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.</li>
+</ol>
+
+<p>If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows No Default Org Set.</p>
+
+<ol>
+  <li>Run <strong>SFDX: Authorize an Org</strong> and select a login URL, for example Sandbox.</li>
+</ol>
+
+<p><img src="../../images/authorize-org-command.png" alt="Authorize an Org" /></p>
+
+<p>After you provide an org alias, a browser window opens. Allow access, log in to your org, and then return to the VS Code window. The Org Picker now shows the alias provided while authorizing the org.</p>
+
+<p><img src="../../images/org-picker.png" alt="Org Picker" /></p>
+
+<h3 id="the-manifest-packagexml-file">The Manifest (<code>package.xml</code>) File</h3>
+
+<p>After connecting to a sandbox, DE org, or Trailhead Playground, use the package.xml file to retrieve the metadata from your org. When you run SFDX: Create Project with Manifest command, a package.xml file is created. Add the various metadata types you want to retrieve to this file. To understand how to work with different subsets of metadata in <code>package.xml</code> file, see <a href="https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm">Sample package.xml Manifest Files</a> in the <em>Metadata API Developer Guide</em>.</p>
+
+<h3 id="retrieve-source">Retrieve Source</h3>
+
+<p>Org development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve.</p>
+
+<blockquote>
+  <p>Note: Retrieving source from an org overwrites the local versions of the source files.</p>
+</blockquote>
+
+<p><img src="../../images/retrieve-source-from-org.png" alt="Retrieve source from org" /></p>
+
+<p>You can retrieve source for a manifest, a source file, a directory, or a folder:</p>
+
+<ul>
+  <li>Manifest
+    <ul>
+      <li>In VS Code explorer or editor, right-click a manifest file and select <strong>SFDX: Retrieve Source in Manifest from Org</strong>.</li>
+      <li>With a manifest file open in the editor, open the Command Palette and run <strong>SFDX: Retrieve Source in Manifest from Org</strong>.</li>
+    </ul>
+  </li>
+  <li>Source File or Directory
+    <ul>
+      <li>In VS Code explorer, right-click a source file or a directory and select <strong>SFDX: Retrieve Source from Org</strong>.</li>
+      <li>With a source file open in the editor, right-click in the editing pane and select <strong>SFDX: Retrieve This Source from Org</strong>.</li>
+      <li>With a source file open in the editor, open the Command Palette and run <strong>SFDX: Retrieve This Source from Org</strong>.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>When you select an item to retrieve source, only the existing nested items in the directory structure are retrieved. For example, if you retrieve source for the <code>classes</code> folder, the Apex classes that <strong>currently exist in that directory</strong> are retrieved. The command doesn’t retrieve all the Apex classes in the org; it only updates the classes that already exist in the folder. If you want to retrieve a new Apex class, add that class (or all Apex classes) to a <code>package.xml</code> file and retrieve source using the manifest file. You could also use a terminal to run <code>sfdx force:source:retrieve --metadata ApexClass:YourApexClass</code>.</p>
+
+<p>The project structure after you retrieve source:</p>
+
+<pre><code class="language-text">your-app
+├── README.md
+├── sfdx-project.json
+├── .sfdx
+├── .vscode
+│   ├── extensions.json
+│   └── settings.json
+├── force-app
+|   └── main
+|       └── default
+|           ├── aura
+|           ├── classes
+|           └── objects
+└── manifest
+    └── package.xml
+</code></pre>
+
+<h3 id="deploy-source">Deploy Source</h3>
+
+<p>When you deploy the code changes, he local version of the source files overwrites the metadata in your org.</p>
+
+<p><img src="../../images/deploy-source-to-org.png" alt="Deploy source to org" /></p>
+
+<p>You can deploy source of a manifest, a source file, a directory, or a folder:</p>
+
+<ul>
+  <li>Manifest
+    <ul>
+      <li>In VS Code explorer or editor, right-click a manifest file and select <strong>SFDX: Deploy Source in Manifest in Org</strong>.</li>
+      <li>With a manifest file open in the editor, open the Command Palette and run <strong>SFDX: Deploy Source in Manifest in Org</strong>.</li>
+    </ul>
+  </li>
+  <li>Source File or Directory</li>
+  <li>In VS Code explorer, right-click a source file or a directory and select <strong>SFDX: Deploy Source to Org</strong>.</li>
+  <li>With a source file open in the editor, right-click in the editing pane and select <strong>SFDX: Deploy This Source File to Org</strong>.</li>
+  <li>With a source file open in the editor, open the command palette and run <strong>SFDX: Deploy This Source File to Org</strong>.</li>
+</ul>
+
+<h3 id="delete-source">Delete Source</h3>
+
+<p>You can delete source from your project and from your non-source-tracked org.</p>
+
+<ul>
+  <li>In the VS Code explorer, right-click a manifest, a source file, or a directory and select <strong>SFDX: Delete from Project and Org</strong>.</li>
+  <li>With a source file open in the editor, right-click the file and select <strong>SFDX: Delete This from Project and Org</strong>.</li>
+  <li>With a source file open in the editor, open the Command Palette and run <strong>SFDX: Delete from Project and Org</strong>.</li>
+</ul>
+
+<h2 id="create-project-and-use-org-browser">Create Project and Use Org Browser</h2>
+
+<p>To develop in non-scratch orgs and use Org Browser that displays the available metadata types and their corresponding components in your default org:</p>
+
+<ol>
+  <li>Open the VS Code editor and from the Command Palette, run <strong>SFDX: Create Project</strong>.</li>
+  <li>In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select a command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.</li>
+  <li>Run <strong>SFDX: Authorize an Org</strong> and select a login URL, for example Sandbox. Log in to your org in the browser window and then return to the VS Code window.</li>
+</ol>
+
+<h3 id="org-browser">Org Browser</h3>
+
+<p>You can use the Org Browser to retrieve the metadata only from non-scratch orgs such as sandboxes or dev orgs. Org Browser saves the metadata of the default org in your local project under the .sfdx directory. See <a href="../user-guide/org-browser">Org Browser</a>.</p>
+
+<h3 id="retrieve-source-1">Retrieve Source</h3>
+
+<p>You can retrieve a component or multiple components to your local project from the default org. To do so, click the retrieve button next to the component or the metadata type.</p>
+
+<p>You can also refresh metadata at org level, for a type, for folders in a type, and for components in a folder by clicking the refresh icon. Before refreshing the metadata, you can compare the differences between your local project and the metadata in your org. See <a href="../user-guide/source-diff">Source Diff</a>.</p>
+
+<h3 id="deploy-source-1">Deploy Source</h3>
+
+<p>After you have made the code changes you can deploy source for a source file, a directory, or a folder.</p>
+
+<ul>
+  <li>In VS Code explorer, right-click a source file or a directory and select <strong>SFDX: Deploy Source to Org</strong>.</li>
+  <li>With a source file open in the editor, right-click in the editing pane and select <strong>SFDX: Deploy This Source File to Org</strong>.</li>
+  <li>With a source file open in the editor, open the command palette and run <strong>SFDX: Deploy This Source File to Org</strong>.</li>
+</ul>
+
+<blockquote>
+  <p>Note: To deploy files whenever you save them, select the workspace setting Push-or-deploy-on-save: Enabled. See <a href="../user-guide-deploy-on-save">Deploy On Save</a>.</p>
+</blockquote>
+
+<h2 id="package-development-model">Package Development Model</h2>
+
+<p>Use package development model for developing against orgs with source tracking such as scratch orgs. This model tracks the changes you make on your local workstation and in your default development org. Use packaged sets of metadata to move changes between orgs. See the <a href="https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model">Package Development Model</a> Trailhead module.</p>
+
+<h2 id="create-project">Create Project</h2>
+
+<p>To start developing with this model:</p>
+
+<ol>
+  <li>Open the VS Code editor and from the Command Palette, run <strong>SFDX: Create Project</strong>.
+If you want to work on an existing project, choose <strong>File</strong> &gt; <strong>Open</strong> and navigate to the project directory. Before you open an existing project in VS Code, make sure that your project has a <code>sfdx-project.json</code> file and that metadata is in source format.
+    <ul>
+      <li>For information on the project structure, see Project Setup (https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the <em>Salesforce DX Developer Guide</em>.</li>
+      <li>You can work with source-tracked orgs only if your metadata is in source format. See Source Format (../user-guide/source-format).</li>
+    </ul>
+  </li>
+  <li>In the Side Bar of the code editor, click Org Picker and this opens the Command Palette.</li>
+  <li>Run <strong>SFDX: Authorize an Org</strong>. If you don’t have a Dev Hub, see <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm">Enable Dev Hub in Your Org</a> in the <em>Salesforce DX Setup Guide</em>.</li>
+  <li>Click Org Picker and run <strong>SFDX: Create a Default Scratch Org</strong> to create and set a scratch org as your default org for development.</li>
+  <li>Select the scratch org shape, enter an alias, and enter the duration when the scratch org expires. The Org Picker now shows the alias provided for the scratch org. You can click the browser icon (<svg class="octicon octicon-browser" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5 3h1v1H5V3zM3 3h1v1H3V3zM1 3h1v1H1V3zm12 10H1V5h12v8zm0-9H7V3h6v1zm1-1c0-.55-.45-1-1-1H1c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1V3z"></path></svg>) in the Side Bar to open the default org you are working against.
+To change the default org you’re developing against, click the Org Picker and select a different org. Or, open the Command Palette and run <strong>SFDX: Authorize an Org</strong> or <strong>SFDX: Create a Default Scratch Org</strong>.</li>
+</ol>
+
+<h3 id="push-and-pull-source">Push and Pull Source</h3>
+
+<p>When you use the package development model, it’s simple to keep your local project and default development org in sync. Because you deploy your changes to other orgs using packaged sets of metadata, there’s no need to manually track your changes.
+VS Code is context aware that you are working in a scratch org and provides only push and pull commands, not commands to retrieve and deploy source.</p>
+
+<h4 id="push-source">Push Source</h4>
+
+<p>To push your source to the new scratch org or changes you made, run <strong>SFDX: Push Source to Default Scratch Org</strong>.</p>
+
+<p>If you want the changes in the project to overwrite changes in the scratch org, run <strong>SFDX: Push Source to Default Scratch Org and Override Conflicts</strong>.</p>
+
+<h4 id="pull-source">Pull Source</h4>
+
+<p>After you make changes in your browser, run <strong>SFDX: Pull Source from Default Scratch Org</strong> to update your project.</p>
+
+<p>If you want the changes in the scratch org to overwrite changes in the project, run <strong>SFDX: Pull Source from Default Scratch Org and Override Conflicts</strong>.</p>
+
+<h4 id="view-changes">View Changes</h4>
+
+<p>Before you push local changes to the scratch org or pull remote changes to the local project, you can see the changes in the Output panel. To do so, run <strong>SFDX: View Changes in Default Scratch Org</strong> from the Command Palette.</p>
+
+<h2 id="salesforce-cli-commands">Salesforce CLI Commands</h2>
+
+<p>Read on to learn about the CLI commands that Salesforce Extension for VS Code uses under the hood:</p>
+
+<ul>
+  <li><strong>SFDX: Create Project</strong>
+    <ul>
+      <li>runs <code>force:project:create</code></li>
+      <li>runs <code>force:project:create --template standard --manifest</code> if you are creating a project with manifest.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Authorize an Org</strong>
+    <ul>
+      <li>runs <code>force:auth:web:login --setdefaultdevhubusername</code> and sets the authenticated org as the default Dev Hub org for scratch org creation.</li>
+      <li>runs <code>force:auth:device:login --setdefaultdevhubusername</code> if you are in remote development environment.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create a Default Scratch Org</strong> runs <code>force:org:create --setdefaultusername</code> and sets the created org as the default username.</li>
+  <li><strong>SFDX: Retrieve Source in Manifest from Org</strong> runs <code>force:source:retrieve --manifest</code> where manifest parameter specifies file path of the components to retrieve.</li>
+  <li><strong>SFDX: Retrieve Source from Org</strong> runs <code>force:source:retrieve</code></li>
+  <li><strong>SFDX: Retrieve This Source from Org</strong> runs <code>force:source:retrieve --sourcepath</code> and retrieves source from the org for the specified source file.</li>
+  <li><strong>SFDX: Deploy Source in Manifest in Org</strong> runs <code>force:source:deploy --manifest</code> where manifest parameter specifies the complete file path of the components to deploy.</li>
+  <li><strong>SFDX: Deploy Source to Org</strong> runs <code>force:source:deploy</code>.</li>
+  <li><strong>SFDX: Deploy This Source File to Org</strong> runs <code>force:source:deploy --sourcepath</code> and deploys source to the specified local source file.</li>
+  <li><strong>SFDX: Delete from Project and Org</strong> runs <code>force:source:delete</code>.</li>
+  <li><strong>SFDX: Delete This from Project and Org</strong> runs <code>force:source:delete --sourcepath</code> and deletes source for the specified file.</li>
+  <li><strong>SFDX: Push Source to Default Scratch Org</strong> runs <code>force:source:push</code>.</li>
+  <li><strong>SFDX: Push Source to Default Scratch Org and Override Conflicts</strong> runs <code>force:source:push --forceoverwrite</code> even if conflicts exist and changes in the project overwrite changes in the scratch org.</li>
+  <li><strong>SFDX: Pull Source from Default Scratch Org</strong> runs <code>force:source:pull</code>.</li>
+  <li><strong>SFDX: Pull Source from Default Scratch Org and Override Conflicts</strong> runs <code>force:source:pull --forceoverwrite</code> even if conflicts exist and changes in the scratch org overwrite changes in the project.</li>
+  <li><strong>SFDX: View All Changes</strong> runs <code>force:source:status</code> and lists local changes as well as changes in the default scratch org.</li>
+  <li><strong>SFDX: View Local Changes</strong> runs <code>force:source:status --local</code>.</li>
+  <li><strong>SFDX: View Changes in Default Scratch Org</strong> runs <code>force:source:status --remote</code>.</li>
+</ul>
+
+<p>If you think it would be helpful to know more about Salesforce CLI commands and their parameters, see the <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm">Salesforce CLI Command Reference</a>.</p>
+:ET

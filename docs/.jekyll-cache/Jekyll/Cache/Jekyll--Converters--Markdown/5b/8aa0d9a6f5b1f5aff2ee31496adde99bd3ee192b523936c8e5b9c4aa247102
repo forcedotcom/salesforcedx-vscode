@@ -1,0 +1,25 @@
+I"<h2 id="why-do-you-collect-data">Why do you collect data?</h2>
+
+<p>Salesforce collects usage data and metrics to help us improve Salesforce Extensions for VS Code.</p>
+
+<h2 id="what-data-is-collected">What data is collected?</h2>
+
+<p>Salesforce collects anonymous information related to the usage of the extensions, such as which commands were run, as well as performance and error data.</p>
+
+<h2 id="how-do-i-disable-telemetry-reporting">How do I disable telemetry reporting?</h2>
+
+<p>If you don’t wish to send usage data to Salesforce, you can set the <code>salesforcedx-vscode-core.telemetry.enabled</code> setting to <code>false</code>.</p>
+
+<p>On Windows or Linux, select <strong>File</strong> &gt; <strong>Preferences</strong> &gt; <strong>Settings</strong>. On macOS, select <strong>Code</strong> &gt; <strong>Preferences</strong> &gt; <strong>Settings</strong>. Then, to silence all telemetry events from the VS Code shell and disable telemetry reporting, add the following option.</p>
+
+<pre><code class="language-json">"salesforcedx-vscode-core.telemetry.enabled": false
+</code></pre>
+
+<blockquote>
+  <p>IMPORTANT: This option requires a restart of VS Code to take effect.</p>
+</blockquote>
+
+<blockquote>
+  <p>NOTE: We also respect the global telemetry setting <code>telemetry.enableTelemetry</code>; if that is set to <code>false</code>, Salesforce telemetry is disabled. For more information see <a href="https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting">Microsoft’s documentation</a>.</p>
+</blockquote>
+:ET

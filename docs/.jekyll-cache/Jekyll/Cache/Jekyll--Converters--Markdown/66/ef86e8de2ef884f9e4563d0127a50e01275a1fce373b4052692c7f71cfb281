@@ -1,0 +1,150 @@
+I"�,<p>どの組織でも Force.com IDE の使い慣れたワークフローに従って開発することができます。このトピックでは、既存のプロジェクトを Force.com IDE から VS Code に移行する 2 通りの手順について説明します。</p>
+
+<blockquote>
+  <p>注意: このトピックで取り上げる機能はベータ版です。バグを見つけた場合やフィードバックがある場合は、<a href="../bugs-and-feedback">GitHub の問題を登録</a>してください。</p>
+</blockquote>
+
+<h2 id="移行が必要な理由">移行が必要な理由</h2>
+
+<p>移行を始める前に、Force.com IDE プロジェクトと VS Code プロジェクトの構造上の違いを理解しておくことが大切です。開発者に影響を及ぼす主な違いとして、Salesforce DX プロジェクトファイルとローカルソースの形式の 2 つが挙げられます。</p>
+
+<h3 id="1-プロジェクトファイル">1. プロジェクトファイル</h3>
+
+<p>VS Code のどの Salesforce プロジェクトにも <code>sfdx-project.json</code> ファイルが必要です。このファイルは、作業する組織の種別 (本番、Sandbox など) や、ソースコードがローカルワークステーションのどこに保存されるかなど、プロジェクトレベルの各種オプションを指定します。<code>sfdx-project.json</code> ファイルについての詳細は、『Salesforce DX 開発者ガイド』の<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm">「Salesforce DX プロジェクトの設定」</a>を参照してください。</p>
+
+<h3 id="2-ソース形式">2. ソース形式</h3>
+
+<p>Salesforce プロジェクトは、ローカルメタデータに<a href="../user-guide/source-format">ソース形式</a>という新しい形式とディレクトリ構造を使用します。ソース形式は、バージョン管理しやすいように最適化されています。この特長は、複数のディレクトリやファイルに拡張するオブジェクトと、静的リソースを直接操作できることです。ただし、新たな形式になるため、VS Code で既存のプロジェクトを開いて、すぐ機能させることはできません。新しい形式に変換する必要があります。</p>
+
+<h2 id="使用する移行プロセスの決定">使用する移行プロセスの決定</h2>
+
+<p>Force.com IDE から VS Code への移行には 2 通りの実行方法があります。1 つ目の一番シンプルな方法は、既存の <code>package.xml</code> ファイルを使用して、新しいプロジェクトをゼロから作成することです。次の条件に該当する場合は、この手法が推奨されます。</p>
+
+<ol>
+  <li>プロジェクトが比較的小規模である (何千ものファイルがあるわけではない)。</li>
+  <li>すべてのコードがすでに組織に保存されている。</li>
+  <li>バージョン管理を使用しない (または、ソース履歴が失われても構わない)。</li>
+</ol>
+
+<p>2 つ目の方法は、既存のプロジェクトを変換するもので、より複雑です。ただし、比較的大きなプロジェクトで使用でき、バージョン管理履歴を維持できます。</p>
+
+<h2 id="マニフェスト-packagexml-ファイルを使用した移行-簡便">マニフェスト (<code>package.xml</code>) ファイルを使用した移行 (簡便)</h2>
+
+<p>Force.com IDE プロジェクトにすでに <code>package.xml</code> ファイルがある場合は、そのプロジェクトをわずか数ステップで新しい VS Code プロジェクトに簡単に移行できます。始める前に、マシンが <a href="../getting-started/install">VS Code を使用した Salesforce 開発</a>に適した設定になっていることを確認します。</p>
+
+<ol>
+  <li>
+    <p>VS Code を開いて、プロジェクトを作成します。VS Code の開始画面から、Ctrl+Shift+P キー (Windows、Linux) または Cmd+Shift+P キー (macOS) を押して、コマンドパレットを表示します。project-creation コマンドを検索するには、「<code>SFDX: Create Project with Manifest</code>」と入力していきます。このコマンドを選択して Enter キーを押します。</p>
+
+    <p><img src="../../create-project-with-manifest.png" alt="マニフェストを使用したプロジェクトの作成" /></p>
+  </li>
+  <li>プロジェクトの場所を選択して、<code>Create Project</code> をクリックします。</li>
+  <li>次に、Force.com IDE プロジェクトで使用した <code>package.xml</code> ファイルの内容をコピーします。</li>
+  <li>VS Code で、<code>manifest</code> ディレクトリを展開して、<code>package.xml</code> ファイルを開きます。</li>
+  <li><code>package.xml</code> ファイルの内容を、Force.com IDE プロジェクトのファイルからコピーした内容に置換します。</li>
+  <li>
+    <p>次に、組織を承認します。コマンドパレット (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キー) を使用して、<strong>[SFDX: Authorize an Org (SFDX: 組織を承認)]</strong> コマンドを選択します。このコマンドによって Salesforce ログインページが開きます。ログインして、プロンプトを受け入れます。</p>
+
+    <blockquote>
+      <p>注意: 通常 Sandbox 組織に接続している場合は、組織を承認する前に <code>sfdx-project.json</code> ファイルを編集して <code>sfdcLoginUrl</code> を <code>https://test.salesforce.com</code> に設定します。</p>
+    </blockquote>
+  </li>
+  <li>ブラウザタブを閉じて VS Code に戻ります。</li>
+  <li>VS Code エディタで、<code>package.xml</code> ファイル内を右クリックし、<strong>[SFDX: Retrieve Source in Manifest from Org (SFDX: 組織からマニフェストのソースを取得)]</strong> を選択します。</li>
+  <li>ソースが <code>sfdx-project.json</code> ファイルで指定したディレクトリにダウンロードされます。デフォルトは <code>force-app/main/default</code> です。</li>
+</ol>
+
+<p>これでプロジェクトが Force.com IDE から VS Code に移行しました。新しいコードエディタを使用して、通常どおり作業を続行できます。このプロセスについての詳細は、<a href="../user-guide/org-development-model">「組織開発モデル」</a>を参照してください。</p>
+
+<h2 id="変換による移行-高度">変換による移行 (高度)</h2>
+
+<p>プロジェクトの移行の 2 つ目のオプションは、インプレース変換です。このオプションはやや複雑ながら、メタデータをすべてダウンロードする必要がなく、バージョン管理履歴を維持するオプションがあります。始める前に、マシンが <a href="../getting-started/install">VS Code を使用した Salesforce 開発</a>に適した設定になっていることを確認します。</p>
+
+<ol>
+  <li>
+    <p>まず、プロジェクトが次の形式であるとします。</p>
+
+    <pre><code class="language-text">.
+├── salesforce.schema
+└─── src
+    ├── objectTranslations
+    ├── objects
+    │   ├── Bot_Command__c.object
+    │   └── ...
+    ├── pages
+    ├── pathAssistants
+    ├── permissionsets
+    ├── quickActions
+    ├── remoteSiteSettings
+    ├── reports
+    ├── staticresources
+    ├── tabs
+    ├── triggers
+    └── package.xml
+</code></pre>
+  </li>
+  <li>
+    <p>最初のステップとして、新しいプロジェクト形式をサポートするために、数種のファイル (一部は必須、他は省略可能) を追加する必要があります。この中で一番重要なファイルは <code>sfdx-project.json</code> です。これらのファイルを作成する最も簡単な方法は、一時的なプロジェクトを作成して、そこからコピーすることです。このために次のコマンドを実行します。</p>
+
+    <pre><code class="language-bash">$ sfdx force:project:create -n ../tempproj --template standard
+</code></pre>
+  </li>
+  <li>
+    <p>次に、この一時プロジェクトから次の 2 つを各自のプロジェクトにコピーします。</p>
+
+    <pre><code class="language-bash">$ mv ../tempproj/sfdx-project.json ./sfdx-project.json
+$ mv ../tempproj/config ./config
+</code></pre>
+
+    <blockquote>
+      <p>注意: ソースコントロールを使用している場合は、途中のステップごとにコミットすることをお勧めします。</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>デフォルトの <code>sfdx-project.json</code> ファイルは、ソースコードが <code>force-app</code> ディレクトリにあるものと想定しています。このデフォルトオプションを使用することもできますが、この例ではソースファイルが <code>src</code> に常駐しています。ファイルを <code>src</code> ディレクトリに保存するには、<code>sfdx-project.json</code> の次のコードを変更します。</p>
+
+    <pre><code class="language-json"> "packageDirectories": [
+     {
+         "path": "src",
+         "default": true,
+     }
+ ],
+</code></pre>
+  </li>
+  <li>
+    <p>次に、現在のソースを新しいフォルダに移動します。</p>
+
+    <pre><code class="language-bash">$ mv ./src ./src_old
+</code></pre>
+  </li>
+  <li>
+    <p>これでプロジェクトを設定できたため、次はメタデータを<a href="../user-guide/source-format">ソース形式</a>に変換します。変換するために、次のコマンドを実行します。</p>
+
+    <pre><code class="language-bash"> $ sfdx force:mdapi:convert --rootdir ./src_old --outputdir ./src
+</code></pre>
+  </li>
+  <li>
+    <p>最後に、古いソースを削除します。</p>
+
+    <pre><code class="language-bash">$ rm -rf ./src_old
+</code></pre>
+  </li>
+  <li>
+    <p>これでメタデータがソース形式になりました。</p>
+  </li>
+</ol>
+
+<h3 id="バージョン管理に関する考慮事項">バージョン管理に関する考慮事項</h3>
+
+<p>メタデータのソース形式への変換について特筆すべき点は、大量の名前変更が行われるため、バージョン管理システムに何らかの設定やスクリプトが必要になる可能性があることです。たとえば、Git はデフォルトで、一度に少数のファイルの名前変更のみを追跡します。この点を修正するには、次の設定を変更します。</p>
+
+<pre><code class="language-bash">$ git config merge.renameLimit 999999
+</code></pre>
+
+<p>名前変更が完了し、すべてコミットされたら、Git をデフォルトの設定に戻すことができます。</p>
+
+<pre><code class="language-bash">$ git config --unset merge.renameLimit
+</code></pre>
+
+<p>また、移行や名前変更をまとめて行うこともできます。詳細は、<a href="https://ntotten.com/2018/05/11/convert-metadata-to-source-format-while-maintain-git-history/">このブログ投稿</a>を参照してください。</p>
+:ET

@@ -1,0 +1,32 @@
+I"�<p>ソースを追跡する組織で開発を行うパッケージ開発モデルを採用する場合は、ローカルワークステーションとデフォルトの開発組織で行った変更が追跡されます。パッケージ化されたメタデータセットを使用して変更内容を組織間で移動します(他方、組織開発モデルでは、変更内容を手動で追跡し、変更済みのメタデータのみを他の組織にリリースします)。詳細は、Trailhead の<a href="https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model">「Package Development Model (パッケージ開発モデル)」</a>モジュールを参照してください。</p>
+
+<p>このトピックでは、Visual Studio Code のソースを追跡する組織 (スクラッチ組織など) で作業する方法を説明します。</p>
+
+<h2 id="使用開始">使用開始</h2>
+
+<p>まず、VS Code を開いて、プロジェクトを開くか作成します。</p>
+
+<ul>
+  <li>新しいプロジェクトを開始するには、コマンドパレットを開き (Windows または Linux では Ctrl+Shift+P キー、macOS では Cmd+Shift+P キーを押す)、<strong>[SFDX: Create Project (SFDX: プロジェクトを作成)]</strong> を実行します。</li>
+  <li>既存のプロジェクトで作業する場合は、<strong>[File (ファイル)]</strong> &gt; <strong>[Open (開く)]</strong> を選択して、プロジェクトのソースコードを保存したディレクトリに移動します。プロジェクトがソース形式の Salesforce DX プロジェクトでない場合は、『Salesforce DX 開発者ガイド』の<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm">「プロジェクトの設定」</a>で詳細を参照してください。VS Code 向け Salesforce 拡張機能では、プロジェクトに <code>sfdx-project.json</code> が必要で、メタデータがソース形式である場合に限り、ソースが追跡される組織で作業できます。</li>
+</ul>
+
+<p>次に、Dev Hub を承認してスクラッチ組織を作成します。</p>
+
+<ol>
+  <li>Dev Hub を承認するには、コマンドパレットを開き、<strong>[SFDX: Authorize a Dev Hub (SFDX: Dev Hub を承認)]</strong> を実行します。Dev Hub がない場合は、『Salesforce DX 設定ガイド』の<a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm">「組織での Dev Hub の有効化」</a>でこの設定の詳細を参照してください。</li>
+  <li>スクラッチ組織を作成して、開発用のデフォルト組織として設定するには、<strong>[SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)]</strong> を実行します。</li>
+</ol>
+
+<h2 id="ソースのプッシュとプル">ソースのプッシュとプル</h2>
+
+<p>パッケージ開発モデルを使用する場合は、ローカルプロジェクトとデフォルトの開発組織間の同期を簡単に維持できます。パッケージ化されたメタデータセットを使用して変更内容を他の組織にリリースするため、変更を手動で追跡する必要がありません。</p>
+
+<p>ソースを新しいスクラッチ組織にプッシュするには、<strong>[SFDX: Push Source to Default Org (SFDX: ソースをデフォルト組織にプッシュ)]</strong> を実行します。</p>
+
+<p>ローカルワークステーションで変更を行った後、すべての変更内容を組織にプッシュするには、<strong>[SFDX: Push Source to Default Org (SFDX: ソースをデフォルト組織にプッシュ)]</strong> を実行します。</p>
+
+<p>ブラウザで変更を行った後、<strong>[SFDX: Pull Source from Default Scratch Org (SFDX: デフォルトのスクラッチ組織からソースをプル)]</strong> を実行して、プロジェクトを更新します。</p>
+
+<p>ファイルを保存するたびにプッシュするには、ユーザまたはワークスペースの <code>salesforcedx-vscode-core.push-or-deploy-on-save.enabled</code> 設定を <code>true</code> にします。</p>
+:ET

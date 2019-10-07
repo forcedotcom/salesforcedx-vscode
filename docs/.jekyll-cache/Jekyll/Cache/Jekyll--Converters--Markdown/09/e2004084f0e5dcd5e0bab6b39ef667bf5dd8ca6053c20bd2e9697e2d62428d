@@ -1,0 +1,329 @@
+I"�I<p>To run a command from Salesforce Extensions for VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) and type <strong>SFDX</strong> in the command palette.<br />
+<img src="../../images/sfdx_commands.png" alt="Command palette, filtered to show SFDX commands" /></p>
+
+<p>When a command finishes running (due to success, failure, or cancellation), a notification displays at the top of the window.<br />
+<img src="../../images/command_success_notification.png" alt="Notification that source was successfully pushed to a scratch org" /></p>
+
+<p>To see the output of the commands that you run, select <strong>View</strong> &gt; <strong>Output</strong>, and then select <strong>Salesforce CLI</strong> from the dropdown menu. Alternatively, click <strong>Show</strong> in the completion notification.<br />
+<img src="../../images/output_view.png" alt="Output view, showing the results of an Apex test run" /></p>
+
+<h2 id="available-commands">Available Commands</h2>
+
+<p>Read on to learn about the commands available in Salesforce Extension for VS Code, their usage, the CLI command it executes under the hood, and further reference sources.</p>
+
+<h3 id="create-project">Create Project</h3>
+
+<ul>
+  <li><strong>SFDX: Create Project</strong>
+    <ul>
+      <li>Creates a Salesforce project in the current directory. This command creates the standard structure and a configuration file, which indicates that the directory is a Salesforce DX project.</li>
+      <li>Executes the CLI command <code>force:project:create --template standard</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm">Project Setup</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create Project with Manifest</strong>
+    <ul>
+      <li>Creates a Salesforce project in the current directory, and generates a default manifest (package.xml) for fetching the components, such as Apex, Visualforce, and Lightning web components.</li>
+      <li>Executes the CLI command <code>force:project:create --template standard --manifest</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm">Sample <code>package.xml</code> Manifest Files</a>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="authorize-org">Authorize Org</h3>
+
+<ul>
+  <li><strong>SFDX: Authorize an Org</strong>
+    <ul>
+      <li>Authorizes an org using the specified login URL and name, and sets the authenticated org as the default username.</li>
+      <li>Executes the CLI command <code>force:auth:web:login --setalias --instanceurl --setdefaultusername</code>. If you are in remote development environment, executes <code>force:auth:device:login</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm">Authorization</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Authorize a Dev Hub</strong>
+    <ul>
+      <li>Authorizes an org and sets the authenticated org as the default Dev Hub org for scratch org creation.</li>
+      <li>Executes the CLI command <code>force:auth:web:login --setdefaultdevhubusername</code>. If you are in remote development environment, executes <code>force:auth:device:login --setdefaultdevhubusername</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm">Authorize an Org</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create a Default Scratch Org</strong>
+    <ul>
+      <li>Creates a scratch org and sets the created org as the default username.</li>
+      <li>Executes the CLI command <code>force:org:create --setdefaultusername</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm">Salesforce DX Usernames and Orgs</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Open Default Org</strong>
+    <ul>
+      <li>Opens the default org in a browser.</li>
+      <li>Executes the CLI command <code>force:org:open</code></li>
+      <li>Read related info at <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_create.htm">Create Scratch Orgs</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Delete from Project and Org</strong>
+    <ul>
+      <li>Deletes source from the local project and from the non-source-tracked org.</li>
+      <li>Executes the CLI command <code>force:source:delete</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_any_org.htm">Delete Non-Tracked Source</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Log Out from All Authorized Orgs</strong>
+    <ul>
+      <li>Logs out of all your authorized Salesforce orgs without prompting for confirmation.</li>
+      <li>Executes the CLI command <code>force:auth:logout --all --noprompt</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm">Log Out of an Org</a>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="keep-org-and-local-project-in-sync">Keep Org and Local Project in Sync</h3>
+
+<ul>
+  <li><strong>SFDX: Retrieve Source from Org</strong>
+    <ul>
+      <li>Retrieves source for the selected file or directory from the default org. Use this command to retrieve source from orgs that don’t have source tracking, such as a sandbox or a production org. The source you retrieve overwrites the corresponding local source file.</li>
+      <li>Executes the CLI command <code>force:source:retrieve</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_any_org.htm">Develop Against Any Org</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Retrieve This Source from Org</strong>
+    <ul>
+      <li>Retrieves source for a file that’s open in the VS Code editor from an org.</li>
+      <li>Executes the CLI command <code>force:source:retrieve --sourcepath</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Retrieve Source in Manifest from Org</strong>
+    <ul>
+      <li>Retrieves metadata components listed in a manifest from an org to the local project.</li>
+      <li>Executes the CLI command <code>force:source:retrieve --manifest</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Deploy Source to Org</strong>
+    <ul>
+      <li>Deploys metadata in source format for the selected file or directory to an org. Use this command to deploy source to orgs that don’t have source tracking. The source you deploy overwrites the metadata in your org with the local versions.</li>
+      <li>Executes the CLI command <code>force:source:deploy</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Deploy This Source to Org</strong>
+    <ul>
+      <li>Deploys source for a file that’s open in the VS Code editor to an org.</li>
+      <li>Executes the CLI command <code>force:source:deploy --sourcepath</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Deploy Source in Manifest to Org</strong>
+    <ul>
+      <li>Deploys metadata components in a manifest to an org.</li>
+      <li>Executes the CLI command <code>force:source:deploy --manifest</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Pull Source from Default Scratch Org</strong>
+    <ul>
+      <li>Pulls changes from the scratch org to local project. If this command detects a conflict, it terminates the pull operation and displays the conflict information in the terminal. Use this command to pull source from orgs that have source tracking.</li>
+      <li>Executes the CLI command <code>force:source:pull</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_pull_md_from_scratch_org.htm">Pull Source from the Scratch Org to Your Project</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Pull Source from Default Scratch Org and Override Conflicts</strong>
+    <ul>
+      <li>Pulls changes from the scratch org to local project. If conflicts exist, changes in the scratch org overwrite changes in the local project.</li>
+      <li>Executes the CLI command <code>force:source:pull --forceoverwrite</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Push Source to Default Scratch Org</strong>
+    <ul>
+      <li>Pushes the changes in the local project to the default org. If this command detects a conflict, it terminates the push operation and displays the conflict information in the terminal.</li>
+      <li>Executes the CLI command <code>force:source:push</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_push_md_to_scratch_org.htm">Push Source to the Scratch Org</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Push Source to Default Scratch Org and Override Conflicts</strong>
+    <ul>
+      <li>Pushes the changes in the local project to the default org. If conflicts exist, changes in the local project overwrite changes in the scratch org.</li>
+      <li>Executes the CLI command <code>force:source:push --forceoverwrite</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: View All Changes (Local and in Default Scratch Org)</strong>
+    <ul>
+      <li>Displays new, changed (indicates a conflict, if any), and deleted types in the default org (Remote) and your project (Local).</li>
+      <li>Executes the CLI command <code>force:source:status</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_track_changes.htm">Track Changes</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: View Local Changes</strong>
+    <ul>
+      <li>Displays the changes made in the local project, which can be useful to view before you push local changes to the scratch org.</li>
+      <li>Executes the CLI command <code>force:source:status --local</code></li>
+      <li>See related info at <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_push_md_to_scratch_org.htm">Push Source</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: View Changes in Default Scratch Org</strong>
+    <ul>
+      <li>Displays the changes made in the scratch org, which can be useful to view before you pull the scratch org changes to the local project.</li>
+      <li>Executes the CLI command <code>force:source:status --remote</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="org-info">Org Info</h3>
+
+<ul>
+  <li><strong>SSFDX: Display Org Details for Default Org</strong>
+    <ul>
+      <li>Displays org description for the default org. Details include access token, alias, client ID, connected status, and more.</li>
+      <li>Executes the CLI command <code>force:org:display</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_view_info.htm">Authorization Information for an Org</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Display Org Details…</strong>
+    <ul>
+      <li>Displays org description for the specified org.</li>
+      <li>Executes the CLI command <code>force:org:display --targetusername</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: List All Aliases</strong>
+    <ul>
+      <li>Displays the alias and the corresponding usernames for the orgs that you’ve authorized and the active scratch orgs that you’ve created. You can use the username or the alias you set while connecting to an org.</li>
+      <li>Executes the CLI command <code>force:alias:list</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm">Salesforce DX Usernames and Orgs</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: List All Config Variables</strong>
+    <ul>
+      <li>Lists the configuration variables you’ve set, which includes the local values for the current project and all global values.</li>
+      <li>Executes the CLI command <code>force:config:list</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="apex">Apex</h3>
+
+<ul>
+  <li><strong>SFDX: Create Apex Class</strong>
+    <ul>
+      <li>Creates an Apex class and the associated metadata file in the default directory <code>force-app/main/default/classes</code>.</li>
+      <li>Executes the CLI command <code>force:apex:class:create</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_create_apex.htm">Create an Apex Class</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Execute Anonymous Apex with Currently Selected Text</strong>
+    <ul>
+      <li>Executes the currently selected anonymous block of Apex code.</li>
+      <li>Runs the CLI command <code>force:apex:execute</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm">Anonymous Blocks</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Execute Anonymous Apex with Editor Contents</strong>
+    <ul>
+      <li>Executes the Apex code that’s open in the VS Code editor.</li>
+      <li>Runs the CLI command <code>force:apex:execute --apexcodefile</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Get Apex Debug Logs…</strong>
+    <ul>
+      <li>Fetches the most recent debug log from the default org.</li>
+      <li>Executes the CLI command <code>force:apex:log:get</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_view_apex_debug_logs.htm">View Apex Debug Logs</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Invoke Apex Tests…</strong>
+    <ul>
+      <li>Runs the Apex tests to test changes in your source code and displays the results in human-readable format.</li>
+      <li>Executes the CLI command <code>force:apex:test:run --resultformat human</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_testing.htm">Testing</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create Apex Trigger</strong>
+    <ul>
+      <li>Creates an Apex trigger and the associated metadata file in the default directory <code>force-app/main/default/triggers</code></li>
+      <li>Executes the CLI command <code>force:apex:trigger:create</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_create_trigger.htm">Create an Apex Trigger</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Turn On Apex Debug Log for Replay Debugger</strong>
+    <ul>
+      <li>Enables logging so that replay the debug log you retrieve from the default org.</li>
+      <li>Executes the CLI command <code>force:data:record:create --sobjecttype --values --usetoolingapi</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Turn Off Apex Debug Log for Replay Debugger</strong>
+    <ul>
+      <li>Disables the debugger session.</li>
+      <li>Executes the CLI command <code>force:data:record:delete --sobjecttype --sobjectid --usetoolingapi</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Execute SOQL Query with Currently Selected Text</strong>
+    <ul>
+      <li>Executes the selected query against the data in the default org.</li>
+      <li>Runs the CLI command <code>force:data:soql:query</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Execute SOQL Query…</strong>
+    <ul>
+      <li>Executes the query against the data in the default org.</li>
+      <li>Runs the CLI command <code>force:data:soql:query</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create and Set Up Project for ISV Debugging</strong>
+    <ul>
+      <li>Creates the project setup in VS Code for the sandbox environment you want to debug.</li>
+      <li>Executes the CLI commands <code>force:config:set --isvDebuggerSid --isvDebuggerUrl --instanceUrl</code>, <code>force:mdapi:retrieve --retrievetargetdir --unpacked --targetusername</code>, <code>force:mdapi:convert --rootdir --outputdir force-app</code>, and <code>force:package:installed:list --targetusername</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="lightning-aura-components">Lightning Aura Components</h3>
+
+<ul>
+  <li><strong>SFDX: Create Lightning App</strong>
+    <ul>
+      <li>Creates a Lightning app bundle with the specified name in the default directory <code>force-app/main/default/aura</code>.</li>
+      <li>Executes the CLI command <code>force:lightning:app:create</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/apps_intro.htm#!">Creating Apps</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create Lightning Component</strong>
+    <ul>
+      <li>Creates an Aura component with the specified name in the default directory <code>force-app/main/default/aura</code>.</li>
+      <li>Executes the CLI command <code>force:lightning:component:create</code></li>
+      <li>Read more in <a href="https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/intro_framework.htm">Lightning Aura Components Developer Guide</a> and <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_create_lightning.htm">Salesforce DX Developer Guide</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create Lightning Web Component</strong>
+    <ul>
+      <li>Creates a Lightning web component with the specified name in the default directory <code>force-app/main/default/lwc</code>.</li>
+      <li>Executes the CLI command <code>force:lightning:component:create --type lwc</code></li>
+      <li>See <a href="https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.create_components_introduction">Lightning Web Components Dev Guide</a>.</li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create Lightning Event</strong>
+    <ul>
+      <li>Creates a Lightning event with the specified name in the default directory <code>force-app/main/default/aura</code>.</li>
+      <li>Executes the CLI command <code>force:lightning:event:create</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create Lightning Interface</strong>
+    <ul>
+      <li>Creates a Lightning interface with the specified name in the default directory <code>force-app/main/default/aura</code>.</li>
+      <li>Executes the CLI command <code>force:lightning:interface:create</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="visualforce">Visualforce</h3>
+
+<ul>
+  <li><strong>SFDX: Create Visualforce Page</strong>
+    <ul>
+      <li>Creates a Visualforce page and the associated metadata file in the default directory <code>force-app/main/default/pages</code></li>
+      <li>Executes the CLI command <code>force:visualforce:page:create</code></li>
+    </ul>
+  </li>
+  <li><strong>SFDX: Create Visualforce Component</strong>
+    <ul>
+      <li>Creates a Visualforce component and the associated metadata file in the default directory <code>force-app/main/default/components</code></li>
+      <li>Executes the CLI command <code>force:visualforce:component:create</code></li>
+    </ul>
+  </li>
+</ul>
+:ET

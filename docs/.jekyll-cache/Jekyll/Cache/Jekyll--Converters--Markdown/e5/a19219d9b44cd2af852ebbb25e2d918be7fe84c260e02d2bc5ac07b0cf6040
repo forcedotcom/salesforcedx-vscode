@@ -1,0 +1,40 @@
+I"�	<h2 id="refactor-rename">Refactor: Rename</h2>
+
+<p>You can rename any valid Apex symbol defined in your source: methods, locals, fields, properties, constructors, or types (classes, triggers, or enums). To perform a rename, right-click the symbol that you want to rename and select <strong>Rename Symbol</strong>.</p>
+
+<p><img src="../../images/apex-rename-demo.gif" alt="GIF showing the symbol renaming process" /></p>
+
+<p>Validation of the new symbol name is performed before applying the rename. If the validation fails, an error message explains the reason why the rename refactoring could not be applied. Validation fails if the new name is not a valid Apex identifier or, sometimes, if the new name conflicts with an existing identifier name. (If these situations were allowed, a compiler error or a runtime behavior change could result.)</p>
+
+<p><img src="../../images/apex-rename-error.gif" alt="GIF showing a renaming error" /></p>
+
+<p>If the new name conflicts with an existing identifier name, we try to fully qualify the references to the existing name in contexts where the conflicts exist.</p>
+
+<p><img src="../../images/apex-rename-conflict.gif" alt="GIF showing a renaming conflict" /></p>
+
+<h2 id="refactor-extract-constant">Refactor: Extract Constant</h2>
+
+<p>You can extract literals into constants. Literals include: String, Integer, Long, Double, Decimal, and Boolean.</p>
+
+<ol>
+  <li>In the editor, select an expression that you would like to extract.</li>
+  <li>Click the lightbulb in the gutter and select ‘Extract Constant’.</li>
+  <li>The new constant will be declared as a field in the containing class from where the refactoring was invoked.</li>
+  <li>The selected expression should now be replaced with the name of the new field.</li>
+</ol>
+
+<p><img src="../../images/extract-constant.gif" alt="GIF showing extract constant" /></p>
+
+<h2 id="refactor-extract-local-variable">Refactor: Extract Local Variable</h2>
+
+<p>You can extract expressions into local variables.</p>
+
+<ol>
+  <li>In the editor, select an expression that you would like to extract.</li>
+  <li>Click the lightbulb in the gutter and select ‘Extract Variable’.</li>
+  <li>The new local variable will be declared in the line above the declaration where the refactoring was invoked.</li>
+  <li>The selected expression should now be replaced with the name of the new local variable.</li>
+</ol>
+
+<p><img src="../../images/extract-local-variable-other.gif" alt="GIF showing extract local variable other" /></p>
+:ET

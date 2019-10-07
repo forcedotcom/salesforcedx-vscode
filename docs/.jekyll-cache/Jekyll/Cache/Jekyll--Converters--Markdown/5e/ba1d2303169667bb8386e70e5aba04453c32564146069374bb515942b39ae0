@@ -1,0 +1,124 @@
+I"�#<h2 id="set-up-apex-replay-debugger">Set Up Apex Replay Debugger</h2>
+
+<p>The first time that you use Apex Replay Debugger, create a launch configuration. Then, each time that you debug an issue, set up an Apex Replay Debugger session.</p>
+
+<h3 id="create-a-launch-configuration">Create a Launch Configuration</h3>
+
+<p>To create a launch configuration for Apex Replay Debugger, create or update your project’s <code>.vscode/launch.json</code> file.</p>
+
+<ol>
+  <li>Open your Salesforce DX project in VS Code.</li>
+  <li>If your Salesforce DX project doesn’t already contain a JSON file with the file path <code>.vscode/launch.json</code>, create the file (and, if necessary, the folder).</li>
+  <li>Open your <code>.vscode/launch.json</code> file.</li>
+  <li>Add a configuration named <code>Launch Apex Replay Debugger</code>.</li>
+</ol>
+
+<pre><code class="language-json">{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Apex Replay Debugger",
+      "type": "apex-replay",
+      "request": "launch",
+      "logFile": "${command:AskForLogFileName}",
+      "stopOnEntry": true,
+      "trace": true
+    }
+  ]
+}
+</code></pre>
+
+<h3 id="set-breakpoints-and-checkpoints">Set Breakpoints and Checkpoints</h3>
+
+<p>Before you generate a debug log for replay debugging, set breakpoints and checkpoints.</p>
+
+<ol>
+  <li>To set line breakpoints, open a <code>.cls</code> or <code>.trigger</code> file and click the column to the left of the line numbers.</li>
+  <li>
+    <p>For more information than line breakpoints provide, add checkpoints. You can set up to five checkpoints to get heap dumps when lines of code run. All local variables, static variables, and trigger context variables have better information at checkpoints. Trigger context variables don’t exist in logs and are available only at checkpoint locations.<br />
+In Visual Studio Code, a checkpoint is a type of breakpoint. Checkpoints function like breakpoints while replay debugging from a log. Set up and upload your checkpoints before you start an Apex Replay Debugger session.</p>
+
+    <ol>
+      <li>Set checkpoints on up to five lines in Apex classes or triggers.</li>
+      <li>Click the line of code where you want to set the checkpoint.</li>
+      <li>Open the command palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).</li>
+      <li>Run <strong>SFDX: Toggle Checkpoint</strong>.
+        <ul>
+          <li>Or, right-click in the gutter to the left of the line numbers, select <strong>Add Conditional Breakpoint</strong> | <strong>Expression</strong>, and set the expression to <code>Checkpoint</code>.</li>
+          <li>Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select <strong>Edit Breakpoint</strong> | <strong>Expression</strong>. Set the expression to <code>Checkpoint</code>.</li>
+        </ul>
+      </li>
+      <li>To upload your checkpoints to your org to collect heap dump information, open the command palette, and run <strong>SFDX: Update Checkpoints in Org</strong>.</li>
+    </ol>
+  </li>
+</ol>
+
+<h3 id="set-up-an-apex-replay-debugger-session-for-a-scratch-org-or-a-default-development-org">Set Up an Apex Replay Debugger Session for a Scratch Org or a Default Development Org</h3>
+
+<p>If you’re debugging an issue in a scratch org, or in a sandbox or DE org that you’ve set as your default org in VS Code, we provide tools to generate a debug log to replay. Enable logging, reproduce your issue, get your debug log from the org, and then start a debugging session.</p>
+
+<ol>
+  <li>To enable logging, from VS Code, open the command palette (Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS) and run <strong>SFDX: Turn On Apex Debug Log for Replay Debugger</strong>.</li>
+  <li>Reproduce the scenario you want to debug. You can do this by:
+    <ul>
+      <li>Running <strong>SFDX: Invoke Apex Tests</strong></li>
+      <li>Running <strong>SFDX: Execute Anonymous Apex with Currently Selected Text</strong></li>
+      <li>Running <strong>SFDX: Execute Anonymous Apex with Editor Contents</strong></li>
+      <li>Executing manual steps in your org in a web browser</li>
+    </ul>
+  </li>
+  <li>To get a list of debug logs in your org, run <strong>SFDX: Get Apex Debug Logs</strong>.</li>
+  <li>Click the log that you want to replay. The log downloads and opens in VS Code.</li>
+  <li>Run <strong>SFDX: Launch Apex Replay Debugger with Current File</strong>.</li>
+</ol>
+
+<h3 id="set-up-an-apex-replay-debugger-session-for-a-sandbox-or-production-org">Set Up an Apex Replay Debugger Session for a Sandbox or Production Org</h3>
+
+<p>If you’re not using a scratch org or an org that you’ve set as your default org for development in VS Code, download a debug log from your org before you start debugging. Open that log in VS Code and then start a debugging session.</p>
+
+<ol>
+  <li>In VS Code, open the debug log that you want to analyze. Generate the log with a log level of <code>FINER</code> or <code>FINEST</code> for <code>VISUALFORCE</code> and a log level of <code>FINEST</code> for <code>APEX_CODE</code>.</li>
+  <li>Run <strong>SFDX: Launch Apex Replay Debugger with Current File</strong>.</li>
+</ol>
+
+<p>TIP: If your log file is part of your Salesforce DX project, you don’t need to open the log file and then run a separate command. Instead, you can find a log file in the Explorer view, right-click it, and select <strong>Launch Apex Replay Debugger with Current File</strong>.</p>
+
+<h2 id="debug-your-code">Debug Your Code</h2>
+
+<p>Replay your debug log and inspect your variables’ values.</p>
+
+<ol>
+  <li>To switch to VS Code’s Debug view, click the bug icon on the left edge of the window.</li>
+  <li>To replay the code execution that was logged in your debug log until you hit your first breakpoint, click the green play icon in the Debug actions pane at the top of the editor.</li>
+  <li>Step through your code and examine the states of your variables in the VARIABLES section of the Debug view. For details, see <a href="https://code.visualstudio.com/docs/editor/debugging">Debugging</a> in the Visual Studio Code docs.<br />
+As you step through your code during a debugging session, Apex Replay Debugger provides details about your variables from heap dumps on lines where you set checkpoints.</li>
+  <li>When you’ve stepped through all the logged events, the debugging session ends. If you want to start again at the beginning of the log, run <strong>SFDX: Launch Apex Replay Debugger with Last Log File</strong>.</li>
+</ol>
+
+<h2 id="considerations">Considerations</h2>
+
+<p>Keep these considerations and known issues in mind when working with Apex Replay Debugger.</p>
+
+<ul>
+  <li>You can use this debugger only in your orgs. ISV customer debugging is unavailable in Apex Replay Debugger. To debug customers’ orgs, use <a href="interactive-debugger#isv-customer-debugger">ISV Customer Debugger</a>.</li>
+  <li>You can replay only one debug log at a time. This limitation can make it difficult to debug asynchronous Apex, which produces multiple debug logs.</li>
+  <li>Be sure to start a session soon after uploading your checkpoints, because checkpoints expire after 30 minutes.</li>
+  <li>Be sure to debug your code soon after starting the session, because heap dumps expire about a day after you generate them.</li>
+  <li>You can’t replay a debug log generated by scheduled Apex.</li>
+  <li>Long string variable values are truncated at breakpoints. At checkpoints, heap-dump-augmented variables have full strings.</li>
+  <li>When viewing a standard or custom object at a breakpoint, you can drill down only to the object’s immediate child variables (one level deep). At checkpoints, heap-dump-augmented variables have full drill-down to child standard objects, not only to immediate children.</li>
+  <li>You can’t expand a collection (a list, set, or map), because its members are shown in their string form.</li>
+  <li>Modifying a collection does not update the collection variable in the VARIABLES section of the Debug view.</li>
+  <li>You can’t set method or conditional breakpoints.</li>
+  <li>You can’t evaluate or watch variables or expressions in the Debug view’s WATCH section.</li>
+  <li>While debugging, right-clicking a variable in the VARIABLES section of the Debug view and selecting <strong>Copy Value</strong> works properly. However, <strong>Copy as Expression</strong> and <strong>Add to Watch</strong> don’t work as expected.
+    <ul>
+      <li><strong>Copy as Expression</strong> functions like Copy Value: It copies the variable’s value instead of copying the full variable name.</li>
+      <li><strong>Add to Watch</strong> copies the variable’s value into the WATCH section, but because we don’t evaluate variables in this section you see only <code>&lt;VariableValue&gt;:&lt;VariableValue&gt;</code>.</li>
+    </ul>
+  </li>
+</ul>
+:ET

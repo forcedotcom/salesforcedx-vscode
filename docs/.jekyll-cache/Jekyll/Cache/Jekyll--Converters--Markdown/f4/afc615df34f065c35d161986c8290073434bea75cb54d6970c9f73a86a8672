@@ -1,0 +1,47 @@
+I"�	<p>現在、Prettier は Aura コンポーネントと Lightning Web コンポーネント (LWC) のほか、<code>.json</code>、<code>.md</code>、<code>.html</code>、<code>.js</code> などの標準ファイル形式もサポートしています。Apex に対するサポートは<a href="https://github.com/dangmai/prettier-plugin-apex">コミュニティ</a>で進められており、間もなく使用できるようになるものと思われます。</p>
+
+<p>Aura や LWC に Prettier を使用するためには、一定の設定が必要です。</p>
+
+<ol>
+  <li>
+    <p>プロジェクトにまだ <code>package.json</code> がない場合は、<code>npm init</code> を実行します。
+デフォルトをすべて受け入れて構いません。</p>
+  </li>
+  <li>
+    <p><code>npm install --save-dev --save-exact prettier</code> を実行して Prettier をインストールします。</p>
+  </li>
+  <li>
+    <p>プロジェクトのルートに、次の内容を記載した <code>.prettierrc</code> という Prettier 設定ファイルを作成します。</p>
+
+    <blockquote>
+      <p>注意: Aura の場合 <code>"trailingComma": "none"</code> 設定は必須です。</p>
+    </blockquote>
+
+    <pre><code class="language-json">{
+  "trailingComma": "none",
+  "overrides": [
+    {
+      "files": "**/lwc/**/*.html",
+      "options": { "parser": "lwc" }
+    },
+    {
+      "files": "*.{cmp,page,component}",
+      "options": { "parser": "html" }
+    }
+  ]
+}
+</code></pre>
+  </li>
+  <li>
+    <p>Prettier をさらにカスタマイズするときは、<a href="https://prettier.io/docs/en/options.html">他の設定オプション</a>を追加します。</p>
+  </li>
+  <li>
+    <p>VS Code 向け <a href="https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode">Prettier</a> 拡張機能をインストールします。</p>
+  </li>
+  <li>
+    <p>全ファイルの形式が設定されていることを確認する場合は、VS Code の <code>editor.formatOnSave</code> 設定を有効にします。各自の設定についての詳細は、『Visual Studio Code Docs』の<a href="https://code.visualstudio.com/docs/getstarted/settings">「User and Workspace Settings (ユーザとワークスペースの設定)」</a>を参照してください。</p>
+  </li>
+</ol>
+
+<p>変更内容を Git リポジトリにコミットするたびにファイルの形式を設定する場合は、<a href="https://prettier.io/docs/en/precommit.html">Git フックを設定</a>します。</p>
+:ET

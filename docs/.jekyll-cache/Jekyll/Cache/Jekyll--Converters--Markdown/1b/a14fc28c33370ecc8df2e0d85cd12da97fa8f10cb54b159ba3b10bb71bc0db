@@ -1,0 +1,35 @@
+I"�<p>The Apex Language Server is an IDE-agnostic way for tools to access code-editing capabilities such as code completion, go to definition, find all usage, and refactoring. It provides a powerful way for Salesforce Extensions for VS Code to implement an Apex analyzer that’s also accessible to other IDEs.</p>
+
+<p>The Apex Language Server is an implementation of the Language Server Protocol 3.0 <a href="https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md">specification</a>. The Language Server Protocol allows a tool (in this case, VS Code) to communicate with a language smartness provider (the server). We built the Apex Language Server using this common specification to enable our tooling partners to improve the smartness of their tools.</p>
+
+<p>For more information, watch the video of our Dreamforce ’17 presentation, <a href="https://www.salesforce.com/video/1765282/">Building Powerful Tooling For All IDEs Through Language Servers</a>.</p>
+
+<p><a href="https://www.salesforce.com/video/1765282/"><img src="../../images/apex-language-server-presentation-dreamforce-17.png" alt="Dreamforce '17 Presentation" /></a></p>
+
+<h2 id="installation">Installation</h2>
+
+<p>We recommend that you install the <a href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Salesforce Extension Pack</a> from the VS Code Marketplace. The extension pack includes the Apex Language Server and its integration with VS Code.</p>
+
+<h2 id="usage">Usage</h2>
+
+<p>See <a href="writing">Apex</a>.</p>
+
+<h2 id="clear-the-cache">Clear the Cache</h2>
+
+<p>To clear the Apex Language Server’s cache, delete the <code>PROJECT_DIR/.sfdx/tools/apex.db</code> file and restart VS Code.</p>
+
+<h2 id="integrate-with-the-apex-language-server">Integrate with the Apex Language Server</h2>
+
+<p>If you are a developer looking to integrate with the Apex Language Server, use the <a href="https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/out/apex-jorje-lsp.jar">apex-jorje-lsp.jar</a> file.</p>
+
+<p>See the <a href="https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/src/languageServer.ts">languageServer.ts</a> file for an example of initializing and communicating with the Apex Language Server.</p>
+
+<p>For more information, consult these resources:</p>
+
+<ul>
+  <li><a href="https://github.com/Microsoft/language-server-protocol">Language Server Protocol Specification</a></li>
+  <li><a href="http://www.eclipse.org/community/eclipse_newsletter/2017/may/article1.php">Language Server Protocol - Eclipse Newsletter May 2017</a></li>
+  <li><a href="https://github.com/Microsoft/vscode-languageserver-node">VS Code’s Implementation of the Language Server Protocol</a></li>
+  <li><a href="http://langserver.org/">Langserver.org - Information about other language servers and clients, e.g., Atom, Sublime, Vim, etc</a></li>
+</ul>
+:ET

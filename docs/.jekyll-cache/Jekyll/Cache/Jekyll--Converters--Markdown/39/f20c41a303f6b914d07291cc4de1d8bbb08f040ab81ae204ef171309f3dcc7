@@ -1,0 +1,37 @@
+I"/
+<p>Salesforce が配布する機能パックのほか、次の拡張機能も Salesforce 開発者の役に立ちます。</p>
+
+<h2 id="apex-pmd">Apex PMD</h2>
+
+<p>VS Code の Apex ファイルや Visualforce ファイルで直接 Apex 静的分析を実行できます。</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd">https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd</a></p>
+
+<h2 id="prettier">Prettier</h2>
+
+<p>どのプログラミング言語でも、コードの一貫性を維持し、適切な形式にしておくことは重要です。Prettier は、JavaScript や CSS ファイルなど、Salesforce 開発者が使用する各種ファイルの形式設定をサポートします。</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode">https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode</a></p>
+
+<blockquote>
+  <p>注意: 残念ながら、Prettier は Apex をサポートしていません (コミュニティのあるメンバーはそれでも <a href="https://github.com/dangmai/prettier-plugin-apex">Prettier で作業</a>していますが…)。</p>
+</blockquote>
+
+<h2 id="xml">XML</h2>
+
+<p>VS Code にはデフォルトで豊富な XML ツールが付属していません。Red Hat が構築したこの拡張機能は、VS Code プロジェクトの <code>-meta.xml</code> や <code>package.xml</code> ファイルなど、XML ドキュメントへの言語サポートを提供します。</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml">https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml</a></p>
+
+<h2 id="github-pull-requests">GitHub Pull Requests</h2>
+
+<p>この拡張機能によって GitHub での作業がこれまで以上に簡便になります。</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github">https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github</a></p>
+
+<h2 id="gitlens">GitLens</h2>
+
+<p>VS Code に組み込まれた Git 機能を大幅に強化します。Git 変更履歴アノテーションとコードレンズを使用したコード作成者の一覧表示、Git リポジトリのナビゲーションや探索、強力な比較コマンドを使用した貴重なインサイトの取得などを実行できます。</p>
+
+<p><a href="https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens">https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens</a></p>
+:ET
