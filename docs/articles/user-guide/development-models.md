@@ -178,32 +178,3 @@ If you want the changes in the scratch org to overwrite changes in the project, 
 #### View Changes
 
 Before you push local changes to the scratch org or pull remote changes to the local project, you can see the changes in the Output panel. To do so, run **SFDX: View Changes in Default Scratch Org** from the Command Palette.
-
-## Salesforce CLI Commands
-
-Read on to learn about the CLI commands that Salesforce Extension for VS Code uses under the hood:
-
-- **SFDX: Create Project**
-  - runs `force:project:create`
-  - runs `force:project:create --template standard --manifest` if you are creating a project with manifest.
-- **SFDX: Authorize an Org**
-  - runs `force:auth:web:login --setdefaultdevhubusername` and sets the authenticated org as the default Dev Hub org for scratch org creation.
-  - runs `force:auth:device:login --setdefaultdevhubusername` if you are in remote development environment.
-- **SFDX: Create a Default Scratch Org** runs `force:org:create --setdefaultusername` and sets the created org as the default username.
-- **SFDX: Retrieve Source in Manifest from Org** runs `force:source:retrieve --manifest` where manifest parameter specifies file path of the components to retrieve.
-- **SFDX: Retrieve Source from Org** runs `force:source:retrieve`
-- **SFDX: Retrieve This Source from Org** runs `force:source:retrieve --sourcepath` and retrieves source from the org for the specified source file.
-- **SFDX: Deploy Source in Manifest in Org** runs `force:source:deploy --manifest` where manifest parameter specifies the complete file path of the components to deploy.
-- **SFDX: Deploy Source to Org** runs `force:source:deploy`.
-- **SFDX: Deploy This Source File to Org** runs `force:source:deploy --sourcepath` and deploys source to the specified local source file.
-- **SFDX: Delete from Project and Org** runs `force:source:delete`.
-- **SFDX: Delete This from Project and Org** runs `force:source:delete --sourcepath` and deletes source for the specified file.
-- **SFDX: Push Source to Default Scratch Org** runs `force:source:push`.
-- **SFDX: Push Source to Default Scratch Org and Override Conflicts** runs `force:source:push --forceoverwrite` even if conflicts exist and changes in the project overwrite changes in the scratch org.
-- **SFDX: Pull Source from Default Scratch Org** runs `force:source:pull`.
-- **SFDX: Pull Source from Default Scratch Org and Override Conflicts** runs `force:source:pull --forceoverwrite` even if conflicts exist and changes in the scratch org overwrite changes in the project.
-- **SFDX: View All Changes** runs `force:source:status` and lists local changes as well as changes in the default scratch org.
-- **SFDX: View Local Changes** runs `force:source:status --local`.
-- **SFDX: View Changes in Default Scratch Org** runs `force:source:status --remote`.
-
-If you think it would be helpful to know more about Salesforce CLI commands and their parameters, see the [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm).
