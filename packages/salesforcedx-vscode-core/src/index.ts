@@ -41,6 +41,7 @@ import {
   forceSourceDeployManifest,
   forceSourceDeployMultipleSourcePaths,
   forceSourceDeploySourcePath,
+  forceSourceDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
@@ -59,17 +60,14 @@ import {
   SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
+import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
-import {
-  BrowserNode,
-  ComponentUtils,
-  MetadataOutlineProvider
-} from './orgBrowser';
+import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -301,6 +299,11 @@ function registerCommands(
     forceConfigSet
   );
 
+  const forceDiffFile = vscode.commands.registerCommand(
+    'sfdx.force.diff',
+    forceSourceDiff
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -310,6 +313,7 @@ function registerCommands(
     forceAuthLogoutAllCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
+    forceDiffFile,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
@@ -399,42 +403,30 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
 }
 
 async function setupOrgBrowser(
-  extensionContext: vscode.ExtensionContext,
-  defaultUsernameOrAlias?: string
+  extensionContext: vscode.ExtensionContext
 ): Promise<void> {
-  const metadataProvider = new MetadataOutlineProvider(defaultUsernameOrAlias);
-
-  const treeView = vscode.window.createTreeView('metadata', {
-    treeDataProvider: metadataProvider
-  });
-
-  treeView.onDidChangeVisibility(async () => {
-    if (treeView.visible) {
-      await metadataProvider.onViewChange();
-    }
-  });
+  await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.type.refresh',
     async node => {
-      await metadataProvider.refresh(node);
+      await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.component.refresh',
     async node => {
-      await metadataProvider.refresh(node);
+      await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.component',
-    async (node: BrowserNode) => {
-      await forceSourceRetrieveCmp(node);
+    async (trigger: RetrieveMetadataTrigger) => {
+      await forceSourceRetrieveCmp(trigger);
     }
   );
-  extensionContext.subscriptions.push(treeView);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -468,6 +460,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Api
     const internalApi: any = {
+      channelService,
+      EmptyParametersGatherer,
+      isCLIInstalled,
+      notificationService,
+      OrgAuthInfo,
+      ProgressNotification,
+      SfdxCommandlet,
+      SfdxCommandletExecutor,
+      sfdxCoreSettings,
+      SfdxWorkspaceChecker,
       telemetryService
     };
 
@@ -521,7 +523,7 @@ export async function activate(context: vscode.ExtensionContext) {
   orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  await setupOrgBrowser(context, defaultUsernameorAlias);
+  await setupOrgBrowser(context);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType(defaultUsernameorAlias);

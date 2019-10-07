@@ -12,6 +12,13 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
 import {
+  CUSTOMOBJECTS_DIR,
+  SFDX_DIR,
+  SOBJECTS_DIR,
+  STANDARDOBJECTS_DIR,
+  TOOLS_DIR
+} from '../constants';
+import {
   ChildRelationship,
   Field,
   SObject,
@@ -31,6 +38,7 @@ export enum SObjectRefreshSource {
 
 export interface SObjectRefreshResult {
   data: {
+    category?: SObjectCategory;
     source?: SObjectRefreshSource;
     cancelled: boolean;
     standardObjects?: number;
@@ -38,12 +46,6 @@ export interface SObjectRefreshResult {
   };
   error?: { message: string; stack?: string };
 }
-
-const SFDX_DIR = '.sfdx';
-const TOOLS_DIR = 'tools';
-const SOBJECTS_DIR = 'sobjects';
-const STANDARDOBJECTS_DIR = 'standardObjects';
-const CUSTOMOBJECTS_DIR = 'customObjects';
 
 export class FauxClassGenerator {
   // the empty string is used to represent the need for a special case
@@ -98,7 +100,7 @@ export class FauxClassGenerator {
     type: SObjectCategory,
     source: SObjectRefreshSource
   ): Promise<SObjectRefreshResult> {
-    this.result = { data: { source, cancelled: false } };
+    this.result = { data: { category: type, source, cancelled: false } };
     const sobjectsFolderPath = path.join(
       projectPath,
       SFDX_DIR,
@@ -122,7 +124,7 @@ export class FauxClassGenerator {
         nls.localize('no_generate_if_not_in_project', sobjectsFolderPath)
       );
     }
-    this.cleanupSObjectFolders(sobjectsFolderPath);
+    this.cleanupSObjectFolders(sobjectsFolderPath, type);
 
     const describe = new SObjectDescribe();
     const standardSObjects: SObject[] = [];
@@ -203,6 +205,27 @@ export class FauxClassGenerator {
       mode: 0o444
     });
     return fauxClassPath;
+  }
+
+  // VisibleForTesting
+  public cleanupSObjectFolders(
+    baseSObjectsFolder: string,
+    type: SObjectCategory
+  ) {
+    let pathToClean;
+    switch (type) {
+      case SObjectCategory.STANDARD:
+        pathToClean = path.join(baseSObjectsFolder, STANDARDOBJECTS_DIR);
+        break;
+      case SObjectCategory.CUSTOM:
+        pathToClean = path.join(baseSObjectsFolder, CUSTOMOBJECTS_DIR);
+        break;
+      default:
+        pathToClean = baseSObjectsFolder;
+    }
+    if (fs.existsSync(pathToClean)) {
+      rm('-rf', pathToClean);
+    }
   }
 
   private errorExit(
@@ -379,12 +402,6 @@ export class FauxClassGenerator {
       return fs.existsSync(folderPath);
     }
     return true;
-  }
-
-  private cleanupSObjectFolders(baseSObjectsFolder: string) {
-    if (fs.existsSync(baseSObjectsFolder)) {
-      rm('-rf', baseSObjectsFolder);
-    }
   }
 
   private logSObjects(sobjectKind: string, fetchedLength: number) {

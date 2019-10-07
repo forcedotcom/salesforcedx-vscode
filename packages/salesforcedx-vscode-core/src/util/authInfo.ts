@@ -8,20 +8,21 @@ import { Aliases, AuthInfo } from '@salesforce/core';
 import { isUndefined } from 'util';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import {
+  DEFAULT_DEV_HUB_USERNAME_KEY,
+  DEFAULT_USERNAME_KEY
+} from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { ConfigSource, ConfigUtil } from './index';
-
-const defaultUserNameKey = 'defaultusername';
-const defaultDevHubUserNameKey = 'defaultdevhubusername';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
       const defaultUserName = await ConfigUtil.getConfigValue(
-        defaultUserNameKey
+        DEFAULT_USERNAME_KEY
       );
       if (isUndefined(defaultUserName)) {
         displayMessage(
@@ -32,7 +33,7 @@ export class OrgAuthInfo {
         return undefined;
       } else {
         const configSource = await ConfigUtil.getConfigSource(
-          defaultUserNameKey
+          DEFAULT_USERNAME_KEY
         );
         if (configSource === ConfigSource.Global) {
           displayMessage(
@@ -42,6 +43,7 @@ export class OrgAuthInfo {
           );
         }
       }
+
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
@@ -51,11 +53,13 @@ export class OrgAuthInfo {
   }
 
   public static async getDefaultDevHubUsernameOrAlias(
-    enableWarning: boolean
+    enableWarning: boolean,
+    configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
     try {
       const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        defaultDevHubUserNameKey
+        DEFAULT_DEV_HUB_USERNAME_KEY,
+        configSource
       );
       if (isUndefined(defaultDevHubUserName)) {
         const showButtonText = nls.localize('notification_make_default_dev');

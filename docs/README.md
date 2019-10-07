@@ -15,6 +15,7 @@ export CPPFLAGS="-I/usr/local/opt/ruby/include"
 ```
 
 ## Install Jekyll
+
 https://jekyllrb.com/docs/
 
 ```
@@ -23,10 +24,26 @@ gem install jekyll bundler
 bundle install
 ```
 
+## Install Netlify CLI
+
+```
+npm install netlify-cli -g
+```
+
 ## Start the Server
 
 ```
-bundle exec jekyll serve
+netlify dev
 ```
 
-Navigate to: http://127.0.0.1:4000/salesforcedx-vscode/
+Navigate to: http://127.0.0.1:8888/tools/vscode/
+
+## Updating Header, Head, and Footer Includes
+
+The `footer.html`, `head.html`, and `header.html` files are pulled from the DSC docs API. Do not update them by hand.
+
+To pull the latest changes run:
+
+```
+npm run update-externals
+```

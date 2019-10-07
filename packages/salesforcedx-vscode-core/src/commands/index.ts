@@ -75,9 +75,9 @@ export {
   forceListMetadata,
   ForceListMetadataExecutor
 } from './forceListMetadata';
+export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
-  FilePathExistsChecker,
-  forceSourceRetrieveCmp,
-  ForceSourceRetrieveExecutor,
-  generateSuffix
-} from './forceSourceRetrieveCmp';
+  forceSourceDiff,
+  ForceSourceDiffExecutor,
+  handleDiffResponse
+} from './forceSourceDiff';

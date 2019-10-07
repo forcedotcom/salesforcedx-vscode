@@ -129,11 +129,16 @@ export const messages = {
     'One or more %s files with the specified path already exist in your workspace. Do you want to overwrite them?',
   warning_prompt_dir_overwrite:
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
-  warning_prompt_cmp_file_overwrite:
-    'A file with the name %s already exists in your workspace. Retrieving the component may overwrite this file. Do you want to continue?',
   warning_prompt_continue_confirm: 'Continue',
-  warning_prompt_overwrite_confirm: 'Overwrite',
   warning_prompt_overwrite_cancel: 'Cancel',
+  warning_prompt_overwrite_message:
+    'Are you sure you want to overwrite %s:%s?\n\n%s\n\n%s',
+  warning_prompt_overwrite: 'Overwrite',
+  warning_prompt_overwrite_all: 'Overwrite All',
+  warning_prompt_skip: 'Skip',
+  warning_prompt_skip_all: 'Skip All',
+  warning_prompt_other_existing: '%s other existing components',
+  warning_prompt_other_not_shown: '...%s other components not shown\n',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
@@ -268,6 +273,8 @@ export const messages = {
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
+  error_org_browser_init: 'Org Browser has not been initialized',
+  error_overwrite_prompt: 'Error checking workspace for existing components',
   force_list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
@@ -455,5 +462,12 @@ export const messages = {
   WaveXmd: 'Wave Xmds',
   WebLink: 'Web Links',
   Workflow: 'Workflows',
-  XOrgHub: 'X Org Hubs'
+  XOrgHub: 'X Org Hubs',
+
+  force_source_diff_text: 'SFDX: Diff File Against Org',
+  force_source_diff_unsupported_type:
+    'Diff for this metadata type is currently not supported',
+  force_source_diff_title: '%s//%s ↔ local//%s',
+  force_source_diff_command_not_found:
+    'This command requires installing the @salesforce/sfdx-diff plugin. For detailed instructions go to https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff'
 };

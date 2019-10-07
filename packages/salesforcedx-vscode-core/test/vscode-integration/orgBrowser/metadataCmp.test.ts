@@ -129,7 +129,7 @@ describe('build metadata components list', () => {
     }
   });
 
-  it('should only return unmanaged components', async () => {
+  it('should only return "unmanaged" components if they have a manageableState', async () => {
     const type = 'ApexClass';
     const states = [
       'unmanaged',
@@ -155,6 +155,23 @@ describe('build metadata components list', () => {
 
     expect(fullNames.length).to.equal(1);
     expect(fullNames[0]).to.equal('fakeName0');
+  });
+
+  it('should return components with no manageableState', async () => {
+    const type = 'CustomObject';
+    const fileData = {
+      status: 0,
+      result: [{ fullName: 'fakeName', type }]
+    };
+
+    const fullNames = cmpUtil.buildComponentsList(
+      type,
+      JSON.stringify(fileData),
+      undefined
+    );
+
+    expect(fullNames.length).to.equal(1);
+    expect(fullNames[0]).to.equal('fakeName');
   });
 });
 
