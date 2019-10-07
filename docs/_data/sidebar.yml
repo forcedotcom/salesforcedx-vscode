@@ -11,8 +11,6 @@
       url: /articles/getting-started/recommended-extensions
     - title: Settings
       url: /articles/getting-started/settings
-    - title: Prettier Code Formatter
-      url: /articles/getting-started/prettier
     - title: Tips & Tricks
       url: /articles/getting-started/tips-and-tricks
     - title: Java Setup
@@ -26,13 +24,15 @@
       url: /articles/user-guide/deploy-on-save
     - title: Org Browser
       url: /articles/user-guide/org-browser
+    - title: Prettier Code Formatter
+      url: /articles/user-guide/prettier
     - title: Remote Containers
       url: /articles/user-guide/remote-development
     - title: Source Diff
       url: /articles/user-guide/source-diff
     - title: Source Format
       url: /articles/user-guide/source-format
-    - title: CLI Commands
+    - title: Commands Reference
       url: /articles/user-guide/cli-commands
     - title: Demo Mode
       url: /articles/user-guide/demo-mode
