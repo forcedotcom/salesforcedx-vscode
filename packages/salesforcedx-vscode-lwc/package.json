@@ -28,6 +28,8 @@
     "@salesforce/salesforcedx-utils-vscode": "47.2.0",
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
+    "jest-editor-support": "^25.0.1",
+    "jest-regex-util": "^24.9.0",
     "lightning-lsp-common": "2.2.2",
     "lwc-language-server": "2.2.2",
     "rxjs": "^5.4.1",
@@ -50,7 +52,8 @@
     "vscode": "1.1.17"
   },
   "extensionDependencies": [
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -63,7 +66,8 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
-    "test:vscode-integration": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests",
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "test:vscode-integration": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
@@ -79,6 +83,28 @@
       {
         "language": "javascript",
         "path": "./snippets/lwc.json"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sfdx.force.lightning.lwc.test.case.run",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.case.debug",
+          "when": "false"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdx.force.lightning.lwc.test.case.run",
+        "title": "%force_lightning_lwc_test_case_run_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.test.case.debug",
+        "title": "%force_lightning_lwc_test_case_debug_text%"
       }
     ]
   }

@@ -23,6 +23,7 @@ import {
 import { sync as which } from 'which';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { telemetryService } from './telemetry';
+import { activateLwcTestSupport } from './testSupport';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri) {
@@ -83,12 +84,15 @@ export async function activate(context: ExtensionContext) {
   // Start the LWC Language Server
   startLWCLanguageServer(context);
 
-  // Additional eslint configuration
   if (workspaceType === lspCommon.WorkspaceType.SFDX) {
+    // Additional eslint configuration
     await populateEslintSettingIfNecessary(
       context,
       workspace.getConfiguration('', workspace.workspaceFolders[0].uri)
     );
+
+    // Activate Test support only for SFDX workspace type for now
+    activateLwcTestSupport(context);
   }
 
   // Notify telemetry that our extension is now active
