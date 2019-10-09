@@ -13,16 +13,16 @@ Salesforce Extensions for VS Code runs commands against the org that you’ve se
 
 ## Org Development Model
 
-Use the Org development model work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in Visual Studio Code. With this development model, you must track changes manually and deploy sets of changes to sandboxes and then to your production org. See the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
+Use the Org Development model work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in Visual Studio Code. With this development model, you must track changes manually and deploy sets of changes to sandboxes and then to your production org. See the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
 
 ![Demo](../../images/changeset-demo.gif)
 
 To start developing with this model:
 
-- Create a project and use manifest or Org Browser to retrieve and deploy source.
+- Create a project.
 - Use the Org Picker to authorize an org you want develop against.
-- Retrieve Source from the default org.
-- Deploy Source to the default org.
+- Use Manifest or Org Browser to retrieve source from the default org.
+- Deploy source to the default org.
 
 ## Create Project with Manifest
 
@@ -50,7 +50,7 @@ After connecting to a sandbox, DE org, or Trailhead Playground, use the package.
 
 ### Retrieve Source
 
-Org development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve.
+Org Development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve.
 
 > Note: Retrieving source from an org overwrites the local versions of the source files.
 
@@ -114,15 +114,13 @@ You can delete source from your project and from your non-source-tracked org.
 
 ## Create Project and Use Org Browser
 
-To develop in non-scratch orgs and use Org Browser that displays the available metadata types and their corresponding components in your default org:
+To develop in non-scratch orgs and use Org Browser to retrieve source:
 
 1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project**.
 1. In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select a command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
 1. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox. Log in to your org in the browser window and then return to the VS Code window.
 
-### Org Browser
-
-You can use the Org Browser to retrieve the metadata only from non-scratch orgs such as sandboxes or dev orgs. Org Browser saves the metadata of the default org in your local project under the .sfdx directory. See [Org Browser](../user-guide/org-browser).
+Org Browser displays the available metadata types and their corresponding components in your default org. It saves the metadata of the default org in your local project under the .sfdx directory. See [Org Browser](../user-guide/org-browser).
 
 ### Retrieve Source
 

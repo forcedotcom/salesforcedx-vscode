@@ -1,5 +1,5 @@
 ---
-title: Salesforce Extension for VS Code Commands Reference
+title: Salesforce Extension for VS Code Command Reference
 ---
 
 To run a command from Salesforce Extensions for VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) and type **SFDX** in the command palette.  
@@ -33,7 +33,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Executes the CLI command `force:auth:web:login --setalias --instanceurl --setdefaultusername`. If you are in remote development environment, executes `force:auth:device:login`
   - See [Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm).
 - **SFDX: Authorize a Dev Hub**
-  - Authorizes an org and sets the authenticated org as the default Dev Hub org for scratch org creation.
+  - Authorizes an org and sets the authenticated org as the default Dev Hub for scratch org creation.
   - Executes the CLI command `force:auth:web:login --setdefaultdevhubusername`. If you are in remote development environment, executes `force:auth:device:login --setdefaultdevhubusername`
   - See [Authorize an Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm).
 - **SFDX: Create a Default Scratch Org**
@@ -53,7 +53,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Executes the CLI command `force:auth:logout --all --noprompt`
   - See [Log Out of an Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm).
 
-### Keep Org and Local Project in Sync
+### Sync Org and Local Project
 
 - **SFDX: Retrieve Source from Org**
   - Retrieves source for the selected file or directory from the default org. Use this command to retrieve source from orgs that don’t have source tracking, such as a sandbox or a production org. The source you retrieve overwrites the corresponding local source file.
@@ -139,7 +139,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Executes the CLI command `force:apex:test:run --resultformat human`
   - See [Testing](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_testing.htm).
 - **SFDX: Create Apex Trigger**
-  - Creates an Apex trigger and the associated metadata file in the default directory `force-app/main/default/triggers`
+  - Creates an Apex trigger and the associated metadata file in the default directory `force-app/main/default/triggers`.
   - Executes the CLI command `force:apex:trigger:create`
   - See [Create an Apex Trigger](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_create_trigger.htm).
 - **SFDX: Turn On Apex Debug Log for Replay Debugger**
@@ -182,8 +182,8 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
 ### Visualforce
 
 - **SFDX: Create Visualforce Page**
-  - Creates a Visualforce page and the associated metadata file in the default directory `force-app/main/default/pages`
+  - Creates a Visualforce page and the associated metadata file in the default directory `force-app/main/default/pages`.
   - Executes the CLI command `force:visualforce:page:create`
 - **SFDX: Create Visualforce Component**
-  - Creates a Visualforce component and the associated metadata file in the default directory `force-app/main/default/components`
+  - Creates a Visualforce component and the associated metadata file in the default directory `force-app/main/default/components`.
   - Executes the CLI command `force:visualforce:component:create`

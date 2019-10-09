@@ -32,8 +32,8 @@
       url: /articles/user-guide/source-diff
     - title: Source Format
       url: /articles/user-guide/source-format
-    - title: Commands Reference
-      url: /articles/user-guide/cli-commands
+    - title: Command Reference
+      url: /articles/user-guide/vscode-commands
     - title: Demo Mode
       url: /articles/user-guide/demo-mode
 - title: Apex
