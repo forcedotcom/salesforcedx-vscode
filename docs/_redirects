@@ -2,8 +2,10 @@
 /tools/vscode/articles/frameworks/aura                /tools/vscode/articles/aura                   301
 /tools/vscode/articles/frameworks/lwc                 /tools/vscode/articles/lwc                    301
 /tools/vscode/articles/frameworks/visualforce         /tools/vscode/articles/visualforce            301
+/tools/vscode/articles/getting-started/prettier       /tools/vscode/articles/user-guide/prettier    301
 
 # Temporary Redirects for convenience
 /tools/vscode/articles/aura                           /tools/vscode/articles/aura/writing           302
 /tools/vscode/articles/lwc                            /tools/vscode/articles/lwc/writing            302
 /tools/vscode/articles/visualforce                    /tools/vscode/articles/visualforce/writing    302
+/tools/vscode/articles/getting-started/prettier       /tools/vscode/articles/user-guide/prettier    302
