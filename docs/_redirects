@@ -1,11 +1,19 @@
 # Permanent Redirects
-/tools/vscode/articles/frameworks/aura                /tools/vscode/articles/aura                   301
-/tools/vscode/articles/frameworks/lwc                 /tools/vscode/articles/lwc                    301
-/tools/vscode/articles/frameworks/visualforce         /tools/vscode/articles/visualforce            301
-/tools/vscode/articles/getting-started/prettier       /tools/vscode/articles/user-guide/prettier    301
+/tools/vscode/articles/frameworks/aura                          /tools/vscode/en/aura                                     301
+/tools/vscode/articles/frameworks/lwc                           /tools/vscode/en/lwc                                      301
+/tools/vscode/articles/frameworks/visualforce                   /tools/vscode/en/visualforce                              301
+/tools/vscode/articles/getting-started/prettier                 /tools/vscode/articles/user-guide/prettier                301
+/tools/vscode/articles/user-guide/org-development-model         /tools/vscode/articles/user-guide/development-models      301
+/tools/vscode/articles/user-guide/package-development-model     /tools/vscode/articles/user-guide/development-models      301
+/tools/vscode/articles/user-guide/cli-commands                  /tools/vscode/articles/user-guide/vscode-commands         301
+/tools/vscode/articles/*                                        /tools/vscode/en/:splat                                   301   
+/tools/vscode/articles-jp/*                                     /tools/vscode/jp/:splat                                   301
 
 # Temporary Redirects for convenience
-/tools/vscode/articles/aura                           /tools/vscode/articles/aura/writing           302
-/tools/vscode/articles/lwc                            /tools/vscode/articles/lwc/writing            302
-/tools/vscode/articles/visualforce                    /tools/vscode/articles/visualforce/writing    302
-/tools/vscode/articles/getting-started/prettier       /tools/vscode/articles/user-guide/prettier    302
+/tools/vscode/en/                               /tools/vscode/                          302
+/tools/vscode/en/aura                           /tools/vscode/en/aura/writing           302
+/tools/vscode/jp/aura                           /tools/vscode/jp/aura/writing           302
+/tools/vscode/en/lwc                            /tools/vscode/en/lwc/writing            302
+/tools/vscode/jp/lwc                            /tools/vscode/jp/lwc/writing            302
+/tools/vscode/en/visualforce                    /tools/vscode/en/visualforce/writing    302
+/tools/vscode/jp/visualforce                    /tools/vscode/jp/visualforce/writing    302
