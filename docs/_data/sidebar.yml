@@ -39,11 +39,11 @@
     - title:
         en: Development Models
         jp: Development Models
-      url: /articles/user-guide/development-models
+      url: /user-guide/development-models
     - title:
         en: Deploy on Save
         jp: Deploy on Save
-      url: /articles/user-guide/deploy-on-save
+      url: /user-guide/deploy-on-save
     - title:
         en: Org Browser
         jp: 組織のブラウザ
