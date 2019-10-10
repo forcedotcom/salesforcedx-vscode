@@ -46,7 +46,8 @@ export class ForceLwcTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}
       .withArg('--runTestsByPath')
       .withArg(this.testFsPath)
       .withArg('--testNamePattern')
-      .withArg(`"${escapeStrForRegex(this.testName)}"`);
+      .withArg(`"${escapeStrForRegex(this.testName)}"`)
+      .withLogName('force_lwc_test_run_action');
     return this.builder.build();
   }
 }
