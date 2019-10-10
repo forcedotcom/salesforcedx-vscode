@@ -8,7 +8,10 @@
       >
     </div>
     <div class="site-logo">
-      <a href="{{ site.baseurl }}"
+      {% assign rootLink = site.baseurl | append: '/' %} {% if page.lang != 'en'
+      %} {% assign rootLink = site.baseurl | append: '/' | append: page.lang %}
+      {% endif %}
+      <a href="{{ rootLink }}"
         ><span class="site-logo__graphic"
           ><span class="slds-assistive-text">Salesforce</span> </span
         >Salesforce Extensions for Visual Studio Code</a
@@ -48,6 +51,27 @@
         </button>
       </div>
     </form>
+    <div class="language-picker">
+      {% assign jpurl = page.url | replace: '/en/', '/jp/' %} {% if page.url ==
+      '/' %} {% assign jpurl = page.url | append: 'jp/' %} {% endif %} {% assign
+      enurl = page.url | replace: '/jp/', '/en/' %} {% if page.url == '/jp/' %}
+      {% assign enurl = '/' %}{% endif %}
+      <a
+        class="{% if page.lang == 'en' %}is-selected{% endif %}"
+        href="{{ enurl | prepend: site.baseurl }}"
+        hreflang="en"
+        translate="no"
+        >English</a
+      >
+      |
+      <a
+        class="{% if page.lang == 'jp' %}is-selected{% endif %}"
+        href="{{ jpurl | prepend: site.baseurl }}"
+        hreflang="jp"
+        translate="no"
+        >日本語</a
+      >
+    </div>
   </div>
   <div
     id="site-navigation"
@@ -60,12 +84,12 @@
       aria-label="Main navigation"
     >
       <ul class="slds-list_vertical slds-has-block-links">
-        {% assign page_url = page.url|replace:'.html', '/' %} {% for item in
-        site.data.sidebar %} {% if page.url contains item.baseUrl %}
+        {% for item in site.data.sidebar %} {% if page.url contains item.baseUrl
+        %}
         <li class="list__item slds-is-open slds-is-selected">
           <button class="slds-button_reset" aria-expanded="true">
             <span class="slds-media slds-media--center">
-              <span class="slds-media__body">{{ item.title }}</span
+              <span class="slds-media__body">{{ item.title[page.lang] }}</span
               ><span class="slds-media__figure--reverse">
                 <svg
                   class="slds-icon slds-icon__svg slds-icon-utility-right slds-icon--small"
@@ -83,50 +107,79 @@
             </span>
           </button>
           <ul class="slds-list_vertical slds-has-block-links slds-is-nested">
-            {% for entry in item.children %} {% assign entry_url =
-            entry.url|append:'/' %}
+            {% for entry in item.children %}
             <li
-              class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
+              class="list__item {% if page.url contains entry.url %}slds-is-selected slds-is-active{% endif %}"
             >
-              <a href="{{ entry.url | prepend: site.baseurl }}">
+              <a
+                href="{{
+                  entry.url
+                    | prepend: page.lang
+                    | prepend: '/'
+                    | prepend: site.baseurl
+                }}"
+              >
                 <span class="slds-media slds-media--center">
-                  <span class="slds-media__body">{{ entry.title }}</span>
+                  <span class="slds-media__body">{{
+                    entry.title[page.lang]
+                  }}</span>
                 </span>
               </a>
             </li>
             {% endfor %}
           </ul>
         </li>
-        {% else %} {% if item.url %} {% assign item_url = item.url | append: '/'
-        %}
+        {% else %} {% if item.url %}
         <li
-          class="list__item {% if page_url == item_url %}slds-is-selected slds-is-active{% endif %}"
+          class="list__item {% if page.url contains item.url %}slds-is-selected slds-is-active{% endif %}"
         >
-          <a href="{{ item.url | prepend: site.baseurl }}">
+          <a
+            href="{{
+              item.url
+                | prepend: page.lang
+                | prepend: '/'
+                | prepend: site.baseurl
+            }}"
+          >
             <span class="slds-media slds-media--center">
-              <span class="slds-media__body">{{ item.title }}</span>
+              <span class="slds-media__body">{{ item.title[page.lang] }}</span>
             </span>
           </a>
         </li>
         {% else %}
         <li class="list__item">
-          <a href="{{ item.children.first.url | prepend: site.baseurl }}">
+          <a
+            href="{{
+              item.children.first.url
+                | prepend: page.lang
+                | prepend: '/'
+                | prepend: site.baseurl
+            }}"
+          >
             <span class="slds-media slds-media--center">
-              <span class="slds-media__body">{{ item.title }}</span>
+              <span class="slds-media__body">{{ item.title[page.lang] }}</span>
             </span>
           </a>
           <ul
             class="slds-list_vertical slds-has-block-links slds-is-nested"
             style="display: none;"
           >
-            {% for entry in item.children %} {% assign entry_url = entry.url |
-            append:'/' %}
+            {% for entry in item.children %}
             <li
-              class="list__item {% if page_url == entry_url %}slds-is-selected slds-is-active{% endif %}"
+              class="list__item {% if page.url contains entry.url %}slds-is-selected slds-is-active{% endif %}"
             >
-              <a href="{{ entry.url | prepend: site.baseurl }}">
+              <a
+                href="{{
+                  entry.url
+                    | prepend: page.lang
+                    | prepend: '/'
+                    | prepend: site.baseurl
+                }}"
+              >
                 <span class="slds-media slds-media--center">
-                  <span class="slds-media__body">{{ entry.title }}</span>
+                  <span class="slds-media__body">{{
+                    entry.title[page.lang]
+                  }}</span>
                 </span>
               </a>
             </li>
