@@ -24,10 +24,6 @@
         jp: 設定
       url: /getting-started/settings
     - title:
-        en: Prettier Code Formatter
-        jp: Prettier コードフォーマッタ
-      url: /getting-started/prettier
-    - title:
         en: Tips & Tricks
         jp: ヒントとコツ
       url: /getting-started/tips-and-tricks
@@ -40,18 +36,30 @@
     jp: ユーザガイド
   baseUrl: /user-guide/
   children:
+      - title: 
+          en: Development Models
+          jp: Development Models
+        url: /articles/user-guide/development-models
+      - title: 
+          en: Deploy on Save
+          jp: Deploy on Save
+        url: /articles/user-guide/deploy-on-save
     - title:
-        en: Org Development
-        jp: 組織開発
-      url: /user-guide/org-development-model
+        en: Org Browser
+        jp: 組織のブラウザ
+      url: /user-guide/org-browser
     - title:
-        en: Package Development
-        jp: パッケージ開発
-      url: /user-guide/package-development-model
+        en: Source Diff
+        jp: Source Diff
+      url: /user-guide/source-diff
     - title:
-        en: CLI Commands
-        jp: CLI コマンド
-      url: /user-guide/cli-commands
+        en: Prettier Code Formatter
+        jp: Prettier コードフォーマッタ
+      url: /user-guide/prettier
+    - title:
+        en: Command Reference
+        jp: Command Reference
+      url: /user-guide/vscode-commands
     - title:
         en: Source Format
         jp: ソース形式
@@ -61,17 +69,9 @@
         jp: デフォルト組織
       url: /user-guide/default-org
     - title:
-        en: Org Browser
-        jp: 組織のブラウザ
-      url: /user-guide/org-browser
-    - title:
         en: Remote Containers
         jp: Remote Containers
       url: /user-guide/remote-development
-    - title:
-        en: Source Diff
-        jp: Source Diff
-      url: /user-guide/source-diff
     - title:
         en: Demo Mode
         jp: デモモード
