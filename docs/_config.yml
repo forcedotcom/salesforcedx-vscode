@@ -26,7 +26,6 @@ kramdown:
 plugins:
   - jekyll-feed
   - jekyll-sitemap
-  - jekyll-redirect-from
 
 include:
   - _redirects
@@ -34,17 +33,18 @@ include:
 sass:
   style: compressed
 
+collections:
+  articles:
+    output: true
+    permalink: /:path/
+
 defaults:
   - scope:
       path: '' # an empty string here means all files in the project
     values:
       layout: 'default'
   - scope:
-      path: 'articles'
+      path: ''
+      type: article
     values:
       layout: 'article'
-  - scope:
-      path: 'articles-jp'
-    values:
-      layout: 'article'
-      sitemap: false
