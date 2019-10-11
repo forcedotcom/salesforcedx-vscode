@@ -1,3 +1,11 @@
+# 47.1.0 - October 12, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix for overwrite label ([PR #1704](https://github.com/forcedotcom/salesforcedx-vscode/pull/1704))
+
 # 46.17.0 - October 3, 2019
 
 ## Fixed
