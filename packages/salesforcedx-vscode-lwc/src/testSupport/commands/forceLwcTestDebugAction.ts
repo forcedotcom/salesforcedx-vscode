@@ -6,7 +6,10 @@
  */
 import { escapeStrForRegex } from 'jest-regex-util';
 import * as vscode from 'vscode';
-import { getLwcTestRunnerExecutable } from '../testRunner';
+import {
+  getLwcTestRunnerExecutable,
+  normalizeRunTestsByPath
+} from '../testRunner';
 import { LwcTestExecutionInfo } from '../types';
 
 export function getDebugConfiguration(
@@ -15,12 +18,11 @@ export function getDebugConfiguration(
   testFsPath: string,
   testName: string
 ): vscode.DebugConfiguration {
-  const program = lwcTestRunnerExecutablePath;
   const args = [
     '--debug',
     '--',
     '--runTestsByPath',
-    testFsPath,
+    normalizeRunTestsByPath(cwd, testFsPath),
     '--testNamePattern',
     `"${escapeStrForRegex(testName)}"`
   ];
@@ -29,7 +31,7 @@ export function getDebugConfiguration(
     request: 'launch',
     name: 'Debug LWC test(s)',
     cwd,
-    program,
+    runtimeExecutable: lwcTestRunnerExecutablePath,
     args,
     console: 'integratedTerminal',
     internalConsoleOptions: 'openOnSessionStart',

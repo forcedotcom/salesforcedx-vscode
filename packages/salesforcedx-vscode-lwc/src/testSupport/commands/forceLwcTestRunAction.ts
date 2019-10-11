@@ -13,7 +13,10 @@ import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { SfdxWorkspaceLwcTestRunnerInstallationChecker } from '../testRunner';
+import {
+  normalizeRunTestsByPath,
+  SfdxWorkspaceLwcTestRunnerInstallationChecker
+} from '../testRunner';
 import { LwcTestExecutionInfo } from '../types';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -40,6 +43,7 @@ export class ForceLwcTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}
       '.bin',
       'lwc-jest'
     );
+    this.sfdxProjectPath = sfdxProjectPath;
     this.builder = new CommandBuilder(lwcTestRunnerExcutable);
     this.testFsPath = testFsPath;
     this.testName = testName;
@@ -50,7 +54,7 @@ export class ForceLwcTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}
       .withDescription(nls.localize('force_lwc_test_run_description_text'))
       .withArg('--')
       .withArg('--runTestsByPath')
-      .withArg(this.testFsPath)
+      .withArg(normalizeRunTestsByPath(this.sfdxProjectPath, this.testFsPath))
       .withArg('--testNamePattern')
       .withArg(`"${escapeStrForRegex(this.testName)}"`)
       .withLogName('force_lwc_test_run_action');

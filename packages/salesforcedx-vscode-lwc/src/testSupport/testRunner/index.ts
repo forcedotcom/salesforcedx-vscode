@@ -52,3 +52,16 @@ export class SfdxWorkspaceLwcTestRunnerInstallationChecker
     return false;
   }
 }
+
+/**
+ * Returns relative path for Jest runTestsByPath on Windows
+ * or absolute path on other systems
+ * @param cwd
+ * @param testFsPath
+ */
+export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
+  if (/^win32/.test(process.platform)) {
+    return path.relative(cwd, testFsPath);
+  }
+  return testFsPath;
+}

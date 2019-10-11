@@ -34,7 +34,7 @@ describe('Force LWC Test Run - Code Action', () => {
       const command = builder.build({});
       if (/^win32/.test(process.platform)) {
         expect(command.toCommand()).to.equal(
-          'C:\\project\\mockSfdxProject\\node_modules\\.bin\\lwc-jest -- --runTestsByPath C:\\project\\mockSfdxProject\\force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js --testNamePattern "mockTestName"'
+          'C:\\project\\mockSfdxProject\\node_modules\\.bin\\lwc-jest -- --runTestsByPath force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js --testNamePattern "mockTestName"'
         );
       } else {
         expect(command.toCommand()).to.equal(
@@ -54,7 +54,7 @@ describe('Force LWC Test Run - Code Action', () => {
       const escapedMockTestName = 'mockTestName \\(\\+\\.\\*\\)';
       if (/^win32/.test(process.platform)) {
         expect(command.toCommand()).to.equal(
-          `C:\\project\\mockSfdxProject\\node_modules\\.bin\\lwc-jest -- --runTestsByPath C:\\project\\mockSfdxProject\\force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js --testNamePattern "${escapedMockTestName}"`
+          `C:\\project\\mockSfdxProject\\node_modules\\.bin\\lwc-jest -- --runTestsByPath force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js --testNamePattern "${escapedMockTestName}"`
         );
       } else {
         expect(command.toCommand()).to.equal(

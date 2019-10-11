@@ -19,8 +19,7 @@ describe('Force LWC Test Debug - Code Action', () => {
       '.bin',
       'lwc-jest'
     );
-    const testFsPath = path.join(
-      sfdxProjectPath,
+    const testRelativePath = path.join(
       'force-app',
       'main',
       'default',
@@ -29,6 +28,7 @@ describe('Force LWC Test Debug - Code Action', () => {
       '__tests__',
       'mockTest.test.js'
     );
+    const testFsPath = path.join(sfdxProjectPath, testRelativePath);
     const testName = 'mockTestName';
     it('Should generate debug configuration for single test case', () => {
       const debugConfiguration = getDebugConfiguration(
@@ -42,12 +42,12 @@ describe('Force LWC Test Debug - Code Action', () => {
         request: 'launch',
         name: 'Debug LWC test(s)',
         cwd: sfdxProjectPath,
-        program: lwcTestExecutablePath,
+        runtimeExecutable: lwcTestExecutablePath,
         args: [
           '--debug',
           '--',
           '--runTestsByPath',
-          testFsPath,
+          /^win32/.test(process.platform) ? testRelativePath : testFsPath,
           '--testNamePattern',
           '"mockTestName"'
         ],
