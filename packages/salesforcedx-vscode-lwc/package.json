@@ -28,7 +28,7 @@
     "@salesforce/salesforcedx-utils-vscode": "47.2.0",
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
-    "jest-editor-support": "^25.0.1",
+    "jest-editor-support": "^26.0.0-beta",
     "jest-regex-util": "^24.9.0",
     "lightning-lsp-common": "2.2.2",
     "lwc-language-server": "2.2.2",
