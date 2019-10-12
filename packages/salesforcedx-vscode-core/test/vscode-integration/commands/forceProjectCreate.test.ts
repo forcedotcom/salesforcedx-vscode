@@ -109,7 +109,7 @@ describe('Force Project Create', () => {
         .returns(nls.localize('warning_prompt_overwrite_cancel'));
       showWarningBoxSpy
         .onCall(1)
-        .returns(nls.localize('warning_prompt_overwrite_confirm'));
+        .returns(nls.localize('warning_prompt_overwrite'));
     });
 
     after(() => {
