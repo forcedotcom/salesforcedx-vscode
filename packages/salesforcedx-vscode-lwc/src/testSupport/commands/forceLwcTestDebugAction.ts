@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { escapeStrForRegex } from 'jest-regex-util';
+import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import {
   getLwcTestRunnerExecutable,
@@ -12,12 +13,21 @@ import {
 } from '../testRunner';
 import { LwcTestExecutionInfo } from '../types';
 
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const telemetryService = sfdxCoreExports.telemetryService;
+export const FORCE_LWC_TEST_DEBUG_LOG_NAME = 'force_lwc_test_debug_action';
+
+const debugSessionStartTimes = new Map<string, [number, number]>();
+
 export function getDebugConfiguration(
   lwcTestRunnerExecutablePath: string,
   cwd: string,
   testFsPath: string,
   testName: string
 ): vscode.DebugConfiguration {
+  const sfdxDebugSessionId = uuid.v4();
   const args = [
     '--debug',
     '--',
@@ -27,6 +37,7 @@ export function getDebugConfiguration(
     `"${escapeStrForRegex(testName)}"`
   ];
   const debugConfiguration: vscode.DebugConfiguration = {
+    sfdxDebugSessionId,
     type: 'node',
     request: 'launch',
     name: 'Debug LWC test(s)',
@@ -60,5 +71,22 @@ export async function forceLwcTestCaseDebug(data: LwcTestExecutionInfo) {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
       await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
     }
+  }
+}
+
+export function handleDidStartDebugSession(session: vscode.DebugSession) {
+  const { configuration } = session;
+  const { sfdxDebugSessionId } = configuration;
+  const startTime = process.hrtime();
+  debugSessionStartTimes.set(sfdxDebugSessionId, startTime);
+}
+
+export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
+  const { configuration } = session;
+  const startTime = debugSessionStartTimes.get(
+    configuration.sfdxDebugSessionId
+  );
+  if (Array.isArray(startTime)) {
+    telemetryService.sendCommandEvent(FORCE_LWC_TEST_DEBUG_LOG_NAME, startTime);
   }
 }

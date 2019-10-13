@@ -14,6 +14,7 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const notificationService = sfdxCoreExports.notificationService;
+const telemetryService = sfdxCoreExports.telemetryService;
 
 /**
  * Get the absolute path to LWC Test runner executable, installed in an SFDX project.
@@ -30,9 +31,9 @@ export function getLwcTestRunnerExecutable(sfdxProjectPath: string) {
   if (fs.existsSync(lwcTestRunnerExecutable)) {
     return lwcTestRunnerExecutable;
   } else {
-    notificationService.showErrorMessage(
-      nls.localize('no_lwc_test_runner_found_text')
-    );
+    const errorMessage = nls.localize('no_lwc_jest_found_text');
+    notificationService.showErrorMessage(errorMessage);
+    telemetryService.sendException('lwc_test_no_lwc_jest_found', errorMessage);
   }
 }
 

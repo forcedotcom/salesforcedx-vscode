@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { commands, Disposable, ExtensionContext } from 'vscode';
-import { forceLwcTestCaseDebug } from './forceLwcTestDebugAction';
+import * as vscode from 'vscode';
+import {
+  forceLwcTestCaseDebug,
+  handleDidStartDebugSession,
+  handleDidTerminateDebugSession
+} from './forceLwcTestDebugAction';
 import { forceLwcTestCaseRun } from './forceLwcTestRunAction';
 
 export function registerCommands(
@@ -19,5 +24,16 @@ export function registerCommands(
     'sfdx.force.lightning.lwc.test.case.debug',
     forceLwcTestCaseDebug
   );
-  return Disposable.from(forceLwcTestCaseRunCmd, forceLwcTestCaseDebugCmd);
+  const startDebugSessionDisposable = vscode.debug.onDidStartDebugSession(
+    handleDidStartDebugSession
+  );
+  const stopDebugSessionDisposable = vscode.debug.onDidTerminateDebugSession(
+    handleDidTerminateDebugSession
+  );
+  return Disposable.from(
+    forceLwcTestCaseRunCmd,
+    forceLwcTestCaseDebugCmd,
+    startDebugSessionDisposable,
+    stopDebugSessionDisposable
+  );
 }
