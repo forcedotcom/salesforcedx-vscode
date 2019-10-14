@@ -156,6 +156,9 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
+  force_project_create_standard_template: 'Standard project template (default)',
+  force_project_create_empty_template: 'Empty project template',
+  force_project_create_analytics_template: 'Analytics project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
     'SFDX: Turn On Apex Debug Log for Replay Debugger',
