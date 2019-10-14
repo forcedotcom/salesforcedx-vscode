@@ -149,27 +149,20 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize(
         'parameter_gatherer_enter_scratch_org_expiration_days'
       ),
-      value: defaultExpirationdate
+      value: defaultExpirationdate,
+      validateInput: value => {
+        const days = Number.parseInt(value);
+        if (!Number.isSafeInteger(days) || days < 1 || days > 30) {
+          return nls.localize('error_invalid_expiration_days');
+        }
+        return null;
+      }
     } as vscode.InputBoxOptions;
-    let scratchOrgExpirationInDays = await vscode.window.showInputBox(
+    const scratchOrgExpirationInDays = await vscode.window.showInputBox(
       expirationDays
     );
-    if (
-      scratchOrgExpirationInDays === undefined ||
-      !Number.isSafeInteger(Number.parseInt(scratchOrgExpirationInDays))
-    ) {
+    if (scratchOrgExpirationInDays === undefined) {
       return { type: 'CANCEL' };
-    } else {
-      if (
-        Number.parseInt(scratchOrgExpirationInDays) < 1 ||
-        Number.parseInt(scratchOrgExpirationInDays) > 30
-      ) {
-        scratchOrgExpirationInDays = DEFAULT_EXPIRATION_DAYS;
-      } else {
-        scratchOrgExpirationInDays = Number.parseInt(
-          scratchOrgExpirationInDays
-        ).toString();
-      }
     }
     return {
       type: 'CONTINUE',

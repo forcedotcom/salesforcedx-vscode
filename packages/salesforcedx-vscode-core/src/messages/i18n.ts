@@ -272,6 +272,7 @@ export const messages = {
   error_no_org_found: 'No org authorization info found.',
   error_invalid_org_alias:
     'Alias can only contain underscores and alphanumeric characters',
+  error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
