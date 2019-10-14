@@ -132,7 +132,13 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     }
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-      placeHolder: defaultAlias
+      placeHolder: defaultAlias,
+      validateInput: value => {
+        if (/\W/.test(value)) {
+          return nls.localize('error_invalid_org_alias');
+        }
+        return null;
+      }
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will use the value of `defaultAlias`
