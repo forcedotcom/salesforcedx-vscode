@@ -29,7 +29,7 @@ import {
   EmptyPreChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
-} from './commands';
+} from './util';
 
 type forceProjectCreateOptions = {
   isProjectWithManifest: boolean;

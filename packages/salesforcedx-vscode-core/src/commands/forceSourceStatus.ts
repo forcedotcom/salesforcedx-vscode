@@ -12,11 +12,14 @@ import {
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
-  FlagParameter,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
+
+interface FlagParameter<T> {
+  flag: T;
+}
 
 export enum SourceStatusFlags {
   Local = '--local',

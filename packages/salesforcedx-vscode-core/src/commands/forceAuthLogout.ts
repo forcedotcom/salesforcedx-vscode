@@ -15,7 +15,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
   public static withoutShowingChannel(): ForceAuthLogoutAll {

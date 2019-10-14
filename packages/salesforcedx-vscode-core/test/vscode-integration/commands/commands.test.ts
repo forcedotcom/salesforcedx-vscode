@@ -24,7 +24,7 @@ import {
   EmptyPostChecker,
   SelectOutputDir,
   SfdxCommandlet
-} from '../../../src/commands/commands';
+} from '../../../src/commands/util';
 
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';

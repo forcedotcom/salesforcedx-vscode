@@ -35,7 +35,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
