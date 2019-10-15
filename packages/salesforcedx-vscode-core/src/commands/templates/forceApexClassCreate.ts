@@ -13,15 +13,13 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../commands';
-import {
   FilePathExistsChecker,
   GlobStrategyFactory,
   PathStrategyFactory,
+  SelectFileName,
+  SelectOutputDir,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';

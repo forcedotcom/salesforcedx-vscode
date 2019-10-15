@@ -16,7 +16,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 import { getRootWorkspacePath } from '../util';
 

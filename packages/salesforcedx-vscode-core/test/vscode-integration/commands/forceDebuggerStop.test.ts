@@ -9,15 +9,15 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../../../src/commands/commands';
-import {
   DebuggerSessionDetachExecutor,
   IdGatherer,
   IdSelection,
   StopActiveDebuggerSessionExecutor
 } from '../../../src/commands/forceDebuggerStop';
+import {
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import childProcess = require('child_process');

@@ -6,12 +6,12 @@ import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ContinueResponse } from '../../../../../salesforcedx-utils-vscode/out/src/types/index';
+import { projectTemplateEnum } from '../../../../src/commands/forceProjectCreate';
 import {
   EnterForceIdeUri,
   IsvDebugBootstrapConfig,
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging/bootstrapCmd';
-import { projectTemplateEnum } from '../../../../src/commands/util/projectTemplateEnum';
 import { nls } from '../../../../src/messages';
 import { getRootWorkspacePath } from '../../../../src/util';
 
