@@ -13,9 +13,33 @@ export {
   FilePathExistsChecker,
   OverwriteComponentPrompt
 } from './postconditionCheckers';
-export { SimpleGatherer } from './parameterGatherers';
 export {
   isInteger,
   isIntegerInRange,
   isAlphaNumString
 } from './inputBoxValidations';
+export {
+  SimpleGatherer,
+  EmptyParametersGatherer,
+  DemoModePromptGatherer,
+  CompositeParametersGatherer,
+  FileSelection,
+  FileSelector,
+  FilePathGatherer,
+  SelectOutputDir,
+  SelectFileName,
+  SelectUsername
+} from './parameterGatherers';
+export { EmptyPostChecker } from './postconditionCheckers';
+export {
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  FlagParameter,
+  CommandletExecutor
+} from './sfdxCommandlet';
+export {
+  SfdxWorkspaceChecker,
+  CompositePreconditionChecker,
+  DevUsernameChecker,
+  EmptyPreChecker
+} from './preconditionCheckers';

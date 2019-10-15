@@ -39,7 +39,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 import { isAlphaNumString, isIntegerInRange } from './util/inputBoxValidations';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';

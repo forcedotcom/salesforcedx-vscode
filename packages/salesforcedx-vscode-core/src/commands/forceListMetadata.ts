@@ -13,7 +13,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
-import { SfdxCommandletExecutor } from '../commands';
+import { SfdxCommandletExecutor } from '../commands/util';
 import { getRootWorkspacePath } from '../util';
 
 export class ForceListMetadataExecutor extends SfdxCommandletExecutor<string> {

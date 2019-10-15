@@ -32,17 +32,17 @@ import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
+  PathExistsChecker,
+  ProjectNameAndPathAndTemplate,
+  SelectProjectFolder,
+  SelectProjectName
+} from '../forceProjectCreate';
+import {
   CompositeParametersGatherer,
   EmptyPreChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
-} from '../commands';
-import {
-  PathExistsChecker,
-  ProjectNameAndPath,
-  SelectProjectFolder,
-  SelectProjectName
-} from '../forceProjectCreate';
+} from '../util';
 
 export interface InstalledPackageInfo {
   id: string;
@@ -535,7 +535,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export type IsvDebugBootstrapConfig = ProjectNameAndPath & ForceIdeUri;
+export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate &
+  ForceIdeUri;
 
 export interface ForceIdeUri {
   loginUrl: string;
