@@ -19,7 +19,7 @@ import {
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '../commands';
+} from '../util';
 import {
   FilePathExistsChecker,
   GlobStrategyFactory,

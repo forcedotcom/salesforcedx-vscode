@@ -32,17 +32,17 @@ import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
-  CompositeParametersGatherer,
-  EmptyPreChecker,
-  SfdxCommandlet,
-  SfdxCommandletExecutor
-} from '../commands';
-import {
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
   SelectProjectFolder,
   SelectProjectName
 } from '../forceProjectCreate';
+import {
+  CompositeParametersGatherer,
+  EmptyPreChecker,
+  SfdxCommandlet,
+  SfdxCommandletExecutor
+} from '../util';
 
 export interface InstalledPackageInfo {
   id: string;

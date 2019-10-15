@@ -13,12 +13,11 @@ import {
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { SfdxCommandletExecutor } from '..';
 import { channelService } from '../../channels';
-import { SelectOutputDir } from '../../commands';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
+import { SelectOutputDir, SfdxCommandletExecutor } from '../util';
 import { SourcePathStrategy } from '../util';
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<

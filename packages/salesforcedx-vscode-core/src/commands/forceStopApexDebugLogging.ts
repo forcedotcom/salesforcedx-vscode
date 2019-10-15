@@ -26,7 +26,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {

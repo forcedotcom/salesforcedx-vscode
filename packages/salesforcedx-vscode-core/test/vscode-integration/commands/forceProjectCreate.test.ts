@@ -19,7 +19,7 @@ import {
   SelectProjectName,
   SelectProjectTemplate
 } from '../../../src/commands/forceProjectCreate';
-import { projectTemplateEnum } from '../../../src/commands/util/projectTemplateEnum';
+import { projectTemplateEnum } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
 import { getRootWorkspacePath } from '../../../src/util';
 

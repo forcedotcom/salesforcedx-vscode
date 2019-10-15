@@ -24,7 +24,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
   public build(filePath: string): Command {

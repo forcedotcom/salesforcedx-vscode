@@ -25,7 +25,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 import { isNullOrUndefined } from 'util';
 import { getDefaultUsernameOrAlias } from '../context';

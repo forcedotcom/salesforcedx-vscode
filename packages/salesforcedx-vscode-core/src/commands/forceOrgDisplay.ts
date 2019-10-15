@@ -17,7 +17,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceOrgDisplay extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;

@@ -15,7 +15,7 @@ import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;

@@ -16,7 +16,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export enum SourceStatusFlags {
   Local = '--local',

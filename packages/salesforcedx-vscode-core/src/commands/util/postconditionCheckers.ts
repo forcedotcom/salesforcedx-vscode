@@ -25,6 +25,14 @@ import { PathStrategyFactory } from './sourcePathStrategies';
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
+export class EmptyPostChecker implements PostconditionChecker<any> {
+  public async check(
+    inputs: ContinueResponse<any> | CancelResponse
+  ): Promise<ContinueResponse<any> | CancelResponse> {
+    return inputs;
+  }
+}
+
 // TODO: Replace with ComponentOverwritePrompt in subsequent PR (W-6610854)
 export class FilePathExistsChecker
   implements PostconditionChecker<DirFileNameSelection> {

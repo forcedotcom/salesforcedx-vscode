@@ -15,7 +15,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceConfigList extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {

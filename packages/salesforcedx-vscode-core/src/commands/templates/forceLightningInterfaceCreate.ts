@@ -15,15 +15,13 @@ import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '../commands';
-import {
   FilePathExistsChecker,
   GlobStrategyFactory,
   PathStrategyFactory,
+  SelectFileName,
+  SelectOutputDir,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';

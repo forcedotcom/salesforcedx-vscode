@@ -29,8 +29,13 @@ import {
   EmptyPreChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
-} from './commands';
-import { projectTemplateEnum } from './util/projectTemplateEnum';
+} from './util';
+
+export enum projectTemplateEnum {
+  standard = 'standard',
+  empty = 'empty',
+  analytics = 'analytics'
+}
 
 type forceProjectCreateOptions = {
   isProjectWithManifest: boolean;

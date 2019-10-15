@@ -11,8 +11,8 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
   ContinueResponse,
@@ -30,13 +30,13 @@ import {
 import { SfdxProjectConfig } from '../sfdxProject';
 import { taskViewService } from '../statuses/index';
 import { getRootWorkspacePath, isSFDXContainerMode } from '../util';
+import { ForceAuthLogoutAll } from './forceAuthLogout';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
-import { ForceAuthLogoutAll } from './forceAuthLogout';
+} from './util';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 export const PRODUCTION_URL = 'https://login.salesforce.com';

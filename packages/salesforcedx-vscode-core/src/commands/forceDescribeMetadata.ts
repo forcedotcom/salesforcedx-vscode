@@ -15,7 +15,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
-import { SfdxCommandletExecutor } from '../commands';
+import { SfdxCommandletExecutor } from '../commands/util';
 import { getRootWorkspacePath } from '../util';
 
 export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<

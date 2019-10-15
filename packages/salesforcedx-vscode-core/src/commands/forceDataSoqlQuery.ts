@@ -20,7 +20,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 class ForceDataSoqlQueryExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: QueryAndApiInputs): Command {
