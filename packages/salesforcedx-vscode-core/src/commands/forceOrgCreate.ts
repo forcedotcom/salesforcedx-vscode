@@ -40,6 +40,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands';
+import { isAlphaNumString, isIntegerInRange } from './util/inputBoxValidations';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
@@ -134,10 +135,9 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
       validateInput: value => {
-        if (/\W/.test(value)) {
-          return nls.localize('error_invalid_org_alias');
-        }
-        return null;
+        return isAlphaNumString(value)
+          ? null
+          : nls.localize('error_invalid_org_alias');
       }
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
@@ -145,21 +145,19 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
-    const expirationDays = {
+    const expirationDaysInputOptions = {
       prompt: nls.localize(
         'parameter_gatherer_enter_scratch_org_expiration_days'
       ),
       value: defaultExpirationdate,
       validateInput: value => {
-        const days = Number.parseInt(value);
-        if (!Number.isSafeInteger(days) || days < 1 || days > 30) {
-          return nls.localize('error_invalid_expiration_days');
-        }
-        return null;
+        return isIntegerInRange(value, [1, 30])
+          ? null
+          : nls.localize('error_invalid_expiration_days');
       }
     } as vscode.InputBoxOptions;
     const scratchOrgExpirationInDays = await vscode.window.showInputBox(
-      expirationDays
+      expirationDaysInputOptions
     );
     if (scratchOrgExpirationInDays === undefined) {
       return { type: 'CANCEL' };
