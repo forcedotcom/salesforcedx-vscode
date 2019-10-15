@@ -9,7 +9,7 @@ import {
   isAlphaNumString,
   isInteger,
   isIntegerInRange
-} from '../../../../src/commands/util/inputBoxValidations';
+} from '../../../src/helpers/validations';
 
 describe('Input Box Validations', () => {
   describe('isInteger', () => {

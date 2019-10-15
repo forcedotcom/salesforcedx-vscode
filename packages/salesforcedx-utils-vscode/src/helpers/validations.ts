@@ -4,11 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-/*
- * Collection of functions to validate InputBox
- */
-
 export function isInteger(value: string | undefined): boolean {
   return value !== undefined && Number.isSafeInteger(Number.parseInt(value));
 }

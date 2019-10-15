@@ -14,11 +14,6 @@ export {
   OverwriteComponentPrompt
 } from './postconditionCheckers';
 export {
-  isInteger,
-  isIntegerInRange,
-  isAlphaNumString
-} from './inputBoxValidations';
-export {
   SimpleGatherer,
   EmptyParametersGatherer,
   DemoModePromptGatherer,

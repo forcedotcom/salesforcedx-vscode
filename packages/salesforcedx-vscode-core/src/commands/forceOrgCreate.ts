@@ -40,7 +40,10 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-import { isAlphaNumString, isIntegerInRange } from './util/inputBoxValidations';
+import {
+  isAlphaNumString,
+  isIntegerInRange
+} from '@salesforce/salesforcedx-utils-vscode/src/helpers/validations';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
