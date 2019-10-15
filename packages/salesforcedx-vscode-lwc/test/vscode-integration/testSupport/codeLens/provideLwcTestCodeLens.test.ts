@@ -35,8 +35,6 @@ describe('Provide LWC Test CodeLens', () => {
     );
     expect(codeLens).to.have.lengthOf(2);
     const [runTestCodeLens, debugTestCodeLens] = codeLens;
-    console.log(runTestCodeLens.range);
-    console.log(runTestCodeLens.command);
     expect(runTestCodeLens.range.start.line).to.equal(11);
     expect(runTestCodeLens.range.start.character).to.equal(6);
     expect(runTestCodeLens.range.end.line).to.equal(11);
