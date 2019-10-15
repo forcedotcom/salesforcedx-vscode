@@ -33,7 +33,7 @@ import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import {
   PathExistsChecker,
-  ProjectNameAndPath,
+  ProjectNameAndPathAndTemplate,
   SelectProjectFolder,
   SelectProjectName
 } from '../forceProjectCreate';
@@ -535,7 +535,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-export type IsvDebugBootstrapConfig = ProjectNameAndPath & ForceIdeUri;
+export type IsvDebugBootstrapConfig = ProjectNameAndPathAndTemplate &
+  ForceIdeUri;
 
 export interface ForceIdeUri {
   loginUrl: string;
