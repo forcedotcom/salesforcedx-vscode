@@ -15,7 +15,7 @@ import {
 import {
   isAlphaNumString,
   isIntegerInRange
-} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers/validations';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse,
