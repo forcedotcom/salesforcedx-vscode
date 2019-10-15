@@ -13,6 +13,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  isAlphaNumString,
+  isIntegerInRange
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers/validations';
+import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
@@ -40,10 +44,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-import {
-  isAlphaNumString,
-  isIntegerInRange
-} from '@salesforce/salesforcedx-utils-vscode/src/helpers/validations';
 
 export const DEFAULT_ALIAS = 'vscodeScratchOrg';
 export const DEFAULT_EXPIRATION_DAYS = '7';
