@@ -124,7 +124,9 @@ export async function forceSourceDiff(sourceUri: vscode.Uri) {
       (editor.document.languageId === 'apex' ||
         editor.document.languageId === 'visualforce' ||
         editor.document.fileName.includes('aura') ||
-        editor.document.fileName.includes('lwc'))
+        editor.document.fileName.includes('lwc') ||
+        editor.document.fileName.includes('permissionset-meta.xml') ||
+        editor.document.fileName.includes('layout-meta.xml'))
     ) {
       sourceUri = editor.document.uri;
     } else {
