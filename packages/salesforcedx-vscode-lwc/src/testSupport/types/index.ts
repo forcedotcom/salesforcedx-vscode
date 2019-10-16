@@ -6,7 +6,12 @@
  */
 import { Location, Uri } from 'vscode';
 
-export interface LwcTestExecutionInfo {
+export enum TestType {
+  LWC = 'lwc'
+}
+
+export interface TestExecutionInfo {
+  testType: TestType;
   testUri: Uri;
   testName: string;
   testLocation?: Location;

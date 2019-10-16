@@ -8,7 +8,7 @@ import { parse } from 'jest-editor-support';
 import { Indexer } from 'lightning-lsp-common';
 import * as vscode from 'vscode';
 
-import { LwcTestExecutionInfo } from '../types';
+import { TestExecutionInfo, TestType } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 
 export class LWCTestIndexer implements Indexer {
@@ -29,7 +29,7 @@ export async function findLwcJestTestFiles(): Promise<vscode.Uri[]> {
   return lwcJestTestFiles;
 }
 
-const testInfoMap = new Map<vscode.Uri, LwcTestExecutionInfo[]>();
+const testInfoMap = new Map<vscode.Uri, TestExecutionInfo[]>();
 
 // Lazy parse test information, until expand the test file or provide code lens
 export async function findTestInfoFromLwcJestTestFile(testUri: vscode.Uri) {
@@ -48,6 +48,7 @@ export async function findTestInfoFromLwcJestTestFile(testUri: vscode.Uri) {
     );
     const testLocation = new vscode.Location(testUri, testRange);
     return {
+      testType: TestType.LWC,
       testName,
       testUri,
       testLocation

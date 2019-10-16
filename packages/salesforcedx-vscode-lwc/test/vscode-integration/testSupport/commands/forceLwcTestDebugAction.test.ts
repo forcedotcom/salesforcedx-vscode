@@ -19,6 +19,7 @@ import {
   handleDidTerminateDebugSession
 } from '../../../../src/testSupport/commands/forceLwcTestDebugAction';
 import * as lwcTestRunner from '../../../../src/testSupport/testRunner';
+import { TestType } from '../../../../src/testSupport/types';
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
@@ -113,6 +114,7 @@ describe('Force LWC Test Debug - Code Action', () => {
       );
       const testUri = Uri.file(testFsPath);
       const testExecutionInfo = {
+        testType: TestType.LWC,
         testName,
         testUri
       };

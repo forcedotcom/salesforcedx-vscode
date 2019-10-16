@@ -11,7 +11,7 @@ import {
   getLwcTestRunnerExecutable,
   normalizeRunTestsByPath
 } from '../testRunner';
-import { LwcTestExecutionInfo } from '../types';
+import { TestExecutionInfo } from '../types';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -53,7 +53,7 @@ export function getDebugConfiguration(
 }
 
 export async function forceLwcTestCaseDebug(data: {
-  testExecutionInfo: LwcTestExecutionInfo;
+  testExecutionInfo: TestExecutionInfo;
 }) {
   const { testExecutionInfo } = data;
   const { testUri, testName } = testExecutionInfo;

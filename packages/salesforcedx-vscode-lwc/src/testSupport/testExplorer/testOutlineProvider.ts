@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { LwcTestExecutionInfo } from '../types';
+import { TestExecutionInfo, TestType } from '../types';
 import { DARK_BLUE_BUTTON, LIGHT_BLUE_BUTTON } from './iconPaths';
 
 export abstract class TestNode extends vscode.TreeItem {
@@ -40,17 +40,18 @@ export class SfdxTestNode extends TestNode {
   public errorMessage: string = '';
   public stackTrace: string = '';
   public outcome = 'Not Run';
-  public testExecutionInfo?: LwcTestExecutionInfo;
+  public testExecutionInfo?: TestExecutionInfo;
 
   constructor(
     label: string,
     location: vscode.Location | null,
-    testExecutionInfo?: LwcTestExecutionInfo
+    testExecutionInfo?: TestExecutionInfo
   ) {
     super(label, vscode.TreeItemCollapsibleState.None, location);
     this.testExecutionInfo = testExecutionInfo;
     if (testExecutionInfo) {
-      this.contextValue = 'lwcTest';
+      const { testType } = testExecutionInfo;
+      this.contextValue = `${testType}Test`;
     }
   }
 
@@ -67,7 +68,7 @@ export class SfdxTestGroupNode extends TestNode {
   constructor(
     label: string,
     location: vscode.Location | null,
-    testType: string,
+    testType: TestType,
     collapsibleState: vscode.TreeItemCollapsibleState = vscode
       .TreeItemCollapsibleState.Expanded
   ) {
@@ -144,7 +145,7 @@ export class SfdxTestOutlineProvider
             const testGroupNode = new SfdxTestGroupNode(
               testGroupLabel,
               testLocation,
-              'lwc',
+              TestType.LWC,
               vscode.TreeItemCollapsibleState.Collapsed
             );
             return testGroupNode;
@@ -195,7 +196,7 @@ export class SfdxTestOutlineProvider
   protected getAllTests(): TestNode {
     if (this.rootNode == null) {
       // Starting Out
-      this.rootNode = new SfdxTestGroupNode('LwcTests', null, 'lwc');
+      this.rootNode = new SfdxTestGroupNode('LwcTests', null, TestType.LWC);
     }
     this.rootNode.children = new Array<TestNode>();
     return this.rootNode;

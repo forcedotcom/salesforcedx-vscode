@@ -14,7 +14,7 @@ import {
   TextDocument
 } from 'vscode';
 import { nls } from '../../messages';
-import { LwcTestExecutionInfo } from '../types';
+import { TestExecutionInfo, TestType } from '../types';
 
 // Implementation can be moved to lightning language server in the future
 export async function provideLwcTestCodeLens(
@@ -33,7 +33,8 @@ export async function provideLwcTestCodeLens(
         new Position(nameRange.end.line - 1, nameRange.end.column - 1)
       );
 
-      const testExecutionInfo: LwcTestExecutionInfo = {
+      const testExecutionInfo: TestExecutionInfo = {
+        testType: TestType.LWC,
         testUri: document.uri,
         testName: name
       };

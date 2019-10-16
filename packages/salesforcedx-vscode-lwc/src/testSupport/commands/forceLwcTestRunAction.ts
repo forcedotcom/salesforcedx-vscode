@@ -17,7 +17,7 @@ import {
   normalizeRunTestsByPath,
   SfdxWorkspaceLwcTestRunnerInstallationChecker
 } from '../testRunner';
-import { LwcTestExecutionInfo } from '../types';
+import { TestExecutionInfo } from '../types';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -79,7 +79,7 @@ export async function forceLwcTestRun(
 }
 
 export function forceLwcTestCaseRun(data: {
-  testExecutionInfo: LwcTestExecutionInfo;
+  testExecutionInfo: TestExecutionInfo;
 }) {
   const { testExecutionInfo } = data;
   const { testUri, testName } = testExecutionInfo;
