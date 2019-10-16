@@ -42,7 +42,7 @@ export async function provideLwcTestCodeLens(
         command: 'sfdx.force.lightning.lwc.test.case.run',
         title: runTestTitle,
         tooltip: runTestTitle,
-        arguments: [testExecutionInfo]
+        arguments: [{ testExecutionInfo }]
       };
       const runTestCaseCodeLens = new CodeLens(range, runTestCaseCommand);
 
@@ -51,7 +51,7 @@ export async function provideLwcTestCodeLens(
         command: 'sfdx.force.lightning.lwc.test.case.debug',
         title: debugTestTitle,
         tooltip: debugTestTitle,
-        arguments: [testExecutionInfo]
+        arguments: [{ testExecutionInfo }]
       };
       const debugTestCaseCodeLens = new CodeLens(range, debugTestCaseCommand);
       return [runTestCaseCodeLens, debugTestCaseCodeLens];

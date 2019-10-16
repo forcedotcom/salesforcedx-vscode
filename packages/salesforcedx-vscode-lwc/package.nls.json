@@ -1,4 +1,5 @@
 {
+  "force_lightning_lwc_test_view_name": "LWC Tests",
   "force_lightning_lwc_test_case_run_text": "SFDX: Invoke Lightning Web Component Test Case",
   "force_lightning_lwc_test_case_debug_text": "SFDX: Debug Lightning Web Component Test Case"
 }

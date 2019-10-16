@@ -78,8 +78,11 @@ export async function forceLwcTestRun(
   await commandlet.run();
 }
 
-export function forceLwcTestCaseRun(data: LwcTestExecutionInfo) {
-  const { testUri, testName } = data;
+export function forceLwcTestCaseRun(data: {
+  testExecutionInfo: LwcTestExecutionInfo;
+}) {
+  const { testExecutionInfo } = data;
+  const { testUri, testName } = testExecutionInfo;
   const { fsPath: testFsPath } = testUri;
   if (
     vscode.workspace.workspaceFolders &&
