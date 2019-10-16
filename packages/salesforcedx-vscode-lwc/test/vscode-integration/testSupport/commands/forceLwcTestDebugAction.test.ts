@@ -112,9 +112,12 @@ describe('Force LWC Test Debug - Code Action', () => {
         testName
       );
       const testUri = Uri.file(testFsPath);
-      await forceLwcTestCaseDebug({
+      const testExecutionInfo = {
         testName,
         testUri
+      };
+      await forceLwcTestCaseDebug({
+        testExecutionInfo
       });
       const mockDebugSession = {
         id: 'mockId',

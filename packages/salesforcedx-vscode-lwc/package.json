@@ -103,6 +103,12 @@
           "title": "%force_lightning_lwc_test_case_run_text%",
           "when": "view == sfdx.force.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
           "group": "inline"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.case.debug",
+          "title": "%force_lightning_lwc_test_case_run_text%",
+          "when": "view == sfdx.force.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
+          "group": "inline"
         }
       ],
       "commandPalette": [
@@ -127,7 +133,11 @@
       },
       {
         "command": "sfdx.force.lightning.lwc.test.case.debug",
-        "title": "%force_lightning_lwc_test_case_debug_text%"
+        "title": "%force_lightning_lwc_test_case_debug_text%",
+        "icon": {
+          "light": "resources/light/debug-side.svg",
+          "dark": "resources/dark/debug-side.svg"
+        }
       }
     ]
   }

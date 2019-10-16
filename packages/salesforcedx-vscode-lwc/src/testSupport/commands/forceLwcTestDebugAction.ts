@@ -52,8 +52,11 @@ export function getDebugConfiguration(
   return debugConfiguration;
 }
 
-export async function forceLwcTestCaseDebug(data: LwcTestExecutionInfo) {
-  const { testUri, testName } = data;
+export async function forceLwcTestCaseDebug(data: {
+  testExecutionInfo: LwcTestExecutionInfo;
+}) {
+  const { testExecutionInfo } = data;
+  const { testUri, testName } = testExecutionInfo;
   const { fsPath: testFsPath } = testUri;
   if (
     vscode.workspace.workspaceFolders &&
