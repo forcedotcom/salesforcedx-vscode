@@ -1,3 +1,17 @@
+# 47.2.0 - October 17, 2019
+
+## Fixed
+
+#### docs
+
+- Reorganize user guide section ([PR #1692](https://github.com/forcedotcom/salesforcedx-vscode/pull/1692))
+
+## Added
+
+#### docs
+
+- Add support for navigating between English and Japanese documents ([PR #1698](https://github.com/forcedotcom/salesforcedx-vscode/pull/1698))
+
 # 47.1.0 - October 12, 2019
 
 ## Fixed
