@@ -7,8 +7,6 @@
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
   forceAliasList,
   forceApexClassCreate,
   forceApexExecute,
@@ -53,16 +51,20 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
-  SelectFileName,
-  SelectOutputDir,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
+import {
+  CompositeParametersGatherer,
+  EmptyParametersGatherer,
+  SelectFileName,
+  SelectOutputDir,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from './commands/util';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
@@ -462,6 +464,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Api
     const internalApi: any = {
+      channelService,
+      EmptyParametersGatherer,
+      isCLIInstalled,
+      notificationService,
+      OrgAuthInfo,
+      ProgressNotification,
+      SfdxCommandlet,
+      SfdxCommandletExecutor,
+      sfdxCoreSettings,
+      SfdxWorkspaceChecker,
       telemetryService
     };
 

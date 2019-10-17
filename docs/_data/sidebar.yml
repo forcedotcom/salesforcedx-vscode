@@ -1,87 +1,167 @@
-- title: Get Started
-  baseUrl: /articles/getting-started/
+- title:
+    en: Get Started
+    jp: 使用開始
+  baseUrl: /getting-started/
   children:
-    - title: Installation
-      url: /articles/getting-started/install
-    - title: First Project
-      url: /articles/getting-started/first-project
-    - title: 'Migrate: Force.com IDE'
-      url: /articles/getting-started/migrate-from-forcecom-ide
-    - title: Recommended Extensions
-      url: /articles/getting-started/recommended-extensions
-    - title: Settings
-      url: /articles/getting-started/settings
-    - title: Prettier Code Formatter
-      url: /articles/getting-started/prettier
-    - title: Tips & Tricks
-      url: /articles/getting-started/tips-and-tricks
-    - title: Java Setup
-      url: /articles/getting-started/java-setup
-- title: User Guide
-  baseUrl: /articles/user-guide/
+    - title:
+        en: Installation
+        jp: インストール
+      url: /getting-started/install
+    - title:
+        en: First Project
+        jp: 最初のプロジェクト
+      url: /getting-started/first-project
+    - title:
+        en: 'Migrate: Force.com IDE'
+        jp: '移行Force.com IDE'
+      url: /getting-started/migrate-from-forcecom-ide
+    - title:
+        en: Recommended Extensions
+        jp: 推奨の拡張機能
+      url: /getting-started/recommended-extensions
+    - title:
+        en: Settings
+        jp: 設定
+      url: /getting-started/settings
+    - title:
+        en: Tips & Tricks
+        jp: ヒントとコツ
+      url: /getting-started/tips-and-tricks
+    - title:
+        en: Java Setup
+        jp: Java 設定
+      url: /getting-started/java-setup
+- title:
+    en: User Guide
+    jp: ユーザガイド
+  baseUrl: /user-guide/
   children:
-    - title: Org Development
-      url: /articles/user-guide/org-development-model
-    - title: Package Development
-      url: /articles/user-guide/package-development-model
-    - title: CLI Commands
-      url: /articles/user-guide/cli-commands
-    - title: Source Format
-      url: /articles/user-guide/source-format
-    - title: Default Org
-      url: /articles/user-guide/default-org
-    - title: Org Browser
-      url: /articles/user-guide/org-browser
-    - title: Remote Containers
-      url: /articles/user-guide/remote-development
-    - title: Source Diff
-      url: /articles/user-guide/source-diff
-    - title: Demo Mode
-      url: /articles/user-guide/demo-mode
-- title: Apex
-  baseUrl: /articles/apex/
+    - title:
+        en: Development Models
+        jp: Development Models
+      url: /user-guide/development-models
+    - title:
+        en: Deploy on Save
+        jp: Deploy on Save
+      url: /user-guide/deploy-on-save
+    - title:
+        en: Org Browser
+        jp: 組織のブラウザ
+      url: /user-guide/org-browser
+    - title:
+        en: Source Diff
+        jp: Source Diff
+      url: /user-guide/source-diff
+    - title:
+        en: Prettier Code Formatter
+        jp: Prettier コードフォーマッタ
+      url: /user-guide/prettier
+    - title:
+        en: Command Reference
+        jp: Command Reference
+      url: /user-guide/vscode-commands
+    - title:
+        en: Source Format
+        jp: ソース形式
+      url: /user-guide/source-format
+    - title:
+        en: Default Org
+        jp: デフォルト組織
+      url: /user-guide/default-org
+    - title:
+        en: Remote Containers
+        jp: Remote Containers
+      url: /user-guide/remote-development
+    - title:
+        en: Demo Mode
+        jp: デモモード
+      url: /user-guide/demo-mode
+- title:
+    en: Apex
+    jp: Apex
+  baseUrl: /apex/
   children:
-    - title: Writing
-      url: /articles/apex/writing
-    - title: Testing
-      url: /articles/apex/testing
-    - title: Refactoring
-      url: /articles/apex/refactoring
-    - title: Quick Fix
-      url: /articles/apex/quick-fix
-    - title: Replay Debugger
-      url: /articles/apex/replay-debugger
-    - title: Interactive Debugger
-      url: /articles/apex/interactive-debugger
-    - title: ISV Debugger
-      url: /articles/apex/isv-debugger
-    - title: Language Server
-      url: /articles/apex/language-server
-- title: Aura
-  baseUrl: /articles/aura/
+    - title:
+        en: Writing
+        jp: 作成
+      url: /apex/writing
+    - title:
+        en: Testing
+        jp: テスト
+      url: /apex/testing
+    - title:
+        en: Refactoring
+        jp: リファクタリング
+      url: /apex/refactoring
+    - title:
+        en: Quick Fix
+        jp: クイック修正
+      url: /apex/quick-fix
+    - title:
+        en: Replay Debugger
+        jp: Replay Debugger
+      url: /apex/replay-debugger
+    - title:
+        en: Interactive Debugger
+        jp: 対話型デバッガ
+      url: /apex/interactive-debugger
+    - title:
+        en: ISV Debugger
+        jp: ISV デバッガ
+      url: /apex/isv-debugger
+    - title:
+        en: Language Server
+        jp: 言語サーバ
+      url: /apex/language-server
+- title:
+    en: Aura
+    jp: Aura
+  baseUrl: /aura/
   children:
-    - title: Writing
-      url: /articles/aura/writing
-- title: Lighting Web Components
-  baseUrl: /articles/lwc/
+    - title:
+        en: Writing
+        jp: 作成
+      url: /aura/writing
+- title:
+    en: Lighting Web Components
+    jp: Lightning Web コンポーネント
+  baseUrl: /lwc/
   children:
-    - title: Writing
-      url: /articles/lwc/writing
-    - title: Local Development
-      url: /articles/lwc/localdev
-- title: Visualforce
-  baseUrl: /articles/visualforce/
+    - title:
+        en: Writing
+        jp: 作成
+      url: /lwc/writing
+    - title:
+        en: Local Development
+        jp: Local Development
+      url: /lwc/localdev
+- title:
+    en: Visualforce
+    jp: Visualforce
+  baseUrl: /visualforce/
   children:
-    - title: Writing
-      url: /articles/visualforce/writing
-- title: FAQ
-  baseUrl: /articles/faq/
+    - title:
+        en: Writing
+        jp: 作成
+      url: /visualforce/writing
+- title:
+    en: FAQ
+    jp: FAQ
+  baseUrl: /faq/
   children:
-    - title: General
-      url: /articles/faq/general
-    - title: Telemetry
-      url: /articles/faq/telemetry
-- title: Troubleshooting
-  url: /articles/troubleshooting
-- title: Bugs and Feedback
-  url: /articles/bugs-and-feedback
+    - title:
+        en: General
+        jp: 一般
+      url: /faq/general
+    - title:
+        en: Telemetry
+        jp: テレメトリ
+      url: /faq/telemetry
+- title:
+    en: Troubleshooting
+    jp: トラブルシューティング
+  url: /troubleshooting
+- title:
+    en: Bugs and Feedback
+    jp: バグとフィードバック
+  url: /bugs-and-feedback
