@@ -19,12 +19,8 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
-import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './commands';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {

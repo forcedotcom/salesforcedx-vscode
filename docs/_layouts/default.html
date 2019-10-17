@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>{{ page.title }}</title>
+    <base href="{{ site.baseurl }}/" />
     {% include head.generated.html %}
     <!-- Google Tag Manager -->
     <script>
@@ -59,14 +60,19 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css"
     />
-    {% assign folder = page.dir | slice: 0,10 %} {% if folder == '/articles/' %}
-    {% assign jpUrl = page.url | replace_first: '/articles/', '/articles-jp/' %}
+    <link
+      rel="canonical"
+      href="https://developer.salesforce.com/tools/vscode{{ page.url }}"
+    />
+    {% if page.lang == 'en' %} {% assign jpurl = page.url | replace: '/en/',
+    '/jp/' %} {% if page.url == '/' %} {% assign jpurl = page.url | append:
+    'jp/' %}{% endif %}
     <link
       rel="alternate"
       hreflang="jp"
-      href="{{ jpUrl | prepend: site.baseurl | prepend: site.url }}"
+      href="https://developer.salesforce.com/tools/vscode{{ jpurl }}"
     />
-    {%endif %}
+    {% endif %}
   </head>
 
   <body>

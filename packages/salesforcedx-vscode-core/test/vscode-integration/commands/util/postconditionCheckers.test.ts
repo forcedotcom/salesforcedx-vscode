@@ -15,6 +15,7 @@ import { join } from 'path';
 import { sandbox, SinonStub } from 'sinon';
 import { Uri, workspace } from 'vscode';
 import {
+  EmptyPostChecker,
   FilePathExistsChecker,
   GlobStrategy,
   OverwriteComponentPrompt,
@@ -28,6 +29,29 @@ import { MetadataDictionary } from '../../../../src/util/metadataDictionary';
 const env = sandbox.create();
 
 describe('Postcondition Checkers', () => {
+  describe('EmptyPostconditionChecker', () => {
+    it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+      const postChecker = new EmptyPostChecker();
+      const response = await postChecker.check({ type: 'CANCEL' });
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return ContinueResponse unchanged if input passed in is ContinueResponse', async () => {
+      const postChecker = new EmptyPostChecker();
+      const input: ContinueResponse<string> = {
+        type: 'CONTINUE',
+        data: 'test'
+      };
+      const response = await postChecker.check(input);
+      expect(response.type).to.equal('CONTINUE');
+      if (response.type === 'CONTINUE') {
+        expect(response.data).to.equal('test');
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+  });
+
   describe('FilePathExistsChecker', () => {
     let findFilesStub: SinonStub;
     let checker: FilePathExistsChecker;
@@ -178,7 +202,9 @@ describe('Postcondition Checkers', () => {
 
       it('Should show correct message for 1 < components <= 10 ', async () => {
         const components = generateComponents(2);
-        const expectedBody = `${components[1].type}:${components[1].fileName}\n`;
+        const expectedBody = `${components[1].type}:${
+          components[1].fileName
+        }\n`;
 
         await doPrompt(components, [undefined]);
 

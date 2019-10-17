@@ -19,7 +19,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
   string
