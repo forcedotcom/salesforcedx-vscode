@@ -21,18 +21,21 @@ import {
   LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { SObjectRefreshGatherer } from '../utils';
 import {
   ProjectObjects,
   SchemaList,
   SObjectCollector
-} from './sobjectCollector';
+} from './sobjectCollectors';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -51,6 +54,13 @@ const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
 export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
+  private readonly source?: SObjectRefreshSource;
+
+  public constructor(source?: SObjectRefreshSource) {
+    super();
+    this.source = source || SObjectRefreshSource.Manual;
+  }
+
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_sobjects_refresh'))
@@ -60,7 +70,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
   }
 
   public async execute(
-    response: ContinueResponse<SObjectRefreshSelection>
+    response: ContinueResponse<{ category: SObjectCategory }>
   ): Promise<void> {
     if (ForceGenerateFauxClassesExecutor.isActive) {
       vscode.window.showErrorMessage(
@@ -86,7 +96,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
     );
 
     let progressLocation = vscode.ProgressLocation.Notification;
-    if (response.data.source !== SObjectRefreshSource.Manual) {
+    if (this.source !== SObjectRefreshSource.Manual) {
       progressLocation = vscode.ProgressLocation.Window;
     }
     ProgressNotification.show(
@@ -104,20 +114,11 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
 
     const commandName = execution.command.logName;
     try {
-      let collector: SObjectCollector;
-      switch (response.data.category) {
-        case SObjectCategory.PROJECT:
-          collector = new ProjectObjects();
-          break;
-        default:
-          collector = new SchemaList(response.data.category);
-      }
+      const collector = this.getCollector(response.data.category);
       const result = await gen.generate(
         getRootWorkspacePath(),
-        response.data,
         Array.from(await collector.getObjectNames())
       );
-
       console.log('Generate success ' + result.data);
       this.logMetric(commandName, startTime, result.data);
     } catch (result) {
@@ -135,6 +136,54 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
     ForceGenerateFauxClassesExecutor.isActive = false;
     return;
   }
+
+  private getCollector(category: SObjectCategory): SObjectCollector {
+    switch (category) {
+      case SObjectCategory.ALL:
+      case SObjectCategory.STANDARD:
+      case SObjectCategory.CUSTOM:
+        return new SchemaList(category);
+      case SObjectCategory.PROJECT:
+        return new ProjectObjects();
+    }
+  }
+}
+
+type SObjectSelection = {
+  sobjects: string[];
+  category: SObjectCategory;
+};
+
+class SObjectCategoryGatherer
+  implements ParametersGatherer<{ category: SObjectCategory }> {
+  public async gather(): Promise<
+    ContinueResponse<{ category: SObjectCategory }> | CancelResponse
+  > {
+    const category = await this.promptCategory();
+    if (category) {
+      return { type: 'CONTINUE', data: { category } };
+    }
+    return { type: 'CANCEL' };
+  }
+
+  private async promptCategory(): Promise<SObjectCategory | undefined> {
+    const options = [
+      nls.localize('sobject_refresh_all'),
+      nls.localize('sobject_refresh_project'),
+      nls.localize('sobject_refresh_custom'),
+      nls.localize('sobject_refresh_standard')
+    ];
+    switch (await vscode.window.showQuickPick(options)) {
+      case options[0]:
+        return SObjectCategory.ALL;
+      case options[1]:
+        return SObjectCategory.PROJECT;
+      case options[2]:
+        return SObjectCategory.CUSTOM;
+      case options[3]:
+        return SObjectCategory.STANDARD;
+    }
+  }
 }
 
 export async function forceGenerateFauxClassesCreate(
@@ -142,8 +191,8 @@ export async function forceGenerateFauxClassesCreate(
 ) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new SObjectRefreshGatherer(source),
-    new ForceGenerateFauxClassesExecutor()
+    new SObjectCategoryGatherer(),
+    new ForceGenerateFauxClassesExecutor(source)
   );
   await commandlet.run();
 }

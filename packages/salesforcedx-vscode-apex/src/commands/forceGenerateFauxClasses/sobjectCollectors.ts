@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import {
   CliCommandExecutor,
@@ -5,7 +12,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { basename } from 'path';
+import { basename, normalize } from 'path';
 import { extensions, workspace } from 'vscode';
 
 const {
@@ -13,6 +20,9 @@ const {
   SfdxPackageDirectories
 } = extensions.getExtension('salesforce.salesforcedx-vscode-core')!.exports;
 
+/**
+ * Collect object names to fetch SObject definitions for
+ */
 export interface SObjectCollector {
   getObjectNames(): Promise<Set<string>>;
 }
@@ -46,7 +56,9 @@ export class ProjectObjects implements SObjectCollector {
   public async getObjectNames() {
     const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const foundFiles = await workspace.findFiles(
-      `{${packageDirectories.join(',')}}/**/objects/*/*.object-meta.xml`
+      normalize(
+        `{${packageDirectories.join(',')}}/**/objects/*/*.object-meta.xml`
+      )
     );
     const objectNames = foundFiles.map(
       file => basename(file.fsPath).split('.')[0]

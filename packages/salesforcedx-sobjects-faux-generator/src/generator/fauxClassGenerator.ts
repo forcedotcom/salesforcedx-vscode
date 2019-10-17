@@ -102,11 +102,9 @@ export class FauxClassGenerator {
 
   public async generate(
     projectPath: string,
-    selection: SObjectRefreshSelection,
     sobjects: string[]
   ): Promise<SObjectRefreshResult> {
-    const { category, source } = selection;
-    this.result = { data: { category, source, cancelled: false } };
+    this.result = { data: { cancelled: false } };
     const sobjectsFolderPath = path.join(
       projectPath,
       SFDX_DIR,
@@ -405,12 +403,10 @@ export class FauxClassGenerator {
   }
 
   private logSObjects(sobjectKind: string, fetchedLength: number) {
-    if (fetchedLength > 0) {
-      this.emitter.emit(
-        LocalCommandExecution.STDOUT_EVENT,
-        nls.localize('fetched_sobjects_length_text', fetchedLength, sobjectKind)
-      );
-    }
+    this.emitter.emit(
+      LocalCommandExecution.STDOUT_EVENT,
+      nls.localize('fetched_sobjects_length_text', fetchedLength, sobjectKind)
+    );
   }
 
   private logFetchedObjects(
