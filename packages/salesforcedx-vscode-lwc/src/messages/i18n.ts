@@ -21,6 +21,8 @@ export const messages = {
   force_lwc_test_run_description_text: 'Run LWC test(s)',
   no_lwc_jest_found_text:
     'sfdx-lwc-jest is not installed. Install it from https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation',
+  no_workspace_folder_found_for_test_text:
+    'Unable to determine workspace folder for this test',
   run_test_title: 'Run Test',
   debug_test_title: 'Debug Test'
 };

@@ -58,4 +58,8 @@ export async function findTestInfoFromLwcJestTestFile(testUri: vscode.Uri) {
   return testInfo;
 }
 
+export function updateTestResults() {
+  // update test outline provider
+}
+
 // findLwcTestFiles().catch(error => {});
