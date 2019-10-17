@@ -130,21 +130,12 @@ export class FauxClassGenerator {
         nls.localize('no_generate_if_not_in_project', sobjectsFolderPath)
       );
     }
-    this.cleanupSObjectFolders(sobjectsFolderPath, selection.category);
+    // this.cleanupSObjectFolders(sobjectsFolderPath, selection.category);
 
     const describe = new SObjectDescribe();
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
     let fetchedSObjects: SObject[] = [];
-    // try {
-    //   sobjects = await describe.describeGlobal(projectPath, type);
-    // } catch (e) {
-    //   const err = JSON.parse(e);
-    //   return this.errorExit(
-    //     nls.localize('failure_fetching_sobjects_list_text', err.message),
-    //     err.stack
-    //   );
-    // }
     let j = 0;
     while (j < sobjects.length) {
       try {
@@ -202,10 +193,12 @@ export class FauxClassGenerator {
 
   // VisibleForTesting
   public generateFauxClass(folderPath: string, sobject: SObject): string {
+    const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath);
+    } else if (fs.existsSync(fauxClassPath)) {
+      rm('-f', fauxClassPath);
     }
-    const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
     fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
       mode: 0o444
     });
@@ -225,10 +218,12 @@ export class FauxClassGenerator {
       case SObjectCategory.CUSTOM:
         pathToClean = path.join(baseSObjectsFolder, CUSTOMOBJECTS_DIR);
         break;
+      case SObjectCategory.PROJECT:
+        break;
       default:
         pathToClean = baseSObjectsFolder;
     }
-    if (fs.existsSync(pathToClean)) {
+    if (pathToClean && fs.existsSync(pathToClean)) {
       rm('-rf', pathToClean);
     }
   }

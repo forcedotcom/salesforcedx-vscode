@@ -13,34 +13,37 @@ const {
   SfdxPackageDirectories
 } = extensions.getExtension('salesforce.salesforcedx-vscode-core')!.exports;
 
-export class SObjectCollector {
-  public static async getSObjects(category: SObjectCategory) {
-    switch (category) {
-      case SObjectCategory.ALL:
-      case SObjectCategory.CUSTOM:
-      case SObjectCategory.STANDARD:
-        return await this.getSObjectInOrg(category);
-      case SObjectCategory.PROJECT:
-        return Array.from(await this.getSObjectsInProject());
-    }
+export interface SObjectCollector {
+  getObjectNames(): Promise<Set<string>>;
+}
+
+export class SchemaList implements SObjectCollector {
+  private category: SObjectCategory;
+  public constructor(
+    category:
+      | SObjectCategory.CUSTOM
+      | SObjectCategory.STANDARD
+      | SObjectCategory.ALL
+  ) {
+    this.category = category;
   }
 
-  private static async getSObjectInOrg(
-    category: SObjectCategory
-  ): Promise<string[]> {
+  public async getObjectNames(): Promise<Set<string>> {
     const command = new SfdxCommandBuilder()
       .withArg('force:schema:sobject:list')
-      .withFlag('--sobjecttypecategory', category)
+      .withFlag('--sobjecttypecategory', this.category)
       .withJson()
       .build();
     const execution = new CliCommandExecutor(command, {
       cwd: getRootWorkspacePath()
     }).execute();
     const result = await new CommandOutput().getCmdResult(execution);
-    return extractJsonObject(result).result as string[];
+    return new Set(extractJsonObject(result).result);
   }
+}
 
-  private static async getSObjectsInProject(): Promise<string[]> {
+export class ProjectObjects implements SObjectCollector {
+  public async getObjectNames() {
     const packageDirectories = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const foundFiles = await workspace.findFiles(
       `{${packageDirectories.join(',')}}/**/objects/*/*.object-meta.xml`
@@ -48,6 +51,6 @@ export class SObjectCollector {
     const objectNames = foundFiles.map(
       file => basename(file.fsPath).split('.')[0]
     );
-    return Array.from(new Set<string>(objectNames));
+    return new Set<string>(objectNames);
   }
 }

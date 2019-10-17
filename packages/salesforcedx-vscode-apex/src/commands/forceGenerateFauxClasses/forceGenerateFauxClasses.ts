@@ -10,6 +10,7 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
+import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshSelection,
@@ -27,7 +28,11 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { SObjectRefreshGatherer } from '../utils';
-import { SObjectCollector } from './sobjectCollector';
+import {
+  ProjectObjects,
+  SchemaList,
+  SObjectCollector
+} from './sobjectCollector';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -43,30 +48,6 @@ const {
   taskViewService
 } = sfdxCoreExports;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
-
-// export class ForceListSObjectSchemaExecutor extends SfdxCommandletExecutor<
-//   string
-// > {
-//   public build(data: string): Command {
-//     return new SfdxCommandBuilder()
-//       .withArg('force:schema:sobject:list')
-//       .withFlag('--sobjecttypecategory', data)
-//       .withJson()
-//       .build();
-//   }
-
-//   public async execute(type: string): Promise<string[]> {
-//     const execution = new CliCommandExecutor(this.build(type), {
-//       cwd: getRootWorkspacePath()
-//     }).execute();
-//     try {
-//       const result = await new CommandOutput().getCmdResult(execution);
-//       return extractJsonObject(result).result as string[];
-//     } catch (e) {
-//       return Promise.reject(e);
-//     }
-//   }
-// }
 
 export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
@@ -123,10 +104,18 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
 
     const commandName = execution.command.logName;
     try {
+      let collector: SObjectCollector;
+      switch (response.data.category) {
+        case SObjectCategory.PROJECT:
+          collector = new ProjectObjects();
+          break;
+        default:
+          collector = new SchemaList(response.data.category);
+      }
       const result = await gen.generate(
         getRootWorkspacePath(),
         response.data,
-        await SObjectCollector.getSObjects(response.data.category)
+        Array.from(await collector.getObjectNames())
       );
 
       console.log('Generate success ' + result.data);
