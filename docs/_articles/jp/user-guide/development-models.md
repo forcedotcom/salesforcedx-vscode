@@ -1,6 +1,6 @@
 ---
 title: Development Models with VS Code
-lang: en
+lang: jp
 ---
 
 ## Overview

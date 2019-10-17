@@ -1,5 +1,6 @@
 ---
 title: Salesforce Extension for VS Code Command Reference
+lang: jp
 ---
 
 To run a command from Salesforce Extensions for VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) and type **SFDX** in the command palette.  

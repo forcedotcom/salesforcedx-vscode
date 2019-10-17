@@ -1,5 +1,6 @@
 ---
 title: Set Up the Prettier Code Formatter for Salesforce Projects
+lang: jp
 ---
 
 Currently, Prettier supports Apex, Aura, and Lightning Web Components (LWC) as well as standard file formats like `.json`, `.md`, `.html`, and `.js`.

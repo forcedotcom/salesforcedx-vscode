@@ -1,6 +1,6 @@
 ---
 title: Deploy On Save
-lang: en
+lang: jp
 ---
 
 ## Overview
