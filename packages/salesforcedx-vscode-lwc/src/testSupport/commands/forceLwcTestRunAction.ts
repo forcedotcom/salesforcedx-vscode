@@ -98,4 +98,14 @@ export function forceLwcTestCaseRun(data: {
 
 export function forceLwcTestFileRun(data: {
   testExecutionInfo: TestExecutionInfo;
-}) {}
+}) {
+  // TODO: refactor this.
+  const { testExecutionInfo } = data;
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders[0]
+  ) {
+    const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    return forceLwcTestRun(cwd, testExecutionInfo);
+  }
+}

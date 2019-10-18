@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { TestExecutionInfo, TestType } from '../types';
+import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
 import { getTempFolder, startWatchingTestResults } from './testResultsWatcher';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -72,9 +72,13 @@ export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
 }
 
 export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
-  if (testExecutionInfo.testType === TestType.LWC) {
+  let testName: string | undefined;
+  if (testExecutionInfo.kind === TestInfoKind.TEST_CASE) {
+    testName = testExecutionInfo.testName;
+  } else if (testExecutionInfo.kind === TestInfoKind.TEST_FILE) {
+    testName = undefined;
   }
-  const { testUri, testName } = testExecutionInfo;
+  const { testUri } = testExecutionInfo;
   const { fsPath: testFsPath } = testUri;
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
   if (workspaceFolder) {
@@ -89,6 +93,9 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
 
       // TODO - refactor, rename getJestArgs or handle watching elsewhere
       startWatchingTestResults(tempFolder);
+      const testNamePatternArgs = testName
+        ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
+        : [];
       const args = [
         '--',
         '--json',
@@ -97,8 +104,7 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
         '--testLocationInResults', // TODO: do we need testLocationInResults?
         '--runTestsByPath',
         normalizeRunTestsByPath(workspaceFolderFsPath, testFsPath),
-        '--testNamePattern',
-        `"${escapeStrForRegex(testName)}"`
+        ...testNamePatternArgs
       ];
       return args;
     }

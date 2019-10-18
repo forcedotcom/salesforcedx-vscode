@@ -109,6 +109,12 @@
           "title": "%force_lightning_lwc_test_case_run_text%",
           "when": "view == sfdx.force.lightning.lwc.test.view && viewItem =~ /(lwcTest)(_.*|\\b)/",
           "group": "inline"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.file.run",
+          "title": "%force_lightning_lwc_test_file_run_text%",
+          "when": "view == sfdx.force.lightning.lwc.test.view && viewItem =~ /(lwcTestGroup)(_.*|\\b)/",
+          "group": "inline"
         }
       ],
       "commandPalette": [
@@ -125,7 +131,11 @@
     "commands": [
       {
         "command": "sfdx.force.lightning.lwc.test.file.run",
-        "title": "%force_lightning_lwc_test_file_run_text%"
+        "title": "%force_lightning_lwc_test_file_run_text%",
+        "icon": {
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
+        }
       },
       {
         "command": "sfdx.force.lightning.lwc.test.file.debug",

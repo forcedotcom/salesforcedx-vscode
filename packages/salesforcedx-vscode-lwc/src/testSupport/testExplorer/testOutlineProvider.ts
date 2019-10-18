@@ -7,7 +7,14 @@
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { onDidUpdateTestResultsIndex } from '../testIndexer';
-import { TestExecutionInfo, TestResult, TestType } from '../types';
+import {
+  TestCaseInfo,
+  TestExecutionInfo,
+  TestFileInfo,
+  TestInfoKind,
+  TestResult,
+  TestType
+} from '../types';
 import { getIconPath } from './iconPaths';
 
 export abstract class TestNode extends vscode.TreeItem {
@@ -38,6 +45,7 @@ export class SfdxTestNode extends TestNode {
   public errorMessage: string = '';
   public stackTrace: string = '';
   public outcome = 'Not Run';
+  public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
 
   constructor(
@@ -63,16 +71,22 @@ export class SfdxTestNode extends TestNode {
 }
 
 export class SfdxTestGroupNode extends TestNode {
-  public contextValue: string;
+  public contextValue?: string;
+  public testExecutionInfo?: TestExecutionInfo;
   constructor(
     label: string,
     location: vscode.Location | null,
-    testType: TestType,
+    testExecutionInfo: TestExecutionInfo,
+    // testType: TestType,
     collapsibleState: vscode.TreeItemCollapsibleState = vscode
       .TreeItemCollapsibleState.Expanded
   ) {
     super(label, collapsibleState, location);
-    this.contextValue = `${testType}TestGroup`;
+    this.testExecutionInfo = testExecutionInfo;
+    if (testExecutionInfo) {
+      const { testType, testResult } = testExecutionInfo;
+      this.contextValue = `${testType}TestGroup`;
+    }
   }
 }
 
@@ -93,7 +107,7 @@ export class SfdxTestOutlineProvider
 
   constructor() {
     this.rootNode = null;
-    this.getAllTests();
+    // this.getAllTests();
     this.disposables = [];
 
     onDidUpdateTestResultsIndex.event(
@@ -136,7 +150,7 @@ export class SfdxTestOutlineProvider
             element.location.uri
           );
           if (testInfo) {
-            return testInfo.map((testCaseInfo: TestExecutionInfo) => {
+            return testInfo.map((testCaseInfo: TestCaseInfo) => {
               const { testName, testUri, testLocation } = testCaseInfo;
               return new SfdxTestNode(
                 testName,
@@ -160,10 +174,16 @@ export class SfdxTestOutlineProvider
             );
             const ext = '.test.js';
             const testGroupLabel = path.basename(lwcJestTestFile.fsPath, ext);
+            const testFileInfo: TestFileInfo = {
+              kind: TestInfoKind.TEST_FILE,
+              testType: TestType.LWC,
+              testUri: lwcJestTestFile,
+              testLocation
+            };
             const testGroupNode = new SfdxTestGroupNode(
               testGroupLabel,
               testLocation,
-              TestType.LWC,
+              testFileInfo,
               vscode.TreeItemCollapsibleState.Collapsed
             );
             return testGroupNode;
@@ -205,14 +225,15 @@ export class SfdxTestOutlineProvider
     }
   }
 
-  protected getAllTests(): TestNode {
-    if (this.rootNode == null) {
-      // Starting Out
-      this.rootNode = new SfdxTestGroupNode('LwcTests', null, TestType.LWC);
-    }
-    this.rootNode.children = new Array<TestNode>();
-    return this.rootNode;
-  }
+  // protected getAllTests(): TestNode {
+  //   if (this.rootNode == null) {
+  //     // Starting Out
+  //     // this.rootNode = new SfdxTestGroupNode('LwcTests', null, null);
+  //     // this.rootNode = new SfdxTestGroupNode('LwcTests', null, TestType.LWC);
+  //   }
+  //   // this.rootNode.children = new Array<TestNode>();
+  //   // return this.rootNode;
+  // }
 
   public refresh() {
     this.onDidChangeTestData.fire();

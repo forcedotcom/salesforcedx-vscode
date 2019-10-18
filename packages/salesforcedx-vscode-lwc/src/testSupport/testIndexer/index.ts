@@ -10,7 +10,9 @@ import * as vscode from 'vscode';
 
 import {
   LwcJestTestResults,
+  TestCaseInfo,
   TestExecutionInfo,
+  TestInfoKind,
   TestResultStatus,
   TestType
 } from '../types';
@@ -34,12 +36,12 @@ export async function findLwcJestTestFiles(): Promise<vscode.Uri[]> {
   return lwcJestTestFiles;
 }
 
-const testInfoMap = new Map<string, TestExecutionInfo[]>();
+const testInfoMap = new Map<string, TestCaseInfo[]>();
 
 // Lazy parse test information, until expand the test file or provide code lens
 export async function findTestInfoFromLwcJestTestFile(
   testUri: vscode.Uri
-): Promise<TestExecutionInfo[]> {
+): Promise<TestCaseInfo[]> {
   // parse
   const { fsPath } = testUri;
   if (testInfoMap.has(fsPath)) {
@@ -47,7 +49,7 @@ export async function findTestInfoFromLwcJestTestFile(
   }
   try {
     const { itBlocks } = parse(fsPath);
-    const testInfo: TestExecutionInfo[] = itBlocks.map(itBlock => {
+    const testInfo: TestCaseInfo[] = itBlocks.map(itBlock => {
       const { name, nameRange, start, end } = itBlock;
       const testName = name;
       const testRange = new vscode.Range(
@@ -58,12 +60,14 @@ export async function findTestInfoFromLwcJestTestFile(
         new vscode.Position(nameRange.end.line - 1, nameRange.end.column)
       );
       const testLocation = new vscode.Location(testUri, testRange);
-      return {
+      const testCaseInfo: TestCaseInfo = {
+        kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,
         testName,
         testUri,
         testLocation
       };
+      return testCaseInfo;
     });
     testInfoMap.set(fsPath, testInfo);
     return testInfo;
@@ -100,7 +104,8 @@ export function updateTestResults(testResults: LwcJestTestResults) {
         } else {
           testResultStatus = TestResultStatus.SKIPPED;
         }
-        return {
+        const testCaseInfo: TestCaseInfo = {
+          kind: TestInfoKind.TEST_CASE,
           testType: TestType.LWC,
           testName,
           testUri,
@@ -109,6 +114,7 @@ export function updateTestResults(testResults: LwcJestTestResults) {
             status: testResultStatus
           }
         };
+        return testCaseInfo;
       });
       testInfoMap.set(testFsPath, testInfo);
 

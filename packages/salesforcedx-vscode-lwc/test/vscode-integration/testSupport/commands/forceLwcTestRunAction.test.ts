@@ -9,7 +9,11 @@ import { expect } from 'chai';
 import * as path from 'path';
 import Uri from 'vscode-uri';
 import { ForceLwcTestRunCodeActionExecutor } from '../../../../src/testSupport/commands/forceLwcTestRunAction';
-import { TestType } from '../../../../src/testSupport/types';
+import {
+  TestCaseInfo,
+  TestInfoKind,
+  TestType
+} from '../../../../src/testSupport/types';
 
 describe('Force LWC Test Run - Code Action', () => {
   describe('Command builder - Test Case', () => {
@@ -29,7 +33,8 @@ describe('Force LWC Test Run - Code Action', () => {
     it('Should build command for single test case', () => {
       const testName = 'mockTestName';
       const testUri = Uri.file(testFsPath);
-      const testExecutionInfo = {
+      const testExecutionInfo: TestCaseInfo = {
+        kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,
         testUri,
         testName
@@ -53,7 +58,8 @@ describe('Force LWC Test Run - Code Action', () => {
     it('Should build command for single test case and escape test name for regex', () => {
       const testName = 'mockTestName (+.*)';
       const testUri = Uri.file(testFsPath);
-      const testExecutionInfo = {
+      const testExecutionInfo: TestCaseInfo = {
+        kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,
         testUri,
         testName

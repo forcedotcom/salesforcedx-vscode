@@ -20,14 +20,36 @@ export interface TestResult {
   status: TestResultStatus;
 }
 
-export interface TestExecutionInfo {
+export enum TestInfoKind {
+  TEST_CASE = 'testCase',
+  TEST_FILE = 'testFile'
+}
+
+export interface TestFileInfo {
+  kind: TestInfoKind.TEST_FILE;
   testType: TestType;
   testUri: Uri;
-  testName: string;
   testLocation?: Location;
   testResult?: TestResult;
 }
 
+export interface TestCaseInfo {
+  kind: TestInfoKind.TEST_CASE;
+  testType: TestType;
+  testUri: Uri;
+  testLocation?: Location;
+  testResult?: TestResult;
+  testName: string;
+}
+
+// export type TestCaseInfo = TestFileInfo & {
+//   kind: TestInfoKind.TEST_CASE;
+//   testName: string;
+// };
+
+export type TestExecutionInfo = TestCaseInfo | TestFileInfo;
+
+// Jest Specific definitions
 export interface LwcJestTestResults {
   numFailedTestSuites: number;
   numFailedTests: number;
