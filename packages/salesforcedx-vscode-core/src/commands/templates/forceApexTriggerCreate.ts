@@ -13,22 +13,24 @@ import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  FilePathExistsChecker,
-  GlobStrategyFactory,
-  PathStrategyFactory,
+  MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  SourcePathStrategy
+  SfdxWorkspaceChecker
 } from '../util';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   APEX_TRIGGER_DIRECTORY,
-  APEX_TRIGGER_EXTENSION
+  APEX_TRIGGER_TYPE
 } from './metadataTypeConstants';
 
 export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super(APEX_TRIGGER_TYPE);
+  }
+
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_trigger_create_text'))
@@ -38,36 +40,22 @@ export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_apex_trigger_create')
       .build();
   }
-
-  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createDefaultStrategy();
-
-  public getDefaultDirectory() {
-    return APEX_TRIGGER_DIRECTORY;
-  }
-
-  public getFileExtension() {
-    return APEX_TRIGGER_EXTENSION;
-  }
 }
 
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_DIRECTORY);
+const metadataTypeGatherer = new MetadataTypeGatherer(APEX_TRIGGER_TYPE);
 
 export async function forceApexTriggerCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<DirFileNameSelection>(
+      metadataTypeGatherer,
       fileNameGatherer,
       outputDirGatherer
     ),
     new ForceApexTriggerCreateExecutor(),
-    new FilePathExistsChecker(
-      GlobStrategyFactory.createCheckFileInGivenPath(APEX_TRIGGER_EXTENSION),
-      nls.localize(
-        'warning_prompt_file_overwrite',
-        nls.localize('apex_trigger_message_name')
-      )
-    )
+    new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }
