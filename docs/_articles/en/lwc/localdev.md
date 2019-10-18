@@ -41,7 +41,7 @@ To develop Lightning web components, use your favorite code editor. We recommend
 1. Open a new terminal window and run the following command to install the local development server.
 
 ```sh
-sfdx plugins:install lwc-dev-server
+sfdx plugins:install @salesforce/lwc-dev-server
 ```
 
 2. Check for updates to the local development server.
@@ -90,7 +90,11 @@ sfdx force:lightning:lwc:start
 
 10. View the server at [http://localhost:3333/](http://localhost:3333/).
 
-For more information on local development commands, view the local development documentation by running sfdx force:lightning:lwc:<commandName> --help.
+For more information on local development commands, view the local development documentation.
+
+```sh
+sfdx force:lightning:lwc:<commandName> --help.
+```
 
 ## Troubleshooting
 
