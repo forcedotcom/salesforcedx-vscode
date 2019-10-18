@@ -6,18 +6,16 @@
  */
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { TestExecutionInfo, TestType } from '../types';
-import { DARK_BLUE_BUTTON, LIGHT_BLUE_BUTTON } from './iconPaths';
+import { onDidUpdateTestResultsIndex } from '../testIndexer';
+import { TestExecutionInfo, TestResult, TestType } from '../types';
+import { getIconPath } from './iconPaths';
 
 export abstract class TestNode extends vscode.TreeItem {
   public children = new Array<TestNode>();
   public description: string;
   public name: string;
   public location: vscode.Location | null;
-  public iconPath = {
-    light: LIGHT_BLUE_BUTTON,
-    dark: DARK_BLUE_BUTTON
-  };
+  public iconPath = getIconPath();
 
   constructor(
     label: string,
@@ -50,8 +48,9 @@ export class SfdxTestNode extends TestNode {
     super(label, vscode.TreeItemCollapsibleState.None, location);
     this.testExecutionInfo = testExecutionInfo;
     if (testExecutionInfo) {
-      const { testType } = testExecutionInfo;
+      const { testType, testResult } = testExecutionInfo;
       this.contextValue = `${testType}Test`;
+      this.iconPath = getIconPath(testResult);
     }
   }
 
@@ -81,19 +80,38 @@ import * as path from 'path';
 import {
   findLwcJestTestFiles,
   findTestInfoFromLwcJestTestFile
-} from './testIndexer';
+} from '../testIndexer';
 
 export class SfdxTestOutlineProvider
-  implements vscode.TreeDataProvider<TestNode> {
+  implements vscode.TreeDataProvider<TestNode>, vscode.Disposable {
   private onDidChangeTestData: vscode.EventEmitter<
     TestNode | undefined
   > = new vscode.EventEmitter<TestNode | undefined>();
   public onDidChangeTreeData = this.onDidChangeTestData.event;
   private rootNode: TestNode | null;
+  private disposables: vscode.Disposable[];
 
   constructor() {
     this.rootNode = null;
     this.getAllTests();
+    this.disposables = [];
+
+    onDidUpdateTestResultsIndex.event(
+      () => {
+        this.refresh();
+      },
+      null,
+      this.disposables
+    );
+  }
+
+  public dispose() {
+    while (this.disposables.length) {
+      const disposable = this.disposables.pop();
+      if (disposable) {
+        disposable.dispose();
+      }
+    }
   }
 
   public getTreeItem(element: TestNode): vscode.TreeItem {
@@ -118,7 +136,7 @@ export class SfdxTestOutlineProvider
             element.location.uri
           );
           if (testInfo) {
-            return testInfo.map(testCaseInfo => {
+            return testInfo.map((testCaseInfo: TestExecutionInfo) => {
               const { testName, testUri, testLocation } = testCaseInfo;
               return new SfdxTestNode(
                 testName,
@@ -159,13 +177,7 @@ export class SfdxTestOutlineProvider
             if (!label2) {
               return 1;
             }
-            if (label1 < label2) {
-              return -1;
-            } else if (label1 > label2) {
-              return 1;
-            } else {
-              return 0;
-            }
+            return label1.localeCompare(label2);
           });
       } catch (error) {
         return [];
@@ -202,7 +214,9 @@ export class SfdxTestOutlineProvider
     return this.rootNode;
   }
 
-  public async refresh(): Promise<void> {}
+  public refresh() {
+    this.onDidChangeTestData.fire();
+  }
 }
 
 export function registerLwcTestExplorerTreeView(
@@ -213,5 +227,6 @@ export function registerLwcTestExplorerTreeView(
     'sfdx.force.lightning.lwc.test.view',
     testOutlineProvider
   );
+  context.subscriptions.push(testOutlineProvider);
   context.subscriptions.push(testProvider);
 }

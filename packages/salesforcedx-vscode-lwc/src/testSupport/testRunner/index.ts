@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import { PreconditionChecker } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import { escapeStrForRegex } from 'jest-regex-util';
@@ -13,6 +12,7 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { TestExecutionInfo, TestType } from '../types';
+import { getTempFolder, startWatchingTestResults } from './testResultsWatcher';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -86,6 +86,8 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
         tempFolder,
         `test-result-${testRunId}.json`
       );
+
+      // TODO - refactor, rename getJestArgs or handle watching elsewhere
       startWatchingTestResults(tempFolder);
       const args = [
         '--',
@@ -102,44 +104,4 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
     }
   }
   return [];
-}
-
-export function startWatchingTestResults(testResultsFolderPath: string) {
-  const testResultsGlobPattern = path.join(testResultsFolderPath, '*.json');
-  const testResultsWatcher = vscode.workspace.createFileSystemWatcher(
-    testResultsGlobPattern
-  );
-
-  testResultsWatcher.onDidCreate(testResultsUri => {
-    try {
-      const { fsPath: testResultsFsPath } = testResultsUri;
-      const testResultsJSON = fs.readFileSync(testResultsFsPath, {
-        encoding: 'utf8'
-      });
-    } catch (error) {
-      console.error(error);
-    }
-
-    testResultsWatcher.dispose();
-  });
-
-  testResultsWatcher.onDidChange(testResultsUri => {});
-}
-
-export function getTempFolder(testExecutionInfo: TestExecutionInfo) {
-  const { testUri, testType } = testExecutionInfo;
-  const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-  if (workspaceFolder) {
-    const workspaceFsPath = workspaceFolder.uri.fsPath;
-    return new TestRunner().getTempFolder(workspaceFsPath, testType);
-  } else {
-    const errorMessage = nls.localize(
-      'no_workspace_folder_found_for_test_text'
-    );
-    notificationService.showErrorMessage(errorMessage);
-    telemetryService.sendException(
-      'lwc_test_no_workspace_folder_found_for_test',
-      errorMessage
-    );
-  }
 }

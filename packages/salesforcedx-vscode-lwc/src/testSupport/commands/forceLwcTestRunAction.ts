@@ -50,7 +50,6 @@ export class ForceLwcTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}
       '.bin',
       'lwc-jest'
     );
-    this.sfdxProjectPath = sfdxProjectPath;
     this.builder = new LwcJestCommandBuilder(lwcTestRunnerExcutable);
     this.testExecutionInfo = testExecutionInfo;
   }

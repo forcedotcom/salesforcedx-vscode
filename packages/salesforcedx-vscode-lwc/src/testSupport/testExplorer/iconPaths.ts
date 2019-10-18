@@ -5,6 +5,40 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
+import { TestResult, TestResultStatus } from '../types';
+
+type IconPath = { light: string; dark: string };
+
+export function getIconPath(testResult?: TestResult): IconPath {
+  if (testResult) {
+    if (testResult.status === TestResultStatus.PASSED) {
+      return {
+        light: LIGHT_GREEN_BUTTON,
+        dark: DARK_GREEN_BUTTON
+      };
+    } else if (testResult.status === TestResultStatus.FAILED) {
+      return {
+        light: LIGHT_RED_BUTTON,
+        dark: DARK_RED_BUTTON
+      };
+    } else if (testResult.status === TestResultStatus.SKIPPED) {
+      return {
+        light: LIGHT_ORANGE_BUTTON,
+        dark: DARK_ORANGE_BUTTON
+      };
+    } else {
+      return {
+        light: LIGHT_BLUE_BUTTON,
+        dark: DARK_BLUE_BUTTON
+      };
+    }
+  } else {
+    return {
+      light: LIGHT_BLUE_BUTTON,
+      dark: DARK_BLUE_BUTTON
+    };
+  }
+}
 
 const extensionPath = path.join(__filename, '..', '..', '..', '..', '..');
 

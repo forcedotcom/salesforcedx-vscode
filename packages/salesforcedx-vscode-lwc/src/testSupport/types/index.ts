@@ -10,9 +10,20 @@ export enum TestType {
   LWC = 'lwc'
 }
 
+export enum TestResultStatus {
+  PASSED,
+  FAILED,
+  SKIPPED
+}
+
+export interface TestResult {
+  status: TestResultStatus;
+}
+
 export interface TestExecutionInfo {
   testType: TestType;
   testUri: Uri;
   testName: string;
   testLocation?: Location;
+  testResult?: TestResult;
 }
