@@ -10,6 +10,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
@@ -50,7 +51,7 @@ const metadataTypeGatherer = new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE);
 export async function forceVisualforcePageCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(
+    new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,
       outputDirGatherer

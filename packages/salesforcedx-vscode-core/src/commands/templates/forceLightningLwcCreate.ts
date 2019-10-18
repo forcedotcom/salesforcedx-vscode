@@ -10,6 +10,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
@@ -58,7 +59,7 @@ const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 export async function forceLightningLwcCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer(
+    new CompositeParametersGatherer<LocalComponent>(
       metadataTypeGatherer,
       fileNameGatherer,
       outputDirGatherer
