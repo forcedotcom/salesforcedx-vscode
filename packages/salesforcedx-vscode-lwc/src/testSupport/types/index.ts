@@ -27,3 +27,45 @@ export interface TestExecutionInfo {
   testLocation?: Location;
   testResult?: TestResult;
 }
+
+export interface LwcJestTestResults {
+  numFailedTestSuites: number;
+  numFailedTests: number;
+  numPassedTestSuites: number;
+  numPassedTests: number;
+  numPendingTestSuites: number;
+  numPendingTests: number;
+  numRuntimeErrorTestSuites: number;
+  numTotalTestSuites: number;
+  numTotalTests: number;
+  testResults: LwcJestTestFileResult[];
+}
+
+type LwcJestTestResultStatus =
+  | 'passed'
+  | 'failed'
+  | 'pending'
+  | 'skipped'
+  | 'pending'
+  | 'todo'
+  | 'disabled';
+
+export interface LwcJestTestFileResult {
+  status: LwcJestTestResultStatus;
+  startTime: number;
+  endTime: number;
+  name: string;
+  assertionResults: LwcJestTestAssertionResult[];
+}
+
+export interface LwcJestTestAssertionResult {
+  status: LwcJestTestResultStatus;
+  title: string;
+  ancestorTitles: string[];
+  failureMessages: string[];
+  fullName: string;
+  location: {
+    column: number;
+    line: number;
+  };
+}

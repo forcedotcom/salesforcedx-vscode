@@ -77,6 +77,10 @@ export async function forceLwcTestCaseDebug(data: {
   }
 }
 
+export function forceLwcTestFileDebug(data: {
+  testExecutionInfo: TestExecutionInfo;
+}) {}
+
 export function handleDidStartDebugSession(session: vscode.DebugSession) {
   const { configuration } = session;
   const { sfdxDebugSessionId } = configuration;

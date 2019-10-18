@@ -8,14 +8,26 @@ import { commands, Disposable, ExtensionContext } from 'vscode';
 import * as vscode from 'vscode';
 import {
   forceLwcTestCaseDebug,
+  forceLwcTestFileDebug,
   handleDidStartDebugSession,
   handleDidTerminateDebugSession
 } from './forceLwcTestDebugAction';
-import { forceLwcTestCaseRun } from './forceLwcTestRunAction';
+import {
+  forceLwcTestCaseRun,
+  forceLwcTestFileRun
+} from './forceLwcTestRunAction';
 
 export function registerCommands(
   extensionContext: ExtensionContext
 ): Disposable {
+  const forceLwcTestFileRunCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.file.run',
+    forceLwcTestFileRun
+  );
+  const forceLwcTestFileDebugCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.file.debug',
+    forceLwcTestFileDebug
+  );
   const forceLwcTestCaseRunCmd = commands.registerCommand(
     'sfdx.force.lightning.lwc.test.case.run',
     forceLwcTestCaseRun
@@ -31,6 +43,8 @@ export function registerCommands(
     handleDidTerminateDebugSession
   );
   return Disposable.from(
+    forceLwcTestFileRunCmd,
+    forceLwcTestFileDebugCmd,
     forceLwcTestCaseRunCmd,
     forceLwcTestCaseDebugCmd,
     startDebugSessionDisposable,

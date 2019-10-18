@@ -8,13 +8,11 @@ import {
   Command,
   CommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import {
   getJestArgs,
-  normalizeRunTestsByPath,
   SfdxWorkspaceLwcTestRunnerInstallationChecker
 } from '../testRunner';
 import { TestExecutionInfo } from '../types';
@@ -97,3 +95,7 @@ export function forceLwcTestCaseRun(data: {
     return forceLwcTestRun(cwd, testExecutionInfo);
   }
 }
+
+export function forceLwcTestFileRun(data: {
+  testExecutionInfo: TestExecutionInfo;
+}) {}
