@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { updateTestResults } from '../testIndexer';
+import { lwcTestIndexer } from '../testIndexer';
 import { TestExecutionInfo } from '../types';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -25,7 +25,7 @@ export function startWatchingTestResults(testResultsFolderPath: string) {
         encoding: 'utf8'
       });
       const testResults = JSON.parse(testResultsJSON);
-      updateTestResults(testResults);
+      lwcTestIndexer.updateTestResults(testResults);
     } catch (error) {
       console.error(error);
     }

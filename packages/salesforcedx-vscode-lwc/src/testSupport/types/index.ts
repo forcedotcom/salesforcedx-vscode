@@ -13,7 +13,8 @@ export enum TestType {
 export enum TestResultStatus {
   PASSED,
   FAILED,
-  SKIPPED
+  SKIPPED,
+  UNKNOWN
 }
 
 export interface TestResult {
@@ -42,11 +43,6 @@ export interface TestCaseInfo {
   testName: string;
 }
 
-// export type TestCaseInfo = TestFileInfo & {
-//   kind: TestInfoKind.TEST_CASE;
-//   testName: string;
-// };
-
 export type TestExecutionInfo = TestCaseInfo | TestFileInfo;
 
 // Jest Specific definitions
@@ -73,7 +69,7 @@ type LwcJestTestResultStatus =
   | 'disabled';
 
 export interface LwcJestTestFileResult {
-  status: LwcJestTestResultStatus;
+  status: 'passed' | 'failed';
   startTime: number;
   endTime: number;
   name: string;

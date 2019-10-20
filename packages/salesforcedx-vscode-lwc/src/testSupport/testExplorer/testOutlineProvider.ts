@@ -6,28 +6,21 @@
  */
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { onDidUpdateTestResultsIndex } from '../testIndexer';
-import {
-  TestCaseInfo,
-  TestExecutionInfo,
-  TestFileInfo,
-  TestInfoKind,
-  TestResult,
-  TestType
-} from '../types';
+import { lwcTestIndexer } from '../testIndexer';
+import { TestExecutionInfo } from '../types';
 import { getIconPath } from './iconPaths';
 
 export abstract class TestNode extends vscode.TreeItem {
   public children = new Array<TestNode>();
   public description: string;
   public name: string;
-  public location: vscode.Location | null;
+  public location?: vscode.Location;
   public iconPath = getIconPath();
 
   constructor(
     label: string,
     collapsibleState: vscode.TreeItemCollapsibleState,
-    location: vscode.Location | null
+    location?: vscode.Location
   ) {
     super(label, collapsibleState);
     this.location = location;
@@ -50,7 +43,7 @@ export class SfdxTestNode extends TestNode {
 
   constructor(
     label: string,
-    location: vscode.Location | null,
+    location?: vscode.Location,
     testExecutionInfo?: TestExecutionInfo
   ) {
     super(label, vscode.TreeItemCollapsibleState.None, location);
@@ -61,13 +54,6 @@ export class SfdxTestNode extends TestNode {
       this.iconPath = getIconPath(testResult);
     }
   }
-
-  // public updateOutcome() {
-  //   super.updateOutcome(this.outcome);
-  //   if (this.outcome === 'Pass') {
-  //     this.errorMessage = '';
-  //   }
-  // }
 }
 
 export class SfdxTestGroupNode extends TestNode {
@@ -75,7 +61,7 @@ export class SfdxTestGroupNode extends TestNode {
   public testExecutionInfo?: TestExecutionInfo;
   constructor(
     label: string,
-    location: vscode.Location | null,
+    location: vscode.Location | undefined,
     testExecutionInfo: TestExecutionInfo,
     // testType: TestType,
     collapsibleState: vscode.TreeItemCollapsibleState = vscode
@@ -86,15 +72,12 @@ export class SfdxTestGroupNode extends TestNode {
     if (testExecutionInfo) {
       const { testType, testResult } = testExecutionInfo;
       this.contextValue = `${testType}TestGroup`;
+      this.iconPath = getIconPath(testResult);
     }
   }
 }
 
 import * as path from 'path';
-import {
-  findLwcJestTestFiles,
-  findTestInfoFromLwcJestTestFile
-} from '../testIndexer';
 
 export class SfdxTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode>, vscode.Disposable {
@@ -110,9 +93,9 @@ export class SfdxTestOutlineProvider
     // this.getAllTests();
     this.disposables = [];
 
-    onDidUpdateTestResultsIndex.event(
+    lwcTestIndexer.onDidUpdateTestResultsIndex.event(
       () => {
-        this.refresh();
+        this.onDidUpdateTestResultsIndex();
       },
       null,
       this.disposables
@@ -128,14 +111,22 @@ export class SfdxTestOutlineProvider
     }
   }
 
+  private onDidUpdateTestResultsIndex() {
+    this.onDidChangeTestData.fire();
+  }
+
+  public refresh() {
+    this.onDidChangeTestData.fire();
+  }
+
   public getTreeItem(element: TestNode): vscode.TreeItem {
     if (element) {
       return element;
     } else {
       //  TODO - no tests
       if (!(this.rootNode && this.rootNode.children.length > 0)) {
-        this.rootNode = new SfdxTestNode('no tests here', null);
-        const childNode = new SfdxTestNode('no tests here', null);
+        this.rootNode = new SfdxTestNode('no tests here');
+        const childNode = new SfdxTestNode('no tests here');
         this.rootNode.children.push(childNode);
       }
       return this.rootNode;
@@ -146,17 +137,13 @@ export class SfdxTestOutlineProvider
     if (element) {
       if (element instanceof SfdxTestGroupNode) {
         if (element.location) {
-          const testInfo = await findTestInfoFromLwcJestTestFile(
+          const testInfo = await lwcTestIndexer.findTestInfoFromLwcJestTestFile(
             element.location.uri
           );
           if (testInfo) {
-            return testInfo.map((testCaseInfo: TestCaseInfo) => {
+            return testInfo.map(testCaseInfo => {
               const { testName, testUri, testLocation } = testCaseInfo;
-              return new SfdxTestNode(
-                testName,
-                testLocation || null,
-                testCaseInfo
-              );
+              return new SfdxTestNode(testName, testLocation, testCaseInfo);
             });
           }
         }
@@ -165,21 +152,13 @@ export class SfdxTestOutlineProvider
       // return element.children; // TODO - cache here
     } else {
       try {
-        const lwcJestTestFiles = await findLwcJestTestFiles();
-        return lwcJestTestFiles
-          .map(lwcJestTestFile => {
-            const testLocation = new vscode.Location(
-              lwcJestTestFile,
-              new vscode.Position(0, 0)
-            );
+        const allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
+        return allTestFileInfo
+          .map(testFileInfo => {
+            const { testUri, testLocation } = testFileInfo;
+            const { fsPath } = testUri;
             const ext = '.test.js';
-            const testGroupLabel = path.basename(lwcJestTestFile.fsPath, ext);
-            const testFileInfo: TestFileInfo = {
-              kind: TestInfoKind.TEST_FILE,
-              testType: TestType.LWC,
-              testUri: lwcJestTestFile,
-              testLocation
-            };
+            const testGroupLabel = path.basename(fsPath, ext);
             const testGroupNode = new SfdxTestGroupNode(
               testGroupLabel,
               testLocation,
@@ -223,20 +202,6 @@ export class SfdxTestOutlineProvider
       // return [];
       */
     }
-  }
-
-  // protected getAllTests(): TestNode {
-  //   if (this.rootNode == null) {
-  //     // Starting Out
-  //     // this.rootNode = new SfdxTestGroupNode('LwcTests', null, null);
-  //     // this.rootNode = new SfdxTestGroupNode('LwcTests', null, TestType.LWC);
-  //   }
-  //   // this.rootNode.children = new Array<TestNode>();
-  //   // return this.rootNode;
-  // }
-
-  public refresh() {
-    this.onDidChangeTestData.fire();
   }
 }
 

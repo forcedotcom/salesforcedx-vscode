@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
+import { TestExecutionInfo } from '../types';
 import { getTempFolder, startWatchingTestResults } from './testResultsWatcher';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -72,12 +72,8 @@ export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
 }
 
 export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
-  let testName: string | undefined;
-  if (testExecutionInfo.kind === TestInfoKind.TEST_CASE) {
-    testName = testExecutionInfo.testName;
-  } else if (testExecutionInfo.kind === TestInfoKind.TEST_FILE) {
-    testName = undefined;
-  }
+  const testName =
+    'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
   const { testUri } = testExecutionInfo;
   const { fsPath: testFsPath } = testUri;
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
