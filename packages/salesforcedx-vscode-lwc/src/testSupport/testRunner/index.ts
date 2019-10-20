@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { TestExecutionInfo } from '../types';
+import { TestExecutionInfo, TestInfoKind } from '../types';
 import { getTempFolder, startWatchingTestResults } from './testResultsWatcher';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -74,11 +74,10 @@ export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
 export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
   const testName =
     'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
-  const { testUri } = testExecutionInfo;
+  const { kind, testUri } = testExecutionInfo;
   const { fsPath: testFsPath } = testUri;
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
   if (workspaceFolder) {
-    const workspaceFolderFsPath = workspaceFolder.uri.fsPath;
     const tempFolder = getTempFolder(testExecutionInfo);
     if (tempFolder) {
       const testRunId = uuid.v4();
@@ -89,6 +88,18 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
 
       // TODO - refactor, rename getJestArgs or handle watching elsewhere
       startWatchingTestResults(tempFolder);
+
+      // Specify --runTestsByPath if running test on individual files
+      let runTestsByPathArgs: string[];
+      if (kind === TestInfoKind.TEST_FILE || kind === TestInfoKind.TEST_CASE) {
+        const workspaceFolderFsPath = workspaceFolder.uri.fsPath;
+        runTestsByPathArgs = [
+          '--runTestsByPath',
+          normalizeRunTestsByPath(workspaceFolderFsPath, testFsPath)
+        ];
+      } else {
+        runTestsByPathArgs = [];
+      }
       const testNamePatternArgs = testName
         ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
         : [];
@@ -98,8 +109,7 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
         '--outputFile',
         outputFilePath,
         '--testLocationInResults', // TODO: do we need testLocationInResults?
-        '--runTestsByPath',
-        normalizeRunTestsByPath(workspaceFolderFsPath, testFsPath),
+        ...runTestsByPathArgs,
         ...testNamePatternArgs
       ];
       return args;

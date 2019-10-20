@@ -7,7 +7,7 @@
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { getJestArgs, getLwcTestRunnerExecutable } from '../testRunner';
-import { TestCaseInfo, TestExecutionInfo, TestInfoKind } from '../types';
+import { TestCaseInfo, TestExecutionInfo } from '../types';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'

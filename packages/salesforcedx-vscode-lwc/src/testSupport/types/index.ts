@@ -23,7 +23,8 @@ export interface TestResult {
 
 export const enum TestInfoKind {
   TEST_CASE = 'testCase',
-  TEST_FILE = 'testFile'
+  TEST_FILE = 'testFile',
+  TEST_DIRECTORY = 'testDirectory'
 }
 
 export interface TestFileInfo {
@@ -43,7 +44,14 @@ export interface TestCaseInfo {
   testName: string;
 }
 
-export type TestExecutionInfo = TestCaseInfo | TestFileInfo;
+export interface TestDirectoryInfo {
+  kind: TestInfoKind.TEST_DIRECTORY;
+  testType: TestType;
+  testUri: Uri;
+  testResult?: TestResult;
+}
+
+export type TestExecutionInfo = TestCaseInfo | TestFileInfo | TestDirectoryInfo;
 
 // Jest Specific definitions
 export interface LwcJestTestResults {

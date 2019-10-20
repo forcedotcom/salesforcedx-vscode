@@ -15,7 +15,12 @@ import {
   getJestArgs,
   SfdxWorkspaceLwcTestRunnerInstallationChecker
 } from '../testRunner';
-import { TestExecutionInfo } from '../types';
+import {
+  TestDirectoryInfo,
+  TestExecutionInfo,
+  TestInfoKind,
+  TestType
+} from '../types';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -107,5 +112,23 @@ export function forceLwcTestFileRun(data: {
   ) {
     const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
     return forceLwcTestRun(cwd, testExecutionInfo);
+  }
+}
+
+export function forceLwcTestRunAllTests() {
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders[0]
+  ) {
+    const workspaceFolderUri = vscode.workspace.workspaceFolders[0].uri;
+    const cwd = workspaceFolderUri.fsPath;
+    const testExecutionInfo: TestDirectoryInfo = {
+      kind: TestInfoKind.TEST_DIRECTORY,
+      testType: TestType.LWC,
+      testUri: workspaceFolderUri
+    };
+    return forceLwcTestRun(cwd, testExecutionInfo);
+  } else {
+    // TODO: workspace error message
   }
 }

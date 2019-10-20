@@ -14,12 +14,21 @@ import {
 } from './forceLwcTestDebugAction';
 import {
   forceLwcTestCaseRun,
-  forceLwcTestFileRun
+  forceLwcTestFileRun,
+  forceLwcTestRunAllTests
 } from './forceLwcTestRunAction';
 
 export function registerCommands(
   extensionContext: ExtensionContext
 ): Disposable {
+  const forceLwcTestRunAllTestsCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.runAllTests',
+    forceLwcTestRunAllTests
+  );
+  const forceLwcTestRefreshTestExplorerCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.refreshTestExplorer',
+    () => {}
+  );
   const forceLwcTestFileRunCmd = commands.registerCommand(
     'sfdx.force.lightning.lwc.test.file.run',
     forceLwcTestFileRun
@@ -43,6 +52,8 @@ export function registerCommands(
     handleDidTerminateDebugSession
   );
   return Disposable.from(
+    forceLwcTestRunAllTestsCmd,
+    forceLwcTestRefreshTestExplorerCmd,
     forceLwcTestFileRunCmd,
     forceLwcTestFileDebugCmd,
     forceLwcTestCaseRunCmd,
