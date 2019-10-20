@@ -73,14 +73,20 @@ describe('Force LWC Test Debug - Code Action', () => {
   );
   const testFsPath = path.join(sfdxProjectPath, testRelativePath);
   const testName = 'mockTestName';
+  const testUri = Uri.file(testFsPath);
+  const testExecutionInfo: TestCaseInfo = {
+    kind: TestInfoKind.TEST_CASE,
+    testType: TestType.LWC,
+    testUri,
+    testName
+  };
 
   describe('Debug Configuration', () => {
     it('Should generate debug configuration for single test case', () => {
       const debugConfiguration = getDebugConfiguration(
         lwcTestExecutablePath,
         sfdxProjectPath,
-        testFsPath,
-        testName
+        testExecutionInfo
       );
       expect(debugConfiguration).to.deep.equal({
         sfdxDebugSessionId: mockUuid,
@@ -113,16 +119,8 @@ describe('Force LWC Test Debug - Code Action', () => {
       const debugConfiguration = getDebugConfiguration(
         lwcTestExecutablePath,
         sfdxProjectPath,
-        testFsPath,
-        testName
+        testExecutionInfo
       );
-      const testUri = Uri.file(testFsPath);
-      const testExecutionInfo: TestCaseInfo = {
-        kind: TestInfoKind.TEST_CASE,
-        testType: TestType.LWC,
-        testName,
-        testUri
-      };
       await forceLwcTestCaseDebug({
         testExecutionInfo
       });

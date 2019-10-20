@@ -4,13 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { escapeStrForRegex } from 'jest-regex-util';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
-import {
-  getLwcTestRunnerExecutable,
-  normalizeRunTestsByPath
-} from '../testRunner';
+import { getJestArgs, getLwcTestRunnerExecutable } from '../testRunner';
 import { TestCaseInfo, TestExecutionInfo, TestInfoKind } from '../types';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -24,18 +20,11 @@ const debugSessionStartTimes = new Map<string, [number, number]>();
 export function getDebugConfiguration(
   lwcTestRunnerExecutablePath: string,
   cwd: string,
-  testFsPath: string,
-  testName: string
+  testExecutionInfo: TestExecutionInfo
 ): vscode.DebugConfiguration {
   const sfdxDebugSessionId = uuid.v4();
-  const args = [
-    '--debug',
-    '--',
-    '--runTestsByPath',
-    normalizeRunTestsByPath(cwd, testFsPath),
-    '--testNamePattern',
-    `"${escapeStrForRegex(testName)}"`
-  ];
+  const jestArgs = getJestArgs(testExecutionInfo);
+  const args = ['--debug', ...jestArgs];
   const debugConfiguration: vscode.DebugConfiguration = {
     sfdxDebugSessionId,
     type: 'node',
@@ -56,8 +45,7 @@ export async function forceLwcTestCaseDebug(data: {
   testExecutionInfo: TestCaseInfo;
 }) {
   const { testExecutionInfo } = data;
-  const { testUri, testName } = testExecutionInfo;
-  const { fsPath: testFsPath } = testUri;
+  const { testUri } = testExecutionInfo;
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
@@ -68,8 +56,7 @@ export async function forceLwcTestCaseDebug(data: {
       const debugConfiguration = getDebugConfiguration(
         lwcTestRunnerExecutablePath,
         cwd,
-        testFsPath,
-        testName
+        testExecutionInfo
       );
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
       await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
@@ -77,9 +64,28 @@ export async function forceLwcTestCaseDebug(data: {
   }
 }
 
-export function forceLwcTestFileDebug(data: {
+export async function forceLwcTestFileDebug(data: {
   testExecutionInfo: TestExecutionInfo;
-}) {}
+}) {
+  const { testExecutionInfo } = data;
+  const { testUri } = testExecutionInfo;
+  if (
+    vscode.workspace.workspaceFolders &&
+    vscode.workspace.workspaceFolders[0]
+  ) {
+    const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    const lwcTestRunnerExecutablePath = getLwcTestRunnerExecutable(cwd);
+    if (lwcTestRunnerExecutablePath) {
+      const debugConfiguration = getDebugConfiguration(
+        lwcTestRunnerExecutablePath,
+        cwd,
+        testExecutionInfo
+      );
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
+      await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
+    }
+  }
+}
 
 export function handleDidStartDebugSession(session: vscode.DebugSession) {
   const { configuration } = session;
