@@ -6,11 +6,11 @@
  */
 import { Location, Uri } from 'vscode';
 
-export enum TestType {
+export const enum TestType {
   LWC = 'lwc'
 }
 
-export enum TestResultStatus {
+export const enum TestResultStatus {
   PASSED,
   FAILED,
   SKIPPED,
@@ -21,7 +21,7 @@ export interface TestResult {
   status: TestResultStatus;
 }
 
-export enum TestInfoKind {
+export const enum TestInfoKind {
   TEST_CASE = 'testCase',
   TEST_FILE = 'testFile'
 }
