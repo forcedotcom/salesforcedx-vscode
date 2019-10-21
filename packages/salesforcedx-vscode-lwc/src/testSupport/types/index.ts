@@ -27,12 +27,20 @@ export const enum TestInfoKind {
   TEST_DIRECTORY = 'testDirectory'
 }
 
+export interface RawTestResult {
+  title: string;
+  ancestorTitles?: string[];
+  status: TestResultStatus;
+}
+
 export interface TestFileInfo {
   kind: TestInfoKind.TEST_FILE;
   testType: TestType;
   testUri: Uri;
   testLocation?: Location;
   testResult?: TestResult;
+  testCasesInfo?: TestCaseInfo[];
+  rawTestResults?: RawTestResult[];
 }
 
 export interface TestCaseInfo {
@@ -42,6 +50,7 @@ export interface TestCaseInfo {
   testLocation?: Location;
   testResult?: TestResult;
   testName: string;
+  ancestorTitles?: string[];
 }
 
 export interface TestDirectoryInfo {

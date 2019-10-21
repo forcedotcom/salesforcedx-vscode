@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 
 import {
   LwcJestTestResults,
+  RawTestResult,
   TestCaseInfo,
   TestExecutionInfo,
   TestFileInfo,
@@ -22,7 +23,6 @@ import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 class LwcTestIndexer implements Indexer {
   private allTestFileInfo?: TestFileInfo[];
   private testFileInfoMap = new Map<string, TestFileInfo>();
-  private testCaseInfoMap = new Map<string, TestCaseInfo[]>();
   public onDidUpdateTestResultsIndex = new vscode.EventEmitter<undefined>();
 
   public async configureAndIndex() {
@@ -71,13 +71,17 @@ class LwcTestIndexer implements Indexer {
     testUri: vscode.Uri
   ): Promise<TestCaseInfo[]> {
     // parse
-    const { fsPath } = testUri;
-    if (this.testCaseInfoMap.has(fsPath)) {
-      return this.testCaseInfoMap.get(fsPath) || [];
+    const { fsPath: testFsPath } = testUri;
+    let testFileInfo = this.testFileInfoMap.get(testFsPath);
+    if (!testFileInfo) {
+      testFileInfo = this.indexTestFile(testFsPath);
+    }
+    if (testFileInfo.testCasesInfo) {
+      return testFileInfo.testCasesInfo;
     }
     try {
-      const { itBlocks } = parse(fsPath);
-      const testInfo: TestCaseInfo[] = itBlocks.map(itBlock => {
+      const { itBlocks } = parse(testFsPath);
+      const testCasesInfo: TestCaseInfo[] = itBlocks.map(itBlock => {
         const { name, nameRange, start, end } = itBlock;
         const testName = name;
         const testRange = new vscode.Range(
@@ -97,45 +101,86 @@ class LwcTestIndexer implements Indexer {
         };
         return testCaseInfo;
       });
-      this.testCaseInfoMap.set(fsPath, testInfo);
-      return testInfo;
+      if (testFileInfo.rawTestResults) {
+        this.mergeTestResults(testCasesInfo, testFileInfo.rawTestResults);
+      }
+      testFileInfo.testCasesInfo = testCasesInfo;
+      return testCasesInfo;
     } catch (error) {
       console.error(error);
       return [];
     }
   }
 
+  public indexTestFile(testFsPath: string): TestFileInfo {
+    const testUri = vscode.Uri.file(testFsPath);
+    const testLocation = new vscode.Location(
+      testUri,
+      new vscode.Position(0, 0)
+    );
+    const testFileInfo: TestFileInfo = {
+      kind: TestInfoKind.TEST_FILE,
+      testType: TestType.LWC,
+      testUri,
+      testLocation
+    };
+    this.testFileInfoMap.set(testFsPath, testFileInfo);
+    return testFileInfo;
+  }
+
+  private mergeTestResults(
+    testCasesInfo: TestCaseInfo[],
+    rawTestResults: RawTestResult[]
+  ) {
+    const rawTestResultsByTitle = new Map<string, RawTestResult[]>();
+    rawTestResults.forEach(rawTestResult => {
+      const { title } = rawTestResult;
+      rawTestResultsByTitle.set(title, [
+        ...(rawTestResultsByTitle.get(title) || []),
+        rawTestResult
+      ]);
+    });
+
+    testCasesInfo.forEach(testCaseInfo => {
+      const { testName } = testCaseInfo;
+      const rawTestResultsOfTestName = rawTestResultsByTitle.get(testName);
+      if (rawTestResultsOfTestName && rawTestResultsOfTestName[0]) {
+        // TODO match ancestor titles if possible.
+        const { title, ancestorTitles, status } = rawTestResultsOfTestName[0];
+        testCaseInfo.testResult = {
+          status
+        };
+      }
+    });
+  }
+
   public updateTestResults(testResults: LwcJestTestResults) {
-    // update test outline provider
     testResults.testResults.forEach(testResult => {
       const {
         name: testFsPath,
         status: testFileStatus,
         assertionResults
       } = testResult;
-      const testFileInfo = this.testFileInfoMap.get(testFsPath);
-      if (testFileInfo) {
-        let testResultStatus: TestResultStatus = TestResultStatus.UNKNOWN;
-        if (testFileStatus === 'passed') {
-          testResultStatus = TestResultStatus.PASSED;
-        } else if (testFileStatus === 'failed') {
-          testResultStatus = TestResultStatus.FAILED;
-        }
-        testFileInfo.testResult = {
-          status: testResultStatus
-        };
-        // TODO (if testFileInfo not found index it by fsPath)
+      let testFileInfo = this.testFileInfoMap.get(testFsPath);
+      if (!testFileInfo) {
+        // If testFileInfo not found index it by fsPath.
         // it should be handled by file watcher on creating file, but just in case.
+        testFileInfo = this.indexTestFile(testFsPath);
       }
-      if (this.testCaseInfoMap.has(testFsPath)) {
-        const testInfo = assertionResults.map(assertionResult => {
-          const { title: testName, status, location } = assertionResult;
-          const testUri = vscode.Uri.file(testFsPath);
-          const testRange = new vscode.Range(
-            new vscode.Position(location.line - 1, location.column),
-            new vscode.Position(location.line - 1, location.column + 5) // TODO
-          );
-          const testLocation = new vscode.Location(testUri, testRange);
+      let testFileResultStatus: TestResultStatus = TestResultStatus.UNKNOWN;
+      if (testFileStatus === 'passed') {
+        testFileResultStatus = TestResultStatus.PASSED;
+      } else if (testFileStatus === 'failed') {
+        testFileResultStatus = TestResultStatus.FAILED;
+      }
+      testFileInfo.testResult = {
+        status: testFileResultStatus
+      };
+
+      // Generate test results
+      const rawTestResults: RawTestResult[] = assertionResults.map(
+        assertionResult => {
+          const { title, status, ancestorTitles } = assertionResult;
           let testResultStatus: TestResultStatus;
           if (status === 'passed') {
             testResultStatus = TestResultStatus.PASSED;
@@ -144,23 +189,22 @@ class LwcTestIndexer implements Indexer {
           } else {
             testResultStatus = TestResultStatus.SKIPPED;
           }
-          const testCaseInfo: TestCaseInfo = {
-            kind: TestInfoKind.TEST_CASE,
-            testType: TestType.LWC,
-            testName,
-            testUri,
-            testLocation,
-            testResult: {
-              status: testResultStatus
-            }
+          const testCaseInfo: RawTestResult = {
+            title,
+            status: testResultStatus,
+            ancestorTitles
           };
           return testCaseInfo;
-        });
-        this.testCaseInfoMap.set(testFsPath, testInfo);
-      } else {
-        // TODO
-        // test case hasn't been indexed.
-        // example run a test file without expanding on from the explorer
+        }
+      );
+
+      // Set raw test results
+      testFileInfo.rawTestResults = rawTestResults;
+      const testCasesInfo = testFileInfo.testCasesInfo;
+      if (testCasesInfo) {
+        // Merge if test case info is available,
+        // If it's not available at the moment, merging will happen on parsing the test file
+        this.mergeTestResults(testCasesInfo, rawTestResults);
       }
     });
     // Update Test Explorer View
