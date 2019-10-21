@@ -11,7 +11,7 @@
     "prettier": "1.16.4",
     "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
-    "snyk": "^1.236.1",
+    "snyk": "^1.82.1",
     "ts-loader": "5.4.5",
     "tslint": "5.5.0",
     "typescript": "3.1.6",

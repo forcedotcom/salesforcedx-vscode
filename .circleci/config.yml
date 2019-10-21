@@ -28,7 +28,7 @@ jobs:
       - store_artifacts:
           path: ./extensions
       # - save_cache:
-      #     key: dependency-cache-v2-{{ checksum "package.json" }}
+      #     key: dependency-cache-v3-{{ checksum "package.json" }}
       #     paths:
       #       - node_modules
 workflows:
