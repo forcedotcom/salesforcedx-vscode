@@ -16,7 +16,6 @@ import { sandbox, SinonStub } from 'sinon';
 import { Uri, workspace } from 'vscode';
 import {
   EmptyPostChecker,
-  GlobStrategy,
   OverwriteComponentPrompt,
   PathStrategyFactory
 } from '../../../../src/commands/util';
@@ -285,10 +284,3 @@ describe('Postcondition Checkers', () => {
     }
   });
 });
-
-class TestGlobStrategy implements GlobStrategy {
-  public static readonly testGlobs = ['{/test,/glob}'];
-  public async globs() {
-    return TestGlobStrategy.testGlobs;
-  }
-}

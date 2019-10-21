@@ -8,7 +8,6 @@ export {
   SourcePathStrategy,
   PathStrategyFactory
 } from './sourcePathStrategies';
-export { GlobStrategy, GlobStrategyFactory } from './globStrategies';
 export { OverwriteComponentPrompt } from './postconditionCheckers';
 export {
   SimpleGatherer,
