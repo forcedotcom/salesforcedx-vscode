@@ -13,8 +13,8 @@ type ParsedNodeWithAncestorTitles = Pick<
   ancestorTitles?: string[];
   children?: ParsedNodeWithAncestorTitles[];
 };
-type ItBlockWithAncestorTitles = ItBlock & { ancestorTitles?: string[] };
-type IExtendedParseResults = Pick<
+export type ItBlockWithAncestorTitles = ItBlock & { ancestorTitles?: string[] };
+export type IExtendedParseResults = Pick<
   IParseResults,
   Exclude<keyof IParseResults, 'root'>
 > & {
@@ -27,9 +27,6 @@ function populateAncestorTitlesRecursive(
   ancestorTitles: string[],
   itBlocksWithAncestorTitles: ItBlockWithAncestorTitles[]
 ) {
-  if (!node.children) {
-    return;
-  }
   node.ancestorTitles = ancestorTitles;
   if (node.type === ParsedNodeTypes.it) {
     itBlocksWithAncestorTitles.push(node as ItBlockWithAncestorTitles);
@@ -38,19 +35,16 @@ function populateAncestorTitlesRecursive(
     node.type === ParsedNodeTypes.root ||
     node.type === ParsedNodeTypes.describe
   ) {
-    if (node.name) {
-      ancestorTitles.push(node.name);
+    if (!node.children) {
+      return;
     }
     node.children.forEach(childNode => {
       populateAncestorTitlesRecursive(
         childNode,
-        ancestorTitles,
+        node.name ? [...ancestorTitles, node.name] : ancestorTitles,
         itBlocksWithAncestorTitles
       );
     });
-    if (node.name) {
-      ancestorTitles.pop();
-    }
   }
 }
 

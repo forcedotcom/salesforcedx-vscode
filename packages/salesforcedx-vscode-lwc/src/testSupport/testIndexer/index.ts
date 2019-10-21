@@ -7,6 +7,11 @@
 import { JestTotalResults, parse } from 'jest-editor-support';
 import { Indexer } from 'lightning-lsp-common';
 import * as vscode from 'vscode';
+import {
+  IExtendedParseResults,
+  ItBlockWithAncestorTitles,
+  populateAncestorTitles
+} from './jestUtils';
 
 import {
   LwcJestTestResults,
@@ -80,9 +85,12 @@ class LwcTestIndexer implements Indexer {
       return testFileInfo.testCasesInfo;
     }
     try {
-      const { itBlocks } = parse(testFsPath);
+      const parseResults = parse(testFsPath) as IExtendedParseResults;
+      populateAncestorTitles(parseResults);
+      const itBlocks = (parseResults.itBlocksWithAncestorTitles ||
+        parseResults.itBlocks) as ItBlockWithAncestorTitles[];
       const testCasesInfo: TestCaseInfo[] = itBlocks.map(itBlock => {
-        const { name, nameRange, start, end } = itBlock;
+        const { name, nameRange, ancestorTitles } = itBlock;
         const testName = name;
         const testRange = new vscode.Range(
           new vscode.Position(
@@ -97,7 +105,8 @@ class LwcTestIndexer implements Indexer {
           testType: TestType.LWC,
           testName,
           testUri,
-          testLocation
+          testLocation,
+          ancestorTitles
         };
         return testCaseInfo;
       });
@@ -142,14 +151,27 @@ class LwcTestIndexer implements Indexer {
     });
 
     testCasesInfo.forEach(testCaseInfo => {
-      const { testName } = testCaseInfo;
+      const { testName, ancestorTitles: testCaseAncestorTitles } = testCaseInfo;
+
       const rawTestResultsOfTestName = rawTestResultsByTitle.get(testName);
-      if (rawTestResultsOfTestName && rawTestResultsOfTestName[0]) {
-        // TODO match ancestor titles if possible.
-        const { title, ancestorTitles, status } = rawTestResultsOfTestName[0];
-        testCaseInfo.testResult = {
-          status
-        };
+      if (rawTestResultsOfTestName) {
+        const matchedRawTestResults = rawTestResultsOfTestName.filter(
+          rawTestResultOfTestName => {
+            const { title, ancestorTitles } = rawTestResultOfTestName;
+            // match ancestor titles if possible
+            const isMatched = testCaseAncestorTitles
+              ? testName === title &&
+                JSON.stringify(testCaseAncestorTitles) ===
+                  JSON.stringify(ancestorTitles)
+              : testName === title;
+            return isMatched;
+          }
+        );
+        if (matchedRawTestResults && matchedRawTestResults.length > 0) {
+          testCaseInfo.testResult = {
+            status: matchedRawTestResults[0].status
+          };
+        }
       }
     });
   }

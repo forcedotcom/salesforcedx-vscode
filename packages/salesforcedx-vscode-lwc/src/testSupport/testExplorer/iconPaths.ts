@@ -7,8 +7,59 @@
 import * as path from 'path';
 import { TestResult, TestResultStatus } from '../types';
 
-type IconPath = { light: string; dark: string };
+const extensionPath = path.join(__filename, '..', '..', '..', '..', '..');
+const LIGHT_BLUE_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'light',
+  'testNotRun.svg'
+);
 
+const LIGHT_RED_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'light',
+  'testFail.svg'
+);
+const LIGHT_GREEN_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'light',
+  'testPass.svg'
+);
+const LIGHT_ORANGE_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'light',
+  'testSkip.svg'
+);
+
+const DARK_BLUE_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'dark',
+  'testNotRun.svg'
+);
+const DARK_RED_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'dark',
+  'testFail.svg'
+);
+const DARK_GREEN_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'dark',
+  'testPass.svg'
+);
+const DARK_ORANGE_BUTTON = path.join(
+  extensionPath,
+  'resources',
+  'dark',
+  'testSkip.svg'
+);
+
+type IconPath = { light: string; dark: string };
 export function getIconPath(testResult?: TestResult): IconPath {
   if (testResult) {
     if (testResult.status === TestResultStatus.PASSED) {
@@ -39,56 +90,3 @@ export function getIconPath(testResult?: TestResult): IconPath {
     };
   }
 }
-
-const extensionPath = path.join(__filename, '..', '..', '..', '..', '..');
-
-export const LIGHT_BLUE_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'light',
-  'testNotRun.svg'
-);
-
-export const LIGHT_RED_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'light',
-  'testFail.svg'
-);
-export const LIGHT_GREEN_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'light',
-  'testPass.svg'
-);
-export const LIGHT_ORANGE_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'light',
-  'testSkip.svg'
-);
-
-export const DARK_BLUE_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'dark',
-  'testNotRun.svg'
-);
-export const DARK_RED_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'dark',
-  'testFail.svg'
-);
-export const DARK_GREEN_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'dark',
-  'testPass.svg'
-);
-export const DARK_ORANGE_BUTTON = path.join(
-  extensionPath,
-  'resources',
-  'dark',
-  'testSkip.svg'
-);
