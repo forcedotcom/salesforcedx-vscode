@@ -13,7 +13,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v2-{{ checksum "package.json" }}
       - run: npm install
       # Setup an NODE_ENV to production mode before compiling.
       - run:
