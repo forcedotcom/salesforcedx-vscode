@@ -12,6 +12,7 @@ import {
   handleDidStartDebugSession,
   handleDidTerminateDebugSession
 } from './forceLwcTestDebugAction';
+import { forceLwcTestNavigateToTest } from './forceLwcTestNavigateToTest';
 import { forceLwcTestRefreshTestExplorer } from './forceLwcTestRefreshTestExplorer';
 import {
   forceLwcTestCaseRun,
@@ -29,6 +30,10 @@ export function registerCommands(
   const forceLwcTestRefreshTestExplorerCmd = commands.registerCommand(
     'sfdx.force.lightning.lwc.test.refreshTestExplorer',
     forceLwcTestRefreshTestExplorer
+  );
+  const forceLwcTestNavigateToTestCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.navigateToTest',
+    forceLwcTestNavigateToTest
   );
   const forceLwcTestFileRunCmd = commands.registerCommand(
     'sfdx.force.lightning.lwc.test.file.run',
@@ -55,6 +60,7 @@ export function registerCommands(
   return Disposable.from(
     forceLwcTestRunAllTestsCmd,
     forceLwcTestRefreshTestExplorerCmd,
+    forceLwcTestNavigateToTestCmd,
     forceLwcTestFileRunCmd,
     forceLwcTestFileDebugCmd,
     forceLwcTestCaseRunCmd,

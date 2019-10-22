@@ -143,6 +143,10 @@
         {
           "command": "sfdx.force.lightning.lwc.test.case.debug",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.navigateToTest",
+          "when": "false"
         }
       ]
     },
@@ -162,6 +166,10 @@
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
         }
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.test.navigateToTest",
+        "title": "%force_lightning_lwc_test_navigate_to_test%"
       },
       {
         "command": "sfdx.force.lightning.lwc.test.file.run",

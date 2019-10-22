@@ -16,7 +16,7 @@ export function activateLwcTestSupport(context: ExtensionContext) {
   registerLwcTestExplorerTreeView(context);
   // It's actually a synchronous function to start file watcher.
   // Finding test files will only happen when going into test explorer
-  // Parsing test files will happen when expanding on the test group nodesk,
+  // Parsing test files will happen when expanding on the test group nodes,
   // or open a test file, or on watched files change
   lwcTestIndexer.configureAndIndex().catch(error => console.error(error));
 }

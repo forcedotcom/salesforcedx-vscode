@@ -26,8 +26,8 @@ export abstract class TestNode extends vscode.TreeItem {
     this.description = label;
     this.name = label;
     this.command = {
-      command: 'sfdx.force.test.view.showError',
-      title: '', // nls.localize('force_test_view_show_error_title'),
+      command: 'sfdx.force.lightning.lwc.test.navigateToTest',
+      title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
       arguments: [this]
     };
   }
