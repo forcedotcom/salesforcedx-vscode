@@ -13,6 +13,10 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  isAlphaNumString,
+  isIntegerInRange
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
@@ -132,38 +136,34 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     }
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-      placeHolder: defaultAlias
+      placeHolder: defaultAlias,
+      validateInput: value => {
+        return isAlphaNumString(value)
+          ? null
+          : nls.localize('error_invalid_org_alias');
+      }
     } as vscode.InputBoxOptions;
     const alias = await vscode.window.showInputBox(aliasInputOptions);
     // Hitting enter with no alias will use the value of `defaultAlias`
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
-    const expirationDays = {
+    const expirationDaysInputOptions = {
       prompt: nls.localize(
         'parameter_gatherer_enter_scratch_org_expiration_days'
       ),
-      value: defaultExpirationdate
-    } as vscode.InputBoxOptions;
-    let scratchOrgExpirationInDays = await vscode.window.showInputBox(
-      expirationDays
-    );
-    if (
-      scratchOrgExpirationInDays === undefined ||
-      !Number.isSafeInteger(Number.parseInt(scratchOrgExpirationInDays))
-    ) {
-      return { type: 'CANCEL' };
-    } else {
-      if (
-        Number.parseInt(scratchOrgExpirationInDays) < 1 ||
-        Number.parseInt(scratchOrgExpirationInDays) > 30
-      ) {
-        scratchOrgExpirationInDays = DEFAULT_EXPIRATION_DAYS;
-      } else {
-        scratchOrgExpirationInDays = Number.parseInt(
-          scratchOrgExpirationInDays
-        ).toString();
+      value: defaultExpirationdate,
+      validateInput: value => {
+        return isIntegerInRange(value, [1, 30])
+          ? null
+          : nls.localize('error_invalid_expiration_days');
       }
+    } as vscode.InputBoxOptions;
+    const scratchOrgExpirationInDays = await vscode.window.showInputBox(
+      expirationDaysInputOptions
+    );
+    if (scratchOrgExpirationInDays === undefined) {
+      return { type: 'CANCEL' };
     }
     return {
       type: 'CONTINUE',

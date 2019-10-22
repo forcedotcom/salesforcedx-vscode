@@ -76,22 +76,6 @@ describe('Force Org Create', () => {
       }
     });
 
-    it('Should return Continue with default alias and the expiration date the user inputted as float, but converted to the integer', async () => {
-      inputBoxSpy.onCall(0).returns(TEST_ALIAS);
-      inputBoxSpy.onCall(1).returns(TEST_ORG_EXPIRATION_DAYS_INPUT_FLOAT);
-      const gatherer = new AliasGatherer();
-      const response = await gatherer.gather();
-      expect(inputBoxSpy.callCount).to.equal(2);
-      if (response.type === EVENT_CONTINUE) {
-        expect(response.data.alias).to.equal(TEST_ALIAS);
-        expect(response.data.expirationDays).to.equal(
-          Number.parseInt(TEST_ORG_EXPIRATION_DAYS_INPUT_FLOAT).toString()
-        );
-      } else {
-        expect.fail('Response should be of type ContinueResponse');
-      }
-    });
-
     it('Should return Cancel since the user canceled (pressed ESC) the process when defining the expiration for the scratch org', async () => {
       inputBoxSpy.onCall(0).returns(TEST_ALIAS);
       inputBoxSpy.onCall(1).returns(undefined);
@@ -99,22 +83,6 @@ describe('Force Org Create', () => {
       const response = await gatherer.gather();
       expect(inputBoxSpy.callCount).to.equal(2);
       expect(response.type).to.equal(EVENT_CANCEL);
-    });
-
-    it('Should return Continue with default alias and the default expiration date, since the user inputted an invalid integer as expiration date', async () => {
-      inputBoxSpy.onCall(0).returns(TEST_ALIAS);
-      inputBoxSpy
-        .onCall(1)
-        .returns(TEST_ORG_EXPIRATION_DAYS_INPUT_INVALID_RANGE);
-      const gatherer = new AliasGatherer();
-      const response = await gatherer.gather();
-      expect(inputBoxSpy.callCount).to.equal(2);
-      if (response.type === EVENT_CONTINUE) {
-        expect(response.data.alias).to.equal(TEST_ALIAS);
-        expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
-      } else {
-        expect.fail('Response should be of type ContinueResponse');
-      }
     });
   });
 

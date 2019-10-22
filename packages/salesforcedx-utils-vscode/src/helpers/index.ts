@@ -6,3 +6,4 @@
  */
 
 export { isNullOrUndefined, extractJsonObject } from './utils';
+export { isAlphaNumString, isInteger, isIntegerInRange } from './validations';
