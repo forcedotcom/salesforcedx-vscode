@@ -28,7 +28,7 @@ export abstract class TestNode extends vscode.TreeItem {
     this.name = label;
     this.command = {
       command: 'sfdx.force.test.view.showError',
-      title: nls.localize('force_test_view_show_error_title'),
+      title: '', // nls.localize('force_test_view_show_error_title'),
       arguments: [this]
     };
   }
@@ -93,6 +93,13 @@ export class SfdxTestOutlineProvider
     // this.getAllTests();
     this.disposables = [];
 
+    lwcTestIndexer.onDidUpdateTestIndex.event(
+      () => {
+        this.onDidUpdateTestIndex();
+      },
+      null,
+      this.disposables
+    );
     lwcTestIndexer.onDidUpdateTestResultsIndex.event(
       () => {
         this.onDidUpdateTestResultsIndex();
@@ -109,6 +116,10 @@ export class SfdxTestOutlineProvider
         disposable.dispose();
       }
     }
+  }
+
+  private onDidUpdateTestIndex() {
+    this.onDidChangeTestData.fire();
   }
 
   private onDidUpdateTestResultsIndex() {

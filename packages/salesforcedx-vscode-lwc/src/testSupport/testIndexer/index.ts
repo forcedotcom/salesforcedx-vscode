@@ -26,49 +26,52 @@ import {
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 
 class LwcTestIndexer implements Indexer {
-  private allTestFileInfo?: TestFileInfo[];
+  private hasIndexedTestFiles = false;
   private testFileInfoMap = new Map<string, TestFileInfo>();
   public onDidUpdateTestResultsIndex = new vscode.EventEmitter<undefined>();
+  public onDidUpdateTestIndex = new vscode.EventEmitter<undefined>();
 
   public async configureAndIndex() {
-    // find lwc test files
-    // watch for file change, create and delete
+    // Watch for test file change, create and delete
+    const lwcTestWatcher = vscode.workspace.createFileSystemWatcher(
+      LWC_TEST_GLOB_PATTERN
+    );
+    lwcTestWatcher.onDidCreate(async testUri => {
+      await this.indexTestCases(testUri);
+      this.onDidUpdateTestIndex.fire();
+    });
+    lwcTestWatcher.onDidChange(async testUri => {
+      await this.indexTestCases(testUri);
+      this.onDidUpdateTestIndex.fire();
+    });
+    lwcTestWatcher.onDidDelete(testUri => {
+      const { fsPath } = testUri;
+      this.resetTestFileIndex(fsPath);
+      this.onDidUpdateTestIndex.fire();
+    });
   }
   public resetIndex() {
     // TODO: reset the test index. Clear & refind test files and test results.
-    // Resetting index for specific file? for file test explorer view
-    this.allTestFileInfo = undefined;
-    return this.findAllTestFileInfo();
+    this.hasIndexedTestFiles = false;
+    this.testFileInfoMap.clear();
+    return this.indexAllTestFiles();
   }
-  public async handleWatchedFiles() {}
 
   public async findAllTestFileInfo(): Promise<TestFileInfo[]> {
-    if (this.allTestFileInfo) {
-      return this.allTestFileInfo;
+    if (this.hasIndexedTestFiles) {
+      return [...this.testFileInfoMap.values()];
     }
+    return await this.indexAllTestFiles();
+  }
 
-    this.testFileInfoMap.clear();
-    // TODO, infer package directory from sfdx project json
-    const lwcJestTestFiles = await vscode.workspace.findFiles(
-      LWC_TEST_GLOB_PATTERN
-    );
-    const allTestFileInfo = lwcJestTestFiles.map(lwcJestTestFile => {
-      const { fsPath } = lwcJestTestFile;
-      const testLocation = new vscode.Location(
-        lwcJestTestFile,
-        new vscode.Position(0, 0)
-      );
-      const testFileInfo: TestFileInfo = {
-        kind: TestInfoKind.TEST_FILE,
-        testType: TestType.LWC,
-        testUri: lwcJestTestFile,
-        testLocation
-      };
-      this.testFileInfoMap.set(fsPath, testFileInfo);
-      return testFileInfo;
-    });
-    this.allTestFileInfo = allTestFileInfo;
-    return allTestFileInfo;
+  public async indexTestCases(testUri: vscode.Uri) {
+    // parse
+    const { fsPath: testFsPath } = testUri;
+    let testFileInfo = this.testFileInfoMap.get(testFsPath);
+    if (!testFileInfo) {
+      testFileInfo = this.indexTestFile(testFsPath);
+    }
+    return this.parseTestFileAndMergeTestResults(testFileInfo);
   }
 
   // Lazy parse test information, until expand the test file or provide code lens
@@ -84,7 +87,15 @@ class LwcTestIndexer implements Indexer {
     if (testFileInfo.testCasesInfo) {
       return testFileInfo.testCasesInfo;
     }
+    return this.parseTestFileAndMergeTestResults(testFileInfo);
+  }
+
+  private parseTestFileAndMergeTestResults(
+    testFileInfo: TestFileInfo
+  ): TestCaseInfo[] {
     try {
+      const { testUri } = testFileInfo;
+      const { fsPath: testFsPath } = testUri;
       const parseResults = parse(testFsPath) as IExtendedParseResults;
       populateAncestorTitles(parseResults);
       const itBlocks = (parseResults.itBlocksWithAncestorTitles ||
@@ -117,11 +128,29 @@ class LwcTestIndexer implements Indexer {
       return testCasesInfo;
     } catch (error) {
       console.error(error);
+      testFileInfo.testCasesInfo = [];
       return [];
     }
   }
 
-  public indexTestFile(testFsPath: string): TestFileInfo {
+  /**
+   * Find all LWC test files in the workspace by glob pattern.
+   * This does not start parsing the test files.
+   */
+  private async indexAllTestFiles(): Promise<TestFileInfo[]> {
+    // TODO, infer package directory from sfdx project json
+    const lwcJestTestFiles = await vscode.workspace.findFiles(
+      LWC_TEST_GLOB_PATTERN
+    );
+    const allTestFileInfo = lwcJestTestFiles.map(lwcJestTestFile => {
+      const { fsPath } = lwcJestTestFile;
+      return this.indexTestFile(fsPath);
+    });
+    this.hasIndexedTestFiles = true;
+    return allTestFileInfo;
+  }
+
+  private indexTestFile(testFsPath: string): TestFileInfo {
     const testUri = vscode.Uri.file(testFsPath);
     const testLocation = new vscode.Location(
       testUri,
@@ -135,6 +164,10 @@ class LwcTestIndexer implements Indexer {
     };
     this.testFileInfoMap.set(testFsPath, testFileInfo);
     return testFileInfo;
+  }
+
+  private resetTestFileIndex(testFsPath: string) {
+    this.testFileInfoMap.delete(testFsPath);
   }
 
   private mergeTestResults(
