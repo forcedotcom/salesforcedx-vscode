@@ -12,8 +12,8 @@ jobs:
 
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-v2-{{ checksum "package.json" }}
+      # - restore_cache:
+      #     key: dependency-cache-v3-{{ checksum "package.json" }}
       - run: npm install
       # Setup an NODE_ENV to production mode before compiling.
       - run:
@@ -27,10 +27,10 @@ jobs:
             find . -name "*.vsix" -type f -exec cp {} ./extensions \;
       - store_artifacts:
           path: ./extensions
-      - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
-          paths:
-            - node_modules
+      # - save_cache:
+      #     key: dependency-cache-v3-{{ checksum "package.json" }}
+      #     paths:
+      #       - node_modules
 workflows:
   version: 2
   commit-workflow:
