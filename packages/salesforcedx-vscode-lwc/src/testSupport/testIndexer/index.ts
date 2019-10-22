@@ -8,6 +8,7 @@ import { JestTotalResults, parse } from 'jest-editor-support';
 import { Indexer } from 'lightning-lsp-common';
 import * as vscode from 'vscode';
 import {
+  extractPositionFromFailureMessage,
   IExtendedParseResults,
   ItBlockWithAncestorTitles,
   populateAncestorTitles
@@ -28,6 +29,9 @@ import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 class LwcTestIndexer implements Indexer {
   private hasIndexedTestFiles = false;
   private testFileInfoMap = new Map<string, TestFileInfo>();
+  private diagnosticCollection = vscode.languages.createDiagnosticCollection(
+    'lwcTestErrors'
+  );
   public onDidUpdateTestResultsIndex = new vscode.EventEmitter<undefined>();
   public onDidUpdateTestIndex = new vscode.EventEmitter<undefined>();
 
@@ -55,6 +59,7 @@ class LwcTestIndexer implements Indexer {
     // Reset the test index
     this.hasIndexedTestFiles = false;
     this.testFileInfoMap.clear();
+    this.diagnosticCollection.clear();
     this.onDidUpdateTestIndex.fire();
   }
 
@@ -233,6 +238,27 @@ class LwcTestIndexer implements Indexer {
       testFileInfo.testResult = {
         status: testFileResultStatus
       };
+
+      const testUri = vscode.Uri.file(testFsPath);
+      const diagnostics = assertionResults.reduce(
+        (diagnosticsResult: vscode.Diagnostic[], assertionResult) => {
+          const { failureMessages, location } = assertionResult;
+          if (failureMessages && failureMessages.length > 0) {
+            const failureMessage = failureMessages[0];
+            const failurePosition =
+              extractPositionFromFailureMessage(testFsPath, failureMessage) ||
+              new vscode.Position(location.line - 1, location.column - 1);
+            const diagnostic = new vscode.Diagnostic(
+              new vscode.Range(failurePosition, failurePosition),
+              failureMessage
+            );
+            diagnosticsResult.push(diagnostic);
+          }
+          return diagnosticsResult;
+        },
+        []
+      );
+      this.diagnosticCollection.set(testUri, diagnostics);
 
       // Generate test results
       const rawTestResults: RawTestResult[] = assertionResults.map(

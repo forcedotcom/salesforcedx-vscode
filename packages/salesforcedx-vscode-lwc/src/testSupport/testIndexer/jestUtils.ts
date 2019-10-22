@@ -4,6 +4,8 @@ import {
   ParsedNode,
   ParsedNodeTypes
 } from 'jest-editor-support';
+import { escapeStrForRegex } from 'jest-regex-util';
+import * as vscode from 'vscode';
 
 type ParsedNodeWithAncestorTitles = Pick<
   ParsedNode,
@@ -60,5 +62,30 @@ export function populateAncestorTitles(parsedResult: IExtendedParseResults) {
     return parsedResult;
   } catch (error) {
     console.error(error);
+  }
+}
+
+export function extractPositionFromFailureMessage(
+  testFsPath: string,
+  failureMessage: string
+) {
+  try {
+    const locationMatcher = new RegExp(
+      escapeStrForRegex(testFsPath) + '\\:(\\d+)\\:(\\d+)'
+    );
+    const matchResult = failureMessage.match(locationMatcher);
+    if (matchResult) {
+      const lineString = matchResult[1];
+      const columnString = matchResult[2];
+      const line = parseInt(lineString, 10);
+      const column = parseInt(columnString, 10);
+      if (isNaN(line) || isNaN(column)) {
+        return undefined;
+      }
+      return new vscode.Position(line - 1, column - 1);
+    }
+    return undefined;
+  } catch (error) {
+    return undefined;
   }
 }
