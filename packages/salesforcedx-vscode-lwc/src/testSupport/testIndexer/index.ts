@@ -50,13 +50,15 @@ class LwcTestIndexer implements Indexer {
       this.onDidUpdateTestIndex.fire();
     });
   }
+
   public resetIndex() {
-    // TODO: reset the test index. Clear & refind test files and test results.
+    // Reset the test index
     this.hasIndexedTestFiles = false;
     this.testFileInfoMap.clear();
-    return this.indexAllTestFiles();
+    this.onDidUpdateTestIndex.fire();
   }
 
+  // Lazy index all test files until opening test explorer
   public async findAllTestFileInfo(): Promise<TestFileInfo[]> {
     if (this.hasIndexedTestFiles) {
       return [...this.testFileInfoMap.values()];

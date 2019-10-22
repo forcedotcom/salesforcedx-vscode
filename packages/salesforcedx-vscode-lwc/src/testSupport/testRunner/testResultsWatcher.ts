@@ -12,8 +12,13 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const notificationService = sfdxCoreExports.notificationService;
 const telemetryService = sfdxCoreExports.telemetryService;
 
-export function startWatchingTestResults(testResultsFolderPath: string) {
-  const testResultsGlobPattern = path.join(testResultsFolderPath, '*.json');
+export function startWatchingTestResults(
+  testResultsFolderPath: string,
+  testResultFileName: string
+) {
+  const testResultsGlobPattern = path
+    .join(testResultsFolderPath, testResultFileName)
+    .replace(/\\/g, '/');
   const testResultsWatcher = vscode.workspace.createFileSystemWatcher(
     testResultsGlobPattern
   );

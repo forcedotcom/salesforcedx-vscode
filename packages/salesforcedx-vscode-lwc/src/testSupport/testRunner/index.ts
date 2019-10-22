@@ -81,13 +81,11 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
     const tempFolder = getTempFolder(testExecutionInfo);
     if (tempFolder) {
       const testRunId = uuid.v4();
-      const outputFilePath = path.join(
-        tempFolder,
-        `test-result-${testRunId}.json`
-      );
+      const testResultFileName = `test-result-${testRunId}.json`;
+      const outputFilePath = path.join(tempFolder, testResultFileName);
 
       // TODO - refactor, rename getJestArgs or handle watching elsewhere
-      startWatchingTestResults(tempFolder);
+      startWatchingTestResults(tempFolder, testResultFileName);
 
       // Specify --runTestsByPath if running test on individual files
       let runTestsByPathArgs: string[];

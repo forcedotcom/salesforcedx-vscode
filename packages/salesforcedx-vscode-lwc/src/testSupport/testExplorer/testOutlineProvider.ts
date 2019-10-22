@@ -126,10 +126,6 @@ export class SfdxTestOutlineProvider
     this.onDidChangeTestData.fire();
   }
 
-  public refresh() {
-    this.onDidChangeTestData.fire();
-  }
-
   public getTreeItem(element: TestNode): vscode.TreeItem {
     if (element) {
       return element;
