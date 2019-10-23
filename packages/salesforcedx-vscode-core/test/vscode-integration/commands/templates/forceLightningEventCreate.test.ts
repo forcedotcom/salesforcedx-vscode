@@ -42,11 +42,9 @@ describe('Force Lightning Event Create', () => {
     expect(lightningEventCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningEventCreate.getFileExtension()).to.equal('.evt');
     expect(
-      lightningEventCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.evt'
-      )
+      lightningEventCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.evt')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.evt`));
   });
 
@@ -68,11 +66,9 @@ describe('Force Lightning Event Create', () => {
     expect(lightningEventCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningEventCreate.getFileExtension()).to.equal('.evt');
     expect(
-      lightningEventCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.evt'
-      )
+      lightningEventCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.evt')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.evt`));
   });
 });
