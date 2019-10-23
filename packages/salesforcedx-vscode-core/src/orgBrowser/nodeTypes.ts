@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import {
+  RetrieveDescriber,
+  RetrieveDescriberFactory,
+  RetrieveMetadataTrigger
+} from '../commands/forceSourceRetrieveMetadata';
 import { nls } from '../messages';
 import { MetadataObject } from './metadataType';
 
@@ -16,7 +21,8 @@ export enum NodeType {
   Folder = 'folder'
 }
 
-export class BrowserNode extends vscode.TreeItem {
+export class BrowserNode extends vscode.TreeItem
+  implements RetrieveMetadataTrigger {
   public toRefresh: boolean = false;
   public readonly fullName: string;
   public suffix?: string;
@@ -102,5 +108,34 @@ export class BrowserNode extends vscode.TreeItem {
 
   get children() {
     return this._children;
+  }
+
+  public getAssociatedTypeNode(): BrowserNode {
+    const parent = this.parent;
+    if (parent) {
+      switch (parent.type) {
+        case NodeType.Folder:
+          return parent.parent!;
+        case NodeType.MetadataType:
+          return parent;
+        case NodeType.Org:
+          return this;
+      }
+    }
+    throw new Error(
+      `Node of type ${this.type} does not have a parent metadata type node`
+    );
+  }
+
+  public describer(): RetrieveDescriber {
+    switch (this.type) {
+      case NodeType.MetadataType:
+        return RetrieveDescriberFactory.createTypeNodeDescriber(this);
+      case NodeType.MetadataCmp:
+        return RetrieveDescriberFactory.createComponentNodeDescriber(this);
+    }
+    throw new Error(
+      `Org Browser node type '${this.type}' does not support metadata retrieve`
+    );
   }
 }

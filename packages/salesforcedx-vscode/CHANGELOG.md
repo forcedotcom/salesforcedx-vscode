@@ -1,3 +1,75 @@
+# 47.2.0 - October 17, 2019
+
+## Fixed
+
+#### docs
+
+- Reorganize user guide section ([PR #1692](https://github.com/forcedotcom/salesforcedx-vscode/pull/1692))
+
+## Added
+
+#### docs
+
+- Add support for navigating between English and Japanese documents ([PR #1698](https://github.com/forcedotcom/salesforcedx-vscode/pull/1698))
+
+# 47.1.0 - October 12, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs
+
+# 46.17.0 - October 3, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Remove Internal-development option from the Settings editor ([PR #1689](https://github.com/forcedotcom/salesforcedx-vscode/pull/1689), [Issue #1670](https://github.com/forcedotcom/salesforcedx-vscode/issues/1670), [Issue #1678](https://github.com/forcedotcom/salesforcedx-vscode/issues/1678))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add `SFDX: Diff File Against Org` command to the context menu of metadata in the Explorer ([PR #1688](https://github.com/forcedotcom/salesforcedx-vscode/pull/1688), [Issue #1666](https://github.com/forcedotcom/salesforcedx-vscode/issues/1666))
+
+#### docs
+
+- Update documentation for LWC local development ([PR #1687](https://github.com/forcedotcom/salesforcedx-vscode/pull/1687))
+
+# 46.16.0 - September 26, 2019
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Update Org Browser to retrieve all instances of a metadata type ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+
+#### salesforcedx-sobjects-faux-generator, salesforcedx-vscode-apex
+
+- Allow selecting SObject category (custom, standard or all) when running `SFDX: Refresh SObject Definitions` ([PR #1681](https://github.com/forcedotcom/salesforcedx-vscode/pull/1681))
+
+#### docs
+
+- Add retrieve multiple components documentation for [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) ([PR #1667](https://github.com/forcedotcom/salesforcedx-vscode/pull/1667))
+
+- Add links at the bottom of the articles to provide feedback and log bugs ([PR #1646](https://github.com/forcedotcom/salesforcedx-vscode/pull/1646))
+
+- Add recommended timeout setting for [Prettier](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) setup ([PR #1647](https://github.com/forcedotcom/salesforcedx-vscode/pull/1647))
+
+- Add pre-selection settings for [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) auto-complete dropdown list ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
+
+- Add [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) documentation for LWC ([PR #1676](https://github.com/forcedotcom/salesforcedx-vscode/pull/1676)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
+
+# 46.15.0 - September 19, 2019
+
+### Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs.
+
 # 46.14.0 - September 12, 2019
 
 ## Fixed

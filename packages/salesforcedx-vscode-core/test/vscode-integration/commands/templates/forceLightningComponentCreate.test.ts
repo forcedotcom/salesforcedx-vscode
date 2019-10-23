@@ -42,11 +42,9 @@ describe('Force Lightning Component Create', () => {
     expect(lightningCmpCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningCmpCreate.getFileExtension()).to.equal('.cmp');
     expect(
-      lightningCmpCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.cmp'
-      )
+      lightningCmpCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.cmp')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.cmp`));
   });
 
@@ -68,11 +66,9 @@ describe('Force Lightning Component Create', () => {
     expect(lightningCmpCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningCmpCreate.getFileExtension()).to.equal('.cmp');
     expect(
-      lightningCmpCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.cmp'
-      )
+      lightningCmpCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.cmp')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.cmp`));
   });
 });
