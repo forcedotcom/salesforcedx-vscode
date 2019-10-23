@@ -20,6 +20,10 @@ import {
 import { mockDescribeResponse } from './mockData';
 
 const sobjectdescribe = new SObjectDescribe();
+const CONNECTION_DATA = {
+  accessToken: '00Dxx000thisIsATestToken',
+  instanceUrl: 'https://na1.salesforce.com'
+};
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
@@ -30,19 +34,11 @@ describe('Fetch sObjects', () => {
   let refreshAuth: SinonStub;
 
   beforeEach(() => {
-    authInfo = stub(AuthInfo, 'create');
-    authInfo.returns({
-      getConnectionOptions: () => ({
-        accessToken: '00Dxx000thisIsATestToken',
-        instanceUrl: 'https://na1.salesforce.com'
-      })
+    authInfo = stub(AuthInfo, 'create').returns({
+      getConnectionOptions: () => CONNECTION_DATA
     });
     getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
-    connection = stub(Org.prototype, 'getConnection');
-    connection.returns({
-      accessToken: '00Dxx000thisIsATestToken',
-      instanceUrl: 'https://na1.salesforce.com'
-    });
+    connection = stub(Org.prototype, 'getConnection').returns(CONNECTION_DATA);
     refreshAuth = stub(Org.prototype, 'refreshAuth');
     xhrMock = stub(SObjectDescribe.prototype, 'runRequest');
   });

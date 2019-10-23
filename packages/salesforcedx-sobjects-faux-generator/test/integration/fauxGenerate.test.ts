@@ -26,6 +26,10 @@ import { CancellationTokenSource } from './integrationTestUtil';
 import { mockDescribeResponse } from './mockData';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
+const CONNECTION_DATA = {
+  accessToken: '00Dxx000thisIsATestToken',
+  instanceUrl: 'https://na1.salesforce.com'
+};
 
 // tslint:disable:no-unused-expression
 describe('Generate faux classes for SObjects', () => {
@@ -156,18 +160,11 @@ describe('Generate faux classes for SObjects', () => {
     beforeEach(() => {
       getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
       authInfo = stub(AuthInfo, 'create').returns({
-        getConnectionOptions() {
-          return {
-            accessToken: '00Dxx000thisIsATestToken',
-            instanceUrl: 'https://na1.salesforce.com'
-          };
-        }
+        getConnectionOptions: () => CONNECTION_DATA
       });
-      connection = stub(Org.prototype, 'getConnection');
-      connection.returns({
-        accessToken: '00Dxx000thisIsATestToken',
-        instanceUrl: 'https://na1.salesforce.com'
-      });
+      connection = stub(Org.prototype, 'getConnection').returns(
+        CONNECTION_DATA
+      );
       xhrMock = stub(SObjectDescribe.prototype, 'runRequest');
       fsExistSyncStub = stub(fs, 'existsSync').returns(true);
       refreshAuth = stub(Org.prototype, 'refreshAuth');
