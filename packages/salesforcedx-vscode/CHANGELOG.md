@@ -1,3 +1,17 @@
+# 47.3.0 - October 24, 2019
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable diff command for layouts and permsets ([PR #1713](https://github.com/forcedotcom/salesforcedx-vscode/pull/1713))
+
+## Fixed
+
+#### docs
+
+- Fix Japanese user guide section (#1720) ([PR #1719](https://github.com/forcedotcom/salesforcedx-vscode/pull/1719))
+
 # 47.2.0 - October 17, 2019
 
 ## Fixed
