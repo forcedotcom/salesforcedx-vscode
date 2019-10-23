@@ -818,7 +818,6 @@ html {
   border-left: 1px solid #d8dee6;
 }
 
-
 @media (min-width: 48em) {
   .site-sidebar {
     position: absolute;
@@ -902,7 +901,6 @@ html {
   margin-bottom: 0.625rem;
   width: 100%;
   height: 3rem;
-  /* background: url('../images/logo.svg') 50% 50% no-repeat; */
 }
 
 @media (min-width: 48em) {
@@ -1078,7 +1076,7 @@ html {
 }
 
 .site-banner-informational {
-  background: url(../images/landing/info-trailhead-bg.png) repeat;
+  background: url(./images/landing/info-trailhead-bg.png) repeat;
   background-size: contain;
   background-color: #4b3116;
   color: #16325c;
@@ -1405,11 +1403,11 @@ html {
 }
 
 .site-social-twitter {
-  background-image: url('../images/social-twitter.svg');
+  background-image: url('./images/social-twitter.svg');
 }
 
 .site-social-github {
-  background-image: url('../images/social-github.svg');
+  background-image: url('./images/social-github.svg');
 }
 
 @media (max-width: 48em) {
@@ -3620,4 +3618,29 @@ blockquote {
 
 #navigation button {
   cursor: default;
+}
+
+.site-main-content .article-feedback {
+  opacity: 0.8;
+  margin-top: 40px;
+}
+.site-main-content
+  .article-feedback
+  a:not(.slds-tabs--default__link):not(.slds-button) {
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.language-picker {
+  padding: 0 1rem;
+  margin-left: 1rem;
+}
+
+.language-picker a {
+  display: inline;
+  padding: 0;
+}
+
+.language-picker a.is-selected {
+  font-weight: bold;
 }

@@ -10,10 +10,12 @@ import {
   SOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
+import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,8 +24,11 @@ import * as vscode from 'vscode';
 import { ProgressLocation } from 'vscode';
 import {
   ForceGenerateFauxClassesExecutor,
-  initSObjectDefinitions
+  initSObjectDefinitions,
+  RefreshSelection,
+  SObjectRefreshGatherer
 } from '../../../src/commands/forceGenerateFauxClasses';
+import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -122,13 +127,21 @@ describe('ForceGenerateFauxClasses', () => {
       errorStub.restore();
     });
 
+    it('Should pass response data to generator', async () => {
+      await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
+      expect(generatorStub.firstCall.args.slice(1)).to.eql([
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Startup
+      ]);
+    });
+
     it('Should show progress on the status bar for non-manual refresh source', async () => {
-      await executeWithSource(SObjectRefreshSource.Startup);
+      await doExecute(SObjectRefreshSource.Startup);
       expect(progressStub.getCall(0).args[2]).to.eq(ProgressLocation.Window);
     });
 
     it('Should show progress as notification for manual refresh source', async () => {
-      await executeWithSource(SObjectRefreshSource.Manual);
+      await doExecute(SObjectRefreshSource.Manual);
       expect(progressStub.getCall(0).args[2]).to.eq(
         ProgressLocation.Notification
       );
@@ -136,22 +149,77 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should log correct information to telemetry', async () => {
       // Success
-      await executeWithSource(SObjectRefreshSource.Startup);
+      await doExecute(SObjectRefreshSource.Startup);
       expect(logStub.getCall(0).args[2]).to.eqls(expectedData);
 
       // Error
       const error = { message: 'sample error', stack: 'sample stack' };
       generatorStub.throws({ data: expectedData, error });
-      await executeWithSource(SObjectRefreshSource.Startup);
+      await doExecute(SObjectRefreshSource.Startup);
       expect(errorStub.calledWith(error, expectedData));
     });
 
-    async function executeWithSource(source: SObjectRefreshSource) {
+    async function doExecute(
+      source: SObjectRefreshSource,
+      category?: SObjectCategory
+    ) {
       const executor = new ForceGenerateFauxClassesExecutor();
       await executor.execute({
         type: 'CONTINUE',
-        data: source
+        data: { category: category || SObjectCategory.ALL, source }
       });
     }
+  });
+
+  describe('SObjectRefreshGatherer', () => {
+    let gatherer: SObjectRefreshGatherer;
+    let quickPickStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      gatherer = new SObjectRefreshGatherer();
+      quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+      quickPickStub.returns(nls.localize('sobject_refresh_all'));
+    });
+
+    afterEach(() => quickPickStub.restore());
+
+    it('Should return All sObjects', async () => {
+      quickPickStub.returns(nls.localize('sobject_refresh_all'));
+      const response = (await gatherer.gather()) as ContinueResponse<
+        RefreshSelection
+      >;
+      expect(response.data.category).to.equal(SObjectCategory.ALL);
+    });
+
+    it('Should return Custom sObjects', async () => {
+      quickPickStub.returns(nls.localize('sobject_refresh_custom'));
+      const response = (await gatherer.gather()) as ContinueResponse<
+        RefreshSelection
+      >;
+      expect(response.data.category).to.equal(SObjectCategory.CUSTOM);
+    });
+
+    it('Should return Standard sObjects', async () => {
+      quickPickStub.returns(nls.localize('sobject_refresh_standard'));
+      const response = (await gatherer.gather()) as ContinueResponse<
+        RefreshSelection
+      >;
+      expect(response.data.category).to.equal(SObjectCategory.STANDARD);
+    });
+
+    it('Should return given source', async () => {
+      gatherer = new SObjectRefreshGatherer(SObjectRefreshSource.Startup);
+      const response = (await gatherer.gather()) as ContinueResponse<
+        RefreshSelection
+      >;
+      expect(response.data.source).to.equal(SObjectRefreshSource.Startup);
+    });
+
+    it('Should return Manual source if none given', async () => {
+      const response = (await gatherer.gather()) as ContinueResponse<
+        RefreshSelection
+      >;
+      expect(response.data.source).to.equal(SObjectRefreshSource.Manual);
+    });
   });
 });

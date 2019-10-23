@@ -10,6 +10,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
@@ -19,25 +20,21 @@ import {
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '../commands';
-import {
-  FilePathExistsChecker,
-  GlobStrategyFactory,
-  PathStrategyFactory,
-  SourcePathStrategy
 } from '../util';
+import { MetadataTypeGatherer } from '../util';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
-import {
-  LWC_DEFINITION_FILE_EXTS,
-  LWC_DIRECTORY,
-  LWC_JS_EXTENSION
-} from './metadataTypeConstants';
+import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
 export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super(LWC_TYPE);
+  }
+
   public build(data: DirFileNameSelection): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_create_text'))
@@ -53,35 +50,22 @@ export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
 
     return builder.build();
   }
-
-  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createBundleStrategy();
-
-  public getDefaultDirectory() {
-    return LWC_DIRECTORY;
-  }
-
-  public getFileExtension() {
-    return LWC_JS_EXTENSION;
-  }
 }
 
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
+const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 
 export async function forceLightningLwcCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer(fileNameGatherer, outputDirGatherer),
+    new CompositeParametersGatherer<LocalComponent>(
+      metadataTypeGatherer,
+      fileNameGatherer,
+      outputDirGatherer
+    ),
     new ForceLightningLwcCreateExecutor(),
-    new FilePathExistsChecker(
-      GlobStrategyFactory.createCheckBundleInGivenPath(
-        ...LWC_DEFINITION_FILE_EXTS
-      ),
-      nls.localize(
-        'warning_prompt_file_overwrite',
-        nls.localize('lwc_message_name')
-      )
-    )
+    new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }

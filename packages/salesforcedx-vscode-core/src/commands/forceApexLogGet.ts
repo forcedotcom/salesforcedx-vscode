@@ -12,12 +12,15 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  getYYYYMMddHHmmssDateFormat,
+  optionYYYYMMddHHmmss
+} from '@salesforce/salesforcedx-utils-vscode/out/src/date';
+import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
-import * as moment from 'moment';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
@@ -32,7 +35,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
@@ -90,9 +93,8 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
         mkdir('-p', logDir);
       }
 
-      const date = moment(new Date(response.data.startTime)).format(
-        'YYYYMMDDhhmmss'
-      );
+      const localUTCDate = new Date(response.data.startTime);
+      const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
       const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
       fs.writeFileSync(logPath, resultJson.result.log);
       const document = await vscode.workspace.openTextDocument(logPath);
@@ -135,16 +137,17 @@ export class LogFileSelector
     if (logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
+        const localUTCDate = new Date(logInfo.StartTime);
+        const localDateFormatted = localUTCDate.toLocaleDateString(
+          undefined,
+          optionYYYYMMddHHmmss
+        );
+
         return {
           id: logInfo.Id,
           label: icon + logInfo.LogUser.Name + ' - ' + logInfo.Operation,
-          startTime: moment(new Date(logInfo.StartTime)).format(
-            'M/DD/YYYY, h:mm:s a'
-          ),
-          detail:
-            moment(new Date(logInfo.StartTime)).format('M/DD/YYYY, h:mm:s a') +
-            ' - ' +
-            logInfo.Status.substr(0, 150),
+          startTime: localDateFormatted,
+          detail: localDateFormatted + ' - ' + logInfo.Status.substr(0, 150),
           description: `${(logInfo.LogLength / 1024).toFixed(2)} KB`
         } as ApexDebugLogItem;
       });

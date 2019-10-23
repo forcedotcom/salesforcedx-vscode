@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "46.14.0",
+  "version": "47.2.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,17 +26,16 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.0.1",
-    "@salesforce/salesforcedx-utils-vscode": "46.14.0",
+    "@salesforce/salesforcedx-utils-vscode": "47.2.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
-    "moment": "2.20.1",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "46.14.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "47.2.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -119,7 +118,7 @@
         },
         {
           "command": "sfdx.force.source.retrieve.component",
-          "when": "view == metadata && viewItem == component",
+          "when": "view == metadata && viewItem =~ /(type|component)/",
           "group": "inline"
         }
       ],
@@ -146,7 +145,7 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg)$/"
+          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg|permissionset-meta.xml|layout-meta.xml)$/"
         },
         {
           "command": "sfdx.force.diff",
@@ -213,6 +212,18 @@
         {
           "command": "sfdx.force.apex.trigger.create",
           "when": "explorerResourceIsFolder && resourceFilename == triggers && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceFilename =~ /.*(app|cmp|auradoc|evt|intf|css|design|html|js|svg|permissionset-meta.xml|layout-meta.xml)$/"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceLangId == apex"
+        },
+        {
+          "command": "sfdx.force.diff",
+          "when": "sfdx:project_opened && resourceLangId == visualforce"
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
@@ -711,11 +722,6 @@
           "type": "boolean",
           "default": false,
           "description": "%push_or_deploy_on_save_enabled_description%"
-        },
-        "salesforcedx-vscode-core.internal-development": {
-          "type": "boolean",
-          "default": false,
-          "description": "%internal_dev_description%"
         }
       }
     },

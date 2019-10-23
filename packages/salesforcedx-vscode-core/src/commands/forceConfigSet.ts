@@ -14,7 +14,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
   private usernameOrAlias: string;
