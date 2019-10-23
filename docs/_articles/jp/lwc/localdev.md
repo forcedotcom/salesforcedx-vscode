@@ -180,8 +180,6 @@ The local development server throws an error if you try to use the following com
 
 ## **Considerations**
 
-## **Considerations**
-
 - The local development server supports Lightning web components only. It does not support Aura components.
 - Don't connect to a production Salesforce org with the local development server. Local development uses data in real time. If you authenticate to a production org, then you will modify or overwrite data in production.
 - You can't specify or change attribute values for your components on the component preview page. Components render with their default attribute values. For example, let's say you're writing a clock component. To view the component, the clock needs to know your timezone, which requires setting a timezone attribute. We recommend setting a default timezone in the code. If you can't specify a default value, create a wrapper component that creates the clock and sets the proper attributes. To prevent confusion, make sure to give your wrapper component a name that clarifies it is for testing purposes only.
