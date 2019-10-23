@@ -42,11 +42,9 @@ describe('Force Lightning App Create', () => {
     expect(lightningAppCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningAppCreate.getFileExtension()).to.equal('.app');
     expect(
-      lightningAppCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.app'
-      )
+      lightningAppCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.app')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.app`));
   });
 
@@ -68,11 +66,9 @@ describe('Force Lightning App Create', () => {
     expect(lightningAppCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningAppCreate.getFileExtension()).to.equal('.app');
     expect(
-      lightningAppCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.app'
-      )
+      lightningAppCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.app')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.app`));
   });
 });

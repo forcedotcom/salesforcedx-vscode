@@ -29,11 +29,9 @@ describe('Force Visualforce Page Create', () => {
     expect(visualforcePageCreate.getDefaultDirectory()).to.equal('pages');
     expect(visualforcePageCreate.getFileExtension()).to.equal('.page');
     expect(
-      visualforcePageCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.page'
-      )
+      visualforcePageCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.page')
     ).to.equal(path.join(outputDirPath, `${fileName}.page`));
   });
 });

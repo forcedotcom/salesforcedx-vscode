@@ -250,3 +250,9 @@ export class RetrieveComponentOutputGatherer
     };
   }
 }
+
+export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
+  constructor(metadataType: string) {
+    super({ type: metadataType });
+  }
+}

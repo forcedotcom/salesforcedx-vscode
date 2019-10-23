@@ -42,11 +42,9 @@ describe('Force Lightning Web Component Create', () => {
     expect(lightningLWCCreate.getDefaultDirectory()).to.equal('lwc');
     expect(lightningLWCCreate.getFileExtension()).to.equal('.js');
     expect(
-      lightningLWCCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.js'
-      )
+      lightningLWCCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.js')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.js`));
   });
 
@@ -68,11 +66,9 @@ describe('Force Lightning Web Component Create', () => {
     expect(lightningLWCCreate.getDefaultDirectory()).to.equal('lwc');
     expect(lightningLWCCreate.getFileExtension()).to.equal('.js');
     expect(
-      lightningLWCCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.js'
-      )
+      lightningLWCCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.js')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.js`));
   });
 });

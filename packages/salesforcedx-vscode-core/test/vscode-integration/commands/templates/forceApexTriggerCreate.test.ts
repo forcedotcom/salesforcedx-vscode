@@ -29,11 +29,9 @@ describe('Force Apex Trigger Create', () => {
     expect(triggerCreate.getDefaultDirectory()).to.equal('triggers');
     expect(triggerCreate.getFileExtension()).to.equal('.trigger');
     expect(
-      triggerCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.trigger'
-      )
+      triggerCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.trigger')
     ).to.equal(path.join(outputDirPath, `${fileName}.trigger`));
   });
 });

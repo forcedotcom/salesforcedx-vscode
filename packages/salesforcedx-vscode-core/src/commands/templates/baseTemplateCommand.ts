@@ -17,12 +17,27 @@ import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
+import {
+  MetadataDictionary,
+  MetadataInfo
+} from '../../util/metadataDictionary';
 import { SelectOutputDir, SfdxCommandletExecutor } from '../util';
 import { SourcePathStrategy } from '../util';
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
+  private metadataType: MetadataInfo;
+
+  constructor(type: string) {
+    super();
+    const info = MetadataDictionary.getInfo(type);
+    if (!info) {
+      throw new Error(`Unrecognized metadata type ${type}`);
+    }
+    this.metadataType = info;
+  }
+
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -65,16 +80,22 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
 
   private getPathToSource(outputDir: string, fileName: string): string {
     const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
-    return this.sourcePathStrategy.getPathToSource(
+    return this.getSourcePathStrategy().getPathToSource(
       sourceDirectory,
       fileName,
       this.getFileExtension()
     );
   }
 
-  protected abstract sourcePathStrategy: SourcePathStrategy;
+  public getSourcePathStrategy(): SourcePathStrategy {
+    return this.metadataType.pathStrategy;
+  }
 
-  protected abstract getFileExtension(): string;
+  public getFileExtension(): string {
+    return `.${this.metadataType.suffix}`;
+  }
 
-  protected abstract getDefaultDirectory(): string;
+  public getDefaultDirectory(): string {
+    return this.metadataType.directory;
+  }
 }
