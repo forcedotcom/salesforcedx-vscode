@@ -7,7 +7,14 @@
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { getJestArgs, getLwcTestRunnerExecutable } from '../testRunner';
-import { TestCaseInfo, TestExecutionInfo } from '../types';
+import {
+  TestCaseInfo,
+  TestExecutionInfo,
+  TestFileInfo,
+  TestInfoKind,
+  TestType
+} from '../types';
+import { isLwcJestTest } from '../utils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -84,6 +91,18 @@ export async function forceLwcTestFileDebug(data: {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
       await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
     }
+  }
+}
+
+export async function forceLwcTestDebugActiveTextEditorTest() {
+  const { activeTextEditor } = vscode.window;
+  if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
+    const testExecutionInfo: TestFileInfo = {
+      kind: TestInfoKind.TEST_FILE,
+      testType: TestType.LWC,
+      testUri: activeTextEditor.document.uri
+    };
+    await forceLwcTestFileDebug({ testExecutionInfo });
   }
 }
 

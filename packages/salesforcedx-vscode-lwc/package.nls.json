@@ -7,6 +7,8 @@
   "force_lightning_lwc_test_file_debug_text": "SFDX: Debug Lightning Web Component Test File",
   "force_lightning_lwc_test_case_run_text": "SFDX: Run Lightning Web Component Test Case",
   "force_lightning_lwc_test_case_debug_text": "SFDX: Debug Lightning Web Component Test Case",
+  "force_lightning_lwc_test_run_current_file_text": "SFDX: Run Current Lightning Web Component Test File",
+  "force_lightning_lwc_test_debug_current_file_text": "SFDX: Debug Current Lightning Web Component Test File",
   "force_lightning_lwc_test_start_watching_text": "SFDX: Start Watching Lightning Web Component Test",
   "force_lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test"
 }

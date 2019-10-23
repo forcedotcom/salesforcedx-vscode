@@ -1,14 +1,11 @@
 import * as vscode from 'vscode';
-import {
-  LWC_TEST_DOCUMENT_SELECTOR,
-  SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT
-} from '../types/constants';
+
+import { SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT } from '../types/constants';
+import { isLwcJestTest } from './isLwcJestTest';
 
 function setLwcJestFileFocusedContext(textEditor?: vscode.TextEditor) {
   if (textEditor) {
-    if (
-      vscode.languages.match(LWC_TEST_DOCUMENT_SELECTOR, textEditor.document)
-    ) {
+    if (isLwcJestTest(textEditor.document)) {
       vscode.commands.executeCommand(
         'setContext',
         SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT,

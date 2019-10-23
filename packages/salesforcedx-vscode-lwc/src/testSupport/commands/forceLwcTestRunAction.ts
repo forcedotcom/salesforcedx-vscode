@@ -18,9 +18,11 @@ import {
 import {
   TestDirectoryInfo,
   TestExecutionInfo,
+  TestFileInfo,
   TestInfoKind,
   TestType
 } from '../types';
+import { isLwcJestTest } from '../utils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -129,5 +131,19 @@ export function forceLwcTestRunAllTests() {
     return forceLwcTestRun(cwd, testExecutionInfo);
   } else {
     // TODO: workspace error message
+  }
+}
+
+export function forceLwcTestRunActiveTextEditorTest() {
+  const { activeTextEditor } = vscode.window;
+  if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
+    const testExecutionInfo: TestFileInfo = {
+      kind: TestInfoKind.TEST_FILE,
+      testType: TestType.LWC,
+      testUri: activeTextEditor.document.uri
+    };
+    return forceLwcTestFileRun({
+      testExecutionInfo
+    });
   }
 }
