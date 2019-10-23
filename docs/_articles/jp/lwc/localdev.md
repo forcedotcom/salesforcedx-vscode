@@ -180,8 +180,6 @@ The local development server throws an error if you try to use the following com
 
 ## **Considerations**
 
-## **Considerations**
-
 - The local development server supports Lightning web components only. It does not support Aura components.
 - Don't connect to a production Salesforce org with the local development server. Local development uses data in real time. If you authenticate to a production org, then you will modify or overwrite data in production.
 - You can't specify or change attribute values for your components on the component preview page. Components render with their default attribute values. For example, let's say you're writing a clock component. To view the component, the clock needs to know your timezone, which requires setting a timezone attribute. We recommend setting a default timezone in the code. If you can't specify a default value, create a wrapper component that creates the clock and sets the proper attributes. To prevent confusion, make sure to give your wrapper component a name that clarifies it is for testing purposes only.
@@ -199,7 +197,7 @@ Here are common errors that you may run into while working with the local develo
 
 This error occurs when you use an unsupported Salesforce module. In this example, a user tries to import an unsupported dependency called userPermission: `import userPermission from '@salesforce/userPermission';`
 
-![Screenshot of unsupported dependency error](./images/localdev_error_dependency.png)
+![Screenshot of unsupported dependency error](../../images/localdev_error_dependency.png)
 
 ```
 talon.js:3554 Uncaught Error: Unknown scope, cannot resolve dependency 'userPermission'
@@ -221,7 +219,7 @@ For more information about which modules the local development server supports, 
 
 This error message occurs when you try to use a component that isn't included in your local project or used globally. Here, the local development server cannot find the component `c-clockzzz`.
 
-![Screenshot of unsupported dependency error](./images/localdev_error_component.png)
+![Screenshot of unsupported dependency error](../../images/localdev_error_component.png)
 
 ```
 Uncaught Error: Could not resolve entry (c/clockzzz)
@@ -233,7 +231,7 @@ at :3333/<path-to-workspace>/lwc-dev-server/node_modules/rollup/dist/rollup.js:2
 
 If you use a namespace that either wasn't created in your org or that isn't part of the Component library, the local development server will produce this error.
 
-![Screenshot of unsupported dependency error](./images/localdev_error_namespace.png)
+![Screenshot of unsupported dependency error](../../images/localdev_error_namespace.png)
 
 ```
 talon.js:11847 Uncaught Error: Cannot resolve module 'force'
