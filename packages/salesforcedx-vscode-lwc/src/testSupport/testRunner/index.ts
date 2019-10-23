@@ -106,7 +106,7 @@ export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
         '--json',
         '--outputFile',
         outputFilePath,
-        '--testLocationInResults', // TODO: do we need testLocationInResults?
+        '--testLocationInResults',
         ...runTestsByPathArgs,
         ...testNamePatternArgs
       ];

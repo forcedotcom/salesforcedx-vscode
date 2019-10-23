@@ -51,6 +51,22 @@ export function registerCommands(
     'sfdx.force.lightning.lwc.test.case.debug',
     forceLwcTestCaseDebug
   );
+  const forceLwcTestEditorTitleRunCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.editorTitle.run',
+    () => {}
+  );
+  const forceLwcTestEditorTitleDebugCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.editorTitle.debug',
+    () => {}
+  );
+  const forceLwcTestEditorTitleStartWatchingCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.editorTitle.startWatching',
+    () => {}
+  );
+  const forceLwcTestEditorTitleStopWatchingCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.editorTitle.stopWatching',
+    () => {}
+  );
   const startDebugSessionDisposable = vscode.debug.onDidStartDebugSession(
     handleDidStartDebugSession
   );
@@ -65,6 +81,10 @@ export function registerCommands(
     forceLwcTestFileDebugCmd,
     forceLwcTestCaseRunCmd,
     forceLwcTestCaseDebugCmd,
+    forceLwcTestEditorTitleRunCmd,
+    forceLwcTestEditorTitleDebugCmd,
+    forceLwcTestEditorTitleStartWatchingCmd,
+    forceLwcTestEditorTitleStopWatchingCmd,
     startDebugSessionDisposable,
     stopDebugSessionDisposable
   );

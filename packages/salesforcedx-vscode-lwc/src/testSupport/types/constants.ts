@@ -9,3 +9,8 @@ import { GlobPattern } from 'vscode';
 export const SFDX_PROJECT_JSON_GLOB_PATTERN: GlobPattern =
   '**/sfdx-project.json';
 export const LWC_TEST_GLOB_PATTERN: GlobPattern = '**/lwc/**/*.test.js';
+export const LWC_TEST_DOCUMENT_SELECTOR = {
+  language: 'javascript',
+  pattern: LWC_TEST_GLOB_PATTERN
+};
+export const SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sfdx:lwc_jest_file_focused';

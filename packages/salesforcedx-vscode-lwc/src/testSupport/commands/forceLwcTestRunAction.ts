@@ -104,7 +104,6 @@ export function forceLwcTestCaseRun(data: {
 export function forceLwcTestFileRun(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
-  // TODO: refactor this.
   const { testExecutionInfo } = data;
   if (
     vscode.workspace.workspaceFolders &&

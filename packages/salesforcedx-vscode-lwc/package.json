@@ -97,6 +97,28 @@
       ]
     },
     "menus": {
+      "editor/title": [
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.run",
+          "when": "sfdx:lwc_jest_file_focused",
+          "group": "navigation"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.debug",
+          "when": "sfdx:lwc_jest_file_focused",
+          "group": "navigation"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.startWatching",
+          "when": "sfdx:lwc_jest_file_focused",
+          "group": "navigation"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.stopWatching",
+          "when": "false",
+          "group": "navigation"
+        }
+      ],
       "view/title": [
         {
           "command": "sfdx.force.lightning.lwc.test.runAllTests",
@@ -183,8 +205,8 @@
         "command": "sfdx.force.lightning.lwc.test.file.debug",
         "title": "%force_lightning_lwc_test_file_debug_text%",
         "icon": {
-          "light": "resources/light/debug-side.svg",
-          "dark": "resources/dark/debug-side.svg"
+          "light": "resources/light/debug.svg",
+          "dark": "resources/dark/debug.svg"
         }
       },
       {
@@ -199,8 +221,40 @@
         "command": "sfdx.force.lightning.lwc.test.case.debug",
         "title": "%force_lightning_lwc_test_case_debug_text%",
         "icon": {
-          "light": "resources/light/debug-side.svg",
-          "dark": "resources/dark/debug-side.svg"
+          "light": "resources/light/debug.svg",
+          "dark": "resources/dark/debug.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.test.editorTitle.run",
+        "title": "%force_lightning_lwc_test_file_run_text%",
+        "icon": {
+          "light": "resources/light/play-button.svg",
+          "dark": "resources/dark/play-button.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.test.editorTitle.debug",
+        "title": "%force_lightning_lwc_test_file_debug_text%",
+        "icon": {
+          "light": "resources/light/debug.svg",
+          "dark": "resources/dark/debug.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.test.editorTitle.startWatching",
+        "title": "%force_lightning_lwc_test_start_watching_text%",
+        "icon": {
+          "light": "resources/light/startWatching.svg",
+          "dark": "resources/dark/startWatching.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.test.editorTitle.stopWatching",
+        "title": "%force_lightning_lwc_test_stop_watching_text%",
+        "icon": {
+          "light": "resources/light/stopWatching.svg",
+          "dark": "resources/dark/stopWatching.svg"
         }
       }
     ]
