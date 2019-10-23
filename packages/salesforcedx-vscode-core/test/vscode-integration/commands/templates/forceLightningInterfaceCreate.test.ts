@@ -42,11 +42,9 @@ describe('Force Lightning Interface Create', () => {
     expect(lightningInterfaceCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningInterfaceCreate.getFileExtension()).to.equal('.intf');
     expect(
-      lightningInterfaceCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.intf'
-      )
+      lightningInterfaceCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.intf')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.intf`));
   });
 
@@ -68,11 +66,9 @@ describe('Force Lightning Interface Create', () => {
     expect(lightningInterfaceCreate.getDefaultDirectory()).to.equal('aura');
     expect(lightningInterfaceCreate.getFileExtension()).to.equal('.intf');
     expect(
-      lightningInterfaceCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.intf'
-      )
+      lightningInterfaceCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.intf')
     ).to.equal(path.join(outputDirPath, fileName, `${fileName}.intf`));
   });
 });

@@ -34,11 +34,9 @@ describe('Force Visualforce Component Create', () => {
     expect(visualforceCmpCreate.getDefaultDirectory()).to.equal('components');
     expect(visualforceCmpCreate.getFileExtension()).to.equal('.component');
     expect(
-      visualforceCmpCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.component'
-      )
+      visualforceCmpCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.component')
     ).to.equal(path.join(outputDirPath, `${fileName}.component`));
   });
 });
