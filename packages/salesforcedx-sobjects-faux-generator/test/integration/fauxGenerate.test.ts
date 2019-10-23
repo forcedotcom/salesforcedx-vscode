@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core';
+import { AuthInfo, Org } from '@salesforce/core';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { fail } from 'assert';
 import { expect } from 'chai';
@@ -150,6 +150,8 @@ describe('Generate faux classes for SObjects', () => {
     let getUsername: SinonStub;
     let authInfo: SinonStub;
     let xhrMock: SinonStub;
+    let connection: SinonStub;
+    let refreshAuth: SinonStub;
 
     beforeEach(() => {
       getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
@@ -161,8 +163,14 @@ describe('Generate faux classes for SObjects', () => {
           };
         }
       });
+      connection = stub(Org.prototype, 'getConnection');
+      connection.returns({
+        accessToken: '00Dxx000thisIsATestToken',
+        instanceUrl: 'https://na1.salesforce.com'
+      });
       xhrMock = stub(SObjectDescribe.prototype, 'runRequest');
       fsExistSyncStub = stub(fs, 'existsSync').returns(true);
+      refreshAuth = stub(Org.prototype, 'refreshAuth');
     });
 
     afterEach(() => {
@@ -170,6 +178,8 @@ describe('Generate faux classes for SObjects', () => {
       getUsername.restore();
       authInfo.restore();
       xhrMock.restore();
+      connection.restore();
+      refreshAuth.restore();
     });
 
     it('Should emit an exit event with code success code 0 on success', async () => {

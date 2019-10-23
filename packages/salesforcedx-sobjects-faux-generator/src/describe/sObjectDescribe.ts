@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core';
+import { Org } from '@salesforce/core';
 import {
   CliCommandExecution,
   CliCommandExecutor,
@@ -264,7 +264,6 @@ export class SObjectDescribe {
 
   public buildXHROptions(types: string[], nextToProcess: number): XHROptions {
     const batchRequest = this.buildBatchRequestBody(types, nextToProcess);
-
     return {
       type: 'POST',
       url: this.buildBatchRequestURL(),
@@ -319,10 +318,11 @@ export class SObjectDescribe {
   public async getConnectionData(projectPath: string) {
     try {
       const username = await ConfigUtil.getUsername(projectPath);
-      const authInfo = await AuthInfo.create({ username });
-      const opts = authInfo.getConnectionOptions();
-      this.accessToken = opts.accessToken;
-      this.instanceUrl = opts.instanceUrl;
+      const org = await Org.create({ aliasOrUsername: username });
+      await org.refreshAuth();
+      const { accessToken, instanceUrl } = org.getConnection();
+      this.accessToken = accessToken;
+      this.instanceUrl = instanceUrl;
     } catch (err) {
       const error = new Error();
       error.name = 'Authentication Error';
