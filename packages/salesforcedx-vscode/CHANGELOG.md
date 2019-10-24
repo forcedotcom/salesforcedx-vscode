@@ -14,7 +14,7 @@
 
 #### docs
 
-- Added documentation for SOQL language server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
+- [Write SOQL Queries](https://forcedotcom.github.io/salesforcedx-vscode/articles/soql/writing) documentation for SOQL language server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
 
 # 47.2.0 - October 17, 2019
 
