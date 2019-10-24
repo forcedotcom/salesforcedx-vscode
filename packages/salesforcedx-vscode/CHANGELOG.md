@@ -4,20 +4,17 @@
 
 #### salesforcedx-vscode-core
 
-- Enable diff command for layouts and permsets ([PR #1713](https://github.com/forcedotcom/salesforcedx-vscode/pull/1713))
+- Enable diff for layouts and permission sets in `SFDX: Diff File Against Org` command ([PR #1713](https://github.com/forcedotcom/salesforcedx-vscode/pull/1713))
+
+- Added the `analytics` template option to the `SFDX: Project Create` command ([PR #1730](https://github.com/forcedotcom/salesforcedx-vscode/pull/1730))
 
 #### salesforcedx-vscode-apex
 
 - Open beta for SOQL Language Server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741)) that provides code completion suggestions for your SOQL queries.
-#### docs
-
-- Add documentation for SOQL Language Server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
-
-## Fixed
 
 #### docs
 
-- Fix Japanese user guide section (#1720) ([PR #1719](https://github.com/forcedotcom/salesforcedx-vscode/pull/1719))
+- Added documentation for SOQL language server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
 
 # 47.2.0 - October 17, 2019
 
