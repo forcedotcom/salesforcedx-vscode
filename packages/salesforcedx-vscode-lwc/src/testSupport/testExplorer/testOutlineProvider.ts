@@ -8,7 +8,26 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { lwcTestIndexer } from '../testIndexer';
-import { SfdxTestGroupNode, SfdxTestNode, TestNode } from './testNode';
+import { TestCaseInfo, TestFileInfo } from '../types';
+import {
+  SfdxTestGroupNode,
+  SfdxTestNode,
+  sortTestNodeByLabel,
+  TestNode
+} from './testNode';
+
+function getLabelFromTestCaseInfo(testCaseInfo: TestCaseInfo) {
+  const { testName } = testCaseInfo;
+  return testName;
+}
+
+function getLabelFromTestFileInfo(testFileInfo: TestFileInfo) {
+  const { testUri } = testFileInfo;
+  const { fsPath } = testUri;
+  const ext = '.test.js';
+  const testGroupLabel = path.basename(fsPath, ext);
+  return testGroupLabel;
+}
 
 export class SfdxTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode>, vscode.Disposable {
@@ -16,12 +35,9 @@ export class SfdxTestOutlineProvider
     TestNode | undefined
   > = new vscode.EventEmitter<TestNode | undefined>();
   public onDidChangeTreeData = this.onDidChangeTestData.event;
-  private rootNode: TestNode | null;
   private disposables: vscode.Disposable[];
 
   constructor() {
-    this.rootNode = null;
-    // this.getAllTests();
     this.disposables = [];
 
     lwcTestIndexer.onDidUpdateTestIndex.event(
@@ -58,20 +74,10 @@ export class SfdxTestOutlineProvider
   }
 
   public getTreeItem(element: TestNode): vscode.TreeItem {
-    if (element) {
-      return element;
-    } else {
-      //  TODO - no tests
-      if (!(this.rootNode && this.rootNode.children.length > 0)) {
-        this.rootNode = new SfdxTestNode('no tests here');
-        const childNode = new SfdxTestNode('no tests here');
-        this.rootNode.children.push(childNode);
-      }
-      return this.rootNode;
-    }
+    return element;
   }
 
-  public async getChildren(element: TestNode): Promise<TestNode[]> {
+  public async getChildren(element?: TestNode): Promise<TestNode[]> {
     if (element) {
       if (element instanceof SfdxTestGroupNode) {
         if (element.location) {
@@ -80,65 +86,30 @@ export class SfdxTestOutlineProvider
           );
           if (testInfo) {
             return testInfo.map(testCaseInfo => {
-              const { testName, testUri, testLocation } = testCaseInfo;
-              return new SfdxTestNode(testName, testLocation, testCaseInfo);
+              const testNodeLabel = getLabelFromTestCaseInfo(testCaseInfo);
+              return new SfdxTestNode(testNodeLabel, testCaseInfo);
             });
           }
         }
       }
       return [];
-      // return element.children; // TODO - cache here
     } else {
       try {
         const allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
         return allTestFileInfo
           .map(testFileInfo => {
-            const { testUri, testLocation } = testFileInfo;
-            const { fsPath } = testUri;
-            const ext = '.test.js';
-            const testGroupLabel = path.basename(fsPath, ext);
+            const testNodeLabel = getLabelFromTestFileInfo(testFileInfo);
             const testGroupNode = new SfdxTestGroupNode(
-              testGroupLabel,
-              testLocation,
-              testFileInfo,
-              vscode.TreeItemCollapsibleState.Collapsed
+              testNodeLabel,
+              testFileInfo
             );
             return testGroupNode;
           })
-          .sort((node1, node2) => {
-            const label1 = node1!.label;
-            const label2 = node2!.label;
-            if (!label1) {
-              return -1;
-            }
-            if (!label2) {
-              return 1;
-            }
-            return label1.localeCompare(label2);
-          });
+          .sort(sortTestNodeByLabel);
       } catch (error) {
+        console.error(error);
         return [];
       }
-      /*
-      // TODO: some temp code
-      const rootNode = new SfdxTestGroupNode('LwcTests', null, 'lwc');
-      const testSuiteNode = new SfdxTestGroupNode(
-        'c-event-simple',
-        null,
-        'lwc'
-      );
-      rootNode.children = [
-        new SfdxTestNode('lwc test 1', null),
-        new SfdxTestNode('lwc test 2', null),
-        new SfdxTestNode('lwc test 3', null),
-        testSuiteNode
-      ];
-      return [rootNode];
-      // if (this.rootNode && this.rootNode.children.length > 0) {
-      //   return this.rootNode.children;
-      // }
-      // return [];
-      */
     }
   }
 }

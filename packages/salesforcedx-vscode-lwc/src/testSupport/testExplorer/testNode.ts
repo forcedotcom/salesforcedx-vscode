@@ -10,9 +10,7 @@ import { TestExecutionInfo } from '../types';
 import { getIconPath } from './iconPaths';
 
 export abstract class TestNode extends vscode.TreeItem {
-  public children = new Array<TestNode>();
   public description: string;
-  public name: string;
   public location?: vscode.Location;
   public iconPath = getIconPath();
 
@@ -24,7 +22,6 @@ export abstract class TestNode extends vscode.TreeItem {
     super(label, collapsibleState);
     this.location = location;
     this.description = label;
-    this.name = label;
     this.command = {
       command: 'sfdx.force.lightning.lwc.test.navigateToTest',
       title: nls.localize('force_lightning_lwc_test_navigate_to_test'),
@@ -34,23 +31,19 @@ export abstract class TestNode extends vscode.TreeItem {
 }
 
 export class SfdxTestNode extends TestNode {
-  public errorMessage: string = '';
-  public stackTrace: string = '';
-  public outcome = 'Not Run';
   public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
 
-  constructor(
-    label: string,
-    location?: vscode.Location,
-    testExecutionInfo?: TestExecutionInfo
-  ) {
-    super(label, vscode.TreeItemCollapsibleState.None, location);
+  constructor(label: string, testExecutionInfo?: TestExecutionInfo) {
+    super(label, vscode.TreeItemCollapsibleState.None);
     this.testExecutionInfo = testExecutionInfo;
     if (testExecutionInfo) {
       const { testType, testResult } = testExecutionInfo;
       this.contextValue = `${testType}Test`;
       this.iconPath = getIconPath(testResult);
+      if ('testLocation' in testExecutionInfo) {
+        this.location = testExecutionInfo.testLocation;
+      }
     }
   }
 }
@@ -60,17 +53,31 @@ export class SfdxTestGroupNode extends TestNode {
   public testExecutionInfo?: TestExecutionInfo;
   constructor(
     label: string,
-    location: vscode.Location | undefined,
     testExecutionInfo: TestExecutionInfo,
     collapsibleState: vscode.TreeItemCollapsibleState = vscode
-      .TreeItemCollapsibleState.Expanded
+      .TreeItemCollapsibleState.Collapsed
   ) {
-    super(label, collapsibleState, location);
+    super(label, collapsibleState);
     this.testExecutionInfo = testExecutionInfo;
     if (testExecutionInfo) {
       const { testType, testResult } = testExecutionInfo;
       this.contextValue = `${testType}TestGroup`;
       this.iconPath = getIconPath(testResult);
+      if ('testLocation' in testExecutionInfo) {
+        this.location = testExecutionInfo.testLocation;
+      }
     }
   }
+}
+
+export function sortTestNodeByLabel(node1: TestNode, node2: TestNode) {
+  const label1 = node1!.label;
+  const label2 = node2!.label;
+  if (!label1) {
+    return -1;
+  }
+  if (!label2) {
+    return 1;
+  }
+  return label1.localeCompare(label2);
 }
