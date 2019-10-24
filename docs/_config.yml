@@ -45,6 +45,6 @@ defaults:
       layout: 'default'
   - scope:
       path: ''
-      type: article
+      type: articles
     values:
       layout: 'article'
