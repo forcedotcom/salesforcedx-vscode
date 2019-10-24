@@ -72,7 +72,8 @@ export function extractPositionFromFailureMessage(
 ) {
   try {
     const locationMatcher = new RegExp(
-      escapeStrForRegex(testFsPath) + '\\:(\\d+)\\:(\\d+)'
+      escapeStrForRegex(testFsPath) + '\\:(\\d+)\\:(\\d+)',
+      'i'
     );
     const matchResult = failureMessage.match(locationMatcher);
     if (matchResult) {

@@ -219,11 +219,8 @@ class LwcTestIndexer implements Indexer {
 
   public updateTestResults(testResults: LwcJestTestResults) {
     testResults.testResults.forEach(testResult => {
-      const {
-        name: testFsPath,
-        status: testFileStatus,
-        assertionResults
-      } = testResult;
+      const { name, status: testFileStatus, assertionResults } = testResult;
+      const testFsPath = vscode.Uri.file(name).fsPath;
       let testFileInfo = this.testFileInfoMap.get(testFsPath);
       if (!testFileInfo) {
         // If testFileInfo not found index it by fsPath.
