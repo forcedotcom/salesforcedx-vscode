@@ -14,3 +14,5 @@ export const LWC_TEST_DOCUMENT_SELECTOR = {
   pattern: LWC_TEST_GLOB_PATTERN
 };
 export const SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sfdx:lwc_jest_file_focused';
+export const SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
+  'sfdx:lwc_jest_is_watching_focused_file';

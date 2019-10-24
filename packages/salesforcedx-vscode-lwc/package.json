@@ -110,12 +110,12 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.editorTitle.startWatching",
-          "when": "sfdx:lwc_jest_file_focused",
+          "when": "sfdx:lwc_jest_file_focused && !sfdx:lwc_jest_is_watching_focused_file",
           "group": "navigation"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.editorTitle.stopWatching",
-          "when": "false",
+          "when": "sfdx:lwc_jest_file_focused && sfdx:lwc_jest_is_watching_focused_file",
           "group": "navigation"
         }
       ],

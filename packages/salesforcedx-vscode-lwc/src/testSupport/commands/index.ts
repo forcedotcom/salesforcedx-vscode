@@ -21,6 +21,10 @@ import {
   forceLwcTestRunActiveTextEditorTest,
   forceLwcTestRunAllTests
 } from './forceLwcTestRunAction';
+import {
+  forceLwcTestStartWatchingCurrentFile,
+  forceLwcTestStopWatchingCurrentFile
+} from './forceLwcTestWatchAction';
 
 export function registerCommands(
   extensionContext: ExtensionContext
@@ -63,11 +67,11 @@ export function registerCommands(
   );
   const forceLwcTestEditorTitleStartWatchingCmd = commands.registerCommand(
     'sfdx.force.lightning.lwc.test.editorTitle.startWatching',
-    () => {}
+    forceLwcTestStartWatchingCurrentFile
   );
   const forceLwcTestEditorTitleStopWatchingCmd = commands.registerCommand(
     'sfdx.force.lightning.lwc.test.editorTitle.stopWatching',
-    () => {}
+    forceLwcTestStopWatchingCurrentFile
   );
   const startDebugSessionDisposable = vscode.debug.onDidStartDebugSession(
     handleDidStartDebugSession

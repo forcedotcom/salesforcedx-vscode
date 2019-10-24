@@ -19,6 +19,8 @@ export const messages = {
   salesforcedx_vscode_core_not_installed_text:
     'salesforce.salesforcedx-vscode-lwc failed to activate. Ensure that you have the latest version of salesforce.salesforcedx-vscode-core installed and activated',
   force_lwc_test_run_description_text: 'Run LWC test(s)',
+  force_lightning_lwc_test_navigate_to_test:
+    'SFDX: Navigate to Lightning Web Component Test',
   no_lwc_jest_found_text:
     'sfdx-lwc-jest is not installed. Install it from https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation',
   no_workspace_folder_found_for_test_text:

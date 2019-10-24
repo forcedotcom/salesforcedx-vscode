@@ -8,6 +8,7 @@ import {
   Command,
   CommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
@@ -15,6 +16,7 @@ import {
   getJestArgs,
   SfdxWorkspaceLwcTestRunnerInstallationChecker
 } from '../testRunner';
+import { TestRunner, TestRunType } from '../testRunner/testRunner';
 import {
   TestDirectoryInfo,
   TestExecutionInfo,
@@ -57,6 +59,11 @@ export class ForceLwcTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}
     );
     this.builder = new LwcJestCommandBuilder(lwcTestRunnerExcutable);
     this.testExecutionInfo = testExecutionInfo;
+  }
+
+  public execute(response: ContinueResponse<{}>): void {
+    const testRunner = new TestRunner(this.testExecutionInfo, TestRunType.RUN);
+    testRunner.execute().catch(error => console.error(error));
   }
 
   public build(data: {}): Command {
