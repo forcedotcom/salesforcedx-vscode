@@ -13,5 +13,9 @@ To develop with the SOQL language server, create a `.soql` file. We recommend th
 
 ## View Code Completion Suggestions
 
-Before you begin, run `SFDX: Refresh SObject Defintions` from the command palette. To see code-completion suggestions, press Ctrl+space when you’re working in a `.soql` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter.
+You must refresh the SObject definitions so that the SOQL language server to provide code completion suggestions. Run `SFDX: Refresh SObject Defintions` from the Command Palette. 
+- To see code completion suggestions, press Ctrl+space when you’re working in a `.soql` file.
+- To navigate between the suggestions, use the arrow keys.
+- To auto-complete from the suggestion, press Enter. 
+
 ![Animation showing code completion for a basic SOQL query](./images/soql-completion.gif)
