@@ -68,11 +68,9 @@ export function getTempFolder(testExecutionInfo: TestExecutionInfo) {
 
 export class TestResultsWatcher implements vscode.Disposable {
   private outputFilePath: string;
-  private shouldDisposeOnFileCreate: boolean;
   private fileSystemWatcher?: vscode.FileSystemWatcher;
-  constructor(outputFilePath: string, shouldDisposeOnFileCreate: boolean) {
+  constructor(outputFilePath: string) {
     this.outputFilePath = outputFilePath;
-    this.shouldDisposeOnFileCreate = shouldDisposeOnFileCreate;
   }
 
   public static getTempFolder = getTempFolder;
@@ -84,9 +82,6 @@ export class TestResultsWatcher implements vscode.Disposable {
     );
     this.fileSystemWatcher.onDidCreate(testResultsUri => {
       this.updateTestResultsFromTestResultsJson(testResultsUri);
-      if (this.shouldDisposeOnFileCreate) {
-        this.dispose();
-      }
     });
 
     this.fileSystemWatcher.onDidChange(testResultsUri => {

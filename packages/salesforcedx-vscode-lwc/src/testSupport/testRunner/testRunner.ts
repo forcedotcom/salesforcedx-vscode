@@ -106,31 +106,8 @@ export class TestRunner implements vscode.Disposable {
 
     if (jestExecutionInfo) {
       const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
-      switch (this.testRunType) {
-        case TestRunType.RUN: {
-          this.testResultWatcher = new TestResultsWatcher(
-            jestOutputFilePath,
-            true
-          );
-          this.testResultWatcher.watchTestResults();
-        }
-        case TestRunType.DEBUG: {
-          this.testResultWatcher = new TestResultsWatcher(
-            jestOutputFilePath,
-            true
-          );
-          this.testResultWatcher.watchTestResults();
-        }
-        case TestRunType.WATCH: {
-          this.testResultWatcher = new TestResultsWatcher(
-            jestOutputFilePath,
-            false
-          );
-          this.testResultWatcher.watchTestResults();
-        }
-        default:
-          break;
-      }
+      this.testResultWatcher = new TestResultsWatcher(jestOutputFilePath);
+      this.testResultWatcher.watchTestResults();
       const { testUri } = this.testExecutionInfo;
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
       if (workspaceFolder) {
@@ -140,28 +117,8 @@ export class TestRunner implements vscode.Disposable {
         const cliArgs = ['--', ...jestArgs];
 
         if (lwcTestRunnerExcutable) {
-          // const taskDefinition = {
-          //   type: 'sfdxLwcTest',
-          //   testRunId: this.testRunId
-          // };
-          // const taskScope = workspaceFolder;
           const taskName = `${this.testRunType.charAt(0).toUpperCase() +
             this.testRunType.substring(1)} Test`; // TODO: nls
-          // const taskSource = 'SFDX';
-          // const taskShellExecution = new vscode.ShellExecution(
-          //   lwcTestRunnerExcutable,
-          //   cliArgs
-          // );
-          // const task = new vscode.Task(
-          //   taskDefinition,
-          //   taskScope,
-          //   taskName,
-          //   taskSource,
-          //   taskShellExecution
-          // );
-          // task.presentationOptions.clear = true;
-          // const taskExecution = await vscode.tasks.executeTask(task);
-
           const sfdxTask = taskService.createTask(
             this.testRunId,
             taskName,
