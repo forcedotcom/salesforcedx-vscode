@@ -86,21 +86,31 @@ describe('Fetch sObjects', () => {
   });
 
   it('Should build the batch request url', async () => {
-    await sobjectdescribe.getConnectionData('test/project/uri');
+    const org = await Org.create({ aliasOrUsername: 'test@example.com' });
+    await sobjectdescribe.getConnectionData(org);
     expect(sobjectdescribe.buildBatchRequestURL()).to.equal(
       'https://na1.salesforce.com/services/data/v46.0/composite/batch'
     );
   });
 
   it('Should ensure valid session token', async () => {
+    const sobjectTypes = ['object1', 'object2', 'object3'];
+    xhrMock.onFirstCall().throws({ status: 401 });
+    xhrMock
+      .onSecondCall()
+      .returns({ responseText: JSON.stringify(mockDescribeResponse) });
     refreshAuth.callsFake(() => {
       connection.returns({
         accessToken: 'another-test-token',
         instanceUrl: 'https://na1.salesforce.com'
       });
     });
-    await sobjectdescribe.getConnectionData('test/project/uri');
-    const opts = sobjectdescribe.buildXHROptions(['test'], 0);
+    await sobjectdescribe.describeSObjectBatch(
+      'test/project/uri',
+      sobjectTypes,
+      0
+    );
+    const opts = sobjectdescribe.buildXHROptions(sobjectTypes, 0);
     expect(opts.headers.Authorization).to.equal('OAuth another-test-token');
   });
 
@@ -122,6 +132,7 @@ describe('Fetch sObjects', () => {
   });
 
   it('Should create the correct xhr options', async () => {
+    const org = await Org.create({ aliasOrUsername: 'test@example.com' });
     const sobjectTypes = ['object1', 'object2', 'object3'];
     const testBatchReq = {
       batchRequests: [
@@ -130,7 +141,7 @@ describe('Fetch sObjects', () => {
         { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
       ]
     };
-    await sobjectdescribe.getConnectionData('test/project/uri');
+    await sobjectdescribe.getConnectionData(org);
     const xhrOptions = sobjectdescribe.buildXHROptions(sobjectTypes, 0);
     expect(xhrOptions).to.not.be.empty;
     expect(xhrOptions.type).to.be.equal('POST');
@@ -208,7 +219,6 @@ describe('Fetch sObjects', () => {
     } catch (err) {
       expect(err).to.be.equal('Unexpected error in Auth phase');
     }
-
-    expect(authInfo.calledOnce).to.equal(true);
+    expect(authInfo.called).to.equal(true);
   });
 });

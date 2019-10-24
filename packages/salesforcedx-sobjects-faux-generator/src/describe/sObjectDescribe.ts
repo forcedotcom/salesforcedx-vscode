@@ -288,12 +288,28 @@ export class SObjectDescribe {
     nextToProcess: number
   ): Promise<SObject[]> {
     try {
+      const org = await Org.create({
+        aliasOrUsername: await ConfigUtil.getUsername(projectPath)
+      });
+
       if (!this.accessToken || !this.instanceUrl) {
-        await this.getConnectionData(projectPath);
+        await this.getConnectionData(org);
       }
 
-      const options: XHROptions = this.buildXHROptions(types, nextToProcess);
-      const response: XHRResponse = await this.runRequest(options);
+      let response: XHRResponse;
+      let options: XHROptions;
+      try {
+        options = this.buildXHROptions(types, nextToProcess);
+        response = await this.runRequest(options);
+      } catch (e) {
+        if (e.status !== 401) {
+          throw e;
+        }
+        await this.getConnectionData(org, true);
+        options = this.buildXHROptions(types, nextToProcess);
+        response = await this.runRequest(options);
+      }
+
       const batchResponse = JSON.parse(response.responseText) as BatchResponse;
       const fetchedObjects: SObject[] = [];
       let i = nextToProcess;
@@ -315,20 +331,13 @@ export class SObjectDescribe {
     }
   }
 
-  public async getConnectionData(projectPath: string) {
-    try {
-      const username = await ConfigUtil.getUsername(projectPath);
-      const org = await Org.create({ aliasOrUsername: username });
+  public async getConnectionData(org: Org, withRefresh?: boolean) {
+    if (withRefresh) {
       await org.refreshAuth();
-      const { accessToken, instanceUrl } = org.getConnection();
-      this.accessToken = accessToken;
-      this.instanceUrl = instanceUrl;
-    } catch (err) {
-      const error = new Error();
-      error.name = 'Authentication Error';
-      error.message = err.message;
-      throw error;
     }
+    const { accessToken, instanceUrl } = org.getConnection();
+    this.accessToken = accessToken;
+    this.instanceUrl = instanceUrl;
   }
 
   public getVersion(): string {
