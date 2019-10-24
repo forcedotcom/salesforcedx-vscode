@@ -247,7 +247,8 @@
         ],
         "extensions": [
           ".cls",
-          ".trigger"
+          ".trigger",
+          ".soql"
         ],
         "configuration": "./syntaxes/apex.configuration.json"
       },
