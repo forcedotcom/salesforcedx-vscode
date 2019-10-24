@@ -5,6 +5,8 @@ lang: en
 
 You can use the SOQL query snippet to see code completion suggestions for your SOQL queries.
 
+To learn about how to use the Salesforce Object Query Language (SOQL), see [SOQL and SOSL Reference](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql.htm).
+
 > NOTICE: The SOQL Language Server is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback). See our [Roadmap](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Roadmap) for more information.
 
 ## Develop with the SOQL Language Server
