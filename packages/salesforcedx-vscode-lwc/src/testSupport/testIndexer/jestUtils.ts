@@ -5,6 +5,7 @@ import {
   ParsedNodeTypes
 } from 'jest-editor-support';
 import { escapeStrForRegex } from 'jest-regex-util';
+import stripAnsi from 'strip-ansi';
 import * as vscode from 'vscode';
 
 type ParsedNodeWithAncestorTitles = Pick<
@@ -88,4 +89,8 @@ export function extractPositionFromFailureMessage(
   } catch (error) {
     return undefined;
   }
+}
+
+export function sanitizeFailureMessage(failureMessage: string) {
+  return stripAnsi(failureMessage);
 }

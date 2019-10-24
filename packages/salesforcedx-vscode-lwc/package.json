@@ -33,6 +33,7 @@
     "lightning-lsp-common": "2.2.2",
     "lwc-language-server": "2.2.2",
     "rxjs": "^5.4.1",
+    "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1",

@@ -11,7 +11,8 @@ import {
   extractPositionFromFailureMessage,
   IExtendedParseResults,
   ItBlockWithAncestorTitles,
-  populateAncestorTitles
+  populateAncestorTitles,
+  sanitizeFailureMessage
 } from './jestUtils';
 
 import {
@@ -244,7 +245,7 @@ class LwcTestIndexer implements Indexer {
         (diagnosticsResult: vscode.Diagnostic[], assertionResult) => {
           const { failureMessages, location } = assertionResult;
           if (failureMessages && failureMessages.length > 0) {
-            const failureMessage = failureMessages[0];
+            const failureMessage = sanitizeFailureMessage(failureMessages[0]);
             const failurePosition =
               extractPositionFromFailureMessage(testFsPath, failureMessage) ||
               new vscode.Position(location.line - 1, location.column - 1);
