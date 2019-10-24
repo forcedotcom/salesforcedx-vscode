@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { PreconditionChecker } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'path';
@@ -38,23 +37,6 @@ export function getLwcTestRunnerExecutable(sfdxProjectPath: string) {
     const errorMessage = nls.localize('no_lwc_jest_found_text');
     notificationService.showErrorMessage(errorMessage);
     telemetryService.sendException('lwc_test_no_lwc_jest_found', errorMessage);
-  }
-}
-
-export class SfdxWorkspaceLwcTestRunnerInstallationChecker
-  implements PreconditionChecker {
-  public check(): boolean {
-    if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      const sfdxProjectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(
-        sfdxProjectPath
-      );
-      return !!lwcTestRunnerExecutable;
-    }
-    return false;
   }
 }
 

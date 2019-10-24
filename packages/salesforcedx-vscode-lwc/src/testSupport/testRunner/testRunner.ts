@@ -127,8 +127,12 @@ export class TestRunner implements vscode.Disposable {
             cliArgs
           );
           sfdxTask.onDidEnd(() => {
-            // debugger;
-            this.dispose();
+            // Dispose the watcher after a timeout since on task process end,
+            // test file creations event might not been notified
+            // to the test result watcher.
+            setTimeout(() => {
+              this.dispose();
+            }, 5000);
           });
           return sfdxTask.execute();
         }

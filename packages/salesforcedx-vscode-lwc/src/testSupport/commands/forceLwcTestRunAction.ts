@@ -8,14 +8,14 @@ import {
   Command,
   CommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ContinueResponse,
+  PreconditionChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import {
-  getJestArgs,
-  SfdxWorkspaceLwcTestRunnerInstallationChecker
-} from '../testRunner';
+import { getJestArgs, getLwcTestRunnerExecutable } from '../testRunner';
 import { TestRunner, TestRunType } from '../testRunner/testRunner';
 import {
   TestDirectoryInfo,
@@ -40,6 +40,23 @@ class LwcJestCommandBuilder extends CommandBuilder {
   public withArg(arg: string): CommandBuilder {
     this.args.push(arg);
     return this;
+  }
+}
+
+export class SfdxWorkspaceLwcTestRunnerInstallationChecker
+  implements PreconditionChecker {
+  public check(): boolean {
+    if (
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders[0]
+    ) {
+      const sfdxProjectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(
+        sfdxProjectPath
+      );
+      return !!lwcTestRunnerExecutable;
+    }
+    return false;
   }
 }
 
