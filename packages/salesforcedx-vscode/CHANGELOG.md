@@ -6,6 +6,14 @@
 
 - Enable diff command for layouts and permsets ([PR #1713](https://github.com/forcedotcom/salesforcedx-vscode/pull/1713))
 
+#### salesforcedx-vscode-apex
+
+- Add beta SOQL language server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
+
+#### docs
+
+- Add documentation for SOQL language server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
+
 ## Fixed
 
 #### docs
