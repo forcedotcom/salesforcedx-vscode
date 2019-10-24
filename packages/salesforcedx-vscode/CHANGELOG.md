@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Open beta for SOQL Language Server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741)) that provides code completion suggestions for your SOQL queries.
+- Open beta for SOQL Language Server that provides code completion suggestions for SOQL queries ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
 
 #### docs
 
