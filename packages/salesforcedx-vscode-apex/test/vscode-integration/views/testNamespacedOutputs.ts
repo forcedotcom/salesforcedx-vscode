@@ -5,52 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const summaryOneFile = {
-  outcome: 'Pass',
-  testsRan: 1,
-  passing: 1,
-  failing: 0,
-  skipped: 0,
-  passRate: '100%',
-  failRate: '0%',
-  testStartTime: 'Now',
-  testExecutionTime: 'Later',
-  testTotalTime: 'two',
-  commandTime: '12',
-  hostname: 'salesforce',
-  orgId: 'org',
-  username: 'name',
-  testRunId: '1',
-  userId: '1'
-};
-
-export const summaryMultipleFiles = {
-  outcome: 'Pass',
-  testsRan: 8,
-  passing: 6,
-  failing: 0,
-  skipped: 0,
-  passRate: '75%',
-  failRate: '25%',
-  testStartTime: 'Now',
-  testExecutionTime: 'Later',
-  testTotalTime: 'two',
-  commandTime: '12',
-  hostname: 'salesforce',
-  orgId: 'org',
-  username: 'name',
-  testRunId: '1',
-  userId: '1'
-};
-
 const fakeApexClass = {
   attributes: { type: 'FakeType' },
   Id: 'fakeId',
   Name: 'fakeName',
-  NamespacePrefix: ''
+  NamespacePrefix: 'tester'
 };
 
-const testResultsOneFile = [
+export const testResultsOneFile = [
   {
     ApexClass: fakeApexClass,
     MethodName: 'test0',
@@ -62,7 +24,7 @@ const testResultsOneFile = [
   }
 ];
 
-const testResultsMultipleFiles = [
+export const testResultsMultipleFiles = [
   {
     ApexClass: fakeApexClass,
     MethodName: 'test0',
@@ -136,13 +98,3 @@ const testResultsMultipleFiles = [
     FullName: 'file3.test7'
   }
 ];
-
-export const jsonSummaryMultipleFiles = {
-  summary: summaryMultipleFiles,
-  tests: testResultsMultipleFiles
-};
-
-export const jsonSummaryOneFilePass = {
-  summary: summaryOneFile,
-  tests: testResultsOneFile
-};
