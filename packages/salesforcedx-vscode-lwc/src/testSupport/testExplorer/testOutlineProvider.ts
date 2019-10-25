@@ -40,14 +40,14 @@ export class SfdxTestOutlineProvider
   constructor() {
     this.disposables = [];
 
-    lwcTestIndexer.onDidUpdateTestIndex.event(
+    lwcTestIndexer.onDidUpdateTestIndex(
       () => {
         this.onDidUpdateTestIndex();
       },
       null,
       this.disposables
     );
-    lwcTestIndexer.onDidUpdateTestResultsIndex.event(
+    lwcTestIndexer.onDidUpdateTestResultsIndex(
       () => {
         this.onDidUpdateTestResultsIndex();
       },
