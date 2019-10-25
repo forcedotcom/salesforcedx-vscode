@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo } from '@salesforce/core';
+import { AuthInfo, Org } from '@salesforce/core';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { fail } from 'assert';
 import { expect } from 'chai';
@@ -20,30 +20,35 @@ import {
 import { mockDescribeResponse } from './mockData';
 
 const sobjectdescribe = new SObjectDescribe();
+const CONNECTION_DATA = {
+  accessToken: '00Dxx000thisIsATestToken',
+  instanceUrl: 'https://na1.salesforce.com'
+};
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
   let getUsername: SinonStub;
-  let authInfo: SinonStub;
+  let connection: SinonStub;
   let xhrMock: SinonStub;
+  let authInfo: SinonStub;
+  let refreshAuth: SinonStub;
 
   beforeEach(() => {
-    getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
     authInfo = stub(AuthInfo, 'create').returns({
-      getConnectionOptions() {
-        return {
-          accessToken: '00Dxx000thisIsATestToken',
-          instanceUrl: 'https://na1.salesforce.com'
-        };
-      }
+      getConnectionOptions: () => CONNECTION_DATA
     });
+    getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
+    connection = stub(Org.prototype, 'getConnection').returns(CONNECTION_DATA);
+    refreshAuth = stub(Org.prototype, 'refreshAuth');
     xhrMock = stub(SObjectDescribe.prototype, 'runRequest');
   });
 
   afterEach(() => {
     getUsername.restore();
-    authInfo.restore();
+    connection.restore();
     xhrMock.restore();
+    authInfo.restore();
+    refreshAuth.restore();
   });
 
   it('Should build the schema sobject list command', async () => {
@@ -81,10 +86,32 @@ describe('Fetch sObjects', () => {
   });
 
   it('Should build the batch request url', async () => {
-    await sobjectdescribe.getConnectionData('test/project/uri');
+    const org = await Org.create({ aliasOrUsername: 'test@example.com' });
+    await sobjectdescribe.getConnectionData(org);
     expect(sobjectdescribe.buildBatchRequestURL()).to.equal(
       'https://na1.salesforce.com/services/data/v46.0/composite/batch'
     );
+  });
+
+  it('Should ensure valid session token', async () => {
+    const sobjectTypes = ['object1', 'object2', 'object3'];
+    xhrMock.onFirstCall().throws({ status: 401 });
+    xhrMock
+      .onSecondCall()
+      .returns({ responseText: JSON.stringify(mockDescribeResponse) });
+    refreshAuth.callsFake(() => {
+      connection.returns({
+        accessToken: 'another-test-token',
+        instanceUrl: 'https://na1.salesforce.com'
+      });
+    });
+    await sobjectdescribe.describeSObjectBatch(
+      'test/project/uri',
+      sobjectTypes,
+      0
+    );
+    const opts = sobjectdescribe.buildXHROptions(sobjectTypes, 0);
+    expect(opts.headers.Authorization).to.equal('OAuth another-test-token');
   });
 
   it('Should build the api version', () => {
@@ -104,7 +131,8 @@ describe('Fetch sObjects', () => {
     expect(requestBody).to.deep.equals(testBatchReq);
   });
 
-  it('Should create the correct xhr options', () => {
+  it('Should create the correct xhr options', async () => {
+    const org = await Org.create({ aliasOrUsername: 'test@example.com' });
     const sobjectTypes = ['object1', 'object2', 'object3'];
     const testBatchReq = {
       batchRequests: [
@@ -113,6 +141,7 @@ describe('Fetch sObjects', () => {
         { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
       ]
     };
+    await sobjectdescribe.getConnectionData(org);
     const xhrOptions = sobjectdescribe.buildXHROptions(sobjectTypes, 0);
     expect(xhrOptions).to.not.be.empty;
     expect(xhrOptions.type).to.be.equal('POST');
@@ -190,7 +219,6 @@ describe('Fetch sObjects', () => {
     } catch (err) {
       expect(err).to.be.equal('Unexpected error in Auth phase');
     }
-
-    expect(authInfo.calledOnce).to.equal(true);
+    expect(authInfo.called).to.equal(true);
   });
 });
