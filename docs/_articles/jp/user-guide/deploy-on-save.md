@@ -14,7 +14,7 @@ To enable deploy on save, you can:
   - Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
   - Under Salesforce Feature Previews, select `Push-or-deploy-on-save: Enabled`.
 
-![Deploy on save feature](../../images/deploy-on-save.png)
+![Deploy on save feature](./images/deploy-on-save.png)
 
 > We recommend that you enable deploy on save at a project level (Workspace settings) rather than globally on all Salesforce projects you work on (User settings). While working on large sandboxes, be mindful of enabling deploy on save to avoid inadvertently overwriting changes by other developers.
 
