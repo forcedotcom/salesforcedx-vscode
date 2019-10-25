@@ -45,9 +45,9 @@ describe('Provide LWC Test CodeLens', () => {
     expect(runTestCodeLens.command!.title).to.equal(
       nls.localize('run_test_title')
     );
-    expect(runTestCodeLens.command!.arguments![0].testName).to.equal(
-      'Displays greeting'
-    );
+    expect(
+      runTestCodeLens.command!.arguments![0].testExecutionInfo.testName
+    ).to.equal('Displays greeting');
 
     expect(debugTestCodeLens.range.start.line).to.equal(11);
     expect(debugTestCodeLens.range.start.character).to.equal(6);
@@ -59,8 +59,8 @@ describe('Provide LWC Test CodeLens', () => {
     expect(debugTestCodeLens.command!.title).to.equal(
       nls.localize('debug_test_title')
     );
-    expect(debugTestCodeLens.command!.arguments![0].testName).to.equal(
-      'Displays greeting'
-    );
+    expect(
+      debugTestCodeLens.command!.arguments![0].testExecutionInfo.testName
+    ).to.equal('Displays greeting');
   });
 });
