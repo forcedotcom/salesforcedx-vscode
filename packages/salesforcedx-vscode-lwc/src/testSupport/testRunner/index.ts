@@ -37,4 +37,20 @@ export function getLwcTestRunnerExecutable(sfdxProjectPath: string) {
   }
 }
 
+export function getWorkspaceFolderFromTestUri(testUri: vscode.Uri) {
+  const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
+  if (workspaceFolder) {
+    return workspaceFolder;
+  } else {
+    const errorMessage = nls.localize(
+      'no_workspace_folder_found_for_test_text'
+    );
+    notificationService.showErrorMessage(errorMessage);
+    telemetryService.sendException(
+      'lwc_test_no_workspace_folder_found_for_test',
+      errorMessage
+    );
+  }
+}
+
 export { TestRunner, TestRunType };

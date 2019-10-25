@@ -7,32 +7,16 @@
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { nls } from '../../messages';
 import { lwcTestIndexer } from '../testIndexer';
 import { TestExecutionInfo } from '../types';
 
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const notificationService = sfdxCoreExports.notificationService;
-const telemetryService = sfdxCoreExports.telemetryService;
-
-export function getTempFolder(testExecutionInfo: TestExecutionInfo) {
-  const { testUri, testType } = testExecutionInfo;
-  const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-  if (workspaceFolder) {
-    const workspaceFsPath = workspaceFolder.uri.fsPath;
-    return new TestRunner().getTempFolder(workspaceFsPath, testType);
-  } else {
-    const errorMessage = nls.localize(
-      'no_workspace_folder_found_for_test_text'
-    );
-    notificationService.showErrorMessage(errorMessage);
-    telemetryService.sendException(
-      'lwc_test_no_workspace_folder_found_for_test',
-      errorMessage
-    );
-  }
+export function getTempFolder(
+  workspaceFolder: vscode.WorkspaceFolder,
+  testExecutionInfo: TestExecutionInfo
+) {
+  const { testType } = testExecutionInfo;
+  const workspaceFsPath = workspaceFolder.uri.fsPath;
+  return new TestRunner().getTempFolder(workspaceFsPath, testType);
 }
 
 export class TestResultsWatcher implements vscode.Disposable {

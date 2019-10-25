@@ -4,7 +4,10 @@ import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { TestExecutionInfo, TestInfoKind } from '../types';
-import { getLwcTestRunnerExecutable } from './index';
+import {
+  getLwcTestRunnerExecutable,
+  getWorkspaceFolderFromTestUri
+} from './index';
 import { taskService } from './taskService';
 import { TestResultsWatcher } from './testResultsWatcher';
 
@@ -43,66 +46,65 @@ export class TestRunner implements vscode.Disposable {
     this.testRunType = testRunType;
   }
 
-  public getJestExecutionInfo(): JestExecutionInfo | undefined {
+  public getJestExecutionInfo(
+    workspaceFolder: vscode.WorkspaceFolder
+  ): JestExecutionInfo | undefined {
     const { testRunId, testRunType, testExecutionInfo } = this;
     const testName =
       'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-    if (workspaceFolder) {
-      const tempFolder = TestResultsWatcher.getTempFolder(testExecutionInfo);
-      if (tempFolder) {
-        const testResultFileName = `test-result-${testRunId}.json`;
-        const outputFilePath = path.join(tempFolder, testResultFileName);
-        // Specify --runTestsByPath if running test on individual files
-        let runTestsByPathArgs: string[];
-        if (
-          kind === TestInfoKind.TEST_FILE ||
-          kind === TestInfoKind.TEST_CASE
-        ) {
-          const workspaceFolderFsPath = workspaceFolder.uri.fsPath;
-          runTestsByPathArgs = [
-            '--runTestsByPath',
-            normalizeRunTestsByPath(workspaceFolderFsPath, testFsPath)
-          ];
-        } else {
-          runTestsByPathArgs = [];
-        }
-        const testNamePatternArgs = testName
-          ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
-          : [];
+    const tempFolder = TestResultsWatcher.getTempFolder(
+      workspaceFolder,
+      testExecutionInfo
+    );
 
-        let runModeArgs: string[];
-        if (testRunType === TestRunType.WATCH) {
-          runModeArgs = ['--watch'];
-        } else {
-          runModeArgs = [];
-        }
-        const args = [
-          ...runModeArgs,
-          '--json',
-          '--outputFile',
-          outputFilePath,
-          '--testLocationInResults',
-          ...runTestsByPathArgs,
-          ...testNamePatternArgs
-        ];
-        return {
-          jestArgs: args,
-          jestOutputFilePath: outputFilePath
-        };
-      }
+    const testResultFileName = `test-result-${testRunId}.json`;
+    const outputFilePath = path.join(tempFolder, testResultFileName);
+    // Specify --runTestsByPath if running test on individual files
+    let runTestsByPathArgs: string[];
+    if (kind === TestInfoKind.TEST_FILE || kind === TestInfoKind.TEST_CASE) {
+      const workspaceFolderFsPath = workspaceFolder.uri.fsPath;
+      runTestsByPathArgs = [
+        '--runTestsByPath',
+        normalizeRunTestsByPath(workspaceFolderFsPath, testFsPath)
+      ];
+    } else {
+      runTestsByPathArgs = [];
     }
+    const testNamePatternArgs = testName
+      ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
+      : [];
+
+    let runModeArgs: string[];
+    if (testRunType === TestRunType.WATCH) {
+      runModeArgs = ['--watch'];
+    } else {
+      runModeArgs = [];
+    }
+    const args = [
+      ...runModeArgs,
+      '--json',
+      '--outputFile',
+      outputFilePath,
+      '--testLocationInResults',
+      ...runTestsByPathArgs,
+      ...testNamePatternArgs
+    ];
+    return {
+      jestArgs: args,
+      jestOutputFilePath: outputFilePath
+    };
   }
 
   public getShellExecutionInfo() {
-    const jestExecutionInfo = this.getJestExecutionInfo();
-    if (jestExecutionInfo) {
-      const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
-      const { testUri } = this.testExecutionInfo;
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-      if (workspaceFolder) {
+    const workspaceFolder = getWorkspaceFolderFromTestUri(
+      this.testExecutionInfo.testUri
+    );
+    if (workspaceFolder) {
+      const jestExecutionInfo = this.getJestExecutionInfo(workspaceFolder);
+      if (jestExecutionInfo) {
+        const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
         const lwcTestRunnerExcutable = getLwcTestRunnerExecutable(cwd);
         let cliArgs: string[];
