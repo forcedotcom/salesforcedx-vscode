@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import Uri from 'vscode-uri';
 import { nls } from '../../../../src/messages';
@@ -16,12 +17,17 @@ import {
 } from '../../../../src/testSupport/types';
 
 describe('Sfdx Test Node', () => {
+  const mockDirectory = /^win32/.test(process.platform)
+    ? `C:\\Users\\tester`
+    : `/Users/tester`;
+  const mockTestFile = 'mockTest.test.js';
+  const mockTestFilePath = path.join(mockDirectory, mockTestFile);
   describe('Should set correct values for test nodes', () => {
     it('Should set correct values for SfdxTestGroupNode', () => {
       const testExecutionInfo: TestFileInfo = {
         kind: TestInfoKind.TEST_FILE,
         testType: TestType.LWC,
-        testUri: Uri.file('/var/mockTest.test.js')
+        testUri: Uri.file(mockTestFilePath)
       };
       const mockLabel = 'mockTest';
       const groupNode = new SfdxTestGroupNode(mockLabel, testExecutionInfo);
@@ -44,7 +50,7 @@ describe('Sfdx Test Node', () => {
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,
-        testUri: Uri.file('/var/mockTest.test.js'),
+        testUri: Uri.file(mockTestFilePath),
         testName: 'mockTestName'
       };
       const mockLabel = 'mockTestName';
@@ -68,7 +74,7 @@ describe('Sfdx Test Node', () => {
     const testExecutionInfo: TestCaseInfo = {
       kind: TestInfoKind.TEST_CASE,
       testType: TestType.LWC,
-      testUri: Uri.file('/var/mockTest.test.js'),
+      testUri: Uri.file(mockTestFilePath),
       testName: 'mockTest'
     };
 
@@ -123,7 +129,7 @@ describe('Sfdx Test Node', () => {
     const testExecutionInfo: TestFileInfo = {
       kind: TestInfoKind.TEST_FILE,
       testType: TestType.LWC,
-      testUri: Uri.file('/var/mock')
+      testUri: Uri.file(mockDirectory)
     };
 
     it('Comparator should return -1 when first node does not have label', () => {

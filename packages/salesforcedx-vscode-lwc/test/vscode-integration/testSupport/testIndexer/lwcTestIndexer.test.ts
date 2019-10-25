@@ -125,7 +125,9 @@ describe('LWC Test Indexer', () => {
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
       expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
 
-      const mockFilePath = '/var/mockNewFile.test.js';
+      const mockFilePath = /^win32/.test(process.platform)
+        ? 'C:\\Users\\tester\\mockNewFile.test.js'
+        : '/Users/tester/mockNewFile.test.js';
       const mockFileUri = Uri.file(mockFilePath);
       return new Promise(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
@@ -135,7 +137,7 @@ describe('LWC Test Indexer', () => {
 
             const createdTestFileInfo = allTestFileInfo.find(
               (testFileInfo: TestFileInfo) => {
-                return testFileInfo.testUri.fsPath === mockFilePath;
+                return testFileInfo.testUri.fsPath === mockFileUri.fsPath;
               }
             );
             expect(createdTestFileInfo!.kind).to.equal(TestInfoKind.TEST_FILE);
