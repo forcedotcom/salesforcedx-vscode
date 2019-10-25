@@ -1,5 +1,5 @@
 ---
-title: Development Models with VS Code
+title: Development Models
 lang: jp
 ---
 
@@ -16,7 +16,7 @@ Salesforce Extensions for VS Code runs commands against the org that you’ve se
 
 Use the Org Development model work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in Visual Studio Code. With this development model, you must track changes manually and deploy sets of changes to sandboxes and then to your production org. See the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
 
-![Demo](../../images/changeset-demo.gif)
+![Demo](./changeset-demo.gif)
 
 To start developing with this model:
 
@@ -31,7 +31,7 @@ To create developing against non-source-tracked orgs:
 
 1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project with Manifest**.
 
-![Create project](../../images/create-project-with-manifest.png)
+![Create project](./create-project-with-manifest.png)
 
 1. In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select the command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
 
@@ -39,11 +39,11 @@ If this is the first time you are creating a project in VS Code and haven’t au
 
 1. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox.
 
-![Authorize an Org](../../images/authorize-org-command.png)
+![Authorize an Org](./authorize-org-command.png)
 
 After you provide an org alias, a browser window opens. Allow access, log in to your org, and then return to the VS Code window. The Org Picker now shows the alias provided while authorizing the org.
 
-![Org Picker](../../images/org-picker.png)
+![Org Picker](./org-picker.png)
 
 ### The Manifest (`package.xml`) File
 
@@ -55,7 +55,7 @@ Org Development model doesn’t automatically track changes to your org, so be s
 
 > Note: Retrieving source from an org overwrites the local versions of the source files.
 
-![Retrieve source from org](../../images/retrieve-source-from-org.png)
+![Retrieve source from org](./retrieve-source-from-org.png)
 
 You can retrieve source for a manifest, a source file, a directory, or a folder:
 
@@ -95,7 +95,7 @@ your-app
 
 When you deploy the code changes, he local version of the source files overwrites the metadata in your org.
 
-![Deploy source to org](../../images/deploy-source-to-org.png)
+![Deploy source to org](./deploy-source-to-org.png)
 
 You can deploy source of a manifest, a source file, a directory, or a folder:
 
