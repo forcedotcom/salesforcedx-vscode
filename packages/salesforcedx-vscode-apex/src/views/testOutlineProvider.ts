@@ -186,10 +186,17 @@ export class ApexTestOutlineProvider
     return jsonSummary;
   }
 
+  private generateFullName(namespace: string, initialName: string): string {
+    return namespace ? `${namespace}.${initialName}` : initialName;
+  }
+
   private updateTestsFromJSON(jsonSummary: FullTestResult) {
     const groups = new Set<ApexTestGroupNode>();
     for (const testResult of jsonSummary.tests) {
-      const apexGroupName = testResult.FullName.split('.')[0];
+      const apexGroupName = this.generateFullName(
+        testResult.ApexClass.NamespacePrefix,
+        testResult.FullName.split('.')[0]
+      );
       const apexGroup = this.apexTestMap.get(
         apexGroupName
       ) as ApexTestGroupNode;
@@ -197,9 +204,11 @@ export class ApexTestOutlineProvider
       if (apexGroup) {
         groups.add(apexGroup);
       }
-      const apexTest = this.apexTestMap.get(
+      const testFullName = this.generateFullName(
+        testResult.ApexClass.NamespacePrefix,
         testResult.FullName
-      ) as ApexTestNode;
+      );
+      const apexTest = this.apexTestMap.get(testFullName) as ApexTestNode;
       if (apexTest) {
         apexTest.outcome = testResult.Outcome;
         apexTest.updateOutcome();

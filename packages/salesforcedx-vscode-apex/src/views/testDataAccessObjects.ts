@@ -68,5 +68,5 @@ export type ApexClass = {
   attributes: { type: string };
   Id: string;
   Name: string;
-  NamespacPrefix: string;
+  NamespacePrefix: string;
 };
