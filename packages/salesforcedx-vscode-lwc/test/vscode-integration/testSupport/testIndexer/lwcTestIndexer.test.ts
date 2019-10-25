@@ -143,7 +143,7 @@ describe('LWC Test Indexer', () => {
             expect(createdTestFileInfo!.kind).to.equal(TestInfoKind.TEST_FILE);
             expect(createdTestFileInfo!.testType).to.equal(TestType.LWC);
             expect(createdTestFileInfo!.testLocation!.uri.fsPath).to.equal(
-              mockFilePath
+              mockFileUri.fsPath
             );
             expect(
               createdTestFileInfo!.testLocation!.range.start.line
@@ -158,7 +158,7 @@ describe('LWC Test Indexer', () => {
               createdTestFileInfo!.testLocation!.range.end.character
             ).to.equal(0);
 
-            assertTestCasesMatch(createdTestFileInfo, mockFilePath);
+            assertTestCasesMatch(createdTestFileInfo, mockFileUri.fsPath);
             handleDidUpdateTestIndex.dispose();
             resolve();
           }
