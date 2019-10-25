@@ -160,6 +160,14 @@
       ],
       "commandPalette": [
         {
+          "command": "sfdx.force.lightning.lwc.test.file.run",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.file.debug",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.lightning.lwc.test.case.run",
           "when": "false"
         },
