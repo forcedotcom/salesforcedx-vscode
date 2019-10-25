@@ -6,40 +6,49 @@
  */
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { lwcTestIndexer } from '../testIndexer';
 import { TestExecutionInfo } from '../types';
 
-export function getTempFolder(
-  workspaceFolder: vscode.WorkspaceFolder,
-  testExecutionInfo: TestExecutionInfo
-) {
-  const { testType } = testExecutionInfo;
-  const workspaceFsPath = workspaceFolder.uri.fsPath;
-  return new TestRunner().getTempFolder(workspaceFsPath, testType);
-}
+class TestResultsWatcher implements vscode.Disposable {
+  private fileSystemWatchers = new Map<string, vscode.FileSystemWatcher>();
+  private disposables: vscode.Disposable[] = [];
 
-export class TestResultsWatcher implements vscode.Disposable {
-  private outputFilePath: string;
-  private fileSystemWatcher?: vscode.FileSystemWatcher;
-  constructor(outputFilePath: string) {
-    this.outputFilePath = outputFilePath;
+  public register(context: vscode.ExtensionContext) {
+    context.subscriptions.push(this);
   }
 
-  public static getTempFolder = getTempFolder;
+  public getTempFolder(
+    workspaceFolder: vscode.WorkspaceFolder,
+    testExecutionInfo: TestExecutionInfo
+  ) {
+    const { testType } = testExecutionInfo;
+    const workspaceFsPath = workspaceFolder.uri.fsPath;
+    return new TestRunner().getTempFolder(workspaceFsPath, testType);
+  }
 
-  public watchTestResults() {
-    const testResultsGlobPattern = this.outputFilePath.replace(/\\/g, '/');
-    this.fileSystemWatcher = vscode.workspace.createFileSystemWatcher(
-      testResultsGlobPattern
-    );
-    this.fileSystemWatcher.onDidCreate(testResultsUri => {
-      this.updateTestResultsFromTestResultsJson(testResultsUri);
-    });
+  public watchTestResults(outputFilePath: string) {
+    const outputFileFolder = path.dirname(outputFilePath);
+    let fileSystemWatcher = this.fileSystemWatchers.get(outputFileFolder);
+    if (!fileSystemWatcher) {
+      const outputFileExtname = path.extname(outputFilePath);
+      const testResultsGlobPattern = path
+        .join(outputFileFolder, `*${outputFileExtname}`)
+        .replace(/\\/g, '/');
+      fileSystemWatcher = vscode.workspace.createFileSystemWatcher(
+        testResultsGlobPattern
+      );
+      fileSystemWatcher.onDidCreate(testResultsUri => {
+        this.updateTestResultsFromTestResultsJson(testResultsUri);
+      });
 
-    this.fileSystemWatcher.onDidChange(testResultsUri => {
-      this.updateTestResultsFromTestResultsJson(testResultsUri);
-    });
+      fileSystemWatcher.onDidChange(testResultsUri => {
+        this.updateTestResultsFromTestResultsJson(testResultsUri);
+      });
+      this.fileSystemWatchers.set(outputFileFolder, fileSystemWatcher);
+      this.disposables.push(fileSystemWatcher);
+    }
   }
 
   private updateTestResultsFromTestResultsJson(testResultsUri: vscode.Uri) {
@@ -56,8 +65,12 @@ export class TestResultsWatcher implements vscode.Disposable {
   }
 
   public dispose() {
-    if (this.fileSystemWatcher) {
-      this.fileSystemWatcher.dispose();
+    while (this.disposables.length) {
+      const disposable = this.disposables.pop();
+      if (disposable) {
+        disposable.dispose();
+      }
     }
   }
 }
+export const testResultsWatcher = new TestResultsWatcher();

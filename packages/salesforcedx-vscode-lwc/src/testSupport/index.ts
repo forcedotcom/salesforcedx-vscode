@@ -10,6 +10,7 @@ import { registerCommands } from './commands';
 import { registerLwcTestExplorerTreeView } from './testExplorer/testOutlineProvider';
 import { lwcTestIndexer } from './testIndexer';
 import { taskService } from './testRunner/taskService';
+import { testResultsWatcher } from './testRunner/testResultsWatcher';
 import { startWatchingEditorFocusChange } from './utils/context';
 
 export function activateLwcTestSupport(context: ExtensionContext) {
@@ -18,5 +19,6 @@ export function activateLwcTestSupport(context: ExtensionContext) {
   registerLwcTestExplorerTreeView(context);
   startWatchingEditorFocusChange(context);
   taskService.registerTaskService(context);
+  testResultsWatcher.register(context);
   lwcTestIndexer.register(context);
 }

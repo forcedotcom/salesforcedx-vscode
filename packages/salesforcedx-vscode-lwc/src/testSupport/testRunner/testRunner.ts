@@ -15,7 +15,7 @@ import {
   getWorkspaceFolderFromTestUri
 } from './index';
 import { taskService } from './taskService';
-import { TestResultsWatcher } from './testResultsWatcher';
+import { testResultsWatcher } from './testResultsWatcher';
 
 export const enum TestRunType {
   RUN = 'run',
@@ -41,11 +41,10 @@ type JestExecutionInfo = {
   jestOutputFilePath: string;
 };
 
-export class TestRunner implements vscode.Disposable {
+export class TestRunner {
   private testExecutionInfo: TestExecutionInfo;
   private testRunType: TestRunType;
   private testRunId: string;
-  private testResultWatcher?: TestResultsWatcher;
   constructor(testExecutionInfo: TestExecutionInfo, testRunType: TestRunType) {
     this.testRunId = uuid.v4();
     this.testExecutionInfo = testExecutionInfo;
@@ -60,7 +59,7 @@ export class TestRunner implements vscode.Disposable {
       'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
     const { kind, testUri } = testExecutionInfo;
     const { fsPath: testFsPath } = testUri;
-    const tempFolder = TestResultsWatcher.getTempFolder(
+    const tempFolder = testResultsWatcher.getTempFolder(
       workspaceFolder,
       testExecutionInfo
     );
@@ -132,8 +131,7 @@ export class TestRunner implements vscode.Disposable {
   }
 
   public startWatchingTestResults(testResultFsPath: string) {
-    this.testResultWatcher = new TestResultsWatcher(testResultFsPath);
-    this.testResultWatcher.watchTestResults();
+    testResultsWatcher.watchTestResults(testResultFsPath);
   }
 
   private getTaskName() {
@@ -166,21 +164,7 @@ export class TestRunner implements vscode.Disposable {
         command,
         args
       );
-      sfdxTask.onDidEnd(() => {
-        // Dispose the watcher after a timeout since on task process end,
-        // test file creations event might not been notified
-        // to the test result watcher.
-        setTimeout(() => {
-          this.dispose();
-        }, 5000);
-      });
       return sfdxTask.execute();
-    }
-  }
-
-  public dispose() {
-    if (this.testResultWatcher) {
-      this.testResultWatcher.dispose();
     }
   }
 }
