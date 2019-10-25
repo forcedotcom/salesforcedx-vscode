@@ -4,19 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Command,
-  CommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ContinueResponse,
-  PreconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { getJestArgs, getLwcTestRunnerExecutable } from '../testRunner';
-import { TestRunner, TestRunType } from '../testRunner/testRunner';
+import { TestRunner, TestRunType } from '../testRunner';
 import {
   TestDirectoryInfo,
   TestExecutionInfo,
@@ -26,118 +17,27 @@ import {
 } from '../types';
 import { isLwcJestTest } from '../utils';
 
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
-const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
-const CompositePreconditionChecker =
-  sfdxCoreExports.CompositePreconditionChecker;
-const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
-const EmptyParametersGatherer = sfdxCoreExports.EmptyParametersGatherer;
-
-class LwcJestCommandBuilder extends CommandBuilder {
-  public withArg(arg: string): CommandBuilder {
-    this.args.push(arg);
-    return this;
+export async function forceLwcTestRun(testExecutionInfo: TestExecutionInfo) {
+  const testRunner = new TestRunner(testExecutionInfo, TestRunType.RUN);
+  try {
+    await testRunner.executeAsSfdxTask();
+  } catch (error) {
+    console.error(error);
   }
-}
-
-export class SfdxWorkspaceLwcTestRunnerInstallationChecker
-  implements PreconditionChecker {
-  public check(): boolean {
-    if (
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      const sfdxProjectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(
-        sfdxProjectPath
-      );
-      return !!lwcTestRunnerExecutable;
-    }
-    return false;
-  }
-}
-
-export class ForceLwcTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
-  protected builder: CommandBuilder;
-  private testExecutionInfo: TestExecutionInfo;
-  public constructor(
-    sfdxProjectPath: string,
-    testExecutionInfo: TestExecutionInfo
-  ) {
-    super();
-    const lwcTestRunnerExcutable = path.join(
-      sfdxProjectPath,
-      'node_modules',
-      '.bin',
-      'lwc-jest'
-    );
-    this.builder = new LwcJestCommandBuilder(lwcTestRunnerExcutable);
-    this.testExecutionInfo = testExecutionInfo;
-  }
-
-  public execute(response: ContinueResponse<{}>): void {
-    const testRunner = new TestRunner(this.testExecutionInfo, TestRunType.RUN);
-    testRunner.execute().catch(error => console.error(error));
-  }
-
-  public build(data: {}): Command {
-    this.builder = this.builder.withDescription(
-      nls.localize('force_lwc_test_run_description_text')
-    );
-
-    const jestArgs = getJestArgs(this.testExecutionInfo);
-    this.builder = jestArgs.reduce((builder, jestArg) => {
-      builder.withArg(jestArg);
-      return builder;
-    }, this.builder);
-
-    this.builder = this.builder.withLogName('force_lwc_test_run_action');
-    return this.builder.build();
-  }
-}
-
-export async function forceLwcTestRun(
-  sfdxProjectPath: string,
-  testExecutionInfo: TestExecutionInfo
-) {
-  const commandlet = new SfdxCommandlet(
-    new CompositePreconditionChecker(
-      new SfdxWorkspaceChecker(),
-      new SfdxWorkspaceLwcTestRunnerInstallationChecker()
-    ),
-    new EmptyParametersGatherer(),
-    new ForceLwcTestRunCodeActionExecutor(sfdxProjectPath, testExecutionInfo)
-  );
-  await commandlet.run();
 }
 
 export function forceLwcTestCaseRun(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
   const { testExecutionInfo } = data;
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    return forceLwcTestRun(cwd, testExecutionInfo);
-  }
+  return forceLwcTestRun(testExecutionInfo);
 }
 
 export function forceLwcTestFileRun(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
   const { testExecutionInfo } = data;
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    return forceLwcTestRun(cwd, testExecutionInfo);
-  }
+  return forceLwcTestRun(testExecutionInfo);
 }
 
 export function forceLwcTestRunAllTests() {
@@ -146,13 +46,12 @@ export function forceLwcTestRunAllTests() {
     vscode.workspace.workspaceFolders[0]
   ) {
     const workspaceFolderUri = vscode.workspace.workspaceFolders[0].uri;
-    const cwd = workspaceFolderUri.fsPath;
     const testExecutionInfo: TestDirectoryInfo = {
       kind: TestInfoKind.TEST_DIRECTORY,
       testType: TestType.LWC,
       testUri: workspaceFolderUri
     };
-    return forceLwcTestRun(cwd, testExecutionInfo);
+    return forceLwcTestRun(testExecutionInfo);
   } else {
     // TODO: workspace error message
   }

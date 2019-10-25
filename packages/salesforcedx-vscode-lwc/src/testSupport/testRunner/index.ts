@@ -5,13 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as fs from 'fs';
-import { escapeStrForRegex } from 'jest-regex-util';
 import * as path from 'path';
-import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { TestExecutionInfo, TestInfoKind } from '../types';
-import { getTempFolder, startWatchingTestResults } from './testResultsWatcher';
+import { TestRunner, TestRunType } from './testRunner';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -40,60 +37,4 @@ export function getLwcTestRunnerExecutable(sfdxProjectPath: string) {
   }
 }
 
-/**
- * Returns relative path for Jest runTestsByPath on Windows
- * or absolute path on other systems
- * @param cwd
- * @param testFsPath
- */
-export function normalizeRunTestsByPath(cwd: string, testFsPath: string) {
-  if (/^win32/.test(process.platform)) {
-    return path.relative(cwd, testFsPath);
-  }
-  return testFsPath;
-}
-
-export function getJestArgs(testExecutionInfo: TestExecutionInfo) {
-  const testName =
-    'testName' in testExecutionInfo ? testExecutionInfo.testName : undefined;
-  const { kind, testUri } = testExecutionInfo;
-  const { fsPath: testFsPath } = testUri;
-  const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-  if (workspaceFolder) {
-    const tempFolder = getTempFolder(testExecutionInfo);
-    if (tempFolder) {
-      const testRunId = uuid.v4();
-      const testResultFileName = `test-result-${testRunId}.json`;
-      const outputFilePath = path.join(tempFolder, testResultFileName);
-
-      // TODO - refactor, rename getJestArgs or handle watching elsewhere
-      startWatchingTestResults(tempFolder, testResultFileName);
-
-      // Specify --runTestsByPath if running test on individual files
-      let runTestsByPathArgs: string[];
-      if (kind === TestInfoKind.TEST_FILE || kind === TestInfoKind.TEST_CASE) {
-        const workspaceFolderFsPath = workspaceFolder.uri.fsPath;
-        runTestsByPathArgs = [
-          '--runTestsByPath',
-          normalizeRunTestsByPath(workspaceFolderFsPath, testFsPath)
-        ];
-      } else {
-        runTestsByPathArgs = [];
-      }
-      const testNamePatternArgs = testName
-        ? ['--testNamePattern', `"${escapeStrForRegex(testName)}"`]
-        : [];
-      const args = [
-        '--',
-        '--json',
-        '--outputFile',
-        outputFilePath,
-        '--testLocationInResults',
-        ...runTestsByPathArgs,
-        ...testNamePatternArgs
-      ];
-      return args;
-    }
-  }
-  return [];
-}
+export { TestRunner, TestRunType };

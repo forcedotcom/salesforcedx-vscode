@@ -6,7 +6,7 @@
  */
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
-import { getJestArgs, getLwcTestRunnerExecutable } from '../testRunner';
+import { TestRunner, TestRunType } from '../testRunner';
 import {
   TestCaseInfo,
   TestExecutionInfo,
@@ -25,20 +25,18 @@ export const FORCE_LWC_TEST_DEBUG_LOG_NAME = 'force_lwc_test_debug_action';
 const debugSessionStartTimes = new Map<string, [number, number]>();
 
 export function getDebugConfiguration(
-  lwcTestRunnerExecutablePath: string,
-  cwd: string,
-  testExecutionInfo: TestExecutionInfo
+  command: string,
+  args: string[],
+  cwd: string
 ): vscode.DebugConfiguration {
   const sfdxDebugSessionId = uuid.v4();
-  const jestArgs = getJestArgs(testExecutionInfo);
-  const args = ['--debug', ...jestArgs];
   const debugConfiguration: vscode.DebugConfiguration = {
     sfdxDebugSessionId,
     type: 'node',
     request: 'launch',
     name: 'Debug LWC test(s)',
     cwd,
-    runtimeExecutable: lwcTestRunnerExecutablePath,
+    runtimeExecutable: command,
     args,
     console: 'integratedTerminal',
     internalConsoleOptions: 'openOnSessionStart',
@@ -48,50 +46,38 @@ export function getDebugConfiguration(
   return debugConfiguration;
 }
 
+export async function forceLwcTestDebug(testExecutionInfo: TestExecutionInfo) {
+  const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
+  const shellExecutionInfo = testRunner.getShellExecutionInfo();
+  if (shellExecutionInfo) {
+    const {
+      command,
+      args,
+      workspaceFolder,
+      testResultFsPath
+    } = shellExecutionInfo;
+    testRunner.startWatchingTestResults(testResultFsPath);
+    const debugConfiguration = getDebugConfiguration(
+      command,
+      args,
+      workspaceFolder.uri.fsPath
+    );
+    await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
+  }
+}
+
 export async function forceLwcTestCaseDebug(data: {
   testExecutionInfo: TestCaseInfo;
 }) {
   const { testExecutionInfo } = data;
-  const { testUri } = testExecutionInfo;
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const lwcTestRunnerExecutablePath = getLwcTestRunnerExecutable(cwd);
-    if (lwcTestRunnerExecutablePath) {
-      const debugConfiguration = getDebugConfiguration(
-        lwcTestRunnerExecutablePath,
-        cwd,
-        testExecutionInfo
-      );
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-      await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
-    }
-  }
+  await forceLwcTestDebug(testExecutionInfo);
 }
 
 export async function forceLwcTestFileDebug(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
   const { testExecutionInfo } = data;
-  const { testUri } = testExecutionInfo;
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const lwcTestRunnerExecutablePath = getLwcTestRunnerExecutable(cwd);
-    if (lwcTestRunnerExecutablePath) {
-      const debugConfiguration = getDebugConfiguration(
-        lwcTestRunnerExecutablePath,
-        cwd,
-        testExecutionInfo
-      );
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
-      await vscode.debug.startDebugging(workspaceFolder, debugConfiguration);
-    }
-  }
+  await forceLwcTestDebug(testExecutionInfo);
 }
 
 export async function forceLwcTestDebugActiveTextEditorTest() {

@@ -15,7 +15,7 @@ class TestWatcher {
 
   public async watchTest(testExecutionInfo: TestExecutionInfo) {
     const testRunner = new TestRunner(testExecutionInfo, TestRunType.WATCH);
-    const sfdxTask = await testRunner.execute();
+    const sfdxTask = await testRunner.executeAsSfdxTask();
     if (sfdxTask) {
       const { testUri } = testExecutionInfo;
       const { fsPath } = testUri;
