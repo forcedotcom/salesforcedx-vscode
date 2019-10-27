@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { telemetryService } from '../../telemetry';
 import { TestExecutionInfo, TestInfoKind } from '../types';
 import {
   getLwcTestRunnerExecutable,
@@ -45,10 +46,22 @@ export class TestRunner {
   private testExecutionInfo: TestExecutionInfo;
   private testRunType: TestRunType;
   private testRunId: string;
-  constructor(testExecutionInfo: TestExecutionInfo, testRunType: TestRunType) {
+  private logName?: string;
+  /**
+   * Create a test runner.
+   * @param testExecutionInfo Test Execution information
+   * @param testRunType Run, Watch or Debug
+   * @param logName Telemetry log name. If specified we will send command telemetry event when task finishes
+   */
+  constructor(
+    testExecutionInfo: TestExecutionInfo,
+    testRunType: TestRunType,
+    logName?: string
+  ) {
     this.testRunId = uuid.v4();
     this.testExecutionInfo = testExecutionInfo;
     this.testRunType = testRunType;
+    this.logName = logName;
   }
 
   public getJestExecutionInfo(
@@ -111,17 +124,17 @@ export class TestRunner {
       if (jestExecutionInfo) {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
-        const lwcTestRunnerExcutable = getLwcTestRunnerExecutable(cwd);
+        const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(cwd);
         let cliArgs: string[];
         if (this.testRunType === TestRunType.DEBUG) {
           cliArgs = ['--debug', '--', ...jestArgs];
         } else {
           cliArgs = ['--', ...jestArgs];
         }
-        if (lwcTestRunnerExcutable) {
+        if (lwcTestRunnerExecutable) {
           return {
             workspaceFolder,
-            command: lwcTestRunnerExcutable,
+            command: lwcTestRunnerExecutable,
             args: cliArgs,
             testResultFsPath: jestOutputFilePath
           };
@@ -164,6 +177,12 @@ export class TestRunner {
         command,
         args
       );
+      if (this.logName) {
+        const startTime = process.hrtime();
+        sfdxTask.onDidEnd(() => {
+          telemetryService.sendCommandEvent(this.logName, startTime).catch();
+        });
+      }
       return sfdxTask.execute();
     }
   }

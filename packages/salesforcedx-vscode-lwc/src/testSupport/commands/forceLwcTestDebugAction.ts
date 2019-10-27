@@ -14,10 +14,10 @@ import {
   TestInfoKind,
   TestType
 } from '../types';
+import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
 import { telemetryService } from '../../telemetry';
-export const FORCE_LWC_TEST_DEBUG_LOG_NAME = 'force_lwc_test_debug_action';
 
 const debugSessionStartTimes = new Map<string, [number, number]>();
 

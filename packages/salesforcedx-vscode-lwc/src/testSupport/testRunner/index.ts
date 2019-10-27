@@ -27,6 +27,7 @@ export function getLwcTestRunnerExecutable(sfdxProjectPath: string) {
     return lwcTestRunnerExecutable;
   } else {
     const errorMessage = nls.localize('no_lwc_jest_found_text');
+    console.error(errorMessage);
     vscode.window.showErrorMessage(errorMessage);
     telemetryService
       .sendException('lwc_test_no_lwc_jest_found', errorMessage)
@@ -42,6 +43,7 @@ export function getWorkspaceFolderFromTestUri(testUri: vscode.Uri) {
     const errorMessage = nls.localize(
       'no_workspace_folder_found_for_test_text'
     );
+    console.error(errorMessage);
     vscode.window.showErrorMessage(errorMessage);
     telemetryService
       .sendException(

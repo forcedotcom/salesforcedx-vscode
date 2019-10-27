@@ -6,6 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { TestExecutionInfo } from '../types';
+import { FORCE_LWC_TEST_WATCH_LOG_NAME } from '../types/constants';
 import { SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constants';
 import { SfdxTask } from './taskService';
 import { TestRunner, TestRunType } from './testRunner';
@@ -14,17 +15,25 @@ class TestWatcher {
   private watchedTests: Map<string, SfdxTask> = new Map();
 
   public async watchTest(testExecutionInfo: TestExecutionInfo) {
-    const testRunner = new TestRunner(testExecutionInfo, TestRunType.WATCH);
-    const sfdxTask = await testRunner.executeAsSfdxTask();
-    if (sfdxTask) {
-      const { testUri } = testExecutionInfo;
-      const { fsPath } = testUri;
-      sfdxTask.onDidEnd(() => {
-        this.watchedTests.delete(fsPath);
+    const testRunner = new TestRunner(
+      testExecutionInfo,
+      TestRunType.WATCH,
+      FORCE_LWC_TEST_WATCH_LOG_NAME
+    );
+    try {
+      const sfdxTask = await testRunner.executeAsSfdxTask();
+      if (sfdxTask) {
+        const { testUri } = testExecutionInfo;
+        const { fsPath } = testUri;
+        sfdxTask.onDidEnd(() => {
+          this.watchedTests.delete(fsPath);
+          this.setWatchingContext(testUri);
+        });
+        this.watchedTests.set(fsPath, sfdxTask);
         this.setWatchingContext(testUri);
-      });
-      this.watchedTests.set(fsPath, sfdxTask);
-      this.setWatchingContext(testUri);
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
   public stopWatchingTest(testExecutionInfo: TestExecutionInfo) {

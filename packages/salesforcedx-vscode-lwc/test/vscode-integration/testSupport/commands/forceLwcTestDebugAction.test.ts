@@ -13,7 +13,6 @@ import * as vscode from 'vscode';
 import Uri from 'vscode-uri';
 import { telemetryService } from '../../../../src/telemetry';
 import {
-  FORCE_LWC_TEST_DEBUG_LOG_NAME,
   forceLwcTestCaseDebug,
   getDebugConfiguration,
   handleDidStartDebugSession,
@@ -25,6 +24,7 @@ import {
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
+import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../../../../src/testSupport/types/constants';
 
 describe('Force LWC Test Debug - Code Action', () => {
   let uuidStub: SinonStub;
@@ -111,8 +111,8 @@ describe('Force LWC Test Debug - Code Action', () => {
   describe('Debug Test Case', () => {
     it('Should send telemetry for debug test case', async () => {
       lwcTestRunnerStub.returns(lwcTestExecutablePath);
-      const mockHrtime = [123, 456];
-      processHrtimeStub.returns([123, 456]);
+      const mockExecutionTime = [123, 456];
+      processHrtimeStub.returns(mockExecutionTime);
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
       await forceLwcTestCaseDebug({
         testExecutionInfo
@@ -131,7 +131,7 @@ describe('Force LWC Test Debug - Code Action', () => {
       assert.calledWith(
         telemetryStub,
         FORCE_LWC_TEST_DEBUG_LOG_NAME,
-        mockHrtime
+        mockExecutionTime
       );
     });
   });

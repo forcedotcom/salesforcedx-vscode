@@ -16,3 +16,7 @@ export const LWC_TEST_DOCUMENT_SELECTOR = {
 export const SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT = 'sfdx:lwc_jest_file_focused';
 export const SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT =
   'sfdx:lwc_jest_is_watching_focused_file';
+
+export const FORCE_LWC_TEST_RUN_LOG_NAME = 'force_lwc_test_run_action';
+export const FORCE_LWC_TEST_DEBUG_LOG_NAME = 'force_lwc_test_debug_action';
+export const FORCE_LWC_TEST_WATCH_LOG_NAME = 'force_lwc_test_watch_action';

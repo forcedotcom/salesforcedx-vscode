@@ -4,9 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
 import * as vscode from 'vscode';
-import { nls } from '../../messages';
 import { TestRunner, TestRunType } from '../testRunner';
 import {
   TestDirectoryInfo,
@@ -15,10 +13,15 @@ import {
   TestInfoKind,
   TestType
 } from '../types';
+import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
 export async function forceLwcTestRun(testExecutionInfo: TestExecutionInfo) {
-  const testRunner = new TestRunner(testExecutionInfo, TestRunType.RUN);
+  const testRunner = new TestRunner(
+    testExecutionInfo,
+    TestRunType.RUN,
+    FORCE_LWC_TEST_RUN_LOG_NAME
+  );
   try {
     await testRunner.executeAsSfdxTask();
   } catch (error) {
