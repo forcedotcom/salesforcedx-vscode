@@ -16,10 +16,7 @@ import {
 } from '../types';
 import { isLwcJestTest } from '../utils';
 
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const telemetryService = sfdxCoreExports.telemetryService;
+import { telemetryService } from '../../telemetry';
 export const FORCE_LWC_TEST_DEBUG_LOG_NAME = 'force_lwc_test_debug_action';
 
 const debugSessionStartTimes = new Map<string, [number, number]>();
@@ -105,6 +102,8 @@ export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
     configuration.sfdxDebugSessionId
   );
   if (Array.isArray(startTime)) {
-    telemetryService.sendCommandEvent(FORCE_LWC_TEST_DEBUG_LOG_NAME, startTime);
+    telemetryService
+      .sendCommandEvent(FORCE_LWC_TEST_DEBUG_LOG_NAME, startTime)
+      .catch();
   }
 }

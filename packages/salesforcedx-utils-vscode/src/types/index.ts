@@ -62,3 +62,23 @@ export type LocalComponent = DirFileNameSelection & {
    */
   suffix?: string;
 };
+
+export declare class TelemetryReporter {
+  constructor(
+    extensionId: string,
+    extensionVersion: string,
+    key: string,
+    enableUniqueMetrics?: boolean
+  );
+  public sendTelemetryEvent(
+    eventName: string,
+    properties?: { [key: string]: string },
+    measurements?: { [key: string]: number }
+  ): void;
+  public sendExceptionEvent(
+    exceptionName: string,
+    exceptionMessage: string,
+    measurements?: { [key: string]: number }
+  ): void;
+  public dispose(): Promise<any>;
+}

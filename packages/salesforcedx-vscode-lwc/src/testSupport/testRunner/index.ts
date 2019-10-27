@@ -8,13 +8,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { telemetryService } from '../../telemetry';
 import { TestRunner, TestRunType } from './testRunner';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const notificationService = sfdxCoreExports.notificationService;
-const telemetryService = sfdxCoreExports.telemetryService;
 
 /**
  * Get the absolute path to LWC Test runner executable, installed in an SFDX project.
@@ -32,8 +27,10 @@ export function getLwcTestRunnerExecutable(sfdxProjectPath: string) {
     return lwcTestRunnerExecutable;
   } else {
     const errorMessage = nls.localize('no_lwc_jest_found_text');
-    notificationService.showErrorMessage(errorMessage);
-    telemetryService.sendException('lwc_test_no_lwc_jest_found', errorMessage);
+    vscode.window.showErrorMessage(errorMessage);
+    telemetryService
+      .sendException('lwc_test_no_lwc_jest_found', errorMessage)
+      .catch();
   }
 }
 
@@ -45,11 +42,13 @@ export function getWorkspaceFolderFromTestUri(testUri: vscode.Uri) {
     const errorMessage = nls.localize(
       'no_workspace_folder_found_for_test_text'
     );
-    notificationService.showErrorMessage(errorMessage);
-    telemetryService.sendException(
-      'lwc_test_no_workspace_folder_found_for_test',
-      errorMessage
-    );
+    vscode.window.showErrorMessage(errorMessage);
+    telemetryService
+      .sendException(
+        'lwc_test_no_workspace_folder_found_for_test',
+        errorMessage
+      )
+      .catch();
   }
 }
 

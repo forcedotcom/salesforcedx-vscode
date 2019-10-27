@@ -11,6 +11,7 @@ import { assert, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 import Uri from 'vscode-uri';
+import { telemetryService } from '../../../../src/telemetry';
 import {
   FORCE_LWC_TEST_DEBUG_LOG_NAME,
   forceLwcTestCaseDebug,
@@ -24,10 +25,6 @@ import {
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const telemetryService = sfdxCoreExports.telemetryService;
 
 describe('Force LWC Test Debug - Code Action', () => {
   let uuidStub: SinonStub;
@@ -43,6 +40,7 @@ describe('Force LWC Test Debug - Code Action', () => {
     telemetryStub = stub(telemetryService, 'sendCommandEvent');
     lwcTestRunnerStub = stub(lwcTestRunner, 'getLwcTestRunnerExecutable');
     uuidStub.returns(mockUuid);
+    telemetryStub.returns(Promise.resolve());
     debugStub.returns(Promise.resolve());
   });
 

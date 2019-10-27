@@ -18,12 +18,9 @@ import {
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const notificationService = sfdxCoreExports.notificationService;
-const telemetryService = sfdxCoreExports.telemetryService;
+
 import { nls } from '../../../../src/messages';
+import { telemetryService } from '../../../../src/telemetry';
 import {
   getLwcTestRunnerExecutable,
   TestRunner,
@@ -37,8 +34,9 @@ describe('LWC Test Runner', () => {
     let telemetryStub: SinonStub;
     beforeEach(() => {
       existsSyncStub = stub(fs, 'existsSync');
-      notificationStub = stub(notificationService, 'showErrorMessage');
+      notificationStub = stub(vscode.window, 'showErrorMessage');
       telemetryStub = stub(telemetryService, 'sendException');
+      telemetryStub.returns(Promise.resolve());
     });
 
     afterEach(() => {

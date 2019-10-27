@@ -56,8 +56,7 @@
     "vscode-uri": "^1.0.1"
   },
   "extensionDependencies": [
-    "dbaeumer.vscode-eslint",
-    "salesforce.salesforcedx-vscode-core"
+    "dbaeumer.vscode-eslint"
   ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",

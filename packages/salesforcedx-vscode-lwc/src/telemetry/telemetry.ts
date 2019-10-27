@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as util from 'util';
 import * as vscode from 'vscode';
-import TelemetryReporter from 'vscode-extension-telemetry';
 import { telemetryService } from '.';
 import { waitForDX } from '../dxsupport/waitForDX';
 
@@ -80,6 +80,30 @@ export class TelemetryService {
       this.reporter.sendTelemetryEvent('deactivationEvent', {
         extensionName: EXTENSION_NAME
       });
+    }
+  }
+
+  public async sendCommandEvent(
+    commandName?: string,
+    hrstart?: [number, number],
+    additionalData?: any
+  ): Promise<void> {
+    await this.setupVSCodeTelemetry();
+    if (this.reporter !== undefined && this.isTelemetryEnabled && commandName) {
+      const baseTelemetry = {
+        extensionName: EXTENSION_NAME,
+        commandName,
+        ...(hrstart && { executionTime: this.getEndHRTime(hrstart) })
+      };
+      const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
+      this.reporter.sendTelemetryEvent('commandExecution', aggregatedTelemetry);
+    }
+  }
+
+  public async sendException(name: string, message: string): Promise<void> {
+    await this.setupVSCodeTelemetry();
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendExceptionEvent(name, message);
     }
   }
 

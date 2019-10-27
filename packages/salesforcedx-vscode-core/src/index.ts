@@ -58,7 +58,6 @@ import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import {
   CompositeParametersGatherer,
-  CompositePreconditionChecker,
   EmptyParametersGatherer,
   SelectFileName,
   SelectOutputDir,
@@ -559,7 +558,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const api: any = {
     channelService,
     CompositeParametersGatherer,
-    CompositePreconditionChecker,
     EmptyParametersGatherer,
     getDefaultUsernameOrAlias,
     getUserId,
