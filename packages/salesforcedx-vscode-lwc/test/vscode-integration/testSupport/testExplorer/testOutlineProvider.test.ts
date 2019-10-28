@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import { assert, match, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import URI from 'vscode-uri';
 import { nls } from '../../../../src/messages';
 import { forceLwcTestNavigateToTest } from '../../../../src/testSupport/commands/forceLwcTestNavigateToTest';
 import { forceLwcTestRefreshTestExplorer } from '../../../../src/testSupport/commands/forceLwcTestRefreshTestExplorer';

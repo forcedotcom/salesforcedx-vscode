@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import * as jestTestSupport from 'jest-editor-support';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import URI from 'vscode-uri';
 import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
 
 import {

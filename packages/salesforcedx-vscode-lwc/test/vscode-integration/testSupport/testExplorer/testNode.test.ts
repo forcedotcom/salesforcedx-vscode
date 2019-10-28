@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import URI from 'vscode-uri';
 import { nls } from '../../../../src/messages';
 import {
   SfdxTestGroupNode,

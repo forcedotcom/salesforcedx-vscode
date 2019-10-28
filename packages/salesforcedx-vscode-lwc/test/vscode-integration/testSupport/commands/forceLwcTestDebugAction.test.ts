@@ -10,7 +10,7 @@ import * as path from 'path';
 import { assert, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import URI from 'vscode-uri';
 import { telemetryService } from '../../../../src/telemetry';
 import {
   forceLwcTestCaseDebug,

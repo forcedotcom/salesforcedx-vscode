@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import URI from 'vscode-uri';
 import { SfdxTask } from '../../../../src/testSupport/testRunner/taskService';
 import {
   TestFileInfo,

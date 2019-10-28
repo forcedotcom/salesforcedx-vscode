@@ -12,7 +12,7 @@ import { assert, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 
-import { URI } from 'vscode-uri';
+import URI from 'vscode-uri';
 import {
   TestCaseInfo,
   TestInfoKind,

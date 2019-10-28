@@ -53,7 +53,7 @@
     "sinon": "^2.3.6",
     "typescript": "3.1.6",
     "vscode": "1.1.17",
-    "vscode-uri": "^2.1.0"
+    "vscode-uri": "^1.0.8"
   },
   "extensionDependencies": [
     "dbaeumer.vscode-eslint"
