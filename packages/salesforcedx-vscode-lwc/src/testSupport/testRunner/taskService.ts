@@ -59,7 +59,7 @@ class TaskService {
   }
 
   public registerTaskService(context: vscode.ExtensionContext) {
-    vscode.tasks.onDidStartTask(
+    const handleDidStartTask = vscode.tasks.onDidStartTask(
       taskStartEvent => {
         const { execution } = taskStartEvent;
         const { definition } = execution.task;
@@ -75,7 +75,7 @@ class TaskService {
       context.subscriptions
     );
 
-    vscode.tasks.onDidEndTask(
+    const handleDidEndTask = vscode.tasks.onDidEndTask(
       taskEndEvent => {
         const { execution } = taskEndEvent;
         const { definition } = execution.task;
@@ -92,6 +92,7 @@ class TaskService {
       null,
       context.subscriptions
     );
+    return vscode.Disposable.from(handleDidStartTask, handleDidEndTask);
   }
 
   public createTask(
