@@ -17,5 +17,6 @@
  */
 export const messages = {
   salesforcedx_vscode_core_not_installed_text:
-    'salesforce.salesforcedx-vscode-lwc failed to activate. Ensure that you have the latest version of salesforce.salesforcedx-vscode-core installed and activated'
+    'salesforce.salesforcedx-vscode-lwc failed to activate. Ensure that you have the latest version of salesforce.salesforcedx-vscode-core installed and activated',
+  force_lightning_lwc_start_text: 'SFDX: Start Local Development Server'
 };

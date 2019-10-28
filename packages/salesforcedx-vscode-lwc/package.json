@@ -50,7 +50,8 @@
     "vscode": "1.1.17"
   },
   "extensionDependencies": [
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -71,7 +72,8 @@
     "onLanguage:javascript",
     "workspaceContains:sfdx-project.json",
     "workspaceContains:**/workspace-user.xml",
-    "onView:salesforce-lightning-explorer"
+    "onView:salesforce-lightning-explorer",
+    "onCommand:sfdx.force.lightning.lwc.start"
   ],
   "main": "./out/src",
   "contributes": {
@@ -79,6 +81,20 @@
       {
         "language": "javascript",
         "path": "./snippets/lwc.json"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sfdx.force.lightning.lwc.start",
+          "when": "sfdx:project_opened"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdx.force.lightning.lwc.start",
+        "title": "%force_lightning_lwc_start_text%"
       }
     ]
   }

@@ -63,6 +63,7 @@ import {
   SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
+  CompositePreconditionChecker,
   SfdxWorkspaceChecker
 } from './commands/util';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
@@ -570,6 +571,7 @@ export async function activate(context: vscode.ExtensionContext) {
     SfdxCommandlet,
     SfdxCommandletExecutor,
     sfdxCoreSettings,
+    CompositePreconditionChecker,
     SfdxWorkspaceChecker,
     taskViewService,
     telemetryService
