@@ -58,12 +58,12 @@ import { getUserId } from './commands/forceStartApexDebugLogging';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import {
   CompositeParametersGatherer,
+  CompositePreconditionChecker,
   EmptyParametersGatherer,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  CompositePreconditionChecker,
   SfdxWorkspaceChecker
 } from './commands/util';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
