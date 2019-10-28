@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
 import { shared as lspCommon } from 'lightning-lsp-common';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import {
   ConfigurationTarget,
   ExtensionContext,
@@ -21,9 +21,9 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import forceLightningLwcStart from './commands/forceLightningLwcStart';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { telemetryService } from './telemetry';
-import forceLightningLwcStart from './commands/forceLightningLwcStart';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri) {
