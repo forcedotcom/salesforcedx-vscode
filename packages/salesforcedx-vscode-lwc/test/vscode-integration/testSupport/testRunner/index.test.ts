@@ -123,7 +123,7 @@ describe('LWC Test Runner', () => {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
           '--outputFile',
-          '/var/project/mockSfdxProject/.sfdx/tools/testresults/lwc/test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
+          'c:\\project\\mockSfdxProject\\.sfdx\\tools\\testresults\\lwc\\test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
           '--testLocationInResults',
           '--runTestsByPath',
           'force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js',
@@ -162,7 +162,7 @@ describe('LWC Test Runner', () => {
         expect(jestExecutionInfo!.jestArgs).to.eql([
           '--json',
           '--outputFile',
-          '/var/project/mockSfdxProject/.sfdx/tools/testresults/lwc/test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
+          'c:\\project\\mockSfdxProject\\.sfdx\\tools\\testresults\\lwc\\test-result-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.json',
           '--testLocationInResults',
           '--runTestsByPath',
           'force-app\\main\\default\\lwc\\mockComponent\\__tests__\\mockTest.test.js',

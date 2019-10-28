@@ -177,6 +177,30 @@
         {
           "command": "sfdx.force.lightning.lwc.test.navigateToTest",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.runAllTests",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.refreshTestExplorer",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.run",
+          "when": "sfdx:lwc_jest_file_focused"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.debug",
+          "when": "sfdx:lwc_jest_file_focused"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.startWatching",
+          "when": "sfdx:lwc_jest_file_focused"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.editorTitle.stopWatching",
+          "when": "sfdx:lwc_jest_file_focused"
         }
       ]
     },
