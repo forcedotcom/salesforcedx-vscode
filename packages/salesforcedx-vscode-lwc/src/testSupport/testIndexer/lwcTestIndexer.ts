@@ -190,7 +190,11 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     );
     const allTestFileInfo = lwcJestTestFiles.map(lwcJestTestFile => {
       const { fsPath } = lwcJestTestFile;
-      return this.indexTestFile(fsPath);
+      let testFileInfo = this.testFileInfoMap.get(fsPath);
+      if (!testFileInfo) {
+        testFileInfo = this.indexTestFile(fsPath);
+      }
+      return testFileInfo;
     });
     this.hasIndexedTestFiles = true;
     return allTestFileInfo;
