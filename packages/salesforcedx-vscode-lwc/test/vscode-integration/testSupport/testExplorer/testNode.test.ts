@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { nls } from '../../../../src/messages';
 import {
   SfdxTestGroupNode,
@@ -33,7 +33,7 @@ describe('Sfdx Test Node', () => {
       const testExecutionInfo: TestFileInfo = {
         kind: TestInfoKind.TEST_FILE,
         testType: TestType.LWC,
-        testUri: Uri.file(mockTestFilePath)
+        testUri: URI.file(mockTestFilePath)
       };
       const mockLabel = 'mockTest';
       const groupNode = new SfdxTestGroupNode(mockLabel, testExecutionInfo);
@@ -56,7 +56,7 @@ describe('Sfdx Test Node', () => {
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,
-        testUri: Uri.file(mockTestFilePath),
+        testUri: URI.file(mockTestFilePath),
         testName: 'mockTestName'
       };
       const mockLabel = 'mockTestName';
@@ -80,7 +80,7 @@ describe('Sfdx Test Node', () => {
     const testExecutionInfo: TestCaseInfo = {
       kind: TestInfoKind.TEST_CASE,
       testType: TestType.LWC,
-      testUri: Uri.file(mockTestFilePath),
+      testUri: URI.file(mockTestFilePath),
       testName: 'mockTest'
     };
 
@@ -118,7 +118,7 @@ describe('Sfdx Test Node', () => {
       expect(groupNode.iconPath.light.endsWith('testSkip.svg')).to.equal(true);
     });
 
-    it('Should set correct icon paths for tests with unkown results', () => {
+    it('Should set correct icon paths for tests with unknown results', () => {
       testExecutionInfo.testResult = {
         status: TestResultStatus.UNKNOWN
       };
@@ -135,7 +135,7 @@ describe('Sfdx Test Node', () => {
     const testExecutionInfo: TestFileInfo = {
       kind: TestInfoKind.TEST_FILE,
       testType: TestType.LWC,
-      testUri: Uri.file(mockDirectory)
+      testUri: URI.file(mockDirectory)
     };
 
     it('Comparator should return -1 when first node does not have label', () => {

@@ -10,7 +10,7 @@ import * as path from 'path';
 import { assert, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { telemetryService } from '../../../../src/telemetry';
 import {
   forceLwcTestCaseDebug,
@@ -71,7 +71,7 @@ describe('Force LWC Test Debug - Code Action', () => {
   );
   const testFsPath = path.join(sfdxProjectPath, testRelativePath);
   const testName = 'mockTestName';
-  const testUri = Uri.file(testFsPath);
+  const testUri = URI.file(testFsPath);
   const testExecutionInfo: TestCaseInfo = {
     kind: TestInfoKind.TEST_CASE,
     testType: TestType.LWC,

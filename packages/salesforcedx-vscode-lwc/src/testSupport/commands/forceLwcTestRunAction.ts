@@ -23,7 +23,7 @@ export async function forceLwcTestRun(testExecutionInfo: TestExecutionInfo) {
     FORCE_LWC_TEST_RUN_LOG_NAME
   );
   try {
-    await testRunner.executeAsSfdxTask();
+    return await testRunner.executeAsSfdxTask();
   } catch (error) {
     console.error(error);
   }

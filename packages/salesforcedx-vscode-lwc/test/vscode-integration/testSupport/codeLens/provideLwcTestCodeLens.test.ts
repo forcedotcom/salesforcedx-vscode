@@ -33,7 +33,7 @@ describe('Provide LWC Test CodeLens', () => {
       lwcTestDocument,
       cancellationTokenSource.token
     );
-    expect(codeLens).to.have.lengthOf(2);
+    expect(codeLens).to.have.lengthOf(4);
     const [runTestCodeLens, debugTestCodeLens] = codeLens;
     expect(runTestCodeLens.range.start.line).to.equal(11);
     expect(runTestCodeLens.range.start.character).to.equal(6);

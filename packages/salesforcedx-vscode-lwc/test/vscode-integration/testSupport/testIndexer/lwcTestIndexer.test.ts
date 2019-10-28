@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import * as jestTestSupport from 'jest-editor-support';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
 
 import {
@@ -18,7 +18,7 @@ import {
 } from '../../../../src/testSupport/types';
 
 describe('LWC Test Indexer', () => {
-  let lwcTests: Uri[];
+  let lwcTests: URI[];
   before(async () => {
     lwcTests = await vscode.workspace.findFiles(
       new vscode.RelativePattern(
@@ -29,9 +29,9 @@ describe('LWC Test Indexer', () => {
   });
 
   describe('Test Indexer File Watcher', () => {
-    let onDidCreateEventEmitter: vscode.EventEmitter<Uri>;
-    let onDidChangeEventEmitter: vscode.EventEmitter<Uri>;
-    let onDidDeleteEventEmitter: vscode.EventEmitter<Uri>;
+    let onDidCreateEventEmitter: vscode.EventEmitter<vscode.Uri>;
+    let onDidChangeEventEmitter: vscode.EventEmitter<vscode.Uri>;
+    let onDidDeleteEventEmitter: vscode.EventEmitter<vscode.Uri>;
     let mockFileSystemWatcher;
     const mockItBlocks = [
       {
@@ -79,9 +79,9 @@ describe('LWC Test Indexer', () => {
         vscode.workspace,
         'createFileSystemWatcher'
       );
-      onDidCreateEventEmitter = new vscode.EventEmitter<Uri>();
-      onDidChangeEventEmitter = new vscode.EventEmitter<Uri>();
-      onDidDeleteEventEmitter = new vscode.EventEmitter<Uri>();
+      onDidCreateEventEmitter = new vscode.EventEmitter<vscode.Uri>();
+      onDidChangeEventEmitter = new vscode.EventEmitter<vscode.Uri>();
+      onDidDeleteEventEmitter = new vscode.EventEmitter<vscode.Uri>();
       mockFileSystemWatcher = {
         onDidCreate: onDidCreateEventEmitter.event,
         onDidChange: onDidChangeEventEmitter.event,
@@ -134,7 +134,7 @@ describe('LWC Test Indexer', () => {
       const mockFilePath = /^win32/.test(process.platform)
         ? 'C:\\Users\\tester\\mockNewFile.test.js'
         : '/Users/tester/mockNewFile.test.js';
-      const mockFileUri = Uri.file(mockFilePath);
+      const mockFileUri = URI.file(mockFilePath);
       return new Promise(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {

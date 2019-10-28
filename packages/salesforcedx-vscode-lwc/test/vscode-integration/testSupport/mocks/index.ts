@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import { SfdxTask } from '../../../../src/testSupport/testRunner/taskService';
 import {
   TestFileInfo,
@@ -27,7 +33,7 @@ export function createMockTestFileInfo() {
   const testExecutionInfo: TestFileInfo = {
     kind: TestInfoKind.TEST_FILE,
     testType: TestType.LWC,
-    testUri: Uri.file(mockTestFilePath)
+    testUri: URI.file(mockTestFilePath)
   };
   return testExecutionInfo;
 }
@@ -41,13 +47,22 @@ export function unmockGetLwcTestRunnerExecutable() {
   existsSyncStub.restore();
 }
 
-export function mockSfdxTaskExecute() {
+export function mockSfdxTaskExecute(immediate?: boolean) {
   sfdxTaskExecuteStub = stub(SfdxTask.prototype, 'execute');
   sfdxTaskExecuteStub.callsFake(async function(
     this: SfdxTask
   ): Promise<SfdxTask> {
-    this.notifyEndTask();
-    return this;
+    if (immediate) {
+      this.notifyEndTask();
+      return this;
+    }
+    const task = this;
+    return Promise.resolve().then(() => {
+      setTimeout(() => {
+        task.notifyEndTask();
+      }, 0);
+      return task;
+    });
   });
 }
 

@@ -12,7 +12,7 @@ import { assert, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 
-import Uri from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import {
   TestCaseInfo,
   TestInfoKind,
@@ -105,10 +105,10 @@ describe('LWC Test Runner', () => {
       '__tests__',
       'mockTest.test.js'
     );
-    const mockWorkspaceFolder = { uri: Uri.file(sfdxProjectPath) };
+    const mockWorkspaceFolder = { uri: URI.file(sfdxProjectPath) };
     it('Should get jest execution info for test case', () => {
       const testName = 'mockTestName';
-      const testUri = Uri.file(testFsPath);
+      const testUri = URI.file(testFsPath);
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,
@@ -146,7 +146,7 @@ describe('LWC Test Runner', () => {
 
     it('Should get jest execution info for test case with special characters', () => {
       const testName = 'mockTestName (+.*)';
-      const testUri = Uri.file(testFsPath);
+      const testUri = URI.file(testFsPath);
       const testExecutionInfo: TestCaseInfo = {
         kind: TestInfoKind.TEST_CASE,
         testType: TestType.LWC,

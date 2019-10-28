@@ -17,4 +17,8 @@ describe('Demo Lwc Component', () => {
     const div = element.shadowRoot.querySelector('div');
     expect(div.textContent).toBe('Hello, World!');
   });
+
+  it('Failed test', () => {
+    expect(1).toEqual(2);
+  });
 });
