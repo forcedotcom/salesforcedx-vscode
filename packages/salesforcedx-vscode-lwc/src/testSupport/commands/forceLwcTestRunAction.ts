@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { TestRunner, TestRunType } from '../testRunner';
+import { getTestWorkspaceFolder, TestRunner, TestRunType } from '../testRunner';
 import {
   TestDirectoryInfo,
   TestExecutionInfo,
@@ -44,19 +44,14 @@ export function forceLwcTestFileRun(data: {
 }
 
 export function forceLwcTestRunAllTests() {
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    const workspaceFolderUri = vscode.workspace.workspaceFolders[0].uri;
+  const workspaceFolder = getTestWorkspaceFolder();
+  if (workspaceFolder) {
     const testExecutionInfo: TestDirectoryInfo = {
       kind: TestInfoKind.TEST_DIRECTORY,
       testType: TestType.LWC,
-      testUri: workspaceFolderUri
+      testUri: workspaceFolder.uri
     };
     return forceLwcTestRun(testExecutionInfo);
-  } else {
-    // TODO: workspace error message
   }
 }
 

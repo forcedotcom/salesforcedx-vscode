@@ -11,10 +11,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { TestExecutionInfo, TestInfoKind } from '../types';
-import {
-  getLwcTestRunnerExecutable,
-  getWorkspaceFolderFromTestUri
-} from './index';
+import { getLwcTestRunnerExecutable, getTestWorkspaceFolder } from './index';
 import { taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
@@ -116,7 +113,7 @@ export class TestRunner {
   }
 
   public getShellExecutionInfo() {
-    const workspaceFolder = getWorkspaceFolderFromTestUri(
+    const workspaceFolder = getTestWorkspaceFolder(
       this.testExecutionInfo.testUri
     );
     if (workspaceFolder) {

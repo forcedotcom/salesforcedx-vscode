@@ -35,8 +35,18 @@ export function getLwcTestRunnerExecutable(sfdxProjectPath: string) {
   }
 }
 
-export function getWorkspaceFolderFromTestUri(testUri: vscode.Uri) {
-  const workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
+/**
+ * If testUri is specified, returns the workspace folder containing the test if it exists.
+ * Otherwise, return the first workspace folder if it exists.
+ * @param testUri optional testUri
+ */
+export function getTestWorkspaceFolder(testUri?: vscode.Uri) {
+  let workspaceFolder;
+  if (testUri) {
+    workspaceFolder = vscode.workspace.getWorkspaceFolder(testUri);
+  } else {
+    workspaceFolder = vscode.workspace.workspaceFolders![0];
+  }
   if (workspaceFolder) {
     return workspaceFolder;
   } else {
