@@ -13,10 +13,13 @@ import * as vscode from 'vscode';
 import {
   ForceProjectCreateExecutor,
   PathExistsChecker,
-  ProjectNameAndPath,
+  ProjectNameAndPathAndTemplate,
+  ProjectTemplateItem,
   SelectProjectFolder,
-  SelectProjectName
+  SelectProjectName,
+  SelectProjectTemplate
 } from '../../../src/commands/forceProjectCreate';
+import { projectTemplateEnum } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
 import { getRootWorkspacePath } from '../../../src/util';
 
@@ -25,6 +28,55 @@ describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
   const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
+
+  describe('SelectProjectTemplate Gatherer', () => {
+    let quickPickSpy: sinon.SinonStub;
+
+    before(() => {
+      quickPickSpy = sinon.stub(vscode.window, 'showQuickPick');
+      quickPickSpy.onCall(0).returns(undefined);
+      quickPickSpy.onCall(1).returns('');
+      quickPickSpy
+        .onCall(2)
+        .returns(
+          new ProjectTemplateItem(
+            projectTemplateEnum.analytics,
+            'force_project_create_analytics_template'
+          )
+        );
+    });
+
+    after(() => {
+      quickPickSpy.restore();
+    });
+
+    it('Should return cancel if project template is undefined', async () => {
+      const gatherer = new SelectProjectTemplate();
+      const response = await gatherer.gather();
+      expect(quickPickSpy.calledOnce).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return cancel if user input is empty string', async () => {
+      const gatherer = new SelectProjectTemplate();
+      const response = await gatherer.gather();
+      expect(quickPickSpy.calledTwice).to.be.true;
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return Continue with inputted project template if project template set', async () => {
+      const gatherer = new SelectProjectTemplate();
+      const response = await gatherer.gather();
+      expect(quickPickSpy.calledThrice).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.projectTemplate).to.equal(
+          projectTemplateEnum.analytics
+        );
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+  });
 
   describe('SelectProjectName Gatherer', () => {
     let inputBoxSpy: sinon.SinonStub;
@@ -109,7 +161,7 @@ describe('Force Project Create', () => {
         .returns(nls.localize('warning_prompt_overwrite_cancel'));
       showWarningBoxSpy
         .onCall(1)
-        .returns(nls.localize('warning_prompt_overwrite_confirm'));
+        .returns(nls.localize('warning_prompt_overwrite'));
     });
 
     after(() => {
@@ -120,7 +172,11 @@ describe('Force Project Create', () => {
       const checker = new PathExistsChecker();
       const response = await checker.check({
         type: 'CONTINUE',
-        data: { projectName: PROJECT_NAME, projectUri: PROJECT_DIR[0].fsPath }
+        data: {
+          projectName: PROJECT_NAME,
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
+        }
       });
       expect(showWarningBoxSpy.calledOnce).to.be.true;
       expect(response.type).to.equal('CANCEL');
@@ -128,9 +184,13 @@ describe('Force Project Create', () => {
 
     it('Should return inputs if project path is in use and user selects No', async () => {
       const checker = new PathExistsChecker();
-      const inputs: ContinueResponse<ProjectNameAndPath> = {
+      const inputs: ContinueResponse<ProjectNameAndPathAndTemplate> = {
         type: 'CONTINUE',
-        data: { projectName: PROJECT_NAME, projectUri: PROJECT_DIR[0].fsPath }
+        data: {
+          projectName: PROJECT_NAME,
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
+        }
       };
       const response = await checker.check(inputs);
       expect(showWarningBoxSpy.calledTwice).to.be.true;
@@ -142,11 +202,12 @@ describe('Force Project Create', () => {
 
     it('Should return inputs if project path is not in use', async () => {
       const checker = new PathExistsChecker();
-      const inputs: ContinueResponse<ProjectNameAndPath> = {
+      const inputs: ContinueResponse<ProjectNameAndPathAndTemplate> = {
         type: 'CONTINUE',
         data: {
           projectName: 'someOtherProject',
-          projectUri: PROJECT_DIR[0].fsPath
+          projectUri: PROJECT_DIR[0].fsPath,
+          projectTemplate: projectTemplateEnum.standard
         }
       };
       const response = await checker.check(inputs);
@@ -163,12 +224,49 @@ describe('Force Project Create', () => {
       const forceProjectCreateBuilder = new ForceProjectCreateExecutor();
       const createCommand = forceProjectCreateBuilder.build({
         projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
       });
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
           PROJECT_DIR[0].fsPath
         } --template standard`
+      );
+      expect(createCommand.description).to.equal(
+        nls.localize('force_project_create_text')
+      );
+    });
+
+    it('Should build the analytics project create command', async () => {
+      const forceProjectCreateBuilder = new ForceProjectCreateExecutor();
+      const createCommand = forceProjectCreateBuilder.build({
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.analytics
+      });
+      expect(createCommand.toCommand()).to.equal(
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
+          PROJECT_DIR[0].fsPath
+        } --template analytics`
+      );
+      expect(createCommand.description).to.equal(
+        nls.localize('force_project_create_text')
+      );
+    });
+
+    it('Should build the analytics project with manifest create command', async () => {
+      const forceProjectCreateBuilder = new ForceProjectCreateExecutor({
+        isProjectWithManifest: true
+      });
+      const createCommand = forceProjectCreateBuilder.build({
+        projectName: PROJECT_NAME,
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.analytics
+      });
+      expect(createCommand.toCommand()).to.equal(
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
+          PROJECT_DIR[0].fsPath
+        } --template analytics --manifest`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
@@ -181,7 +279,8 @@ describe('Force Project Create', () => {
       });
       const createCommand = forceProjectCreateBuilder.build({
         projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath
+        projectUri: PROJECT_DIR[0].fsPath,
+        projectTemplate: projectTemplateEnum.standard
       });
       expect(createCommand.toCommand()).to.equal(
         `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${

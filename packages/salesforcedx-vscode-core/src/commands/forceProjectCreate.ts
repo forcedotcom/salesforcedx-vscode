@@ -29,14 +29,29 @@ import {
   EmptyPreChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
-} from './commands';
+} from './util';
+
+export enum projectTemplateEnum {
+  standard = 'standard',
+  empty = 'empty',
+  analytics = 'analytics'
+}
 
 type forceProjectCreateOptions = {
   isProjectWithManifest: boolean;
 };
 
+export class ProjectTemplateItem implements vscode.QuickPickItem {
+  public label: string;
+  public description: string;
+  constructor(name: string, description: string) {
+    this.label = name;
+    this.description = nls.localize(description);
+  }
+}
+
 export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
-  ProjectNameAndPath
+  ProjectNameAndPathAndTemplate
 > {
   private readonly options: forceProjectCreateOptions;
 
@@ -45,13 +60,13 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
     this.options = options;
   }
 
-  public build(data: ProjectNameAndPath): Command {
+  public build(data: ProjectNameAndPathAndTemplate): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_project_create_text'))
       .withArg('force:project:create')
       .withFlag('--projectname', data.projectName)
       .withFlag('--outputdir', data.projectUri)
-      .withFlag('--template', 'standard')
+      .withFlag('--template', data.projectTemplate)
       .withLogName('force_project_create');
 
     if (this.options.isProjectWithManifest) {
@@ -61,7 +76,9 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
     return builder.build();
   }
 
-  public execute(response: ContinueResponse<ProjectNameAndPath>): void {
+  public execute(
+    response: ContinueResponse<ProjectNameAndPathAndTemplate>
+  ): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -92,7 +109,9 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export type ProjectNameAndPath = ProjectName & ProjectURI;
+export type ProjectNameAndPathAndTemplate = ProjectName &
+  ProjectURI &
+  ProjectTemplate;
 
 export interface ProjectURI {
   projectUri: string;
@@ -102,6 +121,43 @@ export interface ProjectName {
   projectName: string;
 }
 
+export interface ProjectTemplate {
+  projectTemplate: string;
+}
+
+export class SelectProjectTemplate
+  implements ParametersGatherer<ProjectTemplate> {
+  private readonly prefillValueProvider?: () => string;
+
+  constructor(prefillValueProvider?: () => string) {
+    this.prefillValueProvider = prefillValueProvider;
+  }
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<ProjectTemplate>
+  > {
+    const items: vscode.QuickPickItem[] = [
+      new ProjectTemplateItem(
+        projectTemplateEnum.standard,
+        'force_project_create_standard_template'
+      ),
+      new ProjectTemplateItem(
+        projectTemplateEnum.empty,
+        'force_project_create_empty_template'
+      ),
+      new ProjectTemplateItem(
+        projectTemplateEnum.analytics,
+        'force_project_create_analytics_template'
+      )
+    ];
+
+    const selection = await vscode.window.showQuickPick(items);
+    const projectTemplate = selection && selection.label;
+    return projectTemplate
+      ? { type: 'CONTINUE', data: { projectTemplate } }
+      : { type: 'CANCEL' };
+  }
+}
 export class SelectProjectName implements ParametersGatherer<ProjectName> {
   private readonly prefillValueProvider?: () => string;
 
@@ -144,10 +200,10 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
 }
 
 export class PathExistsChecker
-  implements PostconditionChecker<ProjectNameAndPath> {
+  implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
   public async check(
-    inputs: ContinueResponse<ProjectNameAndPath> | CancelResponse
-  ): Promise<ContinueResponse<ProjectNameAndPath> | CancelResponse> {
+    inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
+  ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
     if (inputs.type === 'CONTINUE') {
       const pathExists = fs.existsSync(
         path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)
@@ -157,10 +213,10 @@ export class PathExistsChecker
       } else {
         const overwrite = await notificationService.showWarningMessage(
           nls.localize('warning_prompt_dir_overwrite'),
-          nls.localize('warning_prompt_overwrite_confirm'),
+          nls.localize('warning_prompt_overwrite'),
           nls.localize('warning_prompt_overwrite_cancel')
         );
-        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
+        if (overwrite === nls.localize('warning_prompt_overwrite')) {
           return inputs;
         }
       }
@@ -171,6 +227,7 @@ export class PathExistsChecker
 
 const workspaceChecker = new EmptyPreChecker();
 const parameterGatherer = new CompositeParametersGatherer(
+  new SelectProjectTemplate(),
   new SelectProjectName(),
   new SelectProjectFolder()
 );

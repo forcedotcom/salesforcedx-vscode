@@ -7,14 +7,11 @@
 import {
   CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
   LocalComponent,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { GlobPattern, workspace } from 'vscode';
-import { GlobStrategy } from '.';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
@@ -25,45 +22,11 @@ import { PathStrategyFactory } from './sourcePathStrategies';
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
-// TODO: Replace with ComponentOverwritePrompt in subsequent PR (W-6610854)
-export class FilePathExistsChecker
-  implements PostconditionChecker<DirFileNameSelection> {
-  private globStrategy: GlobStrategy;
-  private warningMessage: string;
-
-  public constructor(globStrategy: GlobStrategy, warningMessage: string) {
-    this.globStrategy = globStrategy;
-    this.warningMessage = warningMessage;
-  }
-
+export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(
-    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
-  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      const globs = await this.globStrategy.globs(inputs.data);
-      if (!(await this.filesExist(globs)) || (await this.promptOverwrite())) {
-        return inputs;
-      }
-    }
-    return { type: 'CANCEL' };
-  }
-
-  private async filesExist(globs: GlobPattern[]): Promise<boolean> {
-    const files = [];
-    for (const g of globs) {
-      const result = await workspace.findFiles(g);
-      files.push(...result);
-    }
-    return files.length > 0;
-  }
-
-  private async promptOverwrite(): Promise<boolean> {
-    const overwrite = await notificationService.showWarningMessage(
-      this.warningMessage,
-      nls.localize('warning_prompt_continue_confirm'),
-      nls.localize('warning_prompt_overwrite_cancel')
-    );
-    return overwrite === nls.localize('warning_prompt_continue_confirm');
+    inputs: ContinueResponse<any> | CancelResponse
+  ): Promise<ContinueResponse<any> | CancelResponse> {
+    return inputs;
   }
 }
 

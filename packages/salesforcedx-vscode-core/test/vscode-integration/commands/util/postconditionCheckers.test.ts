@@ -15,8 +15,7 @@ import { join } from 'path';
 import { sandbox, SinonStub } from 'sinon';
 import { Uri, workspace } from 'vscode';
 import {
-  FilePathExistsChecker,
-  GlobStrategy,
+  EmptyPostChecker,
   OverwriteComponentPrompt,
   PathStrategyFactory
 } from '../../../../src/commands/util';
@@ -28,60 +27,26 @@ import { MetadataDictionary } from '../../../../src/util/metadataDictionary';
 const env = sandbox.create();
 
 describe('Postcondition Checkers', () => {
-  describe('FilePathExistsChecker', () => {
-    let findFilesStub: SinonStub;
-    let checker: FilePathExistsChecker;
-    let warningStub: SinonStub;
-    const testUri = Uri.file('/test/path');
-    const testInput: ContinueResponse<DirFileNameSelection> = {
-      type: 'CONTINUE',
-      data: { outputdir: 'test', fileName: 'test' }
-    };
-
-    beforeEach(() => {
-      findFilesStub = env.stub(workspace, 'findFiles');
-      warningStub = env.stub(notificationService, 'showWarningMessage');
-      checker = new FilePathExistsChecker(
-        new TestGlobStrategy(),
-        'testMessage'
-      );
-    });
-
-    afterEach(() => env.restore());
-
-    it('Should find files based on glob strategy', async () => {
-      findFilesStub.returns([]);
-      await checker.check(testInput);
-      expect(findFilesStub.firstCall.args).to.eql(TestGlobStrategy.testGlobs);
-    });
-
-    it('Should prompt overwrite message with correct message', async () => {
-      findFilesStub.returns([testUri]);
-      warningStub.returns(nls.localize('warning_prompt_overwrite_cancel'));
-      await checker.check(testInput);
-      expect(warningStub.firstCall.args[0]).to.equal('testMessage');
-    });
-
-    it('Should return ContinueResponse if there are no existing files', async () => {
-      findFilesStub.returns([]);
-      const response = await checker.check(testInput);
-      expect(response.type).to.equal('CONTINUE');
-    });
-
-    it('Should prompt overwrite message and return ContinueResponse if accepted', async () => {
-      findFilesStub.returns([testUri]);
-      warningStub.returns(nls.localize('warning_prompt_continue_confirm'));
-      const response = await checker.check(testInput);
-      expect(warningStub.calledOnce).to.equal(true);
-      expect(response.type).to.equal('CONTINUE');
-    });
-
-    it('Should prompt overwrite message and return CancelResponse if cancelled', async () => {
-      findFilesStub.returns([testUri]);
-      warningStub.returns(nls.localize('warning_prompt_overwrite_cancel'));
-      const response = await checker.check(testInput);
-      expect(warningStub.calledOnce).to.equal(true);
+  describe('EmptyPostconditionChecker', () => {
+    it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+      const postChecker = new EmptyPostChecker();
+      const response = await postChecker.check({ type: 'CANCEL' });
       expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return ContinueResponse unchanged if input passed in is ContinueResponse', async () => {
+      const postChecker = new EmptyPostChecker();
+      const input: ContinueResponse<string> = {
+        type: 'CONTINUE',
+        data: 'test'
+      };
+      const response = await postChecker.check(input);
+      expect(response.type).to.equal('CONTINUE');
+      if (response.type === 'CONTINUE') {
+        expect(response.data).to.equal('test');
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
     });
   });
 
@@ -178,7 +143,9 @@ describe('Postcondition Checkers', () => {
 
       it('Should show correct message for 1 < components <= 10 ', async () => {
         const components = generateComponents(2);
-        const expectedBody = `${components[1].type}:${components[1].fileName}\n`;
+        const expectedBody = `${components[1].type}:${
+          components[1].fileName
+        }\n`;
 
         await doPrompt(components, [undefined]);
 
@@ -317,10 +284,3 @@ describe('Postcondition Checkers', () => {
     }
   });
 });
-
-class TestGlobStrategy implements GlobStrategy {
-  public static readonly testGlobs = ['{/test,/glob}'];
-  public async globs() {
-    return TestGlobStrategy.testGlobs;
-  }
-}

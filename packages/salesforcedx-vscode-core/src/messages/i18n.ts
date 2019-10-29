@@ -156,6 +156,9 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
+  force_project_create_standard_template: 'Standard project template (default)',
+  force_project_create_empty_template: 'Empty project template',
+  force_project_create_analytics_template: 'Analytics project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
     'SFDX: Turn On Apex Debug Log for Replay Debugger',
@@ -270,6 +273,9 @@ export const messages = {
   empty_components: 'No components available',
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
+  error_invalid_org_alias:
+    'Alias can only contain underscores and alphanumeric characters',
+  error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',

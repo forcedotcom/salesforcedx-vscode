@@ -1,3 +1,43 @@
+# 47.3.0 - October 28, 2019
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable diff for layouts and permission sets in `SFDX: Diff File Against Org` command ([PR #1713](https://github.com/forcedotcom/salesforcedx-vscode/pull/1713))
+
+- Added the `analytics` template option to the `SFDX: Project Create` command ([PR #1730](https://github.com/forcedotcom/salesforcedx-vscode/pull/1730))
+
+#### salesforcedx-vscode-apex
+
+- Open beta for SOQL Language Server that provides code completion suggestions for SOQL queries ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
+
+#### docs
+
+- [Write SOQL Queries](https://forcedotcom.github.io/salesforcedx-vscode/articles/soql/writing) documentation for SOQL language server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
+
+# 47.2.0 - October 17, 2019
+
+## Fixed
+
+#### docs
+
+- Reorganize user guide section ([PR #1692](https://github.com/forcedotcom/salesforcedx-vscode/pull/1692))
+
+## Added
+
+#### docs
+
+- Add support for navigating between English and Japanese documents ([PR #1698](https://github.com/forcedotcom/salesforcedx-vscode/pull/1698))
+
+# 47.1.0 - October 12, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs
+
 # 46.17.0 - October 3, 2019
 
 ## Fixed

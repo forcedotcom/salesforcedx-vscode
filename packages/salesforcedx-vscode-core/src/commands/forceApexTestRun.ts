@@ -25,7 +25,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export enum TestType {
   All,
