@@ -94,7 +94,11 @@ To develop Lightning web components, use your favorite code editor. We recommend
 
 11) View the server at [http://localhost:3333/](http://localhost:3333/).
 
-For more information on local development commands, view the local development documentation by running sfdx force:lightning:lwc:<commandName> --help.
+For more information on local development commands, view the local development documentation.
+
+```sh
+sfdx force:lightning:lwc:<commandName> --help.
+```
 
 ## Troubleshooting
 
