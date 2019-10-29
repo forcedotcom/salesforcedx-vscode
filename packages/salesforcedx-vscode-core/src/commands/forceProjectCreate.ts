@@ -33,7 +33,8 @@ import {
 
 export enum projectTemplateEnum {
   standard = 'standard',
-  empty = 'empty'
+  empty = 'empty',
+  analytics = 'analytics'
 }
 
 type forceProjectCreateOptions = {
@@ -143,6 +144,10 @@ export class SelectProjectTemplate
       new ProjectTemplateItem(
         projectTemplateEnum.empty,
         'force_project_create_empty_template'
+      ),
+      new ProjectTemplateItem(
+        projectTemplateEnum.analytics,
+        'force_project_create_analytics_template'
       )
     ];
 
