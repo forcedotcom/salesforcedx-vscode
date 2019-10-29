@@ -14,8 +14,10 @@ import {
   ForceProjectCreateExecutor,
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
+  ProjectTemplateItem,
   SelectProjectFolder,
-  SelectProjectName
+  SelectProjectName,
+  SelectProjectTemplate
 } from '../../../src/commands/forceProjectCreate';
 import { projectTemplateEnum } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
@@ -27,7 +29,7 @@ describe('Force Project Create', () => {
   const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
-  /* describe('SelectProjectTemplate Gatherer', () => {
+  describe('SelectProjectTemplate Gatherer', () => {
     let quickPickSpy: sinon.SinonStub;
 
     before(() => {
@@ -74,7 +76,7 @@ describe('Force Project Create', () => {
         expect.fail('Response should be of type ContinueResponse');
       }
     });
-  }); */
+  });
 
   describe('SelectProjectName Gatherer', () => {
     let inputBoxSpy: sinon.SinonStub;
@@ -234,7 +236,7 @@ describe('Force Project Create', () => {
         nls.localize('force_project_create_text')
       );
     });
-    /*
+
     it('Should build the analytics project create command', async () => {
       const forceProjectCreateBuilder = new ForceProjectCreateExecutor();
       const createCommand = forceProjectCreateBuilder.build({
@@ -269,7 +271,7 @@ describe('Force Project Create', () => {
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
       );
-    }); */
+    });
 
     it('Should build the project with manifest create command', async () => {
       const forceProjectCreateBuilder = new ForceProjectCreateExecutor({
