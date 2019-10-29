@@ -22,6 +22,7 @@ describe('Test Watcher', () => {
     let processHrtimeStub: SinonStub;
     beforeEach(() => {
       telemetryStub = stub(telemetryService, 'sendCommandEvent');
+      telemetryStub.returns(Promise.resolve());
       processHrtimeStub = stub(process, 'hrtime');
       mockSfdxTaskExecute(true);
       mockGetLwcTestRunnerExecutable();
