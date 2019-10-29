@@ -149,6 +149,15 @@
         jp: 作成
       url: /visualforce/writing
 - title:
+    en: SOQL
+    jp: SOQL
+  baseUrl: /soql/
+  children:
+    - title:
+        en: Writing
+        jp: 作成
+      url: /soql/writing
+- title:
     en: FAQ
     jp: FAQ
   baseUrl: /faq/
