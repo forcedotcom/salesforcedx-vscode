@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as util from 'util';
 import * as vscode from 'vscode';
+import TelemetryReporter from 'vscode-extension-telemetry';
 import { telemetryService } from '.';
 import { waitForDX } from '../dxsupport/waitForDX';
 
@@ -103,6 +103,7 @@ export class TelemetryService {
   public async sendException(name: string, message: string): Promise<void> {
     await this.setupVSCodeTelemetry();
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      // @ts-ignore
       this.reporter.sendExceptionEvent(name, message);
     }
   }

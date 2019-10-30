@@ -5,43 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { assert, match, SinonStub, stub } from 'sinon';
+import TelemetryReporter from 'vscode-extension-telemetry';
 import { TelemetryService } from '../../../src/telemetry/telemetry';
 
 describe('Telemetry', () => {
-  class MockCoreExtensionTelemetryReporter {
-    constructor(
-      extensionId: string,
-      extensionVersion: string,
-      key: string,
-      enableUniqueMetrics?: boolean
-    ) {}
-    public sendTelemetryEvent(
-      eventName: string,
-      properties?: { [key: string]: string },
-      measurements?: { [key: string]: number }
-    ): void {}
-    public sendExceptionEvent(
-      exceptionName: string,
-      exceptionMessage: string,
-      measurements?: { [key: string]: number }
-    ): void {}
-    public dispose(): Promise<any> {
-      return Promise.resolve();
-    }
-  }
-  let reporter: MockCoreExtensionTelemetryReporter;
+  let reporter: TelemetryReporter;
   let sendEvent: SinonStub;
   let sendExceptionEvent: SinonStub;
   let processHrtimeStub: SinonStub;
   const mockDuration = [100, 100];
 
   beforeEach(() => {
-    reporter = new MockCoreExtensionTelemetryReporter(
+    reporter = new TelemetryReporter(
       'salesforcedx-vscode-lwc',
       'v1',
       'test345390'
     );
     sendEvent = stub(reporter, 'sendTelemetryEvent');
+    // @ts-ignore
+    reporter.sendExceptionEvent = () => {};
+    // @ts-ignore
     sendExceptionEvent = stub(reporter, 'sendExceptionEvent');
     processHrtimeStub = stub(process, 'hrtime');
     processHrtimeStub.returns(mockDuration);
