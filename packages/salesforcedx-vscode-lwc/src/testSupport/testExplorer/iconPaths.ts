@@ -60,6 +60,11 @@ const DARK_ORANGE_BUTTON = path.join(
 );
 
 type IconPath = { light: string; dark: string };
+
+/**
+ * Get icon path in the test explorer for test result
+ * @param testResult test result
+ */
 export function getIconPath(testResult?: TestResult): IconPath {
   if (testResult) {
     if (testResult.status === TestResultStatus.PASSED) {

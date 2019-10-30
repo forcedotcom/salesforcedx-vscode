@@ -21,6 +21,12 @@ import { telemetryService } from '../../telemetry';
 
 const debugSessionStartTimes = new Map<string, [number, number]>();
 
+/**
+ * Create a VS Code debug configuration for LWC Jest tests.
+ * @param command LWC test runner executable
+ * @param args CLI arguments
+ * @param cwd current working directory
+ */
 export function getDebugConfiguration(
   command: string,
   args: string[],
@@ -43,6 +49,10 @@ export function getDebugConfiguration(
   return debugConfiguration;
 }
 
+/**
+ * Start a debug session with provided test execution information
+ * @param testExecutionInfo test execution information
+ */
 export async function forceLwcTestDebug(testExecutionInfo: TestExecutionInfo) {
   const testRunner = new TestRunner(testExecutionInfo, TestRunType.DEBUG);
   const shellExecutionInfo = testRunner.getShellExecutionInfo();
@@ -63,6 +73,10 @@ export async function forceLwcTestDebug(testExecutionInfo: TestExecutionInfo) {
   }
 }
 
+/**
+ * Debug an individual test case
+ * @param data a test explorer node or information provided by code lens
+ */
 export async function forceLwcTestCaseDebug(data: {
   testExecutionInfo: TestCaseInfo;
 }) {
@@ -70,6 +84,10 @@ export async function forceLwcTestCaseDebug(data: {
   await forceLwcTestDebug(testExecutionInfo);
 }
 
+/**
+ * Debug a test file
+ * @param data a test explorer node
+ */
 export async function forceLwcTestFileDebug(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
@@ -77,6 +95,9 @@ export async function forceLwcTestFileDebug(data: {
   await forceLwcTestDebug(testExecutionInfo);
 }
 
+/**
+ * Debug the test of currently focused editor
+ */
 export async function forceLwcTestDebugActiveTextEditorTest() {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {
@@ -89,6 +110,10 @@ export async function forceLwcTestDebugActiveTextEditorTest() {
   }
 }
 
+/**
+ * Log the start time of debug session
+ * @param session debug session
+ */
 export function handleDidStartDebugSession(session: vscode.DebugSession) {
   const { configuration } = session;
   const { sfdxDebugSessionId } = configuration;
@@ -96,6 +121,10 @@ export function handleDidStartDebugSession(session: vscode.DebugSession) {
   debugSessionStartTimes.set(sfdxDebugSessionId, startTime);
 }
 
+/**
+ * Send telemetry event if applicable when debug session ends
+ * @param session debug session
+ */
 export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
   const { configuration } = session;
   const startTime = debugSessionStartTimes.get(

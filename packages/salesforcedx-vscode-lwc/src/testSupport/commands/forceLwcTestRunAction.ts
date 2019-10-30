@@ -16,6 +16,10 @@ import {
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
+/**
+ * Run an LWC Jest test from provided test execution info
+ * @param testExecutionInfo test execution info
+ */
 export async function forceLwcTestRun(testExecutionInfo: TestExecutionInfo) {
   const testRunner = new TestRunner(
     testExecutionInfo,
@@ -29,6 +33,10 @@ export async function forceLwcTestRun(testExecutionInfo: TestExecutionInfo) {
   }
 }
 
+/**
+ * Run an individual test case
+ * @param data a test explorer node or information provided by code lens
+ */
 export function forceLwcTestCaseRun(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
@@ -36,6 +44,10 @@ export function forceLwcTestCaseRun(data: {
   return forceLwcTestRun(testExecutionInfo);
 }
 
+/**
+ * Run a test file
+ * @param data a test explorer node
+ */
 export function forceLwcTestFileRun(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
@@ -43,6 +55,9 @@ export function forceLwcTestFileRun(data: {
   return forceLwcTestRun(testExecutionInfo);
 }
 
+/**
+ * Run all tests in the workspace folder
+ */
 export function forceLwcTestRunAllTests() {
   const workspaceFolder = getTestWorkspaceFolder();
   if (workspaceFolder) {
@@ -55,6 +70,9 @@ export function forceLwcTestRunAllTests() {
   }
 }
 
+/**
+ * Run the test of currently focused editor
+ */
 export function forceLwcTestRunActiveTextEditorTest() {
   const { activeTextEditor } = vscode.window;
   if (activeTextEditor && isLwcJestTest(activeTextEditor.document)) {

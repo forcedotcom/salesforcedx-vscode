@@ -26,6 +26,10 @@ import {
   forceLwcTestStopWatchingCurrentFile
 } from './forceLwcTestWatchAction';
 
+/**
+ * Register all commands with the extension context
+ * @param extensionContext extension context
+ */
 export function registerCommands(
   extensionContext: ExtensionContext
 ): Disposable {
@@ -79,7 +83,7 @@ export function registerCommands(
   const stopDebugSessionDisposable = vscode.debug.onDidTerminateDebugSession(
     handleDidTerminateDebugSession
   );
-  return Disposable.from(
+  const disposables = Disposable.from(
     forceLwcTestRunAllTestsCmd,
     forceLwcTestRefreshTestExplorerCmd,
     forceLwcTestNavigateToTestCmd,
@@ -94,4 +98,6 @@ export function registerCommands(
     startDebugSessionDisposable,
     stopDebugSessionDisposable
   );
+  extensionContext.subscriptions.push(disposables);
+  return disposables;
 }

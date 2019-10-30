@@ -10,7 +10,9 @@ interface SfdxTaskDefinition extends vscode.TaskDefinition {
   sfdxTaskId: string;
 }
 
-// A wrapper over vscode.Task that emit event during task lifecycle
+/**
+ * A wrapper over vscode.Task that emits events during task lifecycle
+ */
 export class SfdxTask {
   private task: vscode.Task;
   private taskExecution?: vscode.TaskExecution;
@@ -51,6 +53,9 @@ export class SfdxTask {
   }
 }
 
+/**
+ * Task service for creating vscode.Task
+ */
 class TaskService {
   private createdTasks: Map<string, SfdxTask>;
 
@@ -58,6 +63,10 @@ class TaskService {
     this.createdTasks = new Map();
   }
 
+  /**
+   * Register task service with extension context
+   * @param context extension context
+   */
   public registerTaskService(context: vscode.ExtensionContext) {
     const handleDidStartTask = vscode.tasks.onDidStartTask(
       taskStartEvent => {
@@ -95,6 +104,14 @@ class TaskService {
     return vscode.Disposable.from(handleDidStartTask, handleDidEndTask);
   }
 
+  /**
+   * Create a vscode.Task instance
+   * @param taskId a unique task id
+   * @param taskName localized task name
+   * @param taskScope task scope
+   * @param cmd command line executable
+   * @param args command line arguments
+   */
   public createTask(
     taskId: string,
     taskName: string,

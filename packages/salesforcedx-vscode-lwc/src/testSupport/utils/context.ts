@@ -10,6 +10,10 @@ import { testWatcher } from '../testRunner/testWatcher';
 import { SFDX_LWC_JEST_FILE_FOCUSED_CONTEXT } from '../types/constants';
 import { isLwcJestTest } from './isLwcJestTest';
 
+/**
+ * Set context for currently focused file initially or on active text editor change
+ * @param textEditor text editor
+ */
 function setLwcJestFileFocusedContext(textEditor?: vscode.TextEditor) {
   if (textEditor) {
     vscode.commands.executeCommand(
@@ -28,6 +32,11 @@ function setLwcJestFileFocusedContext(textEditor?: vscode.TextEditor) {
   }
 }
 
+/**
+ * Sets up handlers for active text editor change
+ * and make sure the correct context is set.
+ * @param context extension context
+ */
 export function startWatchingEditorFocusChange(
   context: vscode.ExtensionContext
 ) {

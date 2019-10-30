@@ -16,7 +16,13 @@ import {
 import { nls } from '../../messages';
 import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
 
-// Implementation can be moved to lightning language server in the future
+/**
+ * Provide "Run Test" and "Debug Test" Code Lens for LWC tests.
+ * We can move this implementation to lightning language server in the future.
+ *
+ * @param document text document
+ * @param token cancellation token
+ */
 export async function provideLwcTestCodeLens(
   document: TextDocument,
   token: CancellationToken

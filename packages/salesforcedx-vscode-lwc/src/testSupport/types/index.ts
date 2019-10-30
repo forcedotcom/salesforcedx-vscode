@@ -6,10 +6,18 @@
  */
 import { Location, Uri } from 'vscode';
 
+/**
+ * Test type is 'lwc' for all LWC Jest tests.
+ * The enum is created for future extensibility.
+ */
 export const enum TestType {
   LWC = 'lwc'
 }
 
+/**
+ * Test result statuses are presented with
+ * different colors in the test explorer.
+ */
 export const enum TestResultStatus {
   PASSED,
   FAILED,
@@ -17,22 +25,39 @@ export const enum TestResultStatus {
   UNKNOWN
 }
 
+/**
+ * Test Result interface contains the test result status.
+ * For now, failure messages are stored in DiagnosticCollection instead of here.
+ */
 export interface TestResult {
   status: TestResultStatus;
 }
 
+/**
+ * The discriminant enum for the TestExecutionInfo discriminated union.
+ */
 export const enum TestInfoKind {
   TEST_CASE = 'testCase',
   TEST_FILE = 'testFile',
   TEST_DIRECTORY = 'testDirectory'
 }
 
+/**
+ * Raw Test Results generated from Jest output.
+ * The title and ancestorTitles will be used to match and merge with the existing test cases
+ * created by test file parser.
+ */
 export interface RawTestResult {
   title: string;
   ancestorTitles?: string[];
   status: TestResultStatus;
 }
 
+/**
+ * Test File Information.
+ * It contains the test's URI, location (The beginning of the documentation by default),
+ * test results and associated test cases information.
+ */
 export interface TestFileInfo {
   kind: TestInfoKind.TEST_FILE;
   testType: TestType;
@@ -43,6 +68,11 @@ export interface TestFileInfo {
   rawTestResults?: RawTestResult[];
 }
 
+/**
+ * Test Case Information.
+ * It contains the test case's URI, location, and
+ * test name and ancestor titles, which are used for matching with test results.
+ */
 export interface TestCaseInfo {
   kind: TestInfoKind.TEST_CASE;
   testType: TestType;
@@ -53,6 +83,10 @@ export interface TestCaseInfo {
   ancestorTitles?: string[];
 }
 
+/**
+ * Test Directory Information.
+ * It contains the test directory Uri.
+ */
 export interface TestDirectoryInfo {
   kind: TestInfoKind.TEST_DIRECTORY;
   testType: TestType;
@@ -60,9 +94,15 @@ export interface TestDirectoryInfo {
   testResult?: TestResult;
 }
 
+/**
+ * Test Execution Information.
+ */
 export type TestExecutionInfo = TestCaseInfo | TestFileInfo | TestDirectoryInfo;
 
 // Jest Specific definitions
+/**
+ * Top level Jest output JSON object shape
+ */
 export interface LwcJestTestResults {
   numFailedTestSuites: number;
   numFailedTests: number;
@@ -76,6 +116,12 @@ export interface LwcJestTestResults {
   testResults: LwcJestTestFileResult[];
 }
 
+/**
+ * Jest Test Assertion Result status.
+ * - 'passed' transforms to TestResultStatus.PASSED
+ * - 'failed' transforms to TestResultStatus.FAILED
+ * - All other statuses tranform to TestResultStatus.SKIPPED
+ */
 type LwcJestTestResultStatus =
   | 'passed'
   | 'failed'
@@ -85,6 +131,9 @@ type LwcJestTestResultStatus =
   | 'todo'
   | 'disabled';
 
+/**
+ * Jest Test File Result
+ */
 export interface LwcJestTestFileResult {
   status: 'passed' | 'failed';
   startTime: number;
@@ -93,6 +142,9 @@ export interface LwcJestTestFileResult {
   assertionResults: LwcJestTestAssertionResult[];
 }
 
+/**
+ * Jest Test Assertion Result
+ */
 export interface LwcJestTestAssertionResult {
   status: LwcJestTestResultStatus;
   title: string;

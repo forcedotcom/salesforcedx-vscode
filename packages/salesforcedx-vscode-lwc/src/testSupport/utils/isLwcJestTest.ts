@@ -7,6 +7,10 @@
 import * as vscode from 'vscode';
 import { LWC_TEST_DOCUMENT_SELECTOR } from '../types/constants';
 
+/**
+ * Determine if the text document is an LWC Jest test
+ * @param textDocument vscode text document
+ */
 export function isLwcJestTest(textDocument: vscode.TextDocument) {
   return vscode.languages.match(LWC_TEST_DOCUMENT_SELECTOR, textDocument);
 }

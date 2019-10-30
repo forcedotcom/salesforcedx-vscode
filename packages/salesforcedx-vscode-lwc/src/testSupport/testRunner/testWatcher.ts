@@ -11,9 +11,16 @@ import { SFDX_LWC_JEST_IS_WATCHING_FOCUSED_FILE_CONTEXT } from '../types/constan
 import { SfdxTask } from './taskService';
 import { TestRunner, TestRunType } from './testRunner';
 
+/**
+ * Test Watcher class for watching Jest tests
+ */
 class TestWatcher {
   private watchedTests: Map<string, SfdxTask> = new Map();
 
+  /**
+   * Start watching tests from provided test execution info
+   * @param testExecutionInfo test execution info
+   */
   public async watchTest(testExecutionInfo: TestExecutionInfo) {
     const testRunner = new TestRunner(
       testExecutionInfo,
@@ -36,6 +43,11 @@ class TestWatcher {
       console.error(error);
     }
   }
+
+  /**
+   * Stop watching tests from provided test execution info
+   * @param testExecutionInfo test execution info
+   */
   public stopWatchingTest(testExecutionInfo: TestExecutionInfo) {
     const { testUri } = testExecutionInfo;
     const { fsPath } = testUri;
@@ -47,11 +59,20 @@ class TestWatcher {
     this.setWatchingContext(testUri);
   }
 
+  /**
+   * Determine if we are watching the test uri
+   * @param testUri uri of the test
+   */
   public isWatchingTest(testUri: vscode.Uri) {
     const { fsPath } = testUri;
     return this.watchedTests.has(fsPath);
   }
 
+  /**
+   * Execute setContext command if applicable so that start/stop watching buttons
+   * display appropriately in editor/title
+   * @param testUri uri of the test
+   */
   public setWatchingContext(testUri: vscode.Uri) {
     if (
       vscode.window.activeTextEditor &&

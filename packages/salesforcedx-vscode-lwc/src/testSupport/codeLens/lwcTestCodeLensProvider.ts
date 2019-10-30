@@ -16,14 +16,25 @@ import {
 
 import { provideLwcTestCodeLens } from './provideLwcTestCodeLens';
 
+/**
+ * Code Lens Provider providing "Run Test" and "Debug Test" code lenses in LWC tests.
+ */
 class LwcTestCodeLensProvider implements CodeLensProvider {
   private onDidChangeCodeLensesEventEmitter = new EventEmitter<void>();
   public onDidChangeCodeLenses = this.onDidChangeCodeLensesEventEmitter.event;
 
+  /**
+   * Refresh code lenses
+   */
   public refresh(): void {
     this.onDidChangeCodeLensesEventEmitter.fire();
   }
 
+  /**
+   * Invoked by VS Code to provide code lenses
+   * @param document text document
+   * @param token cancellation token
+   */
   public async provideCodeLenses(
     document: TextDocument,
     token: CancellationToken
@@ -34,6 +45,10 @@ class LwcTestCodeLensProvider implements CodeLensProvider {
 
 export const lwcTestCodeLensProvider = new LwcTestCodeLensProvider();
 
+/**
+ * Register Code Lens Provider with the extension context
+ * @param context Extension context
+ */
 export function registerLwcTestCodeLensProvider(context: ExtensionContext) {
   context.subscriptions.push(
     languages.registerCodeLensProvider(

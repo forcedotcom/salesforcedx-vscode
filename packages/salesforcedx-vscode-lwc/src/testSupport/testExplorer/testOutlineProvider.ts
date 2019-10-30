@@ -29,6 +29,9 @@ function getLabelFromTestFileInfo(testFileInfo: TestFileInfo) {
   return testGroupLabel;
 }
 
+/**
+ * Test Explorer Tree Data Provider implementation
+ */
 export class SfdxTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode>, vscode.Disposable {
   private onDidChangeTestData: vscode.EventEmitter<
@@ -77,6 +80,12 @@ export class SfdxTestOutlineProvider
     return element;
   }
 
+  /**
+   * Retrieve the children of the test node. The actual data comes from the test indexer.
+   * It retrieves all available test file nodes,
+   * and retrieves the test cases nodes from a test file.
+   * @param element test node
+   */
   public async getChildren(element?: TestNode): Promise<TestNode[]> {
     if (element) {
       if (element instanceof SfdxTestGroupNode) {
@@ -114,6 +123,10 @@ export class SfdxTestOutlineProvider
   }
 }
 
+/**
+ * Register test explorer with extension context
+ * @param context extension context
+ */
 export function registerLwcTestExplorerTreeView(
   context: vscode.ExtensionContext
 ) {

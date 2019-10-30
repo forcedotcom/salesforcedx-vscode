@@ -22,7 +22,13 @@ type ParsedNodeWithAncestorTitles = Pick<
   ancestorTitles?: string[];
   children?: ParsedNodeWithAncestorTitles[];
 };
+/**
+ * Extended itBlock definition with ancestor titles
+ */
 export type ItBlockWithAncestorTitles = ItBlock & { ancestorTitles?: string[] };
+/**
+ * Extended parse results definition with extended itBlock definition
+ */
 export type IExtendedParseResults = Pick<
   IParseResults,
   Exclude<keyof IParseResults, 'root'>
@@ -57,6 +63,10 @@ function populateAncestorTitlesRecursive(
   }
 }
 
+/**
+ * Populate ancestor titles for itBlocks
+ * @param parsedResult original parse results
+ */
 export function populateAncestorTitles(parsedResult: IExtendedParseResults) {
   try {
     const itBlocksWithAncestorTitles: ItBlockWithAncestorTitles[] = [];
@@ -72,6 +82,11 @@ export function populateAncestorTitles(parsedResult: IExtendedParseResults) {
   }
 }
 
+/**
+ * Extract the VS Code position from failure message stacktrace in Jest output.
+ * @param testFsPath test file path
+ * @param failureMessage failure message from Jest output
+ */
 export function extractPositionFromFailureMessage(
   testFsPath: string,
   failureMessage: string
@@ -98,6 +113,10 @@ export function extractPositionFromFailureMessage(
   }
 }
 
+/**
+ * Strip the ANSI color codes from failure message
+ * @param failureMessage failure message from Jest output
+ */
 export function sanitizeFailureMessage(failureMessage: string) {
   return stripAnsi(failureMessage);
 }

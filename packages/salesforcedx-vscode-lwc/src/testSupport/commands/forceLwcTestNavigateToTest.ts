@@ -7,6 +7,10 @@
 import * as vscode from 'vscode';
 import { TestNode } from '../testExplorer/testNode';
 
+/**
+ * Select specific range in the text editor
+ * @param index VS Code range
+ */
 function updateSelection(index: vscode.Range | number) {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -24,6 +28,11 @@ function updateSelection(index: vscode.Range | number) {
     }
   }
 }
+
+/**
+ * Navigate to the test position
+ * @param node test explorer node
+ */
 export function forceLwcTestNavigateToTest(node: TestNode) {
   if (node.location) {
     vscode.window.showTextDocument(node.location.uri);

@@ -12,7 +12,7 @@ import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { TestExecutionInfo, TestInfoKind } from '../types';
 import { getLwcTestRunnerExecutable, getTestWorkspaceFolder } from './index';
-import { taskService } from './taskService';
+import { SfdxTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
 export const enum TestRunType {
@@ -39,13 +39,16 @@ type JestExecutionInfo = {
   jestOutputFilePath: string;
 };
 
+/**
+ * Test Runner class for running/debugging/watching Jest tests.
+ */
 export class TestRunner {
   private testExecutionInfo: TestExecutionInfo;
   private testRunType: TestRunType;
   private testRunId: string;
   private logName?: string;
   /**
-   * Create a test runner.
+   * Create a test runner from test execution info.
    * @param testExecutionInfo Test Execution information
    * @param testRunType Run, Watch or Debug
    * @param logName Telemetry log name. If specified we will send command telemetry event when task finishes
@@ -61,6 +64,10 @@ export class TestRunner {
     this.logName = logName;
   }
 
+  /**
+   * Deterine jest command line arguments and output file path.
+   * @param workspaceFolder workspace folder of the test
+   */
   public getJestExecutionInfo(
     workspaceFolder: vscode.WorkspaceFolder
   ): JestExecutionInfo | undefined {
@@ -112,6 +119,9 @@ export class TestRunner {
     };
   }
 
+  /**
+   * Generate shell execution info necessary for task execution
+   */
   public getShellExecutionInfo() {
     const workspaceFolder = getTestWorkspaceFolder(
       this.testExecutionInfo.testUri
@@ -140,6 +150,10 @@ export class TestRunner {
     }
   }
 
+  /**
+   * Start watching test results if needed
+   * @param testResultFsPath test result file path
+   */
   public startWatchingTestResults(testResultFsPath: string) {
     testResultsWatcher.watchTestResults(testResultFsPath);
   }
@@ -156,7 +170,11 @@ export class TestRunner {
     }
   }
 
-  public async executeAsSfdxTask() {
+  /**
+   * Create and start a task for test execution.
+   * Returns the task wrapper on task creation if successful.
+   */
+  public async executeAsSfdxTask(): Promise<SfdxTask | undefined> {
     const shellExecutionInfo = this.getShellExecutionInfo();
     if (shellExecutionInfo) {
       const {

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { JestTotalResults, parse } from 'jest-editor-support';
+import { parse } from 'jest-editor-support';
 import { Indexer } from 'lightning-lsp-common';
 import * as vscode from 'vscode';
 import {
@@ -44,6 +44,10 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     .onDidUpdateTestResultsIndexEventEmitter.event;
   public onDidUpdateTestIndex = this.onDidUpdateTestIndexEventEmitter.event;
 
+  /**
+   * Register Test Indexer with extension context
+   * @param context extension context
+   */
   public register(context: vscode.ExtensionContext) {
     context.subscriptions.push(this);
     // It's actually a synchronous function to start file watcher.
@@ -62,8 +66,10 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     }
   }
 
+  /**
+   * Set up file system watcher for test files change/create/delete.
+   */
   public async configureAndIndex() {
-    // Watch for test file change, create and delete
     const lwcTestWatcher = vscode.workspace.createFileSystemWatcher(
       LWC_TEST_GLOB_PATTERN
     );
@@ -94,15 +100,20 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     );
   }
 
+  /**
+   * Reset test indexer
+   */
   public resetIndex() {
-    // Reset the test index
     this.hasIndexedTestFiles = false;
     this.testFileInfoMap.clear();
     this.diagnosticCollection.clear();
     this.onDidUpdateTestIndexEventEmitter.fire();
   }
 
-  // Lazy index all test files until opening test explorer
+  /**
+   * Find test files in the workspace if needed.
+   * It lazily index all test files until opening test explorer
+   */
   public async findAllTestFileInfo(): Promise<TestFileInfo[]> {
     if (this.hasIndexedTestFiles) {
       return [...this.testFileInfoMap.values()];
@@ -120,7 +131,11 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     return this.parseTestFileAndMergeTestResults(testFileInfo);
   }
 
-  // Lazy parse test information, until expand the test file or provide code lens
+  /**
+   * Parse and create test case information if needed.
+   * It lazily parses test information, until expanding the test file or providing code lens
+   * @param testUri uri of test file
+   */
   public async findTestInfoFromLwcJestTestFile(
     testUri: vscode.Uri
   ): Promise<TestCaseInfo[]> {
@@ -259,6 +274,11 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     });
   }
 
+  /**
+   * Update and merge Jest test results with test locations.
+   * Upon finishing update, it emits an event to update the test explorer.
+   * @param testResults test result JSON object provided by test result watcher
+   */
   public updateTestResults(testResults: LwcJestTestResults) {
     testResults.testResults.forEach(testResult => {
       const { name, status: testFileStatus, assertionResults } = testResult;

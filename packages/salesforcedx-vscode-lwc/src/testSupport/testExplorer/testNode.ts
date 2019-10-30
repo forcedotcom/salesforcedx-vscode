@@ -9,6 +9,11 @@ import { nls } from '../../messages';
 import { TestExecutionInfo } from '../types';
 import { getIconPath } from './iconPaths';
 
+/**
+ * Base class for test node in the test explorer.
+ * It's initialized with the command to navigate to the test
+ * upon clicking.
+ */
 export abstract class TestNode extends vscode.TreeItem {
   public description: string;
   public location?: vscode.Location;
@@ -30,6 +35,9 @@ export abstract class TestNode extends vscode.TreeItem {
   }
 }
 
+/**
+ * Test Node representing an individual test case.
+ */
 export class SfdxTestNode extends TestNode {
   public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
@@ -48,6 +56,10 @@ export class SfdxTestNode extends TestNode {
   }
 }
 
+/**
+ * Test Group Node representing a test file.
+ * By default it's collpased
+ */
 export class SfdxTestGroupNode extends TestNode {
   public contextValue?: string;
   public testExecutionInfo?: TestExecutionInfo;
@@ -70,6 +82,11 @@ export class SfdxTestGroupNode extends TestNode {
   }
 }
 
+/**
+ * Sort test node alphabetically
+ * @param node1 first test node
+ * @param node2 second test node
+ */
 export function sortTestNodeByLabel(node1: TestNode, node2: TestNode) {
   const label1 = node1!.label;
   const label2 = node2!.label;
