@@ -46,7 +46,7 @@ export class OrgBrowser {
     this._treeView = window.createTreeView(OrgBrowser.VIEW_ID, {
       treeDataProvider: this._dataProvider
     });
-    this._treeView.onDidChangeVisibility(() => async () => {
+    this._treeView.onDidChangeVisibility(async () => {
       if (this.treeView.visible) {
         await this.dataProvider.onViewChange();
       }
