@@ -16,6 +16,12 @@
 
 - Refresh session token when it expires while running `SFDX: Refresh SObject Definitions` command ([PR #1739](https://github.com/forcedotcom/salesforcedx-vscode/pull/1739), [Issue #1702](https://github.com/forcedotcom/salesforcedx-vscode/issues/1702))
 
+## Added
+
+#### salesforcedx-vscode-core
+
+- Input validations for alias and expiration days when running `SFDX: Create a Default Scratch Org` command ((PR #1729)[https://github.com/forcedotcom/salesforcedx-vscode/pull/1729], [Issue #1708](https://github.com/forcedotcom/salesforcedx-vscode/issues/1708))
+
 # 47.3.0 - October 28, 2019
 
 ## Added
