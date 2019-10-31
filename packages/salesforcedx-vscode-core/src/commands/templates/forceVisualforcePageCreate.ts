@@ -10,25 +10,28 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
-  FilePathExistsChecker,
-  GlobStrategyFactory,
-  PathStrategyFactory,
+  MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  SourcePathStrategy
+  SfdxWorkspaceChecker
 } from '../util';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   VISUALFORCE_PAGE_DIRECTORY,
-  VISUALFORCE_PAGE_EXTENSION
+  VISUALFORCE_PAGE_TYPE
 } from './metadataTypeConstants';
 
 export class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super(VISUALFORCE_PAGE_TYPE);
+  }
+
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_visualforce_page_create_text'))
@@ -39,38 +42,22 @@ export class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_visualforce_page_create')
       .build();
   }
-
-  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createDefaultStrategy();
-
-  public getDefaultDirectory() {
-    return VISUALFORCE_PAGE_DIRECTORY;
-  }
-
-  public getFileExtension(): string {
-    return VISUALFORCE_PAGE_EXTENSION;
-  }
 }
 
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(VISUALFORCE_PAGE_DIRECTORY);
+const metadataTypeGatherer = new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE);
 
 export async function forceVisualforcePageCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(
+    new CompositeParametersGatherer<LocalComponent>(
+      metadataTypeGatherer,
       fileNameGatherer,
       outputDirGatherer
     ),
     new ForceVisualForcePageCreateExecutor(),
-    new FilePathExistsChecker(
-      GlobStrategyFactory.createCheckFileInGivenPath(
-        VISUALFORCE_PAGE_EXTENSION
-      ),
-      nls.localize(
-        'warning_prompt_file_overwrite',
-        nls.localize('visualforce_page_message_name')
-      )
-    )
+    new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }
