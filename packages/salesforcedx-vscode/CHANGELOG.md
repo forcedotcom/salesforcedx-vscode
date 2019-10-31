@@ -20,7 +20,7 @@
 
 #### salesforcedx-vscode-core
 
-- Input validations for alias and expiration days when running `SFDX: Create a Default Scratch Org` command ((PR #1729)[https://github.com/forcedotcom/salesforcedx-vscode/pull/1729], [Issue #1708](https://github.com/forcedotcom/salesforcedx-vscode/issues/1708))—Contribution by [@maaaaarco](https://github.com/maaaaarco)
+- Input validations for alias and expiration days when running `SFDX: Create a Default Scratch Org` command ([PR #1729](https://github.com/forcedotcom/salesforcedx-vscode/pull/1729), [Issue #1708](https://github.com/forcedotcom/salesforcedx-vscode/issues/1708))—Contribution by [@maaaaarco](https://github.com/maaaaarco)
 
 # 47.3.0 - October 28, 2019
 
