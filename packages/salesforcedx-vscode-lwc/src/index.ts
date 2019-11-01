@@ -21,9 +21,10 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import forceLightningLwcStart from './commands/forceLightningLwcStart';
+import { forceLightningLwcStart, forceLightningLwcStop } from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { telemetryService } from './telemetry';
+import { DevServerService } from './service/devServerService';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri) {
@@ -95,11 +96,11 @@ export async function activate(context: ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
-export function deactivate() {
+export async function deactivate() {
+  if (DevServerService.instance.isServerHandlerRegistered()) {
+    await DevServerService.instance.stopServer();
+  }
   console.log('Lightning Web Components Extension Deactivated');
-
-  // TODO stop server if necessary
-
   telemetryService.sendExtensionDeactivationEvent().catch();
 }
 
@@ -111,12 +112,16 @@ function getActivationMode(): string {
 function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
-  const forceLightningLwcStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.lightning.lwc.start',
-    forceLightningLwcStart
+  return vscode.Disposable.from(
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.start',
+      forceLightningLwcStart
+    ),
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.stop',
+      forceLightningLwcStop
+    )
   );
-
-  return vscode.Disposable.from(forceLightningLwcStartCmd);
 }
 
 function startLWCLanguageServer(context: ExtensionContext) {

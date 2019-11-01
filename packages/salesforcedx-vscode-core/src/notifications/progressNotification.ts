@@ -6,6 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { nls } from '../../src/messages';
+import { Observable } from 'rxjs/Observable';
 
 import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
@@ -13,7 +14,8 @@ export class ProgressNotification {
   public static show(
     execution: CommandExecution,
     token: vscode.CancellationTokenSource,
-    progressLocation?: vscode.ProgressLocation
+    progressLocation?: vscode.ProgressLocation,
+    progressReporter?: Observable<number>
   ) {
     return vscode.window.withProgress(
       {
@@ -35,6 +37,23 @@ export class ProgressNotification {
           execution.processErrorSubject.subscribe(data => {
             return resolve();
           });
+
+          if (progressReporter) {
+            progressReporter.subscribe({
+              next(increment) {
+                progress.report({
+                  increment
+                });
+              },
+
+              complete() {
+                progress.report({
+                  increment: 100
+                });
+                resolve();
+              }
+            });
+          }
         });
       }
     );

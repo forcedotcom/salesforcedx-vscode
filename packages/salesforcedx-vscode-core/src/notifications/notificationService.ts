@@ -98,14 +98,14 @@ export class NotificationService {
     }
   }
 
-  private showFailedExecution(executionName: string) {
+  public showFailedExecution(executionName: string) {
     this.showErrorMessage(
       nls.localize('notification_unsuccessful_execution_text', executionName)
     );
     this.showChannelOutput();
   }
 
-  private showCanceledExecution(executionName: string) {
+  public showCanceledExecution(executionName: string) {
     this.showWarningMessage(
       nls.localize('notification_canceled_execution_text', executionName)
     );

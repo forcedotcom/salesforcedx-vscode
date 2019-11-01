@@ -30,6 +30,7 @@
     "eslint": "5.0.0",
     "lightning-lsp-common": "2.2.2",
     "lwc-language-server": "2.2.2",
+    "open": "^6.4.0",
     "rxjs": "^5.4.1",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^3.5.1",
@@ -88,6 +89,10 @@
         {
           "command": "sfdx.force.lightning.lwc.start",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.stop",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -95,6 +100,10 @@
       {
         "command": "sfdx.force.lightning.lwc.start",
         "title": "%force_lightning_lwc_start_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.stop",
+        "title": "%force_lightning_lwc_stop_text%"
       }
     ]
   }
