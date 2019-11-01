@@ -1,4 +1,5 @@
 {
   "force_lightning_lwc_start_text": "SFDX: Start Local Development Server",
-  "force_lightning_lwc_stop_text": "SFDX: Stop Local Development Server"
+  "force_lightning_lwc_stop_text": "SFDX: Stop Local Development Server",
+  "force_lightning_lwc_open_text": "SFDX: Open Local Development Server"
 }

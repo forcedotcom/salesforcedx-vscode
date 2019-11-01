@@ -36,6 +36,8 @@ export const messages = {
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
   force_lightning_lwc_open_text:
     'SFDX: Open Local Development Server in Browser',
+  force_lightning_lwc_open_failed:
+    'SFDX: Open Local Development Server failed to run',
   prompt_option_open_browser: 'Open Browser',
   prompt_option_restart: 'Restart'
 };

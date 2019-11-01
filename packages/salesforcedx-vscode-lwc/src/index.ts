@@ -21,7 +21,11 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { forceLightningLwcStart, forceLightningLwcStop } from './commands';
+import {
+  forceLightningLwcStart,
+  forceLightningLwcStop,
+  forceLightningLwcOpen
+} from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
@@ -120,6 +124,10 @@ function registerCommands(
     vscode.commands.registerCommand(
       'sfdx.force.lightning.lwc.stop',
       forceLightningLwcStop
+    ),
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.open',
+      forceLightningLwcOpen
     )
   );
 }

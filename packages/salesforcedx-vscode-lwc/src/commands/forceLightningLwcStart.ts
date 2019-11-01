@@ -9,6 +9,7 @@ import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
+import { lwcDevServerBaseUrl } from './constants';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -26,8 +27,6 @@ const {
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
 const logName = 'force_lightning_lwc_start';
-const baseUrl = 'http://localhost:3333';
-const serverStartedId = 'Server up';
 
 export interface ForceLightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
@@ -93,14 +92,14 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
 
     // listen for server startup
     execution.stdoutSubject.subscribe(async data => {
-      if (!serverStarted && data && data.toString().includes(serverStartedId)) {
+      if (!serverStarted && data && data.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
         taskViewService.removeTask(task);
         notificationService.showSuccessfulExecution(executionName);
 
         if (this.options.openBrowser) {
-          await open(baseUrl + (this.options.urlPath || ''));
+          await open(lwcDevServerBaseUrl + (this.options.urlPath || ''));
         }
 
         this.logMetric(execution.command.logName, startTime);
@@ -158,7 +157,7 @@ export async function forceLightningLwcStart() {
       restartOption
     );
     if (response === openBrowserOption) {
-      await open(baseUrl);
+      await open(lwcDevServerBaseUrl);
       return;
     } else if (response === restartOption) {
       channelService.appendLine(

@@ -93,6 +93,10 @@
         {
           "command": "sfdx.force.lightning.lwc.stop",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.open",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -104,6 +108,10 @@
       {
         "command": "sfdx.force.lightning.lwc.stop",
         "title": "%force_lightning_lwc_stop_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.open",
+        "title": "%force_lightning_lwc_open_text%"
       }
     ]
   }
