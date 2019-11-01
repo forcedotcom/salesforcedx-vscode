@@ -1,9 +1,3 @@
-import {
-  Command,
-  SfdxCommandBuilder,
-  CliCommandExecutor,
-  CommandOutput
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';

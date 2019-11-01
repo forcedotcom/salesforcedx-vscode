@@ -23,8 +23,8 @@ import {
 } from 'vscode-languageclient';
 import { forceLightningLwcStart, forceLightningLwcStop } from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
-import { telemetryService } from './telemetry';
 import { DevServerService } from './service/devServerService';
+import { telemetryService } from './telemetry';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri) {

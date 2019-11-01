@@ -14,22 +14,22 @@ export class DevServerService {
 
   private serverHandler: ServerHandler | undefined;
 
-  isServerHandlerRegistered() {
+  public isServerHandlerRegistered() {
     return this.serverHandler !== undefined;
   }
 
-  registerServerHandler(serverHandler: ServerHandler) {
+  public registerServerHandler(serverHandler: ServerHandler) {
     if (this.serverHandler !== undefined) {
       throw new Error('An existing server is already running');
     }
     this.serverHandler = serverHandler;
   }
 
-  clearServerHandler() {
+  public clearServerHandler() {
     this.serverHandler = undefined;
   }
 
-  async stopServer() {
+  public async stopServer() {
     if (this.serverHandler !== undefined) {
       console.log('stopping lwc dev server');
       await this.serverHandler.stop();

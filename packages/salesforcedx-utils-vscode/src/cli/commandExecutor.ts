@@ -234,7 +234,7 @@ export class CliCommandExecution implements CommandExecution {
     }
   }
 
-  async killExecution(signal: string = 'SIGKILL') {
+  public async killExecution(signal: string = 'SIGKILL') {
     return killPromise(this.childProcessPid, signal);
   }
 }
