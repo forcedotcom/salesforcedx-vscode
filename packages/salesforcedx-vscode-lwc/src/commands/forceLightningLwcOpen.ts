@@ -1,7 +1,7 @@
+import * as open from 'open';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import * as open from 'open';
 import { lwcDevServerBaseUrl } from './constants';
 
 const sfdxCoreExports = vscode.extensions.getExtension(

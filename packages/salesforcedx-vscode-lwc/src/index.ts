@@ -22,9 +22,9 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import {
+  forceLightningLwcOpen,
   forceLightningLwcStart,
-  forceLightningLwcStop,
-  forceLightningLwcOpen
+  forceLightningLwcStop
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { DevServerService } from './service/devServerService';
