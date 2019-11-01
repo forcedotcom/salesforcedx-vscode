@@ -25,6 +25,7 @@ const {
 } = sfdxCoreExports;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
+const logName = 'force_lightning_lwc_start';
 const baseUrl = 'http://localhost:3333';
 const serverStartedId = 'Server up';
 
@@ -44,12 +45,14 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   }
 
   public build(): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_lightning_lwc_start_text'))
-      .withArg('force:lightning:lwc:start')
-      .withLogName('force_lightning_lwc_start')
-      .withJson()
-      .build();
+    return (
+      new SfdxCommandBuilder()
+        .withDescription(nls.localize('force_lightning_lwc_start_text'))
+        .withArg('force:lightning:lwc:start')
+        .withLogName(logName)
+        // .withJson()
+        .build()
+    );
   }
 
   public execute(response: ContinueResponse<{}>): void {
@@ -118,12 +121,16 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
 
         notificationService.showErrorMessage(message);
         channelService.appendLine(message);
-        telemetryService.sendException('Error', message);
-        notificationService.showFailedExecution(executionName);
+        channelService.showChannelOutput();
+        telemetryService.sendException(`${logName}_error`, message);
       } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
-        const message = nls.localize('warning_message_server_exited');
+        const message = nls.localize('force_lightning_lwc_start_exited');
         notificationService.showErrorMessage(message);
-        telemetryService.sendException('Error', `${message}: ${exitCode}`);
+        channelService.showChannelOutput();
+        telemetryService.sendException(
+          `${logName}_error`,
+          `${message}: ${exitCode}`
+        );
       }
     });
 
@@ -140,7 +147,9 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
 
 export async function forceLightningLwcStart() {
   if (DevServerService.instance.isServerHandlerRegistered()) {
-    const warningMessage = nls.localize('warning_message_server_running');
+    const warningMessage = nls.localize(
+      'force_lightning_lwc_start_already_running'
+    );
     const openBrowserOption = nls.localize('prompt_option_open_browser');
     const restartOption = nls.localize('prompt_option_restart');
     const response = await notificationService.showWarningMessage(

@@ -7,33 +7,42 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 )!.exports;
 const {
   channelService,
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
-  getDefaultUsernameOrAlias,
-  isCLIInstalled,
   notificationService,
-  ProgressNotification,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  taskViewService,
-  telemetryService,
-  CompositePreconditionChecker
+  telemetryService
 } = sfdxCoreExports;
-const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
+
+const logName = 'force_lightning_lwc_stop';
 
 export async function forceLightningLwcStop() {
-  // TODO noticationService
+  const startTime = process.hrtime();
 
-  // TODO telemetry
   try {
     if (DevServerService.instance.isServerHandlerRegistered()) {
       channelService.appendLine(
-        nls.localize('force_lightning_lwc_server_stopping')
+        nls.localize('force_lightning_lwc_stop_in_progress')
       );
       await DevServerService.instance.stopServer();
+      notificationService.showSuccessfulExecution(
+        nls.localize('force_lightning_lwc_stop_text')
+      );
+      telemetryService.sendCommandEvent(logName, startTime);
+    } else {
+      notificationService.showWarningMessage(
+        nls.localize(
+          'force_lightning_lwc_stop_not_running',
+          nls.localize('force_lightning_lwc_stop_text')
+        )
+      );
     }
   } catch (e) {
-    console.error(`error stopping lwc dev servers: ${e}`);
-    // TODO notify?
+    console.error(`error stopping lwc dev servers: ${e.message}`);
+    notificationService.showErrorMessage(
+      nls.localize('force_lightning_lwc_stop_failed')
+    );
+    channelService.appendLine(
+      `Error stopping local development server: ${e.message}`
+    );
+    channelService.showChannelOutput();
+    telemetryService.sendException(`${logName}_error`, e.message);
   }
 }

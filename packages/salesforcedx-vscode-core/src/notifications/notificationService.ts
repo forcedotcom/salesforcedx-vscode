@@ -98,7 +98,7 @@ export class NotificationService {
     }
   }
 
-  public showFailedExecution(executionName: string) {
+  private showFailedExecution(executionName: string) {
     this.showErrorMessage(
       nls.localize('notification_unsuccessful_execution_text', executionName)
     );
