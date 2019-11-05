@@ -27,7 +27,7 @@ const {
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
 const logName = 'force_lightning_lwc_start';
-const commandName = nls.localize(`${logName}_text`);
+const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
 export interface ForceLightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
@@ -47,7 +47,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
     return (
       new SfdxCommandBuilder()
-        .withDescription(nls.localize('force_lightning_lwc_start_text'))
+        .withDescription(commandName)
         .withArg('force:lightning:lwc:start')
         .withLogName(logName)
         // .withJson()

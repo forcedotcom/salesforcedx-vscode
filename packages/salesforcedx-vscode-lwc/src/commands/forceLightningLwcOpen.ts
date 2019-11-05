@@ -11,7 +11,7 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const { telemetryService } = sfdxCoreExports;
 
 const logName = 'force_lightning_lwc_open';
-const commandName = nls.localize(`${logName}_text`);
+const commandName = nls.localize('force_lightning_lwc_open_text');
 
 export async function forceLightningLwcOpen() {
   const startTime = process.hrtime();

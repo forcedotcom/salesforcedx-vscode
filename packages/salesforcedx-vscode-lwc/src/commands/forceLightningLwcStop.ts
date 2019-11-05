@@ -13,7 +13,7 @@ const {
 } = sfdxCoreExports;
 
 const logName = 'force_lightning_lwc_stop';
-const commandName = nls.localize(`${logName}_text`);
+const commandName = nls.localize('force_lightning_lwc_stop_text');
 
 export async function forceLightningLwcStop() {
   const startTime = process.hrtime();
@@ -30,10 +30,7 @@ export async function forceLightningLwcStop() {
       telemetryService.sendCommandEvent(logName, startTime);
     } else {
       notificationService.showWarningMessage(
-        nls.localize(
-          'force_lightning_lwc_stop_not_running',
-          nls.localize('force_lightning_lwc_stop_text')
-        )
+        nls.localize('force_lightning_lwc_stop_not_running')
       );
     }
   } catch (e) {

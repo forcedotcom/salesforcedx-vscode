@@ -19,7 +19,7 @@ const {
 } = sfdxCoreExports;
 
 const logName = 'force_lightning_lwc_preview';
-const commandName = nls.localize(`${logName}_text`);
+const commandName = nls.localize('force_lightning_lwc_preview_text');
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();

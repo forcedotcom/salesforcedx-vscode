@@ -36,7 +36,7 @@ export class DevServerService {
       this.serverHandler = undefined;
       console.log('successfully stopped lwc dev server');
     } else {
-      console.info('lwc dev server was not running');
+      console.log('lwc dev server was not running');
     }
   }
 }
