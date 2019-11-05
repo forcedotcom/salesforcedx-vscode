@@ -9,6 +9,7 @@ import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
+import { showError } from './commandUtils';
 import { lwcDevServerBaseUrl } from './constants';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -17,7 +18,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const {
   channelService,
   taskViewService,
-  telemetryService,
   notificationService,
   SfdxCommandlet,
   ProgressNotification,
@@ -27,12 +27,13 @@ const {
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
 const logName = 'force_lightning_lwc_start';
+const commandName = nls.localize(`${logName}_text`);
 
 export interface ForceLightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
-  /** optional starting path (should begin with `/`) */
-  urlPath?: string;
+  /** complete url of the page to open in the browser */
+  fullUrl?: string;
 }
 
 export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
@@ -99,7 +100,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         notificationService.showSuccessfulExecution(executionName);
 
         if (this.options.openBrowser) {
-          await open(lwcDevServerBaseUrl + (this.options.urlPath || ''));
+          await open(this.options.fullUrl || lwcDevServerBaseUrl);
         }
 
         this.logMetric(execution.command.logName, startTime);
@@ -110,7 +111,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     execution.processExitSubject.subscribe(async exitCode => {
       DevServerService.instance.clearServerHandler();
 
-      if (!serverStarted) {
+      if (!serverStarted && !cancellationToken.isCancellationRequested) {
         let message = nls.localize('force_lightning_lwc_start_failed');
 
         // TODO proper exit codes in lwc-dev-server for address in use, auth/org error, etc.
@@ -118,18 +119,13 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
           message = nls.localize('force_lightning_lwc_start_not_found');
         }
 
-        notificationService.showErrorMessage(message);
-        channelService.appendLine(message);
-        channelService.showChannelOutput();
-        telemetryService.sendException(`${logName}_error`, message);
+        showError(new Error(message), logName, commandName);
       } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
-        const message = nls.localize('force_lightning_lwc_start_exited');
-        notificationService.showErrorMessage(message);
-        channelService.showChannelOutput();
-        telemetryService.sendException(
-          `${logName}_error`,
-          `${message}: ${exitCode}`
+        const message = nls.localize(
+          'force_lightning_lwc_start_exited',
+          exitCode
         );
+        showError(new Error(message), logName, commandName);
       }
     });
 
@@ -139,7 +135,10 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     cancellationToken.onCancellationRequested(() => {
-      notificationService.showCanceledExecution(executionName);
+      notificationService.showWarningMessage(
+        nls.localize('command_canceled', executionName)
+      );
+      this.showChannelOutput();
     });
   }
 }

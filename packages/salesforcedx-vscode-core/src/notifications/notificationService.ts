@@ -105,7 +105,7 @@ export class NotificationService {
     this.showChannelOutput();
   }
 
-  public showCanceledExecution(executionName: string) {
+  private showCanceledExecution(executionName: string) {
     this.showWarningMessage(
       nls.localize('notification_canceled_execution_text', executionName)
     );

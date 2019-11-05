@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
+import { showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -12,6 +13,7 @@ const {
 } = sfdxCoreExports;
 
 const logName = 'force_lightning_lwc_stop';
+const commandName = nls.localize(`${logName}_text`);
 
 export async function forceLightningLwcStop() {
   const startTime = process.hrtime();
@@ -35,14 +37,6 @@ export async function forceLightningLwcStop() {
       );
     }
   } catch (e) {
-    console.error(`error stopping lwc dev servers: ${e.message}`);
-    notificationService.showErrorMessage(
-      nls.localize('force_lightning_lwc_stop_failed')
-    );
-    channelService.appendLine(
-      `Error stopping local development server: ${e.message}`
-    );
-    channelService.showChannelOutput();
-    telemetryService.sendException(`${logName}_error`, e.message);
+    showError(e, logName, commandName);
   }
 }

@@ -2,18 +2,16 @@ import * as open from 'open';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
+import { showError } from './commandUtils';
 import { lwcDevServerBaseUrl } from './constants';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const {
-  channelService,
-  notificationService,
-  telemetryService
-} = sfdxCoreExports;
+const { telemetryService } = sfdxCoreExports;
 
 const logName = 'force_lightning_lwc_open';
+const commandName = nls.localize(`${logName}_text`);
 
 export async function forceLightningLwcOpen() {
   const startTime = process.hrtime();
@@ -23,14 +21,7 @@ export async function forceLightningLwcOpen() {
       await open(lwcDevServerBaseUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
-      notificationService.showErrorMessage(
-        nls.localize('force_lightning_lwc_open_failed')
-      );
-      channelService.appendLine(
-        `Error opening local development server: ${e.message}`
-      );
-      channelService.showChannelOutput();
-      telemetryService.sendException(`${logName}_error`, e.message);
+      showError(e, logName, commandName);
     }
   } else {
     console.log(`${logName}: server was not running, starting...`);

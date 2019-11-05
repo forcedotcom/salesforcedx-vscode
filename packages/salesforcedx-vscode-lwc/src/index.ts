@@ -23,6 +23,7 @@ import {
 } from 'vscode-languageclient';
 import {
   forceLightningLwcOpen,
+  forceLightningLwcPreview,
   forceLightningLwcStart,
   forceLightningLwcStop
 } from './commands';
@@ -49,33 +50,33 @@ export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
 
-  // if activationMode is off, don't startup no matter what
+  // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
     console.log('LWC Language Server activationMode set to off, exiting...');
     return;
   }
 
-  // if we have no workspace folders, exit
+  // If we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
     console.log('No workspace, exiting extension');
     return;
   }
 
-  // if activationMode is autodetect or always, check workspaceType before startup
+  // If activationMode is autodetect or always, check workspaceType before startup
   const workspaceType = lspCommon.detectWorkspaceType(
     workspace.workspaceFolders[0].uri.fsPath
   );
 
-  // check if we have a valid project structure
+  // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
-    // if activationMode === autodetect and we don't have a valid workspace type, exit
+    // If activationMode === autodetect and we don't have a valid workspace type, exit
     console.log(
       'LWC LSP - autodetect did not find a valid project structure, exiting....'
     );
     console.log('WorkspaceType detected: ' + workspaceType);
     return;
   }
-  // if activationMode === always, ignore workspace type and continue activating
+  // If activationMode === always, ignore workspace type and continue activating
 
   // register commands
   const commands = registerCommands(context);
@@ -128,6 +129,10 @@ function registerCommands(
     vscode.commands.registerCommand(
       'sfdx.force.lightning.lwc.open',
       forceLightningLwcOpen
+    ),
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.preview',
+      forceLightningLwcPreview
     )
   );
 }
