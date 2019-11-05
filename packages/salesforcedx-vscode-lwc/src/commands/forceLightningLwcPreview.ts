@@ -4,8 +4,8 @@ import * as open from 'open';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import { showError } from './commandUtils';
 import { lwcDevServerPreviewRoute } from './commandConstants';
+import { showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
 const sfdxCoreExports = vscode.extensions.getExtension(

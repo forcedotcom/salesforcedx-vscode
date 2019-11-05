@@ -1,6 +1,6 @@
-import { showError } from '../../../src/commands/commandUtils';
-import * as vscode from 'vscode';
 import * as sinon from 'sinon';
+import * as vscode from 'vscode';
+import { showError } from '../../../src/commands/commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'

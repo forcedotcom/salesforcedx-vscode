@@ -9,8 +9,8 @@ import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import { showError } from './commandUtils';
 import { lwcDevServerBaseUrl } from './commandConstants';
+import { showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
