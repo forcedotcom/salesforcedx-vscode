@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { DevServerService } from '../../../src/service/devServerService';
 
+// tslint:disable:no-unused-expression
 describe('DevServerService', () => {
   describe('get instance', () => {
     it('return the same instance', async () => {
