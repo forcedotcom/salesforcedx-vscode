@@ -16,7 +16,7 @@ describe('DevServerService', () => {
     it('registers the handler', () => {
       const instance = new DevServerService();
       const handler = {
-        stop: sinon.fake()
+        stop: sinon.spy()
       };
       instance.registerServerHandler(handler);
       expect(instance.isServerHandlerRegistered()).to.be.true;
@@ -25,10 +25,10 @@ describe('DevServerService', () => {
     it('throws an error if a handler is already registered', () => {
       const instance = new DevServerService();
       const handler1 = {
-        stop: sinon.fake()
+        stop: sinon.spy()
       };
       const handler2 = {
-        stop: sinon.fake()
+        stop: sinon.spy()
       };
       instance.registerServerHandler(handler1);
 
@@ -49,7 +49,7 @@ describe('DevServerService', () => {
     it('clears the server handler', () => {
       const instance = new DevServerService();
       const handler = {
-        stop: sinon.fake()
+        stop: sinon.spy()
       };
 
       instance.registerServerHandler(handler);
@@ -68,7 +68,7 @@ describe('DevServerService', () => {
   describe('stopServer', () => {
     it('calls `stop` on the handler', async () => {
       const instance = new DevServerService();
-      const stopMethod = sinon.fake();
+      const stopMethod = sinon.spy();
       const handler = { stop: stopMethod };
 
       instance.registerServerHandler(handler);
@@ -80,7 +80,7 @@ describe('DevServerService', () => {
     it('clears the server handler', async () => {
       const instance = new DevServerService();
       const handler = {
-        stop: sinon.fake()
+        stop: sinon.spy()
       };
 
       instance.registerServerHandler(handler);
