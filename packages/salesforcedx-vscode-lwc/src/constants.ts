@@ -7,3 +7,5 @@
 
 export const ESLINT_NODEPATH_CONFIG = 'eslint.nodePath';
 export const LWC_EXTENSION_NAME = 'salesforcedx-vscode-lwc';
+export const MANAGE_ESLINT_NODEPATH =
+  'salesforcedx-vscode-lwc.manageEslintNodepath';
