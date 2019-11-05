@@ -12,10 +12,6 @@ const {
 } = sfdxCoreExports;
 
 describe('command utilities', () => {
-  afterEach(() => {
-    sinon.restore();
-  });
-
   describe('showError', () => {
     it('should call the telemetry service', async () => {
       const spy = sinon.spy(telemetryService, 'sendException');
