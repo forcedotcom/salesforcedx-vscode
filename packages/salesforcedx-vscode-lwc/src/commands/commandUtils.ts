@@ -10,7 +10,7 @@ const {
   telemetryService
 } = sfdxCoreExports;
 
-export function showError(e: Error, logName: string, commandName?: string) {
+export function showError(e: Error, logName: string, commandName: string) {
   telemetryService.sendException(`${logName}_error`, e.message);
   notificationService.showErrorMessage(
     nls.localize('command_failure', commandName)

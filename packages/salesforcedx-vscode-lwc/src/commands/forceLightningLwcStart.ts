@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { showError } from './commandUtils';
-import { lwcDevServerBaseUrl } from './constants';
+import { lwcDevServerBaseUrl } from './commandConstants';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
