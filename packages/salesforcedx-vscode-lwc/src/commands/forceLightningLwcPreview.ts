@@ -3,7 +3,7 @@ import { componentUtil } from 'lightning-lsp-common';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import { lwcDevServerPreviewRoute } from './commandConstants';
+import { DEV_SERVER_PREVIEW_ROUTE } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
@@ -44,7 +44,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  const fullUrl = `${lwcDevServerPreviewRoute}/${componentName}`;
+  const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {

@@ -1,7 +1,7 @@
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { lwcDevServerBaseUrl } from '../../../src/commands/commandConstants';
+import { DEV_SERVER_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import { forceLightningLwcOpen } from '../../../src/commands/forceLightningLwcOpen';
 import { DevServerService } from '../../../src/service/devServerService';
@@ -28,7 +28,7 @@ describe('forceLightningLwcOpen', () => {
     await forceLightningLwcOpen();
 
     sinon.assert.calledOnce(openBrowserStub);
-    sinon.assert.calledWith(openBrowserStub, sinon.match(lwcDevServerBaseUrl));
+    sinon.assert.calledWith(openBrowserStub, sinon.match(DEV_SERVER_BASE_URL));
   });
 
   it('starts the server if it is not running yet', async () => {

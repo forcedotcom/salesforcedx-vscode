@@ -8,7 +8,7 @@ import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import { lwcDevServerBaseUrl } from './commandConstants';
+import { DEV_SERVER_BASE_URL } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -99,7 +99,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         notificationService.showSuccessfulExecution(executionName);
 
         if (this.options.openBrowser) {
-          await openBrowser(this.options.fullUrl || lwcDevServerBaseUrl);
+          await openBrowser(this.options.fullUrl || DEV_SERVER_BASE_URL);
         }
 
         this.logMetric(execution.command.logName, startTime);
@@ -155,7 +155,7 @@ export async function forceLightningLwcStart() {
       restartOption
     );
     if (response === openBrowserOption) {
-      await openBrowser(lwcDevServerBaseUrl);
+      await openBrowser(DEV_SERVER_BASE_URL);
       return;
     } else if (response === restartOption) {
       channelService.appendLine(

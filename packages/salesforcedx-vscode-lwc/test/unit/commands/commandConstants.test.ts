@@ -1,19 +1,19 @@
 import { expect } from 'chai';
 import {
-  lwcDevServerBaseUrl,
-  lwcDevServerPreviewRoute
+  DEV_SERVER_BASE_URL,
+  DEV_SERVER_PREVIEW_ROUTE
 } from '../../../src/commands/commandConstants';
 
 describe('force:lightning:lwc:start constants', () => {
   describe('base url', () => {
     it('should include localhost', async () => {
-      expect(lwcDevServerBaseUrl).to.include('localhost');
+      expect(DEV_SERVER_BASE_URL).to.include('localhost');
     });
   });
 
   describe('preview route', () => {
     it('should include the base url', async () => {
-      expect(lwcDevServerPreviewRoute).to.include(lwcDevServerBaseUrl);
+      expect(DEV_SERVER_PREVIEW_ROUTE).to.include(DEV_SERVER_BASE_URL);
     });
   });
 });

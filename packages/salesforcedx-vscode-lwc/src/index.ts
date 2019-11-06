@@ -49,14 +49,14 @@ function protocol2CodeConverter(value: string) {
 export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
-
+  // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
     console.log('LWC Language Server activationMode set to off, exiting...');
     return;
   }
 
-  // If we have no workspace folders, exit
+  // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
     console.log('No workspace, exiting extension');
     return;
@@ -82,7 +82,7 @@ export async function activate(context: ExtensionContext) {
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
 
-  // if we get here, we either passed autodetect validation or activationMode == always
+  // If we get here, we either passed autodetect validation or activationMode == always
   console.log('Lightning Web Components Extension Activated');
   console.log('WorkspaceType detected: ' + workspaceType);
 

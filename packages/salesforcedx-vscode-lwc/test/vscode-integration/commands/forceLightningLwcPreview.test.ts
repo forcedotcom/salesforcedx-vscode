@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { lwcDevServerPreviewRoute } from '../../../src/commands/commandConstants';
+import { DEV_SERVER_PREVIEW_ROUTE } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import { forceLightningLwcPreview } from '../../../src/commands/forceLightningLwcPreview';
 import { DevServerService } from '../../../src/service/devServerService';
@@ -60,7 +60,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${lwcDevServerPreviewRoute}/c/foo`)
+      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
     );
   });
 
@@ -90,7 +90,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${lwcDevServerPreviewRoute}/c/foo`)
+      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
     );
   });
 
@@ -116,7 +116,6 @@ describe('forceLightningLwcPreview', () => {
     });
 
     const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
-
     await forceLightningLwcPreview(sourceUri);
 
     sinon.assert.calledOnce(commandletStub);

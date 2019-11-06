@@ -8,7 +8,7 @@ import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { lwcDevServerBaseUrl } from '../../../src/commands/commandConstants';
+import { DEV_SERVER_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   forceLightningLwcStart,
@@ -161,10 +161,14 @@ describe('forceLightningLwcStart', () => {
         cliCommandExecutorStub.returns(fakeExecution);
 
         executor.execute({ type: 'CONTINUE', data: {} });
+
         fakeExecution.stdoutSubject.next('foo');
         fakeExecution.stdoutSubject.next('bar');
-        fakeExecution.stdoutSubject.next('Server up');
+        sinon.assert.notCalled(
+          notificationServiceStubs.showSuccessfulExecutionStub
+        );
 
+        fakeExecution.stdoutSubject.next('Server up');
         sinon.assert.calledOnce(
           notificationServiceStubs.showSuccessfulExecutionStub
         );
@@ -181,7 +185,7 @@ describe('forceLightningLwcStart', () => {
         sinon.assert.calledOnce(openBrowserStub);
         sinon.assert.calledWith(
           openBrowserStub,
-          sinon.match(lwcDevServerBaseUrl)
+          sinon.match(DEV_SERVER_BASE_URL)
         );
       });
 
@@ -239,7 +243,6 @@ describe('forceLightningLwcStart', () => {
     let sandbox: SinonSandbox;
     let showWarningStub: SinonStub;
     let devServiceStub: any;
-    let openBrowserStub: SinonStub;
     let commandletStub: SinonStub;
 
     beforeEach(() => {
@@ -248,8 +251,8 @@ describe('forceLightningLwcStart', () => {
       devServiceStub = sinon.createStubInstance(DevServerService);
       sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
 
+      sandbox.stub(commandUtils, 'openBrowser');
       commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
-      openBrowserStub = sandbox.stub(commandUtils, 'openBrowser');
       showWarningStub = sandbox.stub(notificationService, 'showWarningMessage');
     });
 
