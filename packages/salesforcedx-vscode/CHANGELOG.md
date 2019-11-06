@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Update Org Browser to use default org when the view is opened ([PR #1763](https://github.com/forcedotcom/salesforcedx-vscode/pull/1763))
+- Update Org Browser to use default org when the view is opened ([PR #1763](https://github.com/forcedotcom/salesforcedx-vscode/pull/1763), [Issue #1761](https://github.com/forcedotcom/salesforcedx-vscode/issues/1761))
 
 ## Added
 
