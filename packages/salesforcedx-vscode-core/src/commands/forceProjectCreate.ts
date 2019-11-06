@@ -32,9 +32,9 @@ import {
 } from './util';
 
 export enum projectTemplateEnum {
-  standard = 'standard',
-  empty = 'empty',
-  analytics = 'analytics'
+  standard = 'Standard',
+  empty = 'Empty',
+  analytics = 'Analytics'
 }
 
 type forceProjectCreateOptions = {
