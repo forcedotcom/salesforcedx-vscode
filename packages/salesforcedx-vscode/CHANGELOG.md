@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Org Browser updates to default org when opening the sidebar ([PR #1763](https://github.com/forcedotcom/salesforcedx-vscode/pull/1763))
+- Update Org Browser to use default org when the view is opened ([PR #1763](https://github.com/forcedotcom/salesforcedx-vscode/pull/1763))
 
 ## Added
 
