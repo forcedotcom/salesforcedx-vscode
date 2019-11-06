@@ -4,13 +4,12 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as open from 'open';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { lwcDevServerBaseUrl } from './commandConstants';
-import { showError } from './commandUtils';
+import { openBrowser, showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -100,7 +99,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         notificationService.showSuccessfulExecution(executionName);
 
         if (this.options.openBrowser) {
-          await open(this.options.fullUrl || lwcDevServerBaseUrl);
+          await openBrowser(this.options.fullUrl || lwcDevServerBaseUrl);
         }
 
         this.logMetric(execution.command.logName, startTime);
@@ -156,7 +155,7 @@ export async function forceLightningLwcStart() {
       restartOption
     );
     if (response === openBrowserOption) {
-      await open(lwcDevServerBaseUrl);
+      await openBrowser(lwcDevServerBaseUrl);
       return;
     } else if (response === restartOption) {
       channelService.appendLine(

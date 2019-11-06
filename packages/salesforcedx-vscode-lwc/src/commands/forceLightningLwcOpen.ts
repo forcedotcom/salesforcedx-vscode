@@ -1,9 +1,8 @@
-import * as open from 'open';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { lwcDevServerBaseUrl } from './commandConstants';
-import { showError } from './commandUtils';
+import { openBrowser, showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -18,7 +17,7 @@ export async function forceLightningLwcOpen() {
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {
-      await open(lwcDevServerBaseUrl);
+      await openBrowser(lwcDevServerBaseUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
       showError(e, logName, commandName);

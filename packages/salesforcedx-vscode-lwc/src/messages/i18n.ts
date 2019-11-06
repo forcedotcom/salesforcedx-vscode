@@ -33,7 +33,7 @@ export const messages = {
   force_lightning_lwc_stop_in_progress: 'Stopping local development server',
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
   force_lightning_lwc_preview_no_file:
-    'The LWC module is not specified or does not exist',
+    'The LWC module is not specified or does not exist: %s',
   force_lightning_lwc_preview_unsupported:
     "'%s' is not a recognizable LWC module",
   force_lightning_lwc_open_text:

@@ -1,3 +1,4 @@
+import * as open from 'open';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -17,4 +18,8 @@ export function showError(e: Error, logName: string, commandName: string) {
   );
   channelService.appendLine(`Error: ${e.message}`);
   channelService.showChannelOutput();
+}
+
+export function openBrowser(url: string) {
+  return open(url);
 }

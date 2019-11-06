@@ -28,6 +28,8 @@ describe('command utilities', () => {
         `force_lightning_lwc_start_test_error`,
         'test error message'
       );
+
+      spy.restore();
     });
 
     it('should call the notification service', () => {
@@ -44,6 +46,8 @@ describe('command utilities', () => {
         spy,
         sinon.match('SFDX: Start Local Development Server')
       );
+
+      spy.restore();
     });
 
     it('should send a message to the channel', () => {
@@ -57,6 +61,8 @@ describe('command utilities', () => {
 
       sinon.assert.calledOnce(spy);
       sinon.assert.calledWith(spy, `Error: test error message`);
+
+      spy.restore();
     });
 
     it('should show the channel output', () => {
@@ -69,6 +75,8 @@ describe('command utilities', () => {
       );
 
       sinon.assert.calledOnce(spy);
+
+      spy.restore();
     });
   });
 });

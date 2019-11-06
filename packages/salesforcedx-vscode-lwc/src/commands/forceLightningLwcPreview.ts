@@ -1,11 +1,10 @@
 import * as fs from 'fs';
 import { componentUtil } from 'lightning-lsp-common';
-import * as open from 'open';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { lwcDevServerPreviewRoute } from './commandConstants';
-import { showError } from './commandUtils';
+import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -49,7 +48,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {
-      await open(fullUrl);
+      await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
       showError(e, logName, commandName);
