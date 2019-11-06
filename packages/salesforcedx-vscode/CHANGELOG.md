@@ -1,3 +1,17 @@
+# 47.5.0 - November 7, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Org Browser updates to default org when opening the sidebar ([PR #1763](https://github.com/forcedotcom/salesforcedx-vscode/pull/1763))
+
+## Added
+
+#### docs
+
+- Add code formatting to command help for LWC [local development](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) ([PR #1722](https://github.com/forcedotcom/salesforcedx-vscode/pull/1722))
+
 # 47.4.0 - October 31, 2019
 
 ## Fixed
