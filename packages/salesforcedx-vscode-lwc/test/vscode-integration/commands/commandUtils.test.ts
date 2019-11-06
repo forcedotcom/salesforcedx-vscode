@@ -59,8 +59,8 @@ describe('command utilities', () => {
       sinon.assert.calledWith(spy, `Error: test error message`);
     });
 
-    it('should open the channel', () => {
-      const spy = sinon.spy(channelService, 'openChannel');
+    it('should show the channel output', () => {
+      const spy = sinon.spy(channelService, 'showChannelOutput');
 
       showError(
         new Error('test error message'),

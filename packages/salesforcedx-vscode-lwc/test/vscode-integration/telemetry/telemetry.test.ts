@@ -10,7 +10,7 @@ import { TelemetryService } from '../../../src/telemetry/telemetry';
 
 describe('Telemetry', () => {
   let reporter: TelemetryReporter;
-  let sendEvent: any;
+  let sendEvent: SinonStub;
 
   beforeEach(() => {
     reporter = new TelemetryReporter(
