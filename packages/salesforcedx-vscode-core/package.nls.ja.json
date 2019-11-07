@@ -53,13 +53,9 @@
   "force_source_delete_text": "SFDX: プロジェクトおよび組織から削除",
   "force_source_delete_this_source_text": "SFDX: このソースをプロジェクトと組織から削除",
   "force_config_set_org_text": "SFDX: デフォルトの組織を設定",
-  "internal_dev_description": "限定された SFDX コマンドを提供する内部開発モードを設定するかどうかを指定します。",
   "refresh_types_text": "メタデータ型を更新",
   "refresh_components_text": "コンポーネントを更新",
   "force_source_retrieve_display_text": "組織からソースを取得",
-<<<<<<< HEAD
-  "org_browser_enabled_description": "(ベータ) デフォルトの組織が非スクラッチ組織の場合に、組織ブラウザビューを表示するかどうかを指定します。組織ブラウザの[ドキュメント](https://forcedotcom.github.io/salesforcedx-vscode/user-guide/org-browser)を参照してください。"
-=======
-  "org_browser_enabled_description": "(ベータ) デフォルトの組織が非スクラッチ組織の場合に、組織ブラウザビューを表示するかどうかを指定します。組織ブラウザの [ドキュメント] (https://forcedotcom.github.io/salesforcedx-vscode/user-guide/org-browser) を参照してください。"
->>>>>>> a6ce49f2... JA style updates
+  "org_browser_enabled_description": "(ベータ) デフォルトの組織が非スクラッチ組織の場合に、組織ブラウザビューを表示するかどうかを指定します。組織ブラウザの [ドキュメント] (https://forcedotcom.github.io/salesforcedx-vscode/user-guide/org-browser) を参照してください。",
+  "force_diff_against_org": "組織のファイルとの差分を表示"
 }

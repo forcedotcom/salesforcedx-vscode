@@ -134,11 +134,17 @@ export const messages = {
     '指定されたパスを使用した 1 つ以上の %s ファイルがワークスペース上に既に存在します。上書きしてもよろしいですか？',
   warning_prompt_dir_overwrite:
     '指定されたプロジェクト名は選択されたディレクトリ上に既に存在します。上書きしてもよろしいですか？',
-  warning_prompt_cmp_file_overwrite:
-    '同じ名前のファイル %s がワークスペース上に既に存在します。コンポーネントを取得するとファイルが上書きされる可能性があります。よろしいですか？',
   warning_prompt_continue_confirm: '続ける',
-  warning_prompt_overwrite_confirm: '上書き',
   warning_prompt_overwrite_cancel: 'キャンセル',
+  warning_prompt_overwrite_message:
+    '上書きしてもよろしいですか？ %s:%s?\n\n%s\n\n%s',
+  warning_prompt_overwrite: '上書き',
+  warning_prompt_overwrite_all: 'すべて上書き',
+  warning_prompt_skip: 'スキップ',
+  warning_prompt_skip_all: 'すべてスキップ',
+  warning_prompt_other_existing: '%s つの既存コンポーネント',
+  warning_prompt_other_not_shown:
+    '...表示されていない残り %s つのコンポーネント\n',
   force_config_list_text: 'SFDX: すべての設定変数を一覧表示',
   force_alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
   force_org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
@@ -157,6 +163,11 @@ export const messages = {
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   force_project_create_text: 'SFDX: プロジェクトを作成',
   force_project_create_open_dialog_create_label: 'プロジェクトを作成',
+  force_project_create_standard_template:
+    '標準のプロジェクトテンプレート (デフォルト)',
+  force_project_create_empty_template: '空のプロジェクトテンプレート',
+  force_project_create_analytics_template:
+    'Analytics のプロジェクトテンプレート',
   force_apex_trigger_create_text: 'SFDX: Apex トリガを作成',
   force_start_apex_debug_logging:
     'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
@@ -272,9 +283,14 @@ export const messages = {
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
+  error_invalid_org_alias: '別名にはアンダースコアと英数字のみを使用できます。',
+  error_invalid_expiration_days:
+    '日数には 1 から 30 までの数値を指定してください。',
   error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
   error_org_browser_text:
     '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
+  error_org_browser_init: '組織ブラウザが初期化されませんでした。',
+  error_overwrite_prompt: '既存コンポーネントのワークスペース確認中にエラー',
   force_list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
@@ -469,7 +485,7 @@ export const messages = {
     'このメタデータ型に対する差分は現在サポートされていません。',
   force_source_diff_title: '%s//%s ↔ ローカル //%s',
   force_source_diff_command_not_found:
-    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、[https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/](https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/) を参照してください。',
+    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/ を参照してください。',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...'

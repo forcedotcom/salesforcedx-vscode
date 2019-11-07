@@ -54,5 +54,8 @@ export const messages = {
   force_sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   apex_language_server_failed_activate:
-    'Apex 言語サーバを有効化できませんでした。'
+    'Apex 言語サーバを有効化できませんでした。',
+  sobject_refresh_all: 'すべてのオブジェクト',
+  sobject_refresh_custom: 'カスタムオブジェクト',
+  sobject_refresh_standard: '標準オブジェクト'
 };
