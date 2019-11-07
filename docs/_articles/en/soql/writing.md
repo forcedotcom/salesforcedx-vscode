@@ -15,7 +15,7 @@ To develop with the SOQL language server, create a `.soql` file. We recommend th
 
 ## View Code Completion Suggestions
 
-You must refresh the SObject definitions so that the SOQL language server can provide code completion suggestions. Run `SFDX: Refresh SObject Defintions` from the Command Palette.
+You must refresh the SObject definitions so that the SOQL language server can provide code completion suggestions. Run `SFDX: Refresh SObject Definitions` from the Command Palette.
 
 - To see code completion suggestions, press Ctrl+space when you’re working in a `.soql` file.
 - To navigate between the suggestions, use the arrow keys.
