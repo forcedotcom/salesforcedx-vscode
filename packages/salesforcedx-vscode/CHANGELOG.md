@@ -4,13 +4,18 @@
 
 #### salesforcedx-vscode-core
 
-- Update Org Browser to use default org when the view is opened ([PR #1763](https://github.com/forcedotcom/salesforcedx-vscode/pull/1763), [Issue #1761](https://github.com/forcedotcom/salesforcedx-vscode/issues/1761))
+- Update Org Browser to use the current default org and display the correct alias in the org picker ([PR #1763](https://github.com/forcedotcom/salesforcedx-vscode/pull/1763), [Issue #1761](https://github.com/forcedotcom/salesforcedx-vscode/issues/1761))
 
 ## Added
 
+#### salesforcedx-vscode-apex
+
+- Autocompletion for constructors when instantiating a new SObject ([PR #1776](https://github.com/forcedotcom/salesforcedx-vscode/pull/1776), [Issue #920](https://github.com/forcedotcom/salesforcedx-vscode/issues/920))
+
+
 #### docs
 
-- Add code formatting to command help for LWC [local development](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) ([PR #1722](https://github.com/forcedotcom/salesforcedx-vscode/pull/1722))
+- Add code formatting to the command to view LWC [local development](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) help ([PR #1722](https://github.com/forcedotcom/salesforcedx-vscode/pull/1722))
 
 # 47.4.0 - October 31, 2019
 
