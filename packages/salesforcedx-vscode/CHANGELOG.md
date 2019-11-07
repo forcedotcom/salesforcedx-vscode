@@ -1,3 +1,45 @@
+# 47.4.0 - October 31, 2019
+
+## Fixed
+
+#### docs
+
+- Fix layout used by articles ([PR #1734](https://github.com/forcedotcom/salesforcedx-vscode/pull/1734))
+- Fixed broken image links ([PR #1753](https://github.com/forcedotcom/salesforcedx-vscode/pull/1753))
+- Fix documentation for [Local Development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) ([PR #1736](https://github.com/forcedotcom/salesforcedx-vscode/pull/1736))
+
+#### salesforcedx-vscode-apex
+
+- Apex Test Sidebar support for namespaces ([PR #1731](https://github.com/forcedotcom/salesforcedx-vscode/pull/1731), [Issue #1701](https://github.com/forcedotcom/salesforcedx-vscode/issues/1701))
+
+#### salesforcedx-vscode-core
+
+- Refresh session token when it expires while running `SFDX: Refresh SObject Definitions` command ([PR #1739](https://github.com/forcedotcom/salesforcedx-vscode/pull/1739), [Issue #1702](https://github.com/forcedotcom/salesforcedx-vscode/issues/1702))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Input validations for alias and expiration days when running `SFDX: Create a Default Scratch Org` command ([PR #1729](https://github.com/forcedotcom/salesforcedx-vscode/pull/1729), [Issue #1708](https://github.com/forcedotcom/salesforcedx-vscode/issues/1708))—Contribution by [@maaaaarco](https://github.com/maaaaarco)
+
+# 47.3.0 - October 28, 2019
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable diff for layouts and permission sets in `SFDX: Diff File Against Org` command ([PR #1713](https://github.com/forcedotcom/salesforcedx-vscode/pull/1713))
+
+- Added the `analytics` template option to the `SFDX: Project Create` command ([PR #1730](https://github.com/forcedotcom/salesforcedx-vscode/pull/1730))
+
+#### salesforcedx-vscode-apex
+
+- Open beta for SOQL Language Server that provides code completion suggestions for SOQL queries ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
+
+#### docs
+
+- [Write SOQL Queries](https://forcedotcom.github.io/salesforcedx-vscode/articles/soql/writing) documentation for SOQL language server ([PR #1741](https://github.com/forcedotcom/salesforcedx-vscode/pull/1741))
+
 # 47.2.0 - October 17, 2019
 
 ## Fixed

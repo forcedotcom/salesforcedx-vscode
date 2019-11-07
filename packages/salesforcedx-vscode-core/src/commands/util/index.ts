@@ -8,11 +8,7 @@ export {
   SourcePathStrategy,
   PathStrategyFactory
 } from './sourcePathStrategies';
-export { GlobStrategy, GlobStrategyFactory } from './globStrategies';
-export {
-  FilePathExistsChecker,
-  OverwriteComponentPrompt
-} from './postconditionCheckers';
+export { OverwriteComponentPrompt } from './postconditionCheckers';
 export {
   SimpleGatherer,
   EmptyParametersGatherer,
@@ -21,6 +17,7 @@ export {
   FileSelection,
   FileSelector,
   FilePathGatherer,
+  MetadataTypeGatherer,
   SelectOutputDir,
   SelectFileName,
   SelectUsername

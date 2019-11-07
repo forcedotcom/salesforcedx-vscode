@@ -29,11 +29,9 @@ describe('Force Apex Class Create', () => {
     expect(classCreate.getDefaultDirectory()).to.equal('classes');
     expect(classCreate.getFileExtension()).to.equal('.cls');
     expect(
-      classCreate.sourcePathStrategy.getPathToSource(
-        outputDirPath,
-        fileName,
-        '.cls'
-      )
+      classCreate
+        .getSourcePathStrategy()
+        .getPathToSource(outputDirPath, fileName, '.cls')
     ).to.equal(path.join(outputDirPath, `${fileName}.cls`));
   });
 });

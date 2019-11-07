@@ -1,4 +1,11 @@
-const summaryOneFile = {
+/*
+ * Copyright (c) 2019, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+export const summaryOneFile = {
   outcome: 'Pass',
   testsRan: 1,
   passing: 1,
@@ -17,7 +24,7 @@ const summaryOneFile = {
   userId: '1'
 };
 
-const summaryMultipleFiles = {
+export const summaryMultipleFiles = {
   outcome: 'Pass',
   testsRan: 8,
   passing: 6,
@@ -40,8 +47,9 @@ const fakeApexClass = {
   attributes: { type: 'FakeType' },
   Id: 'fakeId',
   Name: 'fakeName',
-  NamespacPrefix: 'fakeNamespace'
+  NamespacePrefix: ''
 };
+
 const testResultsOneFile = [
   {
     ApexClass: fakeApexClass,
