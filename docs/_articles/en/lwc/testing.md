@@ -7,7 +7,7 @@ Install [`sfdx-lwc-jest`](https://developer.salesforce.com/docs/component-librar
 
 ## Explore Your LWC Tests
 
-The LWC Tests sidebar provides several features. Here, you can see all your LWC tests at a glance. You can run one test case, the test cases in one file, or all your tests. You can navigate to the corresponding lines in your test code. You can view the results of your last test run. To access this sidebar, click the beaker icon (hover text: Test) in the view bar on the left side of the VS Code window. (If you don’t see this icon, make sure that the project you have open in VS Code contains an sfdx-project.json file in its root directory.)
+The LWC Tests sidebar provides a central location for you to run tests on the code you write. You can run one test case, the test cases in one file, or all your tests. You can also view the results of the last tests run and navigate to the corresponding lines of code directly from the tests. To access the test sidebar, click the beaker icon (hover text: Test) in the View bar. If you don't see this icon, make sure the project you have open in VS Code contains an sfdx-project.json file in its root directory.
 
 To run selected tests, hover over the name of a test case or file to reveal a play icon from the LWC test view. Click the play icon (hover text: SFDX: Run Lightning Web Component Test Case, SFDX: Run Lightning Web Component Test File) to run a test case or all the test cases in a file. To run all of tests in the view, click the larger play icon at the top of the LWC Tests view (hover text: SFDX: Run All Lightning Web Component Tests).
 
