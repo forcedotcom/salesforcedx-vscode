@@ -165,6 +165,9 @@ export const messages = {
   force_project_create_open_dialog_create_label: 'プロジェクトを作成',
   force_project_create_standard_template:
     '標準のプロジェクトテンプレート (デフォルト)',
+  force_project_create_standard_template_display_text: '標準',
+  force_project_create_empty_template_display_text: '空',
+  force_project_create_analytics_template_display_text: 'Analytics',
   force_project_create_empty_template: '空のプロジェクトテンプレート',
   force_project_create_analytics_template:
     'Analytics のプロジェクトテンプレート',
