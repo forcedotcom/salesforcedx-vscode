@@ -19,7 +19,7 @@ To clear your test results, click the refresh icon at the top of the sidebar (ho
 
 ## Run, Debug or Watch Jest Tests from Within a File
 
-You can run or debug Jest unit tests in contextual actions within your file, or by clicking buttons from the menu bar in the top right corner of the editor window. Results from your test run display in the Terminal panel.
+You can run or debug Jest unit tests in contextual actions within the file, or by clicking buttons from the menu bar in the top right corner of the editor window. View test results in the Terminal panel.
 
 #### Run Jest Tests
 
