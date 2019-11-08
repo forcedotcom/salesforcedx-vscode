@@ -34,6 +34,7 @@ export interface CommandletExecutor<T> {
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected showChannelOutput = true;
+  protected executionCwd = getRootWorkspacePath();
 
   protected attachExecution(
     execution: CommandExecution,
@@ -67,7 +68,7 @@ export abstract class SfdxCommandletExecutor<T>
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath(),
+      cwd: this.executionCwd,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 

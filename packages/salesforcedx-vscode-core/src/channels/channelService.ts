@@ -53,7 +53,7 @@ export class ChannelService {
         this.getExecutionTime() + ' ' + execution.command.toCommand()
       );
       this.channel.append(' ');
-      if (data !== undefined) {
+      if (data !== undefined && data !== null) {
         this.channel.appendLine(
           nls.localize('channel_end_with_exit_code', data.toString())
         );
