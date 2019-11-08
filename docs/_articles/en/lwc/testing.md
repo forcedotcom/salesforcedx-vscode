@@ -13,7 +13,7 @@ To run selected tests, hover over the name of a test case or file to reveal a pl
 
 After you run tests, the blue icons next to your test files and test cases change to green icons (for passing tests), or red icons (for failing tests), or orange icons (for skipped tests).
 
-To jump to the test file, or a test case, click its name in the sidebar.
+To jump to the test file, or a test case, click the test name in the sidebar.
 
 To clear your test results, click the refresh icon at the top of the sidebar (hover text: SFDX: Refresh Lightning Web Component Test Explorer).
 
