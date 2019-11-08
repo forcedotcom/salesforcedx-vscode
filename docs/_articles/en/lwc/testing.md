@@ -29,7 +29,7 @@ To run all test cases in a Jest test file, click the play icon on the menu bar i
 
 #### Debug Jest Tests
 
-To debug individual Jest test cases, in your `.test.js` file, click **Debug Test** above the definition of a Jest test case.
+To debug individual Jest test cases, navigate to the `.test.js` file and click **Debug Test** above the definition of a Jest test case.
 
 To debug all test cases in a Jest test file, click the debug icon on the menu bar in the top right corner of the editor window.
 
