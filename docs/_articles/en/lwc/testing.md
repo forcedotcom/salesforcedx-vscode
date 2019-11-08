@@ -11,7 +11,7 @@ The LWC Tests sidebar provides a central location for you to run tests on the co
 
 To run selected tests, hover over the name of a test case or file to reveal a play icon from the LWC test view. Click the play icon (hover text: SFDX: Run Lightning Web Component Test Case, SFDX: Run Lightning Web Component Test File) to run a test case or all the test cases in a file. To run all of tests in the view, click the larger play icon at the top of the LWC Tests view (hover text: SFDX: Run All Lightning Web Component Tests).
 
-After you run tests, the blue icons next to your test files and test cases change to green icons (for passing tests), or red icons (for failing tests), or orange icons (for skipped tests).
+Test results are noted as follows: green for passing tests, red for failing tests, or orange for skipped tests.
 
 To jump to the test file, or a test case, click the test name in the sidebar.
 
