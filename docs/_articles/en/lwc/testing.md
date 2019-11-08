@@ -23,7 +23,7 @@ You can run or debug Jest unit tests in contextual actions within the file, or b
 
 #### Run Jest Tests
 
-To run individual Jest test cases, in your `.test.js` file, click **Run Test** above the definition of a Jest test case.
+To run individual Jest test cases, navigate to the `.test.js` file and click **Run Test** above the definition of a Jest test case.
 
 To run all test cases in a Jest test file, click the play icon on the menu bar in the top right corner of the editor window.
 
