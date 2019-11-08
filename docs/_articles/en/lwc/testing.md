@@ -33,7 +33,7 @@ To debug individual Jest test cases, in your `.test.js` file, click **Debug Test
 
 To debug all test cases in a Jest test file, click the debug icon on the menu bar in the top right corner of the editor window.
 
-VS Code's built-in debugger will launch and you can debug your test inside VS Code. You can set [Breakpoints](https://code.visualstudio.com/docs/editor/debugging#_breakpoints), control the debugging session by [Debug Actions](https://code.visualstudio.com/docs/editor/debugging#_debug-actions) or use [Debug Console](https://code.visualstudio.com/docs/editor/debugging#_debug-console-repl) to evaluate expressions.
+VS Code's built-in debugger launches for you to debug the test in VS Code. You can set [Breakpoints](https://code.visualstudio.com/docs/editor/debugging#_breakpoints), control the debugging session by [Debug Actions](https://code.visualstudio.com/docs/editor/debugging#_debug-actions) or use [Debug Console](https://code.visualstudio.com/docs/editor/debugging#_debug-console-repl) to evaluate expressions.
 
 #### Watch Jest Tests
 
