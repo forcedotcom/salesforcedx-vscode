@@ -200,7 +200,7 @@ describe('forceLightningLwcStart', () => {
 
         const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
-        sinon.assert.calledOnce(notificationServiceStubs.showErrorMessageStub);
+        sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
           notificationServiceStubs.showErrorMessageStub,
           sinon.match(nls.localize('command_failure', commandName))
@@ -224,7 +224,7 @@ describe('forceLightningLwcStart', () => {
 
         const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
-        sinon.assert.calledOnce(notificationServiceStubs.showErrorMessageStub);
+        sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
         sinon.assert.calledWith(
           notificationServiceStubs.showErrorMessageStub,
           sinon.match(nls.localize('command_failure', commandName))

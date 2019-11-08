@@ -41,7 +41,7 @@ describe('command utilities', () => {
         'SFDX: Start Local Development Server'
       );
 
-      sinon.assert.calledOnce(spy);
+      sinon.assert.calledTwice(spy);
       sinon.assert.calledWith(
         spy,
         sinon.match('SFDX: Start Local Development Server')
