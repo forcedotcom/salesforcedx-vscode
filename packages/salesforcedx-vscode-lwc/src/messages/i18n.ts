@@ -23,10 +23,13 @@ export const messages = {
   force_lightning_lwc_start_text: 'SFDX: Start Local Development Server',
   force_lightning_lwc_start_not_found:
     'This command requires installing the @salesforce/lwc-dev-server plugin. For detailed instructions go to https://developer.salesforce.com/tools/vscode/en/lwc/localdev',
+  force_lightning_lwc_start_failed:
+    'The local development server was not able to start',
   force_lightning_lwc_start_exited:
     'The local development server exited unexpectedly with code %s',
   force_lightning_lwc_start_already_running:
     'The local development server is already running',
+  force_lightning_lwc_start_stopping: 'Stopping the local development server',
   force_lightning_lwc_stop_text: 'SFDX: Stop Local Development Server',
   force_lightning_lwc_stop_not_running:
     'The local development server is not running',

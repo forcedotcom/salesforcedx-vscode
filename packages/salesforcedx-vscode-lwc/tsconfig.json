@@ -11,12 +11,7 @@
     "rootDir": ".",
     "outDir": "out",
     "preserveConstEnums": true,
-    "strict": true,
-
-    "baseUrl": ".",
-    "paths": {
-      "open": ["typings/open"]
-    }
+    "strict": true
   },
   "exclude": ["node_modules", ".vscode-test", "out"]
 }

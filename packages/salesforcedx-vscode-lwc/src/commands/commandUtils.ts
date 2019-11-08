@@ -1,4 +1,3 @@
-import * as open from 'open';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -21,5 +20,5 @@ export function showError(e: Error, logName: string, commandName: string) {
 }
 
 export function openBrowser(url: string) {
-  return open(url);
+  return vscode.env.openExternal(vscode.Uri.parse(url));
 }

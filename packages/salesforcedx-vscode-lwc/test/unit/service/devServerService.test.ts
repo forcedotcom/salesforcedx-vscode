@@ -22,27 +22,21 @@ describe('DevServerService', () => {
       instance.registerServerHandler(handler);
       expect(instance.isServerHandlerRegistered()).to.be.true;
     });
-
-    it('throws an error if a handler is already registered', () => {
-      const instance = new DevServerService();
-      const handler1 = {
-        stop: sinon.spy()
-      };
-      const handler2 = {
-        stop: sinon.spy()
-      };
-      instance.registerServerHandler(handler1);
-
-      expect(() => {
-        instance.registerServerHandler(handler2);
-      }).to.throw('already running');
-    });
   });
 
   describe('isServerHandlerRegistered', () => {
     it('returns false if nothing is registered', () => {
       const instance = new DevServerService();
       expect(instance.isServerHandlerRegistered()).to.be.false;
+    });
+
+    it('returns true if a handler is registered', () => {
+      const instance = new DevServerService();
+      const handler = {
+        stop: sinon.spy()
+      };
+      instance.registerServerHandler(handler);
+      expect(instance.isServerHandlerRegistered()).to.be.true;
     });
   });
 
@@ -54,14 +48,44 @@ describe('DevServerService', () => {
       };
 
       instance.registerServerHandler(handler);
-      expect(instance.isServerHandlerRegistered()).to.be.true;
-      instance.clearServerHandler();
-      expect(instance.isServerHandlerRegistered()).to.be.false;
+      expect(
+        instance.isServerHandlerRegistered(),
+        'expected the server handler to be registered'
+      ).to.be.true;
+
+      instance.clearServerHandler(handler);
+      expect(
+        instance.isServerHandlerRegistered(),
+        'expected the server handler to be cleared'
+      ).to.be.false;
+    });
+
+    it('clears the specified handler', () => {
+      const instance = new DevServerService();
+
+      const handler1 = {
+        stop: sinon.spy()
+      };
+      const handler2 = {
+        stop: sinon.spy()
+      };
+
+      instance.registerServerHandler(handler1);
+      instance.registerServerHandler(handler2);
+      instance.clearServerHandler(handler1);
+
+      const handlers = instance.getServerHandlers();
+
+      expect(handlers).to.have.lengthOf(1);
+      expect(handlers[0]).to.equal(handler2);
     });
 
     it('does not throw an error if handler is not registered', () => {
       const instance = new DevServerService();
-      instance.clearServerHandler();
+      const handler = {
+        stop: sinon.spy()
+      };
+      instance.clearServerHandler(handler);
       expect(instance.isServerHandlerRegistered()).to.be.false;
     });
   });

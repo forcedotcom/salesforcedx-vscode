@@ -7,7 +7,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { DevServerService } from '../service/devServerService';
+import { DevServerService, ServerHandler } from '../service/devServerService';
 import { DEV_SERVER_BASE_URL } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 
@@ -66,11 +66,12 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     const execution = executor.execute(cancellationToken);
     const executionName = execution.command.toString();
 
-    DevServerService.instance.registerServerHandler({
+    const serverHandler: ServerHandler = {
       stop: async () => {
         return execution.killExecution('SIGTERM');
       }
-    });
+    };
+    DevServerService.instance.registerServerHandler(serverHandler);
 
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
@@ -108,7 +109,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
 
     // handler errors
     execution.processExitSubject.subscribe(async exitCode => {
-      DevServerService.instance.clearServerHandler();
+      DevServerService.instance.clearServerHandler(serverHandler);
 
       if (!serverStarted && !cancellationToken.isCancellationRequested) {
         let message = nls.localize('force_lightning_lwc_start_failed');
@@ -159,7 +160,7 @@ export async function forceLightningLwcStart() {
       return;
     } else if (response === restartOption) {
       channelService.appendLine(
-        nls.localize('force_lightning_lwc_server_stopping')
+        nls.localize('force_lightning_lwc_start_stopping')
       );
       await DevServerService.instance.stopServer();
     } else {
