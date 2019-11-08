@@ -37,4 +37,4 @@ VS Code's built-in debugger launches for you to debug the test in VS Code. You c
 
 #### Watch Jest Tests
 
-To watch a Jest test file, click the eye icon on the menu bar in the top right corner of the editor window. Click the eye icon again to stop watching. When you are watching a Jest test file, the test file will be rerun if you have edited the Jest test file or edited the LWC JavaScript files that the Jest test file is testing against.
+To watch a Jest test file, click the eye icon on the menu bar in the top right corner of the editor window. Toggle the icon to stop watching. When watching a Jest test file, the test file will rerun if you edit the Jest test file or the LWC JavaScript files that the Jest test file is testing against.
