@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 
@@ -61,6 +62,102 @@ describe('Progress Notification', () => {
       location: progressLocation,
       cancellable: true
     });
+    withProgressStub.restore();
+  });
+
+  it('Should subscribe to the observable when given a progress reporter', async () => {
+    const progressLocation = vscode.ProgressLocation.Window;
+    const withProgressStub = sinon
+      .stub(vscode.window, 'withProgress')
+      .returns(Promise.resolve());
+
+    const progress: vscode.Progress<{
+      message?: string;
+      increment?: number;
+    }> = {
+      report: sinon.stub()
+    };
+    const token = new vscode.CancellationTokenSource().token;
+    withProgressStub.yields(progress, token);
+
+    const reporter = new Subject<number>();
+    const subscribeSpy = sinon.spy(reporter, 'subscribe');
+
+    await ProgressNotification.show(
+      execution,
+      tokenSource,
+      progressLocation,
+      reporter.asObservable()
+    );
+
+    sinon.assert.calledOnce(subscribeSpy);
+    sinon.assert.calledWith(subscribeSpy, sinon.match.has('next'));
+    sinon.assert.calledWith(subscribeSpy, sinon.match.has('complete'));
+
+    withProgressStub.restore();
+  });
+
+  it('Should report 100 progress when the reporter invokes complete', async () => {
+    const progressLocation = vscode.ProgressLocation.Window;
+    const withProgressStub = sinon
+      .stub(vscode.window, 'withProgress')
+      .returns(Promise.resolve());
+
+    const reportStub = sinon.stub();
+    const progress: vscode.Progress<{
+      message?: string;
+      increment?: number;
+    }> = {
+      report: reportStub
+    };
+    const token = new vscode.CancellationTokenSource().token;
+    withProgressStub.yields(progress, token);
+
+    const reporter = new Subject<number>();
+
+    await ProgressNotification.show(
+      execution,
+      tokenSource,
+      progressLocation,
+      reporter.asObservable()
+    );
+
+    reporter.complete();
+    sinon.assert.calledOnce(reportStub);
+    sinon.assert.calledWith(reportStub, sinon.match({ increment: 100 }));
+
+    withProgressStub.restore();
+  });
+
+  it('Should report incremental progress when the reporter invokes next', async () => {
+    const progressLocation = vscode.ProgressLocation.Window;
+    const withProgressStub = sinon
+      .stub(vscode.window, 'withProgress')
+      .returns(Promise.resolve());
+
+    const reportStub = sinon.stub();
+    const progress: vscode.Progress<{
+      message?: string;
+      increment?: number;
+    }> = {
+      report: reportStub
+    };
+    const token = new vscode.CancellationTokenSource().token;
+    withProgressStub.yields(progress, token);
+
+    const reporter = new Subject<number>();
+
+    await ProgressNotification.show(
+      execution,
+      tokenSource,
+      progressLocation,
+      reporter.asObservable()
+    );
+
+    reporter.next(25);
+    sinon.assert.calledOnce(reportStub);
+    sinon.assert.calledWith(reportStub, sinon.match({ increment: 25 }));
+
     withProgressStub.restore();
   });
 });
