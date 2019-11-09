@@ -50,13 +50,17 @@
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "3.2.0",
+    "mocha-junit-reporter": "^1.13.0",
+    "mocha-multi-reporters": "^1.1.4",
+    "nyc": "^13",
     "sinon": "^2.3.6",
     "typescript": "3.1.6",
     "vscode": "1.1.17",
     "vscode-uri": "^1.0.8"
   },
   "extensionDependencies": [
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -68,7 +72,8 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run test:vscode-integration",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "./node_modules/.bin/cross-env VSCODE_NLS_CONFIG={} ./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "test:vscode-integration": "node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
@@ -77,7 +82,8 @@
     "onLanguage:javascript",
     "workspaceContains:sfdx-project.json",
     "workspaceContains:**/workspace-user.xml",
-    "onView:salesforce-lightning-explorer"
+    "onView:salesforce-lightning-explorer",
+    "onCommand:sfdx.force.lightning.lwc.start"
   ],
   "main": "./out/src",
   "contributes": {
@@ -97,6 +103,12 @@
       ]
     },
     "menus": {
+      "editor/context": [
+        {
+          "command": "sfdx.force.lightning.lwc.preview",
+          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js|xml))?$/"
+        }
+      ],
       "editor/title": [
         {
           "command": "sfdx.force.lightning.lwc.test.editorTitle.run",
@@ -157,7 +169,25 @@
           "group": "inline"
         }
       ],
+      "explorer/context": [
+        {
+          "command": "sfdx.force.lightning.lwc.preview",
+          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js|xml))?$/"
+        }
+      ],
       "commandPalette": [
+        {
+          "command": "sfdx.force.lightning.lwc.start",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.stop",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.open",
+          "when": "sfdx:project_opened"
+        },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",
           "when": "false"
@@ -205,6 +235,22 @@
       ]
     },
     "commands": [
+      {
+        "command": "sfdx.force.lightning.lwc.start",
+        "title": "%force_lightning_lwc_start_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.stop",
+        "title": "%force_lightning_lwc_stop_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.open",
+        "title": "%force_lightning_lwc_open_text%"
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.preview",
+        "title": "%force_lightning_lwc_preview_text%"
+      },
       {
         "command": "sfdx.force.lightning.lwc.test.runAllTests",
         "title": "%force_lightning_lwc_test_run_all_tests_text%",

@@ -7,6 +7,7 @@
 
 import { shared as lspCommon } from 'lightning-lsp-common';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import {
   ConfigurationTarget,
   ExtensionContext,
@@ -20,8 +21,14 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { sync as which } from 'which';
+import {
+  forceLightningLwcOpen,
+  forceLightningLwcPreview,
+  forceLightningLwcStart,
+  forceLightningLwcStop
+} from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
+import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport } from './testSupport';
 
@@ -40,28 +47,23 @@ function protocol2CodeConverter(value: string) {
   return Uri.parse(value);
 }
 
-function getActivationMode(): string {
-  const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
-  return config.get('activationMode') || 'autodetect'; // default to autodetect
-}
-
 export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
-  // 1) If activationMode is off, don't startup no matter what
+  // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
     console.log('LWC Language Server activationMode set to off, exiting...');
     return;
   }
 
-  // 2) if we have no workspace folders, exit
+  // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
     console.log('No workspace, exiting extension');
     return;
   }
 
-  // 3) If activationMode is autodetect or always, check workspaceType before startup
+  // If activationMode is autodetect or always, check workspaceType before startup
   const workspaceType = lspCommon.detectWorkspaceType(
     workspace.workspaceFolders[0].uri.fsPath
   );
@@ -77,7 +79,11 @@ export async function activate(context: ExtensionContext) {
   }
   // If activationMode === always, ignore workspace type and continue activating
 
-  // 4) If we get here, we either passed autodetect validation or activationMode == always
+  // register commands
+  const commands = registerCommands(context);
+  context.subscriptions.push(commands);
+
+  // If we get here, we either passed autodetect validation or activationMode == always
   console.log('Lightning Web Components Extension Activated');
   console.log('WorkspaceType detected: ' + workspaceType);
 
@@ -97,6 +103,42 @@ export async function activate(context: ExtensionContext) {
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
+}
+
+export async function deactivate() {
+  if (DevServerService.instance.isServerHandlerRegistered()) {
+    await DevServerService.instance.stopServer();
+  }
+  console.log('Lightning Web Components Extension Deactivated');
+  telemetryService.sendExtensionDeactivationEvent().catch();
+}
+
+function getActivationMode(): string {
+  const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
+  return config.get('activationMode') || 'autodetect'; // default to autodetect
+}
+
+function registerCommands(
+  extensionContext: vscode.ExtensionContext
+): vscode.Disposable {
+  return vscode.Disposable.from(
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.start',
+      forceLightningLwcStart
+    ),
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.stop',
+      forceLightningLwcStop
+    ),
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.open',
+      forceLightningLwcOpen
+    ),
+    vscode.commands.registerCommand(
+      'sfdx.force.lightning.lwc.preview',
+      forceLightningLwcPreview
+    )
+  );
 }
 
 function startLWCLanguageServer(context: ExtensionContext) {
@@ -174,9 +216,4 @@ export async function populateEslintSettingIfNecessary(
       ConfigurationTarget.Workspace
     );
   }
-}
-
-export function deactivate() {
-  console.log('Lightning Web Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent().catch();
 }
