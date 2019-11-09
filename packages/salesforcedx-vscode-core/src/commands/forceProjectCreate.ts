@@ -45,7 +45,7 @@ export class ProjectTemplateItem implements vscode.QuickPickItem {
   public label: string;
   public description: string;
   constructor(name: string, description: string) {
-    this.label = name;
+    this.label = nls.localize(name);
     this.description = nls.localize(description);
   }
 }
@@ -138,21 +138,34 @@ export class SelectProjectTemplate
   > {
     const items: vscode.QuickPickItem[] = [
       new ProjectTemplateItem(
-        projectTemplateEnum.standard,
+        'force_project_create_standard_template_display_text',
         'force_project_create_standard_template'
       ),
       new ProjectTemplateItem(
-        projectTemplateEnum.empty,
+        'force_project_create_empty_template_display_text',
         'force_project_create_empty_template'
       ),
       new ProjectTemplateItem(
-        projectTemplateEnum.analytics,
+        'force_project_create_analytics_template_display_text',
         'force_project_create_analytics_template'
       )
     ];
 
     const selection = await vscode.window.showQuickPick(items);
-    const projectTemplate = selection && selection.label;
+    let projectTemplate: string | undefined;
+    switch (selection && selection.label) {
+      case nls.localize('force_project_create_standard_template_display_text'):
+        projectTemplate = projectTemplateEnum.standard;
+        break;
+      case nls.localize('force_project_create_empty_template_display_text'):
+        projectTemplate = projectTemplateEnum.empty;
+        break;
+      case nls.localize('force_project_create_analytics_template_display_text'):
+        projectTemplate = projectTemplateEnum.analytics;
+        break;
+      default:
+        break;
+    }
     return projectTemplate
       ? { type: 'CONTINUE', data: { projectTemplate } }
       : { type: 'CANCEL' };

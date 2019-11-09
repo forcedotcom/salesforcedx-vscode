@@ -69,7 +69,7 @@ export class CliCommandExecutor {
       : options;
   }
 
-  public execute(cancellationToken?: CancellationToken): CommandExecution {
+  public execute(cancellationToken?: CancellationToken): CliCommandExecution {
     const childProcess = cross_spawn(
       this.command.command,
       this.command.args,
@@ -182,6 +182,8 @@ export class CliCommandExecution implements CommandExecution {
   public readonly stdoutSubject: Observable<Buffer | string>;
   public readonly stderrSubject: Observable<Buffer | string>;
 
+  private readonly childProcessPid: number;
+
   constructor(
     command: Command,
     childProcess: ChildProcess,
@@ -189,6 +191,7 @@ export class CliCommandExecution implements CommandExecution {
   ) {
     this.command = command;
     this.cancellationToken = cancellationToken;
+    this.childProcessPid = childProcess.pid;
 
     let timerSubscriber: Subscription | null;
 
@@ -222,13 +225,17 @@ export class CliCommandExecution implements CommandExecution {
       timerSubscriber = timer.subscribe(async next => {
         if (cancellationToken.isCancellationRequested) {
           try {
-            await killPromise(childProcess.pid);
+            await this.killExecution();
           } catch (e) {
             console.log(e);
           }
         }
       });
     }
+  }
+
+  public async killExecution(signal: string = 'SIGKILL') {
+    return killPromise(this.childProcessPid, signal);
   }
 }
 
@@ -237,9 +244,9 @@ export class CliCommandExecution implements CommandExecution {
  * Basically if a child process spawns it own children  processes, those
  * children (grandchildren) processes are not necessarily killed
  */
-async function killPromise(processId: number) {
-  return new Promise((resolve, reject) => {
-    kill(processId, 'SIGKILL', (err: {}) => {
+async function killPromise(processId: number, signal: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    kill(processId, signal, (err: {}) => {
       err ? reject(err) : resolve();
     });
   });
