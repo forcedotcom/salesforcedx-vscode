@@ -13,7 +13,7 @@ To run selected tests, hover over the name of a test case or file to reveal a pl
 
 Test results are noted as follows: green for passing tests, red for failing tests, or orange for skipped tests.
 
-To jump to the test file, or a test case, click the test name in the sidebar.
+To jump to a test file, or a test case, click the test name in the sidebar.
 
 To clear your test results, click the refresh icon at the top of the sidebar (hover text: SFDX: Refresh Lightning Web Component Test Explorer).
 
