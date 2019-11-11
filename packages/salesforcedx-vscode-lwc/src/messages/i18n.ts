@@ -42,5 +42,17 @@ export const messages = {
   force_lightning_lwc_open_text:
     'SFDX: Open Local Development Server in Browser',
   prompt_option_open_browser: 'Open Browser',
-  prompt_option_restart: 'Restart'
+  prompt_option_restart: 'Restart',
+  force_lwc_test_run_description_text: 'Run LWC test(s)',
+  force_lightning_lwc_test_navigate_to_test:
+    'SFDX: Navigate to Lightning Web Component Test',
+  no_lwc_jest_found_text:
+    'sfdx-lwc-jest is not installed. Install it from https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation',
+  no_workspace_folder_found_for_test_text:
+    'Unable to determine workspace folder for this test',
+  run_test_title: 'Run Test',
+  debug_test_title: 'Debug Test',
+  run_test_task_name: 'Run Test',
+  watch_test_task_name: 'Watch Test',
+  default_task_name: 'LWC Test'
 };

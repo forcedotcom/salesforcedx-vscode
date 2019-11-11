@@ -11,6 +11,9 @@ import { TelemetryService } from '../../../src/telemetry/telemetry';
 describe('Telemetry', () => {
   let reporter: TelemetryReporter;
   let sendEvent: SinonStub;
+  let sendExceptionEvent: SinonStub;
+  let processHrtimeStub: SinonStub;
+  const mockDuration = [100, 100];
 
   beforeEach(() => {
     reporter = new TelemetryReporter(
@@ -19,10 +22,18 @@ describe('Telemetry', () => {
       'test345390'
     );
     sendEvent = stub(reporter, 'sendTelemetryEvent');
+    // @ts-ignore
+    reporter.sendExceptionEvent = () => {};
+    // @ts-ignore
+    sendExceptionEvent = stub(reporter, 'sendExceptionEvent');
+    processHrtimeStub = stub(process, 'hrtime');
+    processHrtimeStub.returns(mockDuration);
   });
 
   afterEach(async () => {
     sendEvent.restore();
+    sendExceptionEvent.restore();
+    processHrtimeStub.restore();
     await reporter.dispose();
   });
 
@@ -67,5 +78,49 @@ describe('Telemetry', () => {
       extensionName: 'salesforcedx-vscode-lwc'
     };
     assert.calledWith(sendEvent, 'deactivationEvent', expectedData);
+  });
+
+  it('Should send correct data format on sendCommandEvent', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+
+    const mockCommandLogName = 'force_lwc_mock_command';
+    const mockCommandHrstart: [number, number] = [100, 200];
+    const mockAdditionalData = { mockKey: 'mockValue' };
+    const mockCommandDuration = [300, 400];
+    processHrtimeStub.returns(mockCommandDuration);
+    await telemetryService.sendCommandEvent(
+      mockCommandLogName,
+      mockCommandHrstart,
+      mockAdditionalData
+    );
+    assert.calledOnce(sendEvent);
+
+    const expectedExecutionTime = '3000.0004';
+    const expectedData = {
+      extensionName: 'salesforcedx-vscode-lwc',
+      commandName: mockCommandLogName,
+      executionTime: expectedExecutionTime,
+      mockKey: 'mockValue'
+    };
+    assert.calledWith(sendEvent, 'commandExecution', match(expectedData));
+  });
+
+  it('Should send correct data format on sendException', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+
+    const mockExceptionLogName = 'force_lwc_mock_exception';
+    const mockErrorMessage = 'mockError';
+    await telemetryService.sendException(
+      mockExceptionLogName,
+      mockErrorMessage
+    );
+    assert.calledOnce(sendExceptionEvent);
+    assert.calledWith(
+      sendExceptionEvent,
+      mockExceptionLogName,
+      mockErrorMessage
+    );
   });
 });
