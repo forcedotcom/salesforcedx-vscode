@@ -5,8 +5,6 @@ lang: en
 
 You can develop against any org using the same workflows you are accustomed to using with Force.com IDE. This article walks through two techniques for migrating your existing project from Force.com IDE to VS Code.
 
-> NOTICE: The features mentioned in this article are in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
-
 ## Why You Need to Migrate
 
 Before you begin your migration, it’s important to understand the difference between the project structure of a Force.com IDE project and a VS Code project. There are two primary differences that affect you: the Salesforce DX project file and the format of your local source.
