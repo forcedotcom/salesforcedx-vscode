@@ -83,6 +83,31 @@ export class TelemetryService {
     }
   }
 
+  public async sendCommandEvent(
+    commandName?: string,
+    hrstart?: [number, number],
+    additionalData?: any
+  ): Promise<void> {
+    await this.setupVSCodeTelemetry();
+    if (this.reporter !== undefined && this.isTelemetryEnabled && commandName) {
+      const baseTelemetry = {
+        extensionName: EXTENSION_NAME,
+        commandName,
+        ...(hrstart && { executionTime: this.getEndHRTime(hrstart) })
+      };
+      const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
+      this.reporter.sendTelemetryEvent('commandExecution', aggregatedTelemetry);
+    }
+  }
+
+  public async sendException(name: string, message: string): Promise<void> {
+    await this.setupVSCodeTelemetry();
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      // @ts-ignore
+      this.reporter.sendExceptionEvent(name, message);
+    }
+  }
+
   private getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%d%d', hrend[0], hrend[1] / 1000000);
