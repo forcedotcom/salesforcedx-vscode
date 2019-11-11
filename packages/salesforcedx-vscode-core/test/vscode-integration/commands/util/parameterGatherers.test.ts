@@ -25,7 +25,7 @@ import {
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';
 
-const SFDX_SIMPLE_NUM_OF_DIRS = 14;
+const SFDX_SIMPLE_NUM_OF_DIRS = 16;
 
 // tslint:disable:no-unused-expression
 describe('Parameter Gatherers', () => {
