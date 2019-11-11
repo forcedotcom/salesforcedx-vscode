@@ -13,6 +13,5 @@
   "typescript.tsdk": "./node_modules/typescript/lib",
   "editor.tabSize": 2,
   "editor.formatOnSave": true,
-  "prettier.singleQuote": true,
   "rewrap.wrappingColumn": 80
 }
