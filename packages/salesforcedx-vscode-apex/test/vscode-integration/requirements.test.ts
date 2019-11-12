@@ -15,6 +15,7 @@ import { JAVA_HOME_KEY } from '../../src/requirements';
 
 describe('Java Requirements Test', () => {
   it('The jar should be signed', () => {
+    shell.config.execPath = process.execPath;
     const apexJarPath = path.join(__dirname, '..', '..', 'apex-jorje-lsp.jar');
     expect(
       shell
