@@ -115,7 +115,7 @@
       for (let i = 0; i < tags.length; i++) {
         let tag = tags[i];
         let a = document.createElement('a');
-        a.setAttribute('href', '#' + tag.getAttribute('id'));
+        a.setAttribute('href', '.{{page.url}}#' + tag.getAttribute('id'));
         a.innerText = tag.innerText;
         let li = document.createElement('li');
         li.appendChild(a);
@@ -193,7 +193,7 @@
         link.setAttribute('aria-label', 'Jump to section');
         link.setAttribute('class', 'doc doc-anchor');
         link.setAttribute('data-level', '2');
-        link.setAttribute('href', '#' + element.id);
+        link.setAttribute('href', '.{{page.url}}#' + element.id);
         link.innerText = '#';
         element.append(link);
       }
