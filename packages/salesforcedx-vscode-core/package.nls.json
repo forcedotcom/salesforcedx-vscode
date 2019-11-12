@@ -1,6 +1,5 @@
 {
   "running_tasks_title_text": "Running Tasks",
-
   "force_auth_web_login_authorize_dev_hub_text": "SFDX: Authorize a Dev Hub",
   "force_auth_web_login_authorize_org_text": "SFDX: Authorize an Org",
   "force_auth_logout_all_text": "SFDX: Log Out from All Authorized Orgs",
@@ -39,10 +38,8 @@
   "show_cli_success_msg_description": "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
   "force_start_apex_debug_logging": "SFDX: Turn On Apex Debug Log for Replay Debugger",
   "force_stop_apex_debug_logging": "SFDX: Turn Off Apex Debug Log for Replay Debugger",
-
   "isv_bootstrap_command_text": "SFDX: Create and Set Up Project for ISV Debugging",
   "force_apex_log_get_text": "SFDX: Get Apex Debug Logs...",
-
   "retrieve_test_code_coverage_text": "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
   "telemetry_enabled_description": "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting.",
   "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically run force:source:push (for source-tracked orgs) or force:source:deploy (for non-source-tracked orgs) when a local source file is saved.",
@@ -55,5 +52,9 @@
   "force_source_deploy_in_manifest_text": "SFDX: Deploy Source in Manifest to Org",
   "force_source_delete_text": "SFDX: Delete from Project and Org",
   "force_source_delete_this_source_text": "SFDX: Delete This from Project and Org",
-  "force_config_set_org_text": "SFDX: Set a Default Org"
+  "force_config_set_org_text": "SFDX: Set a Default Org",
+  "refresh_types_text": "Refresh Types",
+  "refresh_components_text": "Refresh Components",
+  "force_source_retrieve_display_text": "Retrieve Source from Org",
+  "force_diff_against_org": "SFDX: Diff File Against Org"
 }

@@ -15,6 +15,7 @@ import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '../context/index';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
@@ -73,9 +74,10 @@ export class OrgList implements vscode.Disposable {
 
     const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
     if (defaultDevHubUsernameorAlias) {
-      const defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameorAlias
-      );
+      const defaultDevHubUsername =
+        (await OrgAuthInfo.getUsername(defaultDevHubUsernameorAlias)) ||
+        defaultDevHubUsernameorAlias;
+
       authInfoObjects = authInfoObjects.filter(
         fileData =>
           isNullOrUndefined(fileData.devHubUsername) ||
@@ -109,19 +111,10 @@ export class OrgList implements vscode.Disposable {
 
   public async setDefaultOrg(): Promise<CancelResponse | ContinueResponse<{}>> {
     let quickPickList = [
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text')
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
+      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text'),
+      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
     ];
-
-    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
-    if (isNullOrUndefined(defaultDevHubUsernameorAlias)) {
-      quickPickList.push(
-        '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
-      );
-    } else {
-      quickPickList.push(
-        '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
-      );
-    }
 
     const authInfoList = await this.updateOrgList();
     if (!isNullOrUndefined(authInfoList)) {
@@ -182,6 +175,11 @@ export class OrgList implements vscode.Disposable {
         false
       );
     }
+    telemetryService.sendEventData(
+      'Sfdx-config file updated with default username',
+      undefined,
+      { timestamp: new Date().getTime() }
+    );
     await setupWorkspaceOrgType(defaultUsernameorAlias);
     this.displayDefaultUsername(defaultUsernameorAlias);
   }

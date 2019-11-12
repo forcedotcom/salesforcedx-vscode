@@ -5,38 +5,35 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { AuthInfo, Org } from '@salesforce/core';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import rimraf = require('rimraf');
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
-import { renameSync } from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
-import { SObjectCategory } from '../../src/describe';
+import { XHRResponse } from 'request-light';
+import { SinonStub, stub } from 'sinon';
+import { SObjectCategory, SObjectDescribe } from '../../src/describe';
+import { ConfigUtil } from '../../src/describe/configUtil';
 import {
   FauxClassGenerator,
   SObjectRefreshResult,
   SObjectRefreshSource
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
-import * as util from './integrationTestUtil';
+import { CancellationTokenSource } from './integrationTestUtil';
+import { mockDescribeResponse } from './mockData';
 
-// The CustomObjects are all identical in terms of fields, just different ones to test batch
-// and multiple objects for testing describeGlobal
 const PROJECT_NAME = `project_${new Date().getTime()}`;
-const CUSTOM_OBJECT_NAME = 'MyCustomObject__c';
-const CUSTOM_OBJECT2_NAME = 'MyCustomObject2__c';
-const CUSTOM_OBJECT3_NAME = 'MyCustomObject3__c';
-const CUSTOM_FIELD_FULLNAME = '.MyCustomField__c';
-const SIMPLE_OBJECT_SOURCE_FOLDER = 'simpleObjectAndField';
+const CONNECTION_DATA = {
+  accessToken: '00Dxx000thisIsATestToken',
+  instanceUrl: 'https://na1.salesforce.com'
+};
 
 // tslint:disable:no-unused-expression
-describe('Generate faux classes for SObjects', function() {
-  // tslint:disable-next-line:no-invalid-this
-  this.timeout(180000);
-  let username: string;
-
-  let cancellationTokenSource: util.CancellationTokenSource;
+describe('Generate faux classes for SObjects', () => {
+  let cancellationTokenSource: CancellationTokenSource;
   let projectPath: string;
   let emitter: EventEmitter;
 
@@ -45,70 +42,12 @@ describe('Generate faux classes for SObjects', function() {
   }
 
   before(async () => {
-    const customFields: util.CustomFieldInfo[] = [
-      new util.CustomFieldInfo(CUSTOM_OBJECT_NAME, [
-        `${CUSTOM_OBJECT_NAME}${CUSTOM_FIELD_FULLNAME}`
-      ]),
-      new util.CustomFieldInfo(CUSTOM_OBJECT2_NAME, [
-        `${CUSTOM_OBJECT2_NAME}${CUSTOM_FIELD_FULLNAME}`
-      ]),
-      new util.CustomFieldInfo(CUSTOM_OBJECT3_NAME, [
-        `${CUSTOM_OBJECT3_NAME}${CUSTOM_FIELD_FULLNAME}`
-      ])
-    ];
-
-    username = await util.initializeProject(
-      PROJECT_NAME,
-      SIMPLE_OBJECT_SOURCE_FOLDER,
-      customFields
-    );
-
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     emitter = new EventEmitter();
   });
 
   beforeEach(() => {
-    cancellationTokenSource = new util.CancellationTokenSource();
-  });
-
-  after(async () => {
-    if (username) {
-      await util.deleteScratchOrg(username);
-    }
-    rimraf.sync(projectPath);
-    projectPath = '';
-  });
-
-  it('Should be cancellable', async () => {
-    const generator = getGenerator();
-    cancellationTokenSource.cancel();
-    const result = await generator.generate(
-      projectPath,
-      SObjectCategory.CUSTOM,
-      SObjectRefreshSource.Manual
-    );
-    expect(result.data.cancelled).to.be.true;
-  });
-
-  it('Should fail if outside a project', async () => {
-    let result: SObjectRefreshResult;
-    const generator = getGenerator();
-    invalidateProject(projectPath);
-    try {
-      result = await generator.generate(
-        projectPath,
-        SObjectCategory.CUSTOM,
-        SObjectRefreshSource.Manual
-      );
-    } catch ({ error }) {
-      expect(error.message).to.contain(
-        nls.localize('no_generate_if_not_in_project', '')
-      );
-      return;
-    } finally {
-      restoreProject(projectPath);
-    }
-    expect.fail(result, 'undefined', 'generator should have thrown an error');
+    cancellationTokenSource = new CancellationTokenSource();
   });
 
   it('Should emit an error event on failure', async () => {
@@ -122,7 +61,7 @@ describe('Generate faux classes for SObjects', function() {
     emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
       exitCode = data;
     });
-    invalidateProject(projectPath);
+
     try {
       await generator.generate(
         projectPath,
@@ -131,8 +70,6 @@ describe('Generate faux classes for SObjects', function() {
       );
     } catch ({ error }) {
       rejectOutput = error;
-    } finally {
-      restoreProject(projectPath);
     }
     expect(rejectOutput.message).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
@@ -143,6 +80,50 @@ describe('Generate faux classes for SObjects', function() {
     expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
   });
 
+  it('Should fail if outside a project', async () => {
+    let result: SObjectRefreshResult;
+    const generator = getGenerator();
+
+    try {
+      result = await generator.generate(
+        projectPath,
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      );
+      fail(result, 'undefined', 'generator should have thrown an error');
+    } catch ({ error }) {
+      expect(error.message).to.contain(
+        nls.localize('no_generate_if_not_in_project', '')
+      );
+      return;
+    }
+  });
+
+  it('Should be cancellable', async () => {
+    const describeGlobalStub = stub(
+      SObjectDescribe.prototype,
+      'describeGlobal'
+    ).returns([
+      'MyCustomObject2__c',
+      'MyCustomObject3__c',
+      'MyCustomObject__c'
+    ]);
+    const fsExistSyncStub = stub(fs, 'existsSync').returns(true);
+
+    const generator = getGenerator();
+    cancellationTokenSource.cancel();
+
+    const result = await generator.generate(
+      projectPath,
+      SObjectCategory.CUSTOM,
+      SObjectRefreshSource.Manual
+    );
+    expect(result.data.cancelled).to.be.true;
+
+    describeGlobalStub.restore();
+    fsExistSyncStub.restore();
+  });
+
   it('Should emit message to stderr on failure', async () => {
     let stderrInfo = '';
     let rejectOutput: any;
@@ -150,7 +131,7 @@ describe('Generate faux classes for SObjects', function() {
     emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
       stderrInfo = data;
     });
-    invalidateProject(projectPath);
+
     try {
       await generator.generate(
         projectPath,
@@ -159,8 +140,6 @@ describe('Generate faux classes for SObjects', function() {
       );
     } catch ({ error }) {
       rejectOutput = error;
-    } finally {
-      restoreProject(projectPath);
     }
     expect(rejectOutput.message).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
@@ -170,13 +149,60 @@ describe('Generate faux classes for SObjects', function() {
     );
   });
 
-  it('Should emit an exit event with code success code 0 on success', async () => {
-    let exitCode = LocalCommandExecution.FAILURE_CODE;
-    const generator = getGenerator();
-    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
-      exitCode = data;
+  describe('Check results', () => {
+    let fsExistSyncStub: SinonStub;
+    let getUsername: SinonStub;
+    let authInfo: SinonStub;
+    let xhrMock: SinonStub;
+    let connection: SinonStub;
+    let refreshAuth: SinonStub;
+
+    beforeEach(() => {
+      getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
+      authInfo = stub(AuthInfo, 'create').returns({
+        getConnectionOptions: () => CONNECTION_DATA
+      });
+      connection = stub(Org.prototype, 'getConnection').returns(
+        CONNECTION_DATA
+      );
+      xhrMock = stub(SObjectDescribe.prototype, 'runRequest');
+      fsExistSyncStub = stub(fs, 'existsSync').returns(true);
+      refreshAuth = stub(Org.prototype, 'refreshAuth');
     });
-    try {
+
+    afterEach(() => {
+      fsExistSyncStub.restore();
+      getUsername.restore();
+      authInfo.restore();
+      xhrMock.restore();
+      connection.restore();
+      refreshAuth.restore();
+    });
+
+    it('Should emit an exit event with code success code 0 on success', async () => {
+      let exitCode = LocalCommandExecution.FAILURE_CODE;
+      const describeGlobalStub = stub(
+        SObjectDescribe.prototype,
+        'describeGlobal'
+      ).returns(['ApexPageInfo']);
+
+      xhrMock.returns(
+        Promise.resolve({
+          status: 200,
+          responseText: JSON.stringify(mockDescribeResponse)
+        } as XHRResponse)
+      );
+
+      const genFauxClass = stub(
+        FauxClassGenerator.prototype,
+        'generateFauxClass'
+      );
+
+      const generator = getGenerator();
+      emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+        exitCode = data;
+      });
+
       const result = await generator.generate(
         projectPath,
         SObjectCategory.CUSTOM,
@@ -184,47 +210,50 @@ describe('Generate faux classes for SObjects', function() {
       );
       expect(result.error).to.be.undefined;
       expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
-    } catch (e) {
-      expect.fail(e, 'undefined', 'generator should not have thrown an error');
-    }
-  });
-
-  it('Should log the number of created faux classes on success', async () => {
-    const generator = getGenerator();
-    let stdoutInfo = '';
-    let result: SObjectRefreshResult;
-    emitter.addListener(LocalCommandExecution.STDOUT_EVENT, (data: string) => {
-      stdoutInfo = data;
+      describeGlobalStub.restore();
+      genFauxClass.restore();
     });
-    try {
+
+    it('Should log the number of created faux classes on success', async () => {
+      const generator = getGenerator();
+      let stdoutInfo = '';
+      let result: SObjectRefreshResult;
+      emitter.addListener(
+        LocalCommandExecution.STDOUT_EVENT,
+        (data: string) => {
+          stdoutInfo = data;
+        }
+      );
+
+      const describeGlobalStub = stub(
+        SObjectDescribe.prototype,
+        'describeGlobal'
+      ).returns(['ApexPageInfo']);
+
+      xhrMock.returns(
+        Promise.resolve({
+          status: 200,
+          responseText: JSON.stringify(mockDescribeResponse)
+        } as XHRResponse)
+      );
+
+      const genFauxClass = stub(
+        FauxClassGenerator.prototype,
+        'generateFauxClass'
+      );
       result = await generator.generate(
         projectPath,
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Manual
       );
+
       expect(result.error).to.be.undefined;
-      expect(result.data.customObjects).to.eql(3);
+      expect(result.data.standardObjects).to.eql(1);
       expect(stdoutInfo).to.contain(
-        nls.localize('fetched_sobjects_length_text', 3, 'Custom')
+        nls.localize('fetched_sobjects_length_text', 1, 'Standard')
       );
-    } catch (e) {
-      expect.fail(e, 'undefined', 'generator should not have thrown an error');
-    }
+      describeGlobalStub.restore();
+      genFauxClass.restore();
+    });
   });
 });
-
-// easy way to force the generator to throw an error
-const BOGUS_PROJECT_FILE = `bogus${SFDX_PROJECT_FILE}`;
-function invalidateProject(projectPath: string) {
-  renameSync(
-    path.join(projectPath, SFDX_PROJECT_FILE),
-    path.join(projectPath, BOGUS_PROJECT_FILE)
-  );
-}
-
-function restoreProject(projectPath: string) {
-  renameSync(
-    path.join(projectPath, BOGUS_PROJECT_FILE),
-    path.join(projectPath, SFDX_PROJECT_FILE)
-  );
-}

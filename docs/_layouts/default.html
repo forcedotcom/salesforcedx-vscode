@@ -1,6 +1,8 @@
 <html>
   <head>
     <title>{{ page.title }}</title>
+    <base href="{{ site.baseurl }}/" />
+    {% include head.generated.html %}
     <!-- Google Tag Manager -->
     <script>
       (function(w, d, s, l, i) {
@@ -47,6 +49,19 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css"
     />
+    <link
+      rel="canonical"
+      href="https://developer.salesforce.com/tools/vscode{{ page.url }}"
+    />
+    {% if page.lang == 'en' %} {% assign jpurl = page.url | replace: '/en/',
+    '/jp/' %} {% if page.url == '/' %} {% assign jpurl = page.url | append:
+    'jp/' %}{% endif %}
+    <link
+      rel="alternate"
+      hreflang="jp"
+      href="https://developer.salesforce.com/tools/vscode{{ jpurl }}"
+    />
+    {% endif %}
   </head>
 
   <body>
@@ -61,7 +76,7 @@
     ></noscript>
     <!-- End Google Tag Manager (noscript) -->
     <div class="site-page-wrapper" id="site-page-wrapper" tabindex="-1">
-      {% include sidebar.html %}
+      {% include header.generated.html %} {% include sidebar.html %}
       <main
         class="site-main slds-order_1"
         role="main"
@@ -87,7 +102,7 @@
           </div>
         </div>
       </main>
-      {% include footer.html %}
+      {% include footer.generated.html %}
     </div>
     <script>
       let tags = document.getElementsByTagName('h2');
@@ -154,6 +169,7 @@
         if (
           element &&
           element.childNodes &&
+          element.childNodes.length > 1 &&
           element.childNodes[0].nodeName === 'CODE'
         ) {
           var code = element.childNodes[0];
@@ -164,6 +180,22 @@
             mimeType: getLanguageMime(lang)
           });
         }
+      }
+    </script>
+    <script>
+      var titles = document.getElementsByTagName('h2');
+      // ['h2', 'h3', 'h4'].forEach(function(tagName) {
+      //   elements.push(document.getElementsByTagName(tagName));
+      // });
+      for (let i = 0; i < titles.length; i++) {
+        const element = titles[i];
+        var link = document.createElement('a');
+        link.setAttribute('aria-label', 'Jump to section');
+        link.setAttribute('class', 'doc doc-anchor');
+        link.setAttribute('data-level', '2');
+        link.setAttribute('href', '#' + element.id);
+        link.innerText = '#';
+        element.append(link);
       }
     </script>
   </body>

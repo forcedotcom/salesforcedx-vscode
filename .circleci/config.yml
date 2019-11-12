@@ -13,9 +13,13 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v3-{{ checksum "package.json" }}
       - run: npm install
-      - run: npm run compile
+      # Setup an NODE_ENV to production mode before compiling.
+      - run:
+          name: 'Run compile in production mode'
+          command: |
+            export NODE_ENV=production && npm run compile
       - run: npm run vscode:package
       - run:
           command: |
@@ -24,7 +28,7 @@ jobs:
       - store_artifacts:
           path: ./extensions
       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v3-{{ checksum "package.json" }}
           paths:
             - node_modules
 workflows:

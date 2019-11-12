@@ -91,6 +91,9 @@ jspm_packages/
 
 # Project test data
 packages/system-tests/project_*
+packages/system-tests/assets/sfdx-simple/.vscode/
+packages/system-tests/assets/sfdx-simple/force-app/main/default/lwc/.eslintrc.json
+packages/system-tests/assets/sfdx-simple/force-app/main/default/lwc/jsconfig.json
 
 # Node lock files (actually causes issues with the symlinking that lerna does, so ignore)
 package-lock.json
@@ -100,3 +103,9 @@ packages/dbaeumer*
 
 # MacOS folder atttribute tracking
 **/.DS_Store
+
+# Netlify
+.netlify
+
+# Vscode History Extension
+.history

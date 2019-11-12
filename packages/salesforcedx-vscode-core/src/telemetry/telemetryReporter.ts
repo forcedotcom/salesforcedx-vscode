@@ -96,6 +96,8 @@ export default class TelemetryReporter extends vscode.Disposable {
       this.appInsightsClient.context.tags['ai.user.id'] = vscode.env.machineId;
       this.appInsightsClient.context.tags['ai.session.id'] =
         vscode.env.sessionId;
+      this.appInsightsClient.context.tags['ai.cloud.roleInstance'] =
+        'DEPRECATED';
     }
 
     // check if it's an Asimov key to change the endpoint
@@ -150,6 +152,32 @@ export default class TelemetryReporter extends vscode.Disposable {
         this.logStream.write(
           `telemetry/${eventName} ${JSON.stringify({
             properties,
+            measurements
+          })}\n`
+        );
+      }
+    }
+  }
+
+  public sendExceptionEvent(
+    exceptionName: string,
+    exceptionMessage: string,
+    measurements?: { [key: string]: number }
+  ): void {
+    if (this.userOptIn && exceptionMessage && this.appInsightsClient) {
+      const error = new Error();
+      error.name = `${this.extensionId}/${exceptionName}`;
+      error.message = exceptionMessage;
+      error.stack = 'DEPRECATED';
+
+      this.appInsightsClient.trackException({
+        exception: error,
+        measurements
+      });
+
+      if (this.logStream) {
+        this.logStream.write(
+          `telemetry/${exceptionName} ${JSON.stringify({
             measurements
           })}\n`
         );

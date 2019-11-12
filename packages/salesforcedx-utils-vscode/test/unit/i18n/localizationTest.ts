@@ -6,14 +6,9 @@
  */
 
 import { expect } from 'chai';
-import {
-  BASE_FILE_EXTENSION,
-  BASE_FILE_NAME,
-  Config,
-  DEFAULT_LOCALE,
-  Localization,
-  Message
-} from '../../../src/i18n/localization';
+import { Config, Localization, Message } from '../../../src/i18n';
+import * as i18n from './i18n';
+import * as i18nja from './i18n.ja';
 
 /**
  * Due to the way `require` resolves the paths (relative to the module), we must
@@ -23,29 +18,10 @@ import {
  * This snippet of code needs to be copied/generated to all localization points.
  */
 function loadMessageBundle(config?: Config): Message {
-  function resolveFileName(locale: string): string {
-    return locale === DEFAULT_LOCALE
-      ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
-      : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
-  }
-
-  const base = new Message(
-    require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-  );
-
-  if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-    try {
-      const layer = new Message(
-        require(`./${resolveFileName(config.locale)}`).messages,
-        base
-      );
-      return layer;
-    } catch (e) {
-      console.error(`Cannot find ${config.locale}, defaulting to en`);
-      return base;
-    }
+  if (config && config.locale && config.locale === 'ja') {
+    return new Message(i18nja.messages, new Message(i18n.messages));
   } else {
-    return base;
+    return new Message(i18n.messages);
   }
 }
 

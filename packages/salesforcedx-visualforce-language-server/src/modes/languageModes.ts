@@ -30,7 +30,7 @@ import {
 import {
   ColorInformation,
   ColorPresentation
-} from 'vscode-languageserver-protocol/lib/protocol.colorProvider.proposed';
+} from 'vscode-languageserver-protocol';
 
 import {
   getLanguageModelCache,

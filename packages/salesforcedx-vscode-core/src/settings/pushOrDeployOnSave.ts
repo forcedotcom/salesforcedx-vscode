@@ -13,63 +13,137 @@ import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 
 import * as path from 'path';
+import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
+import { telemetryService } from '../telemetry';
+import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
-const WAIT_TIME_IN_MS = 4500;
+export class DeployQueue {
+  public static readonly ENQUEUE_DELAY = 500; // milliseconds
+
+  private static instance: DeployQueue;
+
+  private readonly queue = new Set<vscode.Uri>();
+  private timer: NodeJS.Timer | undefined;
+  private locked = false;
+  private deployWaitStart?: [number, number];
+
+  private constructor() {}
+
+  public static get(): DeployQueue {
+    if (!DeployQueue.instance) {
+      DeployQueue.instance = new DeployQueue();
+    }
+    return DeployQueue.instance;
+  }
+
+  public static reset() {
+    if (DeployQueue.instance) {
+      if (DeployQueue.instance.timer) {
+        clearTimeout(DeployQueue.instance.timer);
+      }
+      DeployQueue.instance = new DeployQueue();
+    }
+  }
+
+  public async enqueue(document: vscode.Uri) {
+    this.queue.add(document);
+    await this.wait();
+    await this.doDeploy();
+  }
+
+  public async unlock() {
+    this.locked = false;
+    await this.wait();
+    await this.doDeploy();
+  }
+
+  private async wait() {
+    return new Promise(resolve => {
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
+      this.timer = setTimeout(resolve, DeployQueue.ENQUEUE_DELAY);
+    });
+  }
+
+  private async doDeploy(): Promise<void> {
+    if (!this.locked && this.queue.size > 0) {
+      this.locked = true;
+      const toDeploy = Array.from(this.queue);
+      this.queue.clear();
+      try {
+        let defaultUsernameorAlias: string | undefined;
+        if (hasRootWorkspace()) {
+          defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+            false
+          );
+        }
+        const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
+        if (orgType === OrgType.SourceTracked) {
+          vscode.commands.executeCommand('sfdx.force.source.push');
+        } else {
+          vscode.commands.executeCommand(
+            'sfdx.force.source.deploy.multiple.source.paths',
+            toDeploy
+          );
+        }
+
+        telemetryService.sendEventData(
+          'deployOnSave',
+          {
+            deployType: orgType === OrgType.SourceTracked ? 'Push' : 'Deploy'
+          },
+          {
+            documentsToDeploy: toDeploy.length,
+            waitTimeForLastDeploy: this.deployWaitStart
+              ? parseFloat(telemetryService.getEndHRTime(this.deployWaitStart))
+              : 0
+          }
+        );
+      } catch (e) {
+        switch (e.name) {
+          case 'NamedOrgNotFound':
+            displayError(nls.localize('error_fetching_auth_info_text'));
+            break;
+          case 'NoDefaultusernameSet':
+            displayError(
+              nls.localize('error_push_or_deploy_on_save_no_default_username')
+            );
+            break;
+          default:
+            displayError(e.message);
+        }
+        this.locked = false;
+      }
+      this.deployWaitStart = undefined;
+    } else if (this.locked && !this.deployWaitStart) {
+      this.deployWaitStart = process.hrtime();
+    }
+  }
+}
 
 export async function registerPushOrDeployOnSave() {
-  const savedFiles: Set<vscode.Uri> = new Set();
-  let savedFilesTimeout: NodeJS.Timer;
   vscode.workspace.onDidSaveTextDocument(
     async (textDocument: vscode.TextDocument) => {
       if (
         sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
         !(await ignorePath(textDocument.uri))
       ) {
-        savedFiles.add(textDocument.uri);
-        clearTimeout(savedFilesTimeout);
-
-        savedFilesTimeout = setTimeout(async () => {
-          const files = Array.from(savedFiles);
-          savedFiles.clear();
-          await pushOrDeploy(files);
-        }, WAIT_TIME_IN_MS);
+        await DeployQueue.get().enqueue(textDocument.uri);
       }
     }
   );
-}
-
-export async function pushOrDeploy(filesToDeploy: vscode.Uri[]): Promise<void> {
-  try {
-    const orgType = await getWorkspaceOrgType();
-    if (orgType === OrgType.SourceTracked) {
-      vscode.commands.executeCommand('sfdx.force.source.push');
-    } else {
-      vscode.commands.executeCommand(
-        'sfdx.force.source.deploy.multiple.source.paths',
-        filesToDeploy
-      );
-    }
-  } catch (e) {
-    switch (e.name) {
-      case 'NamedOrgNotFound':
-        displayError(nls.localize('error_fetching_auth_info_text'));
-        break;
-      case 'NoDefaultusernameSet':
-        displayError(
-          nls.localize('error_push_or_deploy_on_save_no_default_username')
-        );
-        break;
-      default:
-        displayError(e.message);
-    }
-  }
 }
 
 function displayError(message: string) {
   notificationService.showErrorMessage(message);
   channelService.appendLine(message);
   channelService.showChannelOutput();
+  telemetryService.sendException(
+    'push_deploy_on_save_queue',
+    `DeployOnSaveError: Documents were queued but a deployment was not triggered`
+  );
 }
 
 async function ignorePath(uri: vscode.Uri) {

@@ -4,16 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-export {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './commands';
 export { forceApexExecute } from './forceApexExecute';
 export { forceAuthWebLogin } from './forceAuthWebLogin';
 export { forceAuthDevHub } from './forceAuthDevHub';
@@ -38,6 +28,11 @@ export {
   forceApexTriggerCreate,
   forceLightningAppCreate,
   forceLightningComponentCreate,
+  forceInternalLightningComponentCreate,
+  forceInternalLightningLwcCreate,
+  forceInternalLightningAppCreate,
+  forceInternalLightningEventCreate,
+  forceInternalLightningInterfaceCreate,
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
@@ -62,3 +57,17 @@ export { forceAuthLogoutAll } from './forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet } from './forceConfigSet';
+export {
+  forceDescribeMetadata,
+  ForceDescribeMetadataExecutor
+} from './forceDescribeMetadata';
+export {
+  forceListMetadata,
+  ForceListMetadataExecutor
+} from './forceListMetadata';
+export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
+export {
+  forceSourceDiff,
+  ForceSourceDiffExecutor,
+  handleDiffResponse
+} from './forceSourceDiff';

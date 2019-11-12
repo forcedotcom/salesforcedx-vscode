@@ -17,26 +17,41 @@ export enum OrgType {
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {
-  if (!isNullOrUndefined(defaultUsernameOrAlias)) {
-    const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
-    const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
-      telemetryService.sendError(err)
-    );
-    return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+    const e = new Error();
+    e.name = 'NoDefaultusernameSet';
+    throw e;
   }
 
-  const e = new Error();
-  e.name = 'NoDefaultusernameSet';
-  throw e;
+  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+
+  if (isNullOrUndefined(username)) {
+    telemetryService.sendException(
+      'get_workspace_org_type',
+      'workspaceOrgType.getWorkspaceOrgType ran into an undefined username.'
+    );
+  }
+
+  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username!).catch(err =>
+    telemetryService.sendException(
+      'get_workspace_org_type_scratch_org',
+      err.message
+    )
+  );
+  return isScratchOrg ? OrgType.SourceTracked : OrgType.NonSourceTracked;
+}
+
+export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
+  setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
+  setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
 }
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   try {
     const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
-    setDefaultUsernameHasChangeTracking(orgType === OrgType.SourceTracked);
-    setDefaultUsernameHasNoChangeTracking(orgType === OrgType.NonSourceTracked);
+    setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
-    telemetryService.sendErrorEvent(e.message, e.stack);
+    telemetryService.sendException('send_workspace_org_type', e.message);
     switch (e.name) {
       case 'NamedOrgNotFound':
         // If the info for a default username cannot be found,

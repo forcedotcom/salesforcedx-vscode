@@ -25,8 +25,9 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
+import { isNullOrUndefined } from 'util';
 import { getDefaultUsernameOrAlias } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
@@ -115,7 +116,19 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 
 export async function getUserId(projectPath: string): Promise<string> {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias!);
+  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+    const err = nls.localize('error_no_default_username');
+    telemetryService.sendException('replay_debugger_undefined_username', err);
+    throw new Error(err);
+  }
+
+  const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
+  if (isNullOrUndefined(username)) {
+    const err = nls.localize('error_no_default_username');
+    telemetryService.sendException('replay_debugger_undefined_username', err);
+    throw new Error(err);
+  }
+
   const execution = new CliCommandExecutor(
     new ForceQueryUser(username).build(),
     {

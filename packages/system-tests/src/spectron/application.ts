@@ -109,6 +109,10 @@ export class SpectronApplication {
     );
   }
 
+  public waitUI(): Promise<any> {
+    return new Promise(resolve => setTimeout(resolve, this.pollTimeout * 1000));
+  }
+
   public get webclient(): WebClient {
     if (!this.spectron) {
       throw new Error('Application not started');

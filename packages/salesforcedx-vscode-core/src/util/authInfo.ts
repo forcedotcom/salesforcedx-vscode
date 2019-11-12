@@ -6,21 +6,23 @@
  */
 import { Aliases, AuthInfo } from '@salesforce/core';
 import { isUndefined } from 'util';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import {
+  DEFAULT_DEV_HUB_USERNAME_KEY,
+  DEFAULT_USERNAME_KEY
+} from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { ConfigSource, ConfigUtil } from './index';
-
-const defaultUserNameKey = 'defaultusername';
-const defaultDevHubUserNameKey = 'defaultdevhubusername';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
       const defaultUserName = await ConfigUtil.getConfigValue(
-        defaultUserNameKey
+        DEFAULT_USERNAME_KEY
       );
       if (isUndefined(defaultUserName)) {
         displayMessage(
@@ -31,7 +33,7 @@ export class OrgAuthInfo {
         return undefined;
       } else {
         const configSource = await ConfigUtil.getConfigSource(
-          defaultUserNameKey
+          DEFAULT_USERNAME_KEY
         );
         if (configSource === ConfigSource.Global) {
           displayMessage(
@@ -41,49 +43,53 @@ export class OrgAuthInfo {
           );
         }
       }
+
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendErrorEvent(
-        'Unexpected error in OrgAuthInfo.getDefaultUsernameOrAlias',
-        err
-      );
+      telemetryService.sendException('get_default_username_alias', err.message);
       return undefined;
     }
   }
 
   public static async getDefaultDevHubUsernameOrAlias(
-    enableWarning: boolean
+    enableWarning: boolean,
+    configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
     try {
       const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        defaultDevHubUserNameKey
+        DEFAULT_DEV_HUB_USERNAME_KEY,
+        configSource
       );
       if (isUndefined(defaultDevHubUserName)) {
-        displayMessage(
+        const showButtonText = nls.localize('notification_make_default_dev');
+        const selection = await displayMessage(
           nls.localize('error_no_default_devhubusername'),
           enableWarning,
-          VSCodeWindowTypeEnum.Error
+          VSCodeWindowTypeEnum.Informational,
+          [showButtonText]
         );
+        if (selection && selection === showButtonText) {
+          vscode.commands.executeCommand('sfdx.force.auth.dev.hub');
+        }
         return undefined;
       }
       return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendErrorEvent(
-        'Unexpected error in OrgAuthInfo.getDefaultDevHubUsernameOrAlias',
-        err
+      telemetryService.sendException(
+        'get_default_devhub_username_alias',
+        err.message
       );
       return undefined;
     }
   }
 
-  public static async getUsername(usernameOrAlias: string): Promise<string> {
+  public static async getUsername(
+    usernameOrAlias: string
+  ): Promise<string | undefined> {
     const username = await Aliases.fetch(usernameOrAlias);
-    if (username) {
-      return Promise.resolve(username);
-    }
-    return Promise.resolve(usernameOrAlias);
+    return Promise.resolve(username);
   }
 
   public static async isAScratchOrg(username: string): Promise<boolean> {
@@ -104,30 +110,29 @@ enum VSCodeWindowTypeEnum {
   Informational = 2,
   Warning = 3
 }
+
 function displayMessage(
   output: string,
   enableWarning?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum
+  vsCodeWindowType?: VSCodeWindowTypeEnum,
+  items?: string[]
 ) {
   if (!isUndefined(enableWarning) && !enableWarning) {
     return;
   }
-
+  const buttons = items || [];
   channelService.appendLine(output);
   channelService.showChannelOutput();
   if (vsCodeWindowType) {
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
-        notificationService.showErrorMessage(output);
-        break;
+        return notificationService.showErrorMessage(output, ...buttons);
       }
       case VSCodeWindowTypeEnum.Informational: {
-        notificationService.showInformationMessage(output);
-        break;
+        return notificationService.showInformationMessage(output, ...buttons);
       }
       case VSCodeWindowTypeEnum.Warning: {
-        notificationService.showWarningMessage(output);
-        break;
+        return notificationService.showWarningMessage(output, ...buttons);
       }
     }
   }

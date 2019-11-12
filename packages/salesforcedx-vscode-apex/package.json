@@ -14,19 +14,20 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "45.14.0",
+  "version": "47.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.32.0"
   },
   "categories": [
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-tmlanguage": "1.1.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "45.14.0",
-    "@salesforce/salesforcedx-utils-vscode": "45.14.0",
+    "@salesforce/apex-tmlanguage": "1.2.0",
+    "@salesforce/core": "2.0.1",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "47.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "47.4.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
@@ -35,7 +36,7 @@
     "vscode-languageclient": "5.1.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "45.14.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "47.4.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
@@ -221,24 +222,17 @@
       "title": "%configuration_title%",
       "properties": {
         "salesforcedx-vscode-apex.java.home": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": null,
           "description": "%java_home_description%"
         },
         "salesforcedx-vscode-apex.enable-semantic-errors": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%apex_semantic_errors_description%"
         },
         "salesforcedx-vscode-apex.enable-sobject-refresh-on-startup": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
         }
@@ -253,7 +247,8 @@
         ],
         "extensions": [
           ".cls",
-          ".trigger"
+          ".trigger",
+          ".soql"
         ],
         "configuration": "./syntaxes/apex.configuration.json"
       },

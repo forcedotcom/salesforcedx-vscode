@@ -10,42 +10,50 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { Uri } from 'vscode';
 import { nls } from '../../messages';
-
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
+  MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '../commands';
+} from '../util';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
-  BaseTemplateCommand,
-  BundlePathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+  FileInternalPathGatherer,
+  InternalDevWorkspaceChecker
+} from './internalCommandUtils';
 import {
   AURA_APP_EXTENSION,
-  AURA_DEFINITION_FILE_EXTS,
-  AURA_DIRECTORY
+  AURA_DIRECTORY,
+  AURA_TYPE
 } from './metadataTypeConstants';
 
 export class ForceLightningAppCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super(AURA_TYPE);
+  }
+
   public build(data: DirFileNameSelection): Command {
-    return new SfdxCommandBuilder()
+    const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_app_create_text'))
       .withArg('force:lightning:app:create')
       .withFlag('--appname', data.fileName)
       .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_app_create')
-      .build();
+      .withLogName('force_lightning_app_create');
+
+    if (sfdxCoreSettings.getInternalDev()) {
+      builder.withArg('--internal');
+    }
+
+    return builder.build();
   }
 
-  public sourcePathStrategy = new BundlePathStrategy();
-
-  public getDefaultDirectory() {
-    return AURA_DIRECTORY;
-  }
   public getFileExtension() {
     return AURA_APP_EXTENSION;
   }
@@ -53,20 +61,30 @@ export class ForceLightningAppCreateExecutor extends BaseTemplateCommand {
 
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
+const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export async function forceLightningAppCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(
+    new CompositeParametersGatherer<LocalComponent>(
+      metadataTypeGatherer,
       fileNameGatherer,
       outputDirGatherer
     ),
     new ForceLightningAppCreateExecutor(),
-    new FilePathExistsChecker(
-      AURA_DEFINITION_FILE_EXTS,
-      new BundlePathStrategy(),
-      nls.localize('aura_bundle_message_name')
-    )
+    new OverwriteComponentPrompt()
+  );
+  await commandlet.run();
+}
+
+export async function forceInternalLightningAppCreate(sourceUri: Uri) {
+  const commandlet = new SfdxCommandlet(
+    new InternalDevWorkspaceChecker(),
+    new CompositeParametersGatherer(
+      fileNameGatherer,
+      new FileInternalPathGatherer(sourceUri)
+    ),
+    new ForceLightningAppCreateExecutor()
   );
   await commandlet.run();
 }

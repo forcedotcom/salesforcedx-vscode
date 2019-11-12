@@ -31,6 +31,22 @@ export {
   ForceDeployResultParser,
   ForceSourceDeployErrorResponse,
   ForceSourceDeploySuccessResponse,
-  DeployResult
+  DeployResult,
+  CONFLICT_ERROR_NAME
 } from './deployResultParser';
 export { TestRunner } from './testRunner';
+export {
+  OrgCreateSuccessResult,
+  OrgCreateErrorResult,
+  OrgCreateResultParser
+} from './orgCreateResultParser';
+export {
+  OrgOpenSuccessResult,
+  OrgOpenContainerResultParser,
+  OrgOpenErrorResult
+} from './orgOpenContainerResultParser';
+export {
+  DiffErrorResponse,
+  DiffResultParser,
+  DiffSuccessResponse
+} from './diffResultParser';

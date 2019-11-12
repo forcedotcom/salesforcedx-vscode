@@ -45,19 +45,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Apex Class');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `apexClass_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultclasses');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new apex class is opened in a new tab
     const apexClassTab = await common.getTab(`${fileName}.cls`);
@@ -72,19 +72,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Apex Trigger');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `apexTrigger_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaulttriggers');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new apex trigger is opened in a new tab
     const apexTriggerTab = await common.getTab(`${fileName}.trigger`);
@@ -99,19 +99,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Visualforce Component');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `vfComponent_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultcomponents');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new apex class is opened in a new tab
     const visualforceComponentTab = await common.getTab(
@@ -128,19 +128,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Visualforce Page');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `vfPage_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultpages');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new visualforce class is opened in a new tab
     const visualforcePageTab = await common.getTab(`${fileName}.page`);
@@ -155,19 +155,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Lightning App');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `lightningApp_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultaura');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new lightning app is opened in a new tab
     const lightningAppTab = await common.getTab(`${fileName}.app`);
@@ -182,19 +182,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Lightning Component');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `lightningCmp_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultaura');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new lightning cmp is opened in a new tab
     const lightningComponentTab = await common.getTab(`${fileName}.cmp`);
@@ -209,19 +209,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Lightning Event');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `lightningEvt_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultaura');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new lightning evt is opened in a new tab
     const lightningEventTab = await common.getTab(`${fileName}.evt`);
@@ -236,19 +236,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Lightning Interface');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `lightningIntf_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultaura');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new lightning intf is opened in a new tab
     const lightningInterfaceTab = await common.getTab(`${fileName}.intf`);
@@ -263,19 +263,19 @@ describe('Scaffolding commands', () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Create Lightning Web Component');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const fileName = `lwc_${new Date().getTime()}`;
 
     // Enter file name
     await common.type(fileName);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Enter desired location (without slashes so it's OS-independent)
     await common.type('force-appmaindefaultlwc');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Check that the new LWC bundle .js file is opened in a new tab
     const lwcBundleTab = await common.getTab(`${fileName}.js`);
@@ -305,7 +305,7 @@ describe('Empty VSCode workspace', () => {
   it('Should only show create project command for non-SFDX workspace', async () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX:');
-    await app.wait();
+    await app.waitUI();
     const quickOpenText = await common.getQuickOpenElementsText();
     expect(quickOpenText).to.contain('SFDX: Create Project');
   });

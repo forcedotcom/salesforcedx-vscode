@@ -46,15 +46,15 @@ describe(TITLE, () => {
 
   it('Should execute anonymous apex from current editor document', async () => {
     await app.command('workbench.action.files.newUntitledFile');
-    await app.wait();
+    await app.waitUI();
 
     await common.type(ANONYMOUS_APEX_CODE);
-    await app.wait();
+    await app.waitUI();
 
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute Anonymous Apex with Editor Contents');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of
@@ -67,10 +67,10 @@ describe(TITLE, () => {
 
   it('Should execute anonymous apex from current text selection', async () => {
     await app.command('workbench.action.files.newUntitledFile');
-    await app.wait();
+    await app.waitUI();
 
     await common.type(ANONYMOUS_APEX_CODE);
-    await app.wait();
+    await app.waitUI();
 
     await app.command('editor.action.selectAll');
 
@@ -79,7 +79,7 @@ describe(TITLE, () => {
       '>SFDX: Execute Anonymous Apex with Currently Selected Text'
     );
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of

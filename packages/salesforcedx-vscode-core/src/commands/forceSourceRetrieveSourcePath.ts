@@ -26,7 +26,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
+} from './util';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -55,13 +55,19 @@ export class SourcePathChecker implements PostconditionChecker<string> {
           return inputs;
         }
       } catch (error) {
-        telemetryService.sendError(error.name);
+        telemetryService.sendException(
+          'force_source_retrieve_with_sourcepath',
+          `Error while parsing package directories. ${error.message}`
+        );
       }
 
       const errorMessage = nls.localize(
         'error_source_path_not_in_package_directory_text'
       );
-      telemetryService.sendError(errorMessage);
+      telemetryService.sendException(
+        'force_source_retrieve_with_sourcepath',
+        errorMessage
+      );
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();
@@ -79,7 +85,10 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
       const errorMessage = nls.localize(
         'force_source_retrieve_select_file_or_directory'
       );
-      telemetryService.sendError(errorMessage);
+      telemetryService.sendException(
+        'force_source_retrieve_with_sourcepath',
+        errorMessage
+      );
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();

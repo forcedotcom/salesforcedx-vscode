@@ -14,22 +14,22 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "45.14.0",
+  "version": "47.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.26.0"
+    "vscode": "^1.32.0"
   },
   "categories": [
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "45.14.0",
+    "@salesforce/salesforcedx-apex-debugger": "47.4.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "45.14.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "47.4.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
@@ -181,7 +181,8 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sfdx.debug.exception.breakpoint"
+          "command": "sfdx.debug.exception.breakpoint",
+          "when": "sfdx:project_opened"
         }
       ]
     },

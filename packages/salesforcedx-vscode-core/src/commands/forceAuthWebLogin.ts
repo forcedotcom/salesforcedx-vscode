@@ -11,15 +11,15 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandOutput';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Observable } from 'rxjs/Observable';
-import { CancellationTokenSource, workspace } from 'vscode';
+import { CancellationTokenSource } from 'vscode';
 import { channelService } from '../channels/index';
 import { nls } from '../messages';
 import { isDemoMode, isProdOrg } from '../modes/demo-mode';
@@ -29,14 +29,14 @@ import {
 } from '../notifications/index';
 import { SfdxProjectConfig } from '../sfdxProject';
 import { taskViewService } from '../statuses/index';
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath, isSFDXContainerMode } from '../util';
+import { ForceAuthLogoutAll } from './forceAuthLogout';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './commands';
-import { ForceAuthLogoutAll } from './forceAuthLogout';
+} from './util';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 export const PRODUCTION_URL = 'https://login.salesforce.com';
@@ -46,17 +46,25 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
   public build(data: AuthParams): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
-      .withArg('force:auth:web:login')
+    const command = new SfdxCommandBuilder().withDescription(
+      nls.localize('force_auth_web_login_authorize_org_text')
+    );
+    if (isSFDXContainerMode()) {
+      command
+        .withArg('force:auth:device:login')
+        .withLogName('force_auth_device_login');
+    } else {
+      command
+        .withArg('force:auth:web:login')
+        .withLogName('force_auth_web_login');
+    }
+    command
       .withFlag('--setalias', data.alias)
       .withFlag('--instanceurl', data.loginUrl)
-      .withArg('--setdefaultusername')
-      .withLogName('force_auth_web_login')
-      .build();
+      .withArg('--setdefaultusername');
+    return command.build();
   }
 }
-
 export abstract class ForceAuthDemoModeExecutor<
   T
 > extends SfdxCommandletExecutor<T> {

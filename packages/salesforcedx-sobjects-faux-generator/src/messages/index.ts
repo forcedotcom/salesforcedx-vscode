@@ -13,6 +13,7 @@ import {
   Localization,
   Message
 } from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
+import * as i18n from './i18n';
 
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
@@ -21,9 +22,7 @@ function loadMessageBundle(config?: Config): Message {
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
   }
 
-  const base = new Message(
-    require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-  );
+  const base = new Message(i18n.messages);
 
   if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
     try {

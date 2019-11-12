@@ -5,13 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Org } from '@salesforce/core';
 import {
+  CliCommandExecution,
   CliCommandExecutor,
+  Command,
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { xhr, XHROptions, XHRResponse } from 'request-light';
 import { CLIENT_ID } from '../constants';
+import { ConfigUtil } from './configUtil';
 
 export interface SObject {
   actionOverrides: any[];
@@ -165,77 +170,42 @@ export enum SObjectCategory {
 
 type SubRequest = { method: string; url: string };
 type BatchRequest = { batchRequests: SubRequest[] };
-
 type SubResponse = { statusCode: number; result: SObject };
-
 type BatchResponse = { hasErrors: boolean; results: SubResponse[] };
+
+export class ForceListSObjectSchemaExecutor {
+  public build(type: string): Command {
+    return new SfdxCommandBuilder()
+      .withArg('force:schema:sobject:list')
+      .withFlag('--sobjecttypecategory', type)
+      .withJson()
+      .build();
+  }
+
+  public execute(projectPath: string, type: string): CliCommandExecution {
+    const execution = new CliCommandExecutor(this.build(type), {
+      cwd: projectPath
+    }).execute();
+    return execution;
+  }
+}
 
 export class SObjectDescribe {
   private accessToken?: string;
   private instanceUrl?: string;
   private readonly servicesPath: string = 'services/data';
   // the targetVersion should be consistent with the Cli even if only using REST calls
-  private targetVersion = '';
+  private readonly targetVersion = '46.0';
   private readonly versionPrefix = 'v';
   private readonly sobjectsPart: string = 'sobjects';
   private readonly batchPart: string = 'composite/batch';
 
-  public async describeSObject(
-    projectPath: string,
-    type: string,
-    username?: string
-  ): Promise<SObject> {
-    await this.setupConnection(projectPath, username);
-
-    const urlElements = [
-      this.instanceUrl,
-      this.servicesPath,
-      this.getVersion(),
-      this.sobjectsPart,
-      type,
-      'describe'
-    ];
-
-    const requestUrl = urlElements.join('/');
-
-    const options: XHROptions = {
-      type: 'GET',
-      url: requestUrl,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `OAuth ${this.accessToken}`,
-        'User-Agent': 'salesforcedx-extension',
-        'Sforce-Call-Options': `client=${CLIENT_ID}`
-      }
-    };
-
-    try {
-      const response: XHRResponse = await xhr(options);
-      const sobject = JSON.parse(response.responseText) as SObject;
-      return Promise.resolve(sobject);
-    } catch (error) {
-      const xhrResponse: XHRResponse = error;
-      return Promise.reject(xhrResponse.responseText);
-    }
-  }
-
   public async describeGlobal(
     projectPath: string,
-    type: SObjectCategory,
-    username?: string
+    type: SObjectCategory
   ): Promise<string[]> {
-    const builder = new SfdxCommandBuilder()
-      .withArg('force:schema:sobject:list')
-      .withFlag('--sobjecttypecategory', type.toString());
-    if (username) {
-      builder.args.push('--targetusername', username);
-    }
-    const command = builder.withJson().build();
-    const execution = new CliCommandExecutor(command, {
-      cwd: projectPath
-    }).execute();
-
+    const forceListSObjectSchemaExecutor = new ForceListSObjectSchemaExecutor();
+    const execution = forceListSObjectSchemaExecutor.execute(projectPath, type);
     const cmdOutput = new CommandOutput();
     let result: string;
     try {
@@ -244,23 +214,38 @@ export class SObjectDescribe {
       return Promise.reject(e);
     }
     try {
-      const sobjects = JSON.parse(result).result as string[];
+      const sobjects = extractJsonObject(result).result as string[];
       return Promise.resolve(sobjects);
     } catch (e) {
       return Promise.reject(result);
     }
   }
 
-  public async describeSObjectBatch(
-    projectPath: string,
+  public buildSObjectDescribeURL(sObjectName: string): string {
+    const urlElements = [
+      this.getVersion(),
+      this.sobjectsPart,
+      sObjectName,
+      'describe'
+    ];
+    return urlElements.join('/');
+  }
+
+  public buildBatchRequestURL(): string {
+    const batchUrlElements = [
+      this.instanceUrl,
+      this.servicesPath,
+      this.getVersion(),
+      this.batchPart
+    ];
+    return batchUrlElements.join('/');
+  }
+
+  public buildBatchRequestBody(
     types: string[],
-    nextToProcess: number,
-    username?: string
-  ): Promise<SObject[]> {
+    nextToProcess: number
+  ): BatchRequest {
     const batchSize = 25;
-
-    await this.setupConnection(projectPath, username);
-
     const batchRequest: BatchRequest = { batchRequests: [] };
 
     for (
@@ -268,26 +253,20 @@ export class SObjectDescribe {
       i < nextToProcess + batchSize && i < types.length;
       i++
     ) {
-      const urlElements = [
-        this.getVersion(),
-        this.sobjectsPart,
-        types[i],
-        'describe'
-      ];
-      const requestUrl = urlElements.join('/');
-
-      batchRequest.batchRequests.push({ method: 'GET', url: requestUrl });
+      batchRequest.batchRequests.push({
+        method: 'GET',
+        url: this.buildSObjectDescribeURL(types[i])
+      });
     }
-    const batchUrlElements = [
-      this.instanceUrl,
-      this.servicesPath,
-      this.getVersion(),
-      this.batchPart
-    ];
-    const batchRequestUrl = batchUrlElements.join('/');
-    const options: XHROptions = {
+
+    return batchRequest;
+  }
+
+  public buildXHROptions(types: string[], nextToProcess: number): XHROptions {
+    const batchRequest = this.buildBatchRequestBody(types, nextToProcess);
+    return {
       type: 'POST',
-      url: batchRequestUrl,
+      url: this.buildBatchRequestURL(),
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -296,10 +275,41 @@ export class SObjectDescribe {
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       },
       data: JSON.stringify(batchRequest)
-    };
+    } as XHROptions;
+  }
 
+  public async runRequest(options: XHROptions): Promise<XHRResponse> {
+    return xhr(options);
+  }
+
+  public async describeSObjectBatch(
+    projectPath: string,
+    types: string[],
+    nextToProcess: number
+  ): Promise<SObject[]> {
     try {
-      const response: XHRResponse = await xhr(options);
+      const org = await Org.create({
+        aliasOrUsername: await ConfigUtil.getUsername(projectPath)
+      });
+
+      if (!this.accessToken || !this.instanceUrl) {
+        await this.getConnectionData(org);
+      }
+
+      let response: XHRResponse;
+      let options: XHROptions;
+      try {
+        options = this.buildXHROptions(types, nextToProcess);
+        response = await this.runRequest(options);
+      } catch (e) {
+        if (e.status !== 401) {
+          throw e;
+        }
+        await this.getConnectionData(org, true);
+        options = this.buildXHROptions(types, nextToProcess);
+        response = await this.runRequest(options);
+      }
+
       const batchResponse = JSON.parse(response.responseText) as BatchResponse;
       const fetchedObjects: SObject[] = [];
       let i = nextToProcess;
@@ -314,48 +324,23 @@ export class SObjectDescribe {
       }
       return Promise.resolve(fetchedObjects);
     } catch (error) {
-      const xhrResponse: XHRResponse = error;
-      return Promise.reject(xhrResponse.responseText);
+      const errorMsg = error.hasOwnProperty('responseText')
+        ? error.responseText
+        : error.message;
+      return Promise.reject(errorMsg);
     }
   }
 
-  // get the token and url by calling the org - short term, should really be able to get it from the sfdx project
-  // also set the proper target apiVersion
-  private async setupConnection(projectPath: string, username?: string) {
-    if (!this.accessToken) {
-      let orgInfo: any;
-      const builder = new SfdxCommandBuilder().withArg('force:org:display');
-      if (username) {
-        builder.args.push('--targetusername', username);
-      }
-      const command = builder.withJson().build();
-      const execution = new CliCommandExecutor(command, {
-        cwd: projectPath
-      }).execute();
-      const cmdOutput = new CommandOutput();
-      const result = await cmdOutput.getCmdResult(execution);
-      orgInfo = JSON.parse(result).result;
-      this.accessToken = orgInfo.accessToken;
-      this.instanceUrl = orgInfo.instanceUrl;
+  public async getConnectionData(org: Org, withRefresh?: boolean) {
+    if (withRefresh) {
+      await org.refreshAuth();
     }
-    if (!this.targetVersion) {
-      this.targetVersion = await this.getTargetApiVersion(projectPath);
-    }
+    const { accessToken, instanceUrl } = org.getConnection();
+    this.accessToken = accessToken;
+    this.instanceUrl = instanceUrl;
   }
 
-  private async getTargetApiVersion(projectPath: string): Promise<string> {
-    const builder = new SfdxCommandBuilder().withArg('force');
-    const command = builder.withJson().build();
-    const execution = new CliCommandExecutor(command, {
-      cwd: projectPath
-    }).execute();
-    const cmdOutput = new CommandOutput();
-    const result = await cmdOutput.getCmdResult(execution);
-    const apiVersion = JSON.parse(result).result.apiVersion;
-    return apiVersion;
-  }
-
-  private getVersion(): string {
+  public getVersion(): string {
     return `${this.versionPrefix}${this.targetVersion}`;
   }
 }

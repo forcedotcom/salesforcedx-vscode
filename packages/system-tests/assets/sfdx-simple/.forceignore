@@ -1,2 +1,6 @@
 force-app/main/default/lwc/.gitkeep
 force-app/main/default/triggers/.gitkeep
+
+**/jsconfig.json
+
+**/.eslintrc.json

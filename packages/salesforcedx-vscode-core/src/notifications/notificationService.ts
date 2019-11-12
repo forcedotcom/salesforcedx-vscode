@@ -55,6 +55,13 @@ export class NotificationService {
     return vscode.window.showWarningMessage(message, ...items);
   }
 
+  public showWarningModal(
+    message: string,
+    ...items: string[]
+  ): Thenable<string | undefined> {
+    return vscode.window.showWarningMessage(message, { modal: true }, ...items);
+  }
+
   public reportCommandExecutionStatus(
     execution: CommandExecution,
     cancellationToken?: vscode.CancellationToken

@@ -27,7 +27,7 @@ describe(TITLE, () => {
 
   let username: string;
 
-  before(async () => {
+  beforeEach(async () => {
     await util.createSFDXProject(PROJECT_NAME);
     username = await util.createScratchOrg(PROJECT_NAME);
     app = new SpectronApplication(VSCODE_BINARY_PATH, TITLE, 2, [PROJECT_DIR]);
@@ -35,9 +35,14 @@ describe(TITLE, () => {
 
     await app.start();
     await app.wait();
+    await app.command('workbench.action.quickOpen');
+    await common.type('>SFDX:');
+    await app.waitUI();
+    const quickOpenText = await common.getQuickOpenElementsText();
+    expect(quickOpenText.length).to.be.greaterThan(3);
   });
 
-  after(async () => {
+  afterEach(async () => {
     await app.stop();
     await util.deleteScratchOrg(PROJECT_NAME, username);
     await removeWorkspace(PROJECT_DIR);
@@ -48,19 +53,19 @@ describe(TITLE, () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute SOQL Query...');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const query = `SELECT Id, Name FROM Account`;
 
     // Enter SOQL query
     await common.type(query);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Select REST API
     await common.type('REST API');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of
@@ -74,12 +79,12 @@ describe(TITLE, () => {
   it('Should execute SOQL query with current selection', async () => {
     // Open new untitled file
     await app.command('workbench.action.files.newUntitledFile');
-    await app.wait();
+    await app.waitUI();
 
     // Enter SOQL query in active editor
     const query = 'SELECT Id, Name\nFROM Account';
     await common.type(query);
-    await app.wait();
+    await app.waitUI();
 
     // Select all text in the current window
     await app.command('editor.action.selectAll');
@@ -88,12 +93,12 @@ describe(TITLE, () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute SOQL Query with Currently Selected Text');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Select REST API
     await common.type('REST API');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of
@@ -109,19 +114,19 @@ describe(TITLE, () => {
     await app.command('workbench.action.quickOpen');
     await common.type('>SFDX: Execute SOQL Query...');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const query = `SELECT Id FROM ApexClassMember`;
 
     // Enter SOQL query
     await common.type(query);
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     // Select Tooling API
     await common.type('Tooling API');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
-    await app.wait();
+    await app.waitUI();
 
     const consoleHtml = await common.getConsoleOutput();
     // tslint:disable-next-line:prefer-for-of

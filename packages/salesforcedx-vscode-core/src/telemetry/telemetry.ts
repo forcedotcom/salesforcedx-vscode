@@ -21,6 +21,11 @@ interface CommandMetric {
   executionTime?: string;
 }
 
+export interface TelemetryData {
+  properties?: { [key: string]: string };
+  measurements?: { [key: string]: number };
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private context: vscode.ExtensionContext | undefined;
@@ -155,12 +160,9 @@ export class TelemetryService {
     }
   }
 
-  public sendError(errorMsg: string): void {
+  public sendException(name: string, message: string): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('coreError', {
-        extensionName: EXTENSION_NAME,
-        errorMsg
-      });
+      this.reporter.sendExceptionEvent(name, message);
     }
   }
 
@@ -174,23 +176,13 @@ export class TelemetryService {
     }
   }
 
-  public sendErrorEvent(errorMsg: string, callstack: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
-      this.reporter.sendTelemetryEvent('error', {
-        extensionName: EXTENSION_NAME,
-        errorMessage: errorMsg,
-        errorStack: callstack
-      });
-    }
-  }
-
   public dispose(): void {
     if (this.reporter !== undefined) {
       this.reporter.dispose().catch(err => console.log(err));
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): string {
+  public getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%d%d', hrend[0], hrend[1] / 1000000);
   }

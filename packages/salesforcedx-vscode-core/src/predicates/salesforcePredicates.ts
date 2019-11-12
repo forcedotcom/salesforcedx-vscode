@@ -8,7 +8,7 @@
 import {
   Predicate,
   PredicateResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/predicates/predicate';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/predicates';
 import * as fs from 'fs';
 import * as path from 'path';
 import { workspace } from 'vscode';

@@ -5,6 +5,21 @@
 'use strict';
 
 import {
+  CompilerOptions,
+  createLanguageService,
+  displayPartsToString,
+  flattenDiagnosticMessageText,
+  FormatCodeOptions,
+  getDefaultLibFilePath,
+  IndentStyle,
+  LanguageServiceHost,
+  ModuleResolutionKind,
+  NavigationBarItem,
+  ScriptKind,
+  ScriptTarget,
+  sys
+} from 'typescript';
+import {
   CompletionItem,
   CompletionItemKind,
   CompletionList,
@@ -40,8 +55,6 @@ import {
 import { HTMLDocumentRegions } from './embeddedSupport';
 import { LanguageMode, Settings } from './languageModes';
 
-import * as ts from 'typescript';
-
 const FILE_NAME = 'vscode://javascript/1'; // the same 'file' is used for all contents
 const JS_WORD_REGEX = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;
 
@@ -52,12 +65,12 @@ export function getJavascriptMode(
     documentRegions.get(document).getEmbeddedDocument('javascript')
   );
 
-  const compilerOptions: ts.CompilerOptions = {
+  const compilerOptions: CompilerOptions = {
     allowNonTsExtensions: true,
     allowJs: true,
     lib: ['lib.es6.d.ts'],
-    target: ts.ScriptTarget.Latest,
-    moduleResolution: ts.ModuleResolutionKind.Classic
+    target: ScriptTarget.Latest,
+    moduleResolution: ModuleResolutionKind.Classic
   };
   let currentTextDocument: TextDocument;
   let scriptFileVersion = 0;
@@ -71,10 +84,10 @@ export function getJavascriptMode(
       scriptFileVersion++;
     }
   }
-  const host: ts.LanguageServiceHost = {
+  const host: LanguageServiceHost = {
     getCompilationSettings: () => compilerOptions,
     getScriptFileNames: () => [FILE_NAME],
-    getScriptKind: () => ts.ScriptKind.JS,
+    getScriptKind: () => ScriptKind.JS,
     getScriptVersion: (fileName: string) => {
       if (fileName === FILE_NAME) {
         return String(scriptFileVersion);
@@ -88,7 +101,7 @@ export function getJavascriptMode(
           text = currentTextDocument.getText();
         }
       } else {
-        text = ts.sys.readFile(fileName) || '';
+        text = sys.readFile(fileName) || '';
       }
       return {
         getText: (start, end) => text.substring(start, end),
@@ -97,9 +110,9 @@ export function getJavascriptMode(
       };
     },
     getCurrentDirectory: () => '',
-    getDefaultLibFileName: options => ts.getDefaultLibFilePath(options)
+    getDefaultLibFileName: options => getDefaultLibFilePath(options)
   };
-  const jsLanguageService = ts.createLanguageService(host);
+  const jsLanguageService = createLanguageService(host);
 
   let globalSettings: Settings = {};
 
@@ -123,7 +136,7 @@ export function getJavascriptMode(
           return {
             range: convertRange(currentTextDocument, diag),
             severity: DiagnosticSeverity.Error,
-            message: ts.flattenDiagnosticMessageText(diag.messageText, '\n')
+            message: flattenDiagnosticMessageText(diag.messageText, '\n')
           };
         }
       );
@@ -174,8 +187,8 @@ export function getJavascriptMode(
         undefined
       );
       if (details) {
-        item.detail = ts.displayPartsToString(details.displayParts);
-        item.documentation = ts.displayPartsToString(details.documentation);
+        item.detail = displayPartsToString(details.displayParts);
+        item.documentation = displayPartsToString(details.documentation);
         delete item.data;
       }
       return item;
@@ -187,7 +200,7 @@ export function getJavascriptMode(
         currentTextDocument.offsetAt(position)
       );
       if (info) {
-        const contents = ts.displayPartsToString(info.displayParts);
+        const contents = displayPartsToString(info.displayParts);
         return {
           range: convertRange(currentTextDocument, info.textSpan),
           contents: MarkedString.fromPlainText(contents)
@@ -215,22 +228,22 @@ export function getJavascriptMode(
             parameters: []
           };
 
-          signature.label += ts.displayPartsToString(item.prefixDisplayParts);
+          signature.label += displayPartsToString(item.prefixDisplayParts);
           item.parameters.forEach((p, i, a) => {
-            const label = ts.displayPartsToString(p.displayParts);
+            const label = displayPartsToString(p.displayParts);
             const parameter: ParameterInformation = {
               label,
-              documentation: ts.displayPartsToString(p.documentation)
+              documentation: displayPartsToString(p.documentation)
             };
             signature.label += label;
             signature.parameters.push(parameter);
             if (i < a.length - 1) {
-              signature.label += ts.displayPartsToString(
+              signature.label += displayPartsToString(
                 item.separatorDisplayParts
               );
             }
           });
-          signature.label += ts.displayPartsToString(item.suffixDisplayParts);
+          signature.label += displayPartsToString(item.suffixDisplayParts);
           ret.signatures.push(signature);
         });
         return ret;
@@ -265,7 +278,7 @@ export function getJavascriptMode(
         const result: SymbolInformation[] = [];
         const existing = {};
         const collectSymbols = (
-          item: ts.NavigationBarItem,
+          item: NavigationBarItem,
           containerLabel?: string
         ) => {
           const sig = item.text + item.kind + item.spans[0].start;
@@ -485,12 +498,12 @@ function convertOptions(
   options: FormattingOptions,
   formatSettings: any,
   initialIndentLevel: number
-): ts.FormatCodeOptions {
+): FormatCodeOptions {
   return {
     ConvertTabsToSpaces: options.insertSpaces,
     TabSize: options.tabSize,
     IndentSize: options.tabSize,
-    IndentStyle: ts.IndentStyle.Smart,
+    IndentStyle: IndentStyle.Smart,
     NewLineCharacter: '\n',
     BaseIndentSize: options.tabSize * initialIndentLevel,
     InsertSpaceAfterCommaDelimiter: Boolean(

@@ -17,7 +17,7 @@ import {
   PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
-import { SfdxCommandlet, SfdxCommandletExecutor } from './commands';
+import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -98,7 +98,7 @@ export async function forceSourceDelete(sourceUri: vscode.Uri) {
       const errorMessage = nls.localize(
         'force_source_delete_select_file_or_directory'
       );
-      telemetryService.sendError(errorMessage);
+      telemetryService.sendException('force_source_delete', errorMessage);
       notificationService.showErrorMessage(errorMessage);
       channelService.appendLine(errorMessage);
       channelService.showChannelOutput();

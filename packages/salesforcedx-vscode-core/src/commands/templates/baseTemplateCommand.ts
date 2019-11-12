@@ -7,25 +7,37 @@
 
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  CancelResponse,
   ContinueResponse,
-  DirFileNameSelection,
-  PostconditionChecker
+  DirFileNameSelection
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { SfdxCommandletExecutor } from '..';
 import { channelService } from '../../channels';
-import { SelectOutputDir } from '../../commands';
-import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
+import {
+  MetadataDictionary,
+  MetadataInfo
+} from '../../util/metadataDictionary';
+import { SelectOutputDir, SfdxCommandletExecutor } from '../util';
+import { SourcePathStrategy } from '../util';
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
 > {
+  private metadataType: MetadataInfo;
+
+  constructor(type: string) {
+    super();
+    const info = MetadataDictionary.getInfo(type);
+    if (!info) {
+      throw new Error(`Unrecognized metadata type ${type}`);
+    }
+    this.metadataType = info;
+  }
+
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -68,93 +80,22 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
 
   private getPathToSource(outputDir: string, fileName: string): string {
     const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
-    return this.sourcePathStrategy.getPathToSource(
+    return this.getSourcePathStrategy().getPathToSource(
       sourceDirectory,
       fileName,
       this.getFileExtension()
     );
   }
 
-  protected abstract sourcePathStrategy: SourcePathStrategy;
-
-  protected abstract getFileExtension(): string;
-
-  protected abstract getDefaultDirectory(): string;
-}
-
-export interface SourcePathStrategy {
-  getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
-}
-
-export class DefaultPathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
-    return path.join(dirPath, `${fileName}${fileExt}`);
-  }
-}
-export class BundlePathStrategy implements SourcePathStrategy {
-  public getPathToSource(
-    dirPath: string,
-    fileName: string,
-    fileExt: string
-  ): string {
-    const bundleName = fileName;
-    return path.join(dirPath, bundleName, `${fileName}${fileExt}`);
-  }
-}
-
-export class FilePathExistsChecker
-  implements PostconditionChecker<DirFileNameSelection> {
-  private fileExtensionsToCheck: string[];
-  private sourcePathStrategy: SourcePathStrategy;
-  private metadataLabel: string;
-  public constructor(
-    fileExtensionsToCheck: string[],
-    sourcePathStrategy: SourcePathStrategy,
-    metadataLabel: string
-  ) {
-    this.fileExtensionsToCheck = fileExtensionsToCheck;
-    this.sourcePathStrategy = sourcePathStrategy;
-    this.metadataLabel = metadataLabel;
+  public getSourcePathStrategy(): SourcePathStrategy {
+    return this.metadataType.pathStrategy;
   }
 
-  public async check(
-    inputs: ContinueResponse<DirFileNameSelection> | CancelResponse
-  ): Promise<ContinueResponse<DirFileNameSelection> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      const outputDir = inputs.data.outputdir;
-      const fileName = inputs.data.fileName;
-      const files = await vscode.workspace.findFiles(
-        this.createFilesGlob(outputDir, fileName)
-      );
-      // If file does not exist then create it, otherwise prompt user to overwrite the file
-      if (files.length === 0) {
-        return inputs;
-      } else {
-        const overwrite = await notificationService.showWarningMessage(
-          nls.localize('warning_prompt_file_overwrite', this.metadataLabel),
-          nls.localize('warning_prompt_overwrite_confirm'),
-          nls.localize('warning_prompt_overwrite_cancel')
-        );
-        if (overwrite === nls.localize('warning_prompt_overwrite_confirm')) {
-          return inputs;
-        }
-      }
-    }
-    return { type: 'CANCEL' };
+  public getFileExtension(): string {
+    return `.${this.metadataType.suffix}`;
   }
 
-  private createFilesGlob(outputDir: string, fileName: string): string {
-    const filePaths = this.fileExtensionsToCheck.map(fileExtension =>
-      this.sourcePathStrategy.getPathToSource(
-        outputDir,
-        fileName,
-        fileExtension
-      )
-    );
-    return `{${filePaths.join(',')}}`;
+  public getDefaultDirectory(): string {
+    return this.metadataType.directory;
   }
 }

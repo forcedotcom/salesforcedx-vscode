@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
@@ -51,10 +52,7 @@ export class ConfigUtil {
           return localValue;
         }
       } catch (err) {
-        telemetryService.sendErrorEvent(
-          'Unexpected error in ConfigUtil.getConfigValue local',
-          err
-        );
+        telemetryService.sendException('get_config_value_local', err.message);
         return undefined;
       }
     }
@@ -66,10 +64,7 @@ export class ConfigUtil {
           return globalValue;
         }
       } catch (err) {
-        telemetryService.sendErrorEvent(
-          'Unexpected error in ConfigUtil.getConfigValue global',
-          err
-        );
+        telemetryService.sendException('get_config_value_global', err.message);
         return undefined;
       }
     }

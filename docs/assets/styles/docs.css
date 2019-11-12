@@ -813,13 +813,14 @@ html {
   }
 }
 
-.site-sidebar {
-  border-right: 1px solid #d8dee6;
+.site-masthead,
+.site-content {
+  border-left: 1px solid #d8dee6;
 }
 
 @media (min-width: 48em) {
   .site-sidebar {
-    position: fixed;
+    position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
@@ -900,7 +901,6 @@ html {
   margin-bottom: 0.625rem;
   width: 100%;
   height: 3rem;
-  background: url('../images/logo.svg') 50% 50% no-repeat;
 }
 
 @media (min-width: 48em) {
@@ -1076,7 +1076,7 @@ html {
 }
 
 .site-banner-informational {
-  background: url(../images/landing/info-trailhead-bg.png) repeat;
+  background: url(./images/landing/info-trailhead-bg.png) repeat;
   background-size: contain;
   background-color: #4b3116;
   color: #16325c;
@@ -1403,11 +1403,11 @@ html {
 }
 
 .site-social-twitter {
-  background-image: url('../images/social-twitter.svg');
+  background-image: url('./images/social-twitter.svg');
 }
 
 .site-social-github {
-  background-image: url('../images/social-github.svg');
+  background-image: url('./images/social-github.svg');
 }
 
 @media (max-width: 48em) {
@@ -3593,6 +3593,12 @@ docs h1 {
   font-size: 1.125rem;
 }
 
+.docs h2 a {
+  color: #706e6b;
+  font-size: 1.25rem;
+  margin-left: 0.5rem;
+}
+
 pre {
   background-color: rgba(224, 229, 238, 0.1);
   /* box-shadow: inset 0 1px 3px #a8b7c7; */
@@ -3612,4 +3618,29 @@ blockquote {
 
 #navigation button {
   cursor: default;
+}
+
+.site-main-content .article-feedback {
+  opacity: 0.8;
+  margin-top: 40px;
+}
+.site-main-content
+  .article-feedback
+  a:not(.slds-tabs--default__link):not(.slds-button) {
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.language-picker {
+  padding: 0 1rem;
+  margin-left: 1rem;
+}
+
+.language-picker a {
+  display: inline;
+  padding: 0;
+}
+
+.language-picker a.is-selected {
+  font-weight: bold;
 }

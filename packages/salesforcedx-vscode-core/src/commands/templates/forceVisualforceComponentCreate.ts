@@ -10,25 +10,28 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
+  MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '../commands';
-import {
-  BaseTemplateCommand,
-  DefaultPathStrategy,
-  FilePathExistsChecker
-} from './baseTemplateCommand';
+} from '../util';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   VISUALFORCE_COMPONENT_DIRECTORY,
-  VISUALFORCE_COMPONENT_EXTENSION
+  VISUALFORCE_COMPONENT_TYPE
 } from './metadataTypeConstants';
 
 export class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
+  constructor() {
+    super(VISUALFORCE_COMPONENT_TYPE);
+  }
+
   public build(data: DirFileNameSelection): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_visualforce_component_create_text'))
@@ -39,34 +42,24 @@ export class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand
       .withLogName('force_visualforce_component_create')
       .build();
   }
-
-  public sourcePathStrategy = new DefaultPathStrategy();
-
-  public getDefaultDirectory() {
-    return VISUALFORCE_COMPONENT_DIRECTORY;
-  }
-
-  public getFileExtension(): string {
-    return VISUALFORCE_COMPONENT_EXTENSION;
-  }
 }
 
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(VISUALFORCE_COMPONENT_DIRECTORY);
+const metadataTypeGatherer = new MetadataTypeGatherer(
+  VISUALFORCE_COMPONENT_TYPE
+);
 
 export async function forceVisualforceComponentCreate() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new CompositeParametersGatherer<DirFileNameSelection>(
+    new CompositeParametersGatherer<LocalComponent>(
+      metadataTypeGatherer,
       fileNameGatherer,
       outputDirGatherer
     ),
     new ForceVisualForceComponentCreateExecutor(),
-    new FilePathExistsChecker(
-      [VISUALFORCE_COMPONENT_EXTENSION],
-      new DefaultPathStrategy(),
-      nls.localize('visualforce_component_message_name')
-    )
+    new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }

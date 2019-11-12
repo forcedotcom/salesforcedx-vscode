@@ -53,6 +53,7 @@ describe('getAuthInfoObjects', () => {
     listAuthFilesStub.restore();
     readFileStub.restore();
   });
+
   it('should return null when no auth files are present', async () => {
     const orgList = new OrgList();
     const listAuthFilesStub = getAuthInfoListAuthFilesStub(null);
@@ -60,6 +61,7 @@ describe('getAuthInfoObjects', () => {
     expect(authInfoObjects).to.equal(null);
     listAuthFilesStub.restore();
   });
+
   const getAuthInfoListAuthFilesStub = (returnValue: any) =>
     sinon
       .stub(AuthInfo, 'listAllAuthFiles')
@@ -68,22 +70,28 @@ describe('getAuthInfoObjects', () => {
 
 describe('Filter Authorization Info', async () => {
   let defaultDevHubStub: sinon.SinonStub;
+  let getUsernameStub: sinon.SinonStub;
   let aliasCreateStub: sinon.SinonStub;
   let aliasKeysStub: sinon.SinonStub;
   const orgList = new OrgList();
+
   beforeEach(() => {
     defaultDevHubStub = sinon.stub(
       OrgAuthInfo,
       'getDefaultDevHubUsernameOrAlias'
     );
+    getUsernameStub = sinon.stub(OrgAuthInfo, 'getUsername');
     aliasCreateStub = sinon.stub(Aliases, 'create');
     aliasKeysStub = sinon.stub(Aliases.prototype, 'getKeysByValue');
   });
+
   afterEach(() => {
     defaultDevHubStub.restore();
+    getUsernameStub.restore();
     aliasCreateStub.restore();
     aliasKeysStub.restore();
   });
+
   it('should filter the list for users other than admins when scratchadminusername field is present', async () => {
     const authInfoObjects: FileInfo[] = [
       JSON.parse(
@@ -111,7 +119,7 @@ describe('Filter Authorization Info', async () => {
     expect(authList[0]).to.equal('test-username2@gmail.com');
   });
 
-  it('should filter the list to only show scratch orgs associated with current default dev hub', async () => {
+  it('should filter the list to only show scratch orgs associated with current default dev hub without an alias', async () => {
     const authInfoObjects: FileInfo[] = [
       JSON.parse(
         JSON.stringify({
@@ -129,6 +137,32 @@ describe('Filter Authorization Info', async () => {
       )
     ];
     defaultDevHubStub.returns('test-devhub1@gmail.com');
+    getUsernameStub.returns(undefined);
+    aliasCreateStub.returns(Aliases.prototype);
+    aliasKeysStub.returns([]);
+    const authList = await orgList.filterAuthInfo(authInfoObjects);
+    expect(authList[0]).to.equal('test-scratchorg1@gmail.com');
+  });
+
+  it('should filter the list to only show scratch orgs associated with current default dev hub with an alias', async () => {
+    const authInfoObjects: FileInfo[] = [
+      JSON.parse(
+        JSON.stringify({
+          orgId: '000',
+          username: 'test-scratchorg1@gmail.com',
+          devHubUsername: 'test-devhub1@gmail.com'
+        })
+      ),
+      JSON.parse(
+        JSON.stringify({
+          orgId: '111',
+          username: 'test-scratchorg2@gmail.com',
+          devHubUsername: 'test-devhub2@gmail.com'
+        })
+      )
+    ];
+    defaultDevHubStub.returns('dev hub alias');
+    getUsernameStub.returns('test-devhub1@gmail.com');
     aliasCreateStub.returns(Aliases.prototype);
     aliasKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
@@ -164,7 +198,6 @@ describe('Filter Authorization Info', async () => {
 });
 
 describe('Set Default Org', () => {
-  let defaultDevHubStub: sinon.SinonStub;
   let orgListStub: sinon.SinonStub;
   let quickPickStub: sinon.SinonStub;
   let executeCommandStub: sinon.SinonStub;
@@ -175,10 +208,6 @@ describe('Set Default Org', () => {
   const orgList = new OrgList();
 
   beforeEach(() => {
-    defaultDevHubStub = sinon.stub(
-      OrgAuthInfo,
-      'getDefaultDevHubUsernameOrAlias'
-    );
     orgListStub = sinon.stub(OrgList.prototype, 'updateOrgList');
     quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
     executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
@@ -187,7 +216,6 @@ describe('Set Default Org', () => {
   afterEach(() => {
     orgListStub.restore();
     quickPickStub.restore();
-    defaultDevHubStub.restore();
     executeCommandStub.restore();
   });
 
@@ -242,20 +270,5 @@ describe('Set Default Org', () => {
     const commandResult = expect(
       executeCommandStub.calledWith('sfdx.force.config.set')
     ).to.be.true;
-  });
-
-  it('should show appropriate commands depending on whether a dev hub is set or not', async () => {
-    defaultDevHubStub.onCall(0).returns(undefined);
-    defaultDevHubStub.onCall(1).returns('test@test.test');
-    let response = await orgList.setDefaultOrg();
-    response = await orgList.setDefaultOrg();
-    expect(quickPickStub.getCall(0).args[0]).to.eql([
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text')
-    ]);
-    expect(quickPickStub.getCall(1).args[0]).to.eql([
-      '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
-      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
-    ]);
   });
 });

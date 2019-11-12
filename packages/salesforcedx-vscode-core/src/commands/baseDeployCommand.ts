@@ -19,10 +19,11 @@ import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
+import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
-import { SfdxCommandletExecutor } from './commands';
+import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export enum DeployType {
   Deploy = 'deploy',
@@ -77,9 +78,10 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
           e.message =
             'Error while creating diagnostics for vscode problem view.';
         }
-        telemetryService.sendError(e.message);
+        telemetryService.sendException(e.name, e.message);
         console.error(e.message);
       }
+      await DeployQueue.get().unlock();
     });
 
     notificationService.reportCommandExecutionStatus(
