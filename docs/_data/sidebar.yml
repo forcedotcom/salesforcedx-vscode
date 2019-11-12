@@ -132,6 +132,10 @@
         jp: 作成
       url: /lwc/writing
     - title:
+        en: Testing
+        jp: 作成
+      url: /lwc/testing
+    - title:
         en: Local Development
         jp: Local Development
       url: /lwc/localdev
