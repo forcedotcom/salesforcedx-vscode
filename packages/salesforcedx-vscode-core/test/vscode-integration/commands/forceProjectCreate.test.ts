@@ -40,7 +40,7 @@ describe('Force Project Create', () => {
         .onCall(2)
         .returns(
           new ProjectTemplateItem(
-            projectTemplateEnum.analytics,
+            'force_project_create_analytics_template_display_text',
             'force_project_create_analytics_template'
           )
         );
