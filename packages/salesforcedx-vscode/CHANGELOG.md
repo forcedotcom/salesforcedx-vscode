@@ -2,14 +2,6 @@
 
 ## Fixed
 
-#### docs
-
-- Fix broken links for LWC [local development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) ([PR #1769](https://github.com/forcedotcom/salesforcedx-vscode/pull/1769))
-
-- Fix typo in `SFDX: Refresh SObject Definitions` command ([PR #1772](https://github.com/forcedotcom/salesforcedx-vscode/pull/1772))—Contribution by [@eouellette](https://github.com/eouellette)
-
-## Added
-
 #### salesforcedx-vscode-apex
 
 - Remove beta disclaimer from semantic error description of Apex Language Server ([PR #1785](https://github.com/forcedotcom/salesforcedx-vscode/pull/1785))
@@ -17,6 +9,14 @@
 #### salesforcedx-vscode-core
 
 - Capitalize template options for the `Create Project with Manifest` command ([PR #1775](https://github.com/forcedotcom/salesforcedx-vscode/pull/1775))
+
+#### docs
+
+- Fix broken links for LWC [local development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) ([PR #1769](https://github.com/forcedotcom/salesforcedx-vscode/pull/1769))
+
+- Fix typo in `SFDX: Refresh SObject Definitions` command ([PR #1772](https://github.com/forcedotcom/salesforcedx-vscode/pull/1772))—Contribution by [@eouellette](https://github.com/eouellette)
+
+## Added
 
 #### salesforcedx-vscode-lwc
 
