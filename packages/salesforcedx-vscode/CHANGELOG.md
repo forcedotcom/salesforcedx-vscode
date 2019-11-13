@@ -2,10 +2,6 @@
 
 ## Fixed
 
-#### salesforcedx-vscode-lwc
-
-- Fix LWC integration test script ([PR #1786](https://github.com/forcedotcom/salesforcedx-vscode/pull/1786))
-
 #### docs
 
 - Fix links for LWC [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) table of contents ([PR #1769](https://github.com/forcedotcom/salesforcedx-vscode/pull/1769))
@@ -20,11 +16,11 @@
 
 #### salesforcedx-vscode-core
 
-- Add server commands to support LWC local development ([PR #1773](https://github.com/forcedotcom/salesforcedx-vscode/pull/1773))
-
 - Capitalize options for the `Create Project with Manifest` command ([PR #1775](https://github.com/forcedotcom/salesforcedx-vscode/pull/1775))
 
 #### salesforcedx-vscode-lwc
+
+- Add server commands to support LWC local development ([PR #1773](https://github.com/forcedotcom/salesforcedx-vscode/pull/1773))
 
 - Add testing support for the LWC Test Explorer ([PR #1758](https://github.com/forcedotcom/salesforcedx-vscode/pull/1758), [Issue #1703](https://github.com/forcedotcom/salesforcedx-vscode/issues/1703))
 
