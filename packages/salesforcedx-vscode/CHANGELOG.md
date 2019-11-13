@@ -1,3 +1,37 @@
+# 47.6.0 - November 14, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Fix LWC integration test script ([PR #1786](https://github.com/forcedotcom/salesforcedx-vscode/pull/1786))
+
+#### docs
+
+- Fix links for LWC [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) table of contents ([PR #1769](https://github.com/forcedotcom/salesforcedx-vscode/pull/1769))
+
+- Fix typo on `SFDX: Refresh SObject Definitions` command ([PR #1772](https://github.com/forcedotcom/salesforcedx-vscode/pull/1772))—Contribution by [@eouellette](https://github.com/eouellette)
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Remove the legal description for the Apex Language Server semantic errors setting ([PR #1785](https://github.com/forcedotcom/salesforcedx-vscode/pull/1785))
+
+#### salesforcedx-vscode-core
+
+- Add server commands to support LWC local development ([PR #1773](https://github.com/forcedotcom/salesforcedx-vscode/pull/1773))
+
+- Capitalize options for the `Create Project with Manifest` command ([PR #1775](https://github.com/forcedotcom/salesforcedx-vscode/pull/1775))
+
+#### salesforcedx-vscode-lwc
+
+- Add testing support for the LWC Test Explorer ([PR #1758](https://github.com/forcedotcom/salesforcedx-vscode/pull/1758), [Issue #1703](https://github.com/forcedotcom/salesforcedx-vscode/issues/1703))
+
+#### docs
+
+- Remove beta notes ([PR #1780](https://github.com/forcedotcom/salesforcedx-vscode/pull/1780))
+
 # 47.5.0 - November 7, 2019
 
 ## Fixed
