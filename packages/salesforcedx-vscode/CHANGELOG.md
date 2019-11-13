@@ -4,19 +4,19 @@
 
 #### docs
 
-- Fix links for LWC [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) table of contents ([PR #1769](https://github.com/forcedotcom/salesforcedx-vscode/pull/1769))
+- Fix broken links for LWC [local development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) ([PR #1769](https://github.com/forcedotcom/salesforcedx-vscode/pull/1769))
 
-- Fix typo on `SFDX: Refresh SObject Definitions` command ([PR #1772](https://github.com/forcedotcom/salesforcedx-vscode/pull/1772))—Contribution by [@eouellette](https://github.com/eouellette)
+- Fix typo in `SFDX: Refresh SObject Definitions` command ([PR #1772](https://github.com/forcedotcom/salesforcedx-vscode/pull/1772))—Contribution by [@eouellette](https://github.com/eouellette)
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- Remove the legal description for the Apex Language Server semantic errors setting ([PR #1785](https://github.com/forcedotcom/salesforcedx-vscode/pull/1785))
+- Remove beta disclaimer from semantic error description of Apex Language Server ([PR #1785](https://github.com/forcedotcom/salesforcedx-vscode/pull/1785))
 
 #### salesforcedx-vscode-core
 
-- Capitalize options for the `Create Project with Manifest` command ([PR #1775](https://github.com/forcedotcom/salesforcedx-vscode/pull/1775))
+- Capitalize template options for the `Create Project with Manifest` command ([PR #1775](https://github.com/forcedotcom/salesforcedx-vscode/pull/1775))
 
 #### salesforcedx-vscode-lwc
 
@@ -26,7 +26,7 @@
 
 #### docs
 
-- Remove beta notes ([PR #1780](https://github.com/forcedotcom/salesforcedx-vscode/pull/1780))
+- Remove beta notice for [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) and for features mentioned in [Migrate from Force.com IDE](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/migrate-from-forcecom-ide) ([PR #1780](https://github.com/forcedotcom/salesforcedx-vscode/pull/1780))
 
 # 47.5.0 - November 7, 2019
 
