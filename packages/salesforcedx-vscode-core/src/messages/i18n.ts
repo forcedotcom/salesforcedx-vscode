@@ -157,6 +157,9 @@ export const messages = {
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_project_create_standard_template: 'Standard project template (default)',
+  force_project_create_standard_template_display_text: 'Standard',
+  force_project_create_empty_template_display_text: 'Empty',
+  force_project_create_analytics_template_display_text: 'Analytics',
   force_project_create_empty_template: 'Empty project template',
   force_project_create_analytics_template: 'Analytics project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
@@ -475,5 +478,5 @@ export const messages = {
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
   force_source_diff_command_not_found:
-    'This command requires installing the @salesforce/sfdx-diff plugin. For detailed instructions go to https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff'
+    'This command requires installing the @salesforce/sfdx-diff plugin. For detailed instructions go to [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff)'
 };

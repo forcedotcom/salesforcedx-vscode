@@ -5,23 +5,23 @@ lang: en
 
 The Local Development Server is a Salesforce CLI plugin that configures and runs a Lightning Web Components-enabled server on your computer. Now you can develop Lightning Web Component modules and see live changes without publishing your components to an org.
 
-**Note**: This feature is in beta and has been released early so we can collect your feedback. It may contain significant problems, undergo major changes, or be discontinued. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server-feedback/issues). The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/terms?lan=en).
+**Note**: This feature is currently in beta. If you encounter any problems, or want to request an enhancement, open a [GitHub issue](https://github.com/forcedotcom/lwc-dev-server-feedback/issues).
 
 - [Setup](#setup)
-  - [System Requirements](#system-requirements)
-  - [Installation](#installation)
-  - [Troubleshooting](#troubleshooting)
-  - [Configuration for Projects (Optional)](#configuration-for-projects)
-- [Working With Modules and Components](#working-with-modules-and-components)
-  - [Supported Modules](#supported-modules)
-  - [Partially Supported Modules](#partially-supported-modules)
-  - [Unsupported Modules](#unsupported-modules)
-  - [Unsupported Components](#unsupported-components)
-- [Considerations](#considerations)
-- [Common Errors](#common-errors)
-  - [Using an Unsupported Dependency](#using-an-unsupported-dependency)
-  - [Using a Nonexistent Component](#using-a-nonexistent-component)
-  - [Using a Component in a Nonexistent Namespace](#using-a-component-in-a-nonexistent-namespace)
+  - [System Requirements](./en/lwc/localdev#system-requirements)
+  - [Installation](./en/lwc/localdev#installation)
+  - [Troubleshooting](./en/lwc/localdev#troubleshooting)
+  - [Configuration for Projects (Optional)](./en/lwc/localdev#configuration-for-projects)
+- [Working With Modules and Components](./en/lwc/localdev#working-with-modules-and-components)
+  - [Supported Modules](./en/lwc/localdev#supported-modules)
+  - [Partially Supported Modules](./en/lwc/localdev#partially-supported-modules)
+  - [Unsupported Modules](./en/lwc/localdev#unsupported-modules)
+  - [Unsupported Components](./en/lwc/localdev#unsupported-components)
+- [Considerations](./en/lwc/localdev#considerations)
+- [Common Errors](./en/lwc/localdev#common-errors)
+  - [Using an Unsupported Dependency](./en/lwc/localdev#using-an-unsupported-dependency)
+  - [Using a Nonexistent Component](./en/lwc/localdev#using-a-nonexistent-component)
+  - [Using a Component in a Nonexistent Namespace](./en/lwc/localdev#using-a-component-in-a-nonexistent-namespace)
 
 ## **Setup**
 

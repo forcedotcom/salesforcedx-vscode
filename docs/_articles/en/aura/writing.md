@@ -54,7 +54,7 @@ Outline view allows you to see the outline of your component—i.e. its HTML tag
 
 ## Lightning Explorer (Beta)
 
-As a beta feature, Lightning Explorer View is a preview and isn’t part of the “Services” under your master subscription agreement with Salesforce. Use this feature at your sole discretion, and make your purchase decisions only on the basis of generally available products and features. Salesforce doesn’t guarantee general availability of this feature within any particular time frame or at all, and we can discontinue it at any time. Lightning Explorer is for evaluation purposes only, not for production use. It’s offered as is and isn’t supported, and Salesforce has no liability for any harm or damage arising out of or in connection with it. All restrictions, Salesforce reservation of rights, obligations concerning the Services, and terms for related Non-Salesforce Applications and Content apply equally to your use of this feature. The use of this feature is governed by the [Salesforce.com Program Agreement](https://trailblazer.me/resource/documents/documents/pdf/TermsOfUse_en_US.pdf). If you encounter any problems, or want to request an enhancement, open a Github issue.
+> NOTICE: This feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
 
 Lightning Explorer lets you view reference documentation for both Aura components and Lightning web components. To enable it, go to **Preferences > Settings**. Enter `lightning explorer` in the search bar. Then, click the checkbox next to **salesforcedx-vscode-lightning:Show Lightning Explorer**.
 
