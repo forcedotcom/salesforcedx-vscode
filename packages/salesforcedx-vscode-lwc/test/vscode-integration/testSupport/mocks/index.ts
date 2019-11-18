@@ -18,6 +18,7 @@ import {
 
 let existsSyncStub: SinonStub;
 let sfdxTaskExecuteStub: SinonStub;
+let activeTextEditorStub: SinonStub;
 export function createMockTestFileInfo() {
   const mockDirectory = path.join(
     vscode.workspace.workspaceFolders![0].uri.fsPath,
@@ -68,4 +69,20 @@ export function mockSfdxTaskExecute(immediate?: boolean) {
 
 export function unmockSfdxTaskExecute() {
   sfdxTaskExecuteStub.restore();
+}
+
+export function mockActiveTextEditorUri(testUri: vscode.Uri) {
+  const mockActiveTextEditor = {
+    document: {
+      uri: testUri,
+      languageId: 'javascript'
+    }
+  };
+  activeTextEditorStub = stub(vscode.window, 'activeTextEditor').get(() => {
+    return mockActiveTextEditor;
+  });
+}
+
+export function unmockActiveTextEditorUri() {
+  activeTextEditorStub.restore();
 }
