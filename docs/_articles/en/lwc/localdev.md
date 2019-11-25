@@ -3,9 +3,9 @@ title: Local Development (Beta)
 lang: en
 ---
 
-## Local Development in the Lightning Web Components Developer Guide
+> View the full documentation in the [Lightning Web Components Developer Guide](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).
 
-The Local Development Server is a Salesforce CLI plug-in that configures and runs a Lightning Web Components-enabled server on your computer. You can develop Lightning web components and see live changes without publishing the components to an org. See the full documentation in the [Lightning Web Components Developer Guide](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).
+The Local Development Server is a Salesforce CLI plug-in that configures and runs a Lightning Web Components-enabled server on your computer. You can develop Lightning web components and see live changes without publishing the components to an org. 
 
 ## Run Local Development SFDX Commands in VS Code
 
