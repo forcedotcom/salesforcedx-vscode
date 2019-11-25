@@ -14,20 +14,19 @@ View the local development server's SFDX commands from VS Code's command palette
 ![VS Code Commands](./images/vscode_localdev_sfdx_commands.png)
 
 
-**SFDX: Open Local Development Server**
-If the local development server isn't currently running, this command starts the server and opens localhost:3333 on your web browser. If the server is already running, then the command only opens [localhost:3333](localhost:3333) in your browser.
+**SFDX: Open Local Development Server**  
+If the local development server isn't currently running, this command starts the server and opens [localhost:3333](localhost:3333) on your web browser. If the server is already running, then the command only opens [localhost:3333](localhost:3333) in your browser.
 
-**SFDX: Start Local Development Server**
+**SFDX: Start Local Development Server**  
 This command starts the local development server. If you already started the server from VS Code, then VS Code gives the option to open it in the browser or restart it. If you already started the server from the command line, then VS code shows an error in the output console.
 
-**SFDX: Stop Local Development Server** 
+**SFDX: Stop Local Development Server**  
 This command stops the local development server.
 
-**Preview Lightning Web Components in VS Code**
+**Preview Lightning Web Components in VS Code**  
 To preview Lightning web components, right-click any line of code in the component's HTML, CSS, or JavaScript files. You can also right-click any of the HTML, CSS, or JavaScript filenames or the component folder. 
 
 Preview `c-hello` from the HTML code.
-
 ![Preview component from HTML.](./images/vscode_localdev_preview_html.png)
 
 Preview `c-hello` from the HTML file.
