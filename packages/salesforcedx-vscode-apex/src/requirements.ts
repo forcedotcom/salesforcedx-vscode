@@ -20,9 +20,10 @@ const expandHomeDir = require('expand-home-dir');
 const findJavaHome = require('find-java-home');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
-
+export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
 export interface RequirementsData {
   java_home: string;
+  java_memory: number;
 }
 
 /**
@@ -31,8 +32,14 @@ export interface RequirementsData {
  */
 export async function resolveRequirements(): Promise<RequirementsData> {
   const javaHome = await checkJavaRuntime();
+  const javaMemory: number = workspace
+    .getConfiguration()
+    .get<number>(JAVA_MEMORY_KEY, 4096);
   await checkJavaVersion(javaHome);
-  return Promise.resolve({ java_home: javaHome });
+  return Promise.resolve({
+    java_home: javaHome,
+    java_memory: javaMemory
+  });
 }
 
 function checkJavaRuntime(): Promise<string> {

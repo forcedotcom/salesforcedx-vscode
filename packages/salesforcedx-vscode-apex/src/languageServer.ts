@@ -34,6 +34,7 @@ async function createServer(
     const javaExecutable = path.resolve(
       `${requirementsData.java_home}/bin/java`
     );
+    const jvmMaxHeap = requirementsData.java_memory;
     let args: string[];
     const enableSemanticErrors: boolean = vscode.workspace
       .getConfiguration()
@@ -43,6 +44,7 @@ async function createServer(
       args = ['-cp', uberJar];
 
       args.push(
+        `-Xmx${jvmMaxHeap}M`,
         '-Ddebug.internal.errors=true',
         `-Ddebug.semantic.errors=${enableSemanticErrors}`,
         '-Dtrace.protocol=false',
@@ -53,6 +55,7 @@ async function createServer(
       args = ['-cp', uberJar];
 
       args.push(
+        `-Xmx${jvmMaxHeap}M`,
         '-Ddebug.internal.errors=true',
         `-Ddebug.semantic.errors=${enableSemanticErrors}`,
         APEX_LANGUAGE_SERVER_MAIN
