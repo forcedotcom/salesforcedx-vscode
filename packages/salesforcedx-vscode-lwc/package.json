@@ -106,7 +106,7 @@
       "editor/context": [
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js|xml))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
         }
       ],
       "editor/title": [
@@ -129,6 +129,12 @@
           "command": "sfdx.force.lightning.lwc.test.editorTitle.stopWatching",
           "when": "sfdx:lwc_jest_file_focused && sfdx:lwc_jest_is_watching_focused_file",
           "group": "navigation"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "sfdx.force.lightning.lwc.preview",
+          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
         }
       ],
       "view/title": [
@@ -172,7 +178,7 @@
       "explorer/context": [
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js|xml))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
         }
       ],
       "commandPalette": [
@@ -187,6 +193,10 @@
         {
           "command": "sfdx.force.lightning.lwc.open",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.preview",
+          "when": "false"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",
