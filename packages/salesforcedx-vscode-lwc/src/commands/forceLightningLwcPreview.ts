@@ -30,10 +30,28 @@ const commandName = nls.localize('force_lightning_lwc_preview_text');
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
 
-  const resourcePath = sourceUri.path;
-  if (!resourcePath || !fs.existsSync(resourcePath)) {
+  if (!sourceUri) {
     const message = nls.localize(
-      'force_lightning_lwc_preview_no_file',
+      'force_lightning_lwc_preview_file_undefined',
+      sourceUri
+    );
+    showError(new Error(message), logName, commandName);
+    return;
+  }
+
+  const resourcePath = sourceUri.path;
+  if (!resourcePath) {
+    const message = nls.localize(
+      'force_lightning_lwc_preview_file_undefined',
+      resourcePath
+    );
+    showError(new Error(message), logName, commandName);
+    return;
+  }
+
+  if (!fs.existsSync(resourcePath)) {
+    const message = nls.localize(
+      'force_lightning_lwc_preview_file_nonexist',
       resourcePath
     );
     showError(new Error(message), logName, commandName);
@@ -46,7 +64,10 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
     : componentUtil.moduleFromFile(resourcePath, isSFDX);
   if (!componentName) {
-    const message = nls.localize('force_lightning_lwc_preview_unsupported');
+    const message = nls.localize(
+      'force_lightning_lwc_preview_unsupported',
+      resourcePath
+    );
     showError(new Error(message), logName, commandName);
     return;
   }
