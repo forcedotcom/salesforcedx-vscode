@@ -1,3 +1,33 @@
+# 47.6.0 - November 14, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Remove beta disclaimer from semantic error description of Apex Language Server ([PR #1785](https://github.com/forcedotcom/salesforcedx-vscode/pull/1785))
+
+#### salesforcedx-vscode-core
+
+- Capitalize template options for the `Create Project with Manifest` command ([PR #1775](https://github.com/forcedotcom/salesforcedx-vscode/pull/1775))
+
+#### docs
+
+- Fix broken links for LWC [local development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) ([PR #1769](https://github.com/forcedotcom/salesforcedx-vscode/pull/1769))
+
+- Fix typo in `SFDX: Refresh SObject Definitions` command ([PR #1772](https://github.com/forcedotcom/salesforcedx-vscode/pull/1772))—Contribution by [@eouellette](https://github.com/eouellette)
+
+## Added
+
+#### salesforcedx-vscode-lwc
+
+- Add server commands to support LWC local development ([PR #1773](https://github.com/forcedotcom/salesforcedx-vscode/pull/1773))
+
+- Add testing support for the LWC Test Explorer ([PR #1758](https://github.com/forcedotcom/salesforcedx-vscode/pull/1758), [Issue #1703](https://github.com/forcedotcom/salesforcedx-vscode/issues/1703))
+
+#### docs
+
+- Remove beta notice for [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) and for features mentioned in [Migrate from Force.com IDE](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/migrate-from-forcecom-ide) ([PR #1780](https://github.com/forcedotcom/salesforcedx-vscode/pull/1780))
+
 # 47.5.0 - November 7, 2019
 
 ## Fixed
