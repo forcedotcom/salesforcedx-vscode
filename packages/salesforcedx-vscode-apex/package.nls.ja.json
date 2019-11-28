@@ -8,7 +8,7 @@
   "show_error_title": "エラーを表示",
   "go_to_definition_title": "定義に移動",
   "java_home_description": "Apex 言語サーバの起動に使用される Java 8 または Java 11 ランタイムのフォルダパスを指定します。(例: /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home)",
-  "apex_semantic_errors_description": "Apex 言語サーバがセマンティックエラーを表示することを許可します。ベータ機能としてのプレビュー版であり、Salesforce とのマスターサブスクリプション契約における「サービス」には含まれません。この機能はお客様各自の裁量で使用し、購入するときは、現在正式にリリースされている製品および機能に基づいて判断してください。Salesforce はこの機能の特定期間内の正式リリースまたはリリースの有無を保証せず、いつでも中止できます。この機能は評価のみを目的とし、本番環境での使用はできません。この機能は現状のまま提供され、サポートの対象外です。この機能に起因あるいは関連して生じた危害または損害に対して Salesforce は一切の責任を負わないものとします。制限、Salesforce の権利の留保、サービスに関するお客様の義務、関連する Salesforce 以外のアプリケーションおよびコンテンツの使用規約はすべて、お客様によるこの機能の使用にも同様に適用されます。",
+  "apex_semantic_errors_description": "Apex 言語サーバがセマンティックエラーを表示することを許可します。",
   "force_apex_test_last_class_run_text": "SFDX: 最後に呼び出されたテストクラスを再実行",
   "force_apex_test_last_method_run_text": "SFDX: 最後に呼び出されたテストメソッドを再実行",
   "force_apex_test_class_run_text": "SFDX: テストクラスを呼び出す",
