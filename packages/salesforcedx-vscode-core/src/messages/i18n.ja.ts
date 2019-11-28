@@ -488,5 +488,5 @@ export const messages = {
     'このメタデータ型に対する差分は現在サポートされていません。',
   force_source_diff_title: '%s//%s ↔ ローカル //%s',
   force_source_diff_command_not_found:
-    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/ を参照してください。'
+    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、[https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/](https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/) を参照してください。'
 };
