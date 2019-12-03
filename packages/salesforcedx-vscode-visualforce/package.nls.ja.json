@@ -1,0 +1,22 @@
+{
+  "configuration.title": "Salesforce Visualforce Configuration",
+  "visualforce.format.enable.desc": "デフォルトの Visualforce フォーマッタの有効化/無効化",
+  "visualforce.format.wrapLineLength.desc": "1 行あたりの最大の文字数 (0 は折り返し無効化)",
+  "visualforce.format.unformatted.desc": "再フォーマットしないタグをカンマ区切りでリストします。何も指定しない場合デフォルトで、https://www.w3.org/TR/html5/dom.html#phrasing-content に一覧表示されているすべてのタグ対象になります。",
+  "visualforce.format.contentUnformatted.desc": "コンテンツをフォーマットしないタグをカンマ区切りでリストします。何も指定しない場合デフォルトで 'pre' タグが対象となります。",
+  "visualforce.format.indentInnervisualforce.desc": "<head> タグと <body> タグをインデントします。",
+  "visualforce.format.preserveNewLines.desc": "要素の前に空行を許可するかどうか。要素の前のみ有効となり、タグの内部やテキストに対しては無効です。",
+  "visualforce.format.maxPreserveNewLines.desc": "許可する空行の最大数。何も指定しない場合デフォルトで上限はありません。",
+  "visualforce.format.endWithNewline.desc": "末尾を改行で終えます。",
+  "visualforce.format.extraLiners.desc": "直前に改行を挿入するタグカンマ区切りでリストします。何も指定しない場合デフォルトで \"head, body, /html\" タグが対象となります。",
+  "visualforce.format.wrapAttributes.desc": "属性を折り返します。",
+  "visualforce.format.wrapAttributes.auto": "1 行の長さが上限を超えている場合だけ属性を折り返します。",
+  "visualforce.format.wrapAttributes.force": "最初の属性以外をすべて折り返します。",
+  "visualforce.format.wrapAttributes.forcealign": "最初の属性以外をすべて折り返し、揃えます。",
+  "visualforce.format.wrapAttributes.forcemultiline": "すべての属性を折り返します。",
+  "visualforce.suggest.html5.desc": "Visualforce の言語サポートにより HTML5 のタグ、プロパティ、および値を提案するかどうかを設定します。",
+  "visualforce.trace.server.desc": "Visuallforce 言語サーバと VS Code 間の通信を追跡する。",
+  "visualforce.validate.scripts": "Visualforce の言語サポートをインライン Javacript に適用するかどうかを設定します。",
+  "visualforce.validate.styles": "Visualforce の言語サポートをインライン CSS に適用するかどうかを設定します。",
+  "visualforce.autoClosingTags": "終了タグの自動挿入を有効化/無効化します。"
+}

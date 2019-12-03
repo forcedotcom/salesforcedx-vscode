@@ -1,0 +1,11 @@
+{
+  "lightning_open_component_title": "SFDX: Lightning コンポーネントを開く",
+  "lightning_explorer_title": "Lightning Explorer",
+  "lightning_preferences": "Salesforce Lightning",
+  "lightning_explorer_name": "Lightning コンポーネント",
+  "show_lightning_explorer_description": "プレビュー機能: Lightning Explorer View を表示",
+  "activation_mode_description": "Aura および LWC 言語サーバ (LSP) をいつ有効化するかを設定します。(再起動が必要)",
+  "activation_mode_always_on": "Lighning LSP を VS Code のワークスペース設定に関わらず常に有効化します。",
+  "activation_mode_autodetect": "Lighning LSP を有効な VS Code のワークスペースを検知したときに限り有効化します。",
+  "activation_mode_off": "Lighning LSP を有効化しません。"
+}
