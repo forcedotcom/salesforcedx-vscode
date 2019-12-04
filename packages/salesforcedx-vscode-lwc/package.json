@@ -345,21 +345,6 @@
           "dark": "resources/dark/stopWatching.svg"
         }
       }
-    ],
-    "configuration": {
-      "title": "LWC",
-      "properties": {
-        "salesforcedx-vscode-lwc.manageEslintNodepath": {
-          "type": "string",
-          "default": "",
-          "enum": [
-            "",
-            "Yes",
-            "No"
-          ],
-          "description": "Should the LWC extension manage your ESLint nodePath for LWC projects?"
-        }
-      }
-    }
+    ]
   }
 }

@@ -103,10 +103,19 @@ export async function activate(this: any, context: ExtensionContext) {
   startLWCLanguageServer(context);
 
   if (workspaceType === lspCommon.WorkspaceType.SFDX) {
-    // Additional eslint configuration
-    const extNodePath = context.asAbsolutePath(path.join('node_modules'));
-    workspace.onDidChangeConfiguration(settingsChanged.bind(this, extNodePath));
-    await populateEslintSettingIfNecessary();
+    // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
+    // which points at our LWC extension node_modules path
+    const config: WorkspaceConfiguration = workspace.getConfiguration('');
+    const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
+    if (currentNodePath && currentNodePath.includes(LWC_EXTENSION_NAME)) {
+      try {
+        await config.update(
+          ESLINT_NODEPATH_CONFIG,
+          undefined,
+          ConfigurationTarget.Workspace
+        );
+      } catch (e) {}
+    }
 
     // Activate Test support only for SFDX workspace type for now
     activateLwcTestSupport(context);
@@ -207,113 +216,4 @@ function startLWCLanguageServer(context: ExtensionContext) {
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
   context.subscriptions.push(client);
-}
-
-// Check package.json for eslint dependencies
-export function containsEslintConfiguration(packageJson: string) {
-  try {
-    if (fs.existsSync(packageJson)) {
-      // Check if package.json contains @lwc/engine
-      const packageInfo = JSON.parse(fs.readFileSync(packageJson, 'utf-8'));
-      const devDependencies = Object.keys(packageInfo.devDependencies || {});
-      if (
-        devDependencies.includes('eslint') &&
-        devDependencies.includes('@salesforce/eslint-config-lwc')
-      ) {
-        return true;
-      }
-    }
-  } catch (e) {}
-  return false;
-}
-
-async function settingsChanged(
-  pluginNodePath: string,
-  e: ConfigurationChangeEvent
-) {
-  if (e.affectsConfiguration(MANAGE_ESLINT_NODEPATH)) {
-    const config: WorkspaceConfiguration = workspace.getConfiguration('');
-    const manageNodepath = config.get<string>(MANAGE_ESLINT_NODEPATH);
-
-    // User wants us to manage their eslint nodepath
-    if (manageNodepath === 'Yes') {
-      const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-
-      // User has not set one, use the eslint bundled with our extension
-      // or if it is from salesforcedx-vscode-lwc, update since the path looks like
-      // "eslint.nodePath": ".../.vscode/extensions/salesforce.salesforcedx-vscode-lwc-41.17.0/node_modules",
-      // which contains the version number and needs to be updated on each extension
-      if (!currentNodePath || currentNodePath.includes(LWC_EXTENSION_NAME)) {
-        await config.update(
-          ESLINT_NODEPATH_CONFIG,
-          pluginNodePath,
-          ConfigurationTarget.Workspace
-        );
-      }
-    }
-  }
-}
-
-export async function populateEslintSettingIfNecessary() {
-  const config: WorkspaceConfiguration = workspace.getConfiguration('');
-
-  // Check package json for devDeps of eslint-plugin-lwc
-  const packageJson = path.join(workspace.rootPath || '', 'package.json');
-  const hasProperDeps = containsEslintConfiguration(packageJson);
-
-  // If we have the proper dependencies, just return and don't do anything
-  if (hasProperDeps) {
-    return;
-  }
-
-  // If we get here its because eslint isn't setup properly
-
-  // Check our user settings to see if we should prompt them
-  let shouldManageEslintNodepath = config.get<string>(MANAGE_ESLINT_NODEPATH);
-
-  // If setting is not set (defaults to '')
-  if (!shouldManageEslintNodepath) {
-    if (workspace) {
-      shouldManageEslintNodepath = await window.showInformationMessage(
-        'It appears you do not have ESLint configured for LWC in your current project. Would you like us to automatically configure your eslint.nodePath so that ESLint will work correctly? [Learn More](https://github.com/salesforce/eslint-config-lwc/blob/master/README.md)',
-        'Yes',
-        'No'
-      );
-    }
-
-    // User can click cancel, so only set the preference if they actually clicked Yes or No
-    if (shouldManageEslintNodepath) {
-      await config.update(
-        MANAGE_ESLINT_NODEPATH,
-        shouldManageEslintNodepath,
-        ConfigurationTarget.Workspace
-      );
-    }
-
-    // Provide a button that jumps directly to our specific LWC settings
-    let clickedSettings;
-
-    // If Yes, Let the user know they can change this preference at any time
-    if (shouldManageEslintNodepath === 'Yes') {
-      clickedSettings = await window.showInformationMessage(
-        'eslint.nodePath will now be managed by the LWC extension for this project. If you change your mind, you can update your preferences below',
-        'Configure LWC Settings'
-      );
-    }
-
-    // If user does not choose yes, warn them that eslint may not function
-    if (shouldManageEslintNodepath !== 'Yes') {
-      clickedSettings = await window.showWarningMessage(
-        'ESLint will not work correctly for LWC until you have set it up. Follow the guide here: [Setting up ESLint for LWC](https://github.com/salesforce/eslint-config-lwc/blob/master/README.md) or update your vscode settings to allow automatic configuration of ESLint.',
-        'Configure LWC Settings'
-      );
-    }
-
-    if (clickedSettings) {
-      await commands.executeCommand(
-        'workbench.action.openWorkspaceSettings',
-        '@ext:salesforce.salesforcedx-vscode-lwc'
-      );
-    }
-  }
 }
