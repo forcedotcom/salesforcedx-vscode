@@ -31,11 +31,7 @@ import {
   forceLightningLwcStart,
   forceLightningLwcStop
 } from './commands';
-import {
-  ESLINT_NODEPATH_CONFIG,
-  LWC_EXTENSION_NAME,
-  MANAGE_ESLINT_NODEPATH
-} from './constants';
+import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport } from './testSupport';
