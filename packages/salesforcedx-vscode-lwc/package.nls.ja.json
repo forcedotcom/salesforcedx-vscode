@@ -1,0 +1,18 @@
+{
+  "force_lightning_lwc_start_text": "SFDX: ローカルの開発サーバを開始",
+  "force_lightning_lwc_stop_text": "SFDX: ローカルの開発サーバを停止",
+  "force_lightning_lwc_open_text": "SFDX: ローカルの開発サーバを開く",
+  "force_lightning_lwc_preview_text": "SFDX: コンポーネントをローカルでプレビュー",
+  "force_lightning_lwc_test_view_name": "LWC テスト",
+  "force_lightning_lwc_test_run_all_tests_text": "SFDX: すべての Lightning Web Component のテストを実行",
+  "force_lightning_lwc_test_refresh_test_explorer_text": "SFDX: Lightning Web Component テストエクスプローラを更新",
+  "force_lightning_lwc_test_navigate_to_test": "SFDX: Lightning Web Component テストへ移動",
+  "force_lightning_lwc_test_file_run_text": "SFDX: Lightning Web Component テストファイルを実行",
+  "force_lightning_lwc_test_file_debug_text": "SFDX: Lightning Web Component テストファイルをデバッグ",
+  "force_lightning_lwc_test_case_run_text": "SFDX: Lightning Web Component テストケースを実行",
+  "force_lightning_lwc_test_case_debug_text": "SFDX: Lightning Web Component テストケースをデバッグ",
+  "force_lightning_lwc_test_run_current_file_text": "SFDX: 現在の Lightning Web Component テストファイルを実行",
+  "force_lightning_lwc_test_debug_current_file_text": "SFDX: 現在の Lightning Web Component テストファイルをデバッグ",
+  "force_lightning_lwc_test_start_watching_text": "SFDX: Lightning Web Component テストのウォッチを開始",
+  "force_lightning_lwc_test_stop_watching_text": "SFDX: Lightning Web Component テストのウォッチを停止"
+}
