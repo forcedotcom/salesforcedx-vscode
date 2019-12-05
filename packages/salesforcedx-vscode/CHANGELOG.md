@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Fixed local development server bugs ([PR #1809](https://github.com/forcedotcom/salesforcedx-vscode/pull/1809)) —Contribution by [@mysticflute](https://github.com/mysticflute)
+- Fixed LWC local development bugs ([PR #1809](https://github.com/forcedotcom/salesforcedx-vscode/pull/1809)) —Contribution by [@mysticflute](https://github.com/mysticflute)
 
 ## Added
 
