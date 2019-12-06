@@ -1,4 +1,4 @@
-# 47.9.0 - December 5, 2019
+# 47.9.0 - December 6, 2019
 
 ## Fixed
 
