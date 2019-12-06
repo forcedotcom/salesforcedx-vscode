@@ -1,3 +1,19 @@
+# 47.9.0 - December 6, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Fixed LWC local development bugs ([PR #1809](https://github.com/forcedotcom/salesforcedx-vscode/pull/1809)) —Contribution by [@mysticflute](https://github.com/mysticflute)
+
+## Added
+
+#### docs
+
+- Add link to redirect to the LWC [local development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) docs from the LWC development guide. ([PR #1790](https://github.com/forcedotcom/salesforcedx-vscode/pull/1790)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
+
+- Add testing support documentation for [LWC](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/testing) ([PR #1765](https://github.com/forcedotcom/salesforcedx-vscode/pull/1765)) -Contribution by [@xyc](https://github.com/xyc)
+
 # 47.6.0 - November 14, 2019
 
 ## Fixed
