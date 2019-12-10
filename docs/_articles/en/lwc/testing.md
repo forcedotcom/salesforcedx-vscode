@@ -1,5 +1,5 @@
 ---
-title: Test Lighting Web Components
+title: Test Lightning Web Components
 lang: en
 ---
 
