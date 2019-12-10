@@ -20,7 +20,7 @@ export const messages = {
   session_language_server_error_text:
     'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
   session_no_entity_access_text:
-    "組織またはユーザに Apex をデバッグする権限がありません。",
+    '組織またはユーザに Apex をデバッグする権限がありません。',
   session_started_text: 'Apex デバッガセッションを ID %s で開始しました。',
   session_terminated_text: 'ID %s のApex デバッガセッションを終了しました。',
   streaming_connected_text: 'Streaming API のチャネル %s に接続しました。',
@@ -30,9 +30,11 @@ export const messages = {
   streaming_handshake_timeout_text:
     'Streaming API のハンドシェイクがソケットのタイムアウトで失敗しました。接続を確認し、再実行してください。',
   hotswap_warn_text:
-    "Apex デバッガセッションの間に Apex クラスやトリガを修正することはできません。デバッグ完了後に変更を保存してください。",
-  created_exception_breakpoint_text: '%s にブレークポイント例外を作成しました。',
-  removed_exception_breakpoint_text: '%s のブレークポイント例外を削除しました。',
+    'Apex デバッガセッションの間に Apex クラスやトリガを修正することはできません。デバッグ完了後に変更を保存してください。',
+  created_exception_breakpoint_text:
+    '%s にブレークポイント例外を作成しました。',
+  removed_exception_breakpoint_text:
+    '%s のブレークポイント例外を削除しました。',
   idle_warn_text:
     '%s 分間アイドル状態です。デバッガセッションを終了させない場合は、%s 分以内に、コードを実行またはステップ実行するか、変数を検査してください。',
   idle_terminated_text:
