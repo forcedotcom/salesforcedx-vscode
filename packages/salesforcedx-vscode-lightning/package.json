@@ -26,6 +26,7 @@
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "47.9.0",
     "aura-language-server": "2.2.2",
+    "lwc-language-server": "2.2.4",
     "change-case": "^3.1.0",
     "lightning-lsp-common": "2.2.2",
     "open": "6.0.0",
