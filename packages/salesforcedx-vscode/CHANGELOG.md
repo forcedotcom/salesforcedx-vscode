@@ -1,4 +1,4 @@
-# 47.10.0 - (INSERT RELEASE DATE [Month Day, Year])
+# 47.10.0 - December 12, 2019
 
 ## Fixed
 
