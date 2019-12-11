@@ -1,3 +1,17 @@
+# 47.10.0 - (INSERT RELEASE DATE [Month Day, Year])
+
+## Fixed
+
+#### docs
+
+- Fix typo in doc title ([PR #1830](https://github.com/forcedotcom/salesforcedx-vscode/pull/1830))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added Japanese translations for labels and messages ([PR #1551](https://github.com/forcedotcom/salesforcedx-vscode/pull/1551))
+
 # 47.9.0 - December 6, 2019
 
 ## Fixed
