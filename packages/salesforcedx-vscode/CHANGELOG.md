@@ -6,6 +6,10 @@
 
 - Fix typo in doc title ([PR #1830](https://github.com/forcedotcom/salesforcedx-vscode/pull/1830))
 
+#### salesforcedx-vscode-lightning
+
+- Fix issue with indexing Lightning Web Components  ([PR #1836](https://github.com/forcedotcom/salesforcedx-vscode/pull/1836), [Issue #1832](https://github.com/forcedotcom/salesforcedx-vscode/issues/1832))
+
 ## Added
 
 #### salesforcedx-vscode-core
