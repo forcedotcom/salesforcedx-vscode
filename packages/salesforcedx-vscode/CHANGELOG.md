@@ -4,11 +4,11 @@
 
 #### docs
 
-- Fix typo in doc title for [Lightning Web Components]( forcedotcom.github.io/salesforcedx-vscode/articles/lwc/writing)
+- Fix typo in doc title for [Lightning Web Components](forcedotcom.github.io/salesforcedx-vscode/articles/lwc/writing) ([PR #1830](https://github.com/forcedotcom/salesforcedx-vscode/pull/1830))
 
 #### salesforcedx-vscode-lightning
 
--  Fix indexing in Lightning Web Components  ([PR #1836](https://github.com/forcedotcom/salesforcedx-vscode/pull/1836), [Issue #1832](https://github.com/forcedotcom/salesforcedx-vscode/issues/1832))
+- Fix indexing in Lightning Web Components ([PR #1836](https://github.com/forcedotcom/salesforcedx-vscode/pull/1836), [Issue #1832](https://github.com/forcedotcom/salesforcedx-vscode/issues/1832))
 
 ## Added
 
