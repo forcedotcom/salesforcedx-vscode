@@ -1,3 +1,21 @@
+# 47.10.0 - December 12, 2019
+
+## Fixed
+
+#### docs
+
+- Fix typo in doc title for [Lightning Web Components](forcedotcom.github.io/salesforcedx-vscode/articles/lwc/writing) ([PR #1830](https://github.com/forcedotcom/salesforcedx-vscode/pull/1830))
+
+#### salesforcedx-vscode-lightning
+
+- Fix indexing in Lightning Web Components ([PR #1836](https://github.com/forcedotcom/salesforcedx-vscode/pull/1836), [Issue #1832](https://github.com/forcedotcom/salesforcedx-vscode/issues/1832))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added Japanese translations for labels and messages ([PR #1551](https://github.com/forcedotcom/salesforcedx-vscode/pull/1551))
+
 # 47.9.0 - December 6, 2019
 
 ## Fixed

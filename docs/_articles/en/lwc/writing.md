@@ -1,5 +1,5 @@
 ---
-title: Write Lighting Web Components
+title: Write Lightning Web Components
 lang: en
 ---
 

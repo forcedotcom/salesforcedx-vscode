@@ -123,7 +123,7 @@
         jp: 作成
       url: /aura/writing
 - title:
-    en: Lighting Web Components
+    en: Lightning Web Components
     jp: Lightning Web コンポーネント
   baseUrl: /lwc/
   children:
