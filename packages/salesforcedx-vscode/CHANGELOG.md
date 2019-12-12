@@ -1,3 +1,37 @@
+# 47.10.0 - December 12, 2019
+
+## Fixed
+
+#### docs
+
+- Fix typo in doc title for [Lightning Web Components](forcedotcom.github.io/salesforcedx-vscode/articles/lwc/writing) ([PR #1830](https://github.com/forcedotcom/salesforcedx-vscode/pull/1830))
+
+#### salesforcedx-vscode-lightning
+
+- Fix indexing in Lightning Web Components ([PR #1836](https://github.com/forcedotcom/salesforcedx-vscode/pull/1836), [Issue #1832](https://github.com/forcedotcom/salesforcedx-vscode/issues/1832))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added Japanese translations for labels and messages ([PR #1551](https://github.com/forcedotcom/salesforcedx-vscode/pull/1551))
+
+# 47.9.0 - December 6, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Fixed LWC local development bugs ([PR #1809](https://github.com/forcedotcom/salesforcedx-vscode/pull/1809)) —Contribution by [@mysticflute](https://github.com/mysticflute)
+
+## Added
+
+#### docs
+
+- Add link to redirect to the LWC [local development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) docs from the LWC development guide. ([PR #1790](https://github.com/forcedotcom/salesforcedx-vscode/pull/1790)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
+
+- Add testing support documentation for [LWC](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/testing) ([PR #1765](https://github.com/forcedotcom/salesforcedx-vscode/pull/1765)) -Contribution by [@xyc](https://github.com/xyc)
+
 # 47.6.0 - November 14, 2019
 
 ## Fixed

@@ -1,0 +1,18 @@
+{
+  "configuration_title": "Salesforce Apex Configuration",
+  "test_view_container_title": "テストビューア",
+  "test_view_name": "Apex テスト",
+  "run_tests_title": "テストを実行",
+  "refresh_test_title": "テストを更新",
+  "run_single_test_title": "1 つのテストを実行",
+  "show_error_title": "エラーを表示",
+  "go_to_definition_title": "定義に移動",
+  "java_home_description": "Apex 言語サーバの起動に使用される Java 8 または Java 11 ランタイムのフォルダパスを指定します。(例: /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home)",
+  "apex_semantic_errors_description": "Apex 言語サーバがセマンティックエラーを表示することを許可します。",
+  "force_apex_test_last_class_run_text": "SFDX: 最後に呼び出されたテストクラスを再実行",
+  "force_apex_test_last_method_run_text": "SFDX: 最後に呼び出されたテストメソッドを再実行",
+  "force_apex_test_class_run_text": "SFDX: テストクラスを呼び出す",
+  "force_apex_test_method_run_text": "SFDX: テストメソッドを呼び出す",
+  "force_sobjects_refresh": "SFDX: SObject の定義を更新",
+  "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject の定義がない場合、拡張機能の有効化時に sObject の定義を自動的に更新する (true) か、しない (false) かを指定します。"
+}

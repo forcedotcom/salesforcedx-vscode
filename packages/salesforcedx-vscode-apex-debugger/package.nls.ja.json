@@ -1,0 +1,14 @@
+{
+  "user_id_filter_text": "デバッグ用にホワイトリストに登録される、リクエストを含むユーザー ID の一覧",
+  "request_type_filter_text": "デバッグ用にホワイトリストに登録される Apex 要求種別の一覧",
+  "entry_point_filter_text": "デバッグ用にホワイトリストに登録される、エントリポイントに一致する正規表現",
+  "sfdx_project_text": "SFDX プロジェクトの場所",
+  "launch_snippet_label_text": "Apex デバッガ: 起動",
+  "launch_snippet_description_text": "Apex デバッガ を起動する新しい構成",
+  "launch_snippet_name": "Apex デバッガ を起動",
+  "trace_text": "診断出力を生成します。これを true、false、またはカンマで区切った1つ以上のセレクタに設定できます。セレクタには、'all' (非常に詳細な出力、true と同等)、'protocol'、'variables'、'launch'、'breakpoints'、'streaming' があります。",
+  "configuration_title": "Salesforce Apex Debugger Configuration",
+  "connection_timeout_ms_description": "Apex Debugger API 要求の接続タイムアウト時間 (ミリ秒で指定)",
+  "exception_breakpoint_command_text": "Apex Debug: Configure Exceptions",
+  "connect_type_text": "接続タイプ"
+}
