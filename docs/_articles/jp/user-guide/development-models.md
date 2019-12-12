@@ -47,7 +47,7 @@ After you provide an org alias, a browser window opens. Allow access, log in to 
 
 ### The Manifest (`package.xml`) File
 
-After connecting to a sandbox, DE org, or Trailhead Playground, use the package.xml file to retrieve the metadata from your org. When you run SFDX: Create Project with Manifest command, a package.xml file is created. Add the various metadata types you want to retrieve to this file. To understand how to work with different subsets of metadata in `package.xml` file, see [Sample package.xml Manifest Files](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm) in the _Metadata API Developer Guide_.
+After connecting to a sandbox, DE org, or Trailhead Playground, use the package.xml file to retrieve the metadata from your org. When you run SFDX: Create Project with Manifest command, a package.xml file is created. Add the various metadata types you want to retrieve to this file. To understand how to work with different subsets of metadata in `package.xml` file, see [Sample package.xml Manifest Files](https://developer.salesforce.com/docs/atlas.ja-jp.api_meta.meta/api_meta/manifest_samples.htm) in the _Metadata API Developer Guide_.
 
 ### Retrieve Source
 
@@ -69,7 +69,7 @@ You can retrieve source for a manifest, a source file, a directory, or a folder:
 
 When you select an item to retrieve source, only the existing nested items in the directory structure are retrieved. For example, if you retrieve source for the `classes` folder, the Apex classes that **currently exist in that directory** are retrieved. The command doesn’t retrieve all the Apex classes in the org; it only updates the classes that already exist in the folder. If you want to retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve source using the manifest file. You could also use a terminal to run `sfdx force:source:retrieve --metadata ApexClass:YourApexClass`.
 
-You can also [use Org Browser](#Create-Project-and-Use-Org-Browser) to retrive source for non-source-tracked orgs.
+You can also use [Org Browser](./jp/user-guide/development-models/#create-project-and-use-org-browser) to retrive source for non-source-tracked orgs.
 
 The project structure after you retrieve source:
 
@@ -123,13 +123,13 @@ To develop in non-scratch orgs and use Org Browser to retrieve source:
 1. In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select a command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
 1. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox. Log in to your org in the browser window and then return to the VS Code window.
 
-Org Browser displays the available metadata types and their corresponding components in your default org. It saves the metadata of the default org in your local project under the .sfdx directory. See [Org Browser](../user-guide/org-browser).
+Org Browser displays the available metadata types and their corresponding components in your default org. It saves the metadata of the default org in your local project under the .sfdx directory. See [Org Browser](./jp/user-guide/org-browser/).
 
 ### Retrieve Source
 
 You can retrieve a component or multiple components to your local project from the default org. To do so, click the retrieve button next to the component or the metadata type.
 
-You can also refresh metadata at org level, for a type, for folders in a type, and for components in a folder by clicking the refresh icon. Before refreshing the metadata, you can compare the differences between your local project and the metadata in your org. See [Source Diff](../user-guide/source-diff).
+You can also refresh metadata at org level, for a type, for folders in a type, and for components in a folder by clicking the refresh icon. Before refreshing the metadata, you can compare the differences between your local project and the metadata in your org. See [Source Diff](./jp/user-guide/source-diff).
 
 ### Deploy Source
 
@@ -139,7 +139,7 @@ After you have made the code changes you can deploy source for a source file, a 
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
 - With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
 
-> Note: To deploy files whenever you save them, select the workspace setting Push-or-deploy-on-save: Enabled. See [Deploy On Save](../user-guide-deploy-on-save).
+> Note: To deploy files whenever you save them, select the workspace setting Push-or-deploy-on-save: Enabled. See [Deploy On Save](./jp/user-guide/deploy-on-save).
 
 ## Package Development Model
 
