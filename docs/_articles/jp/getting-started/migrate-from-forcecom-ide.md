@@ -47,7 +47,7 @@ Force.com IDE プロジェクトにすでに `package.xml` ファイルがある
 1. VS Code エディタで、`package.xml` ファイル内を右クリックし、**[SFDX: Retrieve Source in Manifest from Org \(SFDX: 組織からマニフェストのソースを取得\)]** を選択します。
 1. ソースが `sfdx-project.json` ファイルで指定したディレクトリにダウンロードされます。デフォルトは `force-app/main/default` です。
 
-これでプロジェクトが Force.com IDE から VS Code に移行しました。新しいコードエディタを使用して、通常どおり作業を続行できます。このプロセスについての詳細は、[「組織開発モデル」](./jp/user-guide/org-development-model)を参照してください。
+これでプロジェクトが Force.com IDE から VS Code に移行しました。新しいコードエディタを使用して、通常どおり作業を続行できます。このプロセスについての詳細は、[「組織開発モデル」](./jp/user-guide/development-models/#org-development-model)を参照してください。
 
 ## 変換による移行 \(高度\)
 

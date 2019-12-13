@@ -47,7 +47,7 @@ If you already have a `package.xml` file in your Force.com IDE project, you can 
 1. In the VS Code editor, right-click inside the `package.xml` file and select **SFDX: Retrieve Source in Manifest from Org**.
 1. The source downloads into the directory specified in the `sfdx-project.json` file. The default is `force-app/main/default`.
 
-Your project is now migrated from Force.com IDE to VS Code. You can continue to work as normal using your new code editor. For more information about this process, see [Org Development Model](./en/user-guide/org-development-model).
+Your project is now migrated from Force.com IDE to VS Code. You can continue to work as normal using your new code editor. For more information about this process, see [Org Development Model](./en/user-guide/development-models/#org-development-model).
 
 ## Migrate by Conversion (advanced)
 

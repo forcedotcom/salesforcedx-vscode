@@ -17,7 +17,7 @@ We recommend that you install the [Salesforce Extension Pack](https://marketplac
 
 ## Usage
 
-See [Apex](writing).
+See [Apex](./en/apex/writing).
 
 ## Clear the Cache
 

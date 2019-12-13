@@ -73,7 +73,7 @@ Windows:
 
 ## Oracle Java 11 \(正式テスト\)
 
-1. [ダウンロードページ](https://www.oracle.com/technetwork/java/javase/downloads/index.html)に移動します。
+1. [ダウンロードページ](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)に移動します。
 1. **[Java SE 11.x.y \(LTS\)]** の **[Download \(ダウンロード\)]** ボタンをクリックします。
 1. 使用許諾契約に同意します。
 1. 各自の OS に対応するダウンロードリンクをクリックします。

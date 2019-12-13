@@ -32,7 +32,7 @@ You can preview, view, or go to definitions of:
   - Fields
   - Object definitions
 
-(See the [Enable Code Smartness for SObjects](#enable-code-smartness-for-sobjects) section of this topic for information on working with standard and custom objects.)
+(See the [Enable Code Smartness for SObjects](./en/apex/writing/#enable-code-smartness-for-sobjects) section of this topic for information on working with standard and custom objects.)
 
 To preview a definition, hold down Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.
 
