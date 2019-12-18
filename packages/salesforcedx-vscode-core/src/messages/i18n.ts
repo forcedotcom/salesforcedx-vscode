@@ -116,6 +116,7 @@ export const messages = {
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
 
+  force_analytics_template_create_text: 'SFDX: Add Sample Analytics Template',
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
