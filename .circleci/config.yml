@@ -103,13 +103,6 @@ jobs:
         default: true
     steps:
       - build-win
-      - run:
-          name: 'Authenticate to the default DevHub'
-          shell: bash.exe
-          command: |
-            echo $SFDX_CI_DEVHUB_JWTKEY | base64 --decode > devhub.key
-            sfdx force:auth:jwt:grant --clientid ${SFDX_CI_DEVHUB_CLIENTID} --username ${SFDX_CI_DEVHUB_USERNAME} --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
-            rm devhub.key
       - when:
           condition: << parameters.run-unit-tests >>
           steps:
@@ -120,6 +113,13 @@ jobs:
       - unless:
           condition: << parameters.run-unit-tests >>
           steps:
+            - run:
+                name: 'Authenticate to the default DevHub'
+                shell: bash.exe
+                command: |
+                  echo $SFDX_CI_DEVHUB_JWTKEY | base64 --decode > devhub.key
+                  sfdx force:auth:jwt:grant --clientid ${SFDX_CI_DEVHUB_CLIENTID} --username ${SFDX_CI_DEVHUB_USERNAME} --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
+                  rm devhub.key
             - run:
                 name: 'Running integration tests'
                 shell: cmd.exe
