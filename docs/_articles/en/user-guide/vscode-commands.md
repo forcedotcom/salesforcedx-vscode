@@ -103,7 +103,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
 
 ### Org Info
 
-- **SSFDX: Display Org Details for Default Org**
+- **SFDX: Display Org Details for Default Org**
   - Displays org description for the default org. Details include access token, alias, client ID, connected status, and more.
   - Executes the CLI command `force:org:display`
   - See [Authorization Information for an Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_view_info.htm).
