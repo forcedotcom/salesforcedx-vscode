@@ -53,6 +53,10 @@ export class ForceAnalyticsTemplateCreateExecutor extends BaseTemplateCommand {
   public getDefaultDirectory() {
     return ANALYTICS_TEMPLATE_DIRECTORY;
   }
+
+  public getPathToSource(outputDir: string, fileName: string) {
+    return super.getPathToSource(outputDir, fileName ? fileName : '');
+  }
 }
 
 export type TemplateNameAndDir = DirFileNameSelection & TemplateName;
