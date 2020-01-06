@@ -5,120 +5,114 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/*import * as fs from 'fs';
+import {
+  Row,
+  Table
+} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
+import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { nls } from '../messages';
 
-export interface ToolingCreateResult {
-  id: string;
-  success: boolean;
-  errors: string[];
-  name: string;
-  message: string;
+export function getOutboundFiles(sourceUri: vscode.Uri) {
+  const metadataPath = `${sourceUri.fsPath}-meta.xml`;
+  return [sourceUri.fsPath, metadataPath];
+}
+export interface ToolingRetrieveResult {
+  State: string;
+  ErrorMsg?: string;
+  isDeleted: string;
+  DeployDetails: DeployDetailsResult;
+  outboundFiles?: string[];
+}
+export interface DeployDetailsResult {
+  componentFailures: DeployResult[];
+  componentSuccesses: DeployResult[];
 }
 
-export async function apexDeployUtil(metadata: AggregateSourceElement) {
-  const metadataContainerResult = await createMetadataContainer();
+export interface DeployResult {
+  columnNumber?: string;
+  lineNumber?: string;
+  problem?: string;
+  problemType?: string;
+  fileName?: string;
+  fullName?: string;
+  componentType: string;
+  success?: string;
+}
+
+function buildSuccesses(componentSuccess: DeployResult) {
+  const success = [
+    {
+      state: 'Add',
+      fullName: componentSuccess.fullName,
+      type: componentSuccess.componentType,
+      filePath: componentSuccess.fileName
+    },
+    {
+      state: 'Add',
+      fullName: componentSuccess.fullName,
+      type: componentSuccess.componentType,
+      filePath: `${componentSuccess.fileName}-meta.xml`
+    }
+  ];
+  return success;
+}
+
+function buildErrors(componentErrors: DeployResult[]) {
+  const failures = [];
+  for (const err of componentErrors) {
+    if (err.columnNumber && err.lineNumber) {
+      err.problem = `${err.problem} (${err.lineNumber}:${err.columnNumber})`;
+    }
+    failures.push({
+      filePath: err.fileName,
+      error: err.problem
+    });
+  }
+  return failures;
+}
+
+export function outputResult(retrieveResult: ToolingRetrieveResult) {
+  const table = new Table();
+  const titleType = 'ApexClass';
+  let title: string;
   const deployFailed = new Error();
-  if (!metadataContainerResult.success) {
-    deployFailed.message = 'Unexpected error creating metadata container';
-    deployFailed.name = 'MetadataContainerCreationFailed';
-    throw deployFailed;
-  }
-
-  const apexMemberResult = await createContainerMember(
-    metadata,
-    metadataContainerResult
-  );
-  if (!apexMemberResult.success) {
-    deployFailed.message = 'Unexpected error creating apex class member';
-    deployFailed.name = 'ApexClassMemberCreationFailed';
-    throw deployFailed;
-  }
-
-  const containerAsyncRequestResult = await createContainerAsyncRequest(
-    metadataContainerResult.id
-  );
-  if (!containerAsyncRequestResult.success) {
-    deployFailed.message = 'Unexpected error creating container async request';
-    deployFailed.name = 'ContainerAsyncRequestFailed';
-    throw deployFailed;
-  }
-  const asyncResultId = containerAsyncRequestResult.id;
-  return await this.toolingRetrieve(asyncResultId, metadata);
-}
-
-async function createMetadataContainer() {
-  const containerName = 'MetadataContainer' + Date.now();
-  try {
-    const metadataContainerResult = (await this.force.toolingCreate(
-      this.orgApi,
-      'MetadataContainer',
-      { Name: containerName }
-    )) as ToolingCreateResult;
-    return metadataContainerResult;
-  } catch (e) {
-    const deployFailed = new Error(e.message);
-    deployFailed.name = 'MetadataContainerCreationFailed';
-    throw deployFailed;
+  switch (retrieveResult.State) {
+    case 'Completed':
+      title = nls.localize(`table_title_deployed_source`);
+      const successRows = buildSuccesses(
+        retrieveResult.DeployDetails.componentSuccesses[0]
+      );
+      const successTable = table.createTable(
+        (successRows as unknown) as Row[],
+        [
+          { key: 'state', label: nls.localize('table_header_state') },
+          { key: 'fullName', label: nls.localize('table_header_full_name') },
+          { key: 'type', label: nls.localize('table_header_type') },
+          { key: 'filePath', label: nls.localize('table_header_project_path') }
+        ],
+        title
+      );
+      channelService.appendLine(successTable);
+      break;
+    case 'Failed':
+      const errorRows = buildErrors(
+        retrieveResult.DeployDetails.componentFailures
+      );
+      const errorTable = table.createTable(
+        (errorRows as unknown) as Row[],
+        [
+          {
+            key: 'filePath',
+            label: nls.localize('table_header_project_path')
+          },
+          { key: 'error', label: nls.localize('table_header_errors') }
+        ],
+        nls.localize(`table_title_deploy_errors`)
+      );
+      channelService.appendLine(errorTable);
+      break;
+    case 'Invalidated':
+    default:
   }
 }
-
-function buildMetadataField(xml) {
-  const document = new DOMParser().parseFromString(xml);
-  const apiNode = document.getElementsByTagName('apiVersion')[0];
-  const statusNode = document.getElementsByTagName('status')[0];
-  const packageNode = document.getElementsByTagName('packageVersions')[0];
-
-  const metadataField = {
-    apiVersion: apiNode.textContent,
-    ...(statusNode ? { status: statusNode.textContent } : {}),
-    ...(packageNode ? { packageVersions: packageNode.textContent } : {})
-  };
-  return metadataField;
-}
-
-async function createContainerMember(
-  metadata: AggregateSourceElement,
-  metadataContainerResult: ToolingCreateResult
-) {
-  try {
-    const metadataFilePath = metadata.getMetadataFilePath();
-    const contentFilePath = metadata.getContentPaths(metadataFilePath);
-    const fileData = fs.readFileSync(metadataFilePath, 'utf8');
-    const metadataInfo = buildMetadataField(fileData);
-    const fullName = metadata.getAggregateFullName();
-    const metadataBody = fs.readFileSync(contentFilePath[0], 'utf8');
-    const apexClassMember = {
-      MetadataContainerId: metadataContainerResult.id,
-      FullName: fullName,
-      Body: metadataBody,
-      Metadata: metadataInfo
-    };
-    const apexMemberResult = (await this.force.toolingCreate(
-      this.orgApi,
-      'ApexClassMember',
-      apexClassMember
-    )) as ToolingCreateResult;
-    return apexMemberResult;
-  } catch (e) {
-    const deployFailed = new Error(e.message);
-    deployFailed.name = 'ApexClassMemberCreationFailed';
-    throw deployFailed;
-  }
-}
-
-async function createContainerAsyncRequest(metadataContainerId: string) {
-  try {
-    const containerAsyncRequest = { MetadataContainerId: metadataContainerId };
-    const containerAsyncResult = (await this.force.toolingCreate(
-      this.orgApi,
-      'ContainerAsyncRequest',
-      containerAsyncRequest
-    )) as ToolingCreateResult;
-    return containerAsyncResult;
-  } catch (e) {
-    const deployFailed = new Error(e.message);
-    deployFailed.name = 'ContainerAsyncRequestFailed';
-    throw deployFailed;
-  }
-}
-*/

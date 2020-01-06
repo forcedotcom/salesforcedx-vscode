@@ -6,8 +6,15 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
-
+import {
+  getOutboundFiles,
+  outputResult,
+  ToolingRetrieveResult
+} from './deployApex';
+// tslint:disable-next-line:no-var-requires
+const DOMParser = require('xmldom').DOMParser;
 export interface ToolingCreateResult {
   id: string;
   success: boolean;
@@ -24,15 +31,15 @@ async function createConnection() {
 }
 
 export async function createMetadataContainer(connection: Connection) {
-  console.time('startingDeploy');
   const metadataCont = (await connection.tooling.create('MetadataContainer', {
     Name: 'MetadataContainer' + Date.now()
   })) as ToolingCreateResult;
   return metadataCont;
 }
 
-function buildMetadataField(xml) {
-  const document = new DOMParser().parseFromString(xml);
+function buildMetadataField(metadataContent: string) {
+  const parser = new DOMParser();
+  const document = parser.parseFromString(metadataContent, 'text/xml');
   const apiNode = document.getElementsByTagName('apiVersion')[0];
   const statusNode = document.getElementsByTagName('status')[0];
   const packageNode = document.getElementsByTagName('packageVersions')[0];
@@ -48,23 +55,21 @@ function buildMetadataField(xml) {
 export async function createContainerMember(
   connection: Connection,
   container: ToolingCreateResult,
-  sourceUri: vscode.Uri
+  outboundFiles: string[]
 ) {
   const id = container.id;
-  const metadataPath = `${sourceUri.fsPath}-meta.xml`;
-  const metadataContent = fs.readFileSync(metadataPath, 'utf8');
+  const metadataContent = fs.readFileSync(outboundFiles[1], 'utf8');
   const metadataField = buildMetadataField(metadataContent);
-  const metadataInfo = {
-    status: 'Active',
-    apiVersion: '45.0'
-  };
-  const body =
-    'public with sharing class soumilClass {\npublic soumilClass() {\n}\n}';
+  const body = fs.readFileSync(outboundFiles[0], 'utf8');
+  const fileName = path.basename(
+    outboundFiles[0],
+    path.extname(outboundFiles[0])
+  );
   const apexClassMember = {
     MetadataContainerId: id,
-    FullName: 'soumilClass',
+    FullName: fileName,
     Body: body,
-    Metadata: metadataInfo
+    Metadata: metadataField
   };
   const apexMemberResult = (await connection.tooling.create(
     'ApexClassMember',
@@ -85,7 +90,9 @@ export async function createContainerAsyncRequest(
 }
 
 export async function apexDeployUtil(sourceUri: vscode.Uri) {
+  console.time('deploytime');
   const connection = await createConnection();
+  const outboundFiles = getOutboundFiles(sourceUri);
   const metadataContainerResult = await createMetadataContainer(connection);
   const deployFailed = new Error();
   if (!metadataContainerResult.success) {
@@ -97,7 +104,7 @@ export async function apexDeployUtil(sourceUri: vscode.Uri) {
   const apexMemberResult = await createContainerMember(
     connection,
     metadataContainerResult,
-    sourceUri
+    outboundFiles
   );
   if (!apexMemberResult.success) {
     deployFailed.message = 'Unexpected error creating apex class member';
@@ -114,5 +121,28 @@ export async function apexDeployUtil(sourceUri: vscode.Uri) {
     deployFailed.name = 'ContainerAsyncRequestFailed';
     throw deployFailed;
   }
-  console.timeEnd('startingDeploy');
+  await toolingRetrieve(connection, containerAsyncRequestResult.id);
+  console.timeEnd('deploytime');
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function toolingRetrieve(connection: Connection, asyncResultId: string) {
+  let retrieveResult = (await connection.tooling.retrieve(
+    'ContainerAsyncRequest',
+    asyncResultId
+  )) as ToolingRetrieveResult;
+  const deployFailed = new Error();
+  let count = 0;
+  while (retrieveResult.State === 'Queued' && count <= 20) {
+    await sleep(100);
+    retrieveResult = (await connection.tooling.retrieve(
+      'ContainerAsyncRequest',
+      asyncResultId
+    )) as ToolingRetrieveResult;
+    count++;
+  }
+  outputResult(retrieveResult);
 }
