@@ -8,6 +8,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { OrgAuthInfo } from '../util';
 import {
   getOutboundFiles,
   outputResult,
@@ -24,8 +25,9 @@ export interface ToolingCreateResult {
 }
 
 async function createConnection() {
+  const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
   const connection = await Connection.create({
-    authInfo: await AuthInfo.create({ username: 'testdevhub@ria.com' })
+    authInfo: await AuthInfo.create({ username })
   });
   return connection;
 }
@@ -65,11 +67,17 @@ export async function createContainerMember(
     outboundFiles[0],
     path.extname(outboundFiles[0])
   );
+
+  const contentEntityId = (await connection.tooling
+    .sobject('Apexclass')
+    .find({ Name: fileName }))[0].Id;
+
   const apexClassMember = {
     MetadataContainerId: id,
     FullName: fileName,
     Body: body,
-    Metadata: metadataField
+    Metadata: metadataField,
+    ...(contentEntityId ? { contentEntityId } : {})
   };
   const apexMemberResult = (await connection.tooling.create(
     'ApexClassMember',
