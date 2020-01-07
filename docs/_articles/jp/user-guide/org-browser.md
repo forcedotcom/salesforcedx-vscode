@@ -3,7 +3,7 @@ title: Org Browser
 lang: jp
 ---
 
-The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier and simpler to retrieve metadata source, without having to use a [manifest file](./jp/user-guide/org-development-model#the-manifest-packagexml-file). The Org Browser is available only in non-scratch orgs such as sandboxes or dev orgs.
+The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier and simpler to retrieve metadata source, without having to use a [manifest file](./jp/user-guide/development-models/#create-project-with-manifest). The Org Browser is available only in non-scratch orgs such as sandboxes or dev orgs.
 
 ## Opening the Org Browser
 
@@ -36,7 +36,7 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 
 ## Retrieving Components
 
-You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](./jp/getting-started/first-project#the-sfdx-projectjson-file) file.
+You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](./jp/getting-started/first-project/#sfdx-projectjson-ファイル) file.
 
 You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you'll be prompted to select how to proceed.
 
