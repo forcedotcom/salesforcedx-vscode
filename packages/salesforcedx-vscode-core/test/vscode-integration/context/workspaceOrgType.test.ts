@@ -46,6 +46,9 @@ describe('getWorkspaceOrgType', () => {
     const orgType = await getWorkspaceOrgType(defaultUsername);
 
     expect(orgType).to.equal(OrgType.SourceTracked);
+    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
+      username: 'scratch@org.com'
+    });
 
     aliasesStub.restore();
     authInfoCreateStub.restore();
@@ -60,6 +63,9 @@ describe('getWorkspaceOrgType', () => {
     const orgType = await getWorkspaceOrgType(defaultUsername);
 
     expect(orgType).to.equal(OrgType.NonSourceTracked);
+    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
+      username: defaultUsername
+    });
 
     aliasesStub.restore();
     authInfoCreateStub.restore();
