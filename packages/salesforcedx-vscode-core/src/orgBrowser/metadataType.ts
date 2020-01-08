@@ -45,8 +45,7 @@ export class TypeUtils {
       throw new Error(err);
     }
     const workspaceRootPath = getRootWorkspacePath();
-    const username =
-      (await OrgAuthInfo.getUsername(usernameOrAlias)) || usernameOrAlias;
+    const username = await OrgAuthInfo.getUsername(usernameOrAlias);
     const metadataTypesPath = path.join(
       workspaceRootPath,
       '.sfdx',

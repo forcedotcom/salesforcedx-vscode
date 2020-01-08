@@ -85,9 +85,7 @@ export class OrgAuthInfo {
     }
   }
 
-  public static async getUsername(
-    usernameOrAlias: string
-  ): Promise<string | undefined> {
+  public static async getUsername(usernameOrAlias: string): Promise<string> {
     return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
   }
 
