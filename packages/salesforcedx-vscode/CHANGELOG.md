@@ -1,3 +1,27 @@
+# 47.14.0 - January 9th, 2020
+
+## Fixed
+
+#### docs
+
+- Fix typo in 'Org Info' command title [Command Reference](forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/vscode-commands)([PR #1854](https://github.com/forcedotcom/salesforcedx-vscode/pull/1854))—Contribution by [@garychenming](https://github.com/garychenming)
+
+# 47.11.0 - December 18th, 2019
+
+## Fixed
+
+#### docs
+
+- Fix links in various doc sections ([PR #1846](https://github.com/forcedotcom/salesforcedx-vscode/pull/1846), [Issue #1825](https://github.com/forcedotcom/salesforcedx-vscode/issues/1825), [Issue #1821](https://github.com/forcedotcom/salesforcedx-vscode/issues/1821), [Issue #1777](https://github.com/forcedotcom/salesforcedx-vscode/issues/1777))
+
+- Fix broken links in [Development Models](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models) and [Default Org](https://developer.salesforce.com/tools/vscode/en/user-guide/default-org) pages ([PR #1844](https://github.com/forcedotcom/salesforcedx-vscode/pull/1844))—Contribution by [@Lafexlos](https://github.com/Lafexlos)
+
+## Added
+
+#### docs
+
+- Update header and footer to match Salesforce developer site ([PR #1814](https://github.com/forcedotcom/salesforcedx-vscode/pull/1814))
+
 # 47.10.0 - December 12, 2019
 
 ## Fixed
