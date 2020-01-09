@@ -14,6 +14,7 @@ import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
 import {
   TestFileInfo,
   TestInfoKind,
+  TestResultStatus,
   TestType
 } from '../../../../src/testSupport/types';
 
@@ -196,6 +197,113 @@ describe('LWC Test Indexer', () => {
             resolve();
           }
         );
+        onDidChangeEventEmitter.fire(testFileUriToChange);
+      });
+    });
+
+    it('should update index on test file change when parsing has an error', async () => {
+      // Mock parsing error
+      parseStub.callsFake(() => {
+        throw new Error();
+      });
+      const testFileUriToChange = lwcTests[0];
+      let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
+      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      return new Promise(resolve => {
+        const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
+          async () => {
+            allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
+            const changedTestFileInfo = allTestFileInfo.find(
+              (testFileInfo: TestFileInfo) => {
+                return (
+                  testFileInfo.testUri.fsPath === testFileUriToChange.fsPath
+                );
+              }
+            );
+            // If there's a parsing error, expect empty test cases info
+            expect(changedTestFileInfo!.testCasesInfo).to.eql([]);
+            handleDidUpdateTestIndex.dispose();
+            resolve();
+          }
+        );
+        onDidChangeEventEmitter.fire(testFileUriToChange);
+      });
+    });
+
+    it('should update index on test file change and merge existing test results if possible', async () => {
+      const testFileUriToChange = lwcTests[0];
+      let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
+      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+
+      // Mock raw test results on test file info
+      // This could be test results generated from previous runs,
+      // we are making sure that it will get merged in test cases info when test file changes.
+      const testFileInfoToChange = allTestFileInfo.find(
+        (testFileInfo: TestFileInfo) => {
+          return testFileInfo.testUri.fsPath === testFileUriToChange.fsPath;
+        }
+      );
+      testFileInfoToChange!.rawTestResults = [
+        {
+          title: 'mockTestCase1',
+          ancestorTitles: [],
+          status: TestResultStatus.PASSED
+        },
+        {
+          title: 'mockTestCase2',
+          ancestorTitles: [],
+          status: TestResultStatus.FAILED
+        }
+      ];
+
+      return new Promise(resolve => {
+        // Set up test file change handler
+        const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
+          async () => {
+            allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
+            const changedTestFileInfo = allTestFileInfo.find(
+              (testFileInfo: TestFileInfo) => {
+                return (
+                  testFileInfo.testUri.fsPath === testFileUriToChange.fsPath
+                );
+              }
+            );
+
+            // Assert that raw test results status is merged into test cases info
+            const expectedTestCases = [
+              {
+                testFsPath: testFileUriToChange.fsPath,
+                testName: 'mockTestCase1',
+                testResult: {
+                  status: TestResultStatus.PASSED
+                }
+              },
+              {
+                testFsPath: testFileUriToChange.fsPath,
+                testName: 'mockTestCase2',
+                testResult: {
+                  status: TestResultStatus.FAILED
+                }
+              }
+            ];
+            expect(
+              changedTestFileInfo!.testCasesInfo!.map(testCaseInfo => {
+                const { testName, testResult, testUri } = testCaseInfo;
+                return {
+                  testFsPath: testUri.fsPath,
+                  testName,
+                  testResult
+                };
+              })
+            ).to.eql(expectedTestCases);
+
+            // Restore
+            handleDidUpdateTestIndex.dispose();
+            testFileInfoToChange!.rawTestResults = undefined;
+            resolve();
+          }
+        );
+        // Changing the file
         onDidChangeEventEmitter.fire(testFileUriToChange);
       });
     });
