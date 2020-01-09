@@ -4,7 +4,7 @@
 
 #### docs
 
-- Fix typo in 'Org Info' command title [Command Reference](forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/vscode-commands)([PR #1854](https://github.com/forcedotcom/salesforcedx-vscode/pull/1854))
+- Fix typo in 'Org Info' command title [Command Reference](forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/vscode-commands)([PR #1854](https://github.com/forcedotcom/salesforcedx-vscode/pull/1854))—Contribution by [@garychenming](https://github.com/garychenming)
 
 # 47.10.0 - December 12, 2019
 
