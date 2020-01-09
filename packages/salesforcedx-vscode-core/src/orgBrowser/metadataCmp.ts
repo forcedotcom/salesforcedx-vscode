@@ -24,9 +24,7 @@ export class ComponentUtils {
       throw new Error(err);
     }
 
-    const username =
-      (await OrgAuthInfo.getUsername(defaultUsernameOrAlias)) ||
-      defaultUsernameOrAlias;
+    const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
     const fileName = `${
       folder ? `${metadataType}_${folder}` : metadataType
     }.json`;
