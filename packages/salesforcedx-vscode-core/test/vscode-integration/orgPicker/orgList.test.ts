@@ -137,7 +137,7 @@ describe('Filter Authorization Info', async () => {
       )
     ];
     defaultDevHubStub.returns('test-devhub1@gmail.com');
-    getUsernameStub.returns(undefined);
+    getUsernameStub.returns('test-devhub1@gmail.com');
     aliasCreateStub.returns(Aliases.prototype);
     aliasKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
