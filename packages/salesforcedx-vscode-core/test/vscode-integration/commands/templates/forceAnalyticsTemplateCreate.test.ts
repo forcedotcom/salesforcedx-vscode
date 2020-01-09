@@ -37,8 +37,7 @@ describe('Force Analytics Template Create', () => {
 
     const waveTemplateCreateCommand = waveTemplateCreate.build({
       outputdir: outputDirPath,
-      fileName: '',
-      templateName: sampleTemplateName
+      fileName: sampleTemplateName
     });
     expect(waveTemplateCreateCommand.toCommand()).to.equal(
       `sfdx force:analytics:template:create --outputdir ${outputDirPath} --templatename ${sampleTemplateName}`
@@ -49,17 +48,12 @@ describe('Force Analytics Template Create', () => {
     expect(waveTemplateCreate.getDefaultDirectory()).to.equal('waveTemplates');
     expect(
       waveTemplateCreate.sourcePathStrategy.getPathToSource(
-        path.join(outputDirPath, sampleTemplateName, 'dashboards'),
-        sampleTemplateName,
-        'Dashboard.json'
-      )
-    ).to.equal(
-      path.join(
         outputDirPath,
         sampleTemplateName,
-        'dashboards',
-        `${sampleTemplateName}Dashboard.json`
+        '.json'
       )
+    ).to.equal(
+      path.join(outputDirPath, sampleTemplateName, 'template-info.json')
     );
   });
 });

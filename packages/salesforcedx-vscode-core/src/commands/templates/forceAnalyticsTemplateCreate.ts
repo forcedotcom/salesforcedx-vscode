@@ -38,53 +38,41 @@ export class ForceAnalyticsTemplateCreateExecutor extends BaseTemplateCommand {
   public getFileExtension(): string {
     return '.json';
   }
-  public build(data: TemplateNameAndDir): Command {
+  public build(data: TemplateAndDir): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_analytics_template_create_text'))
       .withArg('force:analytics:template:create')
       .withFlag('--outputdir', data.outputdir)
-      .withFlag('--templatename', data.templateName)
+      .withFlag('--templatename', data.fileName)
       .withLogName('force_analytics_template_create')
       .build();
   }
 
-  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createDefaultStrategy();
+  public sourcePathStrategy: SourcePathStrategy = PathStrategyFactory.createWaveTemplateBundleStrategy();
 
   public getDefaultDirectory() {
     return ANALYTICS_TEMPLATE_DIRECTORY;
   }
-
-  public getPathToSource(outputDir: string, fileName: string) {
-    return super.getPathToSource(outputDir, fileName ? fileName : '');
-  }
 }
 
-export type TemplateNameAndDir = DirFileNameSelection & TemplateName;
+export type TemplateAndDir = DirFileNameSelection & Template;
 
-export interface TemplateName {
-  templateName: string;
+export interface Template {
+  // fileName is the templateName
+  fileName: string;
 }
 
-export class SelectProjectTemplate implements ParametersGatherer<TemplateName> {
-  private readonly prefillValueProvider?: () => string;
-
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
-  }
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<TemplateName>
-  > {
+export class SelectProjectTemplate implements ParametersGatherer<Template> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<Template>> {
     const projectTemplateInputOptions = {
-      prompt: 'template name'
+      prompt: nls.localize('force_analytics_template_name_text')
     } as vscode.InputBoxOptions;
-    if (this.prefillValueProvider) {
-      projectTemplateInputOptions.value = this.prefillValueProvider();
-    }
-    const templateName = await vscode.window.showInputBox(
+    const fileName = await vscode.window.showInputBox(
       projectTemplateInputOptions
     );
-    return templateName
-      ? { type: 'CONTINUE', data: { templateName } }
+
+    return fileName
+      ? { type: 'CONTINUE', data: { fileName } }
       : { type: 'CANCEL' };
   }
 }

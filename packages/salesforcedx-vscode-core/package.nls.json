@@ -57,5 +57,5 @@
   "refresh_components_text": "Refresh Components",
   "force_source_retrieve_display_text": "Retrieve Source from Org",
   "force_diff_against_org": "SFDX: Diff File Against Org",
-  "force_analytics_template_create_text": "SFDX: Add Sample Analytics Template"
+  "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template"
 }
