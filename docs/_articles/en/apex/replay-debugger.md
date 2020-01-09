@@ -88,7 +88,7 @@ Replay your debug log and inspect your variables’ values.
 
 Keep these considerations and known issues in mind when working with Apex Replay Debugger.
 
-- You can use this debugger only in your orgs. ISV customer debugging is unavailable in Apex Replay Debugger. To debug customers’ orgs, use [ISV Customer Debugger](./en/apex/interactive-debugger#isv-customer-debugger).
+- You can use this debugger only in your orgs. ISV customer debugging is unavailable in Apex Replay Debugger. To debug customers’ orgs, use [ISV Customer Debugger](./en/apex/isv-debugger).
 - You can replay only one debug log at a time. This limitation can make it difficult to debug asynchronous Apex, which produces multiple debug logs.
 - Be sure to start a session soon after uploading your checkpoints, because checkpoints expire after 30 minutes.
 - Be sure to debug your code soon after starting the session, because heap dumps expire about a day after you generate them.
