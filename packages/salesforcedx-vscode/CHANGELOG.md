@@ -1,3 +1,11 @@
+# 47.14.0 - January 9th, 2020
+
+## Fixed
+
+#### docs
+
+- Fix typo in 'Org Info' command title [Command Reference](forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/vscode-commands)([PR #1854](https://github.com/forcedotcom/salesforcedx-vscode/pull/1854))—Contribution by [@garychenming](https://github.com/garychenming)
+
 # 47.11.0 - December 18th, 2019
 
 ## Fixed
@@ -199,6 +207,8 @@
 - Add recommended timeout setting for [Prettier](https://forcedotcom.github.io/salesforcedx-vscode/articles/getting-started/prettier) setup ([PR #1647](https://github.com/forcedotcom/salesforcedx-vscode/pull/1647))
 
 - Add pre-selection settings for [Apex](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing) auto-complete dropdown list ([PR #1665](https://github.com/forcedotcom/salesforcedx-vscode/pull/1665))
+
+- Add [local develop](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) documentation for LWC ([PR #1676](https://github.com/forcedotcom/salesforcedx-vscode/pull/1676)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
 
 # 46.15.0 - September 19, 2019
 
