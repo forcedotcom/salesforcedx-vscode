@@ -1,3 +1,11 @@
+# 47.14.0 - January 9th, 2020
+
+## Fixed
+
+#### docs
+
+- Fix typo in 'Org Info' command title [Command Reference](forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/vscode-commands)([PR #1854](https://github.com/forcedotcom/salesforcedx-vscode/pull/1854))
+
 # 47.10.0 - December 12, 2019
 
 ## Fixed
