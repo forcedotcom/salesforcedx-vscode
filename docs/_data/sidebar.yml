@@ -128,9 +128,9 @@
   baseUrl: /lwc/
   children:
     - title:
-        en: Writing
+        en: Write Lightning Web Components
         jp: 作成
-      url: /lwc/writing
+      url: /lwc/write-lwc
     - title:
         en: Testing
         jp: 作成
