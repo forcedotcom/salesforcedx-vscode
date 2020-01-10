@@ -1,0 +1,22 @@
+{
+  "extends": "./node_modules/@salesforce/dev-config/tsconfig",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "lib": ["es6", "dom"],
+    "sourceMap": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "outDir": "./lib",
+    "preserveConstEnums": true,
+    "strict": true,
+
+    // We can replace the TS generated snippets with require statements
+    // from the tslib dependency, making our code more efficient
+    "importHelpers": true
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}

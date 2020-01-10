@@ -1,0 +1,71 @@
+{
+  "name": "salesforcedx-apex",
+  "description": "Apex commands",
+  "version": "0.0.1",
+  "author": "Salesforce",
+  "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
+  "dependencies": {
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/errors": "^1",
+    "@salesforce/command": "^2",
+    "@salesforce/core": "^2",
+    "tslib": "^1"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1",
+    "@oclif/plugin-help": "^2",
+    "@oclif/test": "^1",
+    "@salesforce/dev-config": "1.4.1",
+    "@types/chai": "^4",
+    "@types/mocha": "^5",
+    "@types/node": "^10",
+    "chai": "^4",
+    "eslint": "6.6.0",
+    "eslint-config-prettier": "6.5.0",
+    "globby": "^8",
+    "mocha": "^5",
+    "nyc": "^14",
+    "prettier": "1.16.4",
+    "pretty-quick": "^1.11.1",
+    "shx": "0.2.2",
+    "ts-node": "^8",
+    "tslint": "^5"
+  },
+  "engines": {
+    "node": ">=8.10.0"
+  },
+  "files": [
+    "/lib",
+    "/messages",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
+  "keywords": [
+    "force",
+    "salesforce",
+    "sfdx",
+    "salesforcedx",
+    "sfdx-plugin",
+    "apex"
+  ],
+  "license": "BSD-3-Clause",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "sfdx",
+    "devPlugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "repository": "forcedotcom/salesforcedx-apex",
+  "scripts": {
+    "clean:lib": "node scripts/remove-lib",
+    "lint": "tslint --project . --config tslint.json --format stylish",
+    "postpack": "rm -f oclif.manifest.json",
+    "prepack": "yarn run clean:lib && tsc -b && oclif-dev manifest",
+    "reformat": "prettier --config .prettierrc --write './*.{js,json}' './**/*.{ts,json}'",
+    "test": "nyc --extension .ts mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif-dev readme && git add README.md"
+  }
+}

@@ -1,0 +1,4 @@
+{
+    "extends": "@salesforce/dev-config/tslint"
+  }
+  
