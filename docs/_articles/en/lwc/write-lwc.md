@@ -6,10 +6,10 @@ lang: en
 The Lightning Web Components Extension for VS Code leverages the editor's built-in code navigation and language features so that you can efficiently build Lightning web components. 
 
 Take advantage of the following Lightning Web Components Extension for VS Code features:
-Code Completion
-View Documentation on Hover
-View Errors Messages on Hover
-Linting
+- [Code Completion](#code-completion)
+- [View Documentation on Hover](#view-documentation-on-hover)
+- [View Errors Messages on Hover](#view-error-messages-on-hover)
+- [Linting](#linting)
 
 ## Code Completion
 
