@@ -1,15 +1,18 @@
 ---
-title: Write Lightning Web Components in VS Code
+title: Write Lightning Web Components
 lang: en
 ---
 
 The Lightning Web Components Extension for VS Code leverages the editor's built-in code navigation and language features so that you can efficiently build Lightning web components. 
 
 Take advantage of the following Lightning Web Components Extension for VS Code features:
-- [Code Completion](#code-completion)
-- [View Documentation on Hover](#view-documentation-on-hover)
-- [View Errors Messages on Hover](#view-error-messages-on-hover)
-- [Linting](#linting)
+
+Syntax highlighting and bracket matching // TODO 
+[Smart code completions (IntelliSense)](#code-completion)
+[Linting and corrections](#linting)
+Code navigation (Go to Definition, Find All References) //TODO
+[View Documentation on Hover](#view-documentation-on-hover)
+
 
 ## Code Completion
 
@@ -29,20 +32,11 @@ Code completion is also provided for HTML tags and attributes for components in 
 
 To view the source of a `c` namespace component, press **command** + **click**. 
 
-![View Source of c Namespace](./images/vscode_lwc_viewsource.png)
-
 ## View Documentation on Hover
 
-VS Code displays documentation when you hover over a standard Lightning web component in the `lightning` namespace. Here is the documentation that displays for `lightning-layout`. The dropdown also provides a link to view the component in the Component Library.
+VS Code displays documentation when you hover over a standard Lightning web component in the `lightning` namespace as well as the `c` namespace, if you provide documentation for your custom components. Here is the documentation that displays for `lightning-layout`. The dropdown also provides a link to view the component in the Component Library.
 
 ![Documentation on Hover](./images/vscode_lwc_hover.png)
-
-
-## View Errors Messages on Hover
-
-File and compiler errors display on hover. Here, when `@track` is hovered over, the error message says that the use of track is invalid because it was not imported from `'lwc'`.
-
-![Documentation on Hover](./images/vscode_lwc_compiler_error.png)
 
 ## Linting 
 
@@ -59,5 +53,9 @@ Clicking **Peek Problem** on the error message highlights the line where the lin
 Clicking **Quick Fix** provides options to disable the warning on valid API names in the line or in the file, and links to the documentation. You can see these same options by clicking on the yellow lightbulb icon next to `@api onpress;`.
 
 ![Linter Example with Quick Fix](./images/vscode_lwc_quickfix.png)
+
+File and compiler errors display on hover. Here, when `@track` is hovered over, the error message says that the use of track is invalid because it was not imported from `'lwc'`.
+
+![Documentation on Hover](./images/vscode_lwc_compiler_error.png)
 
 
