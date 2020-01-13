@@ -73,7 +73,7 @@ Windows:
 
 ## Oracle Java 11 (Officially Test)
 
-1. Navigate to the [download page](https://www.oracle.com/technetwork/java/javase/downloads/index.html)
+1. Navigate to the [download page](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)
 1. Click the **Download** button for **Java SE 11.x.y (LTS)**
 1. Accept the license agreement
 1. Click the download link that applies to your OS

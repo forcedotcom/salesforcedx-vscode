@@ -167,7 +167,7 @@ export async function forceLightningLwcStart() {
       return;
     } else if (response === restartOption) {
       channelService.appendLine(
-        nls.localize('force_lightning_lwc_start_stopping')
+        nls.localize('force_lightning_lwc_stop_in_progress')
       );
       await DevServerService.instance.stopServer();
     } else {
