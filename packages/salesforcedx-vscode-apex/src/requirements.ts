@@ -23,7 +23,7 @@ export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
 export interface RequirementsData {
   java_home: string;
-  java_memory: number;
+  java_memory: number | null;
 }
 
 /**
@@ -32,9 +32,9 @@ export interface RequirementsData {
  */
 export async function resolveRequirements(): Promise<RequirementsData> {
   const javaHome = await checkJavaRuntime();
-  const javaMemory: number = workspace
+  const javaMemory: number | null = workspace
     .getConfiguration()
-    .get<number>(JAVA_MEMORY_KEY, 4096);
+    .get<number | null>(JAVA_MEMORY_KEY, null);
   await checkJavaVersion(javaHome);
   return Promise.resolve({
     java_home: javaHome,
