@@ -1,3 +1,61 @@
+# 47.14.0 - January 9th, 2020
+
+## Fixed
+
+#### docs
+
+- Fix typo in 'Org Info' command title [Command Reference](forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/vscode-commands)([PR #1854](https://github.com/forcedotcom/salesforcedx-vscode/pull/1854))—Contribution by [@garychenming](https://github.com/garychenming)
+
+# 47.11.0 - December 18th, 2019
+
+## Fixed
+
+#### docs
+
+- Fix links in various doc sections ([PR #1846](https://github.com/forcedotcom/salesforcedx-vscode/pull/1846), [Issue #1825](https://github.com/forcedotcom/salesforcedx-vscode/issues/1825), [Issue #1821](https://github.com/forcedotcom/salesforcedx-vscode/issues/1821), [Issue #1777](https://github.com/forcedotcom/salesforcedx-vscode/issues/1777))
+
+- Fix broken links in [Development Models](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models) and [Default Org](https://developer.salesforce.com/tools/vscode/en/user-guide/default-org) pages ([PR #1844](https://github.com/forcedotcom/salesforcedx-vscode/pull/1844))—Contribution by [@Lafexlos](https://github.com/Lafexlos)
+
+## Added
+
+#### docs
+
+- Update header and footer to match Salesforce developer site ([PR #1814](https://github.com/forcedotcom/salesforcedx-vscode/pull/1814))
+
+# 47.10.0 - December 12, 2019
+
+## Fixed
+
+#### docs
+
+- Fix typo in doc title for [Lightning Web Components](forcedotcom.github.io/salesforcedx-vscode/articles/lwc/writing) ([PR #1830](https://github.com/forcedotcom/salesforcedx-vscode/pull/1830))
+
+#### salesforcedx-vscode-lightning
+
+- Fix indexing in Lightning Web Components ([PR #1836](https://github.com/forcedotcom/salesforcedx-vscode/pull/1836), [Issue #1832](https://github.com/forcedotcom/salesforcedx-vscode/issues/1832))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added Japanese translations for labels and messages ([PR #1551](https://github.com/forcedotcom/salesforcedx-vscode/pull/1551))
+
+# 47.9.0 - December 6, 2019
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Fixed LWC local development bugs ([PR #1809](https://github.com/forcedotcom/salesforcedx-vscode/pull/1809)) —Contribution by [@mysticflute](https://github.com/mysticflute)
+
+## Added
+
+#### docs
+
+- Add link to redirect to the LWC [local development](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/localdev) docs from the LWC development guide. ([PR #1790](https://github.com/forcedotcom/salesforcedx-vscode/pull/1790)) —Contribution by [@blythesheldon](https://github.com/blythesheldon)
+
+- Add testing support documentation for [LWC](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/testing) ([PR #1765](https://github.com/forcedotcom/salesforcedx-vscode/pull/1765)) -Contribution by [@xyc](https://github.com/xyc)
+
 # 47.6.0 - November 14, 2019
 
 ## Fixed
