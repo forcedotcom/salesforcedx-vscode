@@ -24,6 +24,7 @@ export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export { forceSourceStatus } from './forceSourceStatus';
 export { forceTaskStop } from './forceTaskStop';
 export {
+  forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
   forceLightningAppCreate,

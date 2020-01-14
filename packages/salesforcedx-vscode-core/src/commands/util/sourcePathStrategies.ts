@@ -26,6 +26,18 @@ class BundlePathStrategy implements SourcePathStrategy {
   }
 }
 
+class WaveTemplateBundlePathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    const bundleName = fileName;
+    // template-info is the main static file name for all WaveTemplateBundles
+    return join(dirPath, bundleName, `template-info${fileExt}`);
+  }
+}
+
 export interface SourcePathStrategy {
   getPathToSource(dirPath: string, fileName: string, fileExt: string): string;
 }
@@ -37,5 +49,9 @@ export class PathStrategyFactory {
 
   public static createBundleStrategy(): BundlePathStrategy {
     return new BundlePathStrategy();
+  }
+
+  public static createWaveTemplateBundleStrategy(): WaveTemplateBundlePathStrategy {
+    return new WaveTemplateBundlePathStrategy();
   }
 }

@@ -66,7 +66,7 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     type: 'WaveTemplateBundle',
     suffix: 'waveTemplate',
     directory: 'waveTemplates',
-    pathStrategy: PathStrategyFactory.createBundleStrategy(),
+    pathStrategy: PathStrategyFactory.createWaveTemplateBundleStrategy(),
     extensions: ['']
   }
 };
