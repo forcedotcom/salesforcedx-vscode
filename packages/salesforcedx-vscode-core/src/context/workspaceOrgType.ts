@@ -22,17 +22,8 @@ export async function getWorkspaceOrgType(
     e.name = 'NoDefaultusernameSet';
     throw e;
   }
-
   const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-
-  if (isNullOrUndefined(username)) {
-    telemetryService.sendException(
-      'get_workspace_org_type',
-      'workspaceOrgType.getWorkspaceOrgType ran into an undefined username.'
-    );
-  }
-
-  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username!).catch(err =>
+  const isScratchOrg = await OrgAuthInfo.isAScratchOrg(username).catch(err =>
     telemetryService.sendException(
       'get_workspace_org_type_scratch_org',
       err.message
