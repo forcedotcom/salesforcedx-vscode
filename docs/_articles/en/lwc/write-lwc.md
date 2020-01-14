@@ -7,28 +7,28 @@ The Lightning Web Components Extension for VS Code leverages the editor's built-
 
 Take advantage of the following Lightning Web Components Extension for VS Code features:
 
-[Code Completion](#code-completion)
-[Linting and corrections](#linting)
-Code navigation (Go to Definition, Find All References) //TODO
-[View Documentation on Hover](#view-documentation-on-hover)
+* [Code Completion](#code-completion)
+* [Linting and corrections](#linting)
+* Code navigation (Go to Definition, Find All References) //TODO
+* [View Documentation on Hover](#view-documentation-on-hover)
 
 
 ## Code Completion
 
-The Lightning Web Components Extension builds on VS Code's language features for [HTML](https://code.visualstudio.com/docs/languages/html) and [JavaScript](https://code.visualstudio.com/docs/languages/javascript), including syntax highlighting, bracket matching, and language-specific code completions with IntelliSense. The extension provides code completion for the following Lightning Web Components.
+The Lightning Web Components Extension builds on VS Code's language features for [HTML](https://code.visualstudio.com/docs/languages/html) and [JavaScript](https://code.visualstudio.com/docs/languages/javascript), including syntax highlighting, bracket matching, and language-specific code completions with IntelliSense. The extension provides code completion for the following Lightning Web Components resources.
 
 ### `@salesforce` Scoped Modules
 
 Lightning components access Salesforce values via scoped modules. The Lightning Web Components Extension provides code completion for the following scoped modules:
 
-- `@salesforce/resourceUrl`
-- `@salesforce/contentAssetUrl`
-- `@salesforce/apex`
-- `@salesforce/user`
+* `@salesforce/resourceUrl`
+* `@salesforce/contentAssetUrl`
+* `@salesforce/apex`
+* `@salesforce/user`
 
 To learn more about `@salesforce` modules, see [`@salesforce` Modules](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules) in the *Lightning Web Components Developer Guide* for more information.
 
-In this example, VS Code shows two options for the resource name when completing the `import` statement, `trailhead_logo` and `trailhead_characters`. 
+In this example, VS Code displays possible static resource names to choose from when completing the `import` statement.
 
 ![Static Resource Completion](./images/vscode_lwc_staticresource_trailhead.png)
 
@@ -52,7 +52,7 @@ Here is an example of code completion for including the Apex function `getContac
 
 ### Namespace Completion in HTML Attributes and Tags
 
-Code completion is also provided for HTML tags and attributes for components in the `lightning` and `c` namespaces. Here, with `c-view-source`, VS Code completes its source attribute.
+Code completion is also provided for HTML tags and attributes for components in the `lightning` and `c` namespaces. Here, with `c-view-source`, VS Code completes its `source` attribute.
 
 ![HTML Attribute Completion](./images/vscode_lwc_html_attr.png)
 
