@@ -33,6 +33,8 @@ import { ConfigSource, OrgAuthInfo } from '../util/index';
 import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
+  protected showChannelOutput = false;
+
   public build(data: {}): Command {
     const command = new SfdxCommandBuilder().withDescription(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
