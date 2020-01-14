@@ -56,7 +56,10 @@ Code completion is also provided for HTML tags and attributes for components in 
 
 ![HTML Attribute Completion](./images/vscode_lwc_html_attr.png)
 
-To view the source of a `c` namespace component, press **command** + **click**. 
+To view the source of a `c` namespace component, press **command** and hover over the namespace name.
+
+![View source of a c namespace component](./images/vscode_lwc_commandhover.png)
+
 
 ## View Documentation on Hover
 
