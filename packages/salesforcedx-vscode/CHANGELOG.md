@@ -1,3 +1,24 @@
+# 47.15.0 - January 16th, 2020
+
+## Fixed
+
+- Fix source:push commands not appearing when switching to a scratch org without an alias ([PR #1862](https://github.com/forcedotcom/salesforcedx-vscode/pull/1862))
+
+- Prevent output panel from opening automatically for the following commands:
+  - `SFDX: Deploy ...` (all deploy options)
+  - `SFDX: Push ...` (all push options)
+  - `SFDX: Open Default Org`
+  - `SFDX: Authorize an Org`
+  - `SFDX: Authorize a Dev Hub`
+  - `SFDX: Diff File Against Org`
+    ([PR #1865](https://github.com/forcedotcom/salesforcedx-vscode/pull/1865), [Issue #1806](https://github.com/forcedotcom/salesforcedx-vscode/issues/1806))
+
+## Added
+
+- Setting to override default max heap size for Apex Language Server ([PR #1817](https://github.com/forcedotcom/salesforcedx-vscode/pull/1817), [Issue #1626](https://github.com/forcedotcom/salesforcedx-vscode/issues/1626))-Contribution by [@kenhuman](https://github.com/kenhuman)
+
+- Support for running `SFDX: Diff File Against Org` for CustomLabels ([PR #1859](https://github.com/forcedotcom/salesforcedx-vscode/pull/1859))
+
 # 47.14.0 - January 9th, 2020
 
 ## Fixed
