@@ -26,9 +26,9 @@ Lightning components access Salesforce values via scoped modules. The Lightning 
 - `@salesforce/apex`
 - `@salesforce/user`
 
-To learn more about `@salesforce` modules, see the [`@salesforce` Modules](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules) in the *Lightning Web Components Developer Guide* for more information.
+To learn more about `@salesforce` modules, see [`@salesforce` Modules](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules) in the *Lightning Web Components Developer Guide* for more information.
 
-In this example, VS Code shows two options for the resource name when completing the import statement, `trailhead_logo` and `trailhead_characters`. 
+In this example, VS Code shows two options for the resource name when completing the `import` statement, `trailhead_logo` and `trailhead_characters`. 
 
 ![Static Resource Completion](./images/vscode_lwc_staticresource_trailhead.png)
 
@@ -47,6 +47,8 @@ VS Code also completes Lightning API resources, such as `lightning/uiRecordApi` 
 VS Code completes the Lightning Web Components framework's reactive properties and wire service. See [Reactive Properties](https://developer.salesforce.com/docs/component-library/documentation/lwc/js_props_reactive) and [Use the Wire Service to Get Data](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.data_wire_service_about) in the *Lightning Web Components Developer Guide* for more information. 
 
 Here is an example of code completion for including the Apex function `getContactList` in the `@wire` decorator. 
+
+![Lightning @wire Completion](./images/vscode_lwc_wire.png)
 
 ### Namespace Completion in HTML Attributes and Tags
 
