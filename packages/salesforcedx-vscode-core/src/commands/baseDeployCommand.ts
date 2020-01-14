@@ -50,7 +50,6 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
-    channelService.showChannelOutput();
 
     let stdOut = '';
     execution.stdoutSubject.subscribe(realData => {
@@ -63,6 +62,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         const deployParser = new ForceDeployResultParser(stdOut);
         const errors = deployParser.getErrors();
         if (errors && !deployParser.hasConflicts()) {
+          channelService.showChannelOutput();
           handleDiagnosticErrors(
             errors,
             workspacePath,
