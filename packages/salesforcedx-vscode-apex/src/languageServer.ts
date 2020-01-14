@@ -35,23 +35,20 @@ async function createServer(
       `${requirementsData.java_home}/bin/java`
     );
     const jvmMaxHeap = requirementsData.java_memory;
-    let args: string[];
     const enableSemanticErrors: boolean = vscode.workspace
       .getConfiguration()
       .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
 
-    args = ['-cp', uberJar];
-
-    console.log(jvmMaxHeap);
+    const args: string[] = [
+      '-cp',
+      uberJar,
+      '-Ddebug.internal.errors=true',
+      `-Ddebug.semantic.errors=${enableSemanticErrors}`
+    ];
 
     if (jvmMaxHeap) {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
-
-    args.push(
-      '-Ddebug.internal.errors=true',
-      `-Ddebug.semantic.errors=${enableSemanticErrors}`
-    );
 
     if (DEBUG) {
       args.push(

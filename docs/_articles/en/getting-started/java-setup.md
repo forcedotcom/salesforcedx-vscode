@@ -119,3 +119,13 @@ Windows:
   "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk1.8.0_131"
 }
 ```
+
+# Advanced Setup
+
+By default, the Apex Language Server process gets up to 1/4 of your system's physical memory allocated to it, that's how the Java JVM defaults works. There are certain situations, like working with large projects, in which you'll want to override that default and allocate more memory to the process. To do so you can use the `salesforcedx-vscode-apex.java.memory` setting and specify the maximum size, in megabytes, of the memory allocation. This value must a multiple of 1024 greater than 2 MB.
+
+```json
+{
+  "salesforcedx-vscode-apex.java.memory": "4096"
+}
+```
