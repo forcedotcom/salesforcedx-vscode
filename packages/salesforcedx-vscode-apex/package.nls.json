@@ -8,7 +8,7 @@
   "show_error_title": "Display Error",
   "go_to_definition_title": "Go to Definition",
   "java_home_description": "Specifies the folder path to the Java 8 or Java 11 runtime used to launch the Apex Language Server (for example, /Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home).",
-  "java_memory_description": "Amount of memory to allocate to the Apex Language Server, in MB, or null to use system default",
+  "java_memory_description": "Specifies the amount of memory allocation to the Apex Language Server in MB or null to use the default value.",
   "apex_semantic_errors_description": "Allow Apex Language Server to surface semantic errors",
   "force_apex_test_last_class_run_text": "SFDX: Re-Run Last Invoked Apex Test Class",
   "force_apex_test_last_method_run_text": "SFDX: Re-Run Last Invoked Apex Test Method",
