@@ -226,6 +226,14 @@
           "default": null,
           "description": "%java_home_description%"
         },
+        "salesforcedx-vscode-apex.java.memory": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null,
+          "description": "%java_memory_description%"
+        },
         "salesforcedx-vscode-apex.enable-semantic-errors": {
           "type": "boolean",
           "default": false,

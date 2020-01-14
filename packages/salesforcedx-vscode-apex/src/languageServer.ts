@@ -34,30 +34,30 @@ async function createServer(
     const javaExecutable = path.resolve(
       `${requirementsData.java_home}/bin/java`
     );
-    let args: string[];
+    const jvmMaxHeap = requirementsData.java_memory;
     const enableSemanticErrors: boolean = vscode.workspace
       .getConfiguration()
       .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
 
+    const args: string[] = [
+      '-cp',
+      uberJar,
+      '-Ddebug.internal.errors=true',
+      `-Ddebug.semantic.errors=${enableSemanticErrors}`
+    ];
+
+    if (jvmMaxHeap) {
+      args.push(`-Xmx${jvmMaxHeap}M`);
+    }
+
     if (DEBUG) {
-      args = ['-cp', uberJar];
-
       args.push(
-        '-Ddebug.internal.errors=true',
-        `-Ddebug.semantic.errors=${enableSemanticErrors}`,
         '-Dtrace.protocol=false',
-        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`,
-        APEX_LANGUAGE_SERVER_MAIN
-      );
-    } else {
-      args = ['-cp', uberJar];
-
-      args.push(
-        '-Ddebug.internal.errors=true',
-        `-Ddebug.semantic.errors=${enableSemanticErrors}`,
-        APEX_LANGUAGE_SERVER_MAIN
+        `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`
       );
     }
+
+    args.push(APEX_LANGUAGE_SERVER_MAIN);
 
     return {
       options: {
