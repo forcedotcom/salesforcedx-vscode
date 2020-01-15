@@ -9,9 +9,8 @@ Take advantage of the following Lightning Web Components Extension for VS Code f
 
 * [Code Completion](#code-completion)
 * [Linting and corrections](#linting)
-* Code navigation (Go to Definition, Find All References) //TODO
 * [View Documentation on Hover](#view-documentation-on-hover)
-
+* [Code navigation](#code-navigation)
 
 ## Code Completion
 
@@ -28,7 +27,7 @@ Lightning components access Salesforce values via scoped modules. The Lightning 
 
 To learn more about `@salesforce` modules, see [`@salesforce` Modules](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules) in the *Lightning Web Components Developer Guide* for more information.
 
-In this example, VS Code displays possible static resource names to choose from when completing the `import` statement.
+In this example, VS Code displays the possible static resource names to choose from when completing the `import` statement.
 
 ![Static Resource Completion](./images/vscode_lwc_staticresource_trailhead.png)
 
@@ -56,11 +55,6 @@ Code completion is also provided for HTML tags and attributes for components in 
 
 ![HTML Attribute Completion](./images/vscode_lwc_html_attr.png)
 
-To view the source of a `c` namespace component, press **command** and hover over the namespace name.
-
-![View source of a c namespace component](./images/vscode_lwc_commandhover.png)
-
-
 ## View Documentation on Hover
 
 VS Code displays documentation when you hover over a standard Lightning web component in the `lightning` namespace as well as the `c` namespace, if you provide documentation for your custom components. Here is the documentation that displays for `lightning-layout`. The dropdown also provides a link to view the component in the Component Library.
@@ -83,8 +77,20 @@ Clicking **Quick Fix** provides options to disable the warning on valid API name
 
 ![Linter Example with Quick Fix](./images/vscode_lwc_quickfix.png)
 
-File and compiler errors display on hover. Here, when `@track` is hovered over, the error message says that the use of track is invalid because it was not imported from `'lwc'`.
+File and compiler errors display on hover. Here, when `@track` is hovered over, the error message says that it must be declared.
 
-![Documentation on Hover](./images/vscode_lwc_compiler_error.png)
+![Documentation on Hover](./images/vscode_lwc_track.png)
+
+## Code Navigation
+
+VS Code provides shortcuts to preview or jump to definitions within your code without losing track of the code you're currently working on. Learn more in [VS Code documentation](https://code.visualstudio.com/docs/editor/editingevolved).
+
+To preview a definition, hold down **Ctrl** (Windows or Linux) or **Command** (macOS) and hover over the item whose definition you want to see. This example shows a preview of the source of a `c` namespace component.
+
+![View source of a c namespace component](./images/vscode_lwc_commandhover.png)
+
+To view a definition, right-click the item and select **Peek Definition**, or press **Alt+F12**.
+
+To jump to the location of a definition, right-click the item and select **Go to Definition**, or press **F12**.
 
 
