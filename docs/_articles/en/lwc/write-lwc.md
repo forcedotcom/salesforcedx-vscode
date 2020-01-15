@@ -79,9 +79,9 @@ Clicking **Peek Problem** on the error message highlights the line where the lin
 
 Clicking **Quick Fix** provides options to disable the warning on valid API names in the line or in the file, and links to the documentation. You can see these same options by clicking on the yellow lightbulb icon next to `@api onpress;`.
 
-### Errors and Warnings 
-
 ![Linter Example with Quick Fix](./images/vscode_lwc_quickfix.png)
+
+### Errors and Warnings 
 
 File and compiler errors display on hover. Here, when `@track` is hovered over, the error message says that it must be declared.
 
