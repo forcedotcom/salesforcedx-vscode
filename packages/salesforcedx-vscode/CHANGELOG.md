@@ -4,9 +4,9 @@
 
 #### salesforcedx-vscode-core
 
-- Fix source:push commands not appearing when switching to a scratch org without an alias ([PR #1862](https://github.com/forcedotcom/salesforcedx-vscode/pull/1862))
+- Fix `source:push` commands to appear correctly when switching to a scratch org using a username instead of an alias ([PR #1862](https://github.com/forcedotcom/salesforcedx-vscode/pull/1862))
 
-- Prevent output panel from opening automatically for the following commands:
+- Prevent the Output panel from opening automatically for these commands:
   - `SFDX: Deploy ...` (all deploy options)
   - `SFDX: Push ...` (all push options)
   - `SFDX: Open Default Org`
@@ -23,7 +23,7 @@
 
 #### salesforcedx-vscode-core
 
-- Support for running `SFDX: Diff File Against Org` on CustomLabels ([PR #1859](https://github.com/forcedotcom/salesforcedx-vscode/pull/1859))
+- Support for running `SFDX: Diff File Against Org` on Custom Labels ([PR #1859](https://github.com/forcedotcom/salesforcedx-vscode/pull/1859))
 
 # 47.14.0 - January 9th, 2020
 
