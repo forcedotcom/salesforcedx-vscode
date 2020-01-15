@@ -7,10 +7,10 @@ The Lightning Web Components Extension for VS Code leverages the editor's built-
 
 Take advantage of the following Lightning Web Components Extension for VS Code features:
 
-* [Code Completion](#code-completion)
-* [Linting and corrections](#linting)
-* [View Documentation on Hover](#view-documentation-on-hover)
-* [Code navigation](#code-navigation)
+* [Code Completion](./en/lwc/write-lwc#code-completion)
+* [Linting and corrections](./en/lwc/write-lwc#linting)
+* [View Documentation on Hover](./en/lwc/write-lwc#view-documentation-on-hover)
+* [Code navigation](./en/lwc/write-lwc#code-navigation)
 
 ## Code Completion
 
@@ -63,7 +63,7 @@ VS Code displays documentation when you hover over a standard Lightning web comp
 
 ## Linting 
 
-Linting provides errors about malformed or suspicious-looking code while you edit. VS Code enforces Salesforce's ESLint rules. To activate ESLint, install it from the command line. See the [github/salesforce/eslint-plugin-lwc] and [github/salesforce/eslint-config-lwc] repositories for instructions. 
+Linting provides errors about malformed or suspicious-looking code while you edit. VS Code enforces Salesforce's ESLint rules. To activate ESLint, install it from the command line. See the [Lightning Web Components ESLint Plugin](https://github.com/salesforce/eslint-plugin-lwc) and [Lightning Web Components ESLint Config](https://github.com/salesforce/eslint-config-lwc) repositories for instructions. 
 
 In this example, when hovering over `onpress`, the linter reports that you cannot name an API property starting with "on."
 
@@ -71,7 +71,7 @@ In this example, when hovering over `onpress`, the linter reports that you canno
 
 ### Peek Problem and Quick Fix
 
-VS Code has a range of actions to fix and refactor code, with Quick Fix being the simplest. To learn more, see [Refactoring](https://code.visualstudio.com/docs/editor/refactoring) in the VS Code documentation. 
+VS Code has a range of actions to quickly address problems and refactor code, including Quick Fix and Peek Problem. To learn more, see [Refactoring](https://code.visualstudio.com/docs/editor/refactoring) in the VS Code documentation. 
 
 Clicking **Peek Problem** on the error message highlights the line where the linter found the error. If the message says there is more than one error, click the down arrow in the message's upper right corner to see the others.
 
