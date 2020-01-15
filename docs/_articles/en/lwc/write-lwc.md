@@ -89,7 +89,7 @@ File and compiler errors display on hover. Here, when `@track` is hovered over, 
 
 ## Code Navigation
 
-VS Code provides shortcuts to preview or jump to definitions within your code without losing track of the code you're currently working on. Learn more in [VS Code documentation](https://code.visualstudio.com/docs/editor/editingevolved).
+VS Code provides shortcuts to preview or jump to definitions within your code without losing track of the code you're currently working on. Learn more in the [Code Navigation](https://code.visualstudio.com/docs/editor/editingevolved) section of the VS Code documentation.
 
 To preview a definition, hold down **Ctrl** (Windows or Linux) or **Command** (macOS) and hover over the item whose definition you want to see. This example shows a preview of the source of a `c` namespace component.
 
