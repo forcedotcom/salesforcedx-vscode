@@ -27,6 +27,9 @@ import {
 } from '../describe';
 import { nls } from '../messages';
 
+const INDENT = '    ';
+const MODIFIER = 'global';
+
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
@@ -34,6 +37,13 @@ export interface CancellationToken {
 export enum SObjectRefreshSource {
   Manual = 'manual',
   Startup = 'startup'
+}
+
+export interface FieldDeclaration {
+  modifier: string;
+  type: string;
+  name: string;
+  comment?: string;
 }
 
 export interface SObjectRefreshResult {
@@ -81,8 +91,13 @@ export class FauxClassGenerator {
     ['complexvalue', 'Object']
   ]);
 
-  private static fieldName(decl: string): string {
-    return decl.substr(decl.indexOf(' ') + 1);
+  private static fieldDeclToString(decl: FieldDeclaration): string {
+    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
+  }
+
+  private static commentToString(comment?: string): string {
+    // for some reasons if the comment is on a single line the help context shows the last '*/'
+    return comment ? `${INDENT}/* ${comment.replace(/\*\//g, '')}${EOL}${INDENT}*/${EOL}` : '';
   }
 
   private emitter: EventEmitter;
@@ -191,7 +206,7 @@ export class FauxClassGenerator {
 
   // VisibleForTesting
   public generateFauxClassText(sobject: SObject): string {
-    const declarations: string[] = this.generateFauxClassDecls(sobject);
+    const declarations = this.generateFauxClassDecls(sobject);
     return this.generateFauxClassTextFromDecls(sobject.name, declarations);
   }
 
@@ -280,13 +295,18 @@ export class FauxClassGenerator {
     return relationshipName ? relationshipName : this.stripId(name);
   }
 
-  private generateChildRelationship(rel: ChildRelationship): string {
-    const nameToUse = this.getReferenceName(rel.relationshipName, rel.field);
-    return `List<${rel.childSObject}> ${nameToUse}`;
+  private generateChildRelationship(rel: ChildRelationship): FieldDeclaration {
+    const name = this.getReferenceName(rel.relationshipName, rel.field);
+    return {
+      modifier: MODIFIER,
+      type: `List<${rel.childSObject}>`,
+      name
+    };
   }
 
-  private generateField(field: Field): string[] {
-    const decls: string[] = [];
+  private generateField(field: Field): FieldDeclaration[] {
+    const decls: FieldDeclaration[] = [];
+    const comment = field.inlineHelpText;
     let genType = '';
     if (field.referenceTo.length === 0) {
       // should be a normal field EXCEPT for external lookup & metadata relationship
@@ -296,19 +316,32 @@ export class FauxClassGenerator {
       } else {
         genType = this.getTargetType(field.type);
       }
-      decls.push(`${genType} ${field.name}`);
+
+      decls.push({
+        modifier: MODIFIER,
+        type: genType,
+        name: field.name,
+        comment
+      });
     } else {
-      const nameToUse = this.getReferenceName(
+      const name = this.getReferenceName(
         field.relationshipName,
         field.name
       );
-      if (field.referenceTo.length > 1) {
-        decls.push(`SObject ${nameToUse}`);
-      } else {
-        decls.push(`${field.referenceTo} ${nameToUse}`);
-      }
+
+      decls.push({
+        modifier: MODIFIER,
+        name,
+        type: field.referenceTo.length > 1 ? 'SObject' : `${field.referenceTo}`,
+        comment
+      });
       // field.type will be "reference", but the actual type is an Id for Apex
-      decls.push(`Id ${field.name}`);
+      decls.push({
+        modifier: MODIFIER,
+        name: field.name,
+        type: 'Id',
+        comment
+      });
     }
     return decls;
   }
@@ -324,11 +357,11 @@ export class FauxClassGenerator {
     }
   }
 
-  private generateFauxClassDecls(sobject: SObject): string[] {
-    const declarations: string[] = [];
+  private generateFauxClassDecls(sobject: SObject): FieldDeclaration[] {
+    const declarations: FieldDeclaration[] = [];
     if (sobject.fields) {
       for (const field of sobject.fields) {
-        const decls: string[] = this.generateField(field);
+        const decls: FieldDeclaration[] = this.generateField(field);
         if (decls && decls.length > 0) {
           for (const decl of decls) {
             declarations.push(decl);
@@ -340,7 +373,7 @@ export class FauxClassGenerator {
     if (sobject.childRelationships) {
       for (const rel of sobject.childRelationships) {
         if (rel.relationshipName) {
-          const decl: string = this.generateChildRelationship(rel);
+          const decl = this.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }
@@ -349,7 +382,7 @@ export class FauxClassGenerator {
       for (const rel of sobject.childRelationships) {
         // handle the odd childRelationships last (without relationshipName)
         if (!rel.relationshipName) {
-          const decl: string = this.generateChildRelationship(rel);
+          const decl = this.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }
@@ -361,37 +394,36 @@ export class FauxClassGenerator {
 
   private generateFauxClassTextFromDecls(
     className: string,
-    declarations: string[]
+    declarations: FieldDeclaration[]
   ): string {
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
     declarations.sort(
-      (first: string, second: string): number => {
-        return FauxClassGenerator.fieldName(first) >
-          FauxClassGenerator.fieldName(second)
+      (first, second): number => {
+        return first.name || first.type >
+          second.name || second.type
           ? 1
           : -1;
       }
     );
 
     declarations = declarations.filter(
-      (value: string, index: number, array: string[]): boolean => {
+      (value, index, array): boolean => {
         return (
           !index ||
-          FauxClassGenerator.fieldName(value) !==
-            FauxClassGenerator.fieldName(array[index - 1])
+          value.name !==
+          array[index - 1].name
         );
       }
     );
 
-    const indentAndModifier = '    global ';
-    const classDeclaration = `global class ${className} {${EOL}`;
-    const declarationLines = declarations.join(`;${EOL}${indentAndModifier}`);
-    const classConstructor = `${indentAndModifier}${className} () ${EOL}    {${EOL}    }${EOL}`;
+    const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
+    const declarationLines = declarations.map(FauxClassGenerator.fieldDeclToString).join(`${EOL}`);
+    const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;
 
     const generatedClass = `${nls.localize(
       'class_header_generated_comment'
-    )}${classDeclaration}${indentAndModifier}${declarationLines};${EOL}${EOL}${classConstructor}}`;
+    )}${classDeclaration}${declarationLines}${EOL}${EOL}${classConstructor}}`;
 
     return generatedClass;
   }
