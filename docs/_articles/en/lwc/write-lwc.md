@@ -69,11 +69,17 @@ In this example, when hovering over `onpress`, the linter reports that you canno
 
 ![Linter Example with Hover](./images/vscode_lwc_linting_press.png)
 
+### Peek Problem and Quick Fix
+
+VS Code has a range of actions to fix and refactor code, with Quick Fix being the simplest. To learn more, see [Refactoring](https://code.visualstudio.com/docs/editor/refactoring) in the VS Code documentation. 
+
 Clicking **Peek Problem** on the error message highlights the line where the linter found the error. If the message says there is more than one error, click the down arrow in the message's upper right corner to see the others.
 
 ![Linter Example with Peek](./images/vscode_lwc_peek.png)
 
 Clicking **Quick Fix** provides options to disable the warning on valid API names in the line or in the file, and links to the documentation. You can see these same options by clicking on the yellow lightbulb icon next to `@api onpress;`.
+
+### Errors and Warnings 
 
 ![Linter Example with Quick Fix](./images/vscode_lwc_quickfix.png)
 
