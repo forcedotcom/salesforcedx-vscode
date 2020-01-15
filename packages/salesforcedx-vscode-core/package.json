@@ -170,6 +170,10 @@
           "when": "explorerResourceIsFolder && resourceFilename == classes && sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.analytics.template.create",
+          "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.visualforce.component.create",
           "when": "explorerResourceIsFolder && resourceFilename == components && sfdx:project_opened"
         },
@@ -305,6 +309,10 @@
         },
         {
           "command": "sfdx.force.apex.class.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.analytics.template.create",
           "when": "sfdx:project_opened"
         },
         {
@@ -521,6 +529,10 @@
       {
         "command": "sfdx.force.apex.class.create",
         "title": "%force_apex_class_create_text%"
+      },
+      {
+        "command": "sfdx.force.analytics.template.create",
+        "title": "%force_analytics_template_create_text%"
       },
       {
         "command": "sfdx.force.visualforce.component.create",
