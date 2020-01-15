@@ -231,6 +231,7 @@
             "integer",
             "null"
           ],
+          "minimum": 0,
           "default": null,
           "description": "%java_memory_description%"
         },
