@@ -27,3 +27,7 @@ export function isIntegerInRange(
 export function isAlphaNumString(value: string | undefined): boolean {
   return value !== undefined && !/\W/.test(value);
 }
+
+export function isAlphaNumSpaceString(value: string | undefined): boolean {
+  return value !== undefined && /^\w+( *\w*)*$/.test(value);
+}

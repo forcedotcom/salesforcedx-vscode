@@ -6,6 +6,7 @@
  */
 import { expect } from 'chai';
 import {
+  isAlphaNumSpaceString,
   isAlphaNumString,
   isInteger,
   isIntegerInRange
@@ -94,6 +95,28 @@ describe('Input Box Validations', () => {
 
     it('Should return true if value has only alphanumeric characters and underscores', async () => {
       const res = isAlphaNumString('scratch_123');
+      expect(res).to.equal(true);
+    });
+  });
+
+  describe('isAlphaNumSpaceString', () => {
+    it('Should return false if value is undefined', async () => {
+      const res = isAlphaNumSpaceString(undefined);
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value contains non alphanumeric and space characters', async () => {
+      const res = isAlphaNumSpaceString('my-scratch-org!');
+      expect(res).to.equal(false);
+    });
+
+    it('Should return true if value has only numeric characters', async () => {
+      const res = isAlphaNumSpaceString('123');
+      expect(res).to.equal(true);
+    });
+
+    it('Should return true if value has only underscores, spaces, and alphanumeric characters', async () => {
+      const res = isAlphaNumSpaceString('scratch_123 4 5 6');
       expect(res).to.equal(true);
     });
   });
