@@ -13,6 +13,7 @@ const testRunner = require('@salesforce/salesforcedx-test-utils-vscode/out/src/t
 testRunner.configure({
   ui: 'bdd', // the TDD UI is being used in extension.test.ts (suite, test, etc.)
   useColors: true, // colored output from test results
+  fullTrace: true,
   retries: 2,
   slow: 0
 });
