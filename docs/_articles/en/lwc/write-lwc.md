@@ -35,13 +35,15 @@ Here's what resource completion looks like for `@salesforce/schema`.
 
 ![Schema Completion](./images/vscode_lwc_schema.png)
 
+VS Code can
+
 ### Lightning API 
 
 VS Code also completes Lightning API resources, such as `lightning/uiRecordApi` and `lightning/uiObjectInfoApi`. See the [`lightning/ui*Api` Wire Adapters and Functions](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_ui_api) in the *Lighting Web Components Developer Guide* for more information. 
 
 ![Lightning UI Completion](./images/vscode_lwc_lightningui.png)
 
-### Lighting Web Components Syntax 
+### Lightning Web Components Syntax 
 
 VS Code completes the Lightning Web Components framework's reactive properties and wire service. See [Reactive Properties](https://developer.salesforce.com/docs/component-library/documentation/lwc/js_props_reactive) and [Use the Wire Service to Get Data](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.data_wire_service_about) in the *Lightning Web Components Developer Guide* for more information. 
 
@@ -54,6 +56,12 @@ Here is an example of code completion for including the Apex function `getContac
 Code completion is also provided for HTML tags and attributes for components in the `lightning` and `c` namespaces. Here, with `c-view-source`, VS Code completes its `source` attribute.
 
 ![HTML Attribute Completion](./images/vscode_lwc_html_attr.png)
+
+### Apex
+
+VS Code provdes code completion for any Apex in your project, as well as for `sObject` and the Apex standard library.
+
+![Apex Completion](./images/vscode_lwc_apex.png)
 
 ## View Documentation on Hover
 
