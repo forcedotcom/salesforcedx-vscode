@@ -59,7 +59,7 @@ Code completion is also provided for HTML tags and attributes for components in 
 
 ### Apex
 
-VS Code provdes code completion for any Apex in your project, as well as for `sObject` and the Apex standard library.
+VS Code provides code completion for any Apex in your project, as well as for `sObject` and the Apex standard library.
 
 ![Apex Completion](./images/vscode_lwc_apex.png)
 
