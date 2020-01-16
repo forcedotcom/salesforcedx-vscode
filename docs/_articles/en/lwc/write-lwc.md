@@ -31,11 +31,13 @@ In this example, VS Code displays the possible static resource names to choose f
 
 ![Static Resource Completion](./images/vscode_lwc_staticresource_trailhead.png)
 
-Here's what resource completion looks like for `@salesforce/schema`. 
+Here's what code completion looks like for `@salesforce/schema`. 
 
 ![Schema Completion](./images/vscode_lwc_schema.png)
 
-VS Code can
+Here's an example of code completion for an Apex controller:
+
+![Apex Completion](./images/vscode_lwc_apex.png)
 
 ### Lightning API 
 
@@ -56,12 +58,6 @@ Here is an example of code completion for including the Apex function `getContac
 Code completion is also provided for HTML tags and attributes for components in the `lightning` and `c` namespaces. Here, with `c-view-source`, VS Code completes its `source` attribute.
 
 ![HTML Attribute Completion](./images/vscode_lwc_html_attr.png)
-
-### Apex
-
-VS Code provides code completion for any Apex in your project, as well as for `sObject` and the Apex standard library.
-
-![Apex Completion](./images/vscode_lwc_apex.png)
 
 ## View Documentation on Hover
 
