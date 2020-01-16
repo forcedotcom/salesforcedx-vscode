@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "47.10.0",
+  "version": "47.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,15 +24,15 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "47.10.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "47.10.0",
+    "@salesforce/salesforcedx-visualforce-language-server": "47.15.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "47.15.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "5.2.1",
     "vscode-languageserver-protocol": "3.14.1",
     "vscode-languageserver-types": "3.14.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "47.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "47.15.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
     "@types/node": "8.9.3",
