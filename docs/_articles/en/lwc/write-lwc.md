@@ -35,7 +35,7 @@ Here's what code completion looks like for `@salesforce/schema`.
 
 ![Schema Completion](./images/vscode_lwc_schema.png)
 
-Here's an example of code completion for an Apex controller:
+Here's an example of code completion for an Apex controller.
 
 ![Apex Completion](./images/vscode_lwc_apex.png)
 
