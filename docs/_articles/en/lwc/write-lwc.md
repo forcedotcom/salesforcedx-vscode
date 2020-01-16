@@ -8,9 +8,9 @@ The Lightning Web Components Extension for VS Code leverages the editor's built-
 Take advantage of the following Lightning Web Components Extension for VS Code features:
 
 * [Code Completion](./en/lwc/write-lwc#code-completion)
-* [Linting and corrections](./en/lwc/write-lwc#linting)
+* [Linting](./en/lwc/write-lwc#linting)
 * [View Documentation on Hover](./en/lwc/write-lwc#view-documentation-on-hover)
-* [Code navigation](./en/lwc/write-lwc#code-navigation)
+* [Code Navigation](./en/lwc/write-lwc#code-navigation)
 
 ## Code Completion
 
