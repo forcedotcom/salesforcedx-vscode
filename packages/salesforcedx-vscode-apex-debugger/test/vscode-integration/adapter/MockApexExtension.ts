@@ -6,7 +6,7 @@
  */
 import { Extension, ExtensionKind } from 'vscode';
 export class MockApexExtension implements Extension<any> {
-  extensionKind = ExtensionKind.Workspace;
+  public extensionKind = ExtensionKind.Workspace;
   constructor() {
     this.id = 'salesforce.salesforcedx-vscode-apex';
     this.extensionPath = 'extension/local/path';
