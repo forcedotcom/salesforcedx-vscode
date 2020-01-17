@@ -13,7 +13,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  isAlphaNumString,
+  isAlphaNumSpaceString,
   isIntegerInRange
 } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
@@ -50,7 +50,7 @@ export const DEFAULT_EXPIRATION_DAYS = '7';
 
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
-> {
+  > {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       getRootWorkspacePath(), // this is safe because of workspaceChecker
@@ -138,7 +138,7 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
       validateInput: value => {
-        return isAlphaNumString(value)
+        return isAlphaNumSpaceString(value)
           ? null
           : nls.localize('error_invalid_org_alias');
       }

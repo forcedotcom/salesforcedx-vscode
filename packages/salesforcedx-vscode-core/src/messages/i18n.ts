@@ -280,7 +280,7 @@ export const messages = {
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
   error_invalid_org_alias:
-    'Alias can only contain underscores and alphanumeric characters',
+    'Alias can only contain underscores, spaces and alphanumeric characters',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
