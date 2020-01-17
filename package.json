@@ -55,7 +55,8 @@
   },
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node": "10.2.0"
+    "node": "10.2.0",
+    "npm": "^6.13.6"
   },
   "husky": {
     "hooks": {

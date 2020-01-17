@@ -54,6 +54,7 @@ commands:
           command: |
             nvm install $NODE_VERSION
             nvm use $NODE_VERSION
+            nvm install-latest-npm
       - run:
           name: 'Install dependent modules'
           shell: bash.exe
