@@ -39,7 +39,7 @@
     "@salesforce/salesforcedx-test-utils-vscode": "47.15.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "2.2.38",
-    "@types/node": "12.0.12",
+    "@types/node": "8.9.3",
     "@types/path-exists": "^1.0.29",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
