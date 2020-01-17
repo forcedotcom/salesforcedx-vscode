@@ -18,7 +18,7 @@ commands:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-v0-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run: npm install
       - run:
           name: 'Compile in production mode'
@@ -37,7 +37,7 @@ commands:
       - store_artifacts:
           path: ./extensions
       - save_cache:
-          key: dependency-cache-v0-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
           paths:
             - node_modules
 
@@ -47,7 +47,7 @@ commands:
       - run: git config --global core.autocrlf false
       - checkout
       - restore_cache:
-          key: dependency-cache-win1-{{ checksum "package.json" }}
+          key: dependency-cache-win2-{{ checksum "package.json" }}
       - run:
           name: 'Install node'
           shell: bash.exe
@@ -69,7 +69,7 @@ commands:
           shell: bash.exe
           command: npm run compile
       - save_cache:
-          key: dependency-cache-win1-{{ checksum "package.json" }}
+          key: dependency-cache-win2-{{ checksum "package.json" }}
           paths:
             - node_modules
       - run:
