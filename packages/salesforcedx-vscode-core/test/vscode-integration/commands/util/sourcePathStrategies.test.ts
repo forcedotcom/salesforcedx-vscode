@@ -24,4 +24,12 @@ describe('Source Path Strategies', () => {
       expect(path).to.equal(join('/folder', 'cmp', 'cmp.a'));
     });
   });
+
+  describe('WaveTemplateBundlePathStrategy', () => {
+    it('Should build a wave template bundle path', () => {
+      const strategy = PathStrategyFactory.createWaveTemplateBundleStrategy();
+      const path = strategy.getPathToSource('/folder', 'name', '.a');
+      expect(path).to.equal(join('/folder', 'name', 'template-info.a'));
+    });
+  });
 });

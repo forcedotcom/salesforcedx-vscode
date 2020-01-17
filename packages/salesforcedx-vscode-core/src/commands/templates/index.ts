@@ -24,3 +24,4 @@ export {
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceApexClassCreate } from './forceApexClassCreate';
+export { forceAnalyticsTemplateCreate } from './forceAnalyticsTemplateCreate';
