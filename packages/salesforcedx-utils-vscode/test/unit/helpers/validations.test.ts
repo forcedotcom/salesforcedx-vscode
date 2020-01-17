@@ -19,6 +19,11 @@ describe('Input Box Validations', () => {
       expect(res).to.equal(false);
     });
 
+    it('Should return false if value is empty', async () => {
+      const res = isInteger('');
+      expect(res).to.equal(false);
+    });
+
     it('Should return false if value is a float', async () => {
       const res = isInteger('1.37');
       expect(res).to.equal(false);
@@ -38,6 +43,11 @@ describe('Input Box Validations', () => {
   describe('isIntegerInRange', () => {
     it('Should return false if value is undefined', async () => {
       const res = isIntegerInRange(undefined, [1, 3]);
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value is empty', async () => {
+      const res = isIntegerInRange('', [1, 3]);
       expect(res).to.equal(false);
     });
 
@@ -83,6 +93,11 @@ describe('Input Box Validations', () => {
       expect(res).to.equal(false);
     });
 
+    it('Should return false if value is empty', async () => {
+      const res = isAlphaNumString('');
+      expect(res).to.equal(false);
+    });
+
     it('Should return false if value contains non alphanumeric characters', async () => {
       const res = isAlphaNumString('my scratch org');
       expect(res).to.equal(false);
@@ -102,6 +117,11 @@ describe('Input Box Validations', () => {
   describe('isAlphaNumSpaceString', () => {
     it('Should return false if value is undefined', async () => {
       const res = isAlphaNumSpaceString(undefined);
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value is empty', async () => {
+      const res = isAlphaNumSpaceString('');
       expect(res).to.equal(false);
     });
 
