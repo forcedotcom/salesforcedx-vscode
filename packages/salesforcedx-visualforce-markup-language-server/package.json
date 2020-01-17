@@ -5,7 +5,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.40.0"
   },
   "activationEvents": [
     "onView:never"
@@ -15,7 +15,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.0",
     "@types/mocha": "^2.2.38",
-    "@types/node": "8.9.3",
+    "@types/node": "12.0.12",
     "chai": "^4.0.2",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",

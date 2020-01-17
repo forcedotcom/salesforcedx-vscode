@@ -54,6 +54,7 @@ commands:
           command: |
             nvm install $NODE_VERSION
             nvm use $NODE_VERSION
+            nvm install-latest-npm
       - run:
           name: 'Install dependent modules'
           shell: bash.exe
@@ -81,7 +82,7 @@ jobs:
   build-all:
     description: 'Build artifacts in a non-Windows environment'
     docker:
-      - image: circleci/node:10.2.0
+      - image: circleci/node:12.4.0
     environment:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
@@ -96,7 +97,7 @@ jobs:
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: 300
-      - NODE_VERSION: '10.2.0'
+      - NODE_VERSION: '12.4.0'
     parameters:
       run-unit-tests:
         type: boolean
