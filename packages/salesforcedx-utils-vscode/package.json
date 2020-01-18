@@ -44,10 +44,14 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit",
-    "test:unit": "nyc --reporter=text mocha --recursive out/test/unit/**/*.js --timeout 20000",
+    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit/**/*.js --timeout 20000",
     "coverage": "./node_modules/.bin/nyc npm test"
   },
   "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
     "instrument": false,
     "sourceMap": false,
     "reporter": [
