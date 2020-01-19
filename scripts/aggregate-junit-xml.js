@@ -18,7 +18,7 @@ const dirs = fs.readdirSync(packagesDir).filter(function(file) {
 shell.mkdir(path.join(process.cwd(), 'junit-aggregate'));
 
 dirs.filter(dir => {
-  junitFilesToCheck.forEach(function(junitFile) {
+  for (const junitFile of junitFilesToCheck) {
     var fullFilePath = path.join(packagesDir, dir, junitFile);
     if (fs.existsSync(fullFilePath)) {
       shell.cp(
@@ -26,5 +26,5 @@ dirs.filter(dir => {
         path.join(process.cwd(), `junit-aggregate/${dir}-${junitFile}`)
       );
     }
-  });
+  }
 });
