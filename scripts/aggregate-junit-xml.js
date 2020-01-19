@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const process = require('process');
 const fs = require('fs-extra');
 const path = require('path');
