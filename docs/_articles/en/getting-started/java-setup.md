@@ -120,7 +120,7 @@ Windows:
 }
 ```
 
-# Advanced Setup
+## Advanced Setup
 
 By default, a JVM allocates up to one fourth of the system's physical memory to the Apex Language Server process. If you are working on projects with more memory requirements, use the `salesforcedx-vscode-apex.java.memory` setting to override the defaults. Use this setting to specify the maximum size of memory allocation in megabytes and in multiples of 1024.
 
