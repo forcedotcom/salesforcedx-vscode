@@ -1,3 +1,21 @@
+# 47.16.0 - January 23, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Allow spaces in scratch org alias creation ([PR #1876](https://github.com/forcedotcom/salesforcedx-vscode/pull/1876))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add command to scaffold analytics templates ([PR #1857](https://github.com/forcedotcom/salesforcedx-vscode/pull/1857))
+
+#### docs
+
+- Add tools doc and images [Lightning Web Components](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/write-lwc) ([PR #1867](https://github.com/forcedotcom/salesforcedx-vscode/pull/1867))
+
 # 47.15.0 - January 16th, 2020
 
 ## Fixed
