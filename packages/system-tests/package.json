@@ -6,14 +6,14 @@
   "license": "BSD-3-Clause",
   "main": "./out/src",
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.40.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "47.15.0",
     "@salesforce/salesforcedx-utils-vscode": "47.15.0",
     "@types/chai": "^4.0.0",
     "@types/mkdirp": "0.5.2",
-    "@types/mocha": "2.2.38",
+    "@types/mocha": "^5",
     "@types/node": "8.9.3",
     "@types/rimraf": "0.0.28",
     "@types/shelljs": "^0.7.4",
@@ -25,13 +25,12 @@
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",
     "mkdirp": "0.5.1",
-    "mocha": "3.2.0",
-    "mocha-junit-reporter": "^1.13.0",
-    "mocha-multi-reporters": "^1.1.4",
+    "mocha": "^5",
+    "mocha-junit-reporter": "^1.23.3",
+    "mocha-multi-reporters": "^1.1.7",
     "remap-istanbul": "^0.9.5",
     "rimraf": "^2.6.1",
     "shelljs": "0.8.3",
-    "source-map-support": "^0.4.15",
     "spectron": "5.0.0",
     "typescript": "3.1.6",
     "vscode": "1.1.17"

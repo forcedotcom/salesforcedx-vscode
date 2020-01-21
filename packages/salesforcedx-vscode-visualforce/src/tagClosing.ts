@@ -52,7 +52,7 @@ export function activateTagClosing(
 
   function onDidChangeTextDocument(
     document: TextDocument,
-    changes: TextDocumentContentChangeEvent[]
+    changes: ReadonlyArray<TextDocumentContentChangeEvent>
   ) {
     if (!isEnabled) {
       return;
