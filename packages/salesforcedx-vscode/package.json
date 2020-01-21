@@ -18,7 +18,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.40.0"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
