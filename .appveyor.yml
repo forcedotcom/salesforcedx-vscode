@@ -23,7 +23,6 @@ environment:
 install:
   - ps: $stopwatch = [system.diagnostics.stopwatch]::StartNew()
   - ps: Install-Product node 12.4.0 x64
-  - set CI=false
   - appveyor-retry npm install
   - npm install -g sfdx-cli
   - npm install -g codecov
