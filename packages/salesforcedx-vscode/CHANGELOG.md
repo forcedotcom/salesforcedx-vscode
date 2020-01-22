@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-core
 
-- Add command to scaffold analytics templates ([PR #1857](https://github.com/forcedotcom/salesforcedx-vscode/pull/1857))
+- Add `SFDX: Create Sample Analytics Template` command to scaffold analytics templates ([PR #1857](https://github.com/forcedotcom/salesforcedx-vscode/pull/1857))
 
 #### docs
 
