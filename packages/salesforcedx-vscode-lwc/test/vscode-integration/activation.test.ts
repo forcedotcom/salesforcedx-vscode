@@ -4,11 +4,22 @@ import { assert, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 
 describe('Activation of the LWC Language Server', () => {
-  it('Language Server should start when an LWC js file is opened', async () => {
-    const lwcExtension: vscode.Extension<any> = vscode.extensions.getExtension(
+  let lwcExtension: vscode.Extension<any>;
+  let originalActivationMode: string;
+
+  beforeEach(() => {
+    lwcExtension = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-lwc'
     ) as vscode.Extension<any>;
 
+    originalActivationMode = getActivationModeForWorkspace();
+  });
+
+  afterEach(() => {
+    setActivationModeForWorkspace(originalActivationMode);
+  });
+
+  it('Language Server should start when an LWC js file is opened', async () => {
     if (!vscode.workspace.workspaceFolders) {
       fail('Test requires workspace folders');
       return;
@@ -33,10 +44,6 @@ describe('Activation of the LWC Language Server', () => {
   });
 
   it('Language Server should start when an LWC css file is opened', async () => {
-    const lwcExtension: vscode.Extension<any> = vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-lwc'
-    ) as vscode.Extension<any>;
-
     if (!vscode.workspace.workspaceFolders) {
       fail('Test requires workspace folders');
       return;
@@ -61,10 +68,6 @@ describe('Activation of the LWC Language Server', () => {
   });
 
   it('Language Server should start when an LWC html file is opened', async () => {
-    const lwcExtension: vscode.Extension<any> = vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-lwc'
-    ) as vscode.Extension<any>;
-
     if (!vscode.workspace.workspaceFolders) {
       fail('Test requires workspace folders');
       return;
@@ -89,10 +92,6 @@ describe('Activation of the LWC Language Server', () => {
   });
 
   it('Language Server should not start for files that are not LWC', async () => {
-    const lwcExtension: vscode.Extension<any> = vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-lwc'
-    ) as vscode.Extension<any>;
-
     if (!vscode.workspace.workspaceFolders) {
       fail('Test requires workspace folders');
       return;
@@ -109,71 +108,46 @@ describe('Activation of the LWC Language Server', () => {
   });
 
   it('Language Server should always start if the activation mode is set to "always"', async () => {
-    const activationMode = getActivationModeForWorkspace();
     setActivationModeForWorkspace('always');
 
-    try {
-      const lwcExtension: vscode.Extension<
-        any
-      > = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-lwc'
-      ) as vscode.Extension<any>;
-
-      if (!vscode.workspace.workspaceFolders) {
-        fail('Test requires workspace folders');
-        return;
-      }
-      vscode.workspace.workspaceFolders.forEach(async workspaceRoot => {
-        const filePath = path.join(
-          workspaceRoot.uri.fsPath,
-          'sfdx-project.json'
-        );
-
-        // Open a non lwc file
-        await vscode.workspace.openTextDocument(filePath);
-
-        assert.match(lwcExtension.isActive, true);
-      });
-    } finally {
-      setActivationModeForWorkspace(activationMode);
+    if (!vscode.workspace.workspaceFolders) {
+      fail('Test requires workspace folders');
+      return;
     }
+    vscode.workspace.workspaceFolders.forEach(async workspaceRoot => {
+      const filePath = path.join(workspaceRoot.uri.fsPath, 'sfdx-project.json');
+
+      // Open a non lwc file
+      await vscode.workspace.openTextDocument(filePath);
+
+      assert.match(lwcExtension.isActive, true);
+    });
   });
 
   it('Language Servers should not start if the activation mode is seto to "off"', async () => {
-    const activationMode = getActivationModeForWorkspace();
     setActivationModeForWorkspace('off');
 
-    try {
-      const lwcExtension: vscode.Extension<
-        any
-      > = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-lwc'
-      ) as vscode.Extension<any>;
-
-      if (!vscode.workspace.workspaceFolders) {
-        fail('Test requires workspace folders');
-        return;
-      }
-
-      vscode.workspace.workspaceFolders.forEach(async workspaceRoot => {
-        const filePath = path.join(
-          workspaceRoot.uri.fsPath,
-          'force-app',
-          'main',
-          'default',
-          'lwc',
-          'demoLwcComponent',
-          'demoLwcComponent.html'
-        );
-
-        // Open a non lwc file
-        await vscode.workspace.openTextDocument(filePath);
-
-        assert.match(lwcExtension.isActive, false);
-      });
-    } finally {
-      setActivationModeForWorkspace(activationMode);
+    if (!vscode.workspace.workspaceFolders) {
+      fail('Test requires workspace folders');
+      return;
     }
+
+    vscode.workspace.workspaceFolders.forEach(async workspaceRoot => {
+      const filePath = path.join(
+        workspaceRoot.uri.fsPath,
+        'force-app',
+        'main',
+        'default',
+        'lwc',
+        'demoLwcComponent',
+        'demoLwcComponent.html'
+      );
+
+      // Open a non lwc file
+      await vscode.workspace.openTextDocument(filePath);
+
+      assert.match(lwcExtension.isActive, false);
+    });
   });
 });
 
