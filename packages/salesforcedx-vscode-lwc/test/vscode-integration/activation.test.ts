@@ -175,40 +175,6 @@ describe('Activation of the LWC Language Server', () => {
       setActivationModeForWorkspace(activationMode);
     }
   });
-
-  /**
-   * These tests are for specific workspace types.
-   *  - What are we testing in these workspaces? That the above conditions are true?
-   *   - In that case we'll probably want to run all the tests above just against different workspaces
-   *  - Are we testing specific functionality of the workspace?
-   */
-  // describe('SFDX Workspace Type', () => {
-  //   // Only run when run against an Sfdx Workspace type?
-  // });
-
-  // describe('Sfdc Core Workspace Type', () => {
-  //   // Only run when run against an Sfdc Core Workspace type
-  // });
-
-  // describe('Standard Workspace Type', () => {
-  //   // Only run when run against a Standard Workspace type
-  // });
-
-  // describe('Standard Monorepo Workspace Type', () => {
-  //   // Only run when run against a Standard Workspace type
-  // });
-
-  // describe('Unsupported Workspace Type', () => {
-  //   // Only run when run against an Unsupported Workspace type
-  // });
-
-  // describe('Standard Workspace Type', () => {
-  //   // Only run when run against a Standard Workspace type
-  // });
-
-  // describe('Multi Root Multi Workspace Types', () => {
-  //   // Only run when run against Multi Root + Multi Type types
-  // });
 });
 
 /**
