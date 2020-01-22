@@ -376,7 +376,7 @@ export class FauxClassGenerator {
     if (sobject.childRelationships) {
       for (const rel of sobject.childRelationships) {
         if (rel.relationshipName) {
-          const decl = this.generateChildRelationship(rel);
+          const decl: FieldDeclaration = this.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }
@@ -385,7 +385,7 @@ export class FauxClassGenerator {
       for (const rel of sobject.childRelationships) {
         // handle the odd childRelationships last (without relationshipName)
         if (!rel.relationshipName) {
-          const decl = this.generateChildRelationship(rel);
+          const decl: FieldDeclaration = this.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }

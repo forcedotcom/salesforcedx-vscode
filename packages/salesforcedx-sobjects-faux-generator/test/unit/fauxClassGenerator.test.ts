@@ -8,6 +8,7 @@
 import * as chai from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import { EOL } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
@@ -57,20 +58,18 @@ describe('SObject faux class generator', () => {
     );
   });
 
-  it('Should generate a faux class with a field inline comments', async () => {
+  it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
     const classContent = gen.generateFauxClassText(customSObject);
 
-    let standardFieldComment = '    global Boolean IsDeleted;\n';
-    standardFieldComment += '    /* Please add a unique name\n';
-    standardFieldComment += '    */\n';
-    standardFieldComment += '    global String Name;';
+    let standardFieldComment = `    /* Please add a unique name${EOL}`;
+    standardFieldComment += `    */${EOL}`;
+    standardFieldComment += `    global String Name;${EOL}`;
     expect(classContent).to.include(standardFieldComment);
 
-    let customFieldComment = 'global Datetime LastReferencedDate;\n';
-    customFieldComment += '    /* User field API name\n';
-    customFieldComment += '    */\n';
-    customFieldComment += '    global String Field_API_Name__c;\n';
+    let customFieldComment = `    /* User field API name${EOL}`;
+    customFieldComment += `    */${EOL}`;
+    customFieldComment += `    global String Field_API_Name__c;${EOL}`;
     expect(classContent).to.include(customFieldComment);
   });
 
