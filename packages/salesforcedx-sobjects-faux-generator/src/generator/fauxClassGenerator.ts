@@ -92,12 +92,16 @@ export class FauxClassGenerator {
   ]);
 
   private static fieldDeclToString(decl: FieldDeclaration): string {
-    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${decl.modifier} ${decl.type} ${decl.name};`;
+    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${
+      decl.modifier
+    } ${decl.type} ${decl.name};`;
   }
 
   private static commentToString(comment?: string): string {
     // for some reasons if the comment is on a single line the help context shows the last '*/'
-    return comment ? `${INDENT}/* ${comment.replace(/\*\//g, '')}${EOL}${INDENT}*/${EOL}` : '';
+    return comment
+      ? `${INDENT}/* ${comment.replace(/\*\//g, '')}${EOL}${INDENT}*/${EOL}`
+      : '';
   }
 
   private emitter: EventEmitter;
@@ -206,7 +210,9 @@ export class FauxClassGenerator {
 
   // VisibleForTesting
   public generateFauxClassText(sobject: SObject): string {
-    const declarations = this.generateFauxClassDecls(sobject);
+    const declarations: FieldDeclaration[] = this.generateFauxClassDecls(
+      sobject
+    );
     return this.generateFauxClassTextFromDecls(sobject.name, declarations);
   }
 
@@ -324,10 +330,7 @@ export class FauxClassGenerator {
         comment
       });
     } else {
-      const name = this.getReferenceName(
-        field.relationshipName,
-        field.name
-      );
+      const name = this.getReferenceName(field.relationshipName, field.name);
 
       decls.push({
         modifier: MODIFIER,
@@ -400,25 +403,20 @@ export class FauxClassGenerator {
     // which can happen due to childRelationships w/o a relationshipName
     declarations.sort(
       (first, second): number => {
-        return first.name || first.type >
-          second.name || second.type
-          ? 1
-          : -1;
+        return first.name || first.type > second.name || second.type ? 1 : -1;
       }
     );
 
     declarations = declarations.filter(
       (value, index, array): boolean => {
-        return (
-          !index ||
-          value.name !==
-          array[index - 1].name
-        );
+        return !index || value.name !== array[index - 1].name;
       }
     );
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
-    const declarationLines = declarations.map(FauxClassGenerator.fieldDeclToString).join(`${EOL}`);
+    const declarationLines = declarations
+      .map(FauxClassGenerator.fieldDeclToString)
+      .join(`${EOL}`);
     const classConstructor = `${INDENT}${MODIFIER} ${className} () ${EOL}    {${EOL}    }${EOL}`;
 
     const generatedClass = `${nls.localize(

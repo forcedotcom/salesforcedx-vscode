@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as chai from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
@@ -8,6 +15,7 @@ import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectCategory } from '../../src/describe';
 import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
+import { customSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 
@@ -47,6 +55,23 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include(
       nls.localize('class_header_generated_comment')
     );
+  });
+
+  it('Should generate a faux class with a field inline comments', async () => {
+    const gen = getGenerator();
+    const classContent = gen.generateFauxClassText(customSObject);
+
+    let standardFieldComment = '    global Boolean IsDeleted;\n';
+    standardFieldComment += '    /* Please add a unique name\n';
+    standardFieldComment += '    */\n';
+    standardFieldComment += '    global String Name;';
+    expect(classContent).to.include(standardFieldComment);
+
+    let customFieldComment = 'global Datetime LastReferencedDate;\n';
+    customFieldComment += '    /* User field API name\n';
+    customFieldComment += '    */\n';
+    customFieldComment += '    global String Field_API_Name__c;\n';
+    expect(classContent).to.include(customFieldComment);
   });
 
   it('Should generate a faux class as read-only', async () => {
@@ -213,7 +238,7 @@ describe('SObject faux class generator', () => {
 
   // seems odd, but this can happen due to the childRelationships that don't have a relationshipName
 
-  /* it('Should create a class that has no duplicate field names', async () => {
+  it('Should create a class that has no duplicate field names', async () => {
     const childRelation1 =
       '{"childSObject": "Case", "relationshipName": "Reference"}';
     const childRelation2 =
@@ -235,7 +260,7 @@ describe('SObject faux class generator', () => {
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('List<Case> Reference;');
     expect(classText).to.not.include('Account Reference');
-  }); */
+  });
 
   it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
     const childRelation1 =
@@ -301,7 +326,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('String MDRef__c');
   });
 
-  /* it('Should create a valid class for a metadata object with a __mdt target', async () => {
+  it('Should create a valid class for a metadata object with a __mdt target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
@@ -318,7 +343,7 @@ describe('SObject faux class generator', () => {
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('XX_mdt MDRef__r');
-  }); */
+  });
 
   it('Should create a valid class for a platform event object', async () => {
     const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
