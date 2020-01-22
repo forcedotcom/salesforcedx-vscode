@@ -213,18 +213,24 @@ describe('Activation of the LWC Language Server', () => {
 
 /**
  * Helper to set the activation mode.
- * @param newMode Mode to set the activation to. Applicable values include "always", "off", or undefined. undefined unsets the configuration value.
+ * @param newMode Mode to set the activation to. Applicable values include "always", "off", "autodetect", or undefined. undefined unsets the configuration value.
  */
 function setActivationModeForWorkspace(newMode: string | undefined) {
-  const configuration = vscode.workspace.getConfiguration();
-  return configuration.update('', newMode);
+  const config = vscode.workspace.getConfiguration(
+    'salesforcedx-vscode-lightning'
+  );
+  return config.update('activationMode', newMode);
 }
 
 /**
  * Helper to set the activation mode from the workspace configuration object.
- * Values including "always", "off" or undefined
+ * Values including "always", "off", "autodetect" or undefined
+ *
+ * @default autodetect
  */
-function getActivationModeForWorkspace(): string | undefined {
-  const configuration = vscode.workspace.getConfiguration();
-  return configuration.get('') as string | undefined;
+function getActivationModeForWorkspace(): string {
+  const config = vscode.workspace.getConfiguration(
+    'salesforcedx-vscode-lightning'
+  );
+  return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
