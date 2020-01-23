@@ -19,6 +19,8 @@ commands:
       - checkout
       - restore_cache:
           key: dependency-cache-v1-{{ checksum "package.json" }}
+          # if cache for exact version of 'package.json' is not present, then load the most recent cache
+          key: dependency-cache-v1-
       - run: npm install
       - run:
           name: 'Compile in production mode'
@@ -48,6 +50,8 @@ commands:
       - checkout
       - restore_cache:
           key: dependency-cache-win2-{{ checksum "package.json" }}
+          # if cache for exact version of 'package.json' is not present, then load the most recent cache
+          key: dependency-cache-win2-
       - run:
           name: 'Install node'
           shell: bash.exe
