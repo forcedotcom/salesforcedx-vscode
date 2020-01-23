@@ -45,6 +45,9 @@
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
+    "mocha-junit-reporter": "^1.23.3",
+    "mocha-multi-reporters": "^1.1.7",
+    "nyc": "^13",
     "sinon": "^7.3.1",
     "typescript": "3.1.6",
     "vscode": "1.1.17"
@@ -59,7 +62,8 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run test:vscode-integration",
+    "test": "npm run test:unit && npm run test:vscode-integration",
+    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
