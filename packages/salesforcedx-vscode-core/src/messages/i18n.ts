@@ -116,6 +116,9 @@ export const messages = {
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
 
+  force_analytics_template_create_text:
+    'SFDX: Create Sample Analytics Template',
+  force_analytics_template_name_text: 'template name',
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
@@ -277,7 +280,7 @@ export const messages = {
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
   error_invalid_org_alias:
-    'Alias can only contain underscores and alphanumeric characters',
+    'Alias can only contain underscores, spaces and alphanumeric characters',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
