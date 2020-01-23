@@ -29,7 +29,6 @@ const packageJson = readJsonFile(packageJsonPath);
 
 describe(`package.json dependencies for ${packageJson.name}`, () => {
   const { dependencies, devDependencies } = packageJson;
-  let testMatchFound = false;
 
   Object.keys(dependencies).forEach(name => {
     const versionRange = dependencies[name];
@@ -41,7 +40,6 @@ describe(`package.json dependencies for ${packageJson.name}`, () => {
           expect(versionRange.trim()).to.not.include('>');
           expect(versionRange.trim()).to.not.include('<');
         });
-        testMatchFound = true;
       }
     });
   });
@@ -56,12 +54,7 @@ describe(`package.json dependencies for ${packageJson.name}`, () => {
           expect(versionRange.trim()).to.not.include('>');
           expect(versionRange.trim()).to.not.include('<');
         });
-        testMatchFound = true;
       }
     });
   });
-
-  if (!testMatchFound) {
-    it('does not have any matching dependencies', () => {});
-  }
 });
