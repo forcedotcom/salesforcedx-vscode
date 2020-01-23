@@ -1,13 +1,25 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as chai from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import { EOL } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectCategory } from '../../src/describe';
-import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
+import {
+  FauxClassGenerator,
+  INDENT
+} from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
+import { customSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 
@@ -47,6 +59,47 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include(
       nls.localize('class_header_generated_comment')
     );
+  });
+
+  it('Should parse a field inline comment', async () => {
+    let firstComment = `/* Please add a unique name${EOL}`;
+    firstComment += `    */${EOL}`;
+    let expectedFirstComment = `${INDENT}/*  Please add a unique name${EOL}`;
+    expectedFirstComment += `    ${EOL}${EOL}${INDENT}*/${EOL}`;
+    const parseFirstComment = FauxClassGenerator.commentToString(firstComment);
+    expect(expectedFirstComment).to.equal(parseFirstComment);
+
+    let secondComment = `/******** More complex **************/${EOL}`;
+    secondComment += `**************this is a test **************${EOL}`;
+    secondComment += `/**************/`;
+    let expectedSecondComment = `${INDENT}/*  More complex ${EOL}`;
+    expectedSecondComment += `**************this is a test **************${EOL}`;
+    expectedSecondComment += `${EOL}${INDENT}*/${EOL}`;
+    const parseSecondComment = FauxClassGenerator.commentToString(
+      secondComment
+    );
+    expect(expectedSecondComment).to.equal(parseSecondComment);
+
+    const thirdComment = 'Bring a sweater and/or jacket';
+    let expectedThirdComment = `${INDENT}/* Bring a sweater and/or jacket`;
+    expectedThirdComment += `${EOL}${INDENT}*/${EOL}`;
+    const parseThirdComment = FauxClassGenerator.commentToString(thirdComment);
+    expect(expectedThirdComment).to.equal(parseThirdComment);
+  });
+
+  it('Should generate a faux class with field inline comments', async () => {
+    const gen = getGenerator();
+    const classContent = gen.generateFauxClassText(customSObject);
+
+    let standardFieldComment = `    /* Please add a unique name${EOL}`;
+    standardFieldComment += `    */${EOL}`;
+    standardFieldComment += `    global String Name;${EOL}`;
+    expect(classContent).to.include(standardFieldComment);
+
+    let customFieldComment = `    /* User field API name${EOL}`;
+    customFieldComment += `    */${EOL}`;
+    customFieldComment += `    global String Field_API_Name__c;${EOL}`;
+    expect(classContent).to.include(customFieldComment);
   });
 
   it('Should generate a faux class as read-only', async () => {
@@ -213,7 +266,7 @@ describe('SObject faux class generator', () => {
 
   // seems odd, but this can happen due to the childRelationships that don't have a relationshipName
 
-  /* it('Should create a class that has no duplicate field names', async () => {
+  it('Should create a class that has no duplicate field names', async () => {
     const childRelation1 =
       '{"childSObject": "Case", "relationshipName": "Reference"}';
     const childRelation2 =
@@ -235,7 +288,7 @@ describe('SObject faux class generator', () => {
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('List<Case> Reference;');
     expect(classText).to.not.include('Account Reference');
-  }); */
+  });
 
   it('Should create a valid field reference to another SObject when missing the relationshipName', async () => {
     const childRelation1 =
@@ -301,7 +354,7 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include('String MDRef__c');
   });
 
-  /* it('Should create a valid class for a metadata object with a __mdt target', async () => {
+  it('Should create a valid class for a metadata object with a __mdt target', async () => {
     const header =
       '{ "name": "Custom__mdt",  "childRelationships": [], "fields": [';
     const field1 =
@@ -318,7 +371,7 @@ describe('SObject faux class generator', () => {
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('XX_mdt MDRef__r');
-  }); */
+  });
 
   it('Should create a valid class for a platform event object', async () => {
     const fieldsHeader = '{ "name": "PE1__e", "fields": [ ';
