@@ -27,7 +27,7 @@ import {
 } from '../describe';
 import { nls } from '../messages';
 
-const INDENT = '    ';
+export const INDENT = '    ';
 const MODIFIER = 'global';
 
 export interface CancellationToken {
@@ -97,10 +97,14 @@ export class FauxClassGenerator {
     } ${decl.type} ${decl.name};`;
   }
 
-  private static commentToString(comment?: string): string {
+  // VisibleForTesting
+  public static commentToString(comment?: string): string {
     // for some reasons if the comment is on a single line the help context shows the last '*/'
     return comment
-      ? `${INDENT}/* ${comment.replace(/\*\//g, '')}${EOL}${INDENT}*/${EOL}`
+      ? `${INDENT}/* ${comment.replace(
+          /(\/\**\/)|(\/\**)|(\**\/)/g,
+          ''
+        )}${EOL}${INDENT}*/${EOL}`
       : '';
   }
 

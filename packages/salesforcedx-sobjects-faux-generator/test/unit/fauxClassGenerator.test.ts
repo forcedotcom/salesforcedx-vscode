@@ -14,7 +14,10 @@ import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectCategory } from '../../src/describe';
-import { FauxClassGenerator } from '../../src/generator/fauxClassGenerator';
+import {
+  FauxClassGenerator,
+  INDENT
+} from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { customSObject } from './sObjectMockData';
 
@@ -56,6 +59,26 @@ describe('SObject faux class generator', () => {
     expect(classText).to.include(
       nls.localize('class_header_generated_comment')
     );
+  });
+
+  it('Should parse a field inline comment', async () => {
+    let firstComment = `/* Please add a unique name${EOL}`;
+    firstComment += `    */${EOL}`;
+    let expectedFirstComment = `${INDENT}/*  Please add a unique name${EOL}`;
+    expectedFirstComment += `    ${EOL}${EOL}${INDENT}*/${EOL}`;
+    const parseFirstComment = FauxClassGenerator.commentToString(firstComment);
+    expect(expectedFirstComment).to.equal(parseFirstComment);
+
+    let secondComment = `/******** More complex **************/${EOL}`;
+    secondComment += `**************this is a test **************${EOL}`;
+    secondComment += `/**************/`;
+    let expectedSecondComment = `${INDENT}/*  More complex ${EOL}`;
+    expectedSecondComment += `**************this is a test **************${EOL}`;
+    expectedSecondComment += `${EOL}${INDENT}*/${EOL}`;
+    const parseSecondComment = FauxClassGenerator.commentToString(
+      secondComment
+    );
+    expect(expectedSecondComment).to.equal(parseSecondComment);
   });
 
   it('Should generate a faux class with field inline comments', async () => {
