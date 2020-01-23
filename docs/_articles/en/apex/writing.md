@@ -75,3 +75,6 @@ When you refresh your sObject definitions, VS Code uses your default org to gene
 The first time you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack), if your project doesn’t contain any faux classes we run **SFDX: Refresh SObject Definitions** for you in the background.
 
 After you add or edit standard or custom objects or their fields, be sure to rerun **SFDX: Refresh SObject Definitions**.
+
+If you've added inline help text to the fields in your custom and standard objects the extension will use it to provide on hover documentation for SObjects.
+![Field documentation, shown while hovering a field](./images/inline_help_hover_fields.png)
