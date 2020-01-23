@@ -37,8 +37,7 @@ export const messages = {
   force_test_view_no_tests_description:
     "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
   wrong_java_version_text:
-    'Java 8 is required to run. Download and install it from https://java.com/en/download/. For more information, see [Set Your Java Version](%s).',
-
+    'An unsupported Java version was detected. Download and install [Java 8](https://java.com/en/download/) or [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) to run the extensions. For more information, see [Set Your Java Version](%s).',
   client_name: 'Apex Language Server',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
