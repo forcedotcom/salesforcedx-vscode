@@ -102,7 +102,7 @@ export class FauxClassGenerator {
     // for some reasons if the comment is on a single line the help context shows the last '*/'
     return comment
       ? `${INDENT}/* ${comment.replace(
-          /(\/\**\/)|(\/\**)|(\**\/)/g,
+          /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
           ''
         )}${EOL}${INDENT}*/${EOL}`
       : '';

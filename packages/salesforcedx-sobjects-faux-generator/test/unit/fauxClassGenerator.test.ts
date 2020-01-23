@@ -79,6 +79,12 @@ describe('SObject faux class generator', () => {
       secondComment
     );
     expect(expectedSecondComment).to.equal(parseSecondComment);
+
+    const thirdComment = 'Bring a sweater and/or jacket';
+    let expectedThirdComment = `${INDENT}/* Bring a sweater and/or jacket`;
+    expectedThirdComment += `${EOL}${INDENT}*/${EOL}`;
+    const parseThirdComment = FauxClassGenerator.commentToString(thirdComment);
+    expect(expectedThirdComment).to.equal(parseThirdComment);
   });
 
   it('Should generate a faux class with field inline comments', async () => {
