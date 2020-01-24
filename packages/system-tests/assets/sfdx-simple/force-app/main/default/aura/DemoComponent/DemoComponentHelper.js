@@ -1,3 +1,5 @@
 ({
-  helperFunction: function(cmp) {}
+  helperFunction: function(cmp) {
+    //
+  }
 });
