@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
-shell.set('-e');
 shell.set('+v');
 
 /*
