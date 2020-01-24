@@ -41,21 +41,23 @@ function configure(mochaOpts: any): void {
     // This will fix the pathing for windows. This behavior is not seen in the system-tests, appears to be only when we use vscode's test bin to run tests
     if (process.platform === 'win32') {
       xmlPath = paths.normalize(paths.join(process.cwd(), '..', '..'));
+    } else {
+      xmlPath = paths.join(__dirname, '..', '..', '..', '..');
     }
     mochaOpts.reporterOptions = {
       reporterEnabled: 'mocha-junit-reporter, xunit, spec',
       mochaJunitReporterReporterOptions: {
-        mochaFile: xmlPath
-          ? paths.join(xmlPath, 'junit-custom-vscodeIntegrationTests.xml')
-          : 'junit-custom-vscodeIntegrationTests.xml'
+        mochaFile: paths.join(
+          xmlPath,
+          'junit-custom-vscodeIntegrationTests.xml'
+        )
       },
       xunitReporterOptions: {
-        output: xmlPath
-          ? paths.join(xmlPath, 'xunit-vscodeIntegrationTests.xml')
-          : 'xunit-vscodeIntegrationTests.xml'
+        output: paths.join(xmlPath, 'xunit-vscodeIntegrationTests.xml')
       }
     };
-  }
+    console.log('kris', paths.join(xmlPath, 'xunit-vscodeIntegrationTests.xml'));)
+  }  
   mocha = new Mocha(mochaOpts);
 }
 exports.configure = configure;
@@ -131,7 +133,12 @@ function run(testsRoot: any, clb: any): any {
           .on(
             'fail',
             (test: any, err: any): void => {
-              console.log(`Failure in test '${test}': ${err}`);
+              if (typeof test === 'object') {
+                console.error(`Failure ${test.title}`);
+                console.error(err);
+              } else {
+                console.error(`Failure in test '${test}': ${err}`);
+              }
               failureCount++;
             }
           )
