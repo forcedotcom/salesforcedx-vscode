@@ -171,7 +171,7 @@ describe('Aura Intellisense Test Suite', function() {
     editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
-    const text = 'helper.';
+    const text = 'helper.hel';
     const startPosition = new vscode.Position(2, 3);
     const endPosition = new vscode.Position(
       2,
