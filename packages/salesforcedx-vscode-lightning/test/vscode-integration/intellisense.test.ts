@@ -218,10 +218,12 @@ async function testCompletion(
 
   // tslint:disable-next-line:only-arrow-functions
   expectedCompletionList.items.forEach(function(expectedItem) {
-    const actualItem = actualCompletionList.items.find(obj => {
+    // tslint:disable-next-line:only-arrow-functions
+    const actualItem = actualCompletionList.items.find(function(obj) {
       if (obj.label) {
         return obj.label === expectedItem.label;
       }
+      return false;
     });
 
     assert.isDefined(
