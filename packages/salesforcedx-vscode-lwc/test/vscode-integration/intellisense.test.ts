@@ -46,6 +46,7 @@ describe('LWC Intellisense Test Suite', () => {
   /**
    * Test that lwc markup intellisense includes standard lwc tags and custom lwc tags
    */
+  // tslint:disable-next-line:only-arrow-functions
   it('LWC Markup Intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(lwcDir, 'demoLwcComponent', 'demoLwcComponent.html')
@@ -84,6 +85,7 @@ describe('LWC Intellisense Test Suite', () => {
    *  Apex
    *
    */
+  // tslint:disable-next-line:only-arrow-functions
   it('LWC Javascript Intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(lwcDir, 'demoLwcComponent', 'demoLwcComponent.js')
@@ -116,16 +118,6 @@ describe('LWC Intellisense Test Suite', () => {
       ]
     });
   });
-
-  it('Static resources', async function() {});
-
-  it('Custom labels', async function() {});
-
-  it('LWC imports', async function() {});
-
-  it('Standard components', async function() {});
-
-  it('Custom components', async function() {});
 });
 
 async function testCompletion(
