@@ -17,14 +17,29 @@ shell.set('+v');
  *
  */
 
-// Checks that you are running this with Node v10.2.0 and above
+// Checks that you are running this with Node v12.4.0 and above
 const [version, major, minor, patch] = process.version.match(
   /^v(\d+)\.?(\d+)\.?(\*|\d+)$/
 );
-if (parseInt(major) !== 10 || parseInt(minor) < 2) {
+if (parseInt(major) !== 12 || parseInt(minor) < 4) {
   console.log(
-    'You do not have the right version of node. We require version 10.2.0.'
+    'You do not have the right version of node. We require version 12.4.0.'
   );
+  process.exit(-1);
+}
+// Check if you have installed all the required tooling
+if (!shell.which('vsce')) {
+  console.log('vsce is not installed or could not be found');
+  process.exit(-1);
+}
+
+if (!shell.which('lerna')) {
+  console.log('lerna is not installed or could not be found');
+  process.exit(-1);
+}
+
+if (!shell.which('aws')) {
+  console.log('aws cli is not installed or could not be found');
   process.exit(-1);
 }
 
