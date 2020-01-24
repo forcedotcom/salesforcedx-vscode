@@ -15,12 +15,14 @@ const CONFIG_FILENAME = 'jsconfig.json';
 const TEST_COMPONENT_NAME = 'testComponent';
 const CREATE_COMPONENT_NAME = 'createComponent';
 
-describe('jsconfig Test Suite', () => {
+// tslint:disable-next-line:only-arrow-functions
+describe('jsconfig Test Suite', function() {
   let modulesDir: string;
   let configPath: string;
   let config: object;
 
-  before(async () => {
+  // tslint:disable-next-line:only-arrow-functions
+  before(function() {
     modulesDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -40,7 +42,23 @@ describe('jsconfig Test Suite', () => {
     config = await parseConfig(configPath);
   });
 
-  it('Should update jsconfig.json on component creation', async function() {
+  afterEach(async function() {
+    this.timeout(5000);
+
+    await workspace.fs.delete(
+      URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
+      { recursive: true }
+    );
+
+    await workspace.fs.delete(
+      URI.file(path.join(modulesDir, CREATE_COMPONENT_NAME)),
+      { recursive: true }
+    );
+
+    await waitForConfigUpdate(configPath);
+  });
+
+  it('Should add the newly created component to the jsconfig compilerOptions paths map', async function() {
     this.timeout(5000);
 
     await createComponent(CREATE_COMPONENT_NAME, modulesDir);
@@ -55,7 +73,7 @@ describe('jsconfig Test Suite', () => {
     );
   });
 
-  it('Should update jsconfig.json on component deletion', async function() {
+  it('Should remove the deleted component from the jsconfig compilerOptions paths map', async function() {
     this.timeout(5000);
 
     await workspace.fs.delete(
@@ -73,7 +91,7 @@ describe('jsconfig Test Suite', () => {
     );
   });
 
-  it('Should not update jsconfig.json on component save', async function() {
+  it('Should not update jsconfig.json when a component is saved', async function() {
     this.timeout(5000);
 
     const document = await workspace.openTextDocument(
@@ -89,7 +107,7 @@ describe('jsconfig Test Suite', () => {
     expect(config).to.eql(newConfig);
   });
 
-  it('Should not update jsconfig.json on keystrokes', async function() {
+  it('Should not update jsconfig.json on keystrokes in a component file', async function() {
     this.timeout(5000);
 
     const document = await workspace.openTextDocument(
@@ -106,21 +124,6 @@ describe('jsconfig Test Suite', () => {
 
     const newConfig = await parseConfig(configPath);
     expect(config).to.eql(newConfig);
-  });
-
-  afterEach(async function() {
-    this.timeout(5000);
-
-    await workspace.fs.delete(
-      URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
-      { recursive: true }
-    );
-    await workspace.fs.delete(
-      URI.file(path.join(modulesDir, CREATE_COMPONENT_NAME)),
-      { recursive: true }
-    );
-
-    await waitForConfigUpdate(configPath);
   });
 });
 
@@ -139,6 +142,7 @@ async function parseConfig(configPath: string) {
  * Helper to wait for jsconfig.json updates
  *
  * @param configPath - path to jsconfig.json
+ * @returns value representing whether the config updated or the wait timed out
  */
 async function waitForConfigUpdate(configPath: string): Promise<boolean> {
   return await new Promise<boolean>(resolve => {
