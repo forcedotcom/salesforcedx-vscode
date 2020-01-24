@@ -9,13 +9,12 @@ import { assert, expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-let doc: vscode.TextDocument;
-let editor: vscode.TextEditor;
-
 describe('Aura Intellisense Test Suite', function() {
   let coreExtension: vscode.Extension<any>;
   let auraExtension: vscode.Extension<any>;
   let auraDir: string;
+  let doc: vscode.TextDocument;
+  let editor: vscode.TextEditor;
 
   before(async function() {
     if (
