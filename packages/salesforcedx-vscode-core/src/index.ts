@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
   forceAliasList,
+  forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexExecute,
   forceApexLogGet,
@@ -186,6 +187,10 @@ function registerCommands(
     'sfdx.force.apex.class.create',
     forceApexClassCreate
   );
+  const forceAnalyticsTemplateCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.analytics.template.create',
+    forceAnalyticsTemplateCreate
+  );
   const forceVisualforceComponentCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.visualforce.component.create',
     forceVisualforceComponentCreate
@@ -334,6 +339,7 @@ function registerCommands(
     forceSourceStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
+    forceAnalyticsTemplateCreateCmd,
     forceVisualforceComponentCreateCmd,
     forceVisualforcePageCreateCmd,
     forceLightningAppCreateCmd,

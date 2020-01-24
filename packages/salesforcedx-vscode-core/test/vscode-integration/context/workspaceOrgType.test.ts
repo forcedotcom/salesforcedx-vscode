@@ -18,22 +18,6 @@ import {
 } from '../../../src/context';
 import { OrgAuthInfo } from '../../../src/util';
 
-describe('getUsername', () => {
-  it('should return the undefined when given an invalid username', async () => {
-    const username = 'test@org.com';
-    const aliasesStub = getAliasesFetchStub(undefined);
-    expect(await OrgAuthInfo.getUsername(username)).to.equal(undefined);
-    aliasesStub.restore();
-  });
-
-  it('should return the username when given an alias', async () => {
-    const username = 'test@org.com';
-    const aliasesStub = getAliasesFetchStub(username);
-    expect(await OrgAuthInfo.getUsername('orgAlias')).to.equal(username);
-    aliasesStub.restore();
-  });
-});
-
 describe('getDefaultUsernameOrAlias', () => {
   it('returns undefined when no defaultusername is set', async () => {
     const getConfigStub = getDefaultUsernameStub(undefined);
@@ -62,6 +46,9 @@ describe('getWorkspaceOrgType', () => {
     const orgType = await getWorkspaceOrgType(defaultUsername);
 
     expect(orgType).to.equal(OrgType.SourceTracked);
+    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
+      username: 'scratch@org.com'
+    });
 
     aliasesStub.restore();
     authInfoCreateStub.restore();
@@ -77,7 +64,7 @@ describe('getWorkspaceOrgType', () => {
 
     expect(orgType).to.equal(OrgType.NonSourceTracked);
     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
-      username: undefined
+      username: defaultUsername
     });
 
     aliasesStub.restore();
@@ -221,9 +208,6 @@ describe('setupWorkspaceOrgType', () => {
     const defaultUsername = 'sandbox@org.com';
     await setupWorkspaceOrgType(defaultUsername);
 
-    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
-      username: undefined
-    });
     expect(executeCommandStub.calledTwice).to.be.true;
     expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);

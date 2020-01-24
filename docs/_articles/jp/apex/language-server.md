@@ -17,7 +17,7 @@ VS Code Marketplace から [Salesforce Extension Pack](https://marketplace.visua
 
 ## 使用法
 
-[「Apex」](writing)を参照してください。
+[「Apex」](./jp/apex/writing)を参照してください。
 
 ## キャッシュのクリア
 

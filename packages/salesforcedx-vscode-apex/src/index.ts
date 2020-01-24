@@ -92,7 +92,12 @@ export async function activate(context: vscode.ExtensionContext) {
             if (sobjectRefreshStartup) {
               initSObjectDefinitions(
                 vscode.workspace.workspaceFolders![0].uri.fsPath
-              ).catch(e => telemetryService.sendErrorEvent(e.message, e.stack));
+              ).catch(e =>
+                telemetryService.sendErrorEvent({
+                  message: e.message,
+                  stack: e.stack
+                })
+              );
             }
 
             await testOutlineProvider.refresh();
