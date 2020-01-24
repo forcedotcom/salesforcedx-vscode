@@ -15,13 +15,11 @@ const CONFIG_FILENAME = 'jsconfig.json';
 const TEST_COMPONENT_NAME = 'testComponent';
 const CREATE_COMPONENT_NAME = 'createComponent';
 
-// tslint:disable-next-line:only-arrow-functions
 describe('jsconfig Test Suite', function() {
   let modulesDir: string;
   let configPath: string;
   let config: object;
 
-  // tslint:disable-next-line:only-arrow-functions
   before(function() {
     modulesDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
@@ -34,33 +32,30 @@ describe('jsconfig Test Suite', function() {
   });
 
   beforeEach(async function() {
-    this.timeout(5000);
-
     await createComponent(TEST_COMPONENT_NAME, modulesDir);
     await waitForConfigUpdate(configPath);
-
     config = await parseConfig(configPath);
   });
 
   afterEach(async function() {
-    this.timeout(5000);
+    if (fs.existsSync(path.join(modulesDir, TEST_COMPONENT_NAME))) {
+      await workspace.fs.delete(
+        URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
+        { recursive: true }
+      );
+      await waitForConfigUpdate(configPath);
+    }
 
-    await workspace.fs.delete(
-      URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
-      { recursive: true }
-    );
-
-    await workspace.fs.delete(
-      URI.file(path.join(modulesDir, CREATE_COMPONENT_NAME)),
-      { recursive: true }
-    );
-
-    await waitForConfigUpdate(configPath);
+    if (fs.existsSync(path.join(modulesDir, CREATE_COMPONENT_NAME))) {
+      await workspace.fs.delete(
+        URI.file(path.join(modulesDir, CREATE_COMPONENT_NAME)),
+        { recursive: true }
+      );
+      await waitForConfigUpdate(configPath);
+    }
   });
 
   it('Should add the newly created component to the jsconfig compilerOptions paths map', async function() {
-    this.timeout(5000);
-
     await createComponent(CREATE_COMPONENT_NAME, modulesDir);
 
     const didUpdate = await waitForConfigUpdate(configPath);
@@ -74,8 +69,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should remove the deleted component from the jsconfig compilerOptions paths map', async function() {
-    this.timeout(5000);
-
     await workspace.fs.delete(
       URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
       { recursive: true }
@@ -92,8 +85,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json when a component is saved', async function() {
-    this.timeout(5000);
-
     const document = await workspace.openTextDocument(
       path.join(modulesDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -108,8 +99,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json on keystrokes in a component file', async function() {
-    this.timeout(5000);
-
     const document = await workspace.openTextDocument(
       path.join(modulesDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -146,24 +135,21 @@ async function parseConfig(configPath: string) {
  */
 async function waitForConfigUpdate(configPath: string): Promise<boolean> {
   return await new Promise<boolean>(resolve => {
-    let count = 0;
-    const watcher = fs.watch(configPath, event => {
-      if (event === 'change') {
-        count++;
+    let timer: ReturnType<typeof setTimeout>;
+    let watcher: fs.FSWatcher;
 
-        // both language servers update the jsconfig file, so we must wait for
-        // for both to write to the config file.
-        if (count === 2) {
-          watcher.close();
-          resolve(true);
-        }
+    watcher = fs.watch(configPath, event => {
+      if (event === 'change') {
+        watcher.close();
+        clearTimeout(timer);
+        resolve(true);
       }
     });
 
-    setTimeout(() => {
+    timer = setTimeout(() => {
       watcher.close();
       resolve(false);
-    }, 2000);
+    }, 1000);
   });
 }
 
