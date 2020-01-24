@@ -1,0 +1,3 @@
+({
+  helperFunction: function(cmp) {}
+});
