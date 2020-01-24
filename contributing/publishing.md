@@ -37,7 +37,7 @@ It is possible to run each step manually as illustrated below.
 
 ### Prerequisite
 
-- Lerna is properly installed (`npm install -g lerna@2.4.0`).
+- Lerna is properly installed (`npm install -g lerna@3.13.1`).
 - All tests have been run prior to publishing. We don't run the tests during the
   publishing cycle since it generates artifacts that we do not want to include
   in the packaged extensions.
@@ -115,7 +115,6 @@ See this
 [guide](https://www.atlassian.com/git/tutorials/comparing-workflows#gitflow-workflow)
 from Atlassian on the flow. These steps are manual because you might encounter merge conflicts.
 
-1. `git push --tags` to push the tags to GitHub.
 1. `git checkout master`
 1. `git pull` to get the latest changes (there shouldn't be any since you are
    the person releasing).
