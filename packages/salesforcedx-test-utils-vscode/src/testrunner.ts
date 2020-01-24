@@ -56,8 +56,7 @@ function configure(mochaOpts: any): void {
         output: paths.join(xmlPath, 'xunit-vscodeIntegrationTests.xml')
       }
     };
-    console.log('kris', paths.join(xmlPath, 'xunit-vscodeIntegrationTests.xml'));)
-  }  
+  }
   mocha = new Mocha(mochaOpts);
 }
 exports.configure = configure;
