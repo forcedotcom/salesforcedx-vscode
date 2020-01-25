@@ -25,6 +25,7 @@ import {
 } from './constants';
 import {
   ClientStatus,
+  enableJavaDocSymbols,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
@@ -122,7 +123,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Javadoc support
-  enableJavadocSymbols();
+  enableJavaDocSymbols();
 
   // Commands
   const commands = registerCommands(context);
@@ -191,48 +192,6 @@ function registerCommands(
     forceApexTestMethodRunDelegateCmd,
     forceGenerateFauxClassesCmd
   );
-}
-
-function enableJavadocSymbols() {
-  // Let's enable Javadoc symbols autocompletion, shamelessly copied from MIT licensed code at
-  // https://github.com/Microsoft/vscode/blob/9d611d4dfd5a4a101b5201b8c9e21af97f06e7a7/extensions/typescript/src/typescriptMain.ts#L186
-  vscode.languages.setLanguageConfiguration('apex', {
-    indentationRules: {
-      // ^(.*\*/)?\s*\}.*$
-      decreaseIndentPattern: /^(.*\*\/)?\s*\}.*$/,
-      // ^.*\{[^}"']*$
-      increaseIndentPattern: /^.*\{[^}"']*$/
-    },
-    wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
-    onEnterRules: [
-      {
-        // e.g. /** | */
-        beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
-        afterText: /^\s*\*\/$/,
-        action: { indentAction: vscode.IndentAction.IndentOutdent, appendText: ' * ' }
-      },
-      {
-        // e.g. /** ...|
-        beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
-        action: { indentAction: vscode.IndentAction.None, appendText: ' * ' }
-      },
-      {
-        // e.g.  * ...|
-        beforeText: /^(\t|(\ \ ))*\ \*(\ ([^\*]|\*(?!\/))*)?$/,
-        action: { indentAction: vscode.IndentAction.None, appendText: '* ' }
-      },
-      {
-        // e.g.  */|
-        beforeText: /^(\t|(\ \ ))*\ \*\/\s*$/,
-        action: { indentAction: vscode.IndentAction.None, removeText: 1 }
-      },
-      {
-        // e.g.  *-----*/|
-        beforeText: /^(\t|(\ \ ))*\ \*[^/]*\*\/\s*$/,
-        action: { indentAction: vscode.IndentAction.None, removeText: 1 }
-      }
-    ]
-  });
 }
 
 async function registerTestView(
