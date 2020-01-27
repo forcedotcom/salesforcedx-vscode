@@ -32,12 +32,16 @@ describe('jsconfig Test Suite', function() {
   });
 
   beforeEach(async function() {
+    this.timeout(5000);
+
     await createComponent(TEST_COMPONENT_NAME, modulesDir);
     await waitForConfigUpdate(configPath);
     config = await parseConfig(configPath);
   });
 
   afterEach(async function() {
+    this.timeout(5000);
+    
     if (fs.existsSync(path.join(modulesDir, TEST_COMPONENT_NAME))) {
       await workspace.fs.delete(
         URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
@@ -56,6 +60,8 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should add the newly created component to the jsconfig compilerOptions paths map', async function() {
+    this.timeout(5000);
+
     await createComponent(CREATE_COMPONENT_NAME, modulesDir);
 
     const didUpdate = await waitForConfigUpdate(configPath);
@@ -69,6 +75,8 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should remove the deleted component from the jsconfig compilerOptions paths map', async function() {
+    this.timeout(5000);
+
     await workspace.fs.delete(
       URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
       { recursive: true }
@@ -85,6 +93,8 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json when a component is saved', async function() {
+    this.timeout(5000);
+
     const document = await workspace.openTextDocument(
       path.join(modulesDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -99,6 +109,8 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json on keystrokes in a component file', async function() {
+    this.timeout(5000);
+    
     const document = await workspace.openTextDocument(
       path.join(modulesDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -149,7 +161,7 @@ async function waitForConfigUpdate(configPath: string): Promise<boolean> {
     timer = setTimeout(() => {
       watcher.close();
       resolve(false);
-    }, 1000);
+    }, 2000);
   });
 }
 
