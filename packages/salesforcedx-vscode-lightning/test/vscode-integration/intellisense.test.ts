@@ -73,9 +73,6 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    // NOTE: Because the completion providers always returns all possible results and then VSCode
-    // does the filtering based on what is typed, we have no good way of testing what vscode is
-    // actually displaying to the user based on what we typed
     try {
       await testCompletion(docUri, endPosition, {
         items: [
@@ -123,9 +120,6 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    // NOTE: Because the completion providers always returns all possible results and then VSCode
-    // does the filtering based on what is typed, we have no good way of testing what vscode is
-    // actually displaying to the user based on what we typed
     try {
       await testCompletion(docUri, endPosition, {
         items: [
@@ -157,9 +151,6 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    // NOTE: Because the completion providers always returns all possible results and then VSCode
-    // does the filtering based on what is typed, we have no good way of testing what vscode is
-    // actually displaying to the user based on what we typed
     try {
       await testCompletion(docUri, endPosition, {
         items: [{ label: 'getEvent', kind: vscode.CompletionItemKind.Function }]
@@ -189,9 +180,6 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
-    // NOTE: Because the completion providers always returns all possible results and then VSCode
-    // does the filtering based on what is typed, we have no good way of testing what vscode is
-    // actually displaying to the user based on what we typed
     try {
       await testCompletion(docUri, endPosition, {
         items: [
@@ -204,6 +192,9 @@ describe('Aura Intellisense Test Suite', function() {
   });
 });
 
+// NOTE: Because the completion providers always returns all possible results and then VSCode
+// does the filtering based on what is typed, we have no good way of testing what vscode is
+// actually displaying to the user based on what we typed
 async function testCompletion(
   docUri: vscode.Uri,
   position: vscode.Position,

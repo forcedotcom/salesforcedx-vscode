@@ -55,27 +55,26 @@ describe('LWC Intellisense Test Suite', () => {
     editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
-    const position = new vscode.Position(1, 7);
+    const text = '<c-';
+    const startPosition = new vscode.Position(2, 3);
+    const endPosition = new vscode.Position(
+      2,
+      startPosition.character + text.length
+    );
+    const rangeReplace = new vscode.Range(startPosition, endPosition);
     await editor.edit(editBuilder => {
-      editBuilder.insert(position, '<c-');
+      editBuilder.replace(rangeReplace, text);
     });
 
-    // NOTE: Because the completion providers always returns all possible results and then VSCode
-    // does the filtering based on what is typed, we have no good way of testing what vscode is
-    // actually displaying to the user based on what we typed
-    await testCompletion(docUri, new vscode.Position(1, 10), {
-      items: [
-        // Standard components
-        { label: 'lightning-button', kind: vscode.CompletionItemKind.Property },
-        // Custom Aura
-        { label: 'c:DemoApp', kind: vscode.CompletionItemKind.Property },
-        // Custom LWC
-        {
-          label: 'c:demoLwcComponent',
-          kind: vscode.CompletionItemKind.Property
-        }
-      ]
-    });
+    try {
+      await testCompletion(docUri, endPosition, {
+        items: [
+          { label: 'helperFunction', kind: vscode.CompletionItemKind.Function }
+        ]
+      });
+    } catch (error) {
+      throw error;
+    }
   });
 
   /**
@@ -94,32 +93,32 @@ describe('LWC Intellisense Test Suite', () => {
     editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
-    const position = new vscode.Position(1, 7);
+    const text = '@salesforce/';
+    const startPosition = new vscode.Position(2, 3);
+    const endPosition = new vscode.Position(
+      2,
+      startPosition.character + text.length
+    );
+    const rangeReplace = new vscode.Range(startPosition, endPosition);
     await editor.edit(editBuilder => {
-      editBuilder.insert(position, "import {} from '@sal';");
+      editBuilder.replace(rangeReplace, text);
     });
 
-    // NOTE: Because the completion providers always returns all possible results and then VSCode
-    // does the filtering based on what is typed, we have no good way of testing what vscode is
-    // actually displaying to the user based on what we typed
-    await testCompletion(docUri, new vscode.Position(1, 10), {
-      items: [
-        // Aura system attributes
-        { label: 'aura:attribute', kind: vscode.CompletionItemKind.Property },
-        // Standard components
-        { label: 'lightning:button', kind: vscode.CompletionItemKind.Property },
-        // Custom Aura
-        { label: 'c:DemoApp', kind: vscode.CompletionItemKind.Property },
-        // Custom LWC
-        {
-          label: 'c:demoLwcComponent',
-          kind: vscode.CompletionItemKind.Property
-        }
-      ]
-    });
+    try {
+      await testCompletion(docUri, endPosition, {
+        items: [
+          { label: 'helperFunction', kind: vscode.CompletionItemKind.Function }
+        ]
+      });
+    } catch (error) {
+      throw error;
+    }
   });
 });
 
+// NOTE: Because the completion providers always returns all possible results and then VSCode
+// does the filtering based on what is typed, we have no good way of testing what vscode is
+// actually displaying to the user based on what we typed
 async function testCompletion(
   docUri: vscode.Uri,
   position: vscode.Position,
@@ -132,16 +131,22 @@ async function testCompletion(
     position
   )) as vscode.CompletionList;
 
-  expectedCompletionList.items.forEach(expectedItem => {
-    const actualItem = actualCompletionList.items.find(
-      obj => obj.label === expectedItem.label
-    );
-    assert.isNotNull(
+  // tslint:disable-next-line:only-arrow-functions
+  expectedCompletionList.items.forEach(function(expectedItem) {
+    // tslint:disable-next-line:only-arrow-functions
+    const actualItem = actualCompletionList.items.find(function(obj) {
+      if (obj.label) {
+        return obj.label === expectedItem.label;
+      }
+      return false;
+    });
+
+    assert.isDefined(
       actualItem,
-      "Couldn't find expected completion item: " + expectedItem.label
+      "Couldn't find expected completion item '" + expectedItem.label + "'"
     );
     assert.equal(actualItem!.label, expectedItem.label);
     assert.equal(actualItem!.kind, expectedItem.kind);
-    assert.isNotNull(actualItem!.documentation);
+    assert.isDefined(actualItem!.documentation);
   });
 }
