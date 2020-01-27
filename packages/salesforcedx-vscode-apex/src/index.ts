@@ -25,6 +25,7 @@ import {
 } from './constants';
 import {
   ClientStatus,
+  enableJavaDocSymbols,
   getApexTests,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
@@ -120,6 +121,9 @@ export async function activate(context: vscode.ExtensionContext) {
     console.error('Apex language server failed to initialize');
     languageClientUtils.setStatus(ClientStatus.Error, e);
   }
+
+  // Javadoc support
+  enableJavaDocSymbols();
 
   // Commands
   const commands = registerCommands(context);
