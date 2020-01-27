@@ -9,7 +9,6 @@ import { assert, expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-// tslint:disable-next-line:only-arrow-functions
 describe('Aura Intellisense Test Suite', function() {
   let coreExtension: vscode.Extension<any>;
   let auraExtension: vscode.Extension<any>;
@@ -17,7 +16,6 @@ describe('Aura Intellisense Test Suite', function() {
   let doc: vscode.TextDocument;
   let editor: vscode.TextEditor;
 
-  // tslint:disable-next-line:only-arrow-functions
   before(async function() {
     if (
       vscode.workspace &&
@@ -45,7 +43,6 @@ describe('Aura Intellisense Test Suite', function() {
     await auraExtension.activate();
   });
 
-  // tslint:disable-next-line:only-arrow-functions
   afterEach(async function() {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
@@ -53,7 +50,7 @@ describe('Aura Intellisense Test Suite', function() {
   /**
    * Test that aura markup intellisense contains aura, lightning, custom aura, custom lwc tags
    */
-  // tslint:disable-next-line:only-arrow-functions
+
   it('Aura markup intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp')
@@ -100,7 +97,7 @@ describe('Aura Intellisense Test Suite', function() {
   /**
    * Test aura javascript completions
    */
-  // tslint:disable-next-line:only-arrow-functions
+
   it('Aura global javascript intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
@@ -131,7 +128,6 @@ describe('Aura Intellisense Test Suite', function() {
     }
   });
 
-  // tslint:disable-next-line:only-arrow-functions
   it('Aura property javascript intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
@@ -160,7 +156,6 @@ describe('Aura Intellisense Test Suite', function() {
     }
   });
 
-  // tslint:disable-next-line:only-arrow-functions
   it('Aura helper javascript intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
@@ -207,9 +202,7 @@ async function testCompletion(
     position
   )) as vscode.CompletionList;
 
-  // tslint:disable-next-line:only-arrow-functions
   expectedCompletionList.items.forEach(function(expectedItem) {
-    // tslint:disable-next-line:only-arrow-functions
     const actualItem = actualCompletionList.items.find(function(obj) {
       if (obj.label) {
         return obj.label === expectedItem.label;

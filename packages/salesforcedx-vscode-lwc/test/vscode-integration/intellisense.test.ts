@@ -46,7 +46,7 @@ describe('LWC Intellisense Test Suite', () => {
   /**
    * Test that lwc markup intellisense includes standard lwc tags and custom lwc tags
    */
-  // tslint:disable-next-line:only-arrow-functions
+
   it('LWC Markup Intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(lwcDir, 'demoLwcComponent', 'demoLwcComponent.html')
@@ -84,7 +84,6 @@ describe('LWC Intellisense Test Suite', () => {
    *  Apex
    *
    */
-  // tslint:disable-next-line:only-arrow-functions
   it('LWC Javascript Intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(lwcDir, 'demoLwcComponent', 'demoLwcComponent.js')
@@ -131,9 +130,7 @@ async function testCompletion(
     position
   )) as vscode.CompletionList;
 
-  // tslint:disable-next-line:only-arrow-functions
   expectedCompletionList.items.forEach(function(expectedItem) {
-    // tslint:disable-next-line:only-arrow-functions
     const actualItem = actualCompletionList.items.find(function(obj) {
       if (obj.label) {
         return obj.label === expectedItem.label;
