@@ -50,19 +50,16 @@ describe('LWC Intellisense Test Suite', function() {
   /**
    * Test that lwc markup intellisense includes standard lwc tags and custom lwc tags
    */
-
   it('LWC Markup Intellisense', async function() {
-    const docUri = vscode.Uri.file(
-      path.join(lwcDir, 'demoLwcComponent', 'demoLwcComponent.html')
-    );
+    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = '<c-';
-    const startPosition = new vscode.Position(2, 3);
+    const startPosition = new vscode.Position(7, 0);
     const endPosition = new vscode.Position(
-      2,
+      startPosition.line,
       startPosition.character + text.length
     );
     const rangeReplace = new vscode.Range(startPosition, endPosition);
@@ -73,7 +70,11 @@ describe('LWC Intellisense Test Suite', function() {
     try {
       await testCompletion(docUri, endPosition, {
         items: [
-          { label: 'helperFunction', kind: vscode.CompletionItemKind.Function }
+          {
+            label: 'lightning-accordion',
+            kind: vscode.CompletionItemKind.Property
+          },
+          { label: 'c-hello-binding', kind: vscode.CompletionItemKind.Property }
         ]
       });
     } catch (error) {
@@ -82,24 +83,18 @@ describe('LWC Intellisense Test Suite', function() {
   });
 
   /**
-   *  Test that lwc javascript import content assist includes:
-   *  Standard and Custom module imports
-   *  Static Resources
-   *  Apex
-   *
+   *  Test lwc javascript import content assist
    */
-  it('LWC Javascript Intellisense', async function() {
-    const docUri = vscode.Uri.file(
-      path.join(lwcDir, 'demoLwcComponent', 'demoLwcComponent.js')
-    );
+  it('LWC JS Import Intellisense', async function() {
+    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
-    const text = '@salesforce/';
-    const startPosition = new vscode.Position(2, 3);
+    const text = "import {} from '@sales";
+    const startPosition = new vscode.Position(1, 0);
     const endPosition = new vscode.Position(
-      2,
+      startPosition.line,
       startPosition.character + text.length
     );
     const rangeReplace = new vscode.Range(startPosition, endPosition);
@@ -110,7 +105,50 @@ describe('LWC Intellisense Test Suite', function() {
     try {
       await testCompletion(docUri, endPosition, {
         items: [
-          { label: 'helperFunction', kind: vscode.CompletionItemKind.Function }
+          {
+            label: 'c/hellobinding',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: 'lightning/uiListApi',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: 'lightning/uiRecordApi',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/apex',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/apex/AccountController.getAccountList',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/apex/ContactController.findContacts',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/contentAssetUrl/Cookpatternv1',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/resourceUrl/d3',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/resourceUrl/trailhead_logo',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/schema',
+            kind: vscode.CompletionItemKind.Function
+          },
+          {
+            label: '@salesforce/user/Id',
+            kind: vscode.CompletionItemKind.Function
+          }
         ]
       });
     } catch (error) {

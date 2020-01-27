@@ -62,7 +62,7 @@ describe('Aura Intellisense Test Suite', function() {
     const text = '<c:';
     const startPosition = new vscode.Position(1, 7);
     const endPosition = new vscode.Position(
-      1,
+      startPosition.line,
       startPosition.character + text.length
     );
     const rangeReplace = new vscode.Range(startPosition, endPosition);
@@ -109,7 +109,7 @@ describe('Aura Intellisense Test Suite', function() {
     const text = '$A.util.get';
     const startPosition = new vscode.Position(2, 3);
     const endPosition = new vscode.Position(
-      2,
+      startPosition.line,
       startPosition.character + text.length
     );
     const rangeReplace = new vscode.Range(startPosition, endPosition);
@@ -139,7 +139,7 @@ describe('Aura Intellisense Test Suite', function() {
     const text = 'component.get';
     const startPosition = new vscode.Position(2, 3);
     const endPosition = new vscode.Position(
-      2,
+      startPosition.line,
       startPosition.character + text.length
     );
     const rangeReplace = new vscode.Range(startPosition, endPosition);
@@ -167,7 +167,7 @@ describe('Aura Intellisense Test Suite', function() {
     const text = 'helper.hel';
     const startPosition = new vscode.Position(2, 3);
     const endPosition = new vscode.Position(
-      2,
+      startPosition.line,
       startPosition.character + text.length
     );
     const rangeReplace = new vscode.Range(startPosition, endPosition);
