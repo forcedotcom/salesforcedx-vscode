@@ -12,12 +12,12 @@ import * as vscode from 'vscode';
 let doc: vscode.TextDocument;
 let editor: vscode.TextEditor;
 
-describe('LWC Intellisense Test Suite', () => {
+describe('LWC Intellisense Test Suite', function() {
   let coreExtension: vscode.Extension<any>;
   let lwcExtension: vscode.Extension<any>;
   let lwcDir: string;
 
-  before(async () => {
+  before(async function() {
     if (
       vscode.workspace &&
       vscode.workspace.workspaceFolders &&
@@ -41,6 +41,10 @@ describe('LWC Intellisense Test Suite', () => {
     );
     await coreExtension.activate();
     await lwcExtension.activate();
+  });
+
+  afterEach(async function() {
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   /**
