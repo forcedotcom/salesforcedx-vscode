@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Position, window, workspace, WorkspaceEdit } from 'vscode';
+import { FileSystemWatcher, Position, window, workspace, WorkspaceEdit } from 'vscode';
 import URI from 'vscode-uri';
 
 const CONFIG_FILENAME = 'jsconfig.json';
@@ -32,16 +32,12 @@ describe('jsconfig Test Suite', function() {
   });
 
   beforeEach(async function() {
-    this.timeout(5000);
-
     await createComponent(TEST_COMPONENT_NAME, modulesDir);
     await waitForConfigUpdate(configPath);
     config = await parseConfig(configPath);
   });
 
   afterEach(async function() {
-    this.timeout(5000);
-    
     if (fs.existsSync(path.join(modulesDir, TEST_COMPONENT_NAME))) {
       await workspace.fs.delete(
         URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
@@ -60,8 +56,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should add the newly created component to the jsconfig compilerOptions paths map', async function() {
-    this.timeout(5000);
-
     await createComponent(CREATE_COMPONENT_NAME, modulesDir);
 
     const didUpdate = await waitForConfigUpdate(configPath);
@@ -75,8 +69,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should remove the deleted component from the jsconfig compilerOptions paths map', async function() {
-    this.timeout(5000);
-
     await workspace.fs.delete(
       URI.file(path.join(modulesDir, TEST_COMPONENT_NAME)),
       { recursive: true }
@@ -93,8 +85,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json when a component is saved', async function() {
-    this.timeout(5000);
-
     const document = await workspace.openTextDocument(
       path.join(modulesDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -109,8 +99,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json on keystrokes in a component file', async function() {
-    this.timeout(5000);
-    
     const document = await workspace.openTextDocument(
       path.join(modulesDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -147,21 +135,19 @@ async function parseConfig(configPath: string) {
  */
 async function waitForConfigUpdate(configPath: string): Promise<boolean> {
   return await new Promise<boolean>(resolve => {
+    const watcher = workspace.createFileSystemWatcher(configPath, true, false, true);
     let timer: ReturnType<typeof setTimeout>;
-    let watcher: fs.FSWatcher;
 
-    watcher = fs.watch(configPath, event => {
-      if (event === 'change') {
-        watcher.close();
-        clearTimeout(timer);
-        resolve(true);
-      }
+    watcher.onDidChange(() => {
+      watcher.dispose();
+      clearTimeout(timer);
+      resolve(true);
     });
 
     timer = setTimeout(() => {
-      watcher.close();
+      watcher.dispose();
       resolve(false);
-    }, 2000);
+    }, 1000);
   });
 }
 
