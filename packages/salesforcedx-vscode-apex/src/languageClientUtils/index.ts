@@ -14,3 +14,5 @@ export {
   getExceptionBreakpointInfo,
   LanguageClientStatus
 } from './languageClientUtils';
+
+export { enableJavaDocSymbols } from './javaDocSymbols';
