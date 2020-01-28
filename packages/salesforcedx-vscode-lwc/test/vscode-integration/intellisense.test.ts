@@ -27,9 +27,9 @@ describe('LWC Intellisense Test Suite', function() {
         'salesforce.salesforcedx-vscode-core'
       ) as vscode.Extension<any>;
 
-      lwcExtension = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-lwc'
-      ) as vscode.Extension<any>;
+      // lwcExtension = vscode.extensions.getExtension(
+      //   'salesforce.salesforcedx-vscode-lwc'
+      // ) as vscode.Extension<any>;
     }
 
     lwcDir = path.join(
@@ -40,7 +40,7 @@ describe('LWC Intellisense Test Suite', function() {
       'lwc'
     );
     await coreExtension.activate();
-    await lwcExtension.activate();
+    // await lwcExtension.activate();
   });
 
   afterEach(async function() {
