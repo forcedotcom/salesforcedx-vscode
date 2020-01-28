@@ -44,7 +44,13 @@ describe('LWC Intellisense Test Suite', function() {
   });
 
   afterEach(async function() {
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    try {
+      await vscode.commands.executeCommand(
+        'workbench.action.closeActiveEditor'
+      );
+    } catch (e) {
+      throw e;
+    }
   });
 
   /**
@@ -57,7 +63,7 @@ describe('LWC Intellisense Test Suite', function() {
 
     // We have to have some text or we'll just get generic completions
     const text = '<c-';
-    const startPosition = new vscode.Position(7, 0);
+    const startPosition = new vscode.Position(5, 0);
     const endPosition = new vscode.Position(
       startPosition.line,
       startPosition.character + text.length
@@ -68,6 +74,10 @@ describe('LWC Intellisense Test Suite', function() {
     });
 
     try {
+      // NOTE: Because the completion providers always returns all possible results and then VSCode
+      // does the filtering based on what is typed, we have no good way of testing what vscode is
+      // actually displaying to the user based on what we typed
+      // TODO - investigate why this only happens on markup
       await testCompletion(docUri, endPosition, {
         items: [
           {
@@ -82,10 +92,8 @@ describe('LWC Intellisense Test Suite', function() {
     }
   });
 
-  /**
-   *  Test lwc javascript import content assist
-   */
-  it('LWC JS Import Intellisense', async function() {
+  it('LWC JS @Salesforce Import Intellisense', async function() {
+    this.timeout(5000);
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
@@ -106,48 +114,102 @@ describe('LWC Intellisense Test Suite', function() {
       await testCompletion(docUri, endPosition, {
         items: [
           {
-            label: 'c/hellobinding',
-            kind: vscode.CompletionItemKind.Function
-          },
-          {
-            label: 'lightning/uiListApi',
-            kind: vscode.CompletionItemKind.Function
-          },
-          {
-            label: 'lightning/uiRecordApi',
-            kind: vscode.CompletionItemKind.Function
-          },
-          {
             label: '@salesforce/apex',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
           },
           {
             label: '@salesforce/apex/AccountController.getAccountList',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
           },
           {
             label: '@salesforce/apex/ContactController.findContacts',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
           },
           {
             label: '@salesforce/contentAssetUrl/Cookpatternv1',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
           },
           {
             label: '@salesforce/resourceUrl/d3',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
           },
           {
             label: '@salesforce/resourceUrl/trailhead_logo',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
           },
           {
             label: '@salesforce/schema',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
           },
           {
             label: '@salesforce/user/Id',
-            kind: vscode.CompletionItemKind.Function
+            kind: vscode.CompletionItemKind.Module
+          }
+        ]
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+
+  it('LWC JS Module Import Intellisense', async function() {
+    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
+    doc = await vscode.workspace.openTextDocument(docUri);
+    editor = await vscode.window.showTextDocument(doc);
+
+    // We have to have some text or we'll just get generic completions
+    const text = "import {} from 'c";
+    const startPosition = new vscode.Position(1, 0);
+    const endPosition = new vscode.Position(
+      startPosition.line,
+      startPosition.character + text.length
+    );
+    const rangeReplace = new vscode.Range(startPosition, endPosition);
+    await editor.edit(editBuilder => {
+      editBuilder.replace(rangeReplace, text);
+    });
+
+    try {
+      await testCompletion(docUri, endPosition, {
+        items: [
+          {
+            label: 'c/helloBinding',
+            kind: vscode.CompletionItemKind.Folder
+          }
+        ]
+      });
+    } catch (error) {
+      throw error;
+    }
+  });
+
+  it('LWC JS Lightning Import Intellisense', async function() {
+    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
+    doc = await vscode.workspace.openTextDocument(docUri);
+    editor = await vscode.window.showTextDocument(doc);
+
+    // We have to have some text or we'll just get generic completions
+    const text = "import {} from 'lightn";
+    const startPosition = new vscode.Position(1, 0);
+    const endPosition = new vscode.Position(
+      startPosition.line,
+      startPosition.character + text.length
+    );
+    const rangeReplace = new vscode.Range(startPosition, endPosition);
+    await editor.edit(editBuilder => {
+      editBuilder.replace(rangeReplace, text);
+    });
+
+    try {
+      await testCompletion(docUri, endPosition, {
+        items: [
+          {
+            label: 'lightning/uiListApi',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: 'lightning/uiRecordApi',
+            kind: vscode.CompletionItemKind.Module
           }
         ]
       });
@@ -157,9 +219,6 @@ describe('LWC Intellisense Test Suite', function() {
   });
 });
 
-// NOTE: Because the completion providers always returns all possible results and then VSCode
-// does the filtering based on what is typed, we have no good way of testing what vscode is
-// actually displaying to the user based on what we typed
 async function testCompletion(
   docUri: vscode.Uri,
   position: vscode.Position,
@@ -186,6 +245,7 @@ async function testCompletion(
     );
     assert.equal(actualItem!.label, expectedItem.label);
     assert.equal(actualItem!.kind, expectedItem.kind);
-    assert.isDefined(actualItem!.documentation);
+    // TODO do we want some kind of documentation test?
+    //assert.isDefined(actualItem!.documentation);
   });
 }
