@@ -9,7 +9,7 @@ var isInsiders = version === 'insiders';
 
 const testRunFolder = path.join(
   '.vscode-test',
-  isInsiders ? 'insiders' : 'stable'
+  isInsiders ? 'insiders' : 'vscode-1.41.1'
 );
 const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
 
