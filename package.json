@@ -34,7 +34,7 @@
     "test:unit-and-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:unit --if-present && npm run coverage:system-tests",
     "test:integration": "lerna run test:integration --concurrency 1 --stream -- --if-present",
     "test:integration-tests-without-system-tests": "node scripts/download-vscode && lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:integration --if-present && npm run test:vscode-integration --if-present",
-    "test:vscode-integration": "node scripts/download-vscode && lerna exec --scope salesforcedx-vscode-lwc --concurrency 1 --stream --bail=false -- npm run test:vscode-integration --if-present",
+    "test:vscode-integration": "node scripts/download-vscode && lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-integration --if-present",
     "test:vscode-insiders-integration": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-insiders-integration --if-present",
     "test:without-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test --if-present",
     "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream -- --if-present",

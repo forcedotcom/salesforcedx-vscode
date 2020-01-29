@@ -29,6 +29,7 @@ downloadAndUnzipVSCode()
       vscodeIndex,
       executablePath.indexOf(path.sep, vscodeIndex)
     );
+    process.env.CODE_VERSION = vscodeDirname;
 
     // '~/salesforcedx-vscode/.vscode-test/vscode-1.41.1/'
     let vscodeFullPath = executablePath.substring(
@@ -43,7 +44,7 @@ downloadAndUnzipVSCode()
     console.log('Base Path: ' + vscodeBasePath);
     console.log('Full Path: ' + vscodeFullPath);
 
-    // TODO make this configurable as per package or global
+    // TODO make this configurable as per package or global?
 
     // For each extension, copy over the vscode binary
     for (let i = 0; i < extensionDirectories.length; i++) {
