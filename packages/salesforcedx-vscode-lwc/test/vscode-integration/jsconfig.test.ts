@@ -162,7 +162,7 @@ function waitForConfigUpdate(configPath: string): Promise<boolean> {
     timer = setTimeout(() => {
       watcher.dispose();
       resolve(false);
-    }, 10000);
+    }, 1000);
   });
 }
 
