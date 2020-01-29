@@ -42,29 +42,12 @@ describe('jsconfig Test Suite', function() {
   });
 
   beforeEach(async function() {
-    this.timeout(30000);
-
     await createComponent(TEST_COMPONENT_NAME, lwcDir);
     await waitForConfigUpdate(configPath);
     config = await parseConfig(configPath);
-
-    console.log('before each');
-    console.log(JSON.stringify(config));
-
-    console.log(
-      JSON.stringify(await workspace.fs.readDirectory(URI.file(lwcDir)))
-    );
   });
 
   afterEach(async function() {
-    this.timeout(30000);
-
-    console.log('after each: pre-cleanup');
-    console.log(JSON.stringify(await parseConfig(configPath)));
-    console.log(
-      JSON.stringify(await workspace.fs.readDirectory(URI.file(lwcDir)))
-    );
-
     if (fs.existsSync(path.join(lwcDir, TEST_COMPONENT_NAME))) {
       await workspace.fs.delete(
         URI.file(path.join(lwcDir, TEST_COMPONENT_NAME)),
@@ -80,17 +63,9 @@ describe('jsconfig Test Suite', function() {
       );
       await waitForConfigUpdate(configPath);
     }
-
-    console.log('after each: post-cleanup');
-    console.log(JSON.stringify(await parseConfig(configPath)));
-    console.log(
-      JSON.stringify(await workspace.fs.readDirectory(URI.file(lwcDir)))
-    );
   });
 
   it('Should add the newly created component to the jsconfig compilerOptions paths map', async function() {
-    this.timeout(30000);
-
     await createComponent(CREATE_COMPONENT_NAME, lwcDir);
 
     const didUpdate = await waitForConfigUpdate(configPath);
@@ -104,8 +79,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should remove the deleted component from the jsconfig compilerOptions paths map', async function() {
-    this.timeout(30000);
-
     await workspace.fs.delete(
       URI.file(path.join(lwcDir, TEST_COMPONENT_NAME)),
       { recursive: true }
@@ -122,8 +95,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json when a component is saved', async function() {
-    this.timeout(30000);
-
     const document = await workspace.openTextDocument(
       path.join(lwcDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -138,8 +109,6 @@ describe('jsconfig Test Suite', function() {
   });
 
   it('Should not update jsconfig.json on keystrokes in a component file', async function() {
-    this.timeout(30000);
-
     const document = await workspace.openTextDocument(
       path.join(lwcDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
