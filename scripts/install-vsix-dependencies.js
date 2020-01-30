@@ -1,15 +1,22 @@
 #!/usr/bin/env node
 
+const fs = require('fs');
 const path = require('path');
 const shell = require('shelljs');
 
 // Installs a list of extensions passed on the command line
-var version = process.env.CODE_VERSION || '*';
+var version = process.env.CODE_VERSION;
+
+console.log('CODE_VERSION: ' + version);
+
 var isInsiders = version === 'insiders';
 
+// VSCode no longer downloads to a single directory name like 'stable'. The folder
+// name is dynamic base on the version number, so lets just use the first folder in .vscode-test dir
+// as the assumed place where vscode is extracted
 const testRunFolder = path.join(
   '.vscode-test',
-  isInsiders ? 'insiders' : 'stable'
+  isInsiders ? 'insiders' : fs.readdirSync(`${process.cwd()}/.vscode-test`)[0]
 );
 const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
 
