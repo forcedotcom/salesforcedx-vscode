@@ -29,7 +29,6 @@ downloadAndUnzipVSCode()
       vscodeIndex,
       executablePath.indexOf(path.sep, vscodeIndex)
     );
-    process.env.CODE_VERSION = vscodeDirname;
 
     // '~/salesforcedx-vscode/.vscode-test/vscode-1.41.1/'
     let vscodeFullPath = executablePath.substring(
