@@ -22,6 +22,8 @@ describe('Aura Intellisense Test Suite', function() {
       'default',
       'aura'
     );
+
+    await new Promise(r => setTimeout(r, 1000));
   });
 
   afterEach(async function() {
