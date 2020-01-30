@@ -51,7 +51,10 @@ describe('Aura Intellisense Test Suite', function() {
       editBuilder.replace(rangeReplace, text);
     });
 
+    console.log('TRACE:KRIS:markup:intellisense', editor.document.getText());
+
     try {
+      console.log('TRACE:KRIS', 'aura:markup:start');
       await testCompletion(docUri, endPosition, {
         items: [
           // Aura system attributes
@@ -70,6 +73,7 @@ describe('Aura Intellisense Test Suite', function() {
           }
         ]
       });
+      console.log('TRACE:KRIS', 'aura:markup:end');
     } catch (error) {
       throw error;
     }
@@ -176,12 +180,16 @@ async function testCompletion(
   position: vscode.Position,
   expectedCompletionList: vscode.CompletionList
 ) {
+  console.log('TRACE:KRIS:executeCompletionItemProvider:before');
   // Simulate triggering a completion
   const actualCompletionList = (await vscode.commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
     position
   )) as vscode.CompletionList;
+  console.log('TRACE:KRIS:executeCompletionItemProvider:end');
+
+  console.log('TRACE:KRIS', docUri, position, expectedCompletionList);
 
   expectedCompletionList.items.forEach(function(expectedItem) {
     const actualItem = actualCompletionList.items.find(function(obj) {
