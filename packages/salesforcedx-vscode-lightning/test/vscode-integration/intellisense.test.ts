@@ -41,7 +41,7 @@ describe('Aura Intellisense Test Suite', function() {
     const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
-    const text = '<';
+    const text = '<c:';
     const startPosition = new vscode.Position(1, 7);
     const endPosition = new vscode.Position(
       startPosition.line,
