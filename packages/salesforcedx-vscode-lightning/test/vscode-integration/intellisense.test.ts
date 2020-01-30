@@ -189,8 +189,6 @@ async function testCompletion(
   )) as vscode.CompletionList;
   console.log('TRACE:KRIS:executeCompletionItemProvider:end');
 
-  console.log('TRACE:KRIS', docUri, position, expectedCompletionList);
-
   expectedCompletionList.items.forEach(function(expectedItem) {
     const actualItem = actualCompletionList.items.find(function(obj) {
       if (obj.label) {
