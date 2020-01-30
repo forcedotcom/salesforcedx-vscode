@@ -223,8 +223,19 @@ async function testCompletion(
       actualItem,
       "Couldn't find expected completion item '" + expectedItem.label + "'"
     );
-    assert.equal(actualItem!.label, expectedItem.label);
-    assert.equal(actualItem!.kind, expectedItem.kind);
+    assert.equal(
+      actualItem!.label,
+      expectedItem.label,
+      'Expected completion item to have label: ' + expectedItem.label
+    );
+    assert.equal(
+      actualItem!.kind,
+      expectedItem.kind,
+      "Expected completion item'" +
+        expectedItem.label +
+        "' to have type: " +
+        expectedItem.kind
+    );
     // TODO do we want some kind of documentation test?
     //assert.isDefined(actualItem!.documentation);
   });
