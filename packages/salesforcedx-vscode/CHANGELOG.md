@@ -1,26 +1,36 @@
-# 47.17.0 - (INSERT RELEASE DATE [Month Day, Year])
+# 47.17.1 - January 30, 2020
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- Updated Apex Language Server error message for reflect we support Java 8 and Java 11 ([PR #1900](https://github.com/forcedotcom/salesforcedx-vscode/pull/1900))
+- Update Apex Language Server error message to include we support Java 8 and Java 11 ([PR #1900](https://github.com/forcedotcom/salesforcedx-vscode/pull/1900))
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- Update Apex language server JAR ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+- Set cursor on the first argument when inserting method from code completion ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+  ![GIF showing Apex code completion with new tab fix](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/autocomplete_tabs.gif)
+
+- Disable Global Objects from autocompletion when invoked from a member type ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+  ![GIF showing autocompletion results without global objects](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/autocomplete_no_global_objects.gif)
+
+- Show documentation for autocomplete items ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+  ![GIF showing autocompletion results with documentation](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/autocomplete_docs.gif)
+
+- Update documentation format for hover ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+  ![GIF showing hover results with documentation](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/hover_docs.gif)
 
 - Enable support for JavaDoc symbols ([PR #1910](https://github.com/forcedotcom/salesforcedx-vscode/pull/1910), [Issue #1469](https://github.com/forcedotcom/salesforcedx-vscode/issues/1469))-Contribution by [@danielepiccone](https://github.com/danielepiccone)
-
-#### salesforcedx-sobjects-faux-generator
-
-- Use inline help text from SObjects for hover documentation on fields ([PR #1890](https://github.com/forcedotcom/salesforcedx-vscode/pull/1890))-Contribution by [@ChuckJonas](https://github.com/ChuckJonas)
+  ![GIF showing support for multi-line JavaDoc](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/javadoc-support.gif)
 
 #### salesforcedx-vscode-core
 
-- Update extensions minimum supported VSCode versions to be 1.40 and above ([PR #1884](https://github.com/forcedotcom/salesforcedx-vscode/pull/1884))
+- Use inline help text from SObjects for hover documentation on fields ([PR #1890](https://github.com/forcedotcom/salesforcedx-vscode/pull/1890))-Contribution by [@ChuckJonas](https://github.com/ChuckJonas)
+  ![Image showing SObject documentation on hover](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/sobject-hover-docs.png)
+
+- Update minimum supported VSCode version to be 1.40 and above ([PR #1884](https://github.com/forcedotcom/salesforcedx-vscode/pull/1884))
 
 # 47.16.0 - January 23, 2020
 
