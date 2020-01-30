@@ -33,7 +33,6 @@ describe('Aura Intellisense Test Suite', function() {
    */
 
   it('Aura markup intellisense', async function() {
-    console.log('TRACE:Aura markup intellisense');
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp')
     );
