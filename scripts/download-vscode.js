@@ -44,8 +44,9 @@ downloadAndUnzipVSCode()
     console.log('Full Path: ' + vscodeFullPath);
 
     // If this script is run from an individual package, don't copy it around unnecessarily
-    // Example: ~/packages/salesforcedx-vscode-lwc> npm run test:vscode-integration
-    if (vscodeBasePath.contains('packages')) {
+    // Example:
+    // ~/salesforcedx-vscode/packages/salesforcedx-vscode-lwc> npm run test:vscode-integration
+    if (vscodeBasePath.indexOf(path.sep + 'packages' + path.sep) !== -1) {
       // Do nothing, vscode is already downloaded and extracted in this package
     } else {
       // For each extension, copy over the vscode binary
