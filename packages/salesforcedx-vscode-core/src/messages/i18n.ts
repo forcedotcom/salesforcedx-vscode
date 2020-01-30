@@ -476,6 +476,25 @@ export const messages = {
   Workflow: 'Workflows',
   XOrgHub: 'X Org Hubs',
 
+  conflict_detect_error:
+    'An error was encountered during conflict detection. %s',
+  conflict_detect_retrieve_org_source:
+    'Conflict Detection: retrieving org source',
+  conflict_detect_convert_org_source:
+    'Conflict Detection: converting org source',
+  conflict_detect_conflicts_during_deploy:
+    'Conflicts were detected during the metadata deploy',
+  conflict_detect_conflicts_during_retrieve:
+    'Conflicts were detected during the metadata retrieve',
+  conflict_detect_override: 'Overwrite Conflicts',
+  conflict_detect_conflict_header:
+    'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_command_hint:
+    '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_no_default_username: 'No default username for this project',
+  conflict_detect_no_default_package_dir:
+    'No default package directory for this project',
+
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_unsupported_type:
     'Diff for this metadata type is currently not supported',

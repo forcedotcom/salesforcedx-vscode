@@ -1,0 +1,21 @@
+.THIS * {
+	box-sizing: border-box; 
+}
+
+.THIS .slds-card__body {
+	height: 340px;
+    margin-bottom: 0;
+}
+
+.THIS .slds-modal__container {
+    margin-top: 100px;
+    height: 90%;
+    width: 90%;
+    max-width: initial;
+}
+
+.THIS .slds-modal__close {
+    position: absolute;
+    top: 100px;
+    right: 5%;
+}
