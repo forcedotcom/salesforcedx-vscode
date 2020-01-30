@@ -63,10 +63,14 @@ export async function activate(context: ExtensionContext) {
     return;
   }
 
+  // Pass the workspace folder URIs to the language server
+  const workspaceUris: string[] = [];
+  workspace.workspaceFolders.forEach(folder => {
+    workspaceUris.push(folder.uri.fsPath);
+  });
+
   // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(
-    workspace.workspaceFolders[0].uri.fsPath
-  );
+  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {

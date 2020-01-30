@@ -1,0 +1,36 @@
+.THIS img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 8px;
+}
+
+.THIS .slds-card__footer {
+    text-align: left;
+    color: #706e6b;
+}
+
+.THIS .aura {
+    background-color: #f39f75;
+    color: #ffffff;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.THIS c-contact-list {
+    position: relative;
+    border: solid 1px #ecebea;
+    border-radius: 4px;
+    display: block;
+    padding: 10px 2px 2px 2px;
+}
+
+.THIS c-contact-list:before {
+    content: 'c-contact-list (Lightning Web component)';
+    color: #dddbda;
+    position: absolute;
+    top: -9px;
+    left: 4px;
+    background-color: #ffffff;
+    padding: 0 4px;
+}
