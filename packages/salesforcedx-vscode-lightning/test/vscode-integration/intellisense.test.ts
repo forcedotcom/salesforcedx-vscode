@@ -10,27 +10,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 describe('Aura Intellisense Test Suite', function() {
-  let coreExtension: vscode.Extension<any>;
-  let auraExtension: vscode.Extension<any>;
   let auraDir: string;
   let doc: vscode.TextDocument;
   let editor: vscode.TextEditor;
 
   before(async function() {
-    if (
-      vscode.workspace &&
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      coreExtension = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-core'
-      ) as vscode.Extension<any>;
-
-      auraExtension = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-lightning'
-      ) as vscode.Extension<any>;
-    }
-
     auraDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -38,9 +22,6 @@ describe('Aura Intellisense Test Suite', function() {
       'default',
       'aura'
     );
-
-    await coreExtension.activate();
-    await auraExtension.activate();
   });
 
   afterEach(async function() {

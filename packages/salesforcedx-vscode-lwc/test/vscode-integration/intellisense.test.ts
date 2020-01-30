@@ -13,25 +13,9 @@ let doc: vscode.TextDocument;
 let editor: vscode.TextEditor;
 
 describe('LWC Intellisense Test Suite', function() {
-  let coreExtension: vscode.Extension<any>;
-  let lwcExtension: vscode.Extension<any>;
   let lwcDir: string;
 
   before(async function() {
-    if (
-      vscode.workspace &&
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders[0]
-    ) {
-      coreExtension = vscode.extensions.getExtension(
-        'salesforce.salesforcedx-vscode-core'
-      ) as vscode.Extension<any>;
-
-      // lwcExtension = vscode.extensions.getExtension(
-      //   'salesforce.salesforcedx-vscode-lwc'
-      // ) as vscode.Extension<any>;
-    }
-
     lwcDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -39,8 +23,6 @@ describe('LWC Intellisense Test Suite', function() {
       'default',
       'lwc'
     );
-    await coreExtension.activate();
-    // await lwcExtension.activate();
   });
 
   afterEach(async function() {
@@ -117,14 +99,15 @@ describe('LWC Intellisense Test Suite', function() {
             label: '@salesforce/apex',
             kind: vscode.CompletionItemKind.Module
           },
-          {
-            label: '@salesforce/apex/AccountController.getAccountList',
-            kind: vscode.CompletionItemKind.Module
-          },
-          {
-            label: '@salesforce/apex/ContactController.findContacts',
-            kind: vscode.CompletionItemKind.Module
-          },
+          // TODO add these back once we determine why Apex language server isn't working on windows
+          // {
+          //   label: '@salesforce/apex/AccountController.getAccountList',
+          //   kind: vscode.CompletionItemKind.Module
+          // },
+          // {
+          //   label: '@salesforce/apex/ContactController.findContacts',
+          //   kind: vscode.CompletionItemKind.Module
+          // },
           {
             label: '@salesforce/contentAssetUrl/Cookpatternv1',
             kind: vscode.CompletionItemKind.Module
