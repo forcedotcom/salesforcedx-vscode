@@ -1,3 +1,27 @@
+# 47.17.0 - (INSERT RELEASE DATE [Month Day, Year])
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Updated Apex Language Server error message for reflect we support Java 8 and Java 11 ([PR #1900](https://github.com/forcedotcom/salesforcedx-vscode/pull/1900))
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Update Apex language server JAR ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+
+- Enable support for JavaDoc symbols ([PR #1910](https://github.com/forcedotcom/salesforcedx-vscode/pull/1910), [Issue #1469](https://github.com/forcedotcom/salesforcedx-vscode/issues/1469))-Contribution by [@danielepiccone](https://github.com/danielepiccone)
+
+#### salesforcedx-sobjects-faux-generator
+
+- Use inline help text from SObjects for hover documentation on fields ([PR #1890](https://github.com/forcedotcom/salesforcedx-vscode/pull/1890))-Contribution by [@ChuckJonas](https://github.com/ChuckJonas)
+
+#### salesforcedx-vscode-core
+
+- Update extensions minimum supported VSCode versions to be 1.40 and above ([PR #1884](https://github.com/forcedotcom/salesforcedx-vscode/pull/1884))
+
 # 47.16.0 - January 23, 2020
 
 ## Fixed
