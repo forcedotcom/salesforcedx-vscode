@@ -43,30 +43,34 @@ downloadAndUnzipVSCode()
     console.log('Base Path: ' + vscodeBasePath);
     console.log('Full Path: ' + vscodeFullPath);
 
-    // TODO make this configurable as per package or global?
-
-    // For each extension, copy over the vscode binary
-    for (let i = 0; i < extensionDirectories.length; i++) {
-      try {
-        const copyDestination = path.join(
-          vscodeBasePath,
-          'packages',
-          extensionDirectories[i],
-          '.vscode-test',
-          vscodeDirname
-        );
-        console.log('Creating Directories: ' + copyDestination);
-        if (!fs.existsSync(copyDestination)) {
-          fs.mkdirSync(copyDestination, { recursive: true });
-        }
-        console.log('Copying to: ' + copyDestination);
-        ncp(vscodeFullPath, copyDestination, function(err) {
-          if (err) {
-            return console.error(err);
+    // If this script is run from an individual package, don't copy it around unnecessarily
+    // Example: ~/packages/salesforcedx-vscode-lwc> npm run test:vscode-integration
+    if (vscodeBasePath.contains('packages')) {
+      // Do nothing, vscode is already downloaded and extracted in this package
+    } else {
+      // For each extension, copy over the vscode binary
+      for (let i = 0; i < extensionDirectories.length; i++) {
+        try {
+          const copyDestination = path.join(
+            vscodeBasePath,
+            'packages',
+            extensionDirectories[i],
+            '.vscode-test',
+            vscodeDirname
+          );
+          console.log('Creating Directories: ' + copyDestination);
+          if (!fs.existsSync(copyDestination)) {
+            fs.mkdirSync(copyDestination, { recursive: true });
           }
-        });
-      } catch (error) {
-        console.error(error);
+          console.log('Copying to: ' + copyDestination);
+          ncp(vscodeFullPath, copyDestination, function(err) {
+            if (err) {
+              return console.error(err);
+            }
+          });
+        } catch (error) {
+          console.error(error);
+        }
       }
     }
   })
