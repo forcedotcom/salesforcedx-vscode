@@ -187,7 +187,10 @@ async function testCompletion(
     docUri,
     position
   )) as vscode.CompletionList;
-  console.log('TRACE:KRIS:executeCompletionItemProvider:end');
+  console.log(
+    'TRACE:KRIS:executeCompletionItemProvider:end',
+    expectedCompletionList
+  );
 
   expectedCompletionList.items.forEach(function(expectedItem) {
     const actualItem = actualCompletionList.items.find(function(obj) {
