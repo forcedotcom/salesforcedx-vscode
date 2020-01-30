@@ -43,6 +43,8 @@ In this example, when hovering over `onpress`, the linter reports that you canno
 //update image for aura
 ![Linter Example with Hover](./images/vscode_lwc_linting_press.png)
 
+//include info on linter bug here
+
 ### Peek Problem and Quick Fix //update these images for aura
 
 VS Code has a range of actions to quickly address problems and refactor code, including Quick Fix and Peek Problem. To learn more, see [Refactoring](https://code.visualstudio.com/docs/editor/refactoring) in the VS Code documentation. 
