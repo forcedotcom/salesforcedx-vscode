@@ -9,9 +9,6 @@ import { assert, expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-let doc: vscode.TextDocument;
-let editor: vscode.TextEditor;
-
 describe('LWC Intellisense Test Suite', function() {
   let lwcDir: string;
 
@@ -40,8 +37,8 @@ describe('LWC Intellisense Test Suite', function() {
    */
   it('LWC Markup Intellisense', async function() {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = '<c-';
@@ -77,8 +74,8 @@ describe('LWC Intellisense Test Suite', function() {
   it('LWC JS @Salesforce Import Intellisense', async function() {
     this.timeout(10000);
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = "import {} from '@sales";
@@ -137,8 +134,8 @@ describe('LWC Intellisense Test Suite', function() {
 
   it('LWC JS Module Import Intellisense', async function() {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = "import {} from 'c";
@@ -168,8 +165,8 @@ describe('LWC Intellisense Test Suite', function() {
 
   it('LWC JS Lightning Import Intellisense', async function() {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = "import {} from 'lightn";

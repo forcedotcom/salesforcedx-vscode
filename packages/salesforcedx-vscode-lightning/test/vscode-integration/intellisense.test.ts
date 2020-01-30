@@ -11,8 +11,6 @@ import * as vscode from 'vscode';
 
 describe('Aura Intellisense Test Suite', function() {
   let auraDir: string;
-  let doc: vscode.TextDocument;
-  let editor: vscode.TextEditor;
 
   before(async function() {
     auraDir = path.join(
@@ -38,8 +36,8 @@ describe('Aura Intellisense Test Suite', function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp')
     );
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = '<c:';
@@ -89,8 +87,8 @@ describe('Aura Intellisense Test Suite', function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
     );
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = '$A.util.get';
@@ -119,8 +117,8 @@ describe('Aura Intellisense Test Suite', function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
     );
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = 'component.get';
@@ -147,8 +145,8 @@ describe('Aura Intellisense Test Suite', function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
     );
-    doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
 
     // We have to have some text or we'll just get generic completions
     const text = 'helper.hel';
