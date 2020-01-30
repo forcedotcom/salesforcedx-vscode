@@ -216,6 +216,9 @@ async function testCompletion(
     );
     assert.equal(actualItem!.label, expectedItem.label);
     assert.equal(actualItem!.kind, expectedItem.kind);
+    if (!actualItem!.documentation) {
+      console.log('TRACE:KRIS', actualItem, expectedCompletionList);
+    }
     assert.isDefined(actualItem!.documentation);
   });
 }
