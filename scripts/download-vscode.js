@@ -65,7 +65,6 @@ downloadAndUnzipVSCode()
           if (err) {
             return console.error(err);
           }
-          console.log('done!');
         });
       } catch (error) {
         console.error(error);

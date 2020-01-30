@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 
+const fs = require('fs');
 const path = require('path');
 const shell = require('shelljs');
 
 // Installs a list of extensions passed on the command line
-console.log('CODE_VERSION: ' + process.env.CODE_VERSION);
-var version = process.env.CODE_VERSION || 'vscode-1.41.1';
+var version = process.env.CODE_VERSION;
+
+console.log('CODE_VERSION: ' + version);
+
 var isInsiders = version === 'insiders';
 
 const testRunFolder = path.join(
   '.vscode-test',
-  isInsiders ? 'insiders' : version
+  isInsiders ? 'insiders' : fs.readdirSync(`${process.cwd()}/.vscode-test`)[0]
 );
 const testRunFolderAbsolute = path.join(process.cwd(), testRunFolder);
 

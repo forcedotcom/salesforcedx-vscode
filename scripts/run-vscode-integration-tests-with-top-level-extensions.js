@@ -20,10 +20,8 @@ try {
   );
   const CODE_TESTS_PATH = path.join(cwd, 'out', 'test', 'vscode-integration');
 
-  const CODE_VERSION = '1.41.1';
-
   shell.exec(
-    `cross-env CODE_VERSION='${CODE_VERSION}' CODE_EXTENSIONS_PATH='${CODE_EXTENSIONS_PATH}' CODE_TESTS_WORKSPACE='${CODE_TESTS_WORKSPACE}' CODE_TESTS_PATH='${CODE_TESTS_PATH}' node ./node_modules/vscode/bin/test`
+    `cross-env CODE_EXTENSIONS_PATH='${CODE_EXTENSIONS_PATH}' CODE_TESTS_WORKSPACE='${CODE_TESTS_WORKSPACE}' CODE_TESTS_PATH='${CODE_TESTS_PATH}' node ./node_modules/vscode/bin/test`
   );
 } catch (e) {
   console.error('Test run failed with error:', shell.error());
