@@ -20,7 +20,7 @@ import URI from 'vscode-uri';
 describe('Aura Hovers', function() {
   let auraDir: string;
 
-  before(function() {
+  before(async function() {
     auraDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -28,6 +28,8 @@ describe('Aura Hovers', function() {
       'default',
       'aura'
     );
+
+    await new Promise(r => setTimeout(r, 1000));
   });
 
   afterEach(async function() {
