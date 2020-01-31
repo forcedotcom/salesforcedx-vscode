@@ -16,7 +16,7 @@
 - Disable Global Objects from autocompletion when invoked from a member type ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
   ![GIF showing autocompletion results without global objects](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/autocomplete_no_global_objects.gif)
 
-- Show documentation for autocomplete items ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+- Show documentation for autocomplete items when definitions have block comments ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
   ![GIF showing autocompletion results with documentation](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/autocomplete-docs.gif)
 
 - Update documentation format for hover ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
