@@ -91,9 +91,13 @@ describe('Force LWC Test Run - Code Action', () => {
       assert.calledOnce(executeTaskStub);
       assert.calledWith(
         executeTaskStub,
-        match.has('execution', {
-          command: lwcTestRunnerExecutable,
-          args: [
+        match.has('execution', match.has('command', lwcTestRunnerExecutable))
+      );
+      assert.calledWith(
+        executeTaskStub,
+        match.has(
+          'execution',
+          match.has('args', [
             '--',
             '--json',
             '--outputFile',
@@ -110,9 +114,12 @@ describe('Force LWC Test Run - Code Action', () => {
             /^win32/.test(process.platform)
               ? path.relative(expectedCwd, mockTestFileInfo.testUri.fsPath)
               : mockTestFileInfo.testUri.fsPath
-          ],
-          options: undefined
-        })
+          ])
+        )
+      );
+      assert.calledWith(
+        executeTaskStub,
+        match.has('execution', match.has('options', undefined))
       );
       unmockActiveTextEditorUri();
     });
