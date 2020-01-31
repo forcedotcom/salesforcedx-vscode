@@ -29,7 +29,7 @@ describe('jsconfig Test Suite', function() {
   let configPath: string;
   let config: object;
 
-  before(async function() {
+  before(function() {
     lwcDir = path.join(
       workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
