@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "47.16.0",
+  "version": "47.17.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,12 +24,12 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-debugger": "47.16.0",
+    "@salesforce/salesforcedx-apex-debugger": "47.17.1",
     "vscode-debugprotocol": "1.28.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "47.16.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "47.17.1",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
     "@types/node": "8.9.3",
@@ -38,7 +38,7 @@
     "cross-env": "5.2.0",
     "mocha": "^5",
     "sinon": "^7.3.1",
-    "vscode": "1.1.17"
+    "vscode": "^1.1.36"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
