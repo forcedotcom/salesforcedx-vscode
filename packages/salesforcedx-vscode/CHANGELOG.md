@@ -1,3 +1,48 @@
+# 47.16.0 - January 23, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Allow spaces in scratch org alias creation ([PR #1876](https://github.com/forcedotcom/salesforcedx-vscode/pull/1876))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add `SFDX: Create Sample Analytics Template` command to scaffold analytics templates ([PR #1857](https://github.com/forcedotcom/salesforcedx-vscode/pull/1857))
+
+#### docs
+
+- Add tools doc and images [Lightning Web Components](https://forcedotcom.github.io/salesforcedx-vscode/articles/lwc/write-lwc) ([PR #1867](https://github.com/forcedotcom/salesforcedx-vscode/pull/1867))
+
+# 47.15.0 - January 16th, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix `source:push` commands to appear correctly when switching to a scratch org using a username instead of an alias ([PR #1862](https://github.com/forcedotcom/salesforcedx-vscode/pull/1862))
+
+- Prevent the Output panel from opening automatically for these commands:
+  - `SFDX: Deploy ...` (all deploy options)
+  - `SFDX: Push ...` (all push options)
+  - `SFDX: Open Default Org`
+  - `SFDX: Authorize an Org`
+  - `SFDX: Authorize a Dev Hub`
+  - `SFDX: Diff File Against Org`
+    ([PR #1865](https://github.com/forcedotcom/salesforcedx-vscode/pull/1865), [Issue #1806](https://github.com/forcedotcom/salesforcedx-vscode/issues/1806))
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Setting to override default max heap size for Apex Language Server ([PR #1817](https://github.com/forcedotcom/salesforcedx-vscode/pull/1817), [Issue #1626](https://github.com/forcedotcom/salesforcedx-vscode/issues/1626))-Contribution by [@kenhuman](https://github.com/kenhuman)
+
+#### salesforcedx-vscode-core
+
+- Support for running `SFDX: Diff File Against Org` on Custom Labels ([PR #1859](https://github.com/forcedotcom/salesforcedx-vscode/pull/1859))
+
 # 47.14.0 - January 9th, 2020
 
 ## Fixed

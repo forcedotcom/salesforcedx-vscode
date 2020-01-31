@@ -1,11 +1,11 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "47.10.0",
+  "version": "47.17.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.40.0"
   },
   "activationEvents": [
     "onView:never"
@@ -17,13 +17,11 @@
     "@types/mocha": "^2.2.38",
     "@types/node": "8.9.3",
     "chai": "^4.0.2",
-    "istanbul": "^0.4.5",
-    "mocha": "^3.2.0",
-    "mocha-junit-reporter": "^1.13.0",
-    "mocha-multi-reporters": "^1.1.4",
+    "mocha": "^5",
+    "mocha-junit-reporter": "^1.23.3",
+    "mocha-multi-reporters": "^1.1.7",
     "nyc": "^13",
     "shx": "0.2.2",
-    "source-map-support": "^0.4.15",
     "typescript": "3.1.6"
   },
   "dependencies": {
@@ -37,7 +35,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit",
-    "test:unit": "./node_modules/.bin/nyc ./node_modules/.bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json"
+    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json"
   },
   "nyc": {
     "reporter": [
