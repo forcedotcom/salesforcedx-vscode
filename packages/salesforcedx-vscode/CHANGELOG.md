@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Update Apex Language Server error message to include we support Java 8 and Java 11 ([PR #1900](https://github.com/forcedotcom/salesforcedx-vscode/pull/1900))
+- Update Apex Language Server error message to include support for Java 8 and Java 11 ([PR #1900](https://github.com/forcedotcom/salesforcedx-vscode/pull/1900))
 
 ## Added
 
