@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Set cursor on the first argument when inserting method from code completion ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+- Tab between arguments when inserting method from code completion ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
   ![GIF showing Apex code completion with new tab fix](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/autocomplete_tabs.gif)
 
 - Disable Global Objects from autocompletion when invoked from a member type ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
