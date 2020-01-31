@@ -28,7 +28,7 @@ describe('LWC Hovers', function() {
       'lwc'
     );
 
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1500));
   });
 
   afterEach(async function() {
@@ -50,12 +50,12 @@ describe('LWC Hovers', function() {
       position
     )) as Hover[];
 
-    expect(hoverInstances).to.have.lengthOf(1);
+    expect(hoverInstances).to.have.lengthOf.at.least(1);
 
     const instance = hoverInstances![0];
 
     expect(instance).to.have.property('contents');
-    expect(instance.contents).to.have.lengthOf(1);
+    expect(instance.contents).to.have.lengthOf.at.least(1);
 
     const content = instance.contents![0] as MarkdownString;
 
@@ -78,12 +78,12 @@ describe('LWC Hovers', function() {
       position
     )) as Hover[];
 
-    expect(hoverInstances).to.have.lengthOf(2);
+    expect(hoverInstances).to.have.lengthOf.at.least(1);
 
     const instance = hoverInstances![0];
 
     expect(instance).to.have.property('contents');
-    expect(instance.contents).to.have.lengthOf(1);
+    expect(instance.contents).to.have.lengthOf.at.least(1);
 
     const content = instance.contents![0] as MarkdownString;
 
