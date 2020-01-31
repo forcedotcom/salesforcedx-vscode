@@ -25,11 +25,15 @@ You can run or debug Jest unit tests in contextual actions within the file, or b
 
 To run individual Jest test cases, navigate to the `.test.js` file and click **Run Test** above the definition of a Jest test case.
 
+![Running LWC tests using the Run Test code lenses](./images/lwc_test_run.gif)
+
 To run all test cases in a Jest test file, click the play icon on the menu bar in the top right corner of the editor window.
 
 #### Debug Jest Tests
 
 To debug individual Jest test cases, navigate to the `.test.js` file and click **Debug Test** above the definition of a Jest test case.
+
+![Debugging LWC tests using the Debug Test code lenses](./images/lwc_test_debug.gif)
 
 To debug all test cases in a Jest test file, click the debug icon on the menu bar in the top right corner of the editor window.
 
@@ -38,3 +42,5 @@ VS Code's built-in debugger launches for you to debug the test in VS Code. You c
 #### Watch Jest Tests
 
 To watch a Jest test file, click the eye icon on the menu bar in the top right corner of the editor window. Toggle the icon to stop watching. When watching a Jest test file, the test file will rerun if you edit the Jest test file or the LWC JavaScript files that the Jest test file is testing against.
+
+![Watching LWC tests using the menubar button](./images/lwc_test_watch.gif)
