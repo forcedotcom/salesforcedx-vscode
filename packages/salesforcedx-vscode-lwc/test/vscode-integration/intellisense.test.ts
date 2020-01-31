@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 describe('LWC Intellisense Test Suite', function() {
   let lwcDir: string;
 
-  before(async function() {
+  before(function() {
     lwcDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
