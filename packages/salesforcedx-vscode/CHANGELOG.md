@@ -19,7 +19,7 @@
 - Show documentation for autocomplete items when definitions have block comments ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
   ![GIF showing autocompletion results with documentation](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/autocomplete-docs.gif)
 
-- Update documentation format for hover ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
+- Update how documentation is rendered when hovering over a symbol ([PR #1913](https://github.com/forcedotcom/salesforcedx-vscode/pull/1913))
   ![GIF showing hover results with documentation](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/47.17.1/hover-docs.gif)
 
 - Enable support for JavaDoc symbols ([PR #1910](https://github.com/forcedotcom/salesforcedx-vscode/pull/1910), [Issue #1469](https://github.com/forcedotcom/salesforcedx-vscode/issues/1469))-Contribution by [@danielepiccone](https://github.com/danielepiccone)
