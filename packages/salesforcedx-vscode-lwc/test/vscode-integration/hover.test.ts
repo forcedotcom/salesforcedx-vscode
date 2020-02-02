@@ -28,7 +28,7 @@ describe('LWC Hovers', function() {
       'lwc'
     );
 
-    await new Promise(r => setTimeout(r, 1500));
+    await new Promise(r => setTimeout(r, 1000));
   });
 
   afterEach(async function() {
@@ -52,15 +52,13 @@ describe('LWC Hovers', function() {
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const instance = hoverInstances![0];
+    const content = findContentFromInstances(hoverInstances, 'lightning-card');
 
-    expect(instance).to.have.property('contents');
-    expect(instance.contents).to.have.lengthOf.at.least(1);
+    expect(content).not.to.be.undefined;
+    expect(content).not.to.be.null;
 
-    const content = instance.contents![0] as MarkdownString;
-
-    expect(content.value).to.include('lightning-card');
-    expect(content.value).to.include('View in Component Library');
+    expect(content!.value).to.include('lightning-card');
+    expect(content!.value).to.include('View in Component Library');
   });
 
   it('Should provide additional details when hovering over a LWC attribute', async function() {
@@ -80,16 +78,36 @@ describe('LWC Hovers', function() {
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const instance = hoverInstances![0];
+    const content = findContentFromInstances(hoverInstances, '**title**');
 
-    expect(instance).to.have.property('contents');
-    expect(instance.contents).to.have.lengthOf.at.least(1);
+    expect(content).not.to.be.undefined;
+    expect(content).not.to.be.null;
 
-    const content = instance.contents![0] as MarkdownString;
-
-    expect(content.value).to.include('title');
-    expect(content.value).to.include(
+    expect(content!.value).to.include('title');
+    expect(content!.value).to.include(
       'The title can include text or another component, and is displayed in the header.'
     );
   });
 });
+
+/** Helper to find the expected hover content
+ *
+ * @param instances - hover instances
+ * @param expectedContent - content that is being searched for
+ * @returns the first content which includes the expected value || undefined
+ */
+function findContentFromInstances(instances: Hover[], expectedContent: string) {
+  for (const instance of instances) {
+    // type assertion to prevent using a deprecated type
+    const contents = instance!.contents as MarkdownString[];
+
+    const content = contents.find(content =>
+      content.value.includes(expectedContent)
+    );
+
+    // return the first found match
+    if (content) {
+      return content;
+    }
+  }
+}
