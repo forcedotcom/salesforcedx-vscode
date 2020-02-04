@@ -41,8 +41,22 @@ shell.exec('git clean -xfd -e node_modules');
 shell.exec(`git checkout -b ${releaseBranchName}`);
 
 // lerna version
-// --skip-npm to increment the version number in all packages but not publish to npmjs
-// This will make a commit in Git without generating a tag for the release
+// increment the version number in all packages without publishing to npmjs
+// only run on branch named release/vxx.xx.xx and do not create git tags
 shell.exec(
-  `lerna version --force-publish --allow-branch ${releaseBranchName} --no-git-tag-version --exact --repo-version ${nextVersion} --yes --skip-npm`
+  `lerna version ${nextVersion} --force-publish --allow-branch ${releaseBranchName} --no-git-tag-version --exact --yes`
 );
+
+// Using --no-git-tag-version prevents creating git tags but also prevents commiting
+// all the version bump changes so we'll now need to commit those using git add & commit.
+// Add all package.json version update changes
+shell.exec(`git add "**/package.json"`);
+
+// Add change to lerna.json
+shell.exec('git add lerna.json');
+
+// Git commit
+shell.exec(`git commit -m "Update to version ${nextVersion}"`);
+
+// Push new release branch to remote
+shell.exec(`git push -u origin ${releaseBranchName}`);
