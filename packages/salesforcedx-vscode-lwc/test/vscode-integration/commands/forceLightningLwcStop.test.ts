@@ -14,7 +14,7 @@ describe('forceLightningLwcStop', () => {
   let devService: DevServerService;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     devService = new DevServerService();
     sandbox.stub(DevServerService, 'instance').get(() => devService);
   });

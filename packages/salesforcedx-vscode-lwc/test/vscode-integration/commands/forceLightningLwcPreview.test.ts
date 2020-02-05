@@ -30,7 +30,7 @@ describe('forceLightningLwcPreview', () => {
   let showErrorMessageStub: sinon.SinonStub;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     devServiceStub = sinon.createStubInstance(DevServerService);
     sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
     openBrowserStub = sandbox.stub(commandUtils, 'openBrowser');
