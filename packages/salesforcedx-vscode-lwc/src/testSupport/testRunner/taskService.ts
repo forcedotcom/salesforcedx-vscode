@@ -43,7 +43,9 @@ export class SfdxTask {
   }
 
   public terminate() {
-    this.taskExecution!.terminate();
+    if (this.taskExecution) {
+      this.taskExecution.terminate();
+    }
     this.dispose();
   }
 
