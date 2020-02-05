@@ -60,6 +60,19 @@ class TestWatcher {
   }
 
   /**
+   * Stop watching all tests.
+   */
+  public stopWatchingAllTests() {
+    for (const [fsPath, watchTestTask] of this.watchedTests.entries()) {
+      if (watchTestTask) {
+        watchTestTask.terminate();
+      }
+      this.watchedTests.delete(fsPath);
+      this.setWatchingContext(vscode.Uri.file(fsPath));
+    }
+  }
+
+  /**
    * Determine if we are watching the test uri
    * @param testUri uri of the test
    */
@@ -76,7 +89,7 @@ class TestWatcher {
   public setWatchingContext(testUri: vscode.Uri) {
     if (
       vscode.window.activeTextEditor &&
-      vscode.window.activeTextEditor.document.uri === testUri
+      vscode.window.activeTextEditor.document.uri.fsPath === testUri.fsPath
     ) {
       vscode.commands.executeCommand(
         'setContext',
