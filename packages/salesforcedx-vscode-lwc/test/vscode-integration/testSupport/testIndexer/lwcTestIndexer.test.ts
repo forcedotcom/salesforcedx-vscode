@@ -212,7 +212,7 @@ describe('LWC Test Indexer', () => {
       });
       const testFileUriToChange = lwcTests[0];
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      expect(allTestFileInfo.length).to.equal(existingTestFileCount);
       return new Promise(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
@@ -237,7 +237,7 @@ describe('LWC Test Indexer', () => {
     it('should update index on test file change and merge existing test results if possible', async () => {
       const testFileUriToChange = lwcTests[0];
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      expect(allTestFileInfo.length).to.equal(existingTestFileCount);
 
       // Mock raw test results on test file info
       // This could be test results generated from previous runs,
