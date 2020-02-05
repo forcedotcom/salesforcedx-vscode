@@ -84,7 +84,7 @@ describe('forceLightningLwcStart', () => {
       let cliCommandExecutorStub: SinonStub;
 
       beforeEach(() => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
 
         openBrowserStub = sandbox.stub(commandUtils, 'openBrowser');
 
@@ -253,7 +253,7 @@ describe('forceLightningLwcStart', () => {
     let commandletStub: SinonStub;
 
     beforeEach(() => {
-      sandbox = sinon.sandbox.create();
+      sandbox = sinon.createSandbox();
 
       devServiceStub = sinon.createStubInstance(DevServerService);
       sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);

@@ -20,13 +20,17 @@ import {
 
 describe('LWC Test Indexer', () => {
   let lwcTests: URI[];
+  let existingTestFileCount: number;
+
   before(async () => {
     lwcTests = await vscode.workspace.findFiles(
       new vscode.RelativePattern(
         vscode.workspace.workspaceFolders![0],
-        '**/lwc/**/demoLwcComponent.test.js'
+        '**/lwc/**/*.test.js'
       )
     );
+
+    existingTestFileCount = lwcTests.length;
   });
 
   describe('Test Indexer File Watcher', () => {
@@ -102,7 +106,7 @@ describe('LWC Test Indexer', () => {
       createFileSystemWatcherStub.restore();
       parseStub.restore();
     });
-    const EXISTING_TEST_FILE_NUM = 1;
+
     function assertTestCasesMatch(
       actualTestFileInfo: TestFileInfo | undefined,
       expectedFilePath: string
@@ -130,7 +134,7 @@ describe('LWC Test Indexer', () => {
 
     it('should update index on test file create', async () => {
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      expect(allTestFileInfo.length).to.equal(existingTestFileCount);
 
       const mockFilePath = /^win32/.test(process.platform)
         ? 'C:\\Users\\tester\\mockNewFile.test.js'
@@ -140,7 +144,7 @@ describe('LWC Test Indexer', () => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
             allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-            expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM + 1);
+            expect(allTestFileInfo.length).to.equal(existingTestFileCount + 1);
 
             const createdTestFileInfo = allTestFileInfo.find(
               (testFileInfo: TestFileInfo) => {
@@ -177,7 +181,7 @@ describe('LWC Test Indexer', () => {
     it('should update index on test file change', async () => {
       const testFileUriToChange = lwcTests[0];
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      expect(allTestFileInfo.length).to.equal(existingTestFileCount);
       return new Promise(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
@@ -208,7 +212,7 @@ describe('LWC Test Indexer', () => {
       });
       const testFileUriToChange = lwcTests[0];
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      expect(allTestFileInfo.length).to.equal(existingTestFileCount);
       return new Promise(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
@@ -233,7 +237,7 @@ describe('LWC Test Indexer', () => {
     it('should update index on test file change and merge existing test results if possible', async () => {
       const testFileUriToChange = lwcTests[0];
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      expect(allTestFileInfo.length).to.equal(existingTestFileCount);
 
       // Mock raw test results on test file info
       // This could be test results generated from previous runs,
@@ -310,13 +314,13 @@ describe('LWC Test Indexer', () => {
 
     it('should update index on test file delete', async () => {
       let allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-      expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM);
+      expect(allTestFileInfo.length).to.equal(existingTestFileCount);
       const testFileUriToDelete = lwcTests[0];
       return new Promise(resolve => {
         const handleDidUpdateTestIndex = lwcTestIndexer.onDidUpdateTestIndex(
           async () => {
             allTestFileInfo = await lwcTestIndexer.findAllTestFileInfo();
-            expect(allTestFileInfo.length).to.equal(EXISTING_TEST_FILE_NUM - 1);
+            expect(allTestFileInfo.length).to.equal(existingTestFileCount - 1);
 
             const deletedTestFileInfo = allTestFileInfo.find(
               (testFileInfo: TestFileInfo) => {
