@@ -85,6 +85,7 @@
     ja: Apex
   baseUrl: /apex/
   children:
+<<<<<<< HEAD
     - title:
         en: Writing
         ja: 作成
@@ -121,6 +122,22 @@
     en: Aura
     ja: Aura
   baseUrl: /aura/
+=======
+    - title: Writing
+      url: /articles/apex/writing
+    - title: Testing
+      url: /articles/apex/testing
+    - title: Refactoring
+      url: /articles/apex/refactoring
+    - title: Replay Debugger
+      url: /articles/apex/replay-debugger
+    - title: Interactive Debugger
+      url: /articles/apex/interactive-debugger
+    - title: ISV Debugger
+      url: /articles/apex/isv-debugger
+- title: Aura
+  baseUrl: /articles/aura/
+>>>>>>> 17ab8b61... update Apex writing and testing
   children:
     - title:
         en: Overview
