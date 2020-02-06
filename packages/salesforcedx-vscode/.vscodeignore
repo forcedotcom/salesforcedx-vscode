@@ -1,2 +1,3 @@
-images/**
+images/**/*
+images/overview.gif
 !images/VSCodeBundle.png
