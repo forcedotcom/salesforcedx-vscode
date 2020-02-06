@@ -138,7 +138,7 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
       validateInput: value => {
-        return isAlphaNumSpaceString(value)
+        return isAlphaNumSpaceString(value) || value === ''
           ? null
           : nls.localize('error_invalid_org_alias');
       }
