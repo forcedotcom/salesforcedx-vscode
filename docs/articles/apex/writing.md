@@ -2,18 +2,29 @@
 title: Write Apex Code
 ---
 
-View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. The Apex extension is powered by the [Apex Language Server](language-server).
+Use the Apex extension for VS Code to access code-editing features such as code completion, go to definition, view outlines of Apex classes and triggers, refactoring, and find syntactic errors in your code.
 
-## View Code-Completion Suggestions
+## Code-Completion
 
-To see code-completion suggestions, press Ctrl+space when you’re working in a `.cls` or `.trigger` file. To navigate between the suggestions, use the arrow keys. To auto-complete a suggestion from the list, press Enter. To change how suggestions are pre-selected, see [IntelliSense - Suggestion selection](https://code.visualstudio.com/docs/editor/intellisense).
-![Animation showing code completion of a System.debug() statement](../../images/apex_completion.gif)
+Apex extension provides context-sensitive suggestions when you’re working in an Apex class or trigger. As you type, the auto-completion list of members such as, methods or variables pop up. The auto-completion list also displays the documentation for the suggestions. Use these keys:
 
-## Insert Code Snippets
+- Ctrl+space to view see code-completion suggestions
+- Arrow keys to navigate between the suggestions
+- Enter key to select from the suggestions
 
-To see available Apex code snippets when you’re working in a `.cls` or `.trigger` file, run **Insert Snippet**. Snippets are available for class and interface definitions, a variety of statements, and much more. These code snippets are also available as code-completion suggestions.
+![Animation showing code completion of PropertyController](../../images/apex_completion_with_doc.gif)
 
-## View or Jump to Definitions
+If you want to change how suggestions are pre-selected, see [IntelliSense - Suggestion selection](https://code.visualstudio.com/docs/editor/intellisense).
+
+## Code Snippets
+
+Apex extension provides code snippets for class and interface definitions, a variety of statements such as loops and conditional statements etc. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code-completion suggestions.
+
+If you want to define your own code snippets, read [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
+
+## Code Smartness for SObjects
+
+Apex extension provides code-completion suggestions for standard and custom objects. To make sure this code smartness feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette.
 
 You can preview, view, or go to definitions of:
 
@@ -26,51 +37,58 @@ You can preview, view, or go to definitions of:
   - Variables (local and class variables)
 - Standard objects
   - Fields (standard and custom fields)
-  - Object definitions
+  - Object definition
 - Custom objects
   - Fields
   - Object definitions
 
-(See the [Enable Code Smartness for SObjects](#enable-code-smartness-for-sobjects) section of this topic for information on working with standard and custom objects.)
+When you refresh SObject definitions, the extension uses the default org to generate Apex classes. These classes represent the standard and custom objects that the current user has access to. **Do not** edit these representative Apex classes, which are stored in a hidden directory on your local workstation.
 
-To preview a definition, hold down Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.
+Whenever you refresh SObject definitions, the representative Apex classes are deleted and regenerated. You can modify the SObjects either by updating the objects’ `.object-meta.xml` and `.field-meta.xml` files; Or by making changes declaratively in the default org. After modifying the SObjects, make sure to sync your local project and the default org.
 
-To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
+When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time, `SFDX: Refresh SObject Definitions` command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
 
-To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.  
+## Go To Definitions
+
+Apex extension provides go to definition support for user-defined Apex such as classes and methods, standard objects, and custom objects.
+
+- To preview a definition, press and hold Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.
+- To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
+- To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.
+
 ![Previewing, viewing, and jumping to a definition](../../images/apex_go_to_definition.gif)
 
 ## Find All References
 
-You can find all references to user-defined Apex:
+You can find all references to user-defined Apex such as Classes, Class variables, Enums, Interfaces, Methods, and Properties. To find references, select an item and press Shift+F12; Or right-click the item and select **Find All References**. The reference results are displayed in the left pane of the editor window.
 
-- Classes
-- Class variables
-- Enums
-- Interfaces
-- Methods
-- Properties
+## Outline View
 
-To find references to an item, right-click the item and select **Find All References**, or press Shift+F12.
+The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor.
 
-## Check Syntax Errors in Your Code
+- To view the list of the symbols in the file, press Ctrl+Shift+O (Windows or Linux) or Cmd+Shift+O (macOS).
+- To go to one of the symbols, select it from the list.
 
-If you leave out a `;`, `}`, or `)`, the syntax error is marked with a red squiggly line in the editor.
-
-The Problems view in the bottom pane also lists the syntax errors. Double-click the problem to go to the source file.  
-![Problems view, showing a missing semicolon in an Apex class](../../images/apex_problems.png)
-
-## View an Outline of Your Apex Class or Trigger
-
-The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor. For a list of the symbols in your file, press Ctrl+Shift+O (Windows or Linux) or Cmd+Shift+O (macOS). To jump to one of the symbols, select it in the list.  
 ![Outline view, showing the symbols in an Apex class](../../images/apex_outline.png)
 
-## Enable Code Smartness for SObjects
+## Syntax Errors
 
-To activate the Apex extension’s code smartness features for standard and custom objects and their fields, including for custom fields on standard objects, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS), and then select **SFDX: Refresh SObject Definitions** from the command palette.
+Any syntax errors such as a missing semi-colon or a bracket are marked with a red squiggly line in the editor. The Problems panel also lists the syntax errors. To go to the source file with the syntax error, double-click the error.
 
-When you refresh your sObject definitions, VS Code uses your default org to generate faux Apex classes. These faux classes represent the standard and custom objects that the admin user has access to for your default scratch org, or the logged-in user of your sandbox or DE org. The classes are stored in a hidden directory on your local workstation. Don’t edit the faux classes! They are deleted and regenerated each time that you refresh your sObject definitions. To modify your sObjects, either modify the objects’ `.object-meta.xml` and `.field-meta.xml` files (and then run **SFDX: Push Source to Default Scratch Org** or **SFDX: Deploy Source to Org**), or make changes declaratively in your org (and then run **SFDX: Pull Source from Default Scratch Org** or **SFDX: Retrieve Source from Org**). Your user doesn’t automatically gain access to new custom objects, so be sure to assign new permissions to the user as necessary. To assign permissions from the command line, run `sfdx force:user:permset:assign -n YourPermSetName`.
+![Problems view, showing a missing semicolon in an Apex class](../../images/apex_problems.png)
 
-The first time you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack), if your project doesn’t contain any faux classes we run **SFDX: Refresh SObject Definitions** for you in the background.
+## Quick Fix
 
-After you add or edit standard or custom objects or their fields, be sure to rerun **SFDX: Refresh SObject Definitions**.
+When you reference a method that isn’t declared in your source, use the Quick Fix widget to automatically declare the method.
+
+To invoke the Declare Missing Methods quick fix in VS Code, use one these ways:
+
+- When you click the name of an undeclared method, a lightbulb appears on the left side of the editor window. Click the lightbulb and then click **Create method ‘yourMethod’ in ‘yourClass‘** to make the quick fix.
+
+![GIF showing declare missing methods quick fix invocation via lightbulb](../../images/declare-missing-methods-1.gif)
+
+- Hover over the method name and click **Quick Fix** in the pop-up window. Then, click **Create method ‘yourMethod’ in ‘yourClass‘** to make the quick fix.
+
+![GIF showing declare missing methods quick fix invocation via window popup](../../images/declare-missing-methods-2.gif)
+
+> Note: Keyboard shortcut for the Quick Fix widget is Cmd+. in macOS and Ctrl+. in Windows and Linux.
