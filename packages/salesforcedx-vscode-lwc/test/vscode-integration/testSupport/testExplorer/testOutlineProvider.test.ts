@@ -104,6 +104,7 @@ describe('LWC Test Outline Provider', () => {
     let lwcTestUri: URI;
     let outlineProvder: SfdxTestOutlineProvider;
     let actualFileNodes: SfdxTestGroupNode[];
+    let actualFileNode: SfdxTestGroupNode;
     let actualTestCaseNodes: SfdxTestNode[];
     before(async () => {
       lwcTests = await vscode.workspace.findFiles(
@@ -119,9 +120,10 @@ describe('LWC Test Outline Provider', () => {
       testCaseFailureResult.testResults[0].name = lwcTestUri.fsPath;
       outlineProvder = new SfdxTestOutlineProvider();
       actualFileNodes = await outlineProvder.getChildren();
-      actualTestCaseNodes = await outlineProvder.getChildren(
-        actualFileNodes[0]
-      );
+      actualFileNode = actualFileNodes.find(
+        node => node.description === 'demoLwcComponent'
+      )!;
+      actualTestCaseNodes = await outlineProvder.getChildren(actualFileNode);
     });
 
     let activeTextEditorStub: SinonStub;
@@ -158,8 +160,6 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should provide test file nodes and test cases nodes', async () => {
-      expect(actualFileNodes.length).to.equal(1);
-      const actualFileNode = actualFileNodes[0];
       const expectedFileNode = {
         label: 'demoLwcComponent',
         description: 'demoLwcComponent',
@@ -212,10 +212,10 @@ describe('LWC Test Outline Provider', () => {
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
             actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNodes[0]
+              actualFileNode
             );
             expect(
-              actualFileNodes[0].testExecutionInfo!.testResult!.status
+              actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
             expect(
               actualTestCaseNodes[0].testExecutionInfo!.testResult!.status
@@ -231,7 +231,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run tests from test file nodes', async () => {
-      const commandResult = (await forceLwcTestFileRun(actualFileNodes[0] as {
+      const commandResult = (await forceLwcTestFileRun(actualFileNode as {
         testExecutionInfo: TestExecutionInfo;
       })) as SfdxTask;
       commandResult.onDidEnd(() => {
@@ -242,10 +242,10 @@ describe('LWC Test Outline Provider', () => {
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
             actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNodes[0]
+              actualFileNode
             );
             expect(
-              actualFileNodes[0].testExecutionInfo!.testResult!.status
+              actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
             expect(
               actualTestCaseNodes[0].testExecutionInfo!.testResult!.status
@@ -261,7 +261,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should navigate to test file from test file nodes', () => {
-      forceLwcTestNavigateToTest(actualFileNodes[0]);
+      forceLwcTestNavigateToTest(actualFileNode);
       assert.calledOnce(showTextDocumentStub);
       assert.calledOnce(revealRangeStub);
       assert.calledWith(
@@ -288,7 +288,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a successful test case node', async () => {
-      const commandResult = (await forceLwcTestCaseRun(actualFileNodes[0] as {
+      const commandResult = (await forceLwcTestCaseRun(actualFileNode as {
         testExecutionInfo: TestExecutionInfo;
       })) as SfdxTask;
       commandResult.onDidEnd(() => {
@@ -299,10 +299,10 @@ describe('LWC Test Outline Provider', () => {
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
             actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNodes[0]
+              actualFileNode
             );
             expect(
-              actualFileNodes[0].testExecutionInfo!.testResult!.status
+              actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.PASSED);
             expect(
               actualTestCaseNodes[0].testExecutionInfo!.testResult!.status
@@ -318,7 +318,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should run test from a failed test case node and generates diagnostics for the test uri', async () => {
-      const commandResult = (await forceLwcTestCaseRun(actualFileNodes[0] as {
+      const commandResult = (await forceLwcTestCaseRun(actualFileNode as {
         testExecutionInfo: TestExecutionInfo;
       })) as SfdxTask;
       commandResult.onDidEnd(() => {
@@ -329,10 +329,10 @@ describe('LWC Test Outline Provider', () => {
           async () => {
             actualFileNodes = await outlineProvder.getChildren();
             actualTestCaseNodes = await outlineProvder.getChildren(
-              actualFileNodes[0]
+              actualFileNode
             );
             expect(
-              actualFileNodes[0].testExecutionInfo!.testResult!.status
+              actualFileNode.testExecutionInfo!.testResult!.status
             ).to.equal(TestResultStatus.FAILED);
             expect(
               actualTestCaseNodes[0].testExecutionInfo!.testResult!.status
@@ -356,22 +356,25 @@ describe('LWC Test Outline Provider', () => {
 
     it('Should refresh test explorer', async () => {
       lwcTestIndexer.updateTestResults(testCaseSuccessResult);
+
       actualFileNodes = await outlineProvder.getChildren();
-      actualTestCaseNodes = await outlineProvder.getChildren(
-        actualFileNodes[0]
-      );
+      actualFileNode = actualFileNodes.find(
+        node => node.description === 'demoLwcComponent'
+      )!;
+      actualTestCaseNodes = await outlineProvder.getChildren(actualFileNode);
+
       expect(
         actualTestCaseNodes[0].testExecutionInfo!.testResult!.status
       ).to.equal(TestResultStatus.PASSED);
       forceLwcTestRefreshTestExplorer();
 
       actualFileNodes = await outlineProvder.getChildren();
-      actualTestCaseNodes = await outlineProvder.getChildren(
-        actualFileNodes[0]
-      );
-      expect(actualFileNodes[0].testExecutionInfo!.testResult).to.equal(
-        undefined
-      );
+      actualFileNode = actualFileNodes.find(
+        node => node.description === 'demoLwcComponent'
+      )!;
+      actualTestCaseNodes = await outlineProvder.getChildren(actualFileNode);
+
+      expect(actualFileNode.testExecutionInfo!.testResult).to.equal(undefined);
       expect(actualTestCaseNodes[0].testExecutionInfo!.testResult).to.equal(
         undefined
       );
