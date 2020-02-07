@@ -37,8 +37,6 @@ Here's reference documentation for the `lightning:card` component.
 
 Linting provides errors about malformed or suspicious-looking code while you edit. VS Code enforces Salesforce's ESLint rules. To activate ESLint, install it from the command line. See the [Lightning Web Components ESLint Plugin](https://github.com/salesforce/eslint-plugin-lwc) and [Lightning Web Components ESLint Config](https://github.com/salesforce/eslint-config-lwc) repositories for instructions. 
 
-In this example, when hovering over `onpress`, the linter reports that you cannot name an API property starting with "on."
-
 > NOTE: The linter throws an error when you include templating code inside of a CSS `style` tag. For example, this code sample will throw an error `<div style="{# 'background-image:url(' + v.url+ ')'}"> ... </div>`. The linter tries to validate the templating code as CSS. This is a known issue in the Aura LSP we are working to solve.
 
 ## Code Navigation
