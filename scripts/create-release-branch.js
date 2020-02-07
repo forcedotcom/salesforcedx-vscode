@@ -20,9 +20,11 @@ if (!nextVersion) {
   const [version, major, minor, patch] = nextVersion.match(
     /^(\d+)\.(\d+)\.(\d+)$/
   );
-  const currentBranch = shell.exec('git rev-parse --abbrev-ref HEAD', {
-    silent: true
-  }).stdout;
+  const currentBranch = shell
+    .exec('git rev-parse --abbrev-ref HEAD', {
+      silent: true
+    })
+    .stdout.trim();
 
   if (currentBranch !== 'develop') {
     console.log(
@@ -33,6 +35,23 @@ if (!nextVersion) {
 }
 
 const releaseBranchName = `release/v${nextVersion}`;
+
+// Check if release branch has already been created
+const isRemoteReleaseBranchExist = shell
+  .exec(
+    `git ls-remote --heads git@github.com:forcedotcom/salesforcedx-vscode.git ${releaseBranchName}`,
+    {
+      silent: true
+    }
+  )
+  .stdout.trim();
+
+if (isRemoteReleaseBranchExist) {
+  console.log(
+    `${releaseBranchName} already exists in remote. You might want to verify the value assigned to SALESFORCEDX_VSCODE_VERSION`
+  );
+  process.exit(-1);
+}
 
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
