@@ -32,7 +32,7 @@
     "jest-regex-util": "^24.9.0",
     "lightning-lsp-common": "2.2.7",
     "lwc-language-server": "2.2.7",
-    "rxjs": "^5.4.1",
+    "rxjs": "^6.5.4",
     "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
     "vscode-extension-telemetry": "0.0.17",
