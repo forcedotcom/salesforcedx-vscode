@@ -119,9 +119,9 @@
   baseUrl: /aura/
   children:
     - title:
-        en: Writing
+        en: Overview
         jp: 作成
-      url: /aura/writing
+      url: /aura/write-aura
 - title:
     en: Lightning Web Components
     jp: Lightning Web コンポーネント
