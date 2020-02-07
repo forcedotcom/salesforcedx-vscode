@@ -3,12 +3,6 @@ title: Write Aura Components
 lang: en
 ---
 
-## Syntax Highlighting
-
-The Aura Components Extension offers syntax highlighting for Aura markup, HTML, CSS, and JavaScript on .cmp, .component, .app files and more. This example shows syntax highlighting for JavaScript.
-
-![Colored syntax highlighting in a .js file from an Aura bundle](./images/V2_lightning_syntax.png)
-
 ## Code Completion
 
 Invoke code completion with Ctrl+Space when you’re working with Aura markup. View additional information about tag names and attributes directly in the editor.
