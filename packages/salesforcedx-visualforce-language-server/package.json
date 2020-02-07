@@ -11,7 +11,7 @@
     "@salesforce/salesforcedx-visualforce-markup-language-server": "47.17.1",
     "typescript": "3.1.6",
     "vscode-css-languageservice": "2.1.9",
-    "vscode-languageserver": "5.2.1",
+    "vscode-languageserver": "6.1.0",
     "vscode-languageserver-protocol": "3.14.1",
     "vscode-languageserver-types": "3.14.0",
     "vscode-nls": "2.0.2",
