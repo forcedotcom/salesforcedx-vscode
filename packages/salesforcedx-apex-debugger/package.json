@@ -14,7 +14,7 @@
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "47.17.1",
     "async-lock": "1.0.0",
-    "faye": "1.1.2",
+    "faye": "1.2.4",
     "request-light": "0.2.4",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0"
