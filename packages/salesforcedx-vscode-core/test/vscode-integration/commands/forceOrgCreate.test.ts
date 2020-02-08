@@ -59,6 +59,30 @@ describe('Force Org Create', () => {
       }
     });
 
+    it('Should consider an empty string as valid input for the alias', async () => {
+      inputBoxSpy.onCall(0).returns('');
+      inputBoxSpy.onCall(1).returns('');
+      await new AliasGatherer().gather();
+      const opts = inputBoxSpy.getCall(0).args[0] as vscode.InputBoxOptions;
+      if (opts.validateInput) {
+        expect(opts.validateInput('')).to.be.null;
+      } else {
+        expect.fail('Alias input should have a validate function');
+      }
+    });
+
+    it('Should consider an empty string as valid input for the expiration days', async () => {
+      inputBoxSpy.onCall(0).returns('');
+      inputBoxSpy.onCall(1).returns('');
+      await new AliasGatherer().gather();
+      const opts = inputBoxSpy.getCall(1).args[0] as vscode.InputBoxOptions;
+      if (opts.validateInput) {
+        expect(opts.validateInput('')).to.be.null;
+      } else {
+        expect.fail('Expiration days input should have a validate function');
+      }
+    });
+
     it('Should return Continue with inputted alias if user input is not undefined or empty', async () => {
       inputBoxSpy.onCall(0).returns(TEST_ALIAS);
       inputBoxSpy.onCall(1).returns(TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY);
@@ -71,6 +95,19 @@ describe('Force Org Create', () => {
         expect(response.data.expirationDays).to.equal(
           TEST_ORG_EXPIRATION_DAYS_PLUS_ONE_DAY
         );
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return Continue with default scratch org expiration days if input is empty string', async () => {
+      inputBoxSpy.onCall(0).returns(TEST_ALIAS);
+      inputBoxSpy.onCall(1).returns('');
+      const gatherer = new AliasGatherer();
+      const response = await gatherer.gather();
+      expect(inputBoxSpy.callCount).to.equal(2);
+      if (response.type === EVENT_CONTINUE) {
+        expect(response.data.expirationDays).to.equal(TEST_ORG_EXPIRATION_DAYS);
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }

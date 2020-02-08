@@ -50,7 +50,7 @@ export const DEFAULT_EXPIRATION_DAYS = '7';
 
 export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
   AliasAndFileSelection
-  > {
+> {
   public build(data: AliasAndFileSelection): Command {
     const selectionPath = path.relative(
       getRootWorkspacePath(), // this is safe because of workspaceChecker
@@ -129,16 +129,19 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
     const defaultExpirationdate = DEFAULT_EXPIRATION_DAYS;
     let defaultAlias = DEFAULT_ALIAS;
     if (hasRootWorkspace()) {
-      defaultAlias = getRootWorkspace().name.replace(
+      const folderName = getRootWorkspace().name.replace(
         /\W/g /* Replace all non-alphanumeric characters */,
         ''
       );
+      defaultAlias = isAlphaNumSpaceString(folderName)
+        ? folderName
+        : DEFAULT_ALIAS;
     }
     const aliasInputOptions = {
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       placeHolder: defaultAlias,
       validateInput: value => {
-        return isAlphaNumSpaceString(value)
+        return isAlphaNumSpaceString(value) || value === ''
           ? null
           : nls.localize('error_invalid_org_alias');
       }
@@ -152,9 +155,9 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       prompt: nls.localize(
         'parameter_gatherer_enter_scratch_org_expiration_days'
       ),
-      value: defaultExpirationdate,
+      placeHolder: defaultExpirationdate,
       validateInput: value => {
-        return isIntegerInRange(value, [1, 30])
+        return isIntegerInRange(value, [1, 30]) || value === ''
           ? null
           : nls.localize('error_invalid_expiration_days');
       }
@@ -169,7 +172,10 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
       type: 'CONTINUE',
       data: {
         alias: alias === '' ? defaultAlias : alias,
-        expirationDays: scratchOrgExpirationInDays
+        expirationDays:
+          scratchOrgExpirationInDays === ''
+            ? defaultExpirationdate
+            : scratchOrgExpirationInDays
       }
     };
   }
