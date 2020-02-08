@@ -12,7 +12,7 @@ shell.set('+v');
  * 2. The script is running in the right branch (e.g., release/vxx.y.z)
  *
  * Instructions:
- * Run this script with SALESFORCEDX_VSCODE_VERSION as an environment variable
+ * Run this script with SALESFORCEDX_VSCODE_VERSION, CIRCLECI_TOKEN & CIRCLECI_BUILD as environment variables
  * i.e. SALESFORCEDX_VSCODE_VERSION=x.y.z ./scripts/publish.js
  *
  */
@@ -58,7 +58,9 @@ if (awsExitCode !== 0) {
 }
 
 // Checks that you have access to the salesforce publisher
-const publishers = shell.exec('vsce ls-publishers', { silent: true }).stdout;
+const publishers = shell
+  .exec('vsce ls-publishers', { silent: true })
+  .stdout.trim();
 if (!publishers.includes('salesforce')) {
   console.log(
     'You do not have the vsce command line installed or you do not have access to the salesforce publisher id as part of vsce.'
@@ -68,6 +70,7 @@ if (!publishers.includes('salesforce')) {
 
 // Checks that you have specified the next version as an environment variable, and that it's properly formatted.
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
+const releaseBranchName = `release/v${nextVersion}`;
 if (!nextVersion) {
   console.log(
     'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
@@ -77,25 +80,22 @@ if (!nextVersion) {
   const [version, major, minor, patch] = nextVersion.match(
     /^(\d+)\.(\d+)\.(\d+)$/
   );
-  const currentBranch = shell.exec('git rev-parse --abbrev-ref HEAD', {
-    silent: true
-  }).stdout;
+  const currentBranch = shell
+    .exec('git rev-parse --abbrev-ref HEAD', {
+      silent: true
+    })
+    .stdout.trim();
 
-  if (!currentBranch.includes('/v' + nextVersion)) {
+  if (!currentBranch !== releaseBranchName) {
     console.log(
-      `You must execute this script in a release branch including SALESFORCEDX_VSCODE_VERSION (e.g, release/v${nextVersion} or hotfix/v${nextVersion})`
+      `You must execute this script in a release branch, you are currently running the script on branch ${currentBranch}`
     );
     process.exit(-1);
   }
 }
 
-// Real-clean
-shell.exec('git clean -xfd -e node_modules');
-
-// Install and bootstrap
-shell.exec('npm install');
-
 // Download vsix files from CircleCI
+shell.exec('./scripts/download-vsix-from-circleci.js');
 
 // Generate the SHA256 and append to the file
 shell.exec(`npm run vscode:sha256`);
