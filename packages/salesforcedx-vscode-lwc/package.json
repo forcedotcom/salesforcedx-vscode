@@ -27,7 +27,7 @@
     "@salesforce/eslint-config-lwc": "0.3.0",
     "@salesforce/salesforcedx-utils-vscode": "47.17.1",
     "ajv": "^6.1.1",
-    "eslint": "5.0.0",
+    "eslint": "6.8.0",
     "jest-editor-support": "^26.0.0-beta",
     "jest-regex-util": "^24.9.0",
     "lightning-lsp-common": "2.2.7",
