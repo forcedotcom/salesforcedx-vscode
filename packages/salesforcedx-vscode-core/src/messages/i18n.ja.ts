@@ -286,7 +286,7 @@ export const messages = {
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
-  error_invalid_org_alias: '別名にはアンダースコアと英数字のみを使用できます。',
+  error_invalid_org_alias: '別名にはアンダースコア、スペースと英数字のみを使用できます。',
   error_invalid_expiration_days:
     '日数には 1 から 30 までの数値を指定してください。',
   error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
