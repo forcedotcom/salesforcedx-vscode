@@ -2,13 +2,13 @@
 title: Apex Tests
 ---
 
-Apex extension allows you run Apex tests to verify the functionality of your code. You can retrieve code coverage results for your Apex classes and triggers every time you run one or more tests. To do this, edit your workspace settings and set `salesforcedx-vscode-core.retrieve-test-code-coverage` to **true**.
+Apex extension allows you to run Apex tests to verify the functionality of your code. You can retrieve code coverage results for your Apex classes and triggers every time you run one or more tests. To do this, [edit your workspace settings](https://code.visualstudio.com/docs/getstarted/settings) and set `salesforcedx-vscode-core.retrieve-test-code-coverage` to **true**.
 
-## Explore Apex Tests
+## Explore Your Apex Tests
 
-Apex Tests view in the Side Bar provides several features for working with your tests such as run one test method, test methods in one class, or all your tests. To access Apex Tests view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory.
+The Test view in the Side Bar provides several features such as LWC Tests and Apex Tests. To access the Test view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory. If the Test view is empty, check if the [Java setup](../getting-started/java-setup) is configured correctly.
 
-The Apex Tests view lists all the Apex tests and allows you to:
+Use the Apex Tests feature to run one test method, test methods in one class, or all your Apex tests.
 
 - Run Tests
 
@@ -23,15 +23,19 @@ After you run Apex tests, SFDX: Re-Run Last Invoked Apex Test Class and SFDX: Re
   - For passing tests, the blue icons next to the classes and methods change to green icons.
   - For failing test, the icons turn red.
 
-You can view the test details by hovering over the test class name.
+To see the details of your test runs, hover over the name of a test class in the Side Bar.
 
 - Go to Test Class Definitions
 
-To jump to the definition of a test class, a test method that passed, or a method that you haven’t run yet, click its name. If you click the name of a failed test method, you jump to the assert statement that failed.
+To jump to the definition of a test class, a test method that passed, or a method that you haven’t run yet, click its name. If you click the name of a failed test method, you jump to the line where the failure occurred.
 
 - Clear Test Results
 
 To clear the test results, click the refresh icon at the top of the Apex Tests view (hover text: Refresh Tests).
+
+- Refresh Apex Tests View
+
+If you've added methods or classes since the last time the Test view was populated, click the refresh icon at the top of the Apex Tests view for the updated list.
 
 ## Run Apex Tests from Within a File
 

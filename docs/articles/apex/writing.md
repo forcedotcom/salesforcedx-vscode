@@ -14,17 +14,17 @@ Apex extension provides context-sensitive suggestions when you’re working in a
 
 ![Animation showing code completion of PropertyController](../../images/apex_completion_with_doc.gif)
 
-If you want to change how suggestions are pre-selected, see [IntelliSense - Suggestion selection](https://code.visualstudio.com/docs/editor/intellisense).
+If you want to change how suggestions are pre-selected, see [IntelliSense - Suggestion selection](https://code.visualstudio.com/docs/editor/intellisense#_customizing-intellisense).
 
 ## Code Snippets
 
-Apex extension provides code snippets for class and interface definitions, a variety of statements such as loops and conditional statements etc. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code-completion suggestions.
+Code snippets are available for scaffolding class and interface definitions, a variety of statements such as loops and conditional statements etc. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code-completion suggestions.
 
 If you want to define your own code snippets, read [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
 
 ## Code Smartness for SObjects
 
-Apex extension provides code-completion suggestions for standard and custom objects. To make sure this code smartness feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette.
+To ensure that the code smartness feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette.
 
 You can preview, view, or go to definitions of:
 
@@ -37,16 +37,16 @@ You can preview, view, or go to definitions of:
   - Variables (local and class variables)
 - Standard objects
   - Fields (standard and custom fields)
-  - Object definition
+  - Object definitions
 - Custom objects
   - Fields
   - Object definitions
 
-When you refresh SObject definitions, the extension uses the default org to generate Apex classes. These classes represent the standard and custom objects that the current user has access to. **Do not** edit these representative Apex classes, which are stored in a hidden directory on your local workstation.
+When you refresh SObject definitions, the extension uses the default org to generate Apex classes. These classes represent the standard and custom objects that the current user has access to. We recommend that you don’t edit these representative Apex classes because these classes are intended to be read-only. If they’re modified, it may impact the auto-completion suggestions. Also, the changes are lost when you refresh the SObject definitions.
 
 Whenever you refresh SObject definitions, the representative Apex classes are deleted and regenerated. You can modify the SObjects either by updating the objects’ `.object-meta.xml` and `.field-meta.xml` files; Or by making changes declaratively in the default org. After modifying the SObjects, make sure to sync your local project and the default org.
 
-When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time, `SFDX: Refresh SObject Definitions` command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
+When you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack) for the first time and the `salesforcedx-vscode-apex.enable-sobject-refresh-on-startup` setting is enabled, `SFDX: Refresh SObject Definitions` command is executed automatically if your project doesn’t contain any Apex classes. After you add or edit standard or custom objects or their fields, make sure to run this command.
 
 ## Go To Definitions
 
@@ -70,6 +70,8 @@ The Apex outline view shows the structure of the Apex class or trigger that’s 
 - To go to one of the symbols, select it from the list.
 
 ![Outline view, showing the symbols in an Apex class](../../images/apex_outline.png)
+
+The Explorer in the Side Bar also provides an Outline view to assist you while working on your project.
 
 ## Syntax Errors
 
