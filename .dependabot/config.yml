@@ -1,0 +1,18 @@
+version: 1
+update_configs:
+  - package_manager: "javascript"
+    directory: "/packages/salesforcedx-vscode-lwc"
+    update_schedule: "daily"
+    allowed_updates:
+      - match:
+          dependency_name: "@lwc/*"
+      - match:
+          dependency_name: "@salesforce/*"
+  - package_manager: "javascript"
+    directory: "/packages/salesforcedx-vscode-lightning"
+    update_schedule: "daily"
+    allowed_updates:
+      - match:
+          dependency_name: "@lwc/*"
+      - match:
+          dependency_name: "@salesforce/*"
