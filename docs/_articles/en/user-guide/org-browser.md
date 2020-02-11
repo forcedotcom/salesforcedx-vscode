@@ -7,7 +7,7 @@ The Org Browser displays the available metadata types and their corresponding co
 
 ## Opening the Org Browser
 
-![Org Browser Overview](./images/org_browser_overview.png)
+![Org Browser Overview](./images/org_browser_overview1.png)
 
 1. Open Org Browser
 2. Refresh available metadata types in the org
