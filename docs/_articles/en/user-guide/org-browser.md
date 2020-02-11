@@ -16,6 +16,7 @@ The Org Browser displays the available metadata types and their corresponding co
 5. Metadata component
 6. Refresh components for metadata type
 7. Retrieve source for metadata component
+8. Retrieve source for metadata type
 
 To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./en/user-guide/default-org/) is set to a non-scratch org.
 
@@ -34,9 +35,14 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 
 ![Metadata type with folders](./images/org_browser_folders.png)
 
-## Retrieving Components
+## Retrieving Metadata
 
-You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](./en/getting-started/first-project#the-sfdx-projectjson-file) file.
+You can retrieve a metadata component or all metadata of the same type. Click retrieve icon next to:
+
+- component name **(7)** to retrieve a component to your local project
+- metadata type **(8)** to retrive all components of the type
+
+Currently, the source is retrieved into your default package directory as defined in the [sfdx-project.json](./en/getting-started/first-project#the-sfdx-projectjson-file) file.
 
 You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you'll be prompted to select how to proceed.
 
