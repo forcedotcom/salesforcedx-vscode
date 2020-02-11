@@ -27,6 +27,7 @@ Source Diff currently supports the following metadata:
 - Aura Event
 - Aura Interface
 - Aura Token
+- Custom Labels
 - Lightning Web Component
-- Visualforce Page
 - Visualforce Component
+- Visualforce Page
