@@ -62,7 +62,7 @@ describe('Conflict Detection Service', () => {
 });
 
 describe('Conflict Detection Service Execution', () => {
-  const TEST_ROOT = path.join(
+  const PROJ_ROOT = path.join(
     __dirname,
     '..',
     '..',
@@ -72,8 +72,18 @@ describe('Conflict Detection Service Execution', () => {
     'vscode-integration',
     'conflict'
   );
-  const TEST_DATA_FOLDER = path.join(TEST_ROOT, 'testdata');
-  const PROJECT_DIR = path.join(TEST_ROOT, 'conflict-proj');
+  const TEST_DATA_FOLDER = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    '..',
+    'system-tests',
+    'assets',
+    'proj-testdata'
+  );
+  const PROJECT_DIR = path.join(PROJ_ROOT, 'conflict-proj');
 
   let workspaceStub: sinon.SinonStub;
   let executor: ConflictDetector;
@@ -88,6 +98,7 @@ describe('Conflict Detection Service Execution', () => {
   afterEach(() => {
     executeCommandSpy.restore();
     workspaceStub!.restore();
+    shell.rm('-rf', PROJECT_DIR);
   });
 
   it('Should find differences', async () => {
@@ -124,7 +135,7 @@ describe('Conflict Detection Service Execution', () => {
     const results = await executor.checkForConflicts(input);
     expect(executeCommandSpy.callCount).to.equal(2);
     expect(results.different).to.have.keys([
-      path.join('main', 'default', 'classes', 'HandlerCostCenter.cls')
+      path.normalize('main/default/classes/HandlerCostCenter.cls')
     ]);
 
     // verify temp file cleanup
