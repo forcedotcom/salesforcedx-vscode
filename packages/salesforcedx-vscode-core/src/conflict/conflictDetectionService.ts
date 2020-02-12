@@ -227,13 +227,9 @@ export class ConflictDetector {
 
   private reportError(messageKey: string, error: Error) {
     console.error(error);
-    channelService.appendLine(nls.localize(messageKey, error.toString()));
-    notificationService.showErrorMessage(
-      nls.localize(messageKey, error.toString())
-    );
-    telemetryService.sendException(
-      'ConflictDetectionException',
-      error.toString()
-    );
+    const errorMsg = nls.localize(messageKey, error.toString());
+    channelService.appendLine(errorMsg);
+    notificationService.showErrorMessage(errorMsg);
+    telemetryService.sendException('ConflictDetectionException', errorMsg);
   }
 }

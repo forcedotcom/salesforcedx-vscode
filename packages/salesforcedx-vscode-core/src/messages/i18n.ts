@@ -483,9 +483,9 @@ export const messages = {
   conflict_detect_convert_org_source:
     'Conflict Detection: converting org source',
   conflict_detect_conflicts_during_deploy:
-    'Conflicts were detected during the metadata deploy',
+    'Conflicts were detected during metadata deploy. The files are listed in the output view.',
   conflict_detect_conflicts_during_retrieve:
-    'Conflicts were detected during the metadata retrieve',
+    'Conflicts were detected during metadata retrieve. The files are listed in the output view.',
   conflict_detect_override: 'Overwrite Conflicts',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
