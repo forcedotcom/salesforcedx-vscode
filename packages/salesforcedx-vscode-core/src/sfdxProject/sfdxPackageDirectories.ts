@@ -67,4 +67,19 @@ export default class SfdxPackageDirectories {
     }
     return filePathIsInPackageDirectory;
   }
+
+  public static async getDefaultPackageDir(): Promise<string | undefined> {
+    let packageDirs: string[] = [];
+    try {
+      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    } catch (e) {
+      if (
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
+      ) {
+        throw e;
+      }
+    }
+    return packageDirs && packageDirs.length ? packageDirs[0] : undefined;
+  }
 }

@@ -6,21 +6,28 @@
  */
 import {
   ContinueResponse,
-  DirFileNameSelection,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as fs from 'fs';
-import { join } from 'path';
+import { join, normalize } from 'path';
 import { sandbox, SinonStub } from 'sinon';
-import { Uri, workspace } from 'vscode';
+import { channelService } from '../../../../src/channels';
 import {
+  ConflictDetectionChecker,
+  ConflictDetectionMessages,
   EmptyPostChecker,
   OverwriteComponentPrompt,
   PathStrategyFactory
 } from '../../../../src/commands/util';
+import {
+  conflictDetector,
+  DirectoryDiffResults
+} from '../../../../src/conflict';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
+import { sfdxCoreSettings } from '../../../../src/settings';
+import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';
 import { MetadataDictionary } from '../../../../src/util/metadataDictionary';
 
@@ -282,5 +289,164 @@ describe('Postcondition Checkers', () => {
       );
       existsStub.withArgs(path).returns(value);
     }
+  });
+
+  describe('ConflictDetectionChecker', () => {
+    let modalStub: SinonStub;
+    let settingsStub: SinonStub;
+    let detectorStub: SinonStub;
+    let appendLineStub: SinonStub;
+    let channelOutput: string[] = [];
+
+    beforeEach(() => {
+      channelOutput = [];
+      modalStub = env.stub(notificationService, 'showWarningModal');
+      settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
+      detectorStub = env.stub(conflictDetector, 'checkForConflicts');
+      appendLineStub = env.stub(channelService, 'appendLine');
+      appendLineStub.callsFake(line => channelOutput.push(line));
+    });
+
+    afterEach(() => env.restore());
+
+    const emptyMessages: ConflictDetectionMessages = {
+      warningMessageKey: '',
+      commandHint: i => i
+    };
+
+    const retrieveMessages: ConflictDetectionMessages = {
+      warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
+      commandHint: i => i
+    };
+
+    const validInput: ContinueResponse<string> = {
+      type: 'CONTINUE',
+      data: 'package.xml'
+    };
+
+    it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+      const postChecker = new ConflictDetectionChecker(emptyMessages);
+      const response = await postChecker.check({ type: 'CANCEL' });
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return ContinueResponse unchanged if input is ContinueResponse & conflict detection is disabled', async () => {
+      const postChecker = new ConflictDetectionChecker(emptyMessages);
+
+      settingsStub.returns(false);
+      const response = await postChecker.check(validInput);
+
+      expect(response.type).to.equal('CONTINUE');
+      if (response.type === 'CONTINUE') {
+        expect(response.data).to.equal('package.xml');
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return CancelResponse when a username is not defined.', async () => {
+      const postChecker = new ConflictDetectionChecker(emptyMessages);
+      const usernameStub = env
+        .stub(postChecker, 'getDefaultUsernameOrAlias')
+        .returns(undefined);
+      settingsStub.returns(true);
+
+      const response = await postChecker.check(validInput);
+      expect(response.type).to.equal('CANCEL');
+      expect(usernameStub.calledOnce).to.equal(true);
+    });
+
+    it('Should return CancelResponse when a default package directory is not defined.', async () => {
+      const postChecker = new ConflictDetectionChecker(emptyMessages);
+      const usernameStub = env
+        .stub(postChecker, 'getDefaultUsernameOrAlias')
+        .returns('MyAlias');
+      const packageDirStub = env
+        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
+        .returns(undefined);
+      settingsStub.returns(true);
+
+      const response = await postChecker.check(validInput);
+      expect(response.type).to.equal('CANCEL');
+      expect(usernameStub.calledOnce).to.equal(true);
+      expect(packageDirStub.calledOnce).to.equal(true);
+    });
+
+    it('Should return ContinueResponse when no conflicts are detected', async () => {
+      const postChecker = new ConflictDetectionChecker(emptyMessages);
+      settingsStub.returns(true);
+      env.stub(postChecker, 'getDefaultUsernameOrAlias').returns('MyAlias');
+      env
+        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
+        .returns('force-app');
+      detectorStub.returns({
+        different: new Set<string>()
+      } as DirectoryDiffResults);
+
+      const response = await postChecker.check(validInput);
+      expect(response.type).to.equal('CONTINUE');
+      expect(appendLineStub.notCalled).to.equal(true);
+    });
+
+    it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
+      const postChecker = new ConflictDetectionChecker(retrieveMessages);
+      settingsStub.returns(true);
+      const usernameStub = env
+        .stub(postChecker, 'getDefaultUsernameOrAlias')
+        .returns('MyAlias');
+      const packageDirStub = env
+        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
+        .returns('force-app');
+      detectorStub.returns({
+        different: new Set<string>([
+          'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
+          'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
+        ]),
+        scannedLocal: 4,
+        scannedRemote: 6
+      } as DirectoryDiffResults);
+      modalStub.returns('Cancel');
+
+      const response = await postChecker.check(validInput);
+      expect(response.type).to.equal('CANCEL');
+
+      expect(modalStub.firstCall.args.slice(1)).to.eql([
+        nls.localize('conflict_detect_override')
+      ]);
+
+      expect(channelOutput).to.include.members([
+        nls.localize('conflict_detect_conflict_header', 2, 6, 4),
+        normalize(
+          'force-app/main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+        ),
+        normalize(
+          'force-app/main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
+        ),
+        nls.localize('conflict_detect_command_hint', 'package.xml')
+      ]);
+
+      expect(usernameStub.calledOnce).to.equal(true);
+      expect(packageDirStub.calledOnce).to.equal(true);
+    });
+
+    it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
+      const postChecker = new ConflictDetectionChecker(retrieveMessages);
+      settingsStub.returns(true);
+      env.stub(postChecker, 'getDefaultUsernameOrAlias').returns('MyAlias');
+      env
+        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
+        .returns('force-app');
+      detectorStub.returns({
+        different: new Set<string>('MyClass.cls')
+      } as DirectoryDiffResults);
+      modalStub.returns(nls.localize('conflict_detect_override'));
+
+      const response = await postChecker.check(validInput);
+      expect(response.type).to.equal('CONTINUE');
+
+      expect(modalStub.firstCall.args.slice(1)).to.eql([
+        nls.localize('conflict_detect_override')
+      ]);
+    });
   });
 });

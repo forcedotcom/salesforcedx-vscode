@@ -1,0 +1,30 @@
+<aura:component implements="flexipage:availableForAllPageTypes"
+                access="global">
+
+    <aura:attribute name="fullScreen" type="Boolean" default="false"/>
+    <aura:attribute name="animations" type="Boolean" default="true"/>
+    <aura:attribute name="slides" type="Object[]"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:card iconName="utility:image" title="Picture Gallery">
+        <aura:set attribute="actions">
+            <lightning:buttonIcon onclick="{!c.fullScreen}" size="large" iconName="utility:expand" />
+        </aura:set>
+        <c:PictureCarousel slides="{!v.slides}"/>
+        <aura:if isTrue="{!v.fullScreen==true}">
+            <div role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <c:PictureCarousel slides="{!v.slides}"/>
+                </div>
+
+                <div class="btn slds-modal__close close x-large">
+                    <lightning:buttonIcon variant="border-filled" onclick="{!c.closeDialog}" size="large" iconName="utility:close" />
+                </div>
+
+            </div>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </lightning:card>
+
+</aura:component>
