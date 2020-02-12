@@ -3,7 +3,7 @@ title: Org Browser
 lang: en
 ---
 
-The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier and simpler to retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest). The Org Browser is available only in non-scratch orgs such as sandboxes or dev orgs.
+The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier to retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest). The Org Browser is available only in non-scratch orgs such as sandboxes or dev orgs.
 
 ## Opening the Org Browser
 
@@ -16,7 +16,7 @@ The Org Browser displays the available metadata types and their corresponding co
 5. Metadata component
 6. Refresh components for metadata type
 7. Retrieve source for metadata component
-8. Retrieve source for metadata type
+8. Retrieve source for all components of metadata type
 
 To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./en/user-guide/default-org/) is set to a non-scratch org.
 
@@ -37,7 +37,7 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 
 ## Retrieving Metadata
 
-You can retrieve a metadata component or all metadata of the same type. Click retrieve icon next to:
+You can retrieve a single metadata component or all components of the same type. Click retrieve icon next to:
 
 - component name **(7)** to retrieve a component to your local project
 - metadata type **(8)** to retrive all components of the type
