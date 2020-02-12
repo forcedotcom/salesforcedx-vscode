@@ -23,3 +23,4 @@ export const SFDX_CLI_DOWNLOAD_LINK =
   'https://developer.salesforce.com/tools/sfdxcli';
 export const DEFAULT_USERNAME_KEY = 'defaultusername';
 export const DEFAULT_DEV_HUB_USERNAME_KEY = 'defaultdevhubusername';
+export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
