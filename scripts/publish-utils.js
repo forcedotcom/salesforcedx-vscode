@@ -8,6 +8,6 @@ module.exports = {
 
   getLocalPathForDownload: (fileName, pkgVersion) => {
     const pkgName = fileName.replace(`-${pkgVersion}.vsix`, '');
-    return path.join('packages', pkgName, fileName);
+    return path.join(__dirname, '..', 'packages', pkgName, fileName);
   }
 };

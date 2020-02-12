@@ -13,7 +13,7 @@ shell.set('+v');
  *
  * Instructions:
  * Run this script with SALESFORCEDX_VSCODE_VERSION, CIRCLECI_TOKEN & CIRCLECI_BUILD as environment variables
- * i.e. SALESFORCEDX_VSCODE_VERSION=x.y.z ./scripts/publish.js
+ * i.e. SALESFORCEDX_VSCODE_VERSION=x.y.z ./scripts/publish-circleci.js
  *
  */
 
@@ -86,7 +86,7 @@ if (!nextVersion) {
     })
     .stdout.trim();
 
-  if (!currentBranch !== releaseBranchName) {
+  if (currentBranch !== releaseBranchName) {
     console.log(
       `You must execute this script in a release branch, you are currently running the script on branch ${currentBranch}`
     );

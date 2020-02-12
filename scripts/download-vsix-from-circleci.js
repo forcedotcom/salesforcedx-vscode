@@ -4,6 +4,17 @@ const shell = require('shelljs');
 shell.set('-e');
 shell.set('+v');
 
+/*
+ * Assumptions:
+ * 0. You have shelljs installed globally using `npm install -g shelljs`.
+ * 1. The script is running locally and from the top-level directory for this project
+ *
+ * Instructions:
+ * Run this script with SALESFORCEDX_VSCODE_VERSION, CIRCLECI_TOKEN & CIRCLECI_BUILD as environment variables
+ * i.e. SALESFORCEDX_VSCODE_VERSION=x.y.z CIRCLECI_TOKEN=xyztoken CIRCLECI_BUILD=5 ./scripts/download-vsix-from-circleci.js
+ *
+ */
+
 const { getVsixName, getLocalPathForDownload } = require('./publish-utils');
 const CIRCLECI_API_URI = 'https://circleci.com/api/v1.1';
 const circleciToken = process.env['CIRCLECI_TOKEN'];
@@ -50,7 +61,7 @@ if (
   )
 ) {
   console.log(
-    'Looks like your CircleCI Token does not grant you access to the salesforcedx-vscode builds'
+    'Looks like your CircleCI Token does not grant you access to the salesforcedx-vscode builds.'
   );
   process.exit(-1);
 }
@@ -68,7 +79,7 @@ const cciArtifacts = shell
 const buildArtifactsJSON = JSON.parse(cciArtifacts);
 if (buildArtifactsJSON && buildArtifactsJSON.length === 0) {
   console.log(
-    `Looks like the CircleCI build number ${circleciBuild} did not generate any artifacts`
+    `Looks like the CircleCI build number ${circleciBuild} did not generate any artifacts. Make sure you pick a build that is labeled build-all.`
   );
   process.exit(-1);
 }
