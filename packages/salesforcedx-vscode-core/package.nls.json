@@ -43,6 +43,7 @@
   "retrieve_test_code_coverage_text": "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
   "telemetry_enabled_description": "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting.",
   "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically run force:source:push (for source-tracked orgs) or force:source:deploy (for non-source-tracked orgs) when a local source file is saved.",
+  "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for metadata operations (force:source:deploy with manifest, force:source:retrieve with manifest) for non source-tracked orgs.",
   "force_manifest_editor_show_text": "SFDX: Show Package Manifest Editor",
   "force_source_retrieve_text": "SFDX: Retrieve Source from Org",
   "force_source_retrieve_this_source_text": "SFDX: Retrieve This Source from Org",
