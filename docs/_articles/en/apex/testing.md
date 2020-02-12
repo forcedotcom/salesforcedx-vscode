@@ -42,4 +42,4 @@ If you've added methods or classes since the last time the Test view was populat
 
 You can run Apex tests from the class file open in the editor window. Click **Run Test** above the definition of an Apex test method or **Run All Tests** above the definition of an Apex test class. You can view the test results in the Output panel and the Failures section of the output lists stack traces for failed tests. To navigate to the line of code that caused a failure, press Ctrl (Windows or Linux) or Cmd (macOS) and click that stack trace.
 
-![Running Apex tests using the Run Test and Run All Tests code lenses](../../images/apex_test_run.gif)
+![Running Apex tests using the Run Test and Run All Tests code lenses](./images/apex_test_run.gif)
