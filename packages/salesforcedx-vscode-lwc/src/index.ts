@@ -148,7 +148,13 @@ function registerCommands(
 function startLWCLanguageServer(context: ExtensionContext) {
   // Setup the language server
   const serverModule = context.asAbsolutePath(
-    path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
+    path.join(
+      'node_modules',
+      '@salesforce',
+      'lwc-language-server',
+      'lib',
+      'server.js'
+    )
   );
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
   // If the extension is launched in debug mode then the debug server options are used

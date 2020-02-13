@@ -38,7 +38,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send telemetry data', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     await telemetryService.sendExtensionActivationEvent([0, 678]);
@@ -46,7 +46,7 @@ describe('Telemetry', () => {
   });
 
   it('Should not send telemetry data', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, false);
 
     await telemetryService.sendExtensionActivationEvent([0, 678]);
@@ -54,7 +54,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     await telemetryService.sendExtensionActivationEvent([0, 678]);
@@ -68,7 +68,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     await telemetryService.sendExtensionDeactivationEvent();
@@ -81,7 +81,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send correct data format on sendCommandEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     const mockCommandLogName = 'force_lwc_mock_command';
@@ -107,7 +107,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send correct data format on sendException', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     const mockExceptionLogName = 'force_lwc_mock_exception';

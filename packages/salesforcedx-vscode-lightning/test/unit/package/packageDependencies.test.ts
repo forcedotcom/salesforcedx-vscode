@@ -3,9 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const checkedPackagePatterns: RegExp[] = [
-  /lightning-lsp-common/i,
-  /aura-language-server/i,
-  /lwc-language-server/i,
+  /@salesforce\/lightning-lsp-common/i,
+  /@salesforc\/aura-language-server/i,
+  /@salesforce\/lwc-language-server/i,
   /^@salesforce\/salesforcedx/i
 ];
 

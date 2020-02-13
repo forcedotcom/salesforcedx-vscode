@@ -8,9 +8,7 @@
       "name": "Attach to Process (Legacy Protocol)",
       "port": 5858,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ]
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"]
     },
     {
       "type": "node",
@@ -19,24 +17,18 @@
       "name": "Attach to Process (Inspector Protocol)",
       "port": 9229,
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ]
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"]
     },
     {
       "name": "Launch Extensions",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/packages"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages"],
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
@@ -49,15 +41,11 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/packages"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages"],
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
@@ -69,14 +57,10 @@
       "request": "launch",
       "cwd": "${workspaceFolder}",
       "program": "${workspaceFolder}/packages/salesforcedx-apex-debugger/out/src/adapter/apexDebug.js",
-      "args": [
-        "--server=4711"
-      ],
+      "args": ["--server=4711"],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
@@ -99,9 +83,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
@@ -122,9 +104,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/vscode-integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -146,9 +126,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-apex/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-apex/out/test/vscode-integration/*",
@@ -171,9 +149,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration/*",
@@ -195,9 +171,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/vscode-integration/*",
@@ -219,9 +193,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration/*",
@@ -229,7 +201,8 @@
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": ["<node_internals>/**", "node_modules/**/*.js"]
     },
     {
       "name": "Launch Salesforce DX VS Code LWC VSCode-Integration Tests",
@@ -244,9 +217,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/vscode-integration/*",
@@ -268,9 +239,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-visualforce/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-visualforce/out/test/vscode-integration/*",
@@ -294,9 +263,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-visualforce-language-server/out/test/unit/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -319,9 +286,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-visualforce-markup-language-server/out/test/unit/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
@@ -357,9 +322,7 @@
       },
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "<node_internals>/**"
-      ] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
       "name": "Launch Apex Debugger Adapter Integration Tests",
@@ -388,9 +351,7 @@
       },
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "<node_internals>/**"
-      ] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
       "name": "Launch Apex Debugger Extension VSCode-Integration Tests",
@@ -404,9 +365,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration/": "${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger/out/test/vscode-integration/*",
         "../../../../test/vscode-integration/": "${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger/out/test/vscode-integration/*",
@@ -433,9 +392,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-sobjects-faux-generator/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
@@ -461,9 +418,7 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-sobjects-faux-generator/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
@@ -478,14 +433,10 @@
       "request": "launch",
       "cwd": "${workspaceFolder}",
       "program": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
-      "args": [
-        "--server=4712"
-      ],
+      "args": ["--server=4712"],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/src/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
@@ -519,9 +470,7 @@
       },
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "<node_internals>/**"
-      ] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
       "name": "Launch Replay Debugger Adapter Integration Tests",
@@ -550,9 +499,7 @@
       },
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "<node_internals>/**"
-      ] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
       "name": "Launch Replay Debugger Extension VSCode-Integration Tests",
@@ -566,9 +513,7 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/packages/*/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration/": "${workspaceFolder}packages/salesforcedx-vscode-apex-replay-debugger/out/test/vscode-integration/*",
         "../../../../test/vscode-integration/": "${workspaceFolder}packages/salesforcedx-vscode-apex-replay-debugger/out/test/vscode-integration/*",
@@ -582,17 +527,11 @@
   "compounds": [
     {
       "name": "Launch Extensions + Apex Debug adapter",
-      "configurations": [
-        "Launch Extensions",
-        "Launch Apex Debug adapter"
-      ]
+      "configurations": ["Launch Extensions", "Launch Apex Debug adapter"]
     },
     {
       "name": "Launch Extensions + Replay Debugger adapter",
-      "configurations": [
-        "Launch Extensions",
-        "Launch Replay Debugger adapter"
-      ]
+      "configurations": ["Launch Extensions", "Launch Replay Debugger adapter"]
     }
   ]
 }

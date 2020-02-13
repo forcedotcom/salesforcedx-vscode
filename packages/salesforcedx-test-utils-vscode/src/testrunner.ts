@@ -146,7 +146,7 @@ function run(testsRoot: any, clb: any): any {
             }
           );
       } catch (error) {
-        console.error('An error occured: ' + error);
+        console.error('An error occured: ', error);
         return clb(error);
       }
     }

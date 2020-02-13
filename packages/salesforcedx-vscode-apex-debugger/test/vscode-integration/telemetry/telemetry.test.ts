@@ -23,7 +23,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send telemetry data', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     telemetryService.sendExtensionActivationEvent([0, 300]);
@@ -31,7 +31,7 @@ describe('Telemetry', () => {
   });
 
   it('Should not send telemetry data', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, false);
 
     telemetryService.sendExtensionActivationEvent([0, 400]);
@@ -39,7 +39,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send correct data format on sendExtensionActivationEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     telemetryService.sendExtensionActivationEvent([0, 400]);
@@ -53,7 +53,7 @@ describe('Telemetry', () => {
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
-    const telemetryService = TelemetryService.getInstance();
+    const telemetryService = new TelemetryService();
     telemetryService.initializeService(reporter, true);
 
     telemetryService.sendExtensionDeactivationEvent();
