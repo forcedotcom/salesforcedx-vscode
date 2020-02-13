@@ -10,6 +10,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import {
+  ConflictDetectionChecker,
+  ConflictDetectionMessages
+} from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -49,10 +53,23 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
       return;
     }
   }
+
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:deploy')
+        .withFlag('--manifest', input)
+        .build()
+        .toString();
+    }
+  };
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(manifestUri),
-    new ForceSourceDeployManifestExecutor()
+    new ForceSourceDeployManifestExecutor(),
+    new ConflictDetectionChecker(messages)
   );
   await commandlet.run();
 }
