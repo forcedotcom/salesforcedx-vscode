@@ -4,13 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
-
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import {
+  ConflictDetectionChecker,
+  ConflictDetectionMessages
+} from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -53,10 +56,23 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
       return;
     }
   }
+
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:retrieve')
+        .withFlag('--manifest', input)
+        .build()
+        .toString();
+    }
+  };
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    new ForceSourceRetrieveManifestExecutor()
+    new ForceSourceRetrieveManifestExecutor(),
+    new ConflictDetectionChecker(messages)
   );
   await commandlet.run();
 }
