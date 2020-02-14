@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { componentUtil } from '@salesforce/lightning-lsp-common';
 import * as fs from 'fs';
-import { componentUtil } from 'lightning-lsp-common';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';

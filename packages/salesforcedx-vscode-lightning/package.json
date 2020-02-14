@@ -25,10 +25,10 @@
   ],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "47.17.1",
-    "aura-language-server": "2.2.7",
-    "lwc-language-server": "2.2.7",
+    "@salesforce/aura-language-server": "2.2.17",
+    "@salesforce/lwc-language-server": "2.2.17",
     "change-case": "^3.1.0",
-    "lightning-lsp-common": "2.2.7",
+    "@salesforce/lightning-lsp-common": "2.2.17",
     "open": "6.0.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1",
