@@ -6,7 +6,7 @@
  */
 
 import * as fs from 'fs';
-import { componentUtil } from 'lightning-lsp-common';
+import { componentUtil } from '@salesforce/lightning-lsp-common';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
