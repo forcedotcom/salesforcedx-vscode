@@ -3,14 +3,14 @@ title: Overview
 lang: en
 ---
 
-The Lightning Web Components Extension for VS Code leverages the editor's built-in code navigation and language features so that you can efficiently build Lightning web components. 
+The Lightning Web Components Extension for VS Code leverages the editor's built-in code navigation and language features so that you can efficiently build Lightning web components.
 
 Take advantage of the following Lightning Web Components Extension for VS Code features:
 
-* [Code Completion](./en/lwc/write-lwc#code-completion)
-* [Linting](./en/lwc/write-lwc#linting)
-* [View Documentation on Hover](./en/lwc/write-lwc#view-documentation-on-hover)
-* [Code Navigation](./en/lwc/write-lwc#code-navigation)
+- [Code Completion](./en/lwc/writing#code-completion)
+- [Linting](./en/lwc/writing#linting)
+- [View Documentation on Hover](./en/lwc/writing#view-documentation-on-hover)
+- [Code Navigation](./en/lwc/writing#code-navigation)
 
 ## Code Completion
 
@@ -20,18 +20,18 @@ The Lightning Web Components Extension builds on VS Code's language features for
 
 Lightning components access Salesforce values via scoped modules. The Lightning Web Components Extension provides code completion for the following scoped modules:
 
-* `@salesforce/resourceUrl`
-* `@salesforce/contentAssetUrl`
-* `@salesforce/apex`
-* `@salesforce/user`
+- `@salesforce/resourceUrl`
+- `@salesforce/contentAssetUrl`
+- `@salesforce/apex`
+- `@salesforce/user`
 
-To learn more about `@salesforce` modules, see [`@salesforce` Modules](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules) in the *Lightning Web Components Developer Guide* for more information.
+To learn more about `@salesforce` modules, see [`@salesforce` Modules](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_salesforce_modules) in the _Lightning Web Components Developer Guide_ for more information.
 
 In this example, VS Code displays the possible static resource names to choose from when completing the `import` statement.
 
 ![Static Resource Completion](./images/vscode_lwc_staticresource_trailhead.png)
 
-Here's what code completion looks like for `@salesforce/schema`. 
+Here's what code completion looks like for `@salesforce/schema`.
 
 ![Schema Completion](./images/vscode_lwc_schema.png)
 
@@ -39,17 +39,17 @@ Here's an example of code completion for an Apex controller.
 
 ![Apex Completion](./images/vscode_lwc_apex.png)
 
-### Lightning API 
+### Lightning API
 
-VS Code also completes Lightning API resources, such as `lightning/uiRecordApi` and `lightning/uiObjectInfoApi`. See the [`lightning/ui*Api` Wire Adapters and Functions](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_ui_api) in the *Lighting Web Components Developer Guide* for more information. 
+VS Code also completes Lightning API resources, such as `lightning/uiRecordApi` and `lightning/uiObjectInfoApi`. See the [`lightning/ui*Api` Wire Adapters and Functions](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_ui_api) in the _Lighting Web Components Developer Guide_ for more information.
 
 ![Lightning UI Completion](./images/vscode_lwc_lightningui.png)
 
-### Lightning Web Components Syntax 
+### Lightning Web Components Syntax
 
-VS Code completes the Lightning Web Components framework's reactive properties and wire service. See [Reactive Properties](https://developer.salesforce.com/docs/component-library/documentation/lwc/js_props_reactive) and [Use the Wire Service to Get Data](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.data_wire_service_about) in the *Lightning Web Components Developer Guide* for more information. 
+VS Code completes the Lightning Web Components framework's reactive properties and wire service. See [Reactive Properties](https://developer.salesforce.com/docs/component-library/documentation/lwc/js_props_reactive) and [Use the Wire Service to Get Data](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.data_wire_service_about) in the _Lightning Web Components Developer Guide_ for more information.
 
-Here is an example of code completion for including the Apex function `getContactList` in the `@wire` decorator. 
+Here is an example of code completion for including the Apex function `getContactList` in the `@wire` decorator.
 
 ![Lightning @wire Completion](./images/vscode_lwc_wire.png)
 
@@ -65,9 +65,9 @@ VS Code displays documentation when you hover over a standard Lightning web comp
 
 ![Documentation on Hover](./images/vscode_lwc_hover.png)
 
-## Linting 
+## Linting
 
-Linting provides errors about malformed or suspicious-looking code while you edit. VS Code enforces Salesforce's ESLint rules. To activate ESLint, install it from the command line. See the [Lightning Web Components ESLint Plugin](https://github.com/salesforce/eslint-plugin-lwc) and [Lightning Web Components ESLint Config](https://github.com/salesforce/eslint-config-lwc) repositories for instructions. 
+Linting provides errors about malformed or suspicious-looking code while you edit. VS Code enforces Salesforce's ESLint rules. To activate ESLint, install it from the command line. See the [Lightning Web Components ESLint Plugin](https://github.com/salesforce/eslint-plugin-lwc) and [Lightning Web Components ESLint Config](https://github.com/salesforce/eslint-config-lwc) repositories for instructions.
 
 In this example, when hovering over `onpress`, the linter reports that you cannot name an API property starting with "on."
 
@@ -75,7 +75,7 @@ In this example, when hovering over `onpress`, the linter reports that you canno
 
 ### Peek Problem and Quick Fix
 
-VS Code has a range of actions to quickly address problems and refactor code, including Quick Fix and Peek Problem. To learn more, see [Refactoring](https://code.visualstudio.com/docs/editor/refactoring) in the VS Code documentation. 
+VS Code has a range of actions to quickly address problems and refactor code, including Quick Fix and Peek Problem. To learn more, see [Refactoring](https://code.visualstudio.com/docs/editor/refactoring) in the VS Code documentation.
 
 Clicking **Peek Problem** on the error message highlights the line where the linter found the error. If the message says there is more than one error, click the down arrow in the message's upper right corner to see the others.
 
@@ -85,7 +85,7 @@ Clicking **Quick Fix** provides options to disable the warning on valid API name
 
 ![Linter Example with Quick Fix](./images/vscode_lwc_quickfix.png)
 
-### Errors and Warnings 
+### Errors and Warnings
 
 File and compiler errors display on hover. Here, when `@track` is hovered over, the error message says that it must be declared.
 
@@ -102,5 +102,3 @@ To preview a definition, hold down **Ctrl** (Windows or Linux) or **Command** (m
 To view a definition, right-click the item and select **Peek Definition**, or press **Alt+F12**.
 
 To jump to the location of a definition, right-click the item and select **Go to Definition**, or press **F12**.
-
-
