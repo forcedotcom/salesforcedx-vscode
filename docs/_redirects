@@ -8,6 +8,7 @@
 /tools/vscode/articles/user-guide/cli-commands                  /tools/vscode/articles/user-guide/vscode-commands         301
 /tools/vscode/articles/*                                        /tools/vscode/en/:splat                                   301   
 /tools/vscode/articles-jp/*                                     /tools/vscode/jp/:splat                                   301
+/tools/vscode/jp/*                                              /tools/vscode/ja/:splat 
 
 # Temporary Redirects for convenience
 /tools/vscode/en/                               /tools/vscode/                          302
