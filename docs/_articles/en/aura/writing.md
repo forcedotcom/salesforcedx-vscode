@@ -8,9 +8,11 @@ The Aura Components Extension for VS Code leverages the editor's built-in code n
 Take advantage of the following Aura Components Extension for VS Code features:
 
 - [Code Completion](./en/aura/writing#code-completion)
+- [View Documentation on Hover](./en/aura/writing#view-component-documentation-on-hover)
 - [Linting](./en/aura/writing#linting)
-- [View Documentation on Hover](./en/aura/writing#view-documentation-on-hover)
-- [Code Navigation](./en/lwc/writing#code-navigation)
+- [Code Navigation](./en/aura/writing#code-navigation)
+- [Outline view](./en/aura/writing/#outline-view)
+- [Lightning Explorer](./en/aura/writing/#lightning-explorer-beta)
 
 ## Code Completion
 
