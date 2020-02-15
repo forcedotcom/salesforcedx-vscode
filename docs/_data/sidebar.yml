@@ -120,8 +120,8 @@
   children:
     - title:
         en: Overview
-        ja: 作成
-      url: /aura/write-aura
+        jp: 作成
+      url: /aura/writing
 - title:
     en: Lightning Web Components
     ja: Lightning Web コンポーネント
@@ -129,8 +129,8 @@
   children:
     - title:
         en: Overview
-        ja: 作成
-      url: /lwc/write-lwc
+        jp: 作成
+      url: /lwc/writing
     - title:
         en: Testing
         ja: 作成
