@@ -119,7 +119,7 @@
   baseUrl: /aura/
   children:
     - title:
-        en: Writing
+        en: Overview
         jp: 作成
       url: /aura/writing
 - title:
@@ -130,7 +130,7 @@
     - title:
         en: Overview
         jp: 作成
-      url: /lwc/write-lwc
+      url: /lwc/writing
     - title:
         en: Testing
         jp: 作成

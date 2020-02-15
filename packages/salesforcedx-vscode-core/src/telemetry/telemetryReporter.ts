@@ -130,6 +130,10 @@ export default class TelemetryReporter extends vscode.Disposable {
       commonProperties['common.vscodemachineid'] = vscode.env.machineId;
       commonProperties['common.vscodesessionid'] = vscode.env.sessionId;
       commonProperties['common.vscodeversion'] = vscode.version;
+      if (vscode.env.uiKind) {
+        commonProperties['common.vscodeuikind'] =
+          vscode.UIKind[vscode.env.uiKind];
+      }
     }
     return commonProperties;
   }
