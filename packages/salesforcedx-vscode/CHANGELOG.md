@@ -21,7 +21,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Syntax highlight support for JavaDoc ([PR #1973](https://github.com/forcedotcom/salesforcedx-vscode/pull/1973))-Contribution by [@Codeneos](https://github.com/Codeneos)
-- Syntax highlight support for `inherited sharing` and `transient` Apex keywords ([PR #1973](https://github.com/forcedotcom/salesforcedx-vscode/pull/1973))-Contribution by [@Codeneos](https://github.com/Codeneos)
+- Syntax highlighting support for JavaDoc ([PR #1973](https://github.com/forcedotcom/salesforcedx-vscode/pull/1973))-Contribution by [@Codeneos](https://github.com/Codeneos)
+- Syntax highlighting support for `inherited sharing` and `transient` Apex keywords ([PR #1973](https://github.com/forcedotcom/salesforcedx-vscode/pull/1973))-Contribution by [@Codeneos](https://github.com/Codeneos)
 - Documentation for System class in autocomplete & hover ([PR #1966](https://github.com/forcedotcom/salesforcedx-vscode/pull/1966))
   ![GIF showing Apex code completion with documentation](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode/images/48.1.0/system-class-docs.gif)
