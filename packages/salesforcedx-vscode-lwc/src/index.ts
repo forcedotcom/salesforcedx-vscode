@@ -110,7 +110,7 @@ export async function activate(context: ExtensionContext) {
           ConfigurationTarget.Workspace
         );
       } catch (e) {
-        telemetryService.sendException(
+        await telemetryService.sendException(
           'lwc_eslint_nodepath_couldnt_be_set',
           e.message
         );
