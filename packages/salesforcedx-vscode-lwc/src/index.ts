@@ -6,16 +6,12 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
-  commands,
-  ConfigurationChangeEvent,
   ConfigurationTarget,
   ExtensionContext,
   Uri,
-  window,
   workspace,
   WorkspaceConfiguration
 } from 'vscode';
@@ -51,7 +47,7 @@ function protocol2CodeConverter(value: string) {
   return Uri.parse(value);
 }
 
-export async function activate(this: any, context: ExtensionContext) {
+export async function activate(context: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -105,12 +101,20 @@ export async function activate(this: any, context: ExtensionContext) {
     const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
     if (currentNodePath && currentNodePath.includes(LWC_EXTENSION_NAME)) {
       try {
+        console.log(
+          'Removing eslint.nodePath setting as the LWC Extension no longer manages this value'
+        );
         await config.update(
           ESLINT_NODEPATH_CONFIG,
           undefined,
           ConfigurationTarget.Workspace
         );
-      } catch (e) {}
+      } catch (e) {
+        telemetryService.sendException(
+          'lwc_eslint_nodepath_couldnt_be_set',
+          e.message
+        );
+      }
     }
 
     // Activate Test support only for SFDX workspace type for now
