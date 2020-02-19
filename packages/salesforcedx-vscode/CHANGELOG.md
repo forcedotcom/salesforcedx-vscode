@@ -18,6 +18,10 @@
 
 - Beta Conflict Detection for manifest operations ([PR #1921](https://github.com/forcedotcom/salesforcedx-vscode/pull/1921))
 
+#### docs
+
+- Added [Conflict Detection](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/detect-conflicts) documentation ([PR #2001](https://github.com/forcedotcom/salesforcedx-vscode/pull/2001))
+
 # 48.1.0 - February 15, 2020
 
 ## Fixed
