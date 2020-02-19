@@ -51,9 +51,7 @@ After connecting to a sandbox, DE org, or Trailhead Playground, use the package.
 
 ### Retrieve Source
 
-Org Development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve.
-
-> Note: Retrieving source from an org overwrites the local versions of the source files.
+Org Development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files. When you retrieve source from an org, you could enable detecting conflicts between the org and the local metadata. See [Detect Conflicts](./en/user-guide/detect-conflicts).
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
@@ -93,7 +91,7 @@ your-app
 
 ### Deploy Source
 
-When you deploy the code changes, he local version of the source files overwrites the metadata in your org.
+When you deploy the code changes, the local version of the source files overwrites the metadata in your org. You could enable detecting conflicts between the local metadata and the org. See [Detect Conflicts](./en/user-guide/detect-conflicts).
 
 ![Deploy source to org](./images/deploy-source-to-org.png)
 
