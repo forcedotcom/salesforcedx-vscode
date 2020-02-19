@@ -1,3 +1,23 @@
+# 48.2.0 - February 20, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Remove automatic configuration of eslint.nodePath and eslintrc.json ([PR #1771](https://github.com/forcedotcom/salesforcedx-vscode/pull/1771)), ([Issue #1644](https://github.com/forcedotcom/salesforcedx-vscode/issues/1644)), ([Issue #1394](https://github.com/forcedotcom/salesforcedx-vscode/issues/1394)), ([Issue #1049](https://github.com/forcedotcom/salesforcedx-vscode/issues/1049))
+- Update lightning language servers to v2.2.17 ([PR #1981](https://github.com/forcedotcom/salesforcedx-vscode/pull/1981))
+
+#### docs
+
+- Update [Org Browser](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-browser) article ([PR #1971](https://github.com/forcedotcom/salesforcedx-vscode/pull/1971))
+- Update supported metadata list for [Source Diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff) ([PR #1969](https://github.com/forcedotcom/salesforcedx-vscode/pull/1969))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Beta Conflict Detection for manifest operations ([PR #1921](https://github.com/forcedotcom/salesforcedx-vscode/pull/1921))
+
 # 48.1.0 - February 15, 2020
 
 ## Fixed
