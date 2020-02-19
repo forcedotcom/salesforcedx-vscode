@@ -66,6 +66,14 @@ if (
   process.exit(-1);
 }
 
+// Check release version environment variable
+if (!nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
+  console.log(
+    'You must set SALESFORCEDX_VSCODE_VERSION in the same format followed by the extension code e.g. 48.1.0'
+  );
+  process.exit(-1);
+}
+
 // Get artifact names from CircleCI build
 const cciArtifacts = shell
   .exec(
