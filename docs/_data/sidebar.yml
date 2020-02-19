@@ -41,6 +41,10 @@
         ja: Development Models
       url: /user-guide/development-models
     - title:
+        en: Detect Conflicts
+        ja: Detect Conflicts
+      url: /user-guide/detect-conflicts
+    - title:
         en: Deploy on Save
         ja: Deploy on Save
       url: /user-guide/deploy-on-save
