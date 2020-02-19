@@ -71,27 +71,26 @@ if (!publishers.includes('salesforce')) {
 // Checks that you have specified the next version as an environment variable, and that it's properly formatted.
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 const releaseBranchName = `release/v${nextVersion}`;
-if (!nextVersion) {
+
+// Check release version environment variable
+if (!nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
   console.log(
-    'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
+    'You must set SALESFORCEDX_VSCODE_VERSION in the same format followed by the extension code e.g. 48.1.0'
   );
   process.exit(-1);
-} else {
-  const [version, major, minor, patch] = nextVersion.match(
-    /^(\d+)\.(\d+)\.(\d+)$/
-  );
-  const currentBranch = shell
-    .exec('git rev-parse --abbrev-ref HEAD', {
-      silent: true
-    })
-    .stdout.trim();
+}
 
-  if (currentBranch !== releaseBranchName) {
-    console.log(
-      `You must execute this script in a release branch, you are currently running the script on branch ${currentBranch}`
-    );
-    process.exit(-1);
-  }
+const currentBranch = shell
+  .exec('git rev-parse --abbrev-ref HEAD', {
+    silent: true
+  })
+  .stdout.trim();
+
+if (currentBranch !== releaseBranchName) {
+  console.log(
+    `You must execute this script in a release branch, you are currently running the script on branch ${currentBranch}`
+  );
+  process.exit(-1);
 }
 
 // Download vsix files from CircleCI
@@ -116,6 +115,13 @@ shell.exec(`git add SHA256.md`);
 
 // Git commit
 shell.exec(`git commit -m "Updated SHA256"`);
+
+// Create a git tag e.g. v48.1.0
+const gitTagName = `v${nextVersion}`;
+shell.exec(`git tag ${gitTagName}`);
+
+// Push git tag to remote
+shell.exec(`git push origin ${gitTagName}`);
 
 // Publish to VS Code Marketplace
 shell.exec(`npm run vscode:publish`);
