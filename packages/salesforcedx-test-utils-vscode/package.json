@@ -18,7 +18,7 @@
     "@types/mocha": "^2.2.38",
     "@types/node": "8.9.3",
     "@types/shelljs": "0.7.9",
-    "@types/sinon": "^2.3.2",
+    "@types/sinon": "^7.3.1",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
     "glob": "^7.1.2",
