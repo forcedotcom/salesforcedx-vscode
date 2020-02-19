@@ -229,7 +229,8 @@
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": ["<node_internals>/**", "node_modules/**/*.js"]
     },
     {
       "name": "Launch Salesforce DX VS Code LWC VSCode-Integration Tests",
@@ -254,7 +255,9 @@
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+
+      "skipFiles": ["<node_internals>/**", "node_modules/**/*.js"]
     },
     {
       "name": "Launch Salesforce DX VS Code Visualforce VSCode-Integration Tests",
