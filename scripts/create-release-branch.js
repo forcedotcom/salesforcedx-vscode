@@ -11,27 +11,24 @@ if (!shell.which('lerna')) {
 
 // Checks that you have specified the next version as an environment variable, and that it's properly formatted.
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-if (!nextVersion) {
+if (!nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
   console.log(
-    'You must specify the next version of the extension by setting SALESFORCEDX_VSCODE_VERSION as an environment variable.'
+    'You must set SALESFORCEDX_VSCODE_VERSION in the same format followed by the extension code e.g. 48.1.0'
   );
   process.exit(-1);
-} else {
-  const [version, major, minor, patch] = nextVersion.match(
-    /^(\d+)\.(\d+)\.(\d+)$/
-  );
-  const currentBranch = shell
-    .exec('git rev-parse --abbrev-ref HEAD', {
-      silent: true
-    })
-    .stdout.trim();
+}
 
-  if (currentBranch !== 'develop') {
-    console.log(
-      `You must execute this script in the develop branch, you are currently running the script on branch ${currentBranch}`
-    );
-    process.exit(-1);
-  }
+const currentBranch = shell
+  .exec('git rev-parse --abbrev-ref HEAD', {
+    silent: true
+  })
+  .stdout.trim();
+
+if (currentBranch !== 'develop') {
+  console.log(
+    `You must execute this script in the develop branch, you are currently running the script on branch ${currentBranch}`
+  );
+  process.exit(-1);
 }
 
 const releaseBranchName = `release/v${nextVersion}`;
