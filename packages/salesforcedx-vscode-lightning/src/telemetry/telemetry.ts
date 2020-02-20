@@ -8,7 +8,6 @@
 import * as util from 'util';
 import * as vscode from 'vscode';
 import TelemetryReporter from 'vscode-extension-telemetry';
-import { telemetryService } from '.';
 import { waitForDX } from '../dxsupport/waitForDX';
 
 const EXTENSION_NAME = 'salesforcedx-vscode-lightning';
@@ -31,6 +30,7 @@ export class TelemetryService {
   }
 
   public async setupVSCodeTelemetry() {
+    const telemetryService = TelemetryService.getInstance();
     // if its already set up
     if (this.reporter) {
       return Promise.resolve(telemetryService);

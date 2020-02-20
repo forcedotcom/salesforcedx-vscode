@@ -52,9 +52,9 @@
       </div>
     </form>
     <div class="language-picker">
-      {% assign jpurl = page.url | replace: '/en/', '/jp/' %} {% if page.url ==
-      '/' %} {% assign jpurl = page.url | append: 'jp/' %} {% endif %} {% assign
-      enurl = page.url | replace: '/jp/', '/en/' %} {% if page.url == '/jp/' %}
+      {% assign jpurl = page.url | replace: '/en/', '/ja/' %} {% if page.url ==
+      '/' %} {% assign jpurl = page.url | append: 'ja/' %} {% endif %} {% assign
+      enurl = page.url | replace: '/ja/', '/en/' %} {% if page.url == '/ja/' %}
       {% assign enurl = '/' %}{% endif %}
       <a
         class="{% if page.lang == 'en' %}is-selected{% endif %}"
@@ -65,9 +65,9 @@
       >
       |
       <a
-        class="{% if page.lang == 'jp' %}is-selected{% endif %}"
+        class="{% if page.lang == 'ja' %}is-selected{% endif %}"
         href="{{ jpurl | prepend: site.baseurl }}"
-        hreflang="jp"
+        hreflang="ja"
         translate="no"
         >日本語</a
       >
@@ -120,9 +120,9 @@
                 }}"
               >
                 <span class="slds-media slds-media--center">
-                  <span class="slds-media__body">{{
-                    entry.title[page.lang]
-                  }}</span>
+                  <span class="slds-media__body"
+                    >{{ entry.title[page.lang] }}</span
+                  >
                 </span>
               </a>
             </li>
@@ -177,9 +177,9 @@
                 }}"
               >
                 <span class="slds-media slds-media--center">
-                  <span class="slds-media__body">{{
-                    entry.title[page.lang]
-                  }}</span>
+                  <span class="slds-media__body"
+                    >{{ entry.title[page.lang] }}</span
+                  >
                 </span>
               </a>
             </li>

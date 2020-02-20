@@ -4,9 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AttributeInfo, TagInfo } from '@salesforce/lightning-lsp-common';
+import {
+  isUnknown,
+  WorkspaceType
+} from '@salesforce/lightning-lsp-common/lib/shared';
 import { paramCase } from 'change-case';
-import { AttributeInfo, TagInfo } from 'lightning-lsp-common';
-import { isUnknown, WorkspaceType } from 'lightning-lsp-common/lib/shared';
 import {
   commands,
   Event,

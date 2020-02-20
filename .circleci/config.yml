@@ -19,9 +19,9 @@ commands:
       - checkout
       - restore_cache:
           keys:
-            - dependency-cache-v1-{{ checksum "package.json" }}
+            - dependency-cache-v2-{{ checksum "package.json" }}
             # if cache for exact version of 'package.json' is not present, then load the most recent cache
-            - dependency-cache-v1-
+            - dependency-cache-v2-
       - run: npm install
       - run:
           name: 'Compile in production mode'
@@ -40,7 +40,7 @@ commands:
       - store_artifacts:
           path: ./extensions
       - save_cache:
-          key: dependency-cache-v1-{{ checksum "package.json" }}
+          key: dependency-cache-v2-{{ checksum "package.json" }}
           paths:
             - node_modules
 
@@ -51,9 +51,9 @@ commands:
       - checkout
       - restore_cache:
           keys:
-            - dependency-cache-win2-{{ checksum "package.json" }}
+            - dependency-cache-win3-{{ checksum "package.json" }}
             # if cache for exact version of 'package.json' is not present, then load the most recent cache
-            - dependency-cache-win2-
+            - dependency-cache-win3-
       - run:
           name: 'Install node'
           shell: bash.exe
@@ -75,7 +75,7 @@ commands:
           shell: bash.exe
           command: npm run compile
       - save_cache:
-          key: dependency-cache-win2-{{ checksum "package.json" }}
+          key: dependency-cache-win3-{{ checksum "package.json" }}
           paths:
             - node_modules
       - run:
