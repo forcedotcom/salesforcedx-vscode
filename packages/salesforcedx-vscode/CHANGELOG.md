@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
-- Remove automatic configuration of eslint.nodePath and eslintrc.json ([PR #1771](https://github.com/forcedotcom/salesforcedx-vscode/pull/1771)), ([Issue #1644](https://github.com/forcedotcom/salesforcedx-vscode/issues/1644)), ([Issue #1394](https://github.com/forcedotcom/salesforcedx-vscode/issues/1394)), ([Issue #1049](https://github.com/forcedotcom/salesforcedx-vscode/issues/1049))
+- Remove automatic configuration of `eslint.nodePath` and `eslintrc.json` ([PR #1771](https://github.com/forcedotcom/salesforcedx-vscode/pull/1771)), ([Issue #1644](https://github.com/forcedotcom/salesforcedx-vscode/issues/1644)), ([Issue #1394](https://github.com/forcedotcom/salesforcedx-vscode/issues/1394)), ([Issue #1049](https://github.com/forcedotcom/salesforcedx-vscode/issues/1049))
 - Update lightning language servers to v2.2.17 ([PR #1981](https://github.com/forcedotcom/salesforcedx-vscode/pull/1981))
 
 #### docs
@@ -16,11 +16,8 @@
 
 #### salesforcedx-vscode-core
 
-- Beta Conflict Detection for manifest operations ([PR #1921](https://github.com/forcedotcom/salesforcedx-vscode/pull/1921))
+- Open beta for conflict detection in manifest operations ([PR #1921](https://github.com/forcedotcom/salesforcedx-vscode/pull/1921)). Refer to [Conflict Detection](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/detect-conflicts) article ([PR #2001](https://github.com/forcedotcom/salesforcedx-vscode/pull/2001))
 
-#### docs
-
-- Added [Conflict Detection](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/detect-conflicts) documentation ([PR #2001](https://github.com/forcedotcom/salesforcedx-vscode/pull/2001))
 
 # 48.1.0 - February 15, 2020
 
