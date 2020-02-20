@@ -1,0 +1,32 @@
+name: Check Dependencies
+
+on:
+  schedule:
+    - cron: '00 0 * * *'
+
+jobs:
+  check-language-servers:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - salesforcedx-vscode-lwc
+          - salesforcedx-vscode-lightning
+    steps:
+      - uses: actions/checkout@master
+      - name: set remote url
+        run: git remote set-url --push origin https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+      - name: package-update
+        uses: taichi/actions-package-update@master
+        env:
+          AUTHOR_EMAIL: actions@github.com
+          AUTHOR_NAME: github-actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXECUTE: true
+          BRANCH_PREFIX: ${{ matrix.package }}/
+          COMMIT_MESSAGE: Upgrade Langauge Servers for ${{ matrix.package }}
+        with:
+          args: >-
+            -u
+            --packageFile packages/${{ matrix.package }}/package.json
+            @salesforce/aura-language-server,@salesforce/lwc-language-server,@salesforce/lightning-lsp-common
