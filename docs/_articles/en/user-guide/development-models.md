@@ -51,7 +51,7 @@ After connecting to a sandbox, DE org, or Trailhead Playground, use the package.
 
 ### Retrieve Source
 
-Org Development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files. When you retrieve source from an org, you could enable detecting conflicts between the org and the local metadata. See [Detect Conflicts](./en/user-guide/detect-conflicts).
+Org Development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve. Retrieving source from an org overwrites the local versions of the source files. When you retrieve source from an org, you could enable conflict detection between the org and the local metadata. See [Detect Conflicts](./en/user-guide/detect-conflicts).
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
