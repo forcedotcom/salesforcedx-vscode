@@ -67,7 +67,9 @@ export class CliCommandExecutor {
           GlobalCliEnvironment.environmentVariables
         )
       : options;
-    this.options.env.SFDX_TOOL = 'salesforce-vscode-extensions';
+    if (this.options && this.options.env) {
+      this.options.env.SFDX_TOOL = 'salesforce-vscode-extensions';
+    }
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {
