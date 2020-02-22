@@ -53,4 +53,6 @@ export function getLwcTestRunnerExecutable(cwd: string) {
         .catch();
     }
   }
+  // TODO
+  // Test support should not be activated for other workspace types
 }
