@@ -8,7 +8,7 @@ import { TestRunner as UtilsTestRunner } from '@salesforce/salesforcedx-utils-vs
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { assert, SinonStub, stub } from 'sinon';
+import { assert, SinonStub, stub, SinonSpy, spy } from 'sinon';
 import * as uuid from 'uuid';
 import * as vscode from 'vscode';
 
@@ -26,15 +26,19 @@ import {
   TestRunner,
   TestRunType
 } from '../../../../src/testSupport/testRunner';
+import { InputBuffer } from 'uuid/interfaces';
 
 describe('LWC Test Runner', () => {
   describe('getLwcTestRunnerExecutable Unit Tests', () => {
-    let existsSyncStub: SinonStub;
-    let notificationStub: SinonStub;
-    let telemetryStub: SinonStub;
+    let existsSyncStub: SinonStub<[fs.PathLike], boolean>;
+    let notificationStub: SinonSpy<
+      [string, vscode.MessageOptions, ...vscode.MessageItem[]],
+      Thenable<vscode.MessageItem | undefined>
+    >;
+    let telemetryStub: SinonStub<[string, string], Promise<void>>;
     beforeEach(() => {
       existsSyncStub = stub(fs, 'existsSync');
-      notificationStub = stub(vscode.window, 'showErrorMessage');
+      notificationStub = spy(vscode.window, 'showErrorMessage');
       telemetryStub = stub(telemetryService, 'sendException');
       telemetryStub.returns(Promise.resolve());
     });
@@ -63,6 +67,7 @@ describe('LWC Test Runner', () => {
       existsSyncStub.returns(false);
       getLwcTestRunnerExecutable(sfdxProjectPath);
       assert.calledOnce(notificationStub);
+      // @ts-ignore
       assert.calledWith(
         notificationStub,
         nls.localize('no_lwc_jest_found_text')
@@ -77,8 +82,11 @@ describe('LWC Test Runner', () => {
   });
 
   describe('Jest Execution Info Unit Tests', () => {
-    let uuidStub: SinonStub;
-    let getTempFolderStub: SinonStub;
+    let uuidStub: SinonStub<
+      [({ random: InputBuffer } | { rng(): InputBuffer } | undefined)?],
+      string
+    >;
+    let getTempFolderStub: SinonStub<[string, string], string>;
     beforeEach(() => {
       uuidStub = stub(uuid, 'v4');
       const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';

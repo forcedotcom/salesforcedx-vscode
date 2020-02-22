@@ -34,13 +34,30 @@ import {
   unmockActiveTextEditorUri,
   unmockTestResultWatcher
 } from '../mocks';
+import { InputBuffer } from 'uuid/interfaces';
 
 describe('Force LWC Test Debug - Code Action', () => {
-  let uuidStub: SinonStub;
-  let debugStub: SinonStub;
-  let lwcTestRunnerStub: SinonStub;
-  let processHrtimeStub: SinonStub;
-  let telemetryStub: SinonStub;
+  let uuidStub: SinonStub<
+    [({ random: InputBuffer } | { rng(): InputBuffer } | undefined)?],
+    string
+  >;
+  let debugStub: SinonStub<
+    [
+      vscode.WorkspaceFolder | undefined,
+      string | vscode.DebugConfiguration,
+      (vscode.DebugSession | vscode.DebugSessionOptions | undefined)?
+    ],
+    Thenable<any>
+  >;
+  let lwcTestRunnerStub: SinonStub<[string], string | undefined>;
+  let processHrtimeStub: SinonStub<
+    [([number, number] | undefined)?],
+    [number, number]
+  >;
+  let telemetryStub: SinonStub<
+    [(string | undefined)?, ([number, number] | undefined)?, any?],
+    Promise<void>
+  >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   beforeEach(() => {
     uuidStub = stub(uuid, 'v4');
@@ -120,7 +137,7 @@ describe('Force LWC Test Debug - Code Action', () => {
   describe('Debug Test Case', () => {
     it('Should send telemetry for debug test case', async () => {
       lwcTestRunnerStub.returns(lwcTestExecutablePath);
-      const mockExecutionTime = [123, 456];
+      const mockExecutionTime: [number, number] = [123, 456];
       processHrtimeStub.returns(mockExecutionTime);
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
       await forceLwcTestCaseDebug({
