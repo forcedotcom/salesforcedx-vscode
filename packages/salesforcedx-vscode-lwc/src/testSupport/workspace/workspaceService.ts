@@ -49,7 +49,7 @@ class WorkspaceService {
    * @returns {String} workspace type name for telemetry
    */
   public getCurrentWorkspaceTypeForTelemetry(): string {
-    return '';
+    return lspCommon.WorkspaceType[this.getCurrentWorkspaceType()];
   }
 }
 export const workspaceService = new WorkspaceService();
