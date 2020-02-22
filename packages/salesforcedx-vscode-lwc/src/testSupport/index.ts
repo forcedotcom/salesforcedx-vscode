@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { shared as lspCommon } from 'lightning-lsp-common';
 import { ExtensionContext } from 'vscode';
 import { registerLwcTestCodeLensProvider } from './codeLens/lwcTestCodeLensProvider';
 import { registerCommands } from './commands';
@@ -12,8 +13,18 @@ import { lwcTestIndexer } from './testIndexer';
 import { taskService } from './testRunner/taskService';
 import { testResultsWatcher } from './testRunner/testResultsWatcher';
 import { startWatchingEditorFocusChange } from './utils/context';
+import {
+  shouldActivateLwcTestSupport,
+  workspaceService
+} from './workspace/workspaceService';
 
-export function activateLwcTestSupport(context: ExtensionContext) {
+export { shouldActivateLwcTestSupport };
+
+export function activateLwcTestSupport(
+  context: ExtensionContext,
+  workspaceType: lspCommon.WorkspaceType
+) {
+  workspaceService.register(context, workspaceType);
   registerCommands(context);
   registerLwcTestCodeLensProvider(context);
   registerLwcTestExplorerTreeView(context);

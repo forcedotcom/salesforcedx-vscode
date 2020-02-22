@@ -11,7 +11,12 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 import { TestExecutionInfo, TestInfoKind } from '../types';
-import { getLwcTestRunnerExecutable, getTestWorkspaceFolder } from './index';
+import {
+  getCliArgsFromJestArgs,
+  getLwcTestRunnerExecutable,
+  workspaceService
+} from '../workspace';
+import { getTestWorkspaceFolder } from './index';
 import { SfdxTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
@@ -132,12 +137,10 @@ export class TestRunner {
         const { jestArgs, jestOutputFilePath } = jestExecutionInfo;
         const cwd = workspaceFolder.uri.fsPath;
         const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(cwd);
-        let cliArgs: string[];
-        if (this.testRunType === TestRunType.DEBUG) {
-          cliArgs = ['--debug', '--', ...jestArgs];
-        } else {
-          cliArgs = ['--', ...jestArgs];
-        }
+        const cliArgs: string[] = getCliArgsFromJestArgs(
+          jestArgs,
+          this.testRunType
+        );
         if (lwcTestRunnerExecutable) {
           return {
             workspaceFolder,
@@ -195,7 +198,11 @@ export class TestRunner {
       if (this.logName) {
         const startTime = process.hrtime();
         sfdxTask.onDidEnd(() => {
-          telemetryService.sendCommandEvent(this.logName, startTime).catch();
+          telemetryService
+            .sendCommandEvent(this.logName, startTime, {
+              workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
+            })
+            .catch();
         });
       }
       return sfdxTask.execute();

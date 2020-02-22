@@ -98,8 +98,8 @@
       "test": [
         {
           "id": "sfdx.force.lightning.lwc.test.view",
-          "name": "%force_lightning_lwc_test_view_name%",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened || sfdx:internal_dev",
+          "name": "%force_lightning_lwc_test_view_name%"
         }
       ]
     },
