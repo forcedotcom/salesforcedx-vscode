@@ -43,6 +43,11 @@ export class CliCommandExecutor {
       env[key] = value;
     });
 
+    // telemetry header
+    if (env) {
+      env.SFDX_TOOL = 'salesforce-vscode-extensions';
+    }
+
     // then specific environment from Spawn Options
     if (typeof options.env !== 'undefined') {
       Object.assign(env, options.env);
@@ -67,7 +72,6 @@ export class CliCommandExecutor {
           GlobalCliEnvironment.environmentVariables
         )
       : options;
-    this.options.env.SFDX_TOOL = 'salesforce-vscode-extensions';
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {

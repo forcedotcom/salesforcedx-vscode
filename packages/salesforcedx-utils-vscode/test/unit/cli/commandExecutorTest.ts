@@ -45,6 +45,36 @@ describe('CommandExecutor tests', () => {
       expect(stderr).to.contain('');
     });
 
+    it('Should pipe stdout even when global variables are not inherited', async () => {
+      const execution = new CliCommandExecutor(
+        new SfdxCommandBuilder()
+          .withArg('force')
+          .withArg('--help')
+          .build(),
+        {},
+        false
+      ).execute();
+
+      let stdout = '';
+      execution.stdoutSubject.subscribe(data => (stdout += data.toString()));
+      let stderr = '';
+      execution.stderrSubject.subscribe(data => (stderr += data.toString()));
+      const exitCode = await new Promise<string>((resolve, reject) => {
+        execution.processExitSubject.subscribe(
+          data => {
+            resolve(data !== undefined ? data.toString() : '');
+          },
+          err => {
+            reject(err);
+          }
+        );
+      });
+
+      expect(exitCode).to.equal('0');
+      expect(stdout).to.contain('USAGE\n  $ sfdx force');
+      expect(stderr).to.contain('');
+    });
+
     it('Should pipe errors on stdout', async () => {
       const execution = new CliCommandExecutor(
         new SfdxCommandBuilder()
@@ -122,6 +152,30 @@ describe('CommandExecutor tests', () => {
       expect(patchedOptions.env.key1).to.equal(testData.get('key1'));
       expect(patchedOptions.env).to.have.property('key2');
       expect(patchedOptions.env.key2).to.equal(testData.get('key2'));
+      expect(patchedOptions.env).to.have.any.keys('PATH', 'Path', 'path');
+    });
+
+    it('patchEnv verify usage of SFDX_TOOL', async () => {
+      class TestableCliCommandExecutor extends CliCommandExecutor {
+        public static patchEnv(
+          options: SpawnOptions,
+          baseEnvironment: Map<string, string>
+        ): SpawnOptions {
+          return CliCommandExecutor.patchEnv(options, baseEnvironment);
+        }
+      }
+
+      const patchedOptions = TestableCliCommandExecutor.patchEnv({}, testData);
+
+      expect(patchedOptions).to.have.property('env');
+      expect(patchedOptions.env).to.have.property('key1');
+      expect(patchedOptions.env.key1).to.equal(testData.get('key1'));
+      expect(patchedOptions.env).to.have.property('key2');
+      expect(patchedOptions.env.key2).to.equal(testData.get('key2'));
+      expect(patchedOptions.env).to.have.property('SFDX_TOOL');
+      expect(patchedOptions.env.SFDX_TOOL).to.equal(
+        'salesforce-vscode-extensions'
+      );
       expect(patchedOptions.env).to.have.any.keys('PATH', 'Path', 'path');
     });
 
