@@ -1,9 +1,37 @@
 {
+  "productTag": "a1aB000000005G3IAI",
   "productTagLabels": {
-    "gus:vscode": "a1aB0000000BPyKIAW",
-    "gus:lwc": "a1aB0000000Bn8tIAC",
-    "gus:aura": "a1aB0000000MRAzIAO"
+    "area:codecompletion": "a1aB0000000JglYIAS",
+    "area:debugger": "a1aB00000000v2YIAQ",
+    "area:deploy/retrieve": "a1aB000000005G3IAI",
+    "area:doc": "a1aB0000000BPyKIAW",
+    "area:localization": "a1aB0000000BPyKIAW",
+    "area:namespaces": "a1aB0000000BPyKIAW",
+    "area:orgbrowser": "a1aB0000000BPyKIAW",
+    "area:orgmanagement": "a1aB0000000BPyKIAW",
+    "area:packages": "a1aB0000000BPyKIAW",
+    "area:performance": "a1aB000000005G3IAI",
+    "area:quality": "a1aB0000000BPyKIAW",
+    "area:setup": "a1aB0000000BPyKIAW",
+    "area:templates": "a1aB0000000BPyKIAW",
+    "area:tests": "a1aB0000000BPyKIAW",
+    "area:usability": "a1aB0000000BPyKIAW",
+    "area:apex": "a1aB0000000JglYIAS",
+    "area:aura": "a1aB0000000MRAzIAO",
+    "area:lwc": "a1aB0000000Bn8tIAC",
+    "area:slds": "a1aB000000005G3IAI",
+    "area:soql": "a1aB000000005G3IAI",
+    "area:visualforce": "a1aB0000000BPyKIAW",
+    "area:xml": "a1aB0000000BPyKIAW"
   },
-  "defaultBuild": "sfdx.cli.46.x",
+  "issueTypeLabels": {
+    "type:feature": "USER STORY",
+    "type:bug": "BUG P3",
+    "type:security": "BUG P2",
+    "type:feedback": "",
+    "type:duplicate": ""
+  },
+  "defaultBuild": "offcore.tooling.48",
+  "hideWorkItemUrl": "true",
   "statusWhenClosed": "CLOSED"
 }
