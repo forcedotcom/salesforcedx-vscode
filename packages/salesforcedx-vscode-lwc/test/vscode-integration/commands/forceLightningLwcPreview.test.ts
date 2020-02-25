@@ -24,10 +24,10 @@ const { SfdxCommandlet, notificationService } = sfdxCoreExports;
 describe('forceLightningLwcPreview', () => {
   let sandbox: SinonSandbox;
   let devServiceStub: any;
-  let openBrowserStub: SinonStub;
-  let existsSyncStub: sinon.SinonStub;
-  let lstatSyncStub: sinon.SinonStub;
-  let showErrorMessageStub: sinon.SinonStub;
+  let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
+  let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
+  let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
+  let showErrorMessageStub: sinon.SinonStub<any[], any>;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -66,7 +66,7 @@ describe('forceLightningLwcPreview', () => {
       isDirectory() {
         return false;
       }
-    });
+    } as fs.Stats);
 
     await forceLightningLwcPreview(sourceUri);
 
@@ -96,7 +96,7 @@ describe('forceLightningLwcPreview', () => {
       isDirectory() {
         return true;
       }
-    });
+    } as fs.Stats);
 
     await forceLightningLwcPreview(sourceUri);
 
@@ -126,7 +126,7 @@ describe('forceLightningLwcPreview', () => {
       isDirectory() {
         return true;
       }
-    });
+    } as fs.Stats);
 
     const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
     await forceLightningLwcPreview(sourceUri);
@@ -145,7 +145,7 @@ describe('forceLightningLwcPreview', () => {
       isDirectory() {
         return false;
       }
-    });
+    } as fs.Stats);
 
     await forceLightningLwcPreview(sourceUri);
 
@@ -194,7 +194,7 @@ describe('forceLightningLwcPreview', () => {
       isDirectory() {
         return true;
       }
-    });
+    } as fs.Stats);
 
     openBrowserStub.throws('test error');
 
