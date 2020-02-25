@@ -28,7 +28,8 @@ import {
   TestExecutionInfo,
   TestInfoKind,
   TestResultStatus,
-  TestType
+  TestType,
+  TestFileInfo
 } from '../../../../src/testSupport/types';
 import {
   mockGetLwcTestRunnerExecutable,
@@ -44,7 +45,7 @@ import {
 
 describe('LWC Test Outline Provider', () => {
   describe('Should load exiting test files into test explorer view Unit Tests', () => {
-    let findAllTestFileInfoStub: SinonStub;
+    let findAllTestFileInfoStub: SinonStub<[], Promise<TestFileInfo[]>>;
     beforeEach(() => {
       findAllTestFileInfoStub = stub(lwcTestIndexer, 'findAllTestFileInfo');
     });
@@ -64,7 +65,8 @@ describe('LWC Test Outline Provider', () => {
         testType: TestType.LWC,
         testUri: URI.file(mockFilePath)
       }));
-      findAllTestFileInfoStub.returns(mockAllTestFileInfo);
+      // @ts-ignore
+      findAllTestFileInfoStub.returns(Promise.resolve(mockAllTestFileInfo));
       const nodes = await outlineProvder.getChildren();
       expect(nodes.length).to.equal(3);
       expect(nodes.map(node => node.label)).to.eql([
@@ -82,7 +84,8 @@ describe('LWC Test Outline Provider', () => {
           testType: TestType.LWC,
           testUri: URI.file(mockFilePath)
         }));
-      findAllTestFileInfoStub.returns(mockAllTestFileInfo);
+      // @ts-ignore
+      findAllTestFileInfoStub.returns(Promise.resolve(mockAllTestFileInfo));
       const nodes = await outlineProvder.getChildren();
       expect(nodes.length).to.equal(3);
       expect(nodes.map(node => node.label)).to.eql([
@@ -93,7 +96,7 @@ describe('LWC Test Outline Provider', () => {
     });
 
     it('Should provide no nodes if no tests found', async () => {
-      findAllTestFileInfoStub.returns([]);
+      findAllTestFileInfoStub.returns(Promise.resolve([]));
       const nodes = await outlineProvder.getChildren();
       expect(nodes).to.eql([]);
     });
@@ -126,9 +129,15 @@ describe('LWC Test Outline Provider', () => {
       actualTestCaseNodes = await outlineProvder.getChildren(actualFileNode);
     });
 
-    let activeTextEditorStub: SinonStub;
-    let showTextDocumentStub: SinonStub;
-    let revealRangeStub: SinonStub;
+    let activeTextEditorStub: SinonStub<any[], any>;
+    let showTextDocumentStub: SinonStub<
+      [vscode.Uri, (vscode.TextDocumentShowOptions | undefined)?],
+      Thenable<vscode.TextEditor | void>
+    >;
+    let revealRangeStub: SinonStub<
+      [vscode.Range, (vscode.TextEditorRevealType | undefined)?],
+      void
+    >;
     const mockActiveTextEditor = {
       document: {
         lineAt: (line: number) => {}
@@ -142,7 +151,7 @@ describe('LWC Test Outline Provider', () => {
       mockGetLwcTestRunnerExecutable();
       mockSfdxTaskExecute();
       showTextDocumentStub = stub(vscode.window, 'showTextDocument');
-      showTextDocumentStub.callsFake(() => {});
+      showTextDocumentStub.callsFake(() => Promise.resolve());
       activeTextEditorStub = stub(vscode.window, 'activeTextEditor').get(() => {
         return mockActiveTextEditor;
       });

@@ -77,8 +77,19 @@ describe('LWC Test Indexer', () => {
         children: [...mockItBlocks]
       }
     };
-    let createFileSystemWatcherStub: SinonStub;
-    let parseStub: SinonStub;
+    let createFileSystemWatcherStub: SinonStub<
+      [
+        vscode.GlobPattern,
+        (boolean | undefined)?,
+        (boolean | undefined)?,
+        (boolean | undefined)?
+      ],
+      vscode.FileSystemWatcher
+    >;
+    let parseStub: SinonStub<
+      [string, (string | undefined)?, (boolean | undefined)?],
+      jestTestSupport.IParseResults
+    >;
     beforeEach(async () => {
       createFileSystemWatcherStub = stub(
         vscode.workspace,
@@ -92,8 +103,11 @@ describe('LWC Test Indexer', () => {
         onDidChange: onDidChangeEventEmitter.event,
         onDidDelete: onDidDeleteEventEmitter.event
       };
-      createFileSystemWatcherStub.returns(mockFileSystemWatcher);
+      createFileSystemWatcherStub.returns(
+        mockFileSystemWatcher as vscode.FileSystemWatcher
+      );
       parseStub = stub(jestTestSupport, 'parse');
+      // @ts-ignore
       parseStub.returns(mockParseResults);
       // start mock file system watcher
       await lwcTestIndexer.configureAndIndex();
