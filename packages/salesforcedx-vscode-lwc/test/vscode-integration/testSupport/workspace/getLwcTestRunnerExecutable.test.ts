@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { assert, SinonStub, stub } from 'sinon';
+import * as which from 'which';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
 import {
@@ -19,6 +20,7 @@ import {
 
 describe('getLwcTestRunnerExecutable Unit Tests', () => {
   let existsSyncStub: SinonStub;
+  let whichSyncStub: SinonStub;
   let notificationStub: SinonStub;
   let telemetryStub: SinonStub;
   let getCurrentWorkspaceTypeStub: SinonStub;
@@ -39,10 +41,10 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
     telemetryStub.restore();
     getCurrentWorkspaceTypeStub.restore();
   });
-  const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
-  const sfdxProjectPath = path.join(root, 'project', 'mockSfdxProject');
 
-  describe('SFDX workspace', () => {
+  const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
+  describe('SFDX Workspace', () => {
+    const sfdxProjectPath = path.join(root, 'project', 'mockSfdxProject');
     beforeEach(() => {
       getCurrentWorkspaceTypeStub.returns(lspCommon.WorkspaceType.SFDX);
     });
@@ -72,6 +74,44 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
         telemetryStub,
         'lwc_test_no_lwc_jest_found',
         nls.localize('no_lwc_jest_found_text')
+      );
+    });
+  });
+
+  describe('Internal Dev Workspace', () => {
+    const projectPath = path.join(root, 'project', 'mockProject');
+    const mockLwcTestRunnerPath = path.join('/bin', 'lwc-test');
+    beforeEach(() => {
+      getCurrentWorkspaceTypeStub.returns(lspCommon.WorkspaceType.CORE_PARTIAL);
+      whichSyncStub = stub(which, 'sync');
+      whichSyncStub.returns(mockLwcTestRunnerPath);
+    });
+
+    afterEach(() => {
+      whichSyncStub.restore();
+    });
+
+    it('Should return LWC Test Runner Path when LWC Test Runner is installed and not display error message', () => {
+      existsSyncStub.returns(true);
+      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(projectPath);
+      expect(lwcTestRunnerExecutable).to.equal(mockLwcTestRunnerPath);
+      assert.notCalled(notificationStub);
+      assert.notCalled(telemetryStub);
+    });
+
+    it('Should display error message when LWC Jest Test Runner is not installed', () => {
+      existsSyncStub.returns(false);
+      getLwcTestRunnerExecutable(projectPath);
+      assert.calledOnce(notificationStub);
+      assert.calledWith(
+        notificationStub,
+        nls.localize('no_lwc_testrunner_found_text')
+      );
+      assert.calledOnce(telemetryStub);
+      assert.calledWith(
+        telemetryStub,
+        'lwc_test_no_lwc_testrunner_found',
+        nls.localize('no_lwc_testrunner_found_text')
       );
     });
   });

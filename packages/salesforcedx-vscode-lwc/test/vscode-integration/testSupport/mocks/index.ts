@@ -58,7 +58,7 @@ export function mockGetLwcTestRunnerExecutable(
     mockWorkspaceType === lspCommon.WorkspaceType.CORE_PARTIAL
   ) {
     whichSyncStub = stub(which, 'sync');
-    whichSyncStub.returns(path.join('usr', 'local', 'bin', 'lwc-test'));
+    whichSyncStub.returns(path.join('/bin', 'lwc-test'));
     existsSyncStub = stub(fs, 'existsSync');
     existsSyncStub.returns(true);
   }
