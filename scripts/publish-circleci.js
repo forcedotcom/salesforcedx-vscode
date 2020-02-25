@@ -26,19 +26,25 @@ const {
  * Run this script with SALESFORCEDX_VSCODE_VERSION, CIRCLECI_TOKEN & CIRCLECI_BUILD as environment variables
  * i.e. SALESFORCEDX_VSCODE_VERSION=x.y.z ./scripts/publish-circleci.js
  *
+ * To run a prevalidation for the environment variables run `node scripts/publish-circleci.js -- -v`.
  */
 
+if (process.argv.indexOf('-v') > -1) {
+  console.log('Running prevalidation of environment variables.');
+  console.log(`SALESFORCEDX_VSCODE_VERSION: ${process.env['SALESFORCEDX_VSCODE_VERSION']}`);
+  console.log(`CIRCLECI_TOKEN: ${process.env['CIRCLECI_TOKEN']}`);
+  console.log(`CIRCLECI_BUILD: ${process.env['CIRCLECI_BUILD']}`);
+  process.exit(-1);
+}
+
 checkEnvironmentVariables();
+checkBaseBranch(`release/v${process.env['SALESFORCEDX_VSCODE_VERSION']}`);
 checkNodeVerion();
 checkLernaInstall();
 checkVSCEInstall();
 checkAWSCliInstall();
 checkAWSAccess();
 checkSalesforcePublisherAccess();
-
-const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-const releaseBranchName = `release/v${nextVersion}`;
-checkBaseBranch(releaseBranchName);
 
 // Download vsix files from CircleCI
 shell.exec('./scripts/download-vsix-from-circleci.js');

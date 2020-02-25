@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
-const { checkBaseBranch, checkLernaInstall, checkVSCodeVersion } = require('./validation-utils');
+const { checkVSCodeVersion, checkLernaInstall, checkBaseBranch } = require('./validation-utils');
 
 shell.set('-e');
 shell.set('+v');
