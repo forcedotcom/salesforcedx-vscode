@@ -14,35 +14,35 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "47.6.0",
+  "version": "48.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.32.0"
+    "vscode": "^1.40.0"
   },
   "categories": [
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-replay-debugger": "47.6.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "48.3.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "47.6.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "48.3.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
-    "@types/mocha": "2.2.38",
+    "@types/mocha": "^5",
     "@types/node": "8.9.3",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "mocha": "3.2.0",
-    "sinon": "^2.3.6",
-    "vscode": "1.1.17"
+    "mocha": "^5",
+    "sinon": "^7.3.1",
+    "vscode": "^1.1.36"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",

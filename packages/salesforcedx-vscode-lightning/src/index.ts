@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from 'lightning-lsp-common';
-import { WorkspaceType } from 'lightning-lsp-common/lib/shared';
+import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { WorkspaceType } from '@salesforce/lightning-lsp-common/lib/shared';
 import * as path from 'path';
 import {
   commands,
@@ -64,10 +64,14 @@ export async function activate(context: ExtensionContext) {
     return;
   }
 
+  // Pass the workspace folder URIs to the language server
+  const workspaceUris: string[] = [];
+  workspace.workspaceFolders.forEach(folder => {
+    workspaceUris.push(folder.uri.fsPath);
+  });
+
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(
-    workspace.workspaceFolders[0].uri.fsPath
-  );
+  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -88,7 +92,13 @@ export async function activate(context: ExtensionContext) {
 
   // Setup the language server
   const serverModule = context.asAbsolutePath(
-    path.join('node_modules', 'aura-language-server', 'lib', 'server.js')
+    path.join(
+      'node_modules',
+      '@salesforce',
+      'aura-language-server',
+      'lib',
+      'server.js'
+    )
   );
 
   // The debug options for the server

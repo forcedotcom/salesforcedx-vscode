@@ -32,3 +32,6 @@ export const LWC_HTML_EXTENSION = '.html';
 export const LWC_DEFINITION_FILE_EXTS = [LWC_JS_EXTENSION, LWC_HTML_EXTENSION];
 export const LWC_DIRECTORY = 'lwc';
 export const LWC_TYPE = 'lightningcomponentbundle';
+
+export const ANALYTICS_TEMPLATE_TYPE = 'wavetemplatebundle';
+export const ANALYTICS_TEMPLATE_DIRECTORY = 'waveTemplates';

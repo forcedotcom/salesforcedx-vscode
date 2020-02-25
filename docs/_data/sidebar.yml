@@ -1,180 +1,184 @@
 - title:
     en: Get Started
-    jp: 使用開始
+    ja: 使用開始
   baseUrl: /getting-started/
   children:
     - title:
         en: Installation
-        jp: インストール
+        ja: インストール
       url: /getting-started/install
     - title:
         en: First Project
-        jp: 最初のプロジェクト
+        ja: 最初のプロジェクト
       url: /getting-started/first-project
     - title:
         en: 'Migrate: Force.com IDE'
-        jp: '移行Force.com IDE'
+        ja: '移行Force.com IDE'
       url: /getting-started/migrate-from-forcecom-ide
     - title:
         en: Recommended Extensions
-        jp: 推奨の拡張機能
+        ja: 推奨の拡張機能
       url: /getting-started/recommended-extensions
     - title:
         en: Settings
-        jp: 設定
+        ja: 設定
       url: /getting-started/settings
     - title:
         en: Tips & Tricks
-        jp: ヒントとコツ
+        ja: ヒントとコツ
       url: /getting-started/tips-and-tricks
     - title:
         en: Java Setup
-        jp: Java 設定
+        ja: Java 設定
       url: /getting-started/java-setup
 - title:
     en: User Guide
-    jp: ユーザガイド
+    ja: ユーザガイド
   baseUrl: /user-guide/
   children:
     - title:
         en: Development Models
-        jp: Development Models
+        ja: Development Models
       url: /user-guide/development-models
     - title:
+        en: Detect Conflicts
+        ja: Detect Conflicts
+      url: /user-guide/detect-conflicts
+    - title:
         en: Deploy on Save
-        jp: Deploy on Save
+        ja: Deploy on Save
       url: /user-guide/deploy-on-save
     - title:
         en: Org Browser
-        jp: 組織のブラウザ
+        ja: 組織のブラウザ
       url: /user-guide/org-browser
     - title:
         en: Source Diff
-        jp: Source Diff
+        ja: Source Diff
       url: /user-guide/source-diff
     - title:
         en: Prettier Code Formatter
-        jp: Prettier コードフォーマッタ
+        ja: Prettier コードフォーマッタ
       url: /user-guide/prettier
     - title:
         en: Command Reference
-        jp: Command Reference
+        ja: Command Reference
       url: /user-guide/vscode-commands
     - title:
         en: Source Format
-        jp: ソース形式
+        ja: ソース形式
       url: /user-guide/source-format
     - title:
         en: Default Org
-        jp: デフォルト組織
+        ja: デフォルト組織
       url: /user-guide/default-org
     - title:
         en: Remote Containers
-        jp: Remote Containers
+        ja: Remote Containers
       url: /user-guide/remote-development
     - title:
         en: Demo Mode
-        jp: デモモード
+        ja: デモモード
       url: /user-guide/demo-mode
 - title:
     en: Apex
-    jp: Apex
+    ja: Apex
   baseUrl: /apex/
   children:
     - title:
         en: Writing
-        jp: 作成
+        ja: 作成
       url: /apex/writing
     - title:
         en: Testing
-        jp: テスト
+        ja: テスト
       url: /apex/testing
     - title:
         en: Refactoring
-        jp: リファクタリング
+        ja: リファクタリング
       url: /apex/refactoring
     - title:
         en: Quick Fix
-        jp: クイック修正
+        ja: クイック修正
       url: /apex/quick-fix
     - title:
         en: Replay Debugger
-        jp: Replay Debugger
+        ja: Replay Debugger
       url: /apex/replay-debugger
     - title:
         en: Interactive Debugger
-        jp: 対話型デバッガ
+        ja: 対話型デバッガ
       url: /apex/interactive-debugger
     - title:
         en: ISV Debugger
-        jp: ISV デバッガ
+        ja: ISV デバッガ
       url: /apex/isv-debugger
     - title:
         en: Language Server
-        jp: 言語サーバ
+        ja: 言語サーバ
       url: /apex/language-server
 - title:
     en: Aura
-    jp: Aura
+    ja: Aura
   baseUrl: /aura/
   children:
     - title:
-        en: Writing
-        jp: 作成
+        en: Overview
+        ja: 作成
       url: /aura/writing
 - title:
-    en: Lighting Web Components
-    jp: Lightning Web コンポーネント
+    en: Lightning Web Components
+    ja: Lightning Web コンポーネント
   baseUrl: /lwc/
   children:
     - title:
-        en: Writing
-        jp: 作成
+        en: Overview
+        ja: 作成
       url: /lwc/writing
     - title:
         en: Testing
-        jp: 作成
+        ja: 作成
       url: /lwc/testing
     - title:
         en: Local Development
-        jp: Local Development
+        ja: Local Development
       url: /lwc/localdev
 - title:
     en: Visualforce
-    jp: Visualforce
+    ja: Visualforce
   baseUrl: /visualforce/
   children:
     - title:
         en: Writing
-        jp: 作成
+        ja: 作成
       url: /visualforce/writing
 - title:
     en: SOQL
-    jp: SOQL
+    ja: SOQL
   baseUrl: /soql/
   children:
     - title:
         en: Writing
-        jp: 作成
+        ja: 作成
       url: /soql/writing
 - title:
     en: FAQ
-    jp: FAQ
+    ja: FAQ
   baseUrl: /faq/
   children:
     - title:
         en: General
-        jp: 一般
+        ja: 一般
       url: /faq/general
     - title:
         en: Telemetry
-        jp: テレメトリ
+        ja: テレメトリ
       url: /faq/telemetry
 - title:
     en: Troubleshooting
-    jp: トラブルシューティング
+    ja: トラブルシューティング
   url: /troubleshooting
 - title:
     en: Bugs and Feedback
-    jp: バグとフィードバック
+    ja: バグとフィードバック
   url: /bugs-and-feedback

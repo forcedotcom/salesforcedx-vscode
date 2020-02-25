@@ -4,20 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TestRunner as UtilsTestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as fs from 'fs';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
 import { SfdxTask } from '../../../../src/testSupport/testRunner/taskService';
+import { testResultsWatcher } from '../../../../src/testSupport/testRunner/testResultsWatcher';
 import {
   TestFileInfo,
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
 
-let existsSyncStub: SinonStub;
-let sfdxTaskExecuteStub: SinonStub;
+let existsSyncStub: SinonStub<[fs.PathLike], boolean>;
+let sfdxTaskExecuteStub: SinonStub<[], Promise<SfdxTask>>;
+let activeTextEditorStub: SinonStub<any[], any>;
+let getTempFolderStub: SinonStub<[string, string], string>;
+let watchTestResultsStub: SinonStub<[string], void>;
 export function createMockTestFileInfo() {
   const mockDirectory = path.join(
     vscode.workspace.workspaceFolders![0].uri.fsPath,
@@ -68,4 +73,41 @@ export function mockSfdxTaskExecute(immediate?: boolean) {
 
 export function unmockSfdxTaskExecute() {
   sfdxTaskExecuteStub.restore();
+}
+
+/**
+ * Mock active text editor with provided mock test uri
+ * @param testUri mock test uri
+ */
+export function mockActiveTextEditorUri(testUri: vscode.Uri) {
+  const mockActiveTextEditor = {
+    document: {
+      uri: testUri,
+      languageId: 'javascript'
+    }
+  };
+  activeTextEditorStub = stub(vscode.window, 'activeTextEditor').get(() => {
+    return mockActiveTextEditor;
+  });
+}
+
+export function unmockActiveTextEditorUri() {
+  activeTextEditorStub.restore();
+}
+
+/**
+ * Mock test result watcher's get temp folder and watch test results methods
+ */
+export function mockTestResultWatcher() {
+  getTempFolderStub = stub(UtilsTestRunner.prototype, 'getTempFolder');
+  getTempFolderStub.callsFake((vscodePath: string, testType: string) => {
+    return path.join(vscodePath, '.sfdx', 'tools', 'testresults', testType);
+  });
+  watchTestResultsStub = stub(testResultsWatcher, 'watchTestResults');
+  watchTestResultsStub.callsFake(() => {});
+}
+
+export function unmockTestResultWatcher() {
+  getTempFolderStub.restore();
+  watchTestResultsStub.restore();
 }

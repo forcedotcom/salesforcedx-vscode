@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from 'lightning-lsp-common';
+import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -63,10 +63,14 @@ export async function activate(context: ExtensionContext) {
     return;
   }
 
+  // Pass the workspace folder URIs to the language server
+  const workspaceUris: string[] = [];
+  workspace.workspaceFolders.forEach(folder => {
+    workspaceUris.push(folder.uri.fsPath);
+  });
+
   // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(
-    workspace.workspaceFolders[0].uri.fsPath
-  );
+  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -80,8 +84,8 @@ export async function activate(context: ExtensionContext) {
   // If activationMode === always, ignore workspace type and continue activating
 
   // register commands
-  const commands = registerCommands(context);
-  context.subscriptions.push(commands);
+  const ourCommands = registerCommands(context);
+  context.subscriptions.push(ourCommands);
 
   // If we get here, we either passed autodetect validation or activationMode == always
   console.log('Lightning Web Components Extension Activated');
@@ -91,11 +95,27 @@ export async function activate(context: ExtensionContext) {
   startLWCLanguageServer(context);
 
   if (workspaceType === lspCommon.WorkspaceType.SFDX) {
-    // Additional eslint configuration
-    await populateEslintSettingIfNecessary(
-      context,
-      workspace.getConfiguration('', workspace.workspaceFolders[0].uri)
-    );
+    // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
+    // which points at our LWC extension node_modules path
+    const config: WorkspaceConfiguration = workspace.getConfiguration('');
+    const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
+    if (currentNodePath && currentNodePath.includes(LWC_EXTENSION_NAME)) {
+      try {
+        console.log(
+          'Removing eslint.nodePath setting as the LWC Extension no longer manages this value'
+        );
+        await config.update(
+          ESLINT_NODEPATH_CONFIG,
+          undefined,
+          ConfigurationTarget.Workspace
+        );
+      } catch (e) {
+        await telemetryService.sendException(
+          'lwc_eslint_nodepath_couldnt_be_set',
+          e.message
+        );
+      }
+    }
 
     // Activate Test support only for SFDX workspace type for now
     activateLwcTestSupport(context);
@@ -144,7 +164,13 @@ function registerCommands(
 function startLWCLanguageServer(context: ExtensionContext) {
   // Setup the language server
   const serverModule = context.asAbsolutePath(
-    path.join('node_modules', 'lwc-language-server', 'lib', 'server.js')
+    path.join(
+      'node_modules',
+      '@salesforce',
+      'lwc-language-server',
+      'lib',
+      'server.js'
+    )
   );
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
   // If the extension is launched in debug mode then the debug server options are used
@@ -196,24 +222,4 @@ function startLWCLanguageServer(context: ExtensionContext) {
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
   context.subscriptions.push(client);
-}
-
-export async function populateEslintSettingIfNecessary(
-  context: ExtensionContext,
-  config: WorkspaceConfiguration
-) {
-  const nodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-
-  // User has not set one, use the eslint bundled with our extension
-  // or if it is from salesforcedx-vscode-lwc, update since the path looks like
-  // "eslint.nodePath": ".../.vscode/extensions/salesforce.salesforcedx-vscode-lwc-41.17.0/node_modules",
-  // which contains the version number and needs to be updated on each extension
-  if (!nodePath || nodePath.includes(LWC_EXTENSION_NAME)) {
-    const eslintModule = context.asAbsolutePath(path.join('node_modules'));
-    await config.update(
-      ESLINT_NODEPATH_CONFIG,
-      eslintModule,
-      ConfigurationTarget.Workspace
-    );
-  }
 }

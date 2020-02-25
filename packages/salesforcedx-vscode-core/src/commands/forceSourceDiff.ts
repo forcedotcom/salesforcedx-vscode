@@ -48,7 +48,6 @@ export class ForceSourceDiffExecutor extends SfdxCommandletExecutor<string> {
     }).execute(cancellationToken);
 
     channelService.streamCommandStartStop(execution);
-    channelService.showChannelOutput();
 
     let stdOut = '';
     execution.stdoutSubject.subscribe(realData => {
@@ -106,10 +105,12 @@ export async function handleDiffResponse(
       );
     } else if (diffParserError) {
       channelService.appendLine(diffParserError.message);
+      channelService.showChannelOutput();
     }
   } catch (e) {
     notificationService.showErrorMessage(e.message);
     channelService.appendLine(e.message);
+    channelService.showChannelOutput();
     telemetryService.sendException(e.name, e.message);
   }
 }

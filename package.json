@@ -8,6 +8,7 @@
     "istanbul": "1.1.0-alpha.1",
     "jsdom": "^15.1.1",
     "lerna": "3.13.1",
+    "ncp": "^2.0.0",
     "prettier": "1.16.4",
     "remap-istanbul": "^0.9.5",
     "shx": "0.2.2",
@@ -16,26 +17,28 @@
     "tslint": "5.5.0",
     "typescript": "3.1.6",
     "vsce": "1.62.0",
+    "vscode-test": "^1.3.0",
     "webpack": "4.30.0",
     "webpack-cli": "3.3.5"
   },
   "scripts": {
-    "postinstall": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
-    "bootstrap": "lerna bootstrap -- --no-package-lock && node scripts/reformat-with-prettier",
+    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
+    "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
+    "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "clean": "lerna run clean",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
-    "publish": "node scripts/publish.js",
+    "publish": "node scripts/publish-circleci.js",
     "build-change-log": "node scripts/change-log-generator.js",
-    "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test",
-    "test:unit": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit",
-    "test:unit-and-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:unit && npm run coverage:system-tests",
-    "test:integration": "lerna run test:integration --concurrency 1 --stream",
-    "test:integration-tests-without-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:integration && npm run test:vscode-integration",
-    "test:vscode-integration": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-integration",
-    "test:vscode-insiders-integration": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-insiders-integration",
-    "test:without-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test",
-    "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream",
+    "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test --if-present",
+    "test:unit": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit --if-present",
+    "test:unit-and-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:unit --if-present && npm run coverage:system-tests",
+    "test:integration": "lerna run test:integration --concurrency 1 --stream -- --if-present",
+    "test:integration-tests-without-system-tests": "node scripts/download-vscode && lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test:integration --if-present && npm run test:vscode-integration --if-present",
+    "test:vscode-integration": "node scripts/download-vscode && lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-integration --if-present",
+    "test:vscode-insiders-integration": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:vscode-insiders-integration --if-present",
+    "test:without-system-tests": "lerna exec --ignore system-tests --concurrency 1 --stream --bail=false -- npm run test --if-present",
+    "test:system-tests": "lerna run test --scope system-tests --concurrency 1 --stream -- --if-present",
     "test:vscode-insiders-system-tests": "lerna run test:vscode-insiders-system-tests --scope system-tests --concurrency 1 --stream",
     "coverage:system-tests": "lerna exec --scope system-tests --concurrency 1 --stream --bail=false -- npm run coverage:system-tests",
     "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
@@ -47,7 +50,8 @@
     "snyk:test": "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk test --severity-threshold=medium --show-vulnerable-paths=false",
     "snyk:monitor": "lerna exec --bail=false --ignore salesforcedx-vscode -- snyk monitor --severity-threshold=medium --show-vulnerable-paths=false --org=vazexqi",
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
-    "link-lsp": "lerna exec yarn link aura-language-server lwc-language-server lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link lwc-language-server lightning-lsp-common --scope salesforcedx-vscode-lwc"
+    "link-lsp": "lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
+    "unlink-lsp": "lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc"
   },
   "repository": {
     "type": "git",
@@ -55,7 +59,8 @@
   },
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node": "10.2.0"
+    "node": "12.4.0",
+    "npm": "^6.9.0"
   },
   "husky": {
     "hooks": {

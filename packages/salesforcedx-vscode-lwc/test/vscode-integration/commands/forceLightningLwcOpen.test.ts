@@ -16,10 +16,10 @@ import { DevServerService } from '../../../src/service/devServerService';
 describe('forceLightningLwcOpen', () => {
   let sandbox: SinonSandbox;
   let devServiceStub: any;
-  let openBrowserStub: SinonStub;
+  let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     devServiceStub = sinon.createStubInstance(DevServerService);
     sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);
     openBrowserStub = sandbox.stub(commandUtils, 'openBrowser');

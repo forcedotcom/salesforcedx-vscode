@@ -155,4 +155,39 @@ describe('SFDX Package Directories', () => {
         .false;
     });
   });
+
+  describe('getDefaultPackageDir', () => {
+    let sfdxProjectConfigStub: SinonStub;
+    afterEach(() => {
+      sfdxProjectConfigStub.restore();
+    });
+
+    it('should return the default directory path when it is defined', async () => {
+      sfdxProjectConfigStub = stub(SfdxProjectConfig, 'getValue').returns([
+        { path: 'package1' },
+        { path: 'package2' },
+        { path: 'package3', default: true }
+      ]);
+      expect(await SfdxPackageDirectories.getDefaultPackageDir()).to.equal(
+        'package3'
+      );
+    });
+
+    it('should return the first listed directory path when a default directory is not defined', async () => {
+      sfdxProjectConfigStub = stub(SfdxProjectConfig, 'getValue').returns([
+        { path: 'package1' },
+        { path: 'package2' },
+        { path: 'package3' }
+      ]);
+      expect(await SfdxPackageDirectories.getDefaultPackageDir()).to.equal(
+        'package1'
+      );
+    });
+
+    it('should return undefined when no project directories are defined', async () => {
+      sfdxProjectConfigStub = stub(SfdxProjectConfig, 'getValue').returns([]);
+      expect(await SfdxPackageDirectories.getDefaultPackageDir()).to.be
+        .undefined;
+    });
+  });
 });

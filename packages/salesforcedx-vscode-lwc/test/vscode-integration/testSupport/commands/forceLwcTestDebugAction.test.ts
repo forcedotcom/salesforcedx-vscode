@@ -14,6 +14,8 @@ import URI from 'vscode-uri';
 import { telemetryService } from '../../../../src/telemetry';
 import {
   forceLwcTestCaseDebug,
+  forceLwcTestDebugActiveTextEditorTest,
+  forceLwcTestFileDebug,
   getDebugConfiguration,
   handleDidStartDebugSession,
   handleDidTerminateDebugSession
@@ -25,13 +27,37 @@ import {
   TestType
 } from '../../../../src/testSupport/types';
 import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../../../../src/testSupport/types/constants';
+import {
+  createMockTestFileInfo,
+  mockActiveTextEditorUri,
+  mockTestResultWatcher,
+  unmockActiveTextEditorUri,
+  unmockTestResultWatcher
+} from '../mocks';
+import { InputBuffer } from 'uuid/interfaces';
 
 describe('Force LWC Test Debug - Code Action', () => {
-  let uuidStub: SinonStub;
-  let debugStub: SinonStub;
-  let lwcTestRunnerStub: SinonStub;
-  let processHrtimeStub: SinonStub;
-  let telemetryStub: SinonStub;
+  let uuidStub: SinonStub<
+    [({ random: InputBuffer } | { rng(): InputBuffer } | undefined)?],
+    string
+  >;
+  let debugStub: SinonStub<
+    [
+      vscode.WorkspaceFolder | undefined,
+      string | vscode.DebugConfiguration,
+      (vscode.DebugSession | vscode.DebugSessionOptions | undefined)?
+    ],
+    Thenable<any>
+  >;
+  let lwcTestRunnerStub: SinonStub<[string], string | undefined>;
+  let processHrtimeStub: SinonStub<
+    [([number, number] | undefined)?],
+    [number, number]
+  >;
+  let telemetryStub: SinonStub<
+    [(string | undefined)?, ([number, number] | undefined)?, any?],
+    Promise<void>
+  >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   beforeEach(() => {
     uuidStub = stub(uuid, 'v4');
@@ -111,7 +137,7 @@ describe('Force LWC Test Debug - Code Action', () => {
   describe('Debug Test Case', () => {
     it('Should send telemetry for debug test case', async () => {
       lwcTestRunnerStub.returns(lwcTestExecutablePath);
-      const mockExecutionTime = [123, 456];
+      const mockExecutionTime: [number, number] = [123, 456];
       processHrtimeStub.returns(mockExecutionTime);
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
       await forceLwcTestCaseDebug({
@@ -133,6 +159,93 @@ describe('Force LWC Test Debug - Code Action', () => {
         FORCE_LWC_TEST_DEBUG_LOG_NAME,
         mockExecutionTime
       );
+    });
+  });
+
+  describe('Debug Test File', () => {
+    beforeEach(() => {
+      lwcTestRunnerStub.returns(lwcTestExecutablePath);
+      mockTestResultWatcher();
+    });
+    afterEach(() => {
+      unmockTestResultWatcher();
+    });
+
+    const mockTestFileInfo = createMockTestFileInfo();
+    it('Should debug test file', async () => {
+      await forceLwcTestFileDebug({
+        testExecutionInfo: mockTestFileInfo
+      });
+      const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
+      assert.calledWith(debugStub, vscode.workspace.workspaceFolders![0], {
+        args: [
+          '--debug',
+          '--',
+          '--json',
+          '--outputFile',
+          path.join(
+            expectedCwd,
+            '.sfdx',
+            'tools',
+            'testresults',
+            'lwc',
+            `test-result-${mockUuid}.json`
+          ),
+          '--testLocationInResults',
+          '--runTestsByPath',
+          /^win32/.test(process.platform)
+            ? path.relative(expectedCwd, mockTestFileInfo.testUri.fsPath)
+            : mockTestFileInfo.testUri.fsPath
+        ],
+        console: 'integratedTerminal',
+        cwd: expectedCwd,
+        disableOptimisticBPs: true,
+        internalConsoleOptions: 'openOnSessionStart',
+        name: 'Debug LWC test(s)',
+        port: 9229,
+        request: 'launch',
+        runtimeExecutable: lwcTestExecutablePath,
+        sfdxDebugSessionId: mockUuid,
+        type: 'node'
+      });
+    });
+
+    it('Should debug active text editor test file', async () => {
+      mockActiveTextEditorUri(mockTestFileInfo.testUri);
+      await forceLwcTestDebugActiveTextEditorTest();
+      const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
+      assert.calledWith(debugStub, vscode.workspace.workspaceFolders![0], {
+        args: [
+          '--debug',
+          '--',
+          '--json',
+          '--outputFile',
+          path.join(
+            expectedCwd,
+            '.sfdx',
+            'tools',
+            'testresults',
+            'lwc',
+            `test-result-${mockUuid}.json`
+          ),
+          '--testLocationInResults',
+          '--runTestsByPath',
+          /^win32/.test(process.platform)
+            ? path.relative(expectedCwd, mockTestFileInfo.testUri.fsPath)
+            : mockTestFileInfo.testUri.fsPath
+        ],
+        console: 'integratedTerminal',
+        cwd: expectedCwd,
+        disableOptimisticBPs: true,
+        internalConsoleOptions: 'openOnSessionStart',
+        name: 'Debug LWC test(s)',
+        port: 9229,
+        request: 'launch',
+        runtimeExecutable: lwcTestExecutablePath,
+        sfdxDebugSessionId: mockUuid,
+        type: 'node'
+      });
+      unmockActiveTextEditorUri();
     });
   });
 });

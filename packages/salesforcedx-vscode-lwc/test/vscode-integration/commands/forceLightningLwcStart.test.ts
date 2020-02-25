@@ -23,6 +23,8 @@ import {
 } from '../../../src/commands/forceLightningLwcStart';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
+import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
+import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -40,6 +42,7 @@ class FakeExecution implements CommandExecution {
   public processErrorSubject: Subject<Error>;
   public stdoutSubject: Subject<string>;
   public stderrSubject: Subject<string>;
+  private readonly childProcessPid: any;
 
   constructor(command: Command) {
     this.command = command;
@@ -47,6 +50,11 @@ class FakeExecution implements CommandExecution {
     this.processErrorSubject = new Subject<Error>();
     this.stdoutSubject = new Subject<string>();
     this.stderrSubject = new Subject<string>();
+    this.childProcessPid = '';
+  }
+
+  public killExecution(signal?: string): Promise<void> {
+    return Promise.resolve();
   }
 }
 
@@ -80,11 +88,14 @@ describe('forceLightningLwcStart', () => {
       let taskViewServiceStubs: { [key: string]: SinonStub };
       let notificationServiceStubs: { [key: string]: SinonStub };
       let devServiceStub: any;
-      let openBrowserStub: SinonStub;
-      let cliCommandExecutorStub: SinonStub;
+      let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
+      let cliCommandExecutorStub: SinonStub<
+        [(CancellationToken | undefined)?],
+        CliCommandExecution | FakeExecution
+      >;
 
       beforeEach(() => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
 
         openBrowserStub = sandbox.stub(commandUtils, 'openBrowser');
 
@@ -248,12 +259,12 @@ describe('forceLightningLwcStart', () => {
 
   describe('forceLightningLwcStart function', () => {
     let sandbox: SinonSandbox;
-    let showWarningStub: SinonStub;
+    let showWarningStub: SinonStub<any[], any>;
     let devServiceStub: any;
-    let commandletStub: SinonStub;
+    let commandletStub: SinonStub<any[], any>;
 
     beforeEach(() => {
-      sandbox = sinon.sandbox.create();
+      sandbox = sinon.createSandbox();
 
       devServiceStub = sinon.createStubInstance(DevServerService);
       sandbox.stub(DevServerService, 'instance').get(() => devServiceStub);

@@ -6,6 +6,7 @@
  */
 import { expect } from 'chai';
 import {
+  isAlphaNumSpaceString,
   isAlphaNumString,
   isInteger,
   isIntegerInRange
@@ -15,6 +16,11 @@ describe('Input Box Validations', () => {
   describe('isInteger', () => {
     it('Should return false if value is undefined', async () => {
       const res = isInteger(undefined);
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value is empty', async () => {
+      const res = isInteger('');
       expect(res).to.equal(false);
     });
 
@@ -37,6 +43,11 @@ describe('Input Box Validations', () => {
   describe('isIntegerInRange', () => {
     it('Should return false if value is undefined', async () => {
       const res = isIntegerInRange(undefined, [1, 3]);
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value is empty', async () => {
+      const res = isIntegerInRange('', [1, 3]);
       expect(res).to.equal(false);
     });
 
@@ -82,6 +93,11 @@ describe('Input Box Validations', () => {
       expect(res).to.equal(false);
     });
 
+    it('Should return false if value is empty', async () => {
+      const res = isAlphaNumString('');
+      expect(res).to.equal(false);
+    });
+
     it('Should return false if value contains non alphanumeric characters', async () => {
       const res = isAlphaNumString('my scratch org');
       expect(res).to.equal(false);
@@ -94,6 +110,33 @@ describe('Input Box Validations', () => {
 
     it('Should return true if value has only alphanumeric characters and underscores', async () => {
       const res = isAlphaNumString('scratch_123');
+      expect(res).to.equal(true);
+    });
+  });
+
+  describe('isAlphaNumSpaceString', () => {
+    it('Should return false if value is undefined', async () => {
+      const res = isAlphaNumSpaceString(undefined);
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value is empty', async () => {
+      const res = isAlphaNumSpaceString('');
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value contains non alphanumeric and space characters', async () => {
+      const res = isAlphaNumSpaceString('my-scratch-org!');
+      expect(res).to.equal(false);
+    });
+
+    it('Should return true if value has only numeric characters', async () => {
+      const res = isAlphaNumSpaceString('123');
+      expect(res).to.equal(true);
+    });
+
+    it('Should return true if value has only underscores, spaces, and alphanumeric characters', async () => {
+      const res = isAlphaNumSpaceString('scratch_123 4 5 6');
       expect(res).to.equal(true);
     });
   });

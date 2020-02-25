@@ -1,41 +1,175 @@
 #
-version: 2
-jobs:
-  build:
-    docker:
-      - image: circleci/node:10.2.0
-    environment:
-      - SFDX_URL_LINUX=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
-      - SFDX_AUTOUPDATE_DISABLE=true
-      - SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
-      - SFDX_DOMAIN_RETRY=300
+# CircleCI configuration for salesforcedx-vscode
+#
+# The following environment variables are required in the 'vscode-test' context
+# when running tests for Windows:
+#     SFDX_CI_DEVHUB_CLIENTID  -- connected app client ID for the dev hub
+#     SFDX_CI_DEVHUB_JWT_KEY   -- private key for the connected app (base64 encoded)
+#     SFDX_CI_DEVHUB_USERNAME  -- username of an authorized user of the dev hub
+#
+version: 2.1
 
+orbs:
+  win: circleci/windows@2.2.0
+
+commands:
+  build-artifacts:
+    description: 'Building and archiving extension artifacts.'
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-v3-{{ checksum "package.json" }}
+          keys:
+            - dependency-cache-v2-{{ checksum "package.json" }}
+            # if cache for exact version of 'package.json' is not present, then load the most recent cache
+            - dependency-cache-v2-
       - run: npm install
-      # Setup an NODE_ENV to production mode before compiling.
       - run:
-          name: 'Run compile in production mode'
+          name: 'Compile in production mode'
+          environment:
+            - NODE_ENV: production
           command: |
-            export NODE_ENV=production && npm run compile
-      - run: npm run vscode:package
+            npm run compile
       - run:
+          name: 'Packaging extensions'
+          command: npm run vscode:package
+      - run:
+          name: 'Staging artifacts'
           command: |
             mkdir extensions
-            find . -name "*.vsix" -type f -exec cp {} ./extensions \;
+            find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
       - store_artifacts:
           path: ./extensions
       - save_cache:
-          key: dependency-cache-v3-{{ checksum "package.json" }}
+          key: dependency-cache-v2-{{ checksum "package.json" }}
           paths:
             - node_modules
+
+  build-win:
+    description: 'Build for Windows.'
+    steps:
+      - run: git config --global core.autocrlf false
+      - checkout
+      - restore_cache:
+          keys:
+            - dependency-cache-win3-{{ checksum "package.json" }}
+            # if cache for exact version of 'package.json' is not present, then load the most recent cache
+            - dependency-cache-win3-
+      - run:
+          name: 'Install node'
+          shell: bash.exe
+          command: |
+            nvm install $NODE_VERSION
+            nvm use $NODE_VERSION
+            nvm install-latest-npm
+      - run:
+          name: 'Install dependent modules'
+          shell: bash.exe
+          command: |
+            npm config set scripts-prepend-node-path true
+            npm install
+            npm install -g sfdx-cli@7.45.1
+            npm install -g codecov
+            npm install -g junit-merge
+      - run:
+          name: 'Compile'
+          shell: bash.exe
+          command: npm run compile
+      - save_cache:
+          key: dependency-cache-win3-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run:
+          name: 'Run lint'
+          shell: bash.exe
+          command: |
+            npm run lint
+
+jobs:
+  build-all:
+    description: 'Build artifacts in a non-Windows environment'
+    docker:
+      - image: circleci/node:12.4.0
+    environment:
+      - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+      - SFDX_AUTOUPDATE_DISABLE: true
+      - SFDX_USE_GENERIC_UNIX_KEYCHAIN: true
+      - SFDX_DOMAIN_RETRY: 300
+    steps:
+      - build-artifacts
+
+  run-tests:
+    description: 'Run tests on Windows'
+    executor: win/default
+    environment:
+      - SFDX_AUTOUPDATE_DISABLE: true
+      - SFDX_DOMAIN_RETRY: 300
+      - NODE_VERSION: '12.4.0'
+    parameters:
+      run-unit-tests:
+        type: boolean
+        default: true
+    steps:
+      - build-win
+      - when:
+          condition: << parameters.run-unit-tests >>
+          steps:
+            - run:
+                name: 'Running unit tests'
+                shell: cmd.exe
+                command: npm run test:unit
+      - unless:
+          condition: << parameters.run-unit-tests >>
+          steps:
+            - run:
+                name: 'Authenticate to the default DevHub'
+                shell: bash.exe
+                command: |
+                  echo $SFDX_CI_DEVHUB_JWTKEY | base64 --decode > devhub.key
+                  sfdx force:auth:jwt:grant --clientid ${SFDX_CI_DEVHUB_CLIENTID} --username ${SFDX_CI_DEVHUB_USERNAME} --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
+                  rm devhub.key
+            - run:
+                name: 'Running integration tests'
+                shell: cmd.exe
+                command: npm run test:integration-tests-without-system-tests
+      - run:
+          name: 'Aggregate test results'
+          shell: bash.exe
+          command: |
+            npm run aggregateJUnit
+            junit-merge -d junit-aggregate -o junit-aggregate.xml
+      - store_test_results:
+          path: ./junit-aggregate/
+      - run:
+          name: 'Generate code coverage'
+          shell: bash.exe
+          command: |
+            codecov --disable=gcov
+      - run:
+          name: 'Fail build for test failures'
+          shell: powershell.exe
+          command: |
+            [xml]$results = Get-Content junit-aggregate.xml
+            $failure = $results.SelectSingleNode("//failure")
+            if ($failure -ne $null) { 
+              Write-Host "Forcing build failure due to test failure(s) :'("
+              $host.SetShouldExit(1)
+            }
+
 workflows:
-  version: 2
+  version: 2.1
+
+  # run a build and a windows test on every commit
   commit-workflow:
     jobs:
-      - build
+      - build-all
+      - run-tests:
+          run-unit-tests: true
+          context: vscode-test
+      - run-tests:
+          run-unit-tests: false
+          context: vscode-test
+
+  # run a build/test every mid-night
   scheduled-workflow:
     triggers:
       - schedule:
@@ -46,4 +180,10 @@ workflows:
                 - develop
                 - master
     jobs:
-      - build
+      - build-all
+      - run-tests:
+          run-unit-tests: true
+          context: vscode-test
+      - run-tests:
+          run-unit-tests: false
+          context: vscode-test

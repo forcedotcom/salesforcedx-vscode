@@ -116,6 +116,9 @@ export const messages = {
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
 
+  force_analytics_template_create_text:
+    'SFDX: Create Sample Analytics Template',
+  force_analytics_template_name_text: 'template name',
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
@@ -277,7 +280,7 @@ export const messages = {
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
   error_invalid_org_alias:
-    'Alias can only contain underscores and alphanumeric characters',
+    'Alias can only contain underscores, spaces and alphanumeric characters',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
@@ -472,6 +475,25 @@ export const messages = {
   WebLink: 'Web Links',
   Workflow: 'Workflows',
   XOrgHub: 'X Org Hubs',
+
+  conflict_detect_error:
+    'An error was encountered during conflict detection. %s',
+  conflict_detect_retrieve_org_source:
+    'Conflict Detection: retrieving org source',
+  conflict_detect_convert_org_source:
+    'Conflict Detection: converting org source',
+  conflict_detect_conflicts_during_deploy:
+    'Conflicts are detected while deploying metadata. The conflicted files are listed in the Output view.',
+  conflict_detect_conflicts_during_retrieve:
+    'Conflicts are detected while retrieving metadata. The conflicted files are listed in the Output view.',
+  conflict_detect_override: 'Override Conflicts',
+  conflict_detect_conflict_header:
+    'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_command_hint:
+    '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_no_default_username: 'No default username for this project',
+  conflict_detect_no_default_package_dir:
+    'No default package directory for this project',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_unsupported_type:

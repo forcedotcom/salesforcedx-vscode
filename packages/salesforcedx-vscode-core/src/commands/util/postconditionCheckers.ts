@@ -12,10 +12,14 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { channelService } from '../../channels';
+import { ConflictDetectionConfig, conflictDetector } from '../../conflict';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
+import { sfdxCoreSettings } from '../../settings';
+import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath } from '../../util';
+import { getRootWorkspacePath, OrgAuthInfo } from '../../util';
 import { MetadataDictionary } from '../../util/metadataDictionary';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
@@ -171,5 +175,88 @@ export class OverwriteComponentPrompt
       );
     }
     return choices;
+  }
+}
+
+export interface ConflictDetectionMessages {
+  warningMessageKey: string;
+  commandHint: (input: string) => string;
+}
+
+export class ConflictDetectionChecker implements PostconditionChecker<string> {
+  private messages: ConflictDetectionMessages;
+
+  public constructor(messages: ConflictDetectionMessages) {
+    this.messages = messages;
+  }
+
+  public async check(
+    inputs: ContinueResponse<string> | CancelResponse
+  ): Promise<ContinueResponse<string> | CancelResponse> {
+    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
+      return inputs;
+    }
+
+    if (inputs.type === 'CONTINUE') {
+      const usernameOrAlias = await this.getDefaultUsernameOrAlias();
+      if (!usernameOrAlias) {
+        return {
+          type: 'CANCEL',
+          msg: nls.localize('conflict_detect_no_default_username')
+        };
+      }
+
+      const defaultPackageDir = await SfdxPackageDirectories.getDefaultPackageDir();
+      if (!defaultPackageDir) {
+        return {
+          type: 'CANCEL',
+          msg: nls.localize('conflict_detect_no_default_package_dir')
+        };
+      }
+
+      const config: ConflictDetectionConfig = {
+        usernameOrAlias,
+        packageDir: defaultPackageDir,
+        manifest: inputs.data
+      };
+      const results = await conflictDetector.checkForConflicts(config);
+
+      if (results.different.size > 0) {
+        channelService.appendLine(
+          nls.localize(
+            'conflict_detect_conflict_header',
+            results.different.size,
+            results.scannedRemote,
+            results.scannedLocal
+          )
+        );
+        results.different.forEach(file => {
+          channelService.appendLine(join(defaultPackageDir, file));
+        });
+        channelService.showChannelOutput();
+
+        const choice = await notificationService.showWarningModal(
+          nls.localize(this.messages.warningMessageKey),
+          nls.localize('conflict_detect_override')
+        );
+
+        if (choice !== nls.localize('conflict_detect_override')) {
+          channelService.appendLine(
+            nls.localize(
+              'conflict_detect_command_hint',
+              this.messages.commandHint(inputs.data)
+            )
+          );
+          channelService.showChannelOutput();
+          return { type: 'CANCEL' };
+        }
+      }
+      return inputs;
+    }
+    return { type: 'CANCEL' };
+  }
+
+  public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
+    return await OrgAuthInfo.getDefaultUsernameOrAlias(true);
   }
 }

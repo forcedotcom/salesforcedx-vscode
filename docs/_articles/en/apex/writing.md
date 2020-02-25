@@ -32,7 +32,7 @@ You can preview, view, or go to definitions of:
   - Fields
   - Object definitions
 
-(See the [Enable Code Smartness for SObjects](#enable-code-smartness-for-sobjects) section of this topic for information on working with standard and custom objects.)
+(See the [Enable Code Smartness for SObjects](./en/apex/writing/#enable-code-smartness-for-sobjects) section of this topic for information on working with standard and custom objects.)
 
 To preview a definition, hold down Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.
 
@@ -75,3 +75,6 @@ When you refresh your sObject definitions, VS Code uses your default org to gene
 The first time you launch the Salesforce CLI Integration extension (which is part of the Salesforce Extension Pack), if your project doesn’t contain any faux classes we run **SFDX: Refresh SObject Definitions** for you in the background.
 
 After you add or edit standard or custom objects or their fields, be sure to rerun **SFDX: Refresh SObject Definitions**.
+
+If you've added inline help text to the fields in your custom and standard objects the extension will use it to provide on hover documentation for SObjects.
+![Field documentation, shown while hovering a field](./images/inline_help_hover_fields.png)

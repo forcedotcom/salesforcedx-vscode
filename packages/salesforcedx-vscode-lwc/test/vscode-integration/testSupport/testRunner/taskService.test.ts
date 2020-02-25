@@ -13,9 +13,22 @@ import {
 } from '../../../../src/testSupport/testRunner/taskService';
 
 describe('Task Service Unit Tests', () => {
-  let executeTaskStub: SinonStub;
-  let onDidStartTaskStub: SinonStub;
-  let onDidEndTaskStub: SinonStub;
+  let executeTaskStub: SinonStub<
+    [vscode.Task],
+    Thenable<vscode.TaskExecution | void>
+  >;
+  let onDidStartTaskStub: SinonStub<
+    [
+      (e: vscode.TaskStartEvent) => any,
+      any?,
+      (vscode.Disposable[] | undefined)?
+    ],
+    vscode.Disposable
+  >;
+  let onDidEndTaskStub: SinonStub<
+    [(e: vscode.TaskEndEvent) => any, any?, (vscode.Disposable[] | undefined)?],
+    vscode.Disposable
+  >;
   let onDidStartTaskEmitter: vscode.EventEmitter<vscode.TaskStartEvent>;
   let onDidEndTaskEmitter: vscode.EventEmitter<vscode.TaskEndEvent>;
   let taskServiceRegistration: vscode.Disposable;
