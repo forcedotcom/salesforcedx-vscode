@@ -83,6 +83,7 @@ module.exports = {
         console.log(`Add 'export PATH=~/Library/Python/3.7/bin/:$PATH' to your ~/.bash_profile`);
         console.log(`Run 'source ~/.bash_profile'`);
         console.log(`Verify installation with 'aws --version'`);
+        console.log(`Run 'aws configure' to setup your AWS credentials`);
         process.exit(-1);
       }
     }
@@ -90,6 +91,10 @@ module.exports = {
 
   checkAWSAccess: () => {
     console.log('\nVerifying access to AWS bucket.');
+    console.log(
+      'If you see any errors in the steps below, either...\n' +
+      '1) Your AWS creds need to be setup or 2) You do not have access to the AWS bucket.'
+    );
     const awsExitCode = shell.exec(
       'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',
       {
