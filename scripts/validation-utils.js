@@ -75,8 +75,16 @@ module.exports = {
   checkAWSCliInstall: () => {
     console.log(`\nVerifying AWS CLI is installed for node version ${NODE_VERSION}.`);
     if (!shell.which('aws')) {
-      console.log('AWS CLI is not installed or could not be found.');
-      process.exit(-1);
+      shell.exec('pip3 install awscli --upgrade --user');
+      if (!shell.which('aws')) {
+        console.log('AWS CLI is not installed or could not be found.');
+        console.log('This could be a path issue. Example of resolution:');
+        console.log('Install happens in: /Users/<user_name>/Library/Python/3.7/lib/...');
+        console.log(`Add 'export PATH=~/Library/Python/3.7/bin/:$PATH' to your ~/.bash_profile`);
+        console.log(`Run 'source ~/.bash_profile'`);
+        console.log(`Verify installation with 'aws --version'`);
+        process.exit(-1);
+      }
     }
   },
 
