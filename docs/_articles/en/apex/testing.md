@@ -11,30 +11,30 @@ The Test view in the Side Bar provides several features such as LWC Tests and Ap
 
 Use the Apex Tests feature to run one test method, test methods in one class, or all your Apex tests.
 
-- Run Tests
+### Run Tests
 
   - Run a test for a single method: Hover over the name of a test method and click the play icon (hover text: Run Single Test).
   - Run tests for all the methods in a class: Hover over the name of a test class and click the play icon (hover text: Run Tests).
   - Run all tests: Hover over the Apex Tests view and click the play icon ({% octicon play %}).
 
-After you run Apex tests, SFDX: Re-Run Last Invoked Apex Test Class and SFDX: Re-Run Last Invoked Apex Test Method commands are available in the Command Palette.
+After you run Apex tests, `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` commands are available in the Command Palette.
 
-- View Test Results
+### View Test Results
 
   - For passing tests, the blue icons next to the classes and methods change to green icons.
   - For failing test, the icons turn red.
 
 To see the details of your test runs, hover over the name of a test class in the Side Bar.
 
-- Go to Test Class Definitions
+### Go to Test Class Definitions
 
 To jump to the definition of a test class, a test method that passed, or a method that you haven’t run yet, click its name. If you click the name of a failed test method, you jump to the line where the failure occurred.
 
-- Clear Test Results
+### Clear Test Results
 
 To clear the test results, click the refresh icon at the top of the Apex Tests view (hover text: Refresh Tests).
 
-- Refresh Apex Tests View
+### Refresh Apex Tests View
 
 If you've added methods or classes since the last time the Test view was populated, click the refresh icon at the top of the Apex Tests view for the updated list.
 
