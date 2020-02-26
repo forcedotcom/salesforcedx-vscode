@@ -1,3 +1,7 @@
+# 48.4.0 - February 27, 2020
+
+- We did some minor under-the-hood maintenance.
+
 # 48.2.0 - February 20, 2020
 
 ## Fixed
