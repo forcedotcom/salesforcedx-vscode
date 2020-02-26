@@ -32,10 +32,6 @@ Before you install the Prettier code formatter, create a configuration file `.pr
 
 After creating the local configuration file, install the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extension for VS Code. If you want to ensure that all your files are formatted whenever you save them, enable the `editor.formatOnSave` setting in [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings). You can use Prettier with a pre-commit tool to reformat your files before you commit the files. For more information, see [set up a Git hook](https://prettier.io/docs/en/precommit.html).
 
-Prettier Apex plugin runs slower than most other formatters. In some cases, formatting will not succeed because VS Code cancels a format request after 750ms. To ensure that Apex code has enough time to format, we recommend you set the `editor.formatOnSaveTimeout` setting to configure the timeout.
+Prettier Apex plugin runs slower than most other formatters. Because saving is a critical operation, you can decide if you want to wait till the plugin completes formatting before saving the file. Read how VS code [handles slow save operations](https://code.visualstudio.com/updates/v1_42#_handling-slow-save-operations) for more information.
 
-   ```json
-   {
-     "editor.formatOnSaveTimeout": 5000
-   }
-   ```
+   
