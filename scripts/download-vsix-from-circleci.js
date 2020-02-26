@@ -16,25 +16,13 @@ shell.set('+v');
  */
 
 const { getVsixName, getLocalPathForDownload } = require('./publish-utils');
+const { checkEnvironmentVariables } = require('./validation-utils');
 const CIRCLECI_API_URI = 'https://circleci.com/api/v1.1';
 const circleciToken = process.env['CIRCLECI_TOKEN'];
 const circleciBuild = process.env['CIRCLECI_BUILD'];
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 
-// Check for CircleCI environment variables
-if (!circleciBuild) {
-  console.log(
-    'You must specify the CircleCI Build number (CIRCLECI_BUILD) that contains the artifacts that will be released.'
-  );
-  process.exit(-1);
-}
-
-if (!circleciToken) {
-  console.log(
-    'You must specify the CircleCI Token (CIRCLECI_TOKEN) that will allow us to get the artifacts that will be released.'
-  );
-  process.exit(-1);
-}
+checkEnvironmentVariables();
 
 // Check access to CircleCI & the project's builds
 const circleciMe = shell
@@ -62,14 +50,6 @@ if (
 ) {
   console.log(
     'Looks like your CircleCI Token does not grant you access to the salesforcedx-vscode builds.'
-  );
-  process.exit(-1);
-}
-
-// Check release version environment variable
-if (!nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
-  console.log(
-    'You must set SALESFORCEDX_VSCODE_VERSION in the same format followed by the extension code e.g. 48.1.0'
   );
   process.exit(-1);
 }
@@ -113,8 +93,6 @@ buildArtifactsJSON.forEach(artifactObj => {
   console.log(`Downloading artifact ${artifactName} to ${downloadPath}`);
   // Download vsix files, fail if it takes more than 30 seconds to connect or if the download exceeds 2 mins
   shell.exec(
-    `curl --fail ${
-      artifactObj.url
-    } --output ${downloadPath} --connect-timeout 30 --max-time 180`
+    `curl --fail ${artifactObj.url} --output ${downloadPath} --connect-timeout 30 --max-time 180`
   );
 });
