@@ -3,31 +3,16 @@
 const shell = require('shelljs');
 shell.set('-e');
 shell.set('+v');
+const REPO_ORIGIN = 'git@github.com:forcedotcom/salesforcedx-vscode.git';
+const { checkBaseBranch, checkVSCodeVersion } = require('./validation-utils');
 
 // Checks that you have specified the next version as an environment variable, and that it's properly formatted.
+checkVSCodeVersion();
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-if (!nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
-  console.log(
-    'You must set SALESFORCEDX_VSCODE_VERSION in the same format followed by the extension code e.g. 48.1.0'
-  );
-  process.exit(-1);
-}
 
+// Checks you are on the correct branch
 const releaseBranchName = `release/v${nextVersion}`;
-
-// validate you are on the correct branch
-const currentBranch = shell
-  .exec('git rev-parse --abbrev-ref HEAD', {
-    silent: true
-  })
-  .stdout.trim();
-
-if (currentBranch !== releaseBranchName) {
-  console.log(
-    `You must execute this script in a release branch, you are currently running the script on branch ${currentBranch}`
-  );
-  process.exit(-1);
-}
+checkBaseBranch(releaseBranchName);
 
 console.log('Reset release branch head back to what is on remote');
 shell.exec(`git reset --hard origin/${releaseBranchName}`);
@@ -40,7 +25,7 @@ const isReleaseTagPresent = shell
   .exec(`git tag -l "${releaseTag}"`)
   .stdout.trim();
 const isReleaseTagInRemote = shell
-  .exec(`git ls-remote --tags origin ${releaseTag}`)
+  .exec(`git ls-remote --tags ${REPO_ORIGIN} ${releaseTag}`)
   .stdout.trim();
 
 if (isReleaseTagPresent) {
@@ -52,7 +37,7 @@ if (isReleaseTagPresent) {
 
 if (isReleaseTagInRemote) {
   console.log(`Deleting remote tag ${releaseTag}: ${isReleaseTagInRemote}`);
-  shell.exec(`git push --delete origin ${releaseTag}`);
+  shell.exec(`git push --delete ${REPO_ORIGIN} ${releaseTag}`);
 } else {
   console.log(`No remote git tag was found for ${releaseTag}`);
 }
