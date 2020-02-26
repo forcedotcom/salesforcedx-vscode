@@ -6,7 +6,7 @@ shell.set('+v');
 
 const {
   checkEnvironmentVariables,
-  checkNodeVerion,
+  checkNodeVersion,
   checkLernaInstall,
   checkVSCEInstall,
   checkAWSCliInstall,
@@ -31,15 +31,17 @@ const {
 
 if (process.argv.indexOf('-v') > -1) {
   console.log('Running prevalidation of environment variables.');
-  console.log(`SALESFORCEDX_VSCODE_VERSION: ${process.env['SALESFORCEDX_VSCODE_VERSION']}`);
+  console.log(
+    `SALESFORCEDX_VSCODE_VERSION: ${process.env['SALESFORCEDX_VSCODE_VERSION']}`
+  );
   console.log(`CIRCLECI_TOKEN: ${process.env['CIRCLECI_TOKEN']}`);
   console.log(`CIRCLECI_BUILD: ${process.env['CIRCLECI_BUILD']}`);
-  process.exit(-1);
+  process.exit();
 }
 
 checkEnvironmentVariables();
 checkBaseBranch(`release/v${process.env['SALESFORCEDX_VSCODE_VERSION']}`);
-checkNodeVerion();
+checkNodeVersion();
 checkLernaInstall();
 checkVSCEInstall();
 checkAWSCliInstall();
