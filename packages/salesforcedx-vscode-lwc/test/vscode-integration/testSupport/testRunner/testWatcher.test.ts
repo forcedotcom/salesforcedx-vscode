@@ -18,8 +18,14 @@ import {
 
 describe('Test Watcher', () => {
   describe('Telemetry for watching tests', () => {
-    let telemetryStub: SinonStub;
-    let processHrtimeStub: SinonStub;
+    let telemetryStub: SinonStub<
+      [(string | undefined)?, ([number, number] | undefined)?, any?],
+      Promise<void>
+    >;
+    let processHrtimeStub: SinonStub<
+      [([number, number] | undefined)?],
+      [number, number]
+    >;
     beforeEach(() => {
       telemetryStub = stub(telemetryService, 'sendCommandEvent');
       telemetryStub.returns(Promise.resolve());
@@ -36,7 +42,7 @@ describe('Test Watcher', () => {
 
     it('Should send telemetry for watching tests', async () => {
       const testExecutionInfo = createMockTestFileInfo();
-      const mockExecutionTime = [123, 456];
+      const mockExecutionTime: [number, number] = [123, 456];
       processHrtimeStub.returns(mockExecutionTime);
       await testWatcher.watchTest(testExecutionInfo);
       assert.calledOnce(telemetryStub);

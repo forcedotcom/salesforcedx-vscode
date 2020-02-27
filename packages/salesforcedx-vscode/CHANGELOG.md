@@ -1,3 +1,19 @@
+# 48.4.0 - February 27, 2020
+
+- We did some minor under-the-hood maintenance.
+
+# 48.3.0 - February 24, 2020
+
+## Fixed
+
+#### docs
+
+- Updates to Conflict Detection documentation ([PR #2021](https://github.com/forcedotcom/salesforcedx-vscode/pull/2021))
+
+#### salesforcedx-vscode-core
+
+- Fix ISV Debugger failing with `'Cannot set property 'SFDX_TOOL' of undefined'` ([PR #2027](https://github.com/forcedotcom/salesforcedx-vscode/pull/2027), [Issue #2013](https://github.com/forcedotcom/salesforcedx-vscode/issues/2013))
+
 # 48.2.0 - February 20, 2020
 
 ## Fixed

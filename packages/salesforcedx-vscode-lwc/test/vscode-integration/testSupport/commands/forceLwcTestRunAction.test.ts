@@ -26,11 +26,18 @@ import {
   unmockSfdxTaskExecute,
   unmockTestResultWatcher
 } from '../mocks';
+import { InputBuffer } from 'uuid/interfaces';
 
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
-    let telemetryStub: SinonStub;
-    let processHrtimeStub: SinonStub;
+    let telemetryStub: SinonStub<
+      [(string | undefined)?, ([number, number] | undefined)?, any?],
+      Promise<void>
+    >;
+    let processHrtimeStub: SinonStub<
+      [([number, number] | undefined)?],
+      [number, number]
+    >;
     beforeEach(() => {
       telemetryStub = stub(telemetryService, 'sendCommandEvent');
       telemetryStub.returns(Promise.resolve());
@@ -48,7 +55,7 @@ describe('Force LWC Test Run - Code Action', () => {
 
     it('Should send telemetry for running tests', async () => {
       const testExecutionInfo = createMockTestFileInfo();
-      const mockExecutionTime = [123, 456];
+      const mockExecutionTime: [number, number] = [123, 456];
       processHrtimeStub.returns(mockExecutionTime);
       await forceLwcTestRun(testExecutionInfo);
       assert.calledOnce(telemetryStub);
@@ -63,8 +70,14 @@ describe('Force LWC Test Run - Code Action', () => {
   });
 
   describe('Run Test File', () => {
-    let uuidStub: SinonStub;
-    let executeTaskStub: SinonStub;
+    let uuidStub: SinonStub<
+      [({ random: InputBuffer } | { rng(): InputBuffer } | undefined)?],
+      string
+    >;
+    let executeTaskStub: SinonStub<
+      [vscode.Task],
+      Thenable<vscode.TaskExecution | void>
+    >;
     const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
     beforeEach(() => {
       mockGetLwcTestRunnerExecutable();
