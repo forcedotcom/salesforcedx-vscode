@@ -1,6 +1,6 @@
 ---
 title: Detect Conflicts
-lang: en
+lang: ja
 ---
 
 Whenever you retrieve or deploy source to keep the local project and your default org in sync, the operation could detect conflicts. If conflicts are not detected, the retrieve or deploy operation is completed. If conflicts are detected, the retrieve or deploy operation can be cancelled. The resource files that caused the conflict and the CLI command to overwrite the conflict is displayed in the Output panel. You can enable the conflict detection feature only in non-scratch orgs.
