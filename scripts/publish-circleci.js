@@ -28,19 +28,18 @@ const {
  *
  * To run a prevalidation for the environment variables run `node scripts/publish-circleci.js -- -v`.
  */
+const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 
 if (process.argv.indexOf('-v') > -1) {
   console.log('Running prevalidation of environment variables.');
-  console.log(
-    `SALESFORCEDX_VSCODE_VERSION: ${process.env['SALESFORCEDX_VSCODE_VERSION']}`
-  );
+  console.log(`SALESFORCEDX_VSCODE_VERSION: ${nextVersion}`);
   console.log(`CIRCLECI_TOKEN: ${process.env['CIRCLECI_TOKEN']}`);
   console.log(`CIRCLECI_BUILD: ${process.env['CIRCLECI_BUILD']}`);
   process.exit();
 }
 
 checkEnvironmentVariables();
-checkBaseBranch(`release/v${process.env['SALESFORCEDX_VSCODE_VERSION']}`);
+checkBaseBranch(`release/v${nextVersion}`);
 checkNodeVersion();
 checkLernaInstall();
 checkVSCEInstall();
