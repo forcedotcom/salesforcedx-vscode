@@ -1,35 +1,16 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
+const { checkVSCodeVersion, checkLernaInstall, checkBaseBranch } = require('./validation-utils');
+
 shell.set('-e');
 shell.set('+v');
 
-if (!shell.which('lerna')) {
-  console.log('lerna is not installed or could not be found');
-  process.exit(-1);
-}
+checkVSCodeVersion();
+checkLernaInstall();
 
-// Checks that you have specified the next version as an environment variable, and that it's properly formatted.
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-if (!nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
-  console.log(
-    'You must set SALESFORCEDX_VSCODE_VERSION in the same format followed by the extension code e.g. 48.1.0'
-  );
-  process.exit(-1);
-}
-
-const currentBranch = shell
-  .exec('git rev-parse --abbrev-ref HEAD', {
-    silent: true
-  })
-  .stdout.trim();
-
-if (currentBranch !== 'develop') {
-  console.log(
-    `You must execute this script in the develop branch, you are currently running the script on branch ${currentBranch}`
-  );
-  process.exit(-1);
-}
+checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
 
