@@ -36,7 +36,7 @@ const releaseBranchName = `release/v${nextVersion}`;
 // Check if release branch has already been created
 const isRemoteReleaseBranchExist = shell
   .exec(
-    `git ls-remote --heads git@github.com:forcedotcom/salesforcedx-vscode.git ${releaseBranchName}`,
+    `git ls-remote --heads origin ${releaseBranchName}`,
     {
       silent: true
     }
