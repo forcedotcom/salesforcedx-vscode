@@ -3,18 +3,15 @@ title: Prettier Code Formatter
 lang: en
 ---
 
-Currently, Prettier supports Apex, Aura, and Lightning Web Components (LWC) as well as standard file formats like `.json`, `.md`, `.html`, and `.js`.
+Prettier code formatter supports standard file formats such as JSON, Markdown, HTML, and  JavaScript. Prettier can also support Apex, Aura, and Lightning Web Components (LWC) if you install [Prettier Apex plugin](https://github.com/dangmai/prettier-plugin-apex) contributed by [Dang Mai](https://github.com/dangmai).
 
-Using Prettier for Apex, Aura, and LWC requires some configuration.
+To install the Prettier Apex plugin:
 
-1. If you don’t already have a `package.json` in your project, run: `npm init`  
-   You can accept all the defaults.
+1. Check if your project contains the `package.json` file. If not, run: `npm init` and accept all the default options.
 
-1. Install Prettier by running: `npm install --save-dev --save-exact prettier prettier-plugin-apex`
+1. Run: `npm install --save-dev --save-exact prettier prettier-plugin-apex`.
 
-1. Create a Prettier configuration file called `.prettierrc`, in the root of your project, with the following content.
-
-   > NOTE: The `"trailingComma": "none"` setting is required for Aura.
+Before you install the Prettier code formatter, create a configuration file `.prettierrc` in the root of your project. If you’d like to know more about customizable format options of Prettier, read [other config options](https://prettier.io/docs/en/options.html).
 
    ```json
    {
@@ -31,19 +28,10 @@ Using Prettier for Apex, Aura, and LWC requires some configuration.
      ]
    }
    ```
+> NOTE: The `"trailingComma": "none"` setting is required for Aura.
 
-1. If you’d like to further customize Prettier, add [other config options](https://prettier.io/docs/en/options.html).
+After creating the local configuration file, install the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extension for VS Code. If you want to ensure that all your files are formatted whenever you save them, enable the `editor.formatOnSave` setting in [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings). You can use Prettier with a pre-commit tool to reformat your files before you commit the files. For more information, see [set up a Git hook](https://prettier.io/docs/en/precommit.html).
 
-1. Install the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extension for VS Code.
+Prettier Apex plugin runs slower than most other formatters. Because saving is a critical operation, you can decide if you want to wait till the plugin completes formatting before saving the file. Read how VS code [handles slow save operations](https://code.visualstudio.com/updates/v1_42#_handling-slow-save-operations).
 
-1. If you want to ensure that all your files are formatted, enable the setting `editor.formatOnSave` in VS Code. For information about configuring your settings, see [User and Workspace Settings](https://code.visualstudio.com/docs/getstarted/settings) in the Visual Studio Code docs.
-
-1. Apex Prettier runs slower than most other formatters. In some cases formatting will not succeed because VS Code will time out the operation after 500ms. In order to ensure Apex code has enough time to format your documents we recommend changing the VS Code settings as follows.
-
-   ```json
-   {
-     "editor.formatOnSaveTimeout": 5000
-   }
-   ```
-
-If you want to format your files each time that you commit changes to your Git repository, [set up a Git hook](https://prettier.io/docs/en/precommit.html).
+   
