@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Salesforce DX Community
+    url: https://success.salesforce.com/issues_index?tag=Salesforce%20DX
+    about: Please ask and answer questions here.
