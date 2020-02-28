@@ -1,0 +1,46 @@
+name: Create Release Branch
+
+on:
+  repository_dispatch:
+    types: create_release_branch
+
+jobs:
+  create_branch:
+    name: 'Create Branch'
+    
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+      with:
+        ref: 'develop'
+    - name: Install Script Dependencies
+      run: npm install shelljs && npm install -g lerna
+    - name: Create and Push the Release Branch
+      run: |
+        git config --local user.email "releaseaction@github.com"
+        git config --local user.name "Release Action"
+        node scripts/create-release-branch.js
+      env:
+        SALESFORCEDX_VSCODE_VERSION: ${{ github.event.client_payload.version }}
+# For future Slack Integration
+#     - name: Update Slack - Failure
+#       if: failure()
+#       run: |
+#         curl -H 'Content-Type: application/json' \
+#         -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' \
+#         -X POST -d "${{ github.event.client_payload.on_failure }}" \
+#         https://slack.com/api/chat.update
+#     - name: Update Slack - Success
+#       if: success()
+#       run: |
+#         curl -H 'Content-Type: application/json' \
+#         -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' \
+#         -X POST -d "${{ github.event.client_payload.on_success }}" \
+#         https://slack.com/api/chat.update
+      
