@@ -13,12 +13,20 @@ import { lwcTestIndexer } from './testIndexer';
 import { taskService } from './testRunner/taskService';
 import { testResultsWatcher } from './testRunner/testResultsWatcher';
 import { startWatchingEditorFocusChange } from './utils/context';
-import {
-  shouldActivateLwcTestSupport,
-  workspaceService
-} from './workspace/workspaceService';
+import { workspaceService } from './workspace/workspaceService';
 
-export { shouldActivateLwcTestSupport };
+/**
+ * Activate LWC Test support for supported workspace types
+ * @param workspaceType workspace type
+ */
+export function shouldActivateLwcTestSupport(
+  workspaceType: lspCommon.WorkspaceType
+) {
+  return (
+    workspaceService.isSFDXWorkspace(workspaceType) ||
+    workspaceService.isCoreWorkspace(workspaceType)
+  );
+}
 
 export function activateLwcTestSupport(
   context: ExtensionContext,

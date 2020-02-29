@@ -6,7 +6,7 @@
  */
 import { expect } from 'chai';
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { assert, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import {
   getCliArgsFromJestArgs,
   workspaceService
@@ -60,6 +60,30 @@ describe('getCliArgsFromJestArgs Unit Tests', () => {
   describe('Internal Dev Workspace', () => {
     beforeEach(() => {
       getCurrentWorkspaceTypeStub.returns(lspCommon.WorkspaceType.CORE_PARTIAL);
+    });
+
+    it('Should return Cli args for run mode', () => {
+      const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.RUN);
+      const expectedCliArgs = ['--', ...mockJestArgs];
+      expect(cliArgs).to.eql(expectedCliArgs);
+    });
+
+    it('Should return Cli args for watch mode', () => {
+      const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.WATCH);
+      const expectedCliArgs = ['--', ...mockJestArgs];
+      expect(cliArgs).to.eql(expectedCliArgs);
+    });
+
+    it('Should return Cli args for debug mode', () => {
+      const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
+      const expectedCliArgs = ['--debug', '--', ...mockJestArgs];
+      expect(cliArgs).to.eql(expectedCliArgs);
+    });
+  });
+
+  describe('Unknown Workspace', () => {
+    beforeEach(() => {
+      getCurrentWorkspaceTypeStub.returns(lspCommon.WorkspaceType.UNKNOWN);
     });
 
     it('Should return Cli args for run mode', () => {

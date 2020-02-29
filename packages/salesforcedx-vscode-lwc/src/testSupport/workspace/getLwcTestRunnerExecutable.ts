@@ -10,11 +10,7 @@ import * as vscode from 'vscode';
 import * as which from 'which';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import {
-  isCoreWorkspace,
-  isSFDXWorkspace,
-  workspaceService
-} from './workspaceService';
+import { workspaceService } from './workspaceService';
 
 /**
  * Get the absolute path to LWC Test runner executable, installed in an SFDX project.
@@ -23,7 +19,7 @@ import {
  */
 export function getLwcTestRunnerExecutable(cwd: string) {
   const workspaceType = workspaceService.getCurrentWorkspaceType();
-  if (isSFDXWorkspace(workspaceType)) {
+  if (workspaceService.isSFDXWorkspace(workspaceType)) {
     const lwcTestRunnerExecutable = path.join(
       cwd,
       'node_modules',
@@ -40,8 +36,10 @@ export function getLwcTestRunnerExecutable(cwd: string) {
         .sendException('lwc_test_no_lwc_jest_found', errorMessage)
         .catch();
     }
-  } else if (isCoreWorkspace(workspaceType)) {
-    const lwcTestRunnerExecutable = which.sync('lwc-test', { nothrow: true });
+  } else if (workspaceService.isCoreWorkspace(workspaceType)) {
+    const lwcTestRunnerExecutable = which.sync('lwc-test', {
+      nothrow: true
+    });
     if (lwcTestRunnerExecutable && fs.existsSync(lwcTestRunnerExecutable)) {
       return lwcTestRunnerExecutable;
     } else {

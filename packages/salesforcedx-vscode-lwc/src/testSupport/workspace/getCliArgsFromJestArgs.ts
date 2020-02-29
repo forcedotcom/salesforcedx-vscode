@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestRunType } from '../testRunner/testRunner';
-import {
-  isCoreWorkspace,
-  isSFDXWorkspace,
-  workspaceService
-} from './workspaceService';
+import { workspaceService } from './workspaceService';
 
 /**
  * Returns workspace specific jest args from CLI arguments and test run type
@@ -22,7 +18,10 @@ export function getCliArgsFromJestArgs(
 ) {
   const workspaceType = workspaceService.getCurrentWorkspaceType();
   if (testRunType === TestRunType.DEBUG) {
-    if (isSFDXWorkspace(workspaceType) || isCoreWorkspace(workspaceType)) {
+    if (
+      workspaceService.isSFDXWorkspace(workspaceType) ||
+      workspaceService.isCoreWorkspace(workspaceType)
+    ) {
       return ['--debug', '--', ...jestArgs];
     }
     // TODO: For LWC OSS
@@ -31,7 +30,10 @@ export function getCliArgsFromJestArgs(
     // Fallback
     return ['--debug', '--', ...jestArgs];
   } else {
-    if (isSFDXWorkspace(workspaceType) || isCoreWorkspace(workspaceType)) {
+    if (
+      workspaceService.isSFDXWorkspace(workspaceType) ||
+      workspaceService.isCoreWorkspace(workspaceType)
+    ) {
       return ['--', ...jestArgs];
     }
     // TODO: For LWC OSS

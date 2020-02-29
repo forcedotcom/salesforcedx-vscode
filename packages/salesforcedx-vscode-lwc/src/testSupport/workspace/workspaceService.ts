@@ -12,6 +12,11 @@ class WorkspaceService {
   private currentWorkspaceType: lspCommon.WorkspaceType =
     lspCommon.WorkspaceType.UNKNOWN;
 
+  /**
+   * Setup current workspace type and listen to workspace type changes
+   * @param context extension context
+   * @param workspaceType
+   */
   public register(
     context: vscode.ExtensionContext,
     workspaceType: lspCommon.WorkspaceType
@@ -22,19 +27,18 @@ class WorkspaceService {
         if (!workspace.workspaceFolders) {
           return;
         }
-        const workspaceUris: string[] = [];
-        workspace.workspaceFolders.forEach(folder => {
-          workspaceUris.push(folder.uri.fsPath);
-        });
+        const workspaceUris = workspace.workspaceFolders.map(
+          workspaceFolder => {
+            return workspaceFolder.uri.fsPath;
+          }
+        );
         const newWorkspaceType = lspCommon.detectWorkspaceType(workspaceUris);
-
-        // TODO - set context?
-        if (shouldActivateLwcTestSupport(newWorkspaceType)) {
-          this.setCurrentWorkspaceType(newWorkspaceType);
-        }
-      }
+        this.setCurrentWorkspaceType(newWorkspaceType);
+      },
+      null,
+      context.subscriptions
     );
-    context.subscriptions.push(handleDidChangeWorkspaceFolders);
+    return vscode.Disposable.from(handleDidChangeWorkspaceFolders);
   }
 
   public getCurrentWorkspaceType() {
@@ -45,6 +49,17 @@ class WorkspaceService {
     this.currentWorkspaceType = workspaceType;
   }
 
+  public isSFDXWorkspace(workspaceType: lspCommon.WorkspaceType) {
+    return workspaceType === lspCommon.WorkspaceType.SFDX;
+  }
+
+  public isCoreWorkspace(workspaceType: lspCommon.WorkspaceType) {
+    return (
+      workspaceType === lspCommon.WorkspaceType.CORE_ALL ||
+      workspaceType === lspCommon.WorkspaceType.CORE_PARTIAL
+    );
+  }
+
   /**
    * @returns {String} workspace type name for telemetry
    */
@@ -53,24 +68,3 @@ class WorkspaceService {
   }
 }
 export const workspaceService = new WorkspaceService();
-
-export function isSFDXWorkspace(workspaceType: lspCommon.WorkspaceType) {
-  return workspaceType === lspCommon.WorkspaceType.SFDX;
-}
-
-export function isCoreWorkspace(workspaceType: lspCommon.WorkspaceType) {
-  return (
-    workspaceType === lspCommon.WorkspaceType.CORE_ALL ||
-    workspaceType === lspCommon.WorkspaceType.CORE_PARTIAL
-  );
-}
-
-/**
- * Activate LWC Test support for supported workspace types
- * @param workspaceType workspace type
- */
-export function shouldActivateLwcTestSupport(
-  workspaceType: lspCommon.WorkspaceType
-) {
-  return isSFDXWorkspace(workspaceType) || isCoreWorkspace(workspaceType);
-}
