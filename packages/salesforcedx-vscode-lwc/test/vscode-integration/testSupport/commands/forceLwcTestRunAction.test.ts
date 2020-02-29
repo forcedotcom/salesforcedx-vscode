@@ -62,7 +62,10 @@ describe('Force LWC Test Run - Code Action', () => {
       assert.calledWith(
         telemetryStub,
         FORCE_LWC_TEST_RUN_LOG_NAME,
-        mockExecutionTime
+        mockExecutionTime,
+        {
+          workspaceType: 'SFDX'
+        }
       );
 
       processHrtimeStub.restore();
