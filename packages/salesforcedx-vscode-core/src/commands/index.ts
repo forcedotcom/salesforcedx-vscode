@@ -72,3 +72,4 @@ export {
   ForceSourceDiffExecutor,
   handleDiffResponse
 } from './forceSourceDiff';
+export { forceSourceToolingDeploy } from './forceSourceToolingDeploy';

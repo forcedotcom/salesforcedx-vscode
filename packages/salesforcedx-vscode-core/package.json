@@ -56,7 +56,8 @@
     "sinon": "^7.3.1",
     "typescript": "3.1.6",
     "vscode": "1.1.17",
-    "xmldom": "0.2.1"
+    "xmldom": "0.2.1",
+    "xmldom-sfdx-encoding": "0.1.29"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -146,7 +147,11 @@
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceLangId != apex"
+        },
+        {
+          "command": "sfdx.force.source.tooling.deploy",
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceFilename =~ /.*(cls|cls-meta.xml)$/"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
@@ -252,7 +257,11 @@
         },
         {
           "command": "sfdx.force.source.deploy.source.path",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceFilename =~ ^(/.*(cls|cls-meta.xml)$/)"
+        },
+        {
+          "command": "sfdx.force.source.tooling.deploy",
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceFilename =~ /.*(cls|cls-meta.xml)$/"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
@@ -670,6 +679,10 @@
       {
         "command": "sfdx.force.source.deploy.current.source.file",
         "title": "%force_source_deploy_this_source_text%"
+      },
+      {
+        "command": "sfdx.force.source.tooling.deploy",
+        "title": "check it"
       },
       {
         "command": "sfdx.force.source.deploy.in.manifest",
