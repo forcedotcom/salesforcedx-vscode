@@ -98,10 +98,6 @@
         ja: リファクタリング
       url: /apex/refactoring
     - title:
-        en: Quick Fix
-        ja: クイック修正
-      url: /apex/quick-fix
-    - title:
         en: Replay Debugger
         ja: Replay Debugger
       url: /apex/replay-debugger
@@ -113,10 +109,6 @@
         en: ISV Debugger
         ja: ISV デバッガ
       url: /apex/isv-debugger
-    - title:
-        en: Language Server
-        ja: 言語サーバ
-      url: /apex/language-server
 - title:
     en: Aura
     ja: Aura
