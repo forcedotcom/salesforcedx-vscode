@@ -1,5 +1,11 @@
 # 48.5.0 - March 5, 2020
 
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Remove error from the Apex LSP when a user types 'Page.' for completion results ([PR #2054](https://github.com/forcedotcom/salesforcedx-vscode/pull/2054))
+
 ## Added
 
 #### docs
