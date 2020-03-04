@@ -9,7 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
-  FilePathOpts,
+  supportedToolingTypes,
   ToolingCreateResult,
   ToolingRetrieveResult
 } from './index';
@@ -18,6 +18,7 @@ const DOMParser = require('xmldom-sfdx-encoding').DOMParser;
 
 export class ToolingDeploy {
   private static instance: ToolingDeploy;
+  private metadataType?: string;
   private connection?: Connection;
   private apiVersion?: string;
   private container?: ToolingCreateResult;
@@ -33,25 +34,36 @@ export class ToolingDeploy {
     return this.instance;
   }
 
-  // error check connection creation
   public async init(username: string, apiVersion?: string) {
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username })
-    });
-    this.connection = connection;
-    if (apiVersion) this.apiVersion = apiVersion;
+    try {
+      const connection = await Connection.create({
+        authInfo: await AuthInfo.create({ username })
+      });
+      this.connection = connection;
+      if (apiVersion) this.apiVersion = apiVersion;
+    } catch (e) {
+      throw e;
+    }
   }
 
   public async deploy(options: any) {
     try {
       if (options.FilePathOpts) {
-        const metadataPath = `${options.FilePathOpts.filepath}-meta.xml`;
+        // find out what the type is from metadataregistry given the sourcepath and assign
+        this.metadataType = 'Apexclass';
+        const sourcePath = options.FilePathOpts.filepath;
+        const isMetadataPath = sourcePath.includes('meta.xml');
+        const metadataPath = isMetadataPath
+          ? sourcePath
+          : `${sourcePath}-meta.xml`;
         await this.createMetadataContainer();
         await this.createContainerMember([
           options.FilePathOpts.filepath,
           metadataPath
         ]);
         await this.createContainerAsyncRequest();
+        const output = await this.toolingRetrieve();
+        return output;
       }
     } catch (e) {
       throw e;
@@ -104,29 +116,29 @@ export class ToolingDeploy {
         path.extname(outboundFiles[0])
       );
 
-      const contentEntityId = (await this.connection!.tooling.sobject(
-        'Apexclass'
-      ).find({ Name: fileName }))[0].Id;
+      const contentEntity = (await this.connection!.tooling.sobject(
+        this.metadataType!
+      ).find({ Name: fileName }))[0];
 
-      const apexClassMember = {
+      const containerMemberObject = {
         MetadataContainerId: id,
         FullName: fileName,
         Body: body,
         Metadata: metadataField,
-        ...(contentEntityId ? { contentEntityId } : {})
+        ...(contentEntity ? { contentEntityId: contentEntity.Id } : {})
       };
-      const apexMember = (await this.connection!.tooling.create(
-        'ApexClassMember',
-        apexClassMember
+      const containerMember = (await this.connection!.tooling.create(
+        supportedToolingTypes.get(this.metadataType!)!,
+        containerMemberObject
       )) as ToolingCreateResult;
 
       const deployFailed = new Error();
-      if (!apexMember.success) {
+      if (!containerMember.success) {
         deployFailed.message = 'Unexpected error creating apex class member';
         deployFailed.name = 'ApexClassMemberCreationFailed';
         throw deployFailed;
       }
-      this.containerMember = apexMember;
+      this.containerMember = containerMember;
     } catch (e) {
       throw e;
     }
@@ -156,8 +168,7 @@ export class ToolingDeploy {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // keep as undefined or
-  public async toolingRetrieve(): Promise<ToolingRetrieveResult | undefined> {
+  public async toolingRetrieve(): Promise<ToolingRetrieveResult> {
     try {
       let retrieveResult = (await this.connection!.tooling.retrieve(
         'ContainerAsyncRequest',

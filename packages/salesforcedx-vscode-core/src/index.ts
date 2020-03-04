@@ -47,7 +47,6 @@ import {
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePath,
   forceSourceStatus,
-  forceSourceToolingDeploy,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
   forceTaskStop,
@@ -115,10 +114,6 @@ function registerCommands(
   const forceSourceDeleteCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.delete.current.file',
     forceSourceDelete
-  );
-  const forceSourceToolingDeployCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.tooling.deploy',
-    forceSourceToolingDeploy
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',

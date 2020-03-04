@@ -13,7 +13,8 @@ import {
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
-  TELEMETRY_ENABLED
+  TELEMETRY_ENABLED,
+  TOOLING_DEPLOYS
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -67,6 +68,10 @@ export class SfdxCoreSettings {
 
   public getConflictDetectionEnabled(): boolean {
     return this.getConfigValue(CONFLICT_DETECTION_ENABLED, false);
+  }
+
+  public getToolingDeploys(): boolean {
+    return this.getConfigValue(TOOLING_DEPLOYS, true);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

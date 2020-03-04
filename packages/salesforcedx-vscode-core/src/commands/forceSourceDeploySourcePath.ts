@@ -13,13 +13,17 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
+import { DeployRetrieveExecutor } from './forceSourceToolingDeploy';
+import { APEX_CLASS_EXTENSION } from './templates/metadataTypeConstants';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
@@ -71,10 +75,22 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
       return;
     }
   }
+
+  const toolingDeployEnabled = sfdxCoreSettings.getToolingDeploys();
+  // this supported types logic is temporary until we have a way of generating the metadata type from the path
+  // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
+  const supportedType =
+    path.extname(sourceUri.fsPath) === APEX_CLASS_EXTENSION ||
+    sourceUri.fsPath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`);
+  const executor =
+    toolingDeployEnabled && supportedType
+      ? new DeployRetrieveExecutor()
+      : new ForceSourceDeploySourcePathExecutor();
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    new ForceSourceDeploySourcePathExecutor(),
+    executor,
     new SourcePathChecker()
   );
   await commandlet.run();

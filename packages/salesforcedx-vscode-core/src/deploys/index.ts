@@ -7,7 +7,9 @@
 
 export { apexDeployUtil } from './deployRequest';
 export {
+  DeployResult,
   FilePathOpts,
+  supportedToolingTypes,
   ToolingCreateResult,
   ToolingRetrieveResult
 } from './deployUtil';

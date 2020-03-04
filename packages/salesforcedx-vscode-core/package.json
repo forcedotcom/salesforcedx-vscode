@@ -147,11 +147,7 @@
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceLangId != apex"
-        },
-        {
-          "command": "sfdx.force.source.tooling.deploy",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceFilename =~ /.*(cls|cls-meta.xml)$/"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
@@ -257,11 +253,7 @@
         },
         {
           "command": "sfdx.force.source.deploy.source.path",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceFilename =~ ^(/.*(cls|cls-meta.xml)$/)"
-        },
-        {
-          "command": "sfdx.force.source.tooling.deploy",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && resourceFilename =~ /.*(cls|cls-meta.xml)$/"
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
@@ -681,10 +673,6 @@
         "title": "%force_source_deploy_this_source_text%"
       },
       {
-        "command": "sfdx.force.source.tooling.deploy",
-        "title": "check it"
-      },
-      {
         "command": "sfdx.force.source.deploy.in.manifest",
         "title": "%force_source_deploy_in_manifest_text%"
       },
@@ -765,6 +753,11 @@
           "type": "boolean",
           "default": false,
           "description": "%conflict_detection_enabled_description%"
+        },
+        "salesforcedx-vscode-core.tooling-deploys": {
+          "type": "boolean",
+          "default": true,
+          "description": "%tooling_deploys_description%"
         }
       }
     },

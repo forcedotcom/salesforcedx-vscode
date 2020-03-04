@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export const supportedToolingTypes = new Map([
+  ['Apexclass', 'ApexClassMember']
+]);
+
 // what other parameters would be necessary
 export interface FilePathOpts {
   filepath: string;
