@@ -68,7 +68,6 @@ import {
 } from './commands/util';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
-import { apexDeployUtil } from './deploys';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
