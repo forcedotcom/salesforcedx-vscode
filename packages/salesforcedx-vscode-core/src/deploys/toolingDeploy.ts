@@ -21,6 +21,7 @@ export class ToolingDeploy {
   private metadataType?: string;
   private connection?: Connection;
   private apiVersion?: string;
+
   private container?: ToolingCreateResult;
   private containerMember?: ToolingCreateResult;
   private asyncRequest?: ToolingCreateResult;
@@ -51,16 +52,14 @@ export class ToolingDeploy {
       if (options.FilePathOpts) {
         // find out what the type is from metadataregistry given the sourcepath and assign
         this.metadataType = 'Apexclass';
-        const sourcePath = options.FilePathOpts.filepath;
-        const isMetadataPath = sourcePath.includes('meta.xml');
-        const metadataPath = isMetadataPath
-          ? sourcePath
-          : `${sourcePath}-meta.xml`;
+        const sourcePath = options.FilePathOpts.filepath.replace(
+          '-meta.xml',
+          ''
+        );
+        const metadataPath = `${sourcePath}-meta.xml`;
+
         await this.createMetadataContainer();
-        await this.createContainerMember([
-          options.FilePathOpts.filepath,
-          metadataPath
-        ]);
+        await this.createContainerMember([sourcePath, metadataPath]);
         await this.createContainerAsyncRequest();
         const output = await this.toolingRetrieve();
         return output;
@@ -174,7 +173,6 @@ export class ToolingDeploy {
         'ContainerAsyncRequest',
         this.asyncRequest!.id
       )) as ToolingRetrieveResult;
-      const deployFailed = new Error();
       let count = 0;
       while (retrieveResult.State === 'Queued' && count <= 20) {
         await this.sleep(100);

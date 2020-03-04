@@ -30,8 +30,6 @@
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
-    "jsforce": "^1.9.3",
-    "request": "^2.88.0",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.3"
@@ -56,7 +54,6 @@
     "sinon": "^7.3.1",
     "typescript": "3.1.6",
     "vscode": "1.1.17",
-    "xmldom": "0.2.1",
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "scripts": {
