@@ -1,11 +1,5 @@
 # 48.5.0 - March 5, 2020
 
-## Fixed
-
-#### docs
-
-- Add detect conflicts to Japanese articles (#2042) ([PR #2040](https://github.com/forcedotcom/salesforcedx-vscode/pull/2040))
-
 ## Added
 
 #### docs
