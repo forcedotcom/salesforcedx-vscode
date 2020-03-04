@@ -1,3 +1,17 @@
+# 48.5.0 - March 5, 2020
+
+## Fixed
+
+#### docs
+
+- Add detect conflicts to Japanese articles (#2042) ([PR #2040](https://github.com/forcedotcom/salesforcedx-vscode/pull/2040))
+
+## Added
+
+#### docs
+
+- Update contributor info for Prettier Apex plugin [Prettier Apex plugin](https://github.com/dangmai/prettier-plugin-apex) ([PR #2035](https://github.com/forcedotcom/salesforcedx-vscode/pull/2035))-Contribution by [Dang Mai](https://github.com/dangmai)
+
 # 48.4.0 - February 27, 2020
 
 - We did some minor under-the-hood maintenance.
