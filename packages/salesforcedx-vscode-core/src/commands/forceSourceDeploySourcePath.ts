@@ -20,7 +20,7 @@ import { channelService } from '../channels';
 import { ToolingDeploy, ToolingRetrieveResult } from '../deploys';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
+import { DeployQueue, sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { OrgAuthInfo } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
@@ -83,6 +83,7 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
 
         const parser = new ToolingDeployParser(deployOutput!);
         await parser.outputResult(executionWrapper);
+        await DeployQueue.get().unlock();
       } catch (e) {
         const deployOutput = {
           State: 'Error',
@@ -90,6 +91,7 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
         } as ToolingRetrieveResult;
         const parser = new ToolingDeployParser(deployOutput);
         await parser.outputResult(executionWrapper, response.data);
+        await DeployQueue.get().unlock();
       }
     } else {
       super.execute(response);

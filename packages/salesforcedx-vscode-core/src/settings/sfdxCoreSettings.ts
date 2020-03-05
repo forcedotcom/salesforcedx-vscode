@@ -71,7 +71,7 @@ export class SfdxCoreSettings {
   }
 
   public getBetaPerfEnhancements(): boolean {
-    return this.getConfigValue(BETA_PERF_ENHANCEMENTS, true);
+    return this.getConfigValue(BETA_PERF_ENHANCEMENTS, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
