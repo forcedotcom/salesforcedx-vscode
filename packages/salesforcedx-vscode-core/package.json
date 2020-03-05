@@ -32,7 +32,8 @@
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.3"
+    "shelljs": "0.8.3",
+    "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "48.5.0",
@@ -53,8 +54,7 @@
     "nyc": "^13",
     "sinon": "^7.3.1",
     "typescript": "3.1.6",
-    "vscode": "1.1.17",
-    "xmldom-sfdx-encoding": "0.1.29"
+    "vscode": "^1.1.36"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -751,10 +751,10 @@
           "default": false,
           "description": "%conflict_detection_enabled_description%"
         },
-        "salesforcedx-vscode-core.tooling-deploys": {
+        "salesforcedx-vscode-core.beta-perf-enhancements": {
           "type": "boolean",
           "default": true,
-          "description": "%tooling_deploys_description%"
+          "description": "%beta_perf_enhancements_description%"
         }
       }
     },

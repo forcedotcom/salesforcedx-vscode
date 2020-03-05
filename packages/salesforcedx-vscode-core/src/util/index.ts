@@ -17,4 +17,3 @@ export {
   isSFDXContainerMode
 } from './cliConfiguration';
 export { ConfigSource, ConfigUtil } from './configUtil';
-export { ToolingDeployParser } from './toolingDeployResultParser';

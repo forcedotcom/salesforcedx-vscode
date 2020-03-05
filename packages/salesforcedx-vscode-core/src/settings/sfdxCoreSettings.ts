@@ -7,14 +7,14 @@
 
 import * as vscode from 'vscode';
 import {
+  BETA_PERF_ENHANCEMENTS,
   CONFLICT_DETECTION_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
-  TELEMETRY_ENABLED,
-  TOOLING_DEPLOYS
+  TELEMETRY_ENABLED
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -70,8 +70,8 @@ export class SfdxCoreSettings {
     return this.getConfigValue(CONFLICT_DETECTION_ENABLED, false);
   }
 
-  public getToolingDeploys(): boolean {
-    return this.getConfigValue(TOOLING_DEPLOYS, true);
+  public getBetaPerfEnhancements(): boolean {
+    return this.getConfigValue(BETA_PERF_ENHANCEMENTS, true);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

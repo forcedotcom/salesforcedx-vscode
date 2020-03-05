@@ -7,6 +7,7 @@
 
 import {
   Command,
+  CompositeCliCommandExecutor,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
@@ -16,15 +17,21 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { ToolingDeploy, ToolingRetrieveResult } from '../deploys';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
+import { OrgAuthInfo } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import { DeployRetrieveExecutor } from './forceSourceToolingDeploy';
 import { APEX_CLASS_EXTENSION } from './templates/metadataTypeConstants';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  FilePathGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  ToolingDeployParser
+} from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -35,6 +42,58 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
       .withFlag('--sourcepath', sourcePath)
       .withJson();
     return commandBuilder.build();
+  }
+
+  public async execute(response: ContinueResponse<string>): Promise<void> {
+    const betaPerfEnabled = sfdxCoreSettings.getBetaPerfEnhancements();
+    // this supported types logic is temporary until we have a way of generating the metadata type from the path
+    // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
+    const supportedType =
+      path.extname(response.data) === APEX_CLASS_EXTENSION ||
+      response.data.includes(`${APEX_CLASS_EXTENSION}-meta.xml`);
+    if (betaPerfEnabled && supportedType) {
+      const startTime = process.hrtime();
+      const cancellationTokenSource = new vscode.CancellationTokenSource();
+      const cancellationToken = cancellationTokenSource.token;
+
+      const executionWrapper = new CompositeCliCommandExecutor(
+        this.build(response.data)
+      ).execute(cancellationToken);
+      this.attachExecution(
+        executionWrapper,
+        cancellationTokenSource,
+        cancellationToken
+      );
+      executionWrapper.processExitSubject.subscribe(() => {
+        this.logMetric(executionWrapper.command.logName, startTime);
+      });
+
+      try {
+        const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+          true
+        );
+        if (!usernameOrAlias) {
+          throw new Error(nls.localize('error_no_default_username'));
+        }
+        const username = await OrgAuthInfo.getUsername(usernameOrAlias);
+        const deployLibrary = new ToolingDeploy(username);
+        const deployOutput = await deployLibrary.deploy({
+          filePathOpts: { filepath: response.data }
+        });
+
+        const parser = new ToolingDeployParser(deployOutput!);
+        await parser.outputResult(executionWrapper);
+      } catch (e) {
+        const deployOutput = {
+          State: 'Error',
+          ErrorMsg: e.message
+        } as ToolingRetrieveResult;
+        const parser = new ToolingDeployParser(deployOutput);
+        await parser.outputResult(executionWrapper, response.data);
+      }
+    } else {
+      super.execute(response);
+    }
   }
 
   protected getDeployType() {
@@ -75,22 +134,10 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
       return;
     }
   }
-
-  const toolingDeployEnabled = sfdxCoreSettings.getToolingDeploys();
-  // this supported types logic is temporary until we have a way of generating the metadata type from the path
-  // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
-  const supportedType =
-    path.extname(sourceUri.fsPath) === APEX_CLASS_EXTENSION ||
-    sourceUri.fsPath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`);
-  const executor =
-    toolingDeployEnabled && supportedType
-      ? new DeployRetrieveExecutor()
-      : new ForceSourceDeploySourcePathExecutor();
-
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    executor,
+    new ForceSourceDeploySourcePathExecutor(),
     new SourcePathChecker()
   );
   await commandlet.run();

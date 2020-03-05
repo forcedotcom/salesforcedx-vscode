@@ -8,6 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DirectoryOpts, FilePathOpts, ManifestOpts } from './deployUtil';
 import {
   supportedToolingTypes,
   ToolingCreateResult,
@@ -17,74 +18,54 @@ import {
 const DOMParser = require('xmldom-sfdx-encoding').DOMParser;
 
 export class ToolingDeploy {
-  private static instance: ToolingDeploy;
   private metadataType?: string;
-  private connection?: Connection;
+  private username: string;
+  public connection?: Connection;
   private apiVersion?: string;
 
-  private container?: ToolingCreateResult;
-  private containerMember?: ToolingCreateResult;
-  private asyncRequest?: ToolingCreateResult;
+  public container?: ToolingCreateResult;
+  public containerMember?: ToolingCreateResult;
+  public asyncRequest?: ToolingCreateResult;
 
-  public constructor() {}
-
-  public static getInstance(): ToolingDeploy {
-    if (!this.instance) {
-      this.instance = new ToolingDeploy();
-    }
-    return this.instance;
+  public constructor(username: string, apiVersion?: string) {
+    this.username = username;
+    if (apiVersion) this.apiVersion = apiVersion;
   }
 
-  public async init(username: string, apiVersion?: string) {
-    try {
-      const connection = await Connection.create({
-        authInfo: await AuthInfo.create({ username })
-      });
-      this.connection = connection;
-      if (apiVersion) this.apiVersion = apiVersion;
-    } catch (e) {
-      throw e;
-    }
-  }
+  public async deploy(options: {
+    filePathOpts?: FilePathOpts;
+    manifestOpts?: ManifestOpts;
+    directoryOpts?: DirectoryOpts;
+  }) {
+    this.connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username: this.username })
+    });
+    if (options.filePathOpts) {
+      // find out what the type is from metadataregistry given the sourcepath and assign
+      this.metadataType = 'Apexclass';
+      const sourcePath = options.filePathOpts.filepath.replace('-meta.xml', '');
+      const metadataPath = `${sourcePath}-meta.xml`;
 
-  public async deploy(options: any) {
-    try {
-      if (options.FilePathOpts) {
-        // find out what the type is from metadataregistry given the sourcepath and assign
-        this.metadataType = 'Apexclass';
-        const sourcePath = options.FilePathOpts.filepath.replace(
-          '-meta.xml',
-          ''
-        );
-        const metadataPath = `${sourcePath}-meta.xml`;
-
-        await this.createMetadataContainer();
-        await this.createContainerMember([sourcePath, metadataPath]);
-        await this.createContainerAsyncRequest();
-        const output = await this.toolingRetrieve();
-        return output;
-      }
-    } catch (e) {
-      throw e;
+      await this.createMetadataContainer();
+      await this.createContainerMember([sourcePath, metadataPath]);
+      await this.createContainerAsyncRequest();
+      const output = await this.toolingRetrieve();
+      return output;
     }
   }
 
   public async createMetadataContainer() {
-    try {
-      const metadataContainer = (await this.connection!.tooling.create(
-        'MetadataContainer',
-        { Name: 'MetadataContainer' + Date.now() }
-      )) as ToolingCreateResult;
-      const deployFailed = new Error();
-      if (!metadataContainer.success) {
-        deployFailed.message = 'Unexpected error creating metadata container';
-        deployFailed.name = 'MetadataContainerCreationFailed';
-        throw deployFailed;
-      }
-      this.container = metadataContainer;
-    } catch (e) {
-      throw e;
+    const metadataContainer = (await this.connection!.tooling.create(
+      'MetadataContainer',
+      { Name: 'MetadataContainer' + Date.now() }
+    )) as ToolingCreateResult;
+    const deployFailed = new Error();
+    if (!metadataContainer.success) {
+      deployFailed.message = 'Unexpected error creating metadata container';
+      deployFailed.name = 'MetadataContainerCreationFailed';
+      throw deployFailed;
     }
+    this.container = metadataContainer;
   }
 
   private buildMetadataField(metadataContent: string) {
@@ -105,62 +86,54 @@ export class ToolingDeploy {
   }
 
   public async createContainerMember(outboundFiles: string[]) {
-    try {
-      const id = this.container!.id;
-      const metadataContent = fs.readFileSync(outboundFiles[1], 'utf8');
-      const metadataField = this.buildMetadataField(metadataContent);
-      const body = fs.readFileSync(outboundFiles[0], 'utf8');
-      const fileName = path.basename(
-        outboundFiles[0],
-        path.extname(outboundFiles[0])
-      );
+    const id = this.container!.id;
+    const metadataContent = fs.readFileSync(outboundFiles[1], 'utf8');
+    const metadataField = this.buildMetadataField(metadataContent);
+    const body = fs.readFileSync(outboundFiles[0], 'utf8');
+    const fileName = path.basename(
+      outboundFiles[0],
+      path.extname(outboundFiles[0])
+    );
 
-      const contentEntity = (await this.connection!.tooling.sobject(
-        this.metadataType!
-      ).find({ Name: fileName }))[0];
+    const contentEntity = (await this.connection!.tooling.sobject(
+      this.metadataType!
+    ).find({ Name: fileName }))[0];
 
-      const containerMemberObject = {
-        MetadataContainerId: id,
-        FullName: fileName,
-        Body: body,
-        Metadata: metadataField,
-        ...(contentEntity ? { contentEntityId: contentEntity.Id } : {})
-      };
-      const containerMember = (await this.connection!.tooling.create(
-        supportedToolingTypes.get(this.metadataType!)!,
-        containerMemberObject
-      )) as ToolingCreateResult;
+    const containerMemberObject = {
+      MetadataContainerId: id,
+      FullName: fileName,
+      Body: body,
+      Metadata: metadataField,
+      ...(contentEntity ? { contentEntityId: contentEntity.Id } : {})
+    };
+    const containerMember = (await this.connection!.tooling.create(
+      supportedToolingTypes.get(this.metadataType!)!,
+      containerMemberObject
+    )) as ToolingCreateResult;
 
-      const deployFailed = new Error();
-      if (!containerMember.success) {
-        deployFailed.message = 'Unexpected error creating apex class member';
-        deployFailed.name = 'ApexClassMemberCreationFailed';
-        throw deployFailed;
-      }
-      this.containerMember = containerMember;
-    } catch (e) {
-      throw e;
+    const deployFailed = new Error();
+    if (!containerMember.success) {
+      deployFailed.message = 'Unexpected error creating apex class member';
+      deployFailed.name = 'ApexClassMemberCreationFailed';
+      throw deployFailed;
     }
+    this.containerMember = containerMember;
   }
 
   public async createContainerAsyncRequest() {
-    try {
-      const contAsyncRequest = (await this.connection!.tooling.create(
-        'ContainerAsyncRequest',
-        { MetadataContainerId: this.container!.id }
-      )) as ToolingCreateResult;
+    const contAsyncRequest = (await this.connection!.tooling.create(
+      'ContainerAsyncRequest',
+      { MetadataContainerId: this.container!.id }
+    )) as ToolingCreateResult;
 
-      const deployFailed = new Error();
-      if (!contAsyncRequest.success) {
-        deployFailed.message =
-          'Unexpected error creating container async request';
-        deployFailed.name = 'ContainerAsyncRequestFailed';
-        throw deployFailed;
-      }
-      this.asyncRequest = contAsyncRequest;
-    } catch (e) {
-      throw e;
+    const deployFailed = new Error();
+    if (!contAsyncRequest.success) {
+      deployFailed.message =
+        'Unexpected error creating container async request';
+      deployFailed.name = 'ContainerAsyncRequestFailed';
+      throw deployFailed;
     }
+    this.asyncRequest = contAsyncRequest;
   }
 
   private sleep(ms: number) {
@@ -168,23 +141,19 @@ export class ToolingDeploy {
   }
 
   public async toolingRetrieve(): Promise<ToolingRetrieveResult> {
-    try {
-      let retrieveResult = (await this.connection!.tooling.retrieve(
+    let retrieveResult = (await this.connection!.tooling.retrieve(
+      'ContainerAsyncRequest',
+      this.asyncRequest!.id
+    )) as ToolingRetrieveResult;
+    let count = 0;
+    while (retrieveResult.State === 'Queued' && count <= 20) {
+      await this.sleep(100);
+      retrieveResult = (await this.connection!.tooling.retrieve(
         'ContainerAsyncRequest',
         this.asyncRequest!.id
       )) as ToolingRetrieveResult;
-      let count = 0;
-      while (retrieveResult.State === 'Queued' && count <= 20) {
-        await this.sleep(100);
-        retrieveResult = (await this.connection!.tooling.retrieve(
-          'ContainerAsyncRequest',
-          this.asyncRequest!.id
-        )) as ToolingRetrieveResult;
-        count++;
-      }
-      return retrieveResult;
-    } catch (e) {
-      throw e;
+      count++;
     }
+    return retrieveResult;
   }
 }
