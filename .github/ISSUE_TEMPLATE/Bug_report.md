@@ -8,7 +8,7 @@ NOTICE: While GitHub is the preferred channel for reporting issues/feedback, thi
 -->
 
 <!--
-FOR BUGS RELATED TO THE SALEFORCE CLI, please use this repository: https://github.com/forcedotcom/cli-packages
+FOR BUGS RELATED TO THE SALEFORCE CLI, please use this repository: https://github.com/forcedotcom/cli
 -->
 
 ### Summary
