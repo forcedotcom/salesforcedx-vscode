@@ -12,16 +12,15 @@ if (!vsix.length) {
   shell.exit(1);
 }
 
-const vsce = '../../node_modules/.bin/vsce';
 const VSCE_PERSONAL_ACCESS_TOKEN = process.env['VSCE_PERSONAL_ACCESS_TOKEN'];
 let vscePublish = '';
 if (VSCE_PERSONAL_ACCESS_TOKEN) {
   vscePublish = shell.exec(
-    `${vsce} publish --pat ${VSCE_PERSONAL_ACCESS_TOKEN} --packagePath ${vsix}`
+    `vsce publish --pat ${VSCE_PERSONAL_ACCESS_TOKEN} --packagePath ${vsix}`
   );
 } else {
   // Assume that one has already been configured
-  vscePublish = shell.exec(`${vsce} publish --packagePath ${vsix}`);
+  vscePublish = shell.exec(`vsce publish --packagePath ${vsix}`);
 }
 
 // Check that publishing extension was successful.
