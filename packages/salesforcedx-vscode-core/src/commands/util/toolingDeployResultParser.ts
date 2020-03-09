@@ -10,8 +10,11 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { channelService } from '../../channels';
-import { DeployResult, ToolingRetrieveResult } from '../../deploys';
-
+import {
+  DeployResult,
+  DeployStatusEnum,
+  ToolingRetrieveResult
+} from '../../deploys';
 import { nls } from '../../messages';
 
 export class ToolingDeployParser {
@@ -60,7 +63,7 @@ export class ToolingDeployParser {
     const table = new Table();
     let title: string;
     switch (this.result.State) {
-      case 'Completed':
+      case DeployStatusEnum.Completed:
         title = nls.localize(`table_title_deployed_source`);
         const successRows = this.buildSuccesses(
           this.result.DeployDetails.componentSuccesses[0]
@@ -81,7 +84,7 @@ export class ToolingDeployParser {
         channelService.appendLine(successTable);
         executionWrapper.successfulExit();
         break;
-      case 'Failed':
+      case DeployStatusEnum.Failed:
         const failedErrorRows = this.buildErrors(
           this.result.DeployDetails.componentFailures
         );
@@ -99,25 +102,12 @@ export class ToolingDeployParser {
         channelService.appendLine(failedErrorTable);
         executionWrapper.failureExit();
         break;
-      case 'Queued':
-        const queueError =
-          'Unexpected error retrieving your ContainerAsyncRequest';
-        const queueRows = [{ filePath: sourceUri, error: queueError }];
-        const queueErrorTable = table.createTable(
-          (queueRows as unknown) as Row[],
-          [
-            {
-              key: 'filePath',
-              label: nls.localize('table_header_project_path')
-            },
-            { key: 'error', label: nls.localize('table_header_errors') }
-          ],
-          nls.localize(`table_title_deploy_errors`)
-        );
-        channelService.appendLine(queueErrorTable);
+      case DeployStatusEnum.Queued:
+        const queueError = nls.localize('beta_tapi_queue_status');
+        channelService.appendLine(queueError);
         executionWrapper.failureExit();
         break;
-      case 'Error':
+      case DeployStatusEnum.Error:
         const error = this.result.ErrorMsg!;
         const errorRows = [{ filePath: sourceUri, error }];
         const errorTable = table.createTable(

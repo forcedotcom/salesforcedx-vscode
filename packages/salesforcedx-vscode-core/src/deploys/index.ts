@@ -7,6 +7,7 @@
 
 export {
   DeployResult,
+  DeployStatusEnum,
   FilePathOpts,
   supportedToolingTypes,
   ToolingCreateResult,

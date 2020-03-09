@@ -5,69 +5,60 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DirectoryOpts, FilePathOpts, ManifestOpts } from './deployUtil';
+import { nls } from '../messages';
 import {
+  DeployStatusEnum,
   supportedToolingTypes,
   ToolingCreateResult,
   ToolingRetrieveResult
 } from './index';
 // tslint:disable-next-line:no-var-requires
 const DOMParser = require('xmldom-sfdx-encoding').DOMParser;
+const CONTAINER_ASYNC_REQUEST = 'ContainerAsyncRequest';
+const METADATA_CONTAINER = 'MetadataContainer';
 
 export class ToolingDeploy {
   private metadataType?: string;
-  private username: string;
-  public connection?: Connection;
+  public connection: Connection;
   private apiVersion?: string;
 
-  public constructor(username: string, apiVersion?: string) {
-    this.username = username;
+  public constructor(connection: Connection, apiVersion?: string) {
+    this.connection = connection;
     if (apiVersion) this.apiVersion = apiVersion;
   }
 
-  public async deploy(options: {
-    filePathOpts?: FilePathOpts;
-    manifestOpts?: ManifestOpts;
-    directoryOpts?: DirectoryOpts;
-  }) {
-    this.connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username: this.username })
-    });
-    if (options.filePathOpts) {
-      // find out what the type is from metadataregistry given the sourcepath and assign
-      this.metadataType = 'Apexclass';
-      const sourcePath = options.filePathOpts.filepath.replace('-meta.xml', '');
-      const metadataPath = `${sourcePath}-meta.xml`;
+  public async deploy(filePath: string) {
+    // find out what the type is from metadataregistry given the sourcepath and assign
+    this.metadataType = 'Apexclass';
+    const sourcePath = filePath.replace('-meta.xml', '');
+    const metadataPath = `${sourcePath}-meta.xml`;
 
-      const container = await this.createMetadataContainer();
-      const containerMember = await this.createContainerMember(
-        [sourcePath, metadataPath],
-        container
-      );
-      const asyncRequest = await this.createContainerAsyncRequest(container);
-      const output = await this.toolingRetrieve(asyncRequest);
-      return output;
-    }
+    const container = await this.createMetadataContainer();
+    await this.createContainerMember([sourcePath, metadataPath], container);
+    const asyncRequest = await this.createContainerAsyncRequest(container);
+    const output = await this.toolingRetrieve(asyncRequest);
+    return output;
   }
 
   public async createMetadataContainer(): Promise<ToolingCreateResult> {
     const metadataContainer = (await this.connection!.tooling.create(
-      'MetadataContainer',
-      { Name: 'MetadataContainer' + Date.now() }
+      METADATA_CONTAINER,
+      { Name: 'VSCode_MDC_' } // + Date.now() }
     )) as ToolingCreateResult;
-    const deployFailed = new Error();
+
     if (!metadataContainer.success) {
-      deployFailed.message = 'Unexpected error creating metadata container';
+      const deployFailed = new Error();
+      deployFailed.message = nls.localize('beta_tapi_mdcontainer_error');
       deployFailed.name = 'MetadataContainerCreationFailed';
       throw deployFailed;
     }
     return metadataContainer;
   }
 
-  private buildMetadataField(metadataContent: string) {
+  public buildMetadataField(metadataContent: string) {
     const parser = new DOMParser();
     const document = parser.parseFromString(metadataContent, 'text/xml');
     const apiVersion =
@@ -115,7 +106,10 @@ export class ToolingDeploy {
 
     const deployFailed = new Error();
     if (!containerMember.success) {
-      deployFailed.message = 'Unexpected error creating apex class member';
+      deployFailed.message = nls.localize(
+        'beta_tapi_membertype_error',
+        'apex class'
+      );
       deployFailed.name = 'ApexClassMemberCreationFailed';
       throw deployFailed;
     }
@@ -126,14 +120,13 @@ export class ToolingDeploy {
     container: ToolingCreateResult
   ): Promise<ToolingCreateResult> {
     const contAsyncRequest = (await this.connection!.tooling.create(
-      'ContainerAsyncRequest',
+      CONTAINER_ASYNC_REQUEST,
       { MetadataContainerId: container.id }
     )) as ToolingCreateResult;
 
     const deployFailed = new Error();
     if (!contAsyncRequest.success) {
-      deployFailed.message =
-        'Unexpected error creating container async request';
+      deployFailed.message = nls.localize('beta_tapi_car_error');
       deployFailed.name = 'ContainerAsyncRequestFailed';
       throw deployFailed;
     }
@@ -148,18 +141,19 @@ export class ToolingDeploy {
     asyncRequest: ToolingCreateResult
   ): Promise<ToolingRetrieveResult> {
     let retrieveResult = (await this.connection!.tooling.retrieve(
-      'ContainerAsyncRequest',
+      CONTAINER_ASYNC_REQUEST,
       asyncRequest.id
     )) as ToolingRetrieveResult;
     let count = 0;
-    while (retrieveResult.State === 'Queued' && count <= 20) {
+    while (retrieveResult.State === DeployStatusEnum.Queued && count <= 30) {
       await this.sleep(100);
       retrieveResult = (await this.connection!.tooling.retrieve(
-        'ContainerAsyncRequest',
+        CONTAINER_ASYNC_REQUEST,
         asyncRequest.id
       )) as ToolingRetrieveResult;
       count++;
     }
+
     return retrieveResult;
   }
 }

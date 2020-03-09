@@ -9,6 +9,16 @@ export const supportedToolingTypes = new Map([
   ['Apexclass', 'ApexClassMember']
 ]);
 
+/**
+ * Enum that represents the status of a Tooling Container Deploy
+ */
+export enum DeployStatusEnum {
+  Completed = 'Completed',
+  Queued = 'Queued',
+  Error = 'Error',
+  Failed = 'Failed'
+}
+
 // what other parameters would be necessary
 export interface FilePathOpts {
   filepath: string;

@@ -65,7 +65,7 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
         cancellationToken
       );
       executionWrapper.processExitSubject.subscribe(() => {
-        this.logMetric(executionWrapper.command.logName, startTime);
+        this.logMetric('force_source_deploy_with_sourcepath_beta', startTime);
       });
 
       try {
@@ -75,11 +75,9 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
         if (!usernameOrAlias) {
           throw new Error(nls.localize('error_no_default_username'));
         }
-        const username = await OrgAuthInfo.getUsername(usernameOrAlias);
-        const deployLibrary = new ToolingDeploy(username);
-        const deployOutput = await deployLibrary.deploy({
-          filePathOpts: { filepath: response.data }
-        });
+        const orgConnection = await OrgAuthInfo.getConnection(usernameOrAlias);
+        const deployLibrary = new ToolingDeploy(orgConnection);
+        const deployOutput = await deployLibrary.deploy(response.data);
 
         const parser = new ToolingDeployParser(deployOutput!);
         await parser.outputResult(executionWrapper);
