@@ -21,7 +21,7 @@ const CONTAINER_ASYNC_REQUEST = 'ContainerAsyncRequest';
 const METADATA_CONTAINER = 'MetadataContainer';
 
 export class ToolingDeploy {
-  private metadataType?: string;
+  public metadataType?: string;
   public connection: Connection;
   private apiVersion?: string;
 
@@ -44,7 +44,7 @@ export class ToolingDeploy {
   }
 
   public async createMetadataContainer(): Promise<ToolingCreateResult> {
-    const metadataContainer = (await this.connection!.tooling.create(
+    const metadataContainer = (await this.connection.tooling.create(
       METADATA_CONTAINER,
       { Name: `VSCode_MDC_${Date.now()}` }
     )) as ToolingCreateResult;
@@ -88,9 +88,9 @@ export class ToolingDeploy {
       path.extname(outboundFiles[0])
     );
 
-    const contentEntity = (await this.connection!.tooling.sobject(
-      this.metadataType!
-    ).find({ Name: fileName }))[0];
+    const contentEntity = (await this.connection.tooling
+      .sobject(this.metadataType!)
+      .find({ Name: fileName }))[0];
 
     const containerMemberObject = {
       MetadataContainerId: id,
@@ -99,13 +99,13 @@ export class ToolingDeploy {
       Metadata: metadataField,
       ...(contentEntity ? { contentEntityId: contentEntity.Id } : {})
     };
-    const containerMember = (await this.connection!.tooling.create(
+    const containerMember = (await this.connection.tooling.create(
       supportedToolingTypes.get(this.metadataType!)!,
       containerMemberObject
     )) as ToolingCreateResult;
 
-    const deployFailed = new Error();
     if (!containerMember.success) {
+      const deployFailed = new Error();
       deployFailed.message = nls.localize(
         'beta_tapi_membertype_error',
         'apex class'
@@ -119,13 +119,13 @@ export class ToolingDeploy {
   public async createContainerAsyncRequest(
     container: ToolingCreateResult
   ): Promise<ToolingCreateResult> {
-    const contAsyncRequest = (await this.connection!.tooling.create(
+    const contAsyncRequest = (await this.connection.tooling.create(
       CONTAINER_ASYNC_REQUEST,
       { MetadataContainerId: container.id }
     )) as ToolingCreateResult;
 
-    const deployFailed = new Error();
     if (!contAsyncRequest.success) {
+      const deployFailed = new Error();
       deployFailed.message = nls.localize('beta_tapi_car_error');
       deployFailed.name = 'ContainerAsyncRequestFailed';
       throw deployFailed;
@@ -140,14 +140,14 @@ export class ToolingDeploy {
   public async toolingRetrieve(
     asyncRequest: ToolingCreateResult
   ): Promise<ToolingRetrieveResult> {
-    let retrieveResult = (await this.connection!.tooling.retrieve(
+    let retrieveResult = (await this.connection.tooling.retrieve(
       CONTAINER_ASYNC_REQUEST,
       asyncRequest.id
     )) as ToolingRetrieveResult;
     let count = 0;
     while (retrieveResult.State === DeployStatusEnum.Queued && count <= 30) {
       await this.sleep(100);
-      retrieveResult = (await this.connection!.tooling.retrieve(
+      retrieveResult = (await this.connection.tooling.retrieve(
         CONTAINER_ASYNC_REQUEST,
         asyncRequest.id
       )) as ToolingRetrieveResult;

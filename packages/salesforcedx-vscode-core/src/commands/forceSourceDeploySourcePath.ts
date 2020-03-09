@@ -83,6 +83,10 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
         await parser.outputResult(executionWrapper);
         await DeployQueue.get().unlock();
       } catch (e) {
+        telemetryService.sendException(
+          'force_source_deploy_with_sourcepath_beta',
+          e.message
+        );
         const deployOutput = {
           State: 'Error',
           ErrorMsg: e.message
