@@ -80,7 +80,7 @@ describe('Tooling Deploys', () => {
     expect(metadataField).to.deep.equals(testMetadataField);
   });
 
-  it('should create a metadata container', async () => {
+  xit('should create a metadata container', async () => {
     sandboxStub.stub(mockConnection.tooling, 'create').returns({
       success: testRunner,
       id: '1dcxxx000000034',

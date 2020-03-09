@@ -46,7 +46,7 @@ export class ToolingDeploy {
   public async createMetadataContainer(): Promise<ToolingCreateResult> {
     const metadataContainer = (await this.connection!.tooling.create(
       METADATA_CONTAINER,
-      { Name: 'VSCode_MDC_' } // + Date.now() }
+      { Name: `VSCode_MDC_${Date.now()}` }
     )) as ToolingCreateResult;
 
     if (!metadataContainer.success) {
