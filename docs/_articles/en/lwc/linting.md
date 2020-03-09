@@ -12,9 +12,11 @@ Linting provides errors about malformed code while you edit. VS Code enforces Sa
 ## Installation
 
 **For a New Project**
+
 If you've recently created a new SFDX project using the `force:project:create` command, your project contains a `package.json` file with the ESLint plugin already included. Make sure to run `npm install` in your project directory to install the dependencies from `package.json`. To start linting, run `npm run lint:lwc`.
 
 **For an Existing Project**
+
 1. Check whether your project contains a `package.json` file. This file specifies the packages and version required to run your project.
  
 If you already have a `package.json` file:
@@ -26,9 +28,11 @@ If you already have a `package.json` file:
 "lint": "npm run lint:lwc",
   	"lint:lwc": "eslint force-app/main/default/lwc"
 }
+```
 
 - Add the Salesforce ESLint configuration and ESLint to devDependencies. 
 	
+```
 	"devDependencies" {
 		"@salesforce/eslint-config-lwc": "0.4.0",
 		"eslint": "^5.16.0"
@@ -42,8 +46,10 @@ If you already have a `package.json` file:
 2. Check whether you have `.eslintignore` and `.eslintrc.json` files included in your project. 
  
 - If you have `.eslintrc.json`, add the following to the file.
-```{
-    "extends": ["@salesforce/eslint-config-lwc/recommended"]
+
+```
+{
+	"extends": ["@salesforce/eslint-config-lwc/recommended"]
 }
 ```
 
