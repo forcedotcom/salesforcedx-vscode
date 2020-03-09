@@ -132,6 +132,10 @@
         ja: 作成
       url: /lwc/testing
     - title:
+        en: Linting
+        ja: Linting
+      url: /lwc/linting
+    - title:
         en: Local Development
         ja: Local Development
       url: /lwc/localdev
