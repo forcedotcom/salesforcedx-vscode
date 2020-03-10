@@ -25,7 +25,7 @@ If you already have a `package.json` file:
 
 ```
 "scripts": {
-"lint": "npm run lint:lwc",
+	"lint": "npm run lint:lwc",
   	"lint:lwc": "eslint force-app/main/default/lwc"
 }
 ```
@@ -33,10 +33,10 @@ If you already have a `package.json` file:
 - Add the Salesforce ESLint configuration and ESLint to devDependencies. 
 	
 ```
-	"devDependencies" {
-		"@salesforce/eslint-config-lwc": "0.4.0",
-		"eslint": "^5.16.0"
-	}
+"devDependencies" {
+	"@salesforce/eslint-config-lwc": "0.4.0",
+	"eslint": "^5.16.0"
+}
 ```
  
 - Run `npm install` on your project directory to install the dependencies. Start linting by running `npm run lint:lwc`.
@@ -60,15 +60,12 @@ If you already have a `package.json` file:
 ESLint includes three configuration levels. The default level is `@salesforce/eslint-config-lwc/recommended`. To change the configuration level, change `{"extends": ["@salesforce/eslint-config-lwc/recommended"]}` in your `.eslintrc.json` file.
 
 `@salesforce/eslint-config-lwc/base`
-
 This configuration prevents common pitfalls with Lightning Web Components and enforces other Salesforce platform restrictions.
 
 `@salesforce/eslint-config-lwc/recommended`
-
 This configuration prevents common Javascript pitfalls and enforces all best practices.
 
 `@salesforce/eslint-config-lwc/extended`
-
 This configuration restricts the use of some Javascript language features that are sometimes slow in older browsers, such as IE11. To support new Javascript syntax and language features on an older browser, the Lightning Web Components compiler transforms the Lightning Web Components modules. 
 
 For more details on the linting rules and using them individually, see the [ESLint Plugin](https://github.com/salesforce/eslint-plugin-lwc) Github repository. 
