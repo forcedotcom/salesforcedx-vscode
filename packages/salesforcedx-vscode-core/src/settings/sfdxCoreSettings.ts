@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import {
-  BETA_PERF_ENHANCEMENTS,
+  BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
@@ -70,8 +70,8 @@ export class SfdxCoreSettings {
     return this.getConfigValue(CONFLICT_DETECTION_ENABLED, false);
   }
 
-  public getBetaPerfEnhancements(): boolean {
-    return this.getConfigValue(BETA_PERF_ENHANCEMENTS, false);
+  public getBetaDeployRetrieve(): boolean {
+    return this.getConfigValue(BETA_DEPLOY_RETRIEVE, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

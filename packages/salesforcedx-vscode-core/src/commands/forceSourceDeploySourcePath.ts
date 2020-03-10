@@ -45,13 +45,15 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   }
 
   public async execute(response: ContinueResponse<string>): Promise<void> {
-    const betaPerfEnabled = sfdxCoreSettings.getBetaPerfEnhancements();
+    const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
     // this supported types logic is temporary until we have a way of generating the metadata type from the path
     // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
     const supportedType =
       path.extname(response.data) === APEX_CLASS_EXTENSION ||
       response.data.includes(`${APEX_CLASS_EXTENSION}-meta.xml`);
-    if (betaPerfEnabled && supportedType) {
+    const multipleSourcePaths = response.data.includes(',');
+
+    if (betaDeployRetrieve && supportedType && !multipleSourcePaths) {
       const startTime = process.hrtime();
       const cancellationTokenSource = new vscode.CancellationTokenSource();
       const cancellationToken = cancellationTokenSource.token;

@@ -751,10 +751,10 @@
           "default": false,
           "description": "%conflict_detection_enabled_description%"
         },
-        "salesforcedx-vscode-core.beta-perf-enhancements": {
+        "salesforcedx-vscode-core.experimental.deployRetrieve": {
           "type": "boolean",
           "default": false,
-          "description": "%beta_perf_enhancements_description%"
+          "description": "%experimental_deploy_retrieve_description%"
         }
       }
     },
