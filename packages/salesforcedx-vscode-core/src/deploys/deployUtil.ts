@@ -45,9 +45,9 @@ export interface ToolingCreateResult {
 
 export interface ToolingRetrieveResult {
   State: string;
-  ErrorMsg?: string;
-  isDeleted: string;
-  DeployDetails: DeployDetailsResult;
+  ErrorMsg: string | null;
+  isDeleted: boolean;
+  DeployDetails: DeployDetailsResult | null;
   outboundFiles?: string[];
 }
 

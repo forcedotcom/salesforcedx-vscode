@@ -18,6 +18,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
+  DeployStatusEnum,
   ToolingDeploy,
   ToolingDeployParser,
   ToolingRetrieveResult
@@ -79,8 +80,13 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
         const deployOutput = await deployLibrary.deploy(response.data);
 
         const parser = new ToolingDeployParser(deployOutput);
-        await parser.outputResult(executionWrapper);
-        await DeployQueue.get().unlock();
+        const outputResult = await parser.outputResult();
+        channelService.appendLine(outputResult);
+        if (deployOutput.State === DeployStatusEnum.Completed) {
+          executionWrapper.successfulExit();
+        } else {
+          executionWrapper.failureExit();
+        }
       } catch (e) {
         telemetryService.sendException(
           'force_source_deploy_with_sourcepath_beta',
@@ -91,7 +97,10 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
           ErrorMsg: e.message
         } as ToolingRetrieveResult;
         const parser = new ToolingDeployParser(deployOutput);
-        await parser.outputResult(executionWrapper, response.data);
+        const errorResult = await parser.outputResult(response.data);
+        channelService.appendLine(errorResult);
+        executionWrapper.failureExit();
+      } finally {
         await DeployQueue.get().unlock();
       }
     } else {

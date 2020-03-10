@@ -10,11 +10,13 @@ import {
   ToolingDeployParser,
   ToolingRetrieveResult
 } from '../../../src/deploys';
+import { nls } from '../../../src/messages';
 
 describe('Tooling Deploy Parser', () => {
   const completeDeployResult: ToolingRetrieveResult = {
     State: 'Completed',
-    isDeleted: 'false',
+    ErrorMsg: null,
+    isDeleted: false,
     DeployDetails: {
       componentFailures: [],
       componentSuccesses: [
@@ -37,7 +39,8 @@ describe('Tooling Deploy Parser', () => {
 
   const failedDeployResult: ToolingRetrieveResult = {
     State: 'Failed',
-    isDeleted: 'false',
+    ErrorMsg: null,
+    isDeleted: false,
     DeployDetails: {
       componentFailures: [
         {
@@ -73,14 +76,22 @@ describe('Tooling Deploy Parser', () => {
 
   const queuedDeployResult = {
     State: 'Queued',
-    isDeleted: 'false',
-    DeployDetails: null
+    isDeleted: false,
+    DeployDetails: null,
+    ErrorMsg: null
+  };
+
+  const errorDeployResult = {
+    State: 'Error',
+    ErrorMsg: 'Unexpected error happened during deploy',
+    isDeleted: false,
+    DeployDetails: { componentFailures: [], componentSuccesses: [] }
   };
 
   it('should create array of success info for updated class', async () => {
     const parser = new ToolingDeployParser(completeDeployResult);
     const successInfo = parser.buildSuccesses(
-      completeDeployResult.DeployDetails.componentSuccesses[0]
+      completeDeployResult.DeployDetails!.componentSuccesses[0]
     );
     expect(successInfo).to.be.an('array');
     expect(successInfo.length).to.be.equal(2);
@@ -130,7 +141,7 @@ describe('Tooling Deploy Parser', () => {
   it('should create array of error info for apex class', async () => {
     const parser = new ToolingDeployParser(failedDeployResult);
     const errorsInfo = parser.buildErrors(
-      failedDeployResult.DeployDetails.componentFailures
+      failedDeployResult.DeployDetails!.componentFailures
     );
     expect(errorsInfo).to.be.an('array');
     expect(errorsInfo.length).to.be.equal(2);
@@ -141,5 +152,60 @@ describe('Tooling Deploy Parser', () => {
     expect(errorsInfo[1]).to.be.an('object');
     expect(errorsInfo[1].filePath).to.equal('classes/testAPI.cls');
     expect(errorsInfo[1].error).to.equal('Variable does not exist: waa (4:5)');
+  });
+
+  it('should create a table with successful results', async () => {
+    const parser = new ToolingDeployParser(completeDeployResult);
+
+    let mockResult = '=== Deployed Source\n';
+    mockResult +=
+      'STATE    FULL NAME  TYPE       PROJECT PATH                \n';
+    mockResult +=
+      '───────  ─────────  ─────────  ────────────────────────────\n';
+    mockResult +=
+      'Updated  testAPI    ApexClass  classes/testAPI.cls         \n';
+    mockResult +=
+      'Updated  testAPI    ApexClass  classes/testAPI.cls-meta.xml\n';
+
+    const results = await parser.outputResult();
+    expect(results).to.equal(mockResult);
+  });
+
+  it('should create a table with failed results', async () => {
+    const parser = new ToolingDeployParser(failedDeployResult);
+
+    let errorResult = '=== Deploy Errors\n';
+    errorResult +=
+      'PROJECT PATH         ERRORS                                  \n';
+    errorResult +=
+      '───────────────────  ────────────────────────────────────────\n';
+    errorResult +=
+      "classes/testAPI.cls  Missing ';' at '}' (4:5) (4:5)          \n";
+    errorResult +=
+      'classes/testAPI.cls  Variable does not exist: waa (4:5) (4:5)\n';
+
+    const results = await parser.outputResult();
+    expect(results).to.equal(errorResult);
+  });
+
+  it('should create a table with error results', async () => {
+    const parser = new ToolingDeployParser(errorDeployResult);
+
+    let errorResult = '=== Deploy Errors\n';
+    errorResult +=
+      'PROJECT PATH         ERRORS                                 \n';
+    errorResult +=
+      '───────────────────  ───────────────────────────────────────\n';
+    errorResult +=
+      'classes/testAPI.cls  Unexpected error happened during deploy\n';
+
+    const results = await parser.outputResult('classes/testAPI.cls');
+    expect(results).to.equal(errorResult);
+  });
+
+  it('should create a table with queued results', async () => {
+    const parser = new ToolingDeployParser(queuedDeployResult);
+    const results = await parser.outputResult();
+    expect(results).to.equal(nls.localize('beta_tapi_queue_status'));
   });
 });

@@ -4,12 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CompositeCliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { channelService } from '../channels';
 import { nls } from '../messages';
 import {
   DeployResult,
@@ -60,19 +58,17 @@ export class ToolingDeployParser {
     return failures;
   }
 
-  public async outputResult(
-    executionWrapper: CompositeCliCommandExecution,
-    sourceUri?: string
-  ) {
+  public async outputResult(sourceUri?: string): Promise<string> {
+    let outputResult: string;
     const table = new Table();
     let title: string;
     switch (this.result.State) {
       case DeployStatusEnum.Completed:
         title = nls.localize(`table_title_deployed_source`);
         const successRows = this.buildSuccesses(
-          this.result.DeployDetails.componentSuccesses[0]
+          this.result.DeployDetails!.componentSuccesses[0]
         );
-        const successTable = table.createTable(
+        outputResult = table.createTable(
           (successRows as unknown) as Row[],
           [
             { key: 'state', label: nls.localize('table_header_state') },
@@ -85,14 +81,12 @@ export class ToolingDeployParser {
           ],
           title
         );
-        channelService.appendLine(successTable);
-        executionWrapper.successfulExit();
         break;
       case DeployStatusEnum.Failed:
         const failedErrorRows = this.buildErrors(
-          this.result.DeployDetails.componentFailures
+          this.result.DeployDetails!.componentFailures
         );
-        const failedErrorTable = table.createTable(
+        outputResult = table.createTable(
           (failedErrorRows as unknown) as Row[],
           [
             {
@@ -103,18 +97,14 @@ export class ToolingDeployParser {
           ],
           nls.localize(`table_title_deploy_errors`)
         );
-        channelService.appendLine(failedErrorTable);
-        executionWrapper.failureExit();
         break;
       case DeployStatusEnum.Queued:
-        const queueError = nls.localize('beta_tapi_queue_status');
-        channelService.appendLine(queueError);
-        executionWrapper.failureExit();
+        outputResult = nls.localize('beta_tapi_queue_status');
         break;
       case DeployStatusEnum.Error:
         const error = this.result.ErrorMsg!;
         const errorRows = [{ filePath: sourceUri, error }];
-        const errorTable = table.createTable(
+        outputResult = table.createTable(
           (errorRows as unknown) as Row[],
           [
             {
@@ -125,9 +115,10 @@ export class ToolingDeployParser {
           ],
           nls.localize(`table_title_deploy_errors`)
         );
-        channelService.appendLine(errorTable);
-        executionWrapper.failureExit();
         break;
+      default:
+        outputResult = '';
     }
+    return outputResult;
   }
 }
