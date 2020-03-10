@@ -57,12 +57,15 @@ export interface DeployDetailsResult {
 }
 
 export interface DeployResult {
-  columnNumber?: string;
-  lineNumber?: string;
+  columnNumber: number | null;
+  lineNumber: number | null;
   problem?: string;
   problemType?: string;
   fileName?: string;
   fullName?: string;
   componentType: string;
-  success?: string;
+  success?: boolean;
+  changed: boolean;
+  created: boolean;
+  deleted: boolean;
 }

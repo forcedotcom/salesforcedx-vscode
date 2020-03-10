@@ -14,3 +14,4 @@ export {
   ToolingRetrieveResult
 } from './deployUtil';
 export { ToolingDeploy } from './toolingDeploy';
+export { ToolingDeployParser } from './toolingDeployResultParser';

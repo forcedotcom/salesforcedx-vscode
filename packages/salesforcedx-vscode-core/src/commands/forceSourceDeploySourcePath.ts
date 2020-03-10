@@ -17,7 +17,11 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { ToolingDeploy, ToolingRetrieveResult } from '../deploys';
+import {
+  ToolingDeploy,
+  ToolingDeployParser,
+  ToolingRetrieveResult
+} from '../deploys';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../settings';
@@ -26,12 +30,7 @@ import { OrgAuthInfo } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { APEX_CLASS_EXTENSION } from './templates/metadataTypeConstants';
-import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  ToolingDeployParser
-} from './util';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -79,7 +78,7 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
         const deployLibrary = new ToolingDeploy(orgConnection);
         const deployOutput = await deployLibrary.deploy(response.data);
 
-        const parser = new ToolingDeployParser(deployOutput!);
+        const parser = new ToolingDeployParser(deployOutput);
         await parser.outputResult(executionWrapper);
         await DeployQueue.get().unlock();
       } catch (e) {

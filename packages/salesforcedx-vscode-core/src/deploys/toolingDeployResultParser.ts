@@ -9,13 +9,13 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { channelService } from '../../channels';
+import { channelService } from '../channels';
+import { nls } from '../messages';
 import {
   DeployResult,
   DeployStatusEnum,
   ToolingRetrieveResult
-} from '../../deploys';
-import { nls } from '../../messages';
+} from './deployUtil';
 
 export class ToolingDeployParser {
   public result: ToolingRetrieveResult;
@@ -25,15 +25,19 @@ export class ToolingDeployParser {
   }
 
   public buildSuccesses(componentSuccess: DeployResult) {
+    const mdState =
+      componentSuccess.changed && !componentSuccess.created
+        ? 'Updated'
+        : 'Created';
     const success = [
       {
-        state: 'Add',
+        state: mdState,
         fullName: componentSuccess.fullName,
         type: componentSuccess.componentType,
         filePath: componentSuccess.fileName
       },
       {
-        state: 'Add',
+        state: mdState,
         fullName: componentSuccess.fullName,
         type: componentSuccess.componentType,
         filePath: `${componentSuccess.fileName}-meta.xml`
