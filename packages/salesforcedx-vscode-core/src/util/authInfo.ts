@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo } from '@salesforce/core';
+import { Aliases, AuthInfo, Connection } from '@salesforce/core';
 import { isUndefined } from 'util';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -99,6 +99,15 @@ export class OrgAuthInfo {
     } catch (e) {
       throw e;
     }
+  }
+
+  public static async getConnection(
+    usernameOrAlias: string
+  ): Promise<Connection> {
+    const username = await this.getUsername(usernameOrAlias);
+    return await Connection.create({
+      authInfo: await AuthInfo.create({ username })
+    });
   }
 }
 
