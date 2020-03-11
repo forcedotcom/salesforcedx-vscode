@@ -6,8 +6,9 @@
  */
 
 import { ConfigFile } from '@salesforce/core';
+import { testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
-import { sandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import {
   createExecutor,
   ForceAuthDevHubDemoModeExecutor,
@@ -31,18 +32,22 @@ describe('Force Auth Web Login for Dev Hub', () => {
   });
 });
 
+// Setup the test environment.
+const $$ = testSetup();
+
 describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecutor', () => {
   let getDefaultDevHubUsernameStub: SinonStub;
   let setGlobalDefaultDevHubStub: SinonStub;
-  let configWriteStub: SinonStub;
-  let configSetStub: SinonStub;
+  let configWriteStub: SinonSpy;
+  let configSetStub: SinonSpy;
   let configCreateSpy: SinonSpy;
 
   const authWebLogin = ForceAuthDevHubExecutor.prototype;
   let sb: SinonSandbox;
 
   beforeEach(() => {
-    sb = sandbox.create();
+    $$.SANDBOXES.CONFIG.restore();
+    sb = createSandbox();
     getDefaultDevHubUsernameStub = sb.stub(
       OrgAuthInfo,
       'getDefaultDevHubUsernameOrAlias'
@@ -51,12 +56,13 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
       authWebLogin,
       'setGlobalDefaultDevHub'
     );
-    configWriteStub = sb.stub(ConfigFile.prototype, 'write');
-    configSetStub = sb.stub(ConfigFile.prototype, 'set');
+    configWriteStub = sb.spy(ConfigFile.prototype, 'write');
+    configSetStub = sb.spy(ConfigFile.prototype, 'set');
     configCreateSpy = sb.spy(ConfigFile, 'create');
   });
 
   afterEach(() => {
+    $$.SANDBOX.restore();
     sb.restore();
   });
 
