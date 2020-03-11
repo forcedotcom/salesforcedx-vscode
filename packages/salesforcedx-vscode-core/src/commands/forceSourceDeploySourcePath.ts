@@ -59,7 +59,7 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
       const cancellationToken = cancellationTokenSource.token;
 
       const executionWrapper = new CompositeCliCommandExecutor(
-        // TODO: Build command for non-cli execution like ForceGenerateFauxClassesExecutor 
+        // TODO: Build command for non-cli execution like ForceGenerateFauxClassesExecutor
         this.build(response.data)
       ).execute(cancellationToken);
       this.attachExecution(
