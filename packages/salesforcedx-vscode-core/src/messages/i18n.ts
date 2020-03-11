@@ -500,5 +500,9 @@ export const messages = {
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
   force_source_diff_command_not_found:
-    'To run this command, first install the @salesforce/sfdx-diff plugin. For more info, see [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff).'
+    'To run this command, first install the @salesforce/sfdx-diff plugin. For more info, see [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff).',
+  beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
+  beta_tapi_membertype_error: 'Unexpected error creating %s member',
+  beta_tapi_car_error: 'Unexpected error creating container async request',
+  beta_tapi_queue_status: 'The deploy is still in the Queue'
 };
