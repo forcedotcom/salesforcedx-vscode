@@ -2,6 +2,7 @@
 
 const shell = require('shelljs');
 const { checkVSCodeVersion, checkLernaInstall, checkBaseBranch } = require('./validation-utils');
+const logger = require('./logger-util');
 
 shell.set('-e');
 shell.set('+v');
@@ -25,7 +26,7 @@ const isRemoteReleaseBranchExist = shell
   .stdout.trim();
 
 if (isRemoteReleaseBranchExist) {
-  console.log(
+  logger.error(
     `${releaseBranchName} already exists in remote. You might want to verify the value assigned to SALESFORCEDX_VSCODE_VERSION`
   );
   process.exit(-1);
