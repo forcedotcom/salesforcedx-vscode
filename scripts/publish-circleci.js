@@ -15,6 +15,8 @@ const {
   checkBaseBranch
 } = require('./validation-utils');
 
+const logger = require('./logger-util')
+
 /*
  * Assumptions:
  * 0. You have shelljs installed globally using `npm install -g shelljs`.
@@ -31,10 +33,10 @@ const {
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 
 if (process.argv.indexOf('-v') > -1) {
-  console.log('Running prevalidation of environment variables.');
-  console.log(`SALESFORCEDX_VSCODE_VERSION: ${nextVersion}`);
-  console.log(`CIRCLECI_TOKEN: ${process.env['CIRCLECI_TOKEN']}`);
-  console.log(`CIRCLECI_BUILD: ${process.env['CIRCLECI_BUILD']}`);
+  logger.header('\nRunning pre-validation of environment variables.');
+  logger.debug(`SALESFORCEDX_VSCODE_VERSION: ${nextVersion}`);
+  logger.debug(`CIRCLECI_TOKEN: ${process.env['CIRCLECI_TOKEN']}`);
+  logger.debug(`CIRCLECI_BUILD: ${process.env['CIRCLECI_BUILD']}`);
   process.exit();
 }
 
@@ -47,35 +49,35 @@ checkAWSCliInstall();
 checkAWSAccess();
 checkSalesforcePublisherAccess();
 
-// Download vsix files from CircleCI
+logger.header('\nDownload vsix files from CircleCI');
 shell.exec('./scripts/download-vsix-from-circleci.js');
 
-// Generate the SHA256 and append to the file
+logger.header('\nGenerating the SHA256 and appending to the file.');
 shell.exec(`npm run vscode:sha256`);
 
-// Concatenate the contents to the proper SHA256.md
+logger.header('\nConcatenating the contents to the proper SHA256.md');
 shell.exec('./scripts/concatenate-sha256.js');
 
-// Remove the temp SHA256 file
+logger.header('\nRemoving the temp SHA256 file.');
 shell.rm('./SHA256');
 
-// Push the SHA256 to AWS
+logger.header('\nPushing the SHA256 to AWS.');
 shell.exec(
   'aws s3 cp ./SHA256.md s3://dfc-data-production/media/vscode/SHA256.md'
 );
 
-// Add SHA256 to git
+logger.header('\nAdding the SHA256 to git.');
 shell.exec(`git add SHA256.md`);
 
-// Git commit
+logger.header('\nRunning commit.');
 shell.exec(`git commit -m "Updated SHA256"`);
 
-// Create a git tag e.g. v48.1.0
 const gitTagName = `v${nextVersion}`;
+logger.header(`\nCreating the git tag (e.g. v48.1.0): ${gitTagName}`);
 shell.exec(`git tag ${gitTagName}`);
 
-// Push git tag to remote
+logger.header('\nPushing git tag to remote.');
 shell.exec(`git push origin ${gitTagName}`);
 
-// Publish to VS Code Marketplace
+logger.header('\nPublishing to the VS Code Marketplace.');
 shell.exec(`npm run vscode:publish`);

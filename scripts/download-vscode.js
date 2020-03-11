@@ -4,6 +4,7 @@ const ncp = require('ncp');
 const path = require('path');
 const fs = require('fs');
 const downloadAndUnzipVSCode = require('vscode-test').downloadAndUnzipVSCode;
+const logger = require('./logger-util');
 
 // Copy vscode to these directories
 const extensionDirectories = [
@@ -20,7 +21,7 @@ const extensionDirectories = [
 // ~/salesforcedx-vscode/packages/salesforcedx-vscode-lwc/.vscode-test/vscode-1.41.1/Visual Studio Code.app/Contents/MacOS/Electron
 downloadAndUnzipVSCode()
   .then(executablePath => {
-    console.log('Executable Path: ' + executablePath);
+    logger.debug('Executable Path: ' + executablePath);
 
     let vscodeIndex = executablePath.indexOf('.vscode-test') + 13;
 
@@ -39,9 +40,9 @@ downloadAndUnzipVSCode()
     // '~/salesforcedx-vscode/'
     let vscodeBasePath = path.dirname(path.dirname(vscodeFullPath));
 
-    console.log('Directory Name: ' + vscodeDirname);
-    console.log('Base Path: ' + vscodeBasePath);
-    console.log('Full Path: ' + vscodeFullPath);
+    logger.debug('Directory Name: ' + vscodeDirname);
+    logger.debug('Base Path: ' + vscodeBasePath);
+    logger.debug('Full Path: ' + vscodeFullPath);
 
     // If this script is run from an individual package, don't copy it around unnecessarily
     // Example:
@@ -59,24 +60,24 @@ downloadAndUnzipVSCode()
             '.vscode-test',
             vscodeDirname
           );
-          console.log('Creating Directories: ' + copyDestination);
+          logger.debug(`Creating Directories:  ${copyDestination}`);
           if (!fs.existsSync(copyDestination)) {
             fs.mkdirSync(copyDestination, { recursive: true });
           }
-          console.log('Copying to: ' + copyDestination);
-          ncp(vscodeFullPath, copyDestination, function(err) {
+          logger.debug(`Copying to: ${copyDestination}`);
+          ncp(vscodeFullPath, copyDestination, function (err) {
             if (err) {
               return console.error(err);
             }
           });
         } catch (error) {
-          console.error(error);
+          logger.error(error);
         }
       }
     }
   })
   .catch(err => {
-    console.error('Failed to download vscode');
-    console.log(err);
+    logger.err('Failed to download vscode');
+    logger.debug(err);
     process.exit(1);
   });

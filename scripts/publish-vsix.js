@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
+const logger = require('./logger-util');
 
 // Publishes the .vsix that matches the version in package.json
 
@@ -8,7 +9,7 @@ const packageVersion = JSON.parse(shell.cat('package.json')).version;
 const vsix = shell.ls().filter(file => file.match(`-${packageVersion}.vsix`));
 
 if (!vsix.length) {
-  console.log('No VSIX found matching the requested version in package.json');
+  logger.error('No VSIX found matching the requested version in package.json');
   shell.exit(1);
 }
 
@@ -25,6 +26,6 @@ if (VSCE_PERSONAL_ACCESS_TOKEN) {
 
 // Check that publishing extension was successful.
 if (vscePublish.code !== 0) {
-  console.log(`There was and error while publishing extension ${vsix}`);
+  logger.error(`There was and error while publishing extension ${vsix}`);
   shell.exit(1);
 }
