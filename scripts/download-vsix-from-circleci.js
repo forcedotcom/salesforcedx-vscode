@@ -17,6 +17,7 @@ shell.set('+v');
 
 const { getVsixName, getLocalPathForDownload } = require('./publish-utils');
 const { checkEnvironmentVariables } = require('./validation-utils');
+const logger = require('./logger-util');
 const CIRCLECI_API_URI = 'https://circleci.com/api/v1.1';
 const circleciToken = process.env['CIRCLECI_TOKEN'];
 const circleciBuild = process.env['CIRCLECI_BUILD'];
@@ -36,7 +37,7 @@ if (
   circleciMeJSON.hasOwnProperty('message') &&
   circleciMeJSON.message === 'You must log in first.'
 ) {
-  console.log(
+  logger.error(
     'Looks like your CircleCI Token is incorrect and does not grant you access'
   );
   process.exit(-1);
@@ -48,13 +49,13 @@ if (
     'https://github.com/forcedotcom/salesforcedx-vscode'
   )
 ) {
-  console.log(
+  logger.error(
     'Looks like your CircleCI Token does not grant you access to the salesforcedx-vscode builds.'
   );
   process.exit(-1);
 }
 
-// Get artifact names from CircleCI build
+logger.header("Get artifact names from CircleCI build.");
 const cciArtifacts = shell
   .exec(
     `curl ${CIRCLECI_API_URI}/project/github/forcedotcom/salesforcedx-vscode/${circleciBuild}/artifacts?circle-token=${circleciToken}`,
@@ -66,23 +67,25 @@ const cciArtifacts = shell
 
 const buildArtifactsJSON = JSON.parse(cciArtifacts);
 if (buildArtifactsJSON && buildArtifactsJSON.length === 0) {
-  console.log(
+  logger.error(
     `Looks like the CircleCI build number ${circleciBuild} did not generate any artifacts. Make sure you pick a build that is labeled build-all.`
   );
   process.exit(-1);
 }
 
-console.log(
-  `There are ${buildArtifactsJSON.length} artifacts that will be processed ...`
+logger.info(
+  `There are ${buildArtifactsJSON.length} artifacts that will be processed...`
 );
 
 // Real-clean
 shell.exec('git clean -xfd -e node_modules');
 
-// Download vsix files from CircleCI and save vsix files in their correct package/salesforcedx-vscode-... location
+logger.header(
+  "Download vsix files from CircleCI and save vsix files in their correct package/salesforcedx-vscode-... location"
+);
 buildArtifactsJSON.forEach(artifactObj => {
   if (!artifactObj.path.includes(nextVersion)) {
-    console.log(
+    logger.error(
       `Artifact ${artifactObj.path} does not belong to release ${nextVersion}`
     );
     process.exit(-1);
@@ -90,7 +93,7 @@ buildArtifactsJSON.forEach(artifactObj => {
   const artifactName = getVsixName(artifactObj.path);
   const downloadPath = getLocalPathForDownload(artifactName, nextVersion);
 
-  console.log(`Downloading artifact ${artifactName} to ${downloadPath}`);
+  logger.info(`Downloading artifact ${artifactName} to ${downloadPath}`);
   // Download vsix files, fail if it takes more than 30 seconds to connect or if the download exceeds 2 mins
   shell.exec(
     `curl --fail ${artifactObj.url} --output ${downloadPath} --connect-timeout 30 --max-time 180`
