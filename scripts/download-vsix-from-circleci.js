@@ -55,7 +55,7 @@ if (
   process.exit(-1);
 }
 
-logger.header("Get artifact names from CircleCI build.");
+logger.header('Get artifact names from CircleCI build.');
 const cciArtifacts = shell
   .exec(
     `curl ${CIRCLECI_API_URI}/project/github/forcedotcom/salesforcedx-vscode/${circleciBuild}/artifacts?circle-token=${circleciToken}`,
@@ -81,7 +81,7 @@ logger.info(
 shell.exec('git clean -xfd -e node_modules');
 
 logger.header(
-  "Download vsix files from CircleCI and save vsix files in their correct package/salesforcedx-vscode-... location"
+  'Download vsix files from CircleCI and save vsix files in their correct package/salesforcedx-vscode-... location'
 );
 buildArtifactsJSON.forEach(artifactObj => {
   if (!artifactObj.path.includes(nextVersion)) {

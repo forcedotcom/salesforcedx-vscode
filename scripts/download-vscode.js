@@ -60,11 +60,11 @@ downloadAndUnzipVSCode()
             '.vscode-test',
             vscodeDirname
           );
-          logger.debug('Creating Directories: ' + copyDestination);
+          logger.debug(`Creating Directories:  ${copyDestination}`);
           if (!fs.existsSync(copyDestination)) {
             fs.mkdirSync(copyDestination, { recursive: true });
           }
-          logger.debug('Copying to: ' + copyDestination);
+          logger.debug(`Copying to: ${copyDestination}`);
           ncp(vscodeFullPath, copyDestination, function (err) {
             if (err) {
               return console.error(err);
