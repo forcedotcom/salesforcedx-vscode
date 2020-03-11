@@ -27,7 +27,7 @@ export class ToolingDeploy {
 
   public constructor(connection: Connection, apiVersion?: string) {
     this.connection = connection;
-    if (apiVersion) this.apiVersion = apiVersion;
+    this.apiVersion = apiVersion;
   }
 
   public async deploy(filePath: string) {
