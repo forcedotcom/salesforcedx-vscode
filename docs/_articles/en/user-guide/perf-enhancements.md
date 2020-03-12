@@ -1,5 +1,5 @@
 ---
-title: Performance enhancements
+title: Performance Enhancements
 lang: en
 ---
 
