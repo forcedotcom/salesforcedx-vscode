@@ -57,6 +57,10 @@
         ja: Source Diff
       url: /user-guide/source-diff
     - title:
+        en: Performance Enhancements
+        ja: Performance Enhancements
+      url: /user-guide/perf-enhancements
+    - title:
         en: Prettier Code Formatter
         ja: Prettier コードフォーマッタ
       url: /user-guide/prettier
