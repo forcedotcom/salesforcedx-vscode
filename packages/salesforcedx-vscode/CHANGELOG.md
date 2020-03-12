@@ -1,3 +1,17 @@
+# 48.6.0 - March 12, 2020
+
+## Fixed
+
+#### docs
+
+- Update Apex content ([PR #1967](https://github.com/forcedotcom/salesforcedx-vscode/pull/1967))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Open beta for performance enhancements on single Apex Class deploys. Refer to the [Performance Enhancements](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements) article. ([PR #2052](https://github.com/forcedotcom/salesforcedx-vscode/pull/2052))
+
 # 48.5.0 - March 5, 2020
 
 ## Fixed
