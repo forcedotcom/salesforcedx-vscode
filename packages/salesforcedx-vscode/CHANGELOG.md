@@ -6,7 +6,7 @@
 
 - Update Apex content ([PR #1967](https://github.com/forcedotcom/salesforcedx-vscode/pull/1967))
 
-#### salesforcedx-vscode-lightning, #### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - Prevent extensions activating in non-Salesforce projects ([PR #2070](https://github.com/forcedotcom/salesforcedx-vscode/pull/2070), [Issue #1988](https://github.com/forcedotcom/salesforcedx-vscode/issues/1988), [Issue #2065](https://github.com/forcedotcom/salesforcedx-vscode/issues/2065))
 
