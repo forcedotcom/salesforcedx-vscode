@@ -26,7 +26,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
     }
     ```
 
-2. Add the Salesforce ESLint configuration and ESLint to `devDependencies`.
+2. In `package.json`, check whether `devDependencies` includes the Salesforce ESLint configuration and ESLint. If not, add these lines.
 
     ```json
     "devDependencies" {
@@ -40,7 +40,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 ### For an Existing Project without a `package.json` File
 
-1. Copy [this file](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) and save it in your project. Then, run `npm install`.
+1. Copy [this `package.json` file](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) and save it in your project. Then, run `npm install`.
 
 2. Check whether you have `.eslintignore` and `.eslintrc.json` files included in your project. 
     - If you have `.eslintrc.json`, add the following line to the file.
