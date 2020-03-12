@@ -11,16 +11,22 @@ Linting provides errors about malformed code while you edit. VS Code enforces Sa
 
 ## Installation
 
-1. If you created an SFDX project using the `force:project:create` command, the project may contain a `package.json` file with the ESLint plugin already included. Open `package.json` and verify that it contains the following:
+### For a New Project
 
-   ```json
-   "scripts": {
-       "lint": "npm run lint:lwc",
-       "lint:lwc": "eslint force-app/main/default/lwc"
-   }
-   ```
+If you create an SFDX project using the `sfdx force:project:create` command, your project contains a `package.json` file with the ESLint plugin already included. Run `npm install` in your project directory to install the dependencies from `package.json`. To start linting, run `npm run lint:lwc`. You must have components in your project in order to run this command.
 
-2. Add the Salesforce ESLint configuration and ESLint to devDependencies.
+### For an Existing Project with a `package.json` File
+
+1. Add `lint` and `lint:lwc` to the scripts section of `package.json`.
+
+    ```json
+    "scripts": {
+        "lint": "npm run lint:lwc",
+        "lint:lwc": "eslint force-app/main/default/lwc"
+    }
+    ```
+
+2. Add the Salesforce ESLint configuration and ESLint to `devDependencies`.
 
     ```json
     "devDependencies" {
@@ -30,20 +36,29 @@ Linting provides errors about malformed code while you edit. VS Code enforces Sa
     ```
 
 3. To install the dependencies, run `npm install` on your project directory.
+4. To start linting, run `npm run lint:lwc`.
 
-4. To start linting, run `npm run lint:lwc`. You must have components in your project in order to run this command. 
+### For an Existing Project without a `package.json` File
 
-5. If you don't have a `package.json` file, copy [this file](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) and save it in your project. Then, run `npm install`. 
+1. Copy [this file](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) and save it in your project. Then, run `npm install`.
 
-6. Check whether you have `.eslintignore` and `.eslintrc.json` files included in your project. 
+2. Check whether you have `.eslintignore` and `.eslintrc.json` files included in your project. 
     - If you have `.eslintrc.json`, add the following line to the file.
 
-         ```json
+        ```json
          {
           "extends": ["@salesforce/eslint-config-lwc/recommended"]
          }
-         ```
+        ```
 
+    - Add the Salesforce ESLint configuration and ESLint to `devDependencies`.
+
+    ```json
+    "devDependencies" {
+        "@salesforce/eslint-config-lwc": "0.4.0",
+        "eslint": "^5.16.0"
+    }
+    ```
     - If your project doesn't have either file, copy the files to your project from the [project templates](https://github.com/forcedotcom/salesforcedx-templates/tree/master/src/templates/project) Github repository.
 
 ## Configure Linting Rules
