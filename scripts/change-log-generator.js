@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * Automates the process of building the change log for releases.
  *
@@ -21,6 +22,9 @@ const path = require('path');
 const shell = require('shelljs');
 const fs = require('fs');
 const util = require('util');
+
+shell.set('-e');
+shell.set('+v');
 
 // Commands
 const GIT_BRANCH =
