@@ -34,9 +34,29 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
         "eslint": "^5.16.0"
     }
     ```
+3. Check whether you have `.eslintignore` and `.eslintrc.json` files included in your project. 
+    - If you have `.eslintrc.json`, add the following line to the file.
 
-3. To install the dependencies, run `npm install` on your project directory.
-4. To start linting, run `npm run lint:lwc`.
+        ```json
+         {
+          "extends": ["@salesforce/eslint-config-lwc/recommended"]
+         }
+        ```
+
+    - Add the Salesforce ESLint configuration and ESLint to `devDependencies`.
+
+    ```json
+    "devDependencies" {
+        "@salesforce/eslint-config-lwc": "0.4.0",
+        "eslint": "^5.16.0"
+    }
+    ```
+
+	- If your project doesn't have either file, copy the files to your project from the [project templates](https://github.com/forcedotcom/salesforcedx-templates/tree/master/src/templates/project) Github repository.
+
+
+4. To install the dependencies, run `npm install` on your project directory.
+5. To start linting, run `npm run lint:lwc`.
 
 ### For an Existing Project without a `package.json` File
 
