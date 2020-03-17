@@ -20,22 +20,13 @@ Linting provides errors about malformed code while you edit. VS Code enforces Sa
    }
    ```
 
-2. Add the Salesforce ESLint configuration and ESLint to devDependencies.
+2. If your `package.json` does not contain the above lint commands, run `npm install @salesforce/eslint-config-lwc eslint@5 -D`.
 
-    ```json
-    "devDependencies" {
-        "@salesforce/eslint-config-lwc": "0.4.0",
-        "eslint": "^5.16.0"
-    }
-    ```
+3. To start linting, run `npm run lint:lwc`. You must have components in your project in order to run this command.
 
-3. To install the dependencies, run `npm install` on your project directory.
+4. If you don't have a `package.json` file, copy [this file](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) and save it in your project. Then, run `npm install`.
 
-4. To start linting, run `npm run lint:lwc`. You must have components in your project in order to run this command. 
-
-5. If you don't have a `package.json` file, copy [this file](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) and save it in your project. Then, run `npm install`. 
-
-6. Check whether you have `.eslintignore` and `.eslintrc.json` files included in your project. 
+5. Check whether you have `.eslintignore` and `.eslintrc.json` files included in your project. 
     - If you have `.eslintrc.json`, add the following line to the file.
 
          ```json
