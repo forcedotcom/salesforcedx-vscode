@@ -27,6 +27,10 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import { LibraryCommandletExecutor } from './util/libraryCommandlet';
+import { ToolingDeploy, ToolingDeployParser } from '../deploys';
+import { ToolingRetrieve } from 'deploy-and-retrieve/lib/src/retrieve';
+import { Connection } from '@salesforce/core';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -95,11 +99,45 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
       return;
     }
   }
-  const commandlet = new SfdxCommandlet(
+  /*const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
     new ForceSourceRetrieveSourcePathExecutor(),
     new SourcePathChecker()
+  ); */
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new FilePathGatherer(explorerPath),
+    new LibraryRetrieveSourcePathExecutor(),
+    new SourcePathChecker()
   );
   await commandlet.run();
+}
+
+export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
+  string
+> {
+  public async execute(response: ContinueResponse<string>): Promise<void> {
+    const startTime = process.hrtime();
+    try {
+      console.log('--- lib request execute phase');
+      await this.build();
+      if (this.orgConnection === undefined) {
+        throw new Error('Connection is not established');
+      }
+      const toolingRetrieve = new ToolingRetrieve(this.orgConnection);
+      const deployOutput = await toolingRetrieve.getMetadata(response.data); // deployLibrary.deploy(response.data);
+
+      // const parser = new ToolingDeployParser(deployOutput);
+      // const outputResult = await parser.outputResult();
+      channelService.appendLine(deployOutput);
+      this.logMetric('beta_command', startTime);
+    } catch (e) {
+      telemetryService.sendException(
+        'force_source_deploy_with_sourcepath_beta',
+        e.message
+      );
+      channelService.appendLine(e.message);
+    }
+  }
 }
