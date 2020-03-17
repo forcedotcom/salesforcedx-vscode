@@ -1,3 +1,21 @@
+# 48.6.0 - March 12, 2020
+
+## Fixed
+
+#### docs
+
+- Update Apex content ([PR #1967](https://github.com/forcedotcom/salesforcedx-vscode/pull/1967))
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Prevent extensions activating in non-Salesforce projects ([PR #2070](https://github.com/forcedotcom/salesforcedx-vscode/pull/2070), [Issue #1988](https://github.com/forcedotcom/salesforcedx-vscode/issues/1988), [Issue #2065](https://github.com/forcedotcom/salesforcedx-vscode/issues/2065))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Open beta for performance enhancements on single Apex Class deploys. Refer to the [Performance Enhancements](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements) article. ([PR #2052](https://github.com/forcedotcom/salesforcedx-vscode/pull/2052))
+
 # 48.5.0 - March 5, 2020
 
 ## Fixed

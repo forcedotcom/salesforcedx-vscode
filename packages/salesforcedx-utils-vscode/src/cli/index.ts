@@ -21,6 +21,7 @@ export {
   CliCommandExecution,
   CommandExecution,
   CompositeCliCommandExecutor,
+  CompositeCliCommandExecution,
   GlobalCliEnvironment
 } from './commandExecutor';
 export { CommandOutput } from './commandOutput';
