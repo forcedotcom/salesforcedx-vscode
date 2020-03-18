@@ -1568,6 +1568,7 @@ describe('Interactive debugger adapter - unit', () => {
 
   describe('Logging', () => {
     let breakpointService: BreakpointService;
+    let response: DebugProtocol.Response;
     const lineNumberMapping: Map<
       string,
       LineBreakpointsInTyperef[]
@@ -1587,6 +1588,13 @@ describe('Interactive debugger adapter - unit', () => {
 
     beforeEach(() => {
       adapter = new ApexDebugForTest(new RequestService());
+      response = {
+        command: '',
+        success: true,
+        request_seq: 0,
+        seq: 0,
+        type: 'response'
+      };
       breakpointService = adapter.getBreakpointService();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
     });
@@ -1595,6 +1603,13 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.tryToParseSfdxError({} as DebugProtocol.Response);
 
       expect(adapter.getEvents().length).to.equal(0);
+    });
+
+    it('Should not log error without an error message', () => {
+      adapter.tryToParseSfdxError(response, {});
+      expect(response.message).to.equal(
+        nls.localize('unexpected_error_help_text')
+      );
     });
 
     it('Should error to console with unexpected error schema', () => {
