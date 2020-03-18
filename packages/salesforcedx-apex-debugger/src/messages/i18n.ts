@@ -40,5 +40,5 @@ export const messages = {
   invalid_isv_project_config:
     'Your project configuration is invalid or incomplete for ISV debugging. Return to the Apex Debugger page in Setup, start a new partner debugging session, and try again.',
   unexpected_error_help_text:
-    'There was an unexpected error launching your debugger session. Please check the debug console for more detailed information.'
+    'An unexpected error occurred while launching the debugger session. Refer to the Debug Console for details.'
 };
