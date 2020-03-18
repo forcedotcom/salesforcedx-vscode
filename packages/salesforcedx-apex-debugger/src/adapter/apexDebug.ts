@@ -13,6 +13,7 @@ import {
   ForceConfigGet,
   ForceOrgDisplay
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
@@ -1505,7 +1506,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
     try {
       response.success = false;
-      const errorObj = JSON.parse(error);
+      const errorObj = extractJsonObject(error);
       if (errorObj && errorObj.message) {
         const errorMessage: string = errorObj.message;
         if (
@@ -1525,11 +1526,14 @@ export class ApexDebug extends LoggingDebugSession {
           );
         }
       } else {
+        response.message = nls.localize('unexpected_error_help_text');
         this.errorToDebugConsole(
           `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
         );
       }
     } catch (e) {
+      response.message =
+        response.message || nls.localize('unexpected_error_help_text');
       this.errorToDebugConsole(
         `${nls.localize('command_error_help_text')}:${os.EOL}${error}`
       );
