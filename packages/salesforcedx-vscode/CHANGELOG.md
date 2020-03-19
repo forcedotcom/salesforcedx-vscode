@@ -1,3 +1,22 @@
+# 48.7.0 - March 19, 2020
+
+## Fixed
+#### salesforcedx-vscode-core
+
+- Update to latest version of @salesforce/core ([PR #2077](https://github.com/forcedotcom/salesforcedx-vscode/pull/2077))
+
+#### docs
+
+- Add linting topic to LWC parent. ([PR #2060](https://github.com/forcedotcom/salesforcedx-vscode/pull/2060))
+
+- Minor tweaks after release ([PR #2072](https://github.com/forcedotcom/salesforcedx-vscode/pull/2072))
+
+#### salesforcedx-vscode
+
+- Minor tweaks after release ([PR #2072](https://github.com/forcedotcom/salesforcedx-vscode/pull/2072))
+
+## Added
+
 # 48.6.0 - March 12, 2020
 
 ## Fixed
