@@ -38,5 +38,7 @@ export const messages = {
   idle_terminated_text:
     'Your debugger session is being terminated because it has been idle for %s minutes.',
   invalid_isv_project_config:
-    'Your project configuration is invalid or incomplete for ISV debugging. Return to the Apex Debugger page in Setup, start a new partner debugging session, and try again.'
+    'Your project configuration is invalid or incomplete for ISV debugging. Return to the Apex Debugger page in Setup, start a new partner debugging session, and try again.',
+  unexpected_error_help_text:
+    'An unexpected error occurred while launching the debugger session. Refer to the Debug Console for details.'
 };
