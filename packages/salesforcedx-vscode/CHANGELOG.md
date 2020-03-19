@@ -7,7 +7,7 @@
 
 - Add linting topic to LWC parent ([PR #2060](https://github.com/forcedotcom/salesforcedx-vscode/pull/2060))
 
-## Added
+- Port the interactive debugger changes to the release branch ([PR #2083](https://github.com/forcedotcom/salesforcedx-vscode/pull/2083))
 
 # 48.6.0 - March 12, 2020
 
