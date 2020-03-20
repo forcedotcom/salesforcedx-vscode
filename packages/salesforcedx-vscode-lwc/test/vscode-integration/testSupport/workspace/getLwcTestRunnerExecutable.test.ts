@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { assert, SinonStub, stub } from 'sinon';
+import { assert, SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as which from 'which';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
@@ -19,14 +19,17 @@ import {
 } from '../../../../src/testSupport/workspace';
 
 describe('getLwcTestRunnerExecutable Unit Tests', () => {
-  let existsSyncStub: SinonStub;
-  let whichSyncStub: SinonStub;
-  let notificationStub: SinonStub;
-  let telemetryStub: SinonStub;
-  let getCurrentWorkspaceTypeStub: SinonStub;
+  let existsSyncStub: SinonStub<[fs.PathLike], boolean>;
+  let whichSyncStub: SinonStub<[string], fs.PathLike>;
+  let notificationStub: SinonSpy<
+    [string, vscode.MessageOptions, ...vscode.MessageItem[]],
+    Thenable<vscode.MessageItem | undefined>
+  >;
+  let telemetryStub: SinonStub<[string, string], Promise<void>>;
+  let getCurrentWorkspaceTypeStub: SinonStub<[], lspCommon.WorkspaceType>;
   beforeEach(() => {
     existsSyncStub = stub(fs, 'existsSync');
-    notificationStub = stub(vscode.window, 'showErrorMessage');
+    notificationStub = spy(vscode.window, 'showErrorMessage');
     telemetryStub = stub(telemetryService, 'sendException');
     getCurrentWorkspaceTypeStub = stub(
       workspaceService,
@@ -65,6 +68,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
       existsSyncStub.returns(false);
       getLwcTestRunnerExecutable(sfdxProjectPath);
       assert.calledOnce(notificationStub);
+      // @ts-ignore
       assert.calledWith(
         notificationStub,
         nls.localize('no_lwc_jest_found_text')
@@ -103,6 +107,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
       existsSyncStub.returns(false);
       getLwcTestRunnerExecutable(projectPath);
       assert.calledOnce(notificationStub);
+      // @ts-ignore
       assert.calledWith(
         notificationStub,
         nls.localize('no_lwc_testrunner_found_text')

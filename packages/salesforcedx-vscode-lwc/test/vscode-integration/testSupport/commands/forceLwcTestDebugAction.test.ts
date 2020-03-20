@@ -50,7 +50,10 @@ describe('Force LWC Test Debug - Code Action', () => {
     ],
     Thenable<any>
   >;
-  let getLwcTestRunnerExecutableStub: SinonStub<[string], fs.PathLike>;
+  let getLwcTestRunnerExecutableStub: SinonStub<
+    [string],
+    fs.PathLike | undefined
+  >;
   let processHrtimeStub: SinonStub<
     [([number, number] | undefined)?],
     [number, number]

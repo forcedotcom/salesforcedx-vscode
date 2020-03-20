@@ -22,7 +22,7 @@ describe('getCliArgsFromJestArgs Unit Tests', () => {
     '--runTestsByPath',
     'mockTestPath'
   ];
-  let getCurrentWorkspaceTypeStub: SinonStub;
+  let getCurrentWorkspaceTypeStub: SinonStub<[], lspCommon.WorkspaceType>;
   beforeEach(() => {
     getCurrentWorkspaceTypeStub = stub(
       workspaceService,
