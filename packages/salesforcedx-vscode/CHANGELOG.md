@@ -1,3 +1,11 @@
+# 48.7.0 - March 20, 2020
+
+## Fixed
+
+#### docs
+
+- Add linting topic to LWC parent ([PR #2060](https://github.com/forcedotcom/salesforcedx-vscode/pull/2060))
+
 # 48.6.0 - March 12, 2020
 
 ## Fixed
