@@ -1,13 +1,10 @@
-# 48.7.0 - March 19, 2020
+# 48.7.0 - March 20, 2020
 
 ## Fixed
-#### salesforcedx-vscode-core
 
 #### docs
 
 - Add linting topic to LWC parent ([PR #2060](https://github.com/forcedotcom/salesforcedx-vscode/pull/2060))
-
-- Port the interactive debugger changes to the release branch ([PR #2083](https://github.com/forcedotcom/salesforcedx-vscode/pull/2083))
 
 # 48.6.0 - March 12, 2020
 
