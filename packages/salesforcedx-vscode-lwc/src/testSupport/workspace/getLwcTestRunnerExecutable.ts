@@ -50,7 +50,13 @@ export function getLwcTestRunnerExecutable(cwd: string) {
         .sendException('lwc_test_no_lwc_testrunner_found', errorMessage)
         .catch();
     }
+  } else {
+    // This is not expected since test support should not be activated for other workspace types
+    telemetryService
+      .sendException(
+        'lwc_test_no_lwc_testrunner_found',
+        'Unsupported workspace'
+      )
+      .catch();
   }
-  // TODO
-  // Test support should not be activated for other workspace types
 }

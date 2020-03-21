@@ -120,4 +120,18 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
       );
     });
   });
+
+  describe('Unsupported Workspace', () => {
+    const projectPath = path.join(root, 'project', 'mockProject');
+    it('Should send exception in unsupported workspace', () => {
+      getCurrentWorkspaceTypeStub.returns(lspCommon.WorkspaceType.UNKNOWN);
+      getLwcTestRunnerExecutable(projectPath);
+      assert.calledOnce(telemetryStub);
+      assert.calledWith(
+        telemetryStub,
+        'lwc_test_no_lwc_testrunner_found',
+        'Unsupported workspace'
+      );
+    });
+  });
 });
