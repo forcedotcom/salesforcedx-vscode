@@ -81,6 +81,7 @@
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
+    "workspaceContains:modules",
     "workspaceContains:sfdx-project.json",
     "workspaceContains:**/workspace-user.xml",
     "onView:salesforce-lightning-explorer",
@@ -221,11 +222,11 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.test.runAllTests",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened || sfdx:internal_dev"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.refreshTestExplorer",
-          "when": "sfdx:project_opened"
+          "when": "sfdx:project_opened || sfdx:internal_dev"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.editorTitle.run",
