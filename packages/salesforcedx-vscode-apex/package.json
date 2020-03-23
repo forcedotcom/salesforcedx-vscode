@@ -144,6 +144,30 @@
         {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.test.view.runClassTests",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.test.view.runSingleTest",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.test.view.goToDefinition",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.test.view.showError",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.test.view.run",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.test.view.refresh",
+          "when": "false"
         }
       ]
     },
