@@ -91,6 +91,11 @@
           "id": "metadata",
           "title": "Org Browser",
           "icon": "resources/dep.svg"
+        },
+        {
+          "id": "conflicts",
+          "title": "%conflict_detect_resolve_view%",
+          "icon": "resources/conflict_view.png"
         }
       ]
     },
@@ -105,6 +110,13 @@
         {
           "id": "metadata",
           "name": "Metadata",
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+        }
+      ],
+      "conflicts": [
+        {
+          "id": "conflicts",
+          "name": "Conflicts",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         }
       ]
@@ -130,6 +142,11 @@
         {
           "command": "sfdx.force.source.retrieve.component",
           "when": "view == metadata && viewItem =~ /(type|component)/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdx.force.conflict.open",
+          "when": "view == conflicts && viewItem == conflict-actions",
           "group": "inline"
         }
       ],
@@ -720,6 +737,14 @@
       {
         "command": "sfdx.force.diff",
         "title": "%force_diff_against_org%"
+      },
+      {
+        "command": "sfdx.force.conflict.open",
+        "title": "%conflict_detect_open_file%",
+        "icon": {
+          "light": "resources/light/go-to-file.svg",
+          "dark": "resources/dark/go-to-file.svg"
+        }
       }
     ],
     "configuration": {

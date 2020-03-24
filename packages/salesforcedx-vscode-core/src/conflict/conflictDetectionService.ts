@@ -172,9 +172,6 @@ export class ConflictDetector {
     const localSourcePath: string = path.join(projectPath, data.packageDir);
     const diffs = this.differ.diff(localSourcePath, convertedSourcePath);
 
-    // 6: cleanup temp directory
-    this.clearDirectory(tempMetadataPath, false);
-
     return diffs;
   }
 

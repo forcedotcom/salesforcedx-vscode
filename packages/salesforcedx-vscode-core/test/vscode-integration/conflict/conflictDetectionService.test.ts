@@ -138,10 +138,10 @@ describe('Conflict Detection Service Execution', () => {
       path.normalize('main/default/classes/HandlerCostCenter.cls')
     ]);
 
-    // verify temp file cleanup
+    // verify file cache exists
     expect(
       fs.existsSync(cachePath),
-      `folder ${cachePath} should be deleted`
-    ).to.equal(false);
+      `folder ${cachePath} should exist`
+    ).to.equal(true);
   });
 });
