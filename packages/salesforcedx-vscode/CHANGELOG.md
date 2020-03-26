@@ -6,14 +6,6 @@
 
 - Hide commands in Apex Test sidebar from appearing in the Command Palette ([PR #2093](https://github.com/forcedotcom/salesforcedx-vscode/pull/2093))
 
-#### salesforcedx-apex-debugger
-
-- Fix missing label issue when user doesn't have the right permissions in Apex Interactive Debugger ([PR #2078](https://github.com/forcedotcom/salesforcedx-vscode/pull/2078))
-
-#### docs
-
-- Create missing article for LWC in Japanese site (#2092) ([PR #2091](https://github.com/forcedotcom/salesforcedx-vscode/pull/2091))
-
 # 48.7.0 - March 20, 2020
 
 ## Fixed
