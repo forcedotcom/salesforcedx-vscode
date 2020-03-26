@@ -23,7 +23,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 ### For an Existing Project
 
-1. Verify that your project has a `package.json` with these configurations. If it doesn't, If it doesn't, run `npm install @salesforce/eslint-config-lwc eslint@5 -D`.
+1. Verify that your project has a `package.json` with these configurations. If it doesn't, run `npm install @salesforce/eslint-config-lwc eslint@5 -D`.
 
     ```json
     "scripts": {
