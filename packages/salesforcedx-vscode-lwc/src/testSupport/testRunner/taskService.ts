@@ -126,7 +126,22 @@ class TaskService {
       sfdxTaskId: taskId
     };
     const taskSource = 'SFDX';
-    const taskShellExecution = new vscode.ShellExecution(cmd, args);
+    // https://github.com/forcedotcom/salesforcedx-vscode/issues/2097
+    // Git Bash shell doesn't handle command paths correctly.
+    // Always launch with command prompt (cmd.exe) in Windows.
+    const taskShellExecutionOptions:
+      | vscode.ShellExecutionOptions
+      | undefined = /^win32/.test(process.platform)
+      ? {
+          executable: 'cmd.exe',
+          shellArgs: ['/d', '/c']
+        }
+      : undefined;
+    const taskShellExecution = new vscode.ShellExecution(
+      cmd,
+      args,
+      taskShellExecutionOptions
+    );
     const task = new vscode.Task(
       taskDefinition,
       taskScope,
