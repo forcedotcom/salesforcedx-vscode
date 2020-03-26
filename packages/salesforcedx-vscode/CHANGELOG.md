@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Hide Apex test sidebar commands from showing in Command Palette ([PR #2093](https://github.com/forcedotcom/salesforcedx-vscode/pull/2093))
+- Hide commands in Apex Test sidebar from appearing in the Command Palette ([PR #2093](https://github.com/forcedotcom/salesforcedx-vscode/pull/2093))
 
 #### salesforcedx-apex-debugger
 
-- Missing/misconfigured label for Apex Interactive Debugger ([PR #2078](https://github.com/forcedotcom/salesforcedx-vscode/pull/2078))
+- Fix missing label issue when user doesn't have the right permissions in Apex Interactive Debugger ([PR #2078](https://github.com/forcedotcom/salesforcedx-vscode/pull/2078))
 
 #### docs
 
