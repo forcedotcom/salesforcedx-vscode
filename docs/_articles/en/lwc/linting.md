@@ -19,7 +19,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 2. Copy the [.eslintrc.json](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintrc.json) file and save it to your project directory. 
 
-3. Configure the [ESLint plugin rules](#configure-linting-rules) (optional).
+3. Configure the [ESLint plugin rules](./en/lwc/linting#configure-linting-rules) (optional).
 
 4. To run linting, you must have components in your project. To start linting, run `npm run lint:lwc`.
 
@@ -43,7 +43,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 3. Verify that your project has this [`.eslintignore`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintignore) file. This file specifies which files not to lint. If your project doesn't have it, add it to your project directory.
 
-4. Verify that your project has this [`.eslintrc.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintrc.json) file. This file specifies your [linting configuration level](#configure-linting-rules). If your project doesn't have it, add it to your project directory.
+4. Verify that your project has this [`.eslintrc.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintrc.json) file. This file specifies your [linting configuration level](./en/lwc/linting#configure-linting-rules). If your project doesn't have it, add it to your project directory.
 
 5. To install the ESLint plugin and other dependencies, run `npm install` on your project directory.
 
