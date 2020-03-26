@@ -1,3 +1,19 @@
+# 48.8.0 - March 26, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Hide Apex test sidebar commands from showing in Command Palette ([PR #2093](https://github.com/forcedotcom/salesforcedx-vscode/pull/2093))
+
+#### salesforcedx-apex-debugger
+
+- Missing/misconfigured label for Apex Interactive Debugger ([PR #2078](https://github.com/forcedotcom/salesforcedx-vscode/pull/2078))
+
+#### docs
+
+- Create missing article for LWC in Japanese site (#2092) ([PR #2091](https://github.com/forcedotcom/salesforcedx-vscode/pull/2091))
+
 # 48.7.0 - March 20, 2020
 
 ## Fixed
