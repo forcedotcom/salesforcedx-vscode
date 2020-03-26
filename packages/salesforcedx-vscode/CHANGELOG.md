@@ -1,3 +1,11 @@
+# 48.8.0 - March 26, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Hide commands in Apex Test sidebar from appearing in the Command Palette ([PR #2093](https://github.com/forcedotcom/salesforcedx-vscode/pull/2093))
+
 # 48.7.0 - March 20, 2020
 
 ## Fixed
