@@ -25,7 +25,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
 
 ### For an Existing Project
 
-1. Verify that your project has a `package.json` with these configurations. If it doesn't, run `npm install @salesforce/eslint-config-lwc eslint@5 -D`. This command downloads the scripts and installs and configures the dependencies. Add the `"scripts"` section to your `package.json` file.  
+1. Verify that your project has a `package.json` with these configurations. If it doesn't, run `npm install @salesforce/eslint-config-lwc eslint@5 -D`. This command downloads the scripts and installs and configures the dependencies. Copy the `"scripts"` section and add it to your `package.json` file.  
 
     ```json
     "scripts": {
@@ -39,7 +39,7 @@ If you create an SFDX project using the `sfdx force:project:create` command, you
     }
     ```
 
-2. If it doesn't have the [`package.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) file, copy it and add it to your project directory.
+2. If your project doesn't have the [`package.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) file, copy it and add it to your project directory.
 
 3. Verify that your project has this [`.eslintignore`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintignore) file. This file specifies which files not to lint. If your project doesn't have it, add it to your project directory.
 
