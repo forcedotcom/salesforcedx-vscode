@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'path';
-import * as vscode from 'vscode';
 
 import {
   Command,
@@ -16,11 +14,16 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+import { Retrieve } from '@salesforce/source-deploy-retrieve/lib/tooling/retrieve';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
+import { APEX_CLASS_EXTENSION } from './templates/metadataTypeConstants';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -28,9 +31,6 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 import { LibraryCommandletExecutor } from './util/libraryCommandlet';
-import { ToolingDeploy, ToolingDeployParser } from '../deploys';
-import { ToolingRetrieve } from 'deploy-and-retrieve/lib/src/retrieve';
-import { Connection } from '@salesforce/core';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -99,44 +99,58 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
       return;
     }
   }
-  /*const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new FilePathGatherer(explorerPath),
-    new ForceSourceRetrieveSourcePathExecutor(),
-    new SourcePathChecker()
-  ); */
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    new LibraryRetrieveSourcePathExecutor(),
+    useBetaRetrieve(explorerPath)
+      ? new LibraryRetrieveSourcePathExecutor()
+      : new ForceSourceRetrieveSourcePathExecutor(),
     new SourcePathChecker()
   );
   await commandlet.run();
+}
+
+// this supported types logic is temporary until we have a way of generating the metadata type from the path
+// once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
+
+function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
+  const filePath = explorerPath.fsPath;
+  const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
+  const supportedType =
+    path.extname(filePath) === APEX_CLASS_EXTENSION ||
+    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`);
+  const multipleSourcePaths = filePath.includes(',');
+  return betaDeployRetrieve && supportedType && !multipleSourcePaths;
 }
 
 export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
   string
 > {
   public async execute(response: ContinueResponse<string>): Promise<void> {
-    const startTime = process.hrtime();
+    this.setStartTime();
+
     try {
-      console.log('--- lib request execute phase');
-      await this.build();
+      await this.build(
+        'Retrieve (Beta)',
+        'force_source_retrieve_with_sourcepath_beta'
+      );
       if (this.orgConnection === undefined) {
         throw new Error('Connection is not established');
       }
-      const toolingRetrieve = new ToolingRetrieve(this.orgConnection);
-      const deployOutput = await toolingRetrieve.getMetadata(response.data); // deployLibrary.deploy(response.data);
 
-      // const parser = new ToolingDeployParser(deployOutput);
-      // const outputResult = await parser.outputResult();
-      channelService.appendLine(deployOutput);
-      this.logMetric('beta_command', startTime);
+      const toolingRetrieve = new Retrieve(this.orgConnection);
+      toolingRetrieve.getMetadata = this.retrieveWrapper(
+        toolingRetrieve.getMetadata
+      );
+      await toolingRetrieve.getMetadata(response.data);
+      this.logMetric();
     } catch (e) {
       telemetryService.sendException(
-        'force_source_deploy_with_sourcepath_beta',
+        'force_source_retrieve_with_sourcepath_beta',
         e.message
       );
+      notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
     }
   }
