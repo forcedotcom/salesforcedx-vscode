@@ -22,7 +22,7 @@ After you run Apex tests, `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX:
 ### View Test Results
 
 - For passing tests, the blue icons next to the classes and methods change to green icons.
-- For failing test, the icons turn red.
+- For failing tests, the icons turn red.
 
 To see the details of your test runs, hover over the name of a test class in the Side Bar.
 
