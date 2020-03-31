@@ -50,7 +50,7 @@ You can retrieve code coverage results for your Apex Classes and Apex Triggers e
 
 ![Apex test results with code coverage](./images/code_coverage_output.png)
 
-To visually see your test's coverage, click the three line icon next to your org's alias in VSCode's footer and open the Apex Class or Apex Trigger being tested. To disable code coverage highlight click the three line icon again.
+To see code coverage for your test, click the three-bars icon {% octicon three-bars %} that’s next to your Org alias at the bottom of the Side Bar and open the Apex Class or Apex Trigger being tested. Click the the three-bars icon to toggle between enabling and disabling code coverage highlighting.
 
 ![Enable Apex test visual code coverage](./images/code_coverage_footer.png)
 
