@@ -551,7 +551,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
-  context.subscriptions.push(await registerConflictView());
+  context.subscriptions.push(registerConflictView());
 
   // Scratch Org Decorator
   if (hasRootWorkspace()) {

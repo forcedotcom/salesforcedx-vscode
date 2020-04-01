@@ -249,6 +249,7 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
     );
 
     if (results.different.size === 0) {
+      conflictDetector.clearCache(usernameOrAlias);
       conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
     } else {
       channelService.appendLine(
@@ -270,7 +271,14 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
         nls.localize('conflict_detect_show_conflicts')
       );
 
-      if (choice !== nls.localize('conflict_detect_override')) {
+      if (choice === nls.localize('conflict_detect_override')) {
+        conflictDetector.clearCache(usernameOrAlias);
+        conflictView.visualizeDifferences(
+          conflictTitle,
+          usernameOrAlias,
+          false
+        );
+      } else {
         channelService.appendLine(
           nls.localize(
             'conflict_detect_command_hint',

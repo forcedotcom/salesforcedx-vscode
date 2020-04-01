@@ -30,7 +30,7 @@ export async function setupConflictView(
   await view.init(extensionContext);
 }
 
-export async function registerConflictView(): Promise<vscode.Disposable> {
+export function registerConflictView(): vscode.Disposable {
   const viewItems: vscode.Disposable[] = [];
 
   viewItems.push(

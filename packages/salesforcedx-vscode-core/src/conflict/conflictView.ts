@@ -59,6 +59,7 @@ export class ConflictView {
     if (reveal) {
       this.revealConflictNode();
     }
+    this.dataProvider.onViewChange();
   }
 
   public createConflictEntries(

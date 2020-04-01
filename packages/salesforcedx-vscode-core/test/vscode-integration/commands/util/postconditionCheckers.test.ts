@@ -296,6 +296,7 @@ describe('Postcondition Checkers', () => {
     let modalStub: SinonStub;
     let settingsStub: SinonStub;
     let detectorStub: SinonStub;
+    let detectorCleanupStub: SinonStub;
     let conflictViewStub: SinonStub;
     let appendLineStub: SinonStub;
     let channelOutput: string[] = [];
@@ -305,6 +306,7 @@ describe('Postcondition Checkers', () => {
       modalStub = env.stub(notificationService, 'showWarningModal');
       settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
       detectorStub = env.stub(conflictDetector, 'checkForConflicts');
+      detectorCleanupStub = env.stub(conflictDetector, 'clearCache');
       conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
       appendLineStub.callsFake(line => channelOutput.push(line));
@@ -389,6 +391,8 @@ describe('Postcondition Checkers', () => {
         'manifest.xml'
       );
       expect(appendLineStub.notCalled).to.equal(true);
+
+      expect(detectorCleanupStub.firstCall.args).to.eql(['admin@example.com']);
     });
 
     it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
@@ -428,6 +432,8 @@ describe('Postcondition Checkers', () => {
       ]);
 
       expect(conflictViewStub.calledOnce).to.equal(true);
+
+      expect(detectorCleanupStub.calledOnce).to.equal(false);
     });
 
     it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
@@ -449,6 +455,8 @@ describe('Postcondition Checkers', () => {
         nls.localize('conflict_detect_override'),
         nls.localize('conflict_detect_show_conflicts')
       ]);
+
+      expect(detectorCleanupStub.firstCall.args).to.eql(['admin@example.com']);
     });
 
     it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
@@ -472,6 +480,8 @@ describe('Postcondition Checkers', () => {
       ]);
 
       expect(conflictViewStub.calledOnce).to.equal(true);
+
+      expect(detectorCleanupStub.calledOnce).to.equal(false);
     });
   });
 });

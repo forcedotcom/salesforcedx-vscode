@@ -22,7 +22,7 @@ export class ConflictOutlineProvider
     this.root = null;
   }
 
-  public async onViewChange() {
+  public onViewChange() {
     this.internalOnDidChangeTreeData.fire();
   }
 
@@ -32,7 +32,6 @@ export class ConflictOutlineProvider
 
   public reset(rootLabel: string, conflicts: ConflictFile[]) {
     this.root = this.createConflictRoot(rootLabel, conflicts);
-    this.internalOnDidChangeTreeData.fire();
   }
 
   public getRevealNode(): ConflictNode | null {
@@ -68,6 +67,7 @@ export class ConflictOutlineProvider
     conflicts: ConflictFile[]
   ): ConflictGroupNode {
     const orgRoot = new ConflictGroupNode(rootLabel);
+    orgRoot.id = 'ROOT-NODE';
     orgRoot.addChildren(conflicts);
     return orgRoot;
   }

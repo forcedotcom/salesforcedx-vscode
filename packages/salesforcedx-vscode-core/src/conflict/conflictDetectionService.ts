@@ -84,6 +84,15 @@ export class ConflictDetector {
       .build();
   }
 
+  public clearCache(
+    usernameOrAlias: string,
+    throwErrorOnFailure: boolean = false
+  ): string {
+    const cachePath = this.getCachePath(usernameOrAlias);
+    this.clearDirectory(cachePath, throwErrorOnFailure);
+    return cachePath;
+  }
+
   public async checkForConflicts(
     data: ConflictDetectionConfig
   ): Promise<DirectoryDiffResults> {
@@ -119,10 +128,9 @@ export class ConflictDetector {
     cancellationTokenSource: any,
     cancellationToken: any
   ): Promise<DirectoryDiffResults> {
-    const tempMetadataPath = this.getCachePath(data.usernameOrAlias);
+    const tempMetadataPath = this.clearCache(data.usernameOrAlias, true);
 
     // 1: prep the shadow directory
-    this.clearDirectory(tempMetadataPath, true);
     const manifestPath = path.join(tempMetadataPath, 'package.xml');
     try {
       shell.mkdir('-p', tempMetadataPath);

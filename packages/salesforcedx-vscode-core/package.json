@@ -95,7 +95,7 @@
         {
           "id": "conflicts",
           "title": "%conflict_detect_resolve_view%",
-          "icon": "resources/conflict_view.png"
+          "icon": "resources/issues.svg"
         }
       ]
     },
@@ -493,6 +493,10 @@
         },
         {
           "command": "sfdx.force.diff",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.conflict.open",
           "when": "false"
         }
       ]
