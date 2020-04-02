@@ -1,3 +1,17 @@
+# 48.9.0 - April 2, 2020
+
+## Fixed
+
+#### docs
+
+- Fixed documentation for [Prettier Setup Requirements](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/prettier) ([PR #2105](https://github.com/forcedotcom/salesforcedx-vscode/pull/2105), [Issue #2079](https://github.com/forcedotcom/salesforcedx-vscode/issues/2079))
+
+## Added
+
+#### docs
+
+- Added documentation for [Highlighting Apex Code Coverage](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2104](https://github.com/forcedotcom/salesforcedx-vscode/pull/2104))
+
 # 48.8.0 - March 26, 2020
 
 ## Fixed
