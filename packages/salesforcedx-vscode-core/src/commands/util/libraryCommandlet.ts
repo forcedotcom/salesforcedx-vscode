@@ -11,6 +11,7 @@ import {
   DeployStatusEnum,
   SourceClient
 } from '@salesforce/source-deploy-retrieve';
+import { ApiResult } from '@salesforce/source-deploy-retrieve/lib/client/client';
 import { languages, ProgressLocation, window } from 'vscode';
 import { channelService } from '../../channels';
 import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
@@ -47,6 +48,30 @@ export abstract class LibraryCommandletExecutor<T>
     }
     const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
     this.sourceClient = new SourceClient(conn);
+  }
+
+  public retrieveWrapper(fn: (...args: any[]) => Promise<ApiResult>) {
+    const commandName = this.executionName;
+
+    return async function(...args: any[]): Promise<ApiResult> {
+      channelService.showCommandWithTimestamp(`Starting ${commandName}`);
+
+      const result = await window.withProgress(
+        {
+          title: commandName,
+          location: ProgressLocation.Notification
+        },
+        async () => {
+          // @ts-ignore
+          return (await fn.call(this, ...args)) as ApiResult;
+        }
+      );
+
+      channelService.appendLine('Library result =>' + JSON.stringify(result));
+      channelService.showCommandWithTimestamp(`Finished ${commandName}`);
+      await notificationService.showSuccessfulExecution(commandName);
+      return result;
+    };
   }
 
   public deployWrapper(fn: (...args: any[]) => Promise<DeployResult>) {

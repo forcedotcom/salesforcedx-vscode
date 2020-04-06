@@ -14,7 +14,6 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import { Retrieve } from '@salesforce/source-deploy-retrieve/lib/tooling/retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -113,7 +112,6 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
 
 // this supported types logic is temporary until we have a way of generating the metadata type from the path
 // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
-
 function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
   const filePath = explorerPath.fsPath;
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
@@ -135,15 +133,19 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
         'Retrieve (Beta)',
         'force_source_retrieve_with_sourcepath_beta'
       );
-      if (this.orgConnection === undefined) {
-        throw new Error('Connection is not established');
+
+      if (this.sourceClient === undefined) {
+        throw new Error('SourceClient is not established');
       }
 
-      const toolingRetrieve = new Retrieve(this.orgConnection);
-      toolingRetrieve.getMetadata = this.retrieveWrapper(
-        toolingRetrieve.getMetadata
+      this.sourceClient.tooling.retrieveWithPaths = this.retrieveWrapper(
+        this.sourceClient.tooling.retrieveWithPaths
       );
-      await toolingRetrieve.getMetadata(response.data);
+      const retrieveOpts = {
+        paths: [response.data],
+        output: 'wa'
+      };
+      await this.sourceClient.tooling.retrieveWithPaths(retrieveOpts);
       this.logMetric();
     } catch (e) {
       telemetryService.sendException(
