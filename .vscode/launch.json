@@ -237,7 +237,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "${workspaceFolder}/packages/system-tests/assets/lwc-recipes",
         "--extensionDevelopmentPath=${workspaceFolder}/packages",
         "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/vscode-integration"
       ],
