@@ -65,6 +65,6 @@ function openResource(node: ConflictNode) {
   const file = node.conflict;
   if (file) {
     const local = vscode.Uri.file(path.join(file.localPath, file.relPath));
-    vscode.commands.executeCommand('vscode.open', local);
+    vscode.window.showTextDocument(local).then(() => {});
   }
 }
