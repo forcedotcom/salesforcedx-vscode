@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
+import { DeployQueue, sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
@@ -150,6 +150,8 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
       );
       notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
+    } finally {
+      await DeployQueue.get().unlock();
     }
   }
 }
