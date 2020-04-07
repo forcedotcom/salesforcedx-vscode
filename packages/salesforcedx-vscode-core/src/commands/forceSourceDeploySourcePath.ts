@@ -103,7 +103,7 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
 
 // this supported types logic is temporary until we have a way of generating the metadata type from the path
 // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
-function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
+export function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
   const filePath = explorerPath.fsPath;
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
   const supportedType =
