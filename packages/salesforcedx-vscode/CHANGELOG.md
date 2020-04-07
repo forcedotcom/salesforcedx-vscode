@@ -6,7 +6,7 @@
 
 - Added a tree view visualization to the [conflict detection beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/detect-conflicts) ([PR #2096](https://github.com/forcedotcom/salesforcedx-vscode/pull/2096))
 
-- Added support for Apex triggers, Visualforce pages, and Visualforce components to the [deploy performance enhancement beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements)
+- Added support for Apex triggers, Visualforce pages, and Visualforce components to the [performance enhancements beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements)
 
 # 48.9.0 - April 2, 2020
 
