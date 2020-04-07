@@ -22,6 +22,7 @@ import {
 } from '../../../../src/commands/util';
 import {
   conflictDetector,
+  conflictView,
   DirectoryDiffResults
 } from '../../../../src/conflict';
 import { nls } from '../../../../src/messages';
@@ -295,6 +296,8 @@ describe('Postcondition Checkers', () => {
     let modalStub: SinonStub;
     let settingsStub: SinonStub;
     let detectorStub: SinonStub;
+    let detectorCleanupStub: SinonStub;
+    let conflictViewStub: SinonStub;
     let appendLineStub: SinonStub;
     let channelOutput: string[] = [];
 
@@ -303,6 +306,8 @@ describe('Postcondition Checkers', () => {
       modalStub = env.stub(notificationService, 'showWarningModal');
       settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
       detectorStub = env.stub(conflictDetector, 'checkForConflicts');
+      detectorCleanupStub = env.stub(conflictDetector, 'clearCache');
+      conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
       appendLineStub.callsFake(line => channelOutput.push(line));
     });
@@ -374,44 +379,45 @@ describe('Postcondition Checkers', () => {
 
     it('Should return ContinueResponse when no conflicts are detected', async () => {
       const postChecker = new ConflictDetectionChecker(emptyMessages);
-      settingsStub.returns(true);
-      env.stub(postChecker, 'getDefaultUsernameOrAlias').returns('MyAlias');
-      env
-        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
-        .returns('force-app');
-      detectorStub.returns({
-        different: new Set<string>()
-      } as DirectoryDiffResults);
+      const response = await postChecker.handleConflicts(
+        'manifest.xml',
+        'admin@example.com',
+        'hub-app',
+        { different: new Set<string>() } as DirectoryDiffResults
+      );
 
-      const response = await postChecker.check(validInput);
       expect(response.type).to.equal('CONTINUE');
+      expect((response as ContinueResponse<string>).data).to.equal(
+        'manifest.xml'
+      );
       expect(appendLineStub.notCalled).to.equal(true);
+
+      expect(detectorCleanupStub.firstCall.args).to.eql(['admin@example.com']);
     });
 
     it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
       const postChecker = new ConflictDetectionChecker(retrieveMessages);
-      settingsStub.returns(true);
-      const usernameStub = env
-        .stub(postChecker, 'getDefaultUsernameOrAlias')
-        .returns('MyAlias');
-      const packageDirStub = env
-        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
-        .returns('force-app');
-      detectorStub.returns({
+      const results = {
         different: new Set<string>([
           'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
           'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
         ]),
         scannedLocal: 4,
         scannedRemote: 6
-      } as DirectoryDiffResults);
+      } as DirectoryDiffResults;
       modalStub.returns('Cancel');
 
-      const response = await postChecker.check(validInput);
+      const response = await postChecker.handleConflicts(
+        'package.xml',
+        'admin@example.com',
+        'force-app',
+        results
+      );
       expect(response.type).to.equal('CANCEL');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([
-        nls.localize('conflict_detect_override')
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
       ]);
 
       expect(channelOutput).to.include.members([
@@ -425,28 +431,57 @@ describe('Postcondition Checkers', () => {
         nls.localize('conflict_detect_command_hint', 'package.xml')
       ]);
 
-      expect(usernameStub.calledOnce).to.equal(true);
-      expect(packageDirStub.calledOnce).to.equal(true);
+      expect(conflictViewStub.calledOnce).to.equal(true);
+
+      expect(detectorCleanupStub.calledOnce).to.equal(false);
     });
 
     it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
       const postChecker = new ConflictDetectionChecker(retrieveMessages);
-      settingsStub.returns(true);
-      env.stub(postChecker, 'getDefaultUsernameOrAlias').returns('MyAlias');
-      env
-        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
-        .returns('force-app');
-      detectorStub.returns({
+      const results = {
         different: new Set<string>('MyClass.cls')
-      } as DirectoryDiffResults);
+      } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_override'));
 
-      const response = await postChecker.check(validInput);
+      const response = await postChecker.handleConflicts(
+        'manifest.xml',
+        'admin@example.com',
+        'hub-app',
+        results
+      );
       expect(response.type).to.equal('CONTINUE');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([
-        nls.localize('conflict_detect_override')
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
       ]);
+
+      expect(detectorCleanupStub.firstCall.args).to.eql(['admin@example.com']);
+    });
+
+    it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
+      const postChecker = new ConflictDetectionChecker(retrieveMessages);
+      const results = {
+        different: new Set<string>('MyClass.cls')
+      } as DirectoryDiffResults;
+      modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
+
+      const response = await postChecker.handleConflicts(
+        'manifest.xml',
+        'admin@example.com',
+        'hub-app',
+        results
+      );
+      expect(response.type).to.equal('CANCEL');
+
+      expect(modalStub.firstCall.args.slice(1)).to.eql([
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
+      ]);
+
+      expect(conflictViewStub.calledOnce).to.equal(true);
+
+      expect(detectorCleanupStub.calledOnce).to.equal(false);
     });
   });
 });

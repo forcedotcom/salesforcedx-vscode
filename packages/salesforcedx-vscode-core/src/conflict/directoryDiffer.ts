@@ -10,6 +10,8 @@ import * as path from 'path';
 
 export interface DirectoryDiffResults {
   different: Set<string>;
+  localRoot: string;
+  remoteRoot: string;
   scannedLocal: number;
   scannedRemote: number;
 }
@@ -48,6 +50,8 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
     });
 
     return {
+      localRoot: localSourcePath,
+      remoteRoot: remoteSourcePath,
       different,
       scannedLocal: localSet.size,
       scannedRemote

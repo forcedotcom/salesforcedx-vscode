@@ -483,10 +483,11 @@ export const messages = {
   conflict_detect_convert_org_source:
     'Conflict Detection: converting org source',
   conflict_detect_conflicts_during_deploy:
-    'Conflicts are detected while deploying metadata. The conflicted files are listed in the Output view.',
+    'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
   conflict_detect_conflicts_during_retrieve:
-    'Conflicts are detected while retrieving metadata. The conflicted files are listed in the Output view.',
+    'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
   conflict_detect_override: 'Override Conflicts',
+  conflict_detect_show_conflicts: 'Show Conflicts',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_command_hint:
@@ -494,6 +495,14 @@ export const messages = {
   conflict_detect_no_default_username: 'No default username for this project',
   conflict_detect_no_default_package_dir:
     'No default package directory for this project',
+  conflict_detect_view_init: 'Conflict detection view has not been initialized',
+  conflict_detect_not_enabled:
+    'Enable the Detect Conflicts at Sync setting to view org differences',
+  conflict_detect_root_title: 'Org Differences',
+  conflict_detect_view_root: '%s : %s file difference(s)',
+  conflict_detect_no_conflicts: 'No conflicts',
+  conflict_detect_diff_title: '%s//%s ↔ local//%s',
+  conflict_detect_diff_command_title: 'Compare Files',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_unsupported_type:
