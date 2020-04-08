@@ -13,7 +13,12 @@ import {
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { channelService } from '../../channels';
-import { ConflictDetectionConfig, conflictDetector } from '../../conflict';
+import {
+  ConflictDetectionConfig,
+  conflictDetector,
+  conflictView,
+  DirectoryDiffResults
+} from '../../conflict';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
@@ -221,39 +226,80 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
       };
       const results = await conflictDetector.checkForConflicts(config);
 
-      if (results.different.size > 0) {
-        channelService.appendLine(
-          nls.localize(
-            'conflict_detect_conflict_header',
-            results.different.size,
-            results.scannedRemote,
-            results.scannedLocal
-          )
-        );
-        results.different.forEach(file => {
-          channelService.appendLine(join(defaultPackageDir, file));
-        });
-        channelService.showChannelOutput();
-
-        const choice = await notificationService.showWarningModal(
-          nls.localize(this.messages.warningMessageKey),
-          nls.localize('conflict_detect_override')
-        );
-
-        if (choice !== nls.localize('conflict_detect_override')) {
-          channelService.appendLine(
-            nls.localize(
-              'conflict_detect_command_hint',
-              this.messages.commandHint(inputs.data)
-            )
-          );
-          channelService.showChannelOutput();
-          return { type: 'CANCEL' };
-        }
-      }
-      return inputs;
+      return this.handleConflicts(
+        inputs.data,
+        usernameOrAlias,
+        defaultPackageDir,
+        results
+      );
     }
     return { type: 'CANCEL' };
+  }
+
+  public async handleConflicts(
+    manifest: string,
+    usernameOrAlias: string,
+    defaultPackageDir: string,
+    results: DirectoryDiffResults
+  ): Promise<ContinueResponse<string> | CancelResponse> {
+    const conflictTitle = nls.localize(
+      'conflict_detect_view_root',
+      usernameOrAlias,
+      results.different.size
+    );
+
+    if (results.different.size === 0) {
+      conflictDetector.clearCache(usernameOrAlias);
+      conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
+    } else {
+      channelService.appendLine(
+        nls.localize(
+          'conflict_detect_conflict_header',
+          results.different.size,
+          results.scannedRemote,
+          results.scannedLocal
+        )
+      );
+      results.different.forEach(file => {
+        channelService.appendLine(join(defaultPackageDir, file));
+      });
+      channelService.showChannelOutput();
+
+      const choice = await notificationService.showWarningModal(
+        nls.localize(this.messages.warningMessageKey),
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
+      );
+
+      if (choice === nls.localize('conflict_detect_override')) {
+        conflictDetector.clearCache(usernameOrAlias);
+        conflictView.visualizeDifferences(
+          conflictTitle,
+          usernameOrAlias,
+          false
+        );
+      } else {
+        channelService.appendLine(
+          nls.localize(
+            'conflict_detect_command_hint',
+            this.messages.commandHint(manifest)
+          )
+        );
+        channelService.showChannelOutput();
+
+        const doReveal =
+          choice === nls.localize('conflict_detect_show_conflicts');
+        conflictView.visualizeDifferences(
+          conflictTitle,
+          usernameOrAlias,
+          doReveal,
+          results
+        );
+
+        return { type: 'CANCEL' };
+      }
+    }
+    return { type: 'CONTINUE', data: manifest };
   }
 
   public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
