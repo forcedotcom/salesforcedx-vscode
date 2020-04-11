@@ -19,6 +19,31 @@ For more information about publishing take a look at
 
 # Steps
 
+## Creating a release branch
+
+Typically, a release branch is created from the `develop` branch to indicate the state of the codebase that will be published for a particular version. Release branches are in the format `release/vxx.yy.zz`. Create and push a release branch by running `node scripts/create-release-branch.js`.
+
+You may also use the GitHub Action to run this process in a CI environment and avoid local setup. It is triggered through a [repository dispatch](https://developer.github.com/v3/repos/#create-a-repository-dispatch-event) event with a payload of the following format:
+
+```json
+{
+  "event_type": "create_release_branch",
+  "client_payload": {
+    "version": "xx.yy.zz",
+  }
+}
+```
+
+You can test this using CURL like so:
+
+```bash
+curl -H 'Authorization: Bearer [your GitHub personal access token]' \
+-X POST -d "{\"event_type\": \"create_release_branch\", \"client_payload\": {\"version\": \"48.4.1\"}}" \
+https://api.github.com/repos/forcedotcom/salesforcedx-vscode/dispatches
+```
+
+## Publishing With the Release Branch
+
 The scripts/publish-circleci.js contains the end-to-end flow. You run this from the
 **top-level** directory.
 

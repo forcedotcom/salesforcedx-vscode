@@ -85,7 +85,7 @@ describe('LWC Hovers', function() {
 
     expect(content!.value).to.include('title');
     expect(content!.value).to.include(
-      'The title can include text or another component, and is displayed in the header.'
+      'The title can include text, and is displayed in the header.\nTo include additional markup or another component, use the title slot.'
     );
   });
 });

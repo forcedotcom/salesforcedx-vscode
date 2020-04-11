@@ -1,3 +1,91 @@
+# 48.10.0 - April 9, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added tree visualization to [conflict detection beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/detect-conflicts) ([PR #2096](https://github.com/forcedotcom/salesforcedx-vscode/pull/2096))
+
+- Added support for Apex Triggers, Visualforce Pages, and Visualforce Components to [performance enhancements beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements)([PR #2111](https://github.com/forcedotcom/salesforcedx-vscode/pull/2111))
+
+# 48.9.0 - April 2, 2020
+
+## Fixed
+
+#### docs
+
+- Fixed documentation for [Prettier Setup Requirements](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/prettier) ([PR #2105](https://github.com/forcedotcom/salesforcedx-vscode/pull/2105), [Issue #2079](https://github.com/forcedotcom/salesforcedx-vscode/issues/2079))
+
+## Added
+
+#### docs
+
+- Added documentation for [Highlighting Apex Code Coverage](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2104](https://github.com/forcedotcom/salesforcedx-vscode/pull/2104))
+
+# 48.8.0 - March 26, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Hide commands in Apex Test sidebar from appearing in the Command Palette ([PR #2093](https://github.com/forcedotcom/salesforcedx-vscode/pull/2093))
+
+# 48.7.0 - March 20, 2020
+
+## Fixed
+
+#### docs
+
+- Add linting topic to LWC parent ([PR #2060](https://github.com/forcedotcom/salesforcedx-vscode/pull/2060))
+
+# 48.6.0 - March 12, 2020
+
+## Fixed
+
+#### docs
+
+- Update Apex content ([PR #1967](https://github.com/forcedotcom/salesforcedx-vscode/pull/1967))
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Prevent extensions activating in non-Salesforce projects ([PR #2070](https://github.com/forcedotcom/salesforcedx-vscode/pull/2070), [Issue #1988](https://github.com/forcedotcom/salesforcedx-vscode/issues/1988), [Issue #2065](https://github.com/forcedotcom/salesforcedx-vscode/issues/2065))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Open beta for performance enhancements on single Apex Class deploys. Refer to the [Performance Enhancements](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements) article. ([PR #2052](https://github.com/forcedotcom/salesforcedx-vscode/pull/2052))
+
+# 48.5.0 - March 5, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Remove error from the Apex LSP for completion results of `Page.` ([PR #2054](https://github.com/forcedotcom/salesforcedx-vscode/pull/2054))
+
+## Added
+
+#### docs
+
+- Update contributor info for Prettier Apex plugin [Prettier Apex plugin](https://github.com/dangmai/prettier-plugin-apex) ([PR #2035](https://github.com/forcedotcom/salesforcedx-vscode/pull/2035))-Contribution by [Dang Mai](https://github.com/dangmai)
+
+# 48.4.0 - February 27, 2020
+
+- We did some minor under-the-hood maintenance.
+
+# 48.3.0 - February 24, 2020
+
+## Fixed
+
+#### docs
+
+- Updates to Conflict Detection documentation ([PR #2021](https://github.com/forcedotcom/salesforcedx-vscode/pull/2021))
+
+#### salesforcedx-vscode-core
+
+- Fix ISV Debugger failing with `'Cannot set property 'SFDX_TOOL' of undefined'` ([PR #2027](https://github.com/forcedotcom/salesforcedx-vscode/pull/2027), [Issue #2013](https://github.com/forcedotcom/salesforcedx-vscode/issues/2013))
+
 # 48.2.0 - February 20, 2020
 
 ## Fixed

@@ -19,6 +19,10 @@ describe('activation modes', () => {
     mockContext = stubInterface<vscode.ExtensionContext>();
     // @ts-ignore
     mockContext.subscriptions = [];
+    // @ts-ignore
+    mockContext.asAbsolutePath = path => {
+      return path;
+    };
   });
 
   afterEach(function() {

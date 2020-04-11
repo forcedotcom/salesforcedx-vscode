@@ -101,6 +101,28 @@ describe('Conflict Detection Service Execution', () => {
     shell.rm('-rf', PROJECT_DIR);
   });
 
+  it('Should clear cache directory', async () => {
+    const usernameOrAlias = 'admin@ut-sandbox.org';
+    const cachePath = executor.getCachePath(usernameOrAlias);
+    const tempFilePath = path.join(cachePath, 'TestFile.xml');
+
+    shell.mkdir('-p', cachePath);
+    shell.touch([tempFilePath]);
+
+    expect(
+      fs.existsSync(tempFilePath),
+      `folder ${tempFilePath} should exist`
+    ).to.equal(true);
+
+    const actualCachePath = executor.clearCache(usernameOrAlias);
+    expect(actualCachePath).to.equal(cachePath);
+
+    expect(
+      fs.existsSync(actualCachePath),
+      `folder ${actualCachePath} should not exist`
+    ).to.equal(false);
+  });
+
   it('Should find differences', async () => {
     const usernameOrAlias = 'admin@ut-sandbox.org';
     const cachePath = executor.getCachePath(usernameOrAlias);
@@ -138,10 +160,10 @@ describe('Conflict Detection Service Execution', () => {
       path.normalize('main/default/classes/HandlerCostCenter.cls')
     ]);
 
-    // verify temp file cleanup
+    // verify file cache exists
     expect(
       fs.existsSync(cachePath),
-      `folder ${cachePath} should be deleted`
-    ).to.equal(false);
+      `folder ${cachePath} should exist`
+    ).to.equal(true);
   });
 });
