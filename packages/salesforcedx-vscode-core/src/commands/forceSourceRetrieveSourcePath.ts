@@ -22,7 +22,12 @@ import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { APEX_CLASS_EXTENSION } from './templates/metadataTypeConstants';
+import {
+  APEX_CLASS_EXTENSION,
+  APEX_TRIGGER_EXTENSION,
+  VISUALFORCE_COMPONENT_EXTENSION,
+  VISUALFORCE_PAGE_EXTENSION
+} from './templates/metadataTypeConstants';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -117,7 +122,13 @@ function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
   const supportedType =
     path.extname(filePath) === APEX_CLASS_EXTENSION ||
-    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`);
+    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`) ||
+    (path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
+      filePath.includes(`${APEX_TRIGGER_EXTENSION}-meta.xml`)) ||
+    (path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
+      filePath.includes(`${VISUALFORCE_COMPONENT_EXTENSION}-meta.xml`)) ||
+    (path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION ||
+      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`));
   const multipleSourcePaths = filePath.includes(',');
   return betaDeployRetrieve && supportedType && !multipleSourcePaths;
 }
@@ -142,8 +153,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
         this.sourceClient.tooling.retrieveWithPaths
       );
       const retrieveOpts = {
-        paths: [response.data],
-        output: 'wa'
+        paths: [response.data]
       };
       await this.sourceClient.tooling.retrieveWithPaths(retrieveOpts);
       this.logMetric();

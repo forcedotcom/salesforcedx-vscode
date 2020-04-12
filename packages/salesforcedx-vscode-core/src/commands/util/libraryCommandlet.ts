@@ -7,11 +7,11 @@
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  ApiResult,
   DeployResult,
   DeployStatusEnum,
   SourceClient
 } from '@salesforce/source-deploy-retrieve';
-import { ApiResult } from '@salesforce/source-deploy-retrieve/lib/client/client';
 import { languages, ProgressLocation, window } from 'vscode';
 import { channelService } from '../../channels';
 import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
