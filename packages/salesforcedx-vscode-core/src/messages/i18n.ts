@@ -54,9 +54,9 @@ export const messages = {
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
-    'Enter an org alias or use default alias',
+    'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url:
-    'Enter a custom login URL or use default URL',
+    'Enter a custom login URL or use the default URL',
   parameter_gatherer_enter_scratch_org_def_files:
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
