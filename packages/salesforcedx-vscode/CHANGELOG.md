@@ -4,7 +4,7 @@
 
 #### docs
 
-- Fix broken Java Setup link in [Apex Tests](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2119](https://github.com/forcedotcom/salesforcedx-vscode/pull/2119))
+- Fix broken Java Setup link in [Apex Tests](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2119](https://github.com/forcedotcom/salesforcedx-vscode/pull/2119), [Issue #2108](https://github.com/forcedotcom/salesforcedx-vscode/issues/2108))
 
 ## Added
 
