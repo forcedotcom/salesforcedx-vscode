@@ -1,3 +1,17 @@
+# 48.11.0 - April 16, 2020
+
+## Fixed
+
+#### docs
+
+- Fix broken Java Setup link in [Apex Tests](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2119](https://github.com/forcedotcom/salesforcedx-vscode/pull/2119))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added error message and prompt help for scratch def selection ([PR #2115](https://github.com/forcedotcom/salesforcedx-vscode/pull/2115))
+
 # 48.10.0 - April 9, 2020
 
 ## Added
