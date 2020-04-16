@@ -13,11 +13,14 @@ import { expect } from 'chai';
 import { join } from 'path';
 import * as sinon from 'sinon';
 import { window } from 'vscode';
+import * as vscode from 'vscode';
 import {
   CommandletExecutor,
   CompositeParametersGatherer,
   DemoModePromptGatherer,
   EmptyParametersGatherer,
+  FileSelection,
+  FileSelector,
   SelectOutputDir,
   SfdxCommandlet,
   SimpleGatherer
@@ -137,6 +140,70 @@ describe('Parameter Gatherers', () => {
       );
 
       await commandlet.run();
+    });
+  });
+
+  describe('FileSelectionGatherer', () => {
+    const displayMessage = 'My sample info';
+    const errorMessage = 'You hit an error!';
+    const gatherer = new FileSelector(
+      displayMessage,
+      errorMessage,
+      'config/**/*-scratch-def.json'
+    );
+    let showQuickPickStub: sinon.SinonStub;
+    let notificationStub: sinon.SinonStub;
+    let fileFinderStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      showQuickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+      notificationStub = sinon.stub(vscode.window, 'showErrorMessage');
+      fileFinderStub = sinon.stub(vscode.workspace, 'findFiles');
+    });
+
+    afterEach(() => {
+      showQuickPickStub.restore();
+      notificationStub.restore();
+      fileFinderStub.restore();
+    });
+
+    it('Should return continue if file has been selected', async () => {
+      fileFinderStub.returns(
+        [vscode.Uri.file('/somepath/project-scratch-def.json')]
+      );
+      showQuickPickStub.returns(
+        { label: 'project-scratch-def.json', description: '/somepath/project-scratch-def.json' }
+      );
+
+      const response = (await gatherer.gather()) as ContinueResponse<
+        FileSelection
+      >;
+
+      expect(showQuickPickStub.callCount).to.equal(1);
+      expect(response.type).to.equal('CONTINUE');
+      expect(response.data.file, 'project-scratch-def.json');
+    });
+
+    it('Should return cancel if no file was selected', async () => {
+      fileFinderStub.returns(
+        [vscode.Uri.file('/somepath/project-scratch-def.json')]
+      );
+      showQuickPickStub.returns(undefined);
+
+      const response = await gatherer.gather();
+
+      expect(showQuickPickStub.callCount).to.equal(1);
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should display error when no files are available for selection', async () => {
+      fileFinderStub.returns(new Array());
+
+      const response = await gatherer.gather();
+
+      expect(response.type).to.equal('CANCEL');
+      expect(notificationStub.calledOnce).to.be.true;
+      expect(notificationStub.getCall(0).args[0]).to.equal(errorMessage);
     });
   });
 
