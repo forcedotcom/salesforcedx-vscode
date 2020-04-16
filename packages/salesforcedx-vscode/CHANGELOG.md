@@ -1,3 +1,17 @@
+# 48.11.0 - April 16, 2020
+
+## Fixed
+
+#### docs
+
+- Fix broken Java Setup link in [Apex Tests](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2119](https://github.com/forcedotcom/salesforcedx-vscode/pull/2119), [Issue #2108](https://github.com/forcedotcom/salesforcedx-vscode/issues/2108))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added a message to display info when selecting scratch org definition and an error message when no scratch org definition files exist. ([PR #2115](https://github.com/forcedotcom/salesforcedx-vscode/pull/2115))
+
 # 48.10.0 - April 9, 2020
 
 ## Added
