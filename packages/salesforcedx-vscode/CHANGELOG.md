@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-core
 
-- Added error message and prompt help for scratch def selection ([PR #2115](https://github.com/forcedotcom/salesforcedx-vscode/pull/2115))
+- Added a message to display info when selecting scratch org definition and an error message when no scratch org definition files exist. ([PR #2115](https://github.com/forcedotcom/salesforcedx-vscode/pull/2115))
 
 # 48.10.0 - April 9, 2020
 
