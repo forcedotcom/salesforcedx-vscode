@@ -153,6 +153,29 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Tests - Lightning - Unit Tests",
+      "program": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--timeout",
+        "999999",
+        "--colors",
+        "--recursive",
+        "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/unit"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
+      "sourceMapPathOverrides": {
+        "../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/unit/*",
+        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///*": "*"
+      },
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "name": "Launch Tests - Lightning - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
@@ -169,6 +192,29 @@
       "sourceMapPathOverrides": {
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-lightning/out/test/vscode-integration/*",
+        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///*": "*"
+      },
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Tests - LWC - Unit Tests",
+      "program": "${workspaceFolder}/packages/salesforcedx-vscode-lwc/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--timeout",
+        "999999",
+        "--colors",
+        "--recursive",
+        "${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/unit"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
+      "sourceMapPathOverrides": {
+        "../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-vscode-lwc/out/test/unit/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
       },
