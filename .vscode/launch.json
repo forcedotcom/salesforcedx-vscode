@@ -68,9 +68,25 @@
       "preLaunchTask": "Compile"
     },
     {
+      "name": "Launch Replay Debugger adapter",
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX Utils Unit Tests",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+      "args": ["--server=4712"],
+      "sourceMaps": true,
+      "smartStep": true,
+      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "sourceMapPathOverrides": {
+        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///*": "*"
+      },
+      "preLaunchTask": "Compile"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Tests - Utils - Unit Tests",
       "program": "${workspaceFolder}/packages/salesforcedx-utils-vscode/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
@@ -92,7 +108,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Salesforce DX VS Code Core VSCode-Integration Tests",
+      "name": "Launch Tests - Core - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -114,7 +130,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Salesforce DX VS Code Apex VSCode-Integration Tests",
+      "name": "Launch Tests - Apex - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -137,7 +153,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Salesforce DX VS Code Lightning VSCode-Integration Tests",
+      "name": "Launch Tests - Lightning - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -160,7 +176,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Salesforce DX VS Code LWC VSCode-Integration Tests",
+      "name": "Launch Tests - LWC - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -183,7 +199,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Salesforce DX VS Code Visualforce VSCode-Integration Tests",
+      "name": "Launch Tests - Visualforce - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -207,7 +223,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX Visualforce Language Server Unit Tests",
+      "name": "Launch Tests - Visualforce Language Server - Unit Tests",
       "program": "${workspaceFolder}/packages/salesforcedx-visualforce-language-server/node_modules/mocha/bin/_mocha",
       "args": [
         "--timeout",
@@ -230,7 +246,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Salesforce DX Visualforce Markup Language Server Unit Tests",
+      "name": "Launch Tests - Visualforce Markup Language Server - Unit Tests",
       "program": "${workspaceFolder}/packages/salesforcedx-visualforce-markup-language-server/node_modules/mocha/bin/_mocha",
       "args": [
         "--timeout",
@@ -251,7 +267,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Apex Debugger Adapter Unit Tests",
+      "name": "Launch Tests - Apex Debugger - Unit Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-apex-debugger",
@@ -280,7 +296,7 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Apex Debugger Adapter Integration Tests",
+      "name": "Launch Tests - Apex Debugger - Integration Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-apex-debugger",
@@ -309,7 +325,7 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Apex Debugger Extension VSCode-Integration Tests",
+      "name": "Launch Tests - Apex Debugger - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -331,7 +347,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch SObject Generator Unit Tests",
+      "name": "Launch Tests - SObject Faux Generator - Unit Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator",
@@ -357,7 +373,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch SObject Generator Integration Tests",
+      "name": "Launch Tests - SObject Faux Generator - Integration Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator",
@@ -383,23 +399,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Replay Debugger adapter",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "program": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
-      "args": ["--server=4712"],
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
-      "sourceMapPathOverrides": {
-        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///*": "*"
-      },
-      "preLaunchTask": "Compile"
-    },
-    {
-      "name": "Launch Replay Debugger Adapter Unit Tests",
+      "name": "Launch Tests - Replay Debugger - Unit Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger",
@@ -428,7 +428,7 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Replay Debugger Adapter Integration Tests",
+      "name": "Launch Tests - Replay Debugger - Integration Tests",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger",
@@ -457,7 +457,7 @@
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
     {
-      "name": "Launch Replay Debugger Extension VSCode-Integration Tests",
+      "name": "Launch Tests - Replay Debugger - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
