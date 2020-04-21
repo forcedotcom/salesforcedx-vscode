@@ -1,22 +1,22 @@
 ---
-title: Performance Enhancements
+title: パフォーマンスの改善
 lang: ja
 ---
 
-The changes we have made to enhance performance ensure that single file metadata deploys run through a more efficient code path. Currently, these changes only support Apex and Visualforce metadata types. We’ll add support for more metadata types in future releases.
+パフォーマンスを改善させるために行った変更により、単一ファイルのメタデータのデプロイがより効率的なコードパスを介して実行されるようになりました。現在のところ、これらの変更は Apex と Visualforce のメタデータ型のみをサポートしています。将来のリリースで、より多くのメタデータタイプのサポートを追加される予定です。
 
-> NOTICE: The changes to enhance code performance are currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
+> 注意: コードパフォーマンスを改善させる変更は現在ベータ版です。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。
 
-## Setup
+## 設定
 
-To enable this beta feature:
+このベータ機能を有効化するには:
 
-1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-1. Under Salesforce Feature Previews, select Experimental: Deploy Retrieve.
+1. **[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (Windows or Linux) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** を選択します。
+2. Salesforce Feature Previews の下にある、Experimental: Deploy Retrieve を選択します。
 
-In this beta release, performance enhancements are effective when you run the **SFDX: Deploy this Source to Org** command with these metadata types:
+このベータ版リリースでは、以下のメタデータ型に対して **SFDX: Deploy this Source to Org (SFDX: このソースを組織にデプロイ)** を実行した際に、パフォーマンス改善が有効になります。
 
-- Apex Class
-- Apex Trigger
-- Visualforce Component
-- Visualforce Page
+- Apex クラス
+- Apex トリガ
+- Visualforce コンポーネント
+- Visualforce ページ

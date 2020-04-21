@@ -1,23 +1,33 @@
 ---
-title: Detect Conflicts
+title: 競合の検出
 lang: ja
 ---
 
-Whenever you retrieve or deploy source to keep the local project and your default org in sync, the operation could detect conflicts. If conflicts are not detected, the retrieve or deploy operation is completed. If conflicts are detected, the retrieve or deploy operation can be cancelled. The resource files that caused the conflict and the CLI command to overwrite the conflict is displayed in the Output panel. You can enable the conflict detection feature only in non-scratch orgs.
+ローカルのプロジェクトとデフォルトの組織を同期させるために、ソースを取得したりデプロイしたりすると、競合が検出される可能性があります。競合の検出機能は、Sandbox や dev 組織などの非スクラッチ組織でのみ利用可能です。
 
-> NOTICE: The conflict detection feature is currently in beta. If you have any issues or feedback, [open a GitHub issue](./en/bugs-and-feedback).
+競合が検出された場合、取得やデプロイの操作をキャンセルして、ローカルのプロジェクトとデフォルトの組織との差分を表示することができます。
 
-Because the conflict detection feature is in beta, you must enable the feature:
+競合の原因となったファイルを表示するには、アクティビティバーの Org Differences アイコン ({% octicon issue-opened %}) をクリックします。Org Differences: Conflicts ビューがサイドバーに開き、競合が発生したファイルのリストが表示されます。競合を解決するには、ファイルをクリックして差分エディタを開き、リモートファイル (左側) とローカルファイル (右側) を比較します。ファイルを編集するには、ファイル名の上にカーソルを置き、ファイルを開くアイコンをクリックします。
 
-1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-1. Under Salesforce Feature Previews, select Detect Conflicts At Sync.
+また、競合があるリソースファイルや、競合を上書きする CLI コマンドを出力パネルで表示することもできます。
 
-You can also enter conflict detection in the search box to find the feature and then enable it.
+競合が検出されない場合は、取得またはデプロイ操作が完了します。
 
-In this beta release, we have enabled conflict detection for the **SFDX: Retrieve Source in Manifest from Org** and **SFDX: Deploy Source in Manifest to Org** commands only. All manifest files that exists both in the org and in the local environment are checked for conflicts; files that don’t exist in both are not checked.
+> 注意: 競合の検知機能は現在ベータ版です。不具合を発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。
 
-![Prompt for conflict detection](./images/DetectConflict_prompt.png)
+競合検出機能はベータ版のため、この機能を有効化する必要があります。:
 
-You can either select to overwrite conflicts or cancel the operation and view the conflicts in the Output panel.
+1. **[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (Windows or Linux) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** を選択します。
+2. Salesforce Feature Previews にある、Detect Conflicts At Sync を選択します。
 
-![Output panel showing conflicts and CLI command](./images/DetectConflict_outputpane.png)
+検索ボックスで conflict detection と入力し、機能を特定して有効化することもできます。
+
+このベータ版リリースでは、競合の検出は、**SFDX: Retrieve Source in Manifest from Org** および **SFDX: Deploy Source in Manifest to Org** コマンドだけで有効化されます。ローカル環境と組織の両方に存在するすべてのマニフェストファイルについて競合がチェックされます。両方に存在しないファイルについてはチェックされません。
+
+![競合検出のプロンプト](./images/DetectConflict_prompt.png)
+
+競合を上書きするか、操作をキャンセルして、Org Differences ビューに競合を表示するかを選択することができます。
+
+> 注意: Org Differences ビューに競合するファイルが表示されていない場合は、**Detect Conflicts At Sync** 設定が有効になっていることを確認してください。
+
+![メタデータ取得のフロー](./images/RetrieveMetadataFlow.gif)

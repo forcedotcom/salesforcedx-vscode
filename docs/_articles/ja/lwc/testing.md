@@ -1,40 +1,46 @@
 ---
-title: Test Lightning Web Components
+title: Lightning Web コンポーネントのテスト
 lang: ja
 ---
 
-Install [`sfdx-lwc-jest`](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation) so that you have the Jest test runner for Lightning Web Components ready.
+[`sfdx-lwc-jest`](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation) をインストールして、Lightning Web Components 用の Jest テストランナーを準備します。
 
-## Explore Your LWC Tests
+## LWC のテストを探索する
 
-The LWC Tests sidebar provides a central location for you to run tests on the code you write. You can run one test case, the test cases in one file, or all your tests. You can also view the results of the last tests run and navigate to the corresponding lines of code directly from the tests. To access the test sidebar, click the beaker icon (hover text: Test) in the View bar. If you don't see this icon, make sure the project you have open in VS Code contains an sfdx-project.json file in its root directory.
+LWC テストサイドバーは、書いたコードのテストを実行するための中心的な場所を提供します。1 つのテストケース、1 つのファイル内のテストケース、またはすべてのテストを実行することができます。また、最後に実行したテストの結果を表示したり、テストから直接対応するコード行に移動することもできます。テストサイドバーにアクセスするには、ビューバーのビーカーアイコン (ホバーテキスト: テスト) をクリックします。このアイコンが表示されない場合、VS Code で開いているプロジェクトがルートディレクトリに sfdx-project.json ファイルを含んでいることを確認してください。
 
-To run selected tests, hover over the name of a test case or file to reveal a play icon from the LWC test view. Click the play icon (hover text: SFDX: Run Lightning Web Component Test Case, SFDX: Run Lightning Web Component Test File) to run a test case or all the test cases in a file. To run all of tests in the view, click the larger play icon at the top of the LWC Tests view (hover text: SFDX: Run All Lightning Web Component Tests).
+選択したテストを実行するには、LWC テストビューから再生アイコンを表示するためにテストケースもしくはファイルの名前の上にカーソルを置きます。再生アイコン (ホバーテキスト: SFDX: Lightning Web コンポーネントテストケースの実行) をクリックすると、テストケースまたはファイル内のすべてのテストケースが実行されます。ビュー内のすべてのテストを実行するには、LWC テストビューの上部にある大きな再生アイコンをクリックします (ホバーテキスト: SFDX: Lightning Web Component テストをすべて実行)。
 
-Test results are noted as follows: green for passing tests, red for failing tests, or orange for skipped tests.
+テスト結果は緑が合格、赤が不合格、オレンジがスキップされたテストです。
 
-To jump to a test file, or a test case, click the test name in the sidebar.
+テストファイルやテストケースにジャンプするには、サイドバーのテスト名をクリックします。
 
-To clear your test results, click the refresh icon at the top of the sidebar (hover text: SFDX: Refresh Lightning Web Component Test Explorer).
+テスト結果をクリアするには、サイドバー上部の更新アイコンをクリックします。 (ホバーテキスト: SFDX: Lightning Web Component テストエクスプローラを更新)
 
-## Run, Debug or Watch Jest Tests from Within a File
+## ファイル内から Jest テストを実行、デバッグ、監視する
 
-You can run or debug Jest unit tests in contextual actions within the file, or by clicking buttons from the menu bar in the top right corner of the editor window. View test results in the Terminal panel.
+ファイル内のコンテキストアクション、またはエディタウィンドウの右上隅にあるメニューバーからボタンをクリックすることで、Jest ユニットテストを実行またはデバッグすることができます。ターミナルパネルでテスト結果を表示します。
 
-#### Run Jest Tests
+#### Jest テストの実行
 
-To run individual Jest test cases, navigate to the `.test.js` file and click **Run Test** above the definition of a Jest test case.
+個々の Jest テストケースを実行するには、`.test.js` ファイルに移動し、Jest テストケースの定義の上に表示される **Run Test (テストを実行)** をクリックします。
 
-To run all test cases in a Jest test file, click the play icon on the menu bar in the top right corner of the editor window.
+![テストを実行 コードレンズを使用した LWC テストの実行](./images/lwc_test_run.gif)
 
-#### Debug Jest Tests
+Jest テストファイル内のすべてのテストケースを実行するには、エディタウィンドウの右上隅にある、メニューバーの再生アイコンをクリックします。
 
-To debug individual Jest test cases, navigate to the `.test.js` file and click **Debug Test** above the definition of a Jest test case.
+#### Jest テストのデバッグ
 
-To debug all test cases in a Jest test file, click the debug icon on the menu bar in the top right corner of the editor window.
+個々の Jest テストケースをデバッグするには、`.test.js` ファイルに移動し、Jest テストケースの定義の上にある **Debug Test (テストをデバッグ)** をクリックします。
 
-VS Code's built-in debugger launches for you to debug the test in VS Code. You can set [Breakpoints](https://code.visualstudio.com/docs/editor/debugging#_breakpoints), control the debugging session by [Debug Actions](https://code.visualstudio.com/docs/editor/debugging#_debug-actions) or use [Debug Console](https://code.visualstudio.com/docs/editor/debugging#_debug-console-repl) to evaluate expressions.
+![テストをデバッグ コードレンズを使用した LWC テストのデバッグ](./images/lwc_test_debug.gif)
 
-#### Watch Jest Tests
+Jest テストファイル内のすべてのテストケースをデバッグするには、エディタウィンドウの右上隅にあるメニューバーのデバッグアイコンをクリックします。
 
-To watch a Jest test file, click the eye icon on the menu bar in the top right corner of the editor window. Toggle the icon to stop watching. When watching a Jest test file, the test file will rerun if you edit the Jest test file or the LWC JavaScript files that the Jest test file is testing against.
+VS Code の組み込みデバッガが起動し、VS Code でテストをデバッグすることができます。[ブレークポイント](https://code.visualstudio.com/docs/editor/debugging#_breakpoints)を設定したり、[デバッグアクション](https://code.visualstudio.com/docs/editor/debugging#_debug-actions)でデバッグセッションを制御したり、[デバッグコンソール](https://code.visualstudio.com/docs/editor/debugging#_debug-console-repl)を使用して式を評価したりすることができます。
+
+#### Jest テストの監視
+
+Jest のテストファイルを監視するには、エディタウィンドウの右上隅にあるメニューバーの目のアイコンをクリックします。アイコンを切り替えると、監視を停止します。Jest テストファイルをウォッチしているときに、Jest テストファイルまたは Jest テストファイルがテスト対象としている LWC の JavaScript ファイルを編集すると、テストファイルが再実行されます。
+
+![メニューバーボタンを使用した LWC テストの監視](./images/lwc_test_watch.gif)
