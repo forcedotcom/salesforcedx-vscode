@@ -11,15 +11,17 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import { expect } from 'chai';
 import * as path from 'path';
-import { SinonStub, stub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
+import { Uri } from 'vscode';
+import { channelService } from '../../../src/channels';
 import {
   ForceSourceRetrieveSourcePathExecutor,
-  SourcePathChecker
+  SourcePathChecker,
+  useBetaRetrieve
 } from '../../../src/commands/forceSourceRetrieveSourcePath';
-
-import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
@@ -39,24 +41,27 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
 
 describe('SourcePathChecker', () => {
   let workspacePath: string;
+  let sandboxStub: SinonSandbox;
   let appendLineSpy: SinonStub;
   let showErrorMessageSpy: SinonStub;
   beforeEach(() => {
+    sandboxStub = createSandbox();
     workspacePath = getRootWorkspacePath();
-    appendLineSpy = stub(channelService, 'appendLine');
-    showErrorMessageSpy = stub(notificationService, 'showErrorMessage');
+    appendLineSpy = sandboxStub.stub(channelService, 'appendLine');
+    showErrorMessageSpy = sandboxStub.stub(
+      notificationService,
+      'showErrorMessage'
+    );
   });
 
   afterEach(() => {
-    appendLineSpy.restore();
-    showErrorMessageSpy.restore();
+    sandboxStub.restore();
   });
 
   it('Should continue when source path is in a package directory', async () => {
-    const isInPackageDirectoryStub = stub(
-      SfdxPackageDirectories,
-      'isInPackageDirectory'
-    ).returns(true);
+    const isInPackageDirectoryStub = sandboxStub
+      .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      .returns(true);
     const pathChecker = new SourcePathChecker();
     const sourcePath = path.join(workspacePath, 'package');
     const continueResponse = (await pathChecker.check({
@@ -72,10 +77,9 @@ describe('SourcePathChecker', () => {
   });
 
   it('Should notify user and cancel when source path is not inside of a package directory', async () => {
-    const isInPackageDirectoryStub = stub(
-      SfdxPackageDirectories,
-      'isInPackageDirectory'
-    ).returns(false);
+    const isInPackageDirectoryStub = sandboxStub
+      .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      .returns(false);
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
@@ -92,10 +96,9 @@ describe('SourcePathChecker', () => {
   });
 
   it('Should cancel and notify user if an error occurs when fetching the package directories', async () => {
-    const isInPackageDirectoryStub = stub(
-      SfdxPackageDirectories,
-      'isInPackageDirectory'
-    ).throws(new Error());
+    const isInPackageDirectoryStub = sandboxStub
+      .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      .throws(new Error());
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
@@ -109,5 +112,98 @@ describe('SourcePathChecker', () => {
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(cancelResponse.type).to.equal('CANCEL');
     isInPackageDirectoryStub.restore();
+  });
+});
+
+describe('Force Source Retrieve with Sourcepath Beta', () => {
+  let sandboxStub: SinonSandbox;
+
+  beforeEach(() => {
+    sandboxStub = createSandbox();
+  });
+
+  afterEach(() => {
+    sandboxStub.restore();
+  });
+
+  it('Should return false for URI not part of the beta when the beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const uriOne = Uri.parse('file:///bar.html');
+    const fileProcessing = useBetaRetrieve(uriOne);
+    expect(fileProcessing).to.equal(false);
+  });
+
+  it('Should return true for ApexClass URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const uriOne = Uri.parse('file:///bar.cls');
+    const apexClassProcessing = useBetaRetrieve(uriOne);
+    expect(apexClassProcessing).to.equal(true);
+  });
+
+  it('Should return false for ApexClass URI when beta configuration is disabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(false);
+    const uriOne = Uri.parse('file:///bar.cls');
+    const apexClassProcessing = useBetaRetrieve(uriOne);
+    expect(apexClassProcessing).to.equal(false);
+  });
+
+  it('Should return true for ApexTrigger URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const uriOne = Uri.parse('file:///bar.trigger');
+    const triggerProcessing = useBetaRetrieve(uriOne);
+    expect(triggerProcessing).to.equal(true);
+  });
+
+  it('Should return false for ApexTrigger URI when beta configuration is disabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(false);
+    const uriOne = Uri.parse('file:///bar.trigger');
+    const triggerProcessing = useBetaRetrieve(uriOne);
+    expect(triggerProcessing).to.equal(false);
+  });
+
+  it('Should return true for VF Page URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const uriOne = Uri.parse('file:///bar.page');
+    const pageProcessing = useBetaRetrieve(uriOne);
+    expect(pageProcessing).to.equal(true);
+  });
+
+  it('Should return false for VF Page URI when beta configuration is disabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(false);
+    const uriOne = Uri.parse('file:///bar.page');
+    const pageProcessing = useBetaRetrieve(uriOne);
+    expect(pageProcessing).to.equal(false);
+  });
+
+  it('Should return true for VF Component URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const uriOne = Uri.parse('file:///bar.component');
+    const cmpProcessing = useBetaRetrieve(uriOne);
+    expect(cmpProcessing).to.equal(true);
+  });
+
+  it('Should return false for VF Component URI when beta configuration is disabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(false);
+    const uriOne = Uri.parse('file:///bar.component');
+    const cmpProcessing = useBetaRetrieve(uriOne);
+    expect(cmpProcessing).to.equal(false);
   });
 });

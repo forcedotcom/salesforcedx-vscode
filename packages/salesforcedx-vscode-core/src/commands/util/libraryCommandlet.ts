@@ -67,7 +67,7 @@ export abstract class LibraryCommandletExecutor<T>
         }
       );
 
-      channelService.appendLine('Library result =>' + JSON.stringify(result));
+      channelService.appendLine(outputRetrieveTable(result));
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
       await notificationService.showSuccessfulExecution(commandName);
       return result;
