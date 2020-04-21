@@ -227,7 +227,7 @@ export const messages = {
   REST_API_description: 'REST API でクエリを実行',
   tooling_API_description: 'Tooling API でクエリを実行',
   telemetry_legal_dialog_message:
-    'VS Code のSalesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する] (%s)。',
+    'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   invalid_debug_level_id_error:
     '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
@@ -254,7 +254,7 @@ export const messages = {
   missing_default_org: 'デフォルトの組織が未設定',
   force_config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file:
-    'sfdx-project.json ファイル (%s)をパースできませんでした。パースエラー: %s',
+    'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
   table_header_errors: 'ERRORS',
@@ -483,6 +483,34 @@ export const messages = {
   WebLink: 'Web Links',
   Workflow: 'Workflows',
   XOrgHub: 'X Org Hubs',
+
+  conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
+  conflict_detect_retrieve_org_source:
+    '競合の検出: 組織のソースを取得しています',
+  conflict_detect_convert_org_source:
+    '競合の検出: 組織のソースを変換しています',
+  conflict_detect_conflicts_during_deploy:
+    'メタデータのデプロイ中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
+  conflict_detect_conflicts_during_retrieve:
+    'メタデータの取得中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
+  conflict_detect_override: '競合を上書き',
+  conflict_detect_show_conflicts: '競合を表示',
+  conflict_detect_conflict_header:
+    'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_command_hint:
+    '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_no_default_username:
+    'このプロジェクトにはデフォルトのユーザ名がありません',
+  conflict_detect_no_default_package_dir:
+    'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
+  conflict_detect_view_init: '競合検出ビューが初期化されていません',
+  conflict_detect_not_enabled:
+    '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
+  conflict_detect_root_title: 'Org Differences',
+  conflict_detect_view_root: '%s : %s file difference(s)',
+  conflict_detect_no_conflicts: '競合がありません',
+  conflict_detect_diff_title: '%s//%s ↔ local//%s',
+  conflict_detect_diff_command_title: 'ファイルを比較',
 
   force_source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
   force_source_diff_unsupported_type:
