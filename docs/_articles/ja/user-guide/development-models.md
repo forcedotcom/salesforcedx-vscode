@@ -1,77 +1,77 @@
 ---
-title: Development Models
+title: 開発モデル
 lang: ja
 ---
 
-## Overview
+## 概要
 
-Salesforce Extensions for VS Code supports Org Development and Package Development models to authorize, create and switch orgs in your project:
+Salesforce Extensions for VS Code は、組織開発モデルとパッケージ開発モデルをサポートしており、プロジェクト内の組織の承認、作成、切り替えを行うことができます。
 
-- **Org Development Model**: Allows you work with orgs that don’t have source tracking, such as sandbox, Developer Edition (DE) org, Trailhead Playground, or even a production org to retrieve and deploy code directly.
-- **Package Development Model**: Allows you to create self-contained applications or libraries that are deployed to your org as a single package. These packages are typically developed against source-tracked orgs such as scratch orgs. This development model uses org source tracking, source control, and continuous integration and deployment.
+- **組織開発モデル**: Sandbox、Developer Edition (DE) 組織、Trailhead Playground、さらには本番組織など、ソース追跡されない組織での作業を可能にし、コードを直接取得してデプロイします。
+- **パッケージ開発モデル**: 自己完結型のアプリケーションやライブラリを作成して、単一のパッケージとして組織にデプロイすることができます。これらのパッケージは通常、スクラッチ組織のようなソース追跡される組織で開発されます。この開発モデルでは、組織のソース追跡、ソース管理、および継続的インテグレーションや継続的デプロイメントを使用します。
 
-Salesforce Extensions for VS Code runs commands against the org that you’ve set as your default org for development.
+Salesforce Extensions for VS Code は、開発用にデフォルトの組織として設定した組織に対してコマンドを実行します。
 
-## Org Development Model
+## 組織開発モデル
 
-Use the Org Development model work with orgs that don’t have source tracking, such as sandboxes, Developer Edition (DE) orgs, or Trailhead Playgrounds, in Visual Studio Code. With this development model, you must track changes manually and deploy sets of changes to sandboxes and then to your production org. See the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
+組織開発モデルを使用して、Visual Studio Code で Sandbox、Developer Edition (DE) or Trailhead Playground などのソース追跡されない組織で作業します。この開発モデルでは、変更を手動で追跡し、変更を Sandbox にデプロイしてから本番組織にデプロイする必要があります。[Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) の Trailhead モジュールを参照してください。
 
 ![Demo](./images/changeset-demo.gif)
 
-To start developing with this model:
+このモデルで開発を始めるには:
 
-- Create a project.
-- Use the Org Picker to authorize an org you want develop against.
-- Use Manifest or Org Browser to retrieve source from the default org.
-- Deploy source to the default org.
+- プロジェクトを作成します。
+- 組織ピッカーを使用して、開発したい組織を認証します。
+- マニフェストまたは組織ブラウザを使用して、デフォルトの組織からソースを取得します。
+- ソースをデフォルトの組織にデプロイします。
 
-## Create Project with Manifest
+## マニフェストを使用してプロジェクトを作成する
 
-To create developing against non-source-tracked orgs:
+ソース追跡されない組織で開発を始めるには:
 
-1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project with Manifest**.
+1. VS Code のエディタを開き、コマンドパレットから、**SFDX: Create Project with Manifest (SFDX: マニフェストを使用してプロジェクトを作成)** を実行します。
 
-![Create project](./images/create-project-with-manifest.png)
+![プロジェクトの作成](./images/create-project-with-manifest.png)
 
-1. In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select the command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
+2. コードエディタのサイドバーで、組織ピッカーをクリックします。コマンドパレットが開き、組織か Dev Hub を認証するか、スクラッチ組織を作成するかを選択します。もしくは認証済みの組織の一覧から選択することもできます。
 
-If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows No Default Org Set.
+これが初めて VS Code でプロジェクトを作成する場合で、組織を認証していない場合は、組織ピッカーの表示テキストに [デフォルトの組織が設定されていません] と表示されます。
 
-1. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox.
+3. **SFDX: Authorize an Org (SFDX: 組織を認証)** を実行し、ログイン URL、例えば Sandbox を選択します。
 
-![Authorize an Org](./images/authorize-org-command.png)
+![組織を認証](./images/authorize-org-command.png)
 
-After you provide an org alias, a browser window opens. Allow access, log in to your org, and then return to the VS Code window. The Org Picker now shows the alias provided while authorizing the org.
+組織の別名を入力後、ブラウザのウィンドウが開きます。アクセスを許可し、組織にログインしてから、VS Code のウィンドウに戻ります。組織ピッカーには、入力した組織の別名が表示されます。
 
-![Org Picker](./images/org-picker.png)
+![組織ピッカー](./images/org-picker.png)
 
-### The Manifest (`package.xml`) File
+### マニフェスト (`package.xml`) ファイル
 
-After connecting to a sandbox, DE org, or Trailhead Playground, use the package.xml file to retrieve the metadata from your org. When you run SFDX: Create Project with Manifest command, a package.xml file is created. Add the various metadata types you want to retrieve to this file. To understand how to work with different subsets of metadata in `package.xml` file, see [Sample package.xml Manifest Files](https://developer.salesforce.com/docs/atlas.ja-jp.api_meta.meta/api_meta/manifest_samples.htm) in the _Metadata API Developer Guide_.
+Sandbox、DE 組織、または Trailhead Playground に接続後、package.xml を使用して組織からメタデータを取得します。SFDX: Create Project with Manifest (SFDX: マニフェストを使用してプロジェクトを作成) を実行すると、package.xml ファイルが作成されます。このファイルに、取得したい様々なメタデータ型を追加してください。`package.xml` ファイルにおける様々なメタデータのサブセットを扱う方法を理解するには、_メタデータ API 開発者ガイド_ の [package.xml マニフェストファイルのサンプル](https://developer.salesforce.com/docs/atlas.ja-jp.api_meta.meta/api_meta/manifest_samples.htm)を参照してください。
 
-### Retrieve Source
+### ソースの取得
 
-Org Development model doesn’t automatically track changes to your org, so be sure to keep track of the changes you retrieve.
+組織開発モデルでは、組織での変更が自動的に追跡されません。そのため、取得した変更を追跡するようにしてください。
 
-> Note: Retrieving source from an org overwrites the local versions of the source files.
+> 注意: 組織からソースを取得すると、ローカルのソースファイルが上書きされます。
 
-![Retrieve source from org](./images/retrieve-source-from-org.png)
+![組織からソースを取得](./images/retrieve-source-from-org.png)
 
-You can retrieve source for a manifest, a source file, a directory, or a folder:
+マニフェスト、ソースファイル、ディレクトリ、またはフォルダからソースを取得することができます。
 
-- Manifest
-  - In VS Code explorer or editor, right-click a manifest file and select **SFDX: Retrieve Source in Manifest from Org**.
-  - With a manifest file open in the editor, open the Command Palette and run **SFDX: Retrieve Source in Manifest from Org**.
-- Source File or Directory
-  - In VS Code explorer, right-click a source file or a directory and select **SFDX: Retrieve Source from Org**.
-  - With a source file open in the editor, right-click in the editing pane and select **SFDX: Retrieve This Source from Org**.
-  - With a source file open in the editor, open the Command Palette and run **SFDX: Retrieve This Source from Org**.
+- マニフェスト
+  - VS Code のエクスプローラまたはエディタで、マニフェストファイルを右クリックし、**SFDX: Retrieve Source in Manifest from Org** を選択します。
+  - エディタでマニフェストファイルを開いた状態で、コマンドパレットを開き、**SFDX: Retrieve Source in Manifest from Org** を実行します。
+- ソースファイルまたはディレクトリ
+  - VS Code のエクスプローラで、ソースファイルまたはディレクトリを右クリックし、**SFDX: Retrieve Source from Org** を選択します。
+  - エディタでソースファイルを開いた状態で、編集中のペインを右クリックし、**SFDX: Retrieve This Source from Org** を選択します。
+  - エディタでソースファイルを開いた状態で、コマンドパレットを開き、**SFDX: Retrieve This Source from Org** を実行します。
 
-When you select an item to retrieve source, only the existing nested items in the directory structure are retrieved. For example, if you retrieve source for the `classes` folder, the Apex classes that **currently exist in that directory** are retrieved. The command doesn’t retrieve all the Apex classes in the org; it only updates the classes that already exist in the folder. If you want to retrieve a new Apex class, add that class (or all Apex classes) to a `package.xml` file and retrieve source using the manifest file. You could also use a terminal to run `sfdx force:source:retrieve --metadata ApexClass:YourApexClass`.
+ソースを取得する項目を選択すると、ディレクトリ構造内の既存のネストされた項目だけが取得されます。例えば、`classes` フォルダを取得しようとすると、**現在そのディレクトリに存在する** Apex クラスだけが取得されます。コマンドは組織内のすべての Apex クラスを取得せず、フォルダ内の既存のクラスだけを更新します新しい Apex クラスを取得するには、そのクラス (またはすべての Apex クラス) を `package.xml` に追加して、そのマニフェストファイルを使用してソースを取得します。ターミナルを使用して、`sfdx force:source:retrieve --metadata ApexClass:YourApexClass` を実行することもできます。
 
-You can also use [Org Browser](./ja/user-guide/development-models/#create-project-and-use-org-browser) to retrive source for non-source-tracked orgs.
+ソース追跡されない組織に対しては、[組織ブラウザ](./ja/user-guide/development-models/#create-project-and-use-org-browser) を使用してソースを取得することもできます。
 
-The project structure after you retrieve source:
+ソースを取得した後のプロジェクトの構成は次のようになります。
 
 ```text
 your-app
@@ -91,91 +91,90 @@ your-app
     └── package.xml
 ```
 
-### Deploy Source
+### ソースのデプロイ
 
-When you deploy the code changes, he local version of the source files overwrites the metadata in your org.
+コードの変更をデプロイすると、ローカルバージョンのソースファイルが、組織のメタデータを上書きます。
 
-![Deploy source to org](./images/deploy-source-to-org.png)
+![ソースを組織にデプロイ](./images/deploy-source-to-org.png)
 
-You can deploy source of a manifest, a source file, a directory, or a folder:
+マニフェストのソース、ソースファイル、ディレクトリ、またはフォルダをデプロイすることができます。
 
-- Manifest
-  - In VS Code explorer or editor, right-click a manifest file and select **SFDX: Deploy Source in Manifest in Org**.
-  - With a manifest file open in the editor, open the Command Palette and run **SFDX: Deploy Source in Manifest in Org**.
-- Source File or Directory
-- In VS Code explorer, right-click a source file or a directory and select **SFDX: Deploy Source to Org**.
-- With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
-- With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
+- マニフェスト
+  - VS Code のエクスプローラまたはエディタで、マニフェストファイルを右クリックし、**SFDX: Deploy Source in Manifest from Org** を選択します。
+  - エディタでマニフェストファイルを開いた状態で、コマンドパレットを開き、**SFDX: Deploy Source in Manifest from Org** を実行します。
+- ソースファイルまたはディレクトリ
+  - VS Code のエクスプローラで、ソースファイルまたはディレクトリを右クリックし、**SFDX: Deploy Source from Org** を選択します。
+  - エディタでソースファイルを開いた状態で、編集中のペインを右クリックし、**SFDX: Deploy This Source from Org** を選択します。
+  - エディタでソースファイルを開いた状態で、コマンドパレットを開き、**SFDX: Deploy This Source from Org** を実行します。
 
-### Delete Source
+### ソースの削除
 
-You can delete source from your project and from your non-source-tracked org.
+ソース追跡されない組織とプロジェクトからソースを削除することができます。
 
-- In the VS Code explorer, right-click a manifest, a source file, or a directory and select **SFDX: Delete from Project and Org**.
-- With a source file open in the editor, right-click the file and select **SFDX: Delete This from Project and Org**.
-- With a source file open in the editor, open the Command Palette and run **SFDX: Delete from Project and Org**.
+- VS Code のエクスプローラで、マニフェスト, ソースファイルまたはディレクトリを右クリックして **SFDX: Delete from Project and Org (SFDX: プロジェクトと組織から削除)** を選択します。
+- エディタでソースファイルを開き、ファイルを右クリックして **SFDX: Delete This from Project and Org (SFDX: このファイルをプロジェクトと組織から削除)** を選択します。
+- エディタでソースファイルを開き、コマンドパレットを開いて **SFDX: Delete from Project and Org (SFDX: プロジェクトと組織から削除)** を実行します。
 
-## Create Project and Use Org Browser
+## プロジェクトの作成と組織ブラウザの使用
 
-To develop in non-scratch orgs and use Org Browser to retrieve source:
+スクラッチ組織ではない組織で開発し、組織ブラウザを使用してソースを取得するには:
 
-1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project**.
-1. In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select a command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
-1. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox. Log in to your org in the browser window and then return to the VS Code window.
+1. VS Code のエディタを開き、コマンドパレットから、**SFDX: Create Project (SFDX: プロジェクトを作成)** を実行します。
+2. コードエディタのサイドバーで、組織ピッカーをクリックします。コマンドパレットが開き、組織か Dev Hub を認証するか、スクラッチ組織を作成するかを選択します。もしくは認証済みの組織の一覧から選択することもできます。
+3. **SFDX: Authorize an Org (SFDX: 組織を認証)** を実行し、ログイン URL、例えば Sandbox を選択します。ブラウザのウィンドウで組織にログインしてから、VS Code のウィンドウに戻ります。
 
-Org Browser displays the available metadata types and their corresponding components in your default org. It saves the metadata of the default org in your local project under the .sfdx directory. See [Org Browser](./ja/user-guide/org-browser/).
+組織ブラウザは、デフォルトの組織で利用可能なメタデータ型と対応するコンポーネントを表示します。これは、デフォルトの組織のメタデータを .sfdx ディレクトリの下のローカルプロジェクトに保存します。[組織ブラウザ](./ja/user-guide/org-browser/)を参照してください。
 
-### Retrieve Source
+### ソースの取得
 
-You can retrieve a component or multiple components to your local project from the default org. To do so, click the retrieve button next to the component or the metadata type.
+コンポーネントまたは複数のコンポーネントを、デフォルトの組織からローカルのプロジェクトに取得することができます。そのためには、コンポーネントまたはメタデータ型の横にある取得ボタンをクリックします。
 
-You can also refresh metadata at org level, for a type, for folders in a type, and for components in a folder by clicking the refresh icon. Before refreshing the metadata, you can compare the differences between your local project and the metadata in your org. See [Source Diff](./ja/user-guide/source-diff).
+また、更新アイコンをクリックすることで、組織レベル、メタデータ型、メタデータ型内のフォルダ、およびフォルダ内のコンポーネント単位で、メタデータを更新することができます。メタデータを更新する前に、ローカルのプロジェクトと組織内のメタデータの違いを比較することができます。[ソースの差分](./ja/user-guide/source-diff)を参照してください。
 
-### Deploy Source
+### ソースのデプロイ
 
-After you have made the code changes you can deploy source for a source file, a directory, or a folder.
+コードの変更を行った後、ソースファイル、ディレクトリ、またはフォルダのソースをデプロイすることができます。
 
-- In VS Code explorer, right-click a source file or a directory and select **SFDX: Deploy Source to Org**.
-- With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
-- With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
+- VS Code のエクスプローラで、ソースファイルまたはディレクトリを右クリックし、**SFDX: Deploy Source to Org (SFDX: ソースを組織にデプロイ)** を選択します。
+- ソースファイルをエディタで開いた状態で、編集中のペインを右クリックし、**SFDX: Deploy This Source File to Org** を選択します。
+- ソースファイルをエディタで開いた状態で、コマンドパレットを開き、**SFDX: Deploy This Source File to Org** を実行します。
 
-> Note: To deploy files whenever you save them, select the workspace setting Push-or-deploy-on-save: Enabled. See [Deploy On Save](./ja/user-guide/deploy-on-save).
+> 注意: ファイルを保存するときにいつでもファイルをデプロイするには、ワークスペースの設定で、Push-or-deploy-on-save: Enabled を選択します。[保存時のデプロイ](./ja/user-guide/deploy-on-save)を参照してください。
 
-## Package Development Model
+## パッケージ開発モデル
 
-Use package development model for developing against orgs with source tracking such as scratch orgs. This model tracks the changes you make on your local workstation and in your default development org. Use packaged sets of metadata to move changes between orgs. See the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.
+スクラッチ組織のようなソース追跡機能を持つ組織に対して開発を行う場合には、パッケージ開発モデルを使用します。このモデルは、ローカルのワークステーションとデフォルトの開発組織での変更を追跡します。パッケージ化されたメタデータのセットを使用して、組織間で変更を移行します。[Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) の Trailhead モジュールを参照してください。
 
-## Create Project
+## プロジェクトの作成
 
-To start developing with this model:
+このモデルで開発を開始するには:
 
-1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project**.
-   If you want to work on an existing project, choose **File** > **Open** and navigate to the project directory. Before you open an existing project in VS Code, make sure that your project has a `sfdx-project.json` file and that metadata is in source format.
-   - For information on the project structure, see Project Setup (https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_.
-   - You can work with source-tracked orgs only if your metadata is in source format. See Source Format (../user-guide/source-format).
-1. In the Side Bar of the code editor, click Org Picker and this opens the Command Palette.
-1. Run **SFDX: Authorize an Org**. If you don’t have a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_.
-1. Click Org Picker and run **SFDX: Create a Default Scratch Org** to create and set a scratch org as your default org for development.
-1. Select the scratch org shape, enter an alias, and enter the duration when the scratch org expires. The Org Picker now shows the alias provided for the scratch org. You can click the browser icon ({% octicon browser %}) in the Side Bar to open the default org you are working against.
-   To change the default org you’re developing against, click the Org Picker and select a different org. Or, open the Command Palette and run **SFDX: Authorize an Org** or **SFDX: Create a Default Scratch Org**.
+1. VS Code のエディタを開き、コマンドパレットから、**SFDX: Create Project (SFDX: プロジェクトを作成)** を実行します。
+   - 既存のプロジェクトで作業したい場合は、**File (ファイル)** > **Open (開く)** を選択し、プロジェクトのディレクトリに移動します。VS Code で既存のプロジェクトを開く前に、プロジェクトに `sfdx-project.json` ファイルがあり、メタデータがソース形式であることを確認してください。
+   - プロジェクトの構造についての情報は、_Salesforce DX 開発者ガイド_ の[プロジェクトの設定](https://developer.salesforce.com/docs/atlas.ja-jp.224.0.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm)を参照してください。
+   - ソース追跡された組織で作業できるのは、メタデータがソース形式の場合のみです。[ソース形式](../user-guide/source-format)を参照してください。
+2. コードエディターのサイドバーで、組織ピッカーをクリックすると、コマンドパレットが開きます。
+3. **SFDX: Authorize an Org (組織を認証)** を実行します。Dev Hub がない場合は、_Salesforce DX 開発者ガイド_ の[組織での Dev Hub の有効化](https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm)を参照してください。
+4. 組織ピッカーをクリックし、**SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)** を実行し、開発用のデフォルトのスクラッチ組織を作成し設定します。
+5. スクラッチ組織のシェイプを選択し、別名を入力し、スクラッチ組織の期限が切れるまでの日数を入力します。組織ピッカーにはスクラッチ組織に対して入力した別名が表示されます。サイドバーのブラウザアイコン ({% octicon browser %}) をクリックすると、作業しているデフォルトの組織を開くことができます。
+   開発中のデフォルトの組織を変更するには、組織ピッカーをクリックして別の組織を選択してください。または、コマンドパレットを開いて、**SFDX: Authorize an Org (SFDX: 組織を認証)** または **SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)** を実行してください。
 
-### Push and Pull Source
+### ソースのプッシュとプル
 
-When you use the package development model, it’s simple to keep your local project and default development org in sync. Because you deploy your changes to other orgs using packaged sets of metadata, there’s no need to manually track your changes.
-VS Code is context aware that you are working in a scratch org and provides only push and pull commands, not commands to retrieve and deploy source.
+パッケージ開発モデルを使用すると、ローカルのプロジェクトとデフォルトの開発組織を同期させるのが簡単になります。パッケージ化されたメタデータのセットを使用して他の組織に変更をデプロイするので、手動で変更を追跡する必要はありません。VS Code は、スクラッチ組織で作業していることをコンテキストとして認識しており、ソースを取得してデプロイするためのコマンドではなく、プッシュとプルのコマンドのみを提供します。
 
-#### Push Source
+#### ソースのプッシュ
 
-To push your source to the new scratch org or changes you made, run **SFDX: Push Source to Default Scratch Org**.
+ソースを新しいスクラッチ組織にプッシュしたり変更を加えたりするには、**SFDX: Push Source to Default Scratch Org (SFDX: デフォルトのスクラッチ組織にソースをプッシュ)** を実行します。
 
-If you want the changes in the project to overwrite changes in the scratch org, run **SFDX: Push Source to Default Scratch Org and Override Conflicts**.
+プロジェクトの変更をスクラッチ組織の変更に上書きする場合は、**SFDX: Push Source to Default Scratch Org and Override Conflicts (SFDX: デフォルトのスクラッチ組織にソースをプッシュして競合を上書き)** を実行します。
 
-#### Pull Source
+#### ソースのプル
 
-After you make changes in your browser, run **SFDX: Pull Source from Default Scratch Org** to update your project.
+ブラウザで変更を行った後、**SFDX: Pull Source from Default Scratch Org (SFDX: デフォルトのスクラッチ組織からソースをプル)** を実行してプロジェクトを更新します。
 
-If you want the changes in the scratch org to overwrite changes in the project, run **SFDX: Pull Source from Default Scratch Org and Override Conflicts**.
+スクラッチ組織の変更をプロジェクトの変更に上書きする場合は、**SFDX: Pull Source from Default Scratch Org and Override Conflicts (SFDX: デフォルトのスクラッチ組織からソースをプルして競合を上書き)** を実行します。
 
-#### View Changes
+#### 変更の確認
 
-Before you push local changes to the scratch org or pull remote changes to the local project, you can see the changes in the Output panel. To do so, run **SFDX: View Changes in Default Scratch Org** from the Command Palette.
+ローカルの変更をスクラッチ組織にプッシュしたり、リモートの変更をローカルのプロジェクトにプルしたりする前に、出力パネルで変更内容を確認することができます。そのためには、コマンドパレットから **SFDX: View Changes in Default Scratch Org** を実行してください。

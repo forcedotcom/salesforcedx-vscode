@@ -1,5 +1,5 @@
 ---
-title: Command Reference
+title: コマンドリファレンス
 lang: ja
 ---
 
@@ -12,11 +12,11 @@ When a command finishes running (due to success, failure, or cancellation), a no
 To see the output of the commands that you run, select **View** > **Output**, and then select **Salesforce CLI** from the dropdown menu. Alternatively, click **Show** in the completion notification.  
 ![Output view, showing the results of an Apex test run](./images/output_view.png)
 
-## Available Commands
+## 利用可能なコマンド
 
 Read on to learn about the commands available in Salesforce Extension for VS Code, their usage, the CLI command it executes under the hood, and further reference sources.
 
-### Create Project
+### プロジェクトを作成する
 
 - **SFDX: Create Project**
   - Creates a Salesforce project in the current directory. This command creates the standard structure and a configuration file, which indicates that the directory is a Salesforce DX project.
@@ -27,7 +27,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Executes the CLI command `force:project:create --template standard --manifest`
   - See [Sample `package.xml` Manifest Files](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/manifest_samples.htm).
 
-### Authorize Org
+### 組織を認証する
 
 - **SFDX: Authorize an Org**
   - Authorizes an org using the specified login URL and name, and sets the authenticated org as the default username.
@@ -54,7 +54,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Executes the CLI command `force:auth:logout --all --noprompt`
   - See [Log Out of an Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm).
 
-### Sync Org and Local Project
+### 組織とローカルのプロジェクトを同期する
 
 - **SFDX: Retrieve Source from Org**
   - Retrieves source for the selected file or directory from the default org. Use this command to retrieve source from orgs that don’t have source tracking, such as a sandbox or a production org. The source you retrieve overwrites the corresponding local source file.
@@ -101,7 +101,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Displays the changes made in the scratch org, which can be useful to view before you pull the scratch org changes to the local project.
   - Executes the CLI command `force:source:status --remote`
 
-### Org Info
+### 組織情報
 
 - **SSFDX: Display Org Details for Default Org**
   - Displays org description for the default org. Details include access token, alias, client ID, connected status, and more.
