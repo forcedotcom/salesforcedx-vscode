@@ -7,7 +7,7 @@ SOQL クエリのスニペットを使用して、SOQL クエリのコード補�
 
 Salesforce Object Query Language (SOQL) の使用方法については、[SOQL および SOSL リファレンス](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql.htm) を参照してください。
 
-> 注意: SOQL 言語サーバは現在ベータです。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./en/bugs-and-feedback)してください。より詳細な情報は、[ロードマップ](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Roadmap) を参照してください。
+> 注意: SOQL 言語サーバは現在ベータです。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。より詳細な情報は、[ロードマップ](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Roadmap) を参照してください。
 
 ## SOQL 言語サーバを用いて開発する
 
