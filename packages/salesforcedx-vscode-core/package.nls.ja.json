@@ -37,7 +37,7 @@
   "force_apex_trigger_create_text": "SFDX: Apex トリガを作成",
   "show_cli_success_msg_description": "VS Code のコマンドパレットを使用して実行されたSalesforce CLI コマンドのステータスメッセージを、ポップアップで表示か (true)、ステータスバーに表示か (false) を指定します。",
   "force_start_apex_debug_logging": "SFDX: Replay Debugger 用の Apex デバッグログを有効化",
-  "force_stop_apex_debug_logging": "SFDX: Replay Debugger用の Apex デバッグログを無効化",
+  "force_stop_apex_debug_logging": "SFDX: Replay Debugger 用の Apex デバッグログを無効化",
   "isv_bootstrap_command_text": "SFDX: ISV デバッグ用のプロジェクトを新規作成し設定",
   "force_apex_log_get_text": "SFDX: Apex デバッグログを取得...",
   "retrieve_test_code_coverage_text": "Apex テストの実行時にコードカバレッジの結果を計算して取得するかどうかを指定します。",

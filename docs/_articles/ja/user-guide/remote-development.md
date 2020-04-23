@@ -5,11 +5,11 @@ lang: ja
 
 ## 概要
 
-Salesforce Extension for VS Code は、リモート開発をサポートし、コンテナをフル機能の開発環境として利用することができます。コンテナにマウントされたプロジェクトを開いて、完全なコード補完、コードナビゲーション、デバッグなどを仕様して編集することができます。
+Salesforce Extension for VS Code は、リモート開発をサポートし、コンテナをフル機能の開発環境として利用することができます。コンテナにマウントされたプロジェクトを開いて、完全なコード補完、コードナビゲーション、デバッグなどを使用して編集することができます。
 
 > 注意: リモート開発機能は現在ベータ版です。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。
 
-リモート開発についての詳細を理解するには、VS Code のドキュメントを参照してください。:
+リモート開発についての詳細を理解するには、VS Code のドキュメントを参照してください。
 
 - [開発コンテナ](https://code.visualstudio.com/docs/remote/containers#_indepth-setting-up-a-folder-to-run-in-a-container)として[Docker コンテナ](https://www.docker.com/)を使用する
 - [フル機能の開発環境](https://code.visualstudio.com/docs/remote/remote-overview)を提供する
@@ -17,7 +17,7 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
 
 ## インストール
 
-開発コンテナでリモート開発を開始するには、以下をインストールします。:
+開発コンテナでリモート開発を開始するには、以下をインストールします。
 
 - Docker Desktop。システム要件とインストール手順については、以下を参照してください。
   - [Windows](https://docs.docker.com/docker-for-windows/install/): 現在、Docker desktop for windows は Linux Containers のみをサポートしており、[Windows Containers はサポートしていません](https://code.visualstudio.com/docs/remote/containers#_known-limitations)。インストールの際には、Linux Containers のデフォルトオプションを使用してください。
@@ -37,7 +37,7 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
 1. [サンプルリポジトリ](https://github.com/forcedotcom/vscode-remote-try-sfdx)をクローンします。サンプルプロジェクト内の `.devcontainer` フォルダには、開発コンテナの設定方法や使用する Dockerfile、インストールする拡張機能を定義した `devcontainer.json` ファイルが格納されています。詳細については、[Creating a devcontainer.json file](https://code.visualstudio.com/docs/remote/containers#_creating-a-devcontainerjson-file) および [devcontainer.json reference](https://code.visualstudio.com/docs/remote/containers#_devcontainerjson-reference) を参照してください。
 2. コマンドパレットから `Remote-Containers: Open Folder in Container` を実行しクローンしたプロジェクトを開きます。VS Code は、プロジェクトを初めて開いたときに開発コンテナを作成します。開発コンテナが作成されると、ローカルシステム内のプロジェクトフォルダがコンテナに自動的に接続、マップされ、サイドバーには **Dev Container: Salesforce Project** が表示されます。コンテナでは、Java、Git、Salesforce CLI、および `devcontainer.json` ファイルで定義された他のすべての拡張機能がプリインストールされ設定されます。
 
-![開発コンテナ](./images/devcontainer.png)
+   ![開発コンテナ](./images/devcontainer.png)
 
 3. コマンドパレットから、`SFDX:Authorize a Dev Hub (SFDX: Dev Hub を認証)` をコンテナで実行します。出力パネル (エディタ領域の下) から、認証を完了するために必要なユーザコードと検証 URL を取得することができます。
    Dev Hub として認証したくない組織にログインしている場合は、必ずログアウトしてください。そうしないと、認証したい組織の認証情報を入力するプロンプトが表示されません。

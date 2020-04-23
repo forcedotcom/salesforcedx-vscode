@@ -11,7 +11,7 @@ lang: ja
 
 - `.vscode/settings.json` ファイルに `"salesforcedx-vcode-core.push-or-deploy-on-save.enabled": true` を追加します。
 - または、ワークスペースの設定を更新します。
-  - **ファイル** > **基本設定** > **設定** (Windows または Linux) または **Code** > **基本設定** > **設定** (macOS) を選択します。
+  - **[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** \(Windows、Linux\) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** \(macOS\) を選択します。
   - Salesforce Feature Previews で、`Push-or-deploy-on-save: Enabled` をチェックします。
 
 ![保存時デプロイの設定](./images/deploy-on-save.png)
@@ -30,4 +30,4 @@ lang: ja
 
 - アクティブなデプロイがなく、デプロイのためにファイルがキューに入っていない場合、ファイルの保存するとただちにデプロイが開始されます。
 
-スクラッチ組織で作業しているときに保存時のデプロイを有効にすると、拡張機能のコンテキストはパッケージ開発モデルになります。つまり、ファイルを保存するたびに **SFDX: デフォルトのスクラッチ組織にソースをプッシュ** が起動し、`force:source:push` が実行されます。ソース追跡されていない組織で動作する、組織開発モデルでは、ファイルを保存するたびに **SFDX: 組織へソースをデプロイ** が起動し、`force:source:deploy` が実行されます。
+スクラッチ組織で作業しているときに保存時のデプロイを有効にすると、拡張機能のコンテキストはパッケージ開発モデルになります。つまり、ファイルを保存するたびに **SFDX: デフォルトのスクラッチ組織にソースをプッシュ (SFDX: Push Source to Default Scratch Org)** が起動し、`force:source:push` が実行されます。ソース追跡されていない組織で動作する、組織開発モデルでは、ファイルを保存するたびに **SFDX: 組織へソースをデプロイ (SFDX: Deploy Source to Org)** が起動し、`force:source:deploy` が実行されます。

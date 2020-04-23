@@ -9,10 +9,10 @@ lang: ja
 
 ## 設定
 
-このベータ機能を有効化するには:
+このベータ機能を有効化するには、以下の手順に従います。
 
 1. **[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (Windows or Linux) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** を選択します。
-2. Salesforce Feature Previews の下にある、Experimental: Deploy Retrieve を選択します。
+2. Salesforce Feature Previews にある、Experimental: Deploy Retrieve を選択します。
 
 このベータ版リリースでは、以下のメタデータ型に対して **SFDX: Deploy this Source to Org (SFDX: このソースを組織にデプロイ)** を実行した際に、パフォーマンス改善が有効になります。
 

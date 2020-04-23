@@ -3,7 +3,7 @@ title: 組織ブラウザ
 lang: ja
 ---
 
-The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier and simpler to retrieve metadata source, without having to use a [manifest file](./ja/user-guide/development-models/#create-project-with-manifest). 組織ブラウザは、Sandbox や dev 組織のような、非スクラッチ組織でのみ利用できます。
+組織ブラウザは、デフォルトの組織で利用可能なメタデータ型とそれに対応するコンポーネントを表示します。この機能により、[マニフェストファイル](./ja/user-guide/development-models/#マニフェストを使用してプロジェクトを作成する)を使用しなくても、メタデータのソースを簡単かつシンプルに取得できるようになります。組織ブラウザは、Sandbox や Developer Edition 組織のような、非スクラッチ組織でのみ利用できます。
 
 ## 組織ブラウザを開く
 
@@ -17,20 +17,13 @@ The Org Browser displays the available metadata types and their corresponding co
 6. メタデータ型のコンポーネントを更新する
 7. メタデータコンポーネントのソースを取得する
 
-組織ブラウザを開くには、VS Code ウィンドウのサイドバーで雲のアイコン **(1)** をクリックします。もしアイコンが表示されない場合は、[デフォルトの組織]((./ja/user-guide/default-org)が非スクラッチ組織に設定されていることを確認してください。
+組織ブラウザを開くには、VS Code ウィンドウのサイドバーで雲のアイコン **(1)** をクリックします。もしアイコンが表示されない場合は、[デフォルトの組織](./ja/user-guide/default-org)が非スクラッチ組織に設定されていることを確認してください。
 
-Org Browser を開く際に、デフォルトの組織にあるすべてのメタデータは .sfdx ディレクトリの下のローカルプロジェクトに保存され、組織への呼び出し回数が最小限に抑えられます。
+組織ブラウザを開く際に、デフォルトの組織にあるすべてのメタデータは .sfdx ディレクトリの下のローカルプロジェクトに保存され、組織への呼び出し回数が最小限に抑えられます。
 
 ## メタデータの一覧表示と更新
 
 組織ブラウザは、デフォルトの組織にあるすべてのメタデータ型 **(4)** を一覧表示します。コンポーネント **(5)** を表示するには、メタデータ型を展開します。レポート、ダッシュボード、ドキュメント、メールテンプレートなどのフォルダがあるメタデータ型を展開すると、利用可能なフォルダがすべて表示されます。フォルダを展開することで、フォルダ内のコンポーネントを表示することができます。
-
-You can refresh metadata at org level, for a type, for folders in a type, and for components in a folder. Click refresh icon next to:
-
-- Org Browser **(2)** to refresh available metadata types in the org
-- metadata type **(6)** to get an updated list of components for the type
-- folder metadata type to update the folders in the type, but not the components in the folder
-- folder in a metadata type to refresh the components in it
 
 メタデータは、組織レベル、メタデータ型、メタデータ型内のフォルダ、およびフォルダ内のコンポーネントで更新することができます。
 
@@ -43,7 +36,7 @@ You can refresh metadata at org level, for a type, for folders in a type, and fo
 
 ## コンポーネントの取得
 
-コンポーネント名の隣にある取得ボタン **(7)** をクリックすることで、ローカルのプロジェクトにコンポーネントを取得できます。現在、コンポーネントは [sfdx-project.json](./ja/getting-started/first-project/#sfdx-projectjson-ファイル)ファイルで定義されているデフォルトのパッケージディレクトリに取得されます。
+コンポーネント名の隣にある取得ボタン **(7)** をクリックすることで、ローカルのプロジェクトにコンポーネントを取得できます。現在、コンポーネントは [sfdx-project.json](./ja/getting-started/first-project/#sfdx-projectjson-ファイル) ファイルで定義されているデフォルトのパッケージディレクトリに取得されます。
 
 メタデータ型の隣にある取得ボタンをクリックすることで、デフォルトの組織から複数のコンポーネントを取得することもできます。取得しようとしているコンポーネントが上書きされてしまう場合は、どのように処理を進めるかの選択画面が表示されます。
 
