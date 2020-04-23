@@ -262,11 +262,11 @@ export const messages = {
   table_header_type: 'TYPE',
   table_header_full_name: 'FULL NAME',
   table_header_state: 'STATE',
-  table_no_results_found: '結果がありません',
-  table_title_deployed_source: 'デプロイされたソース',
-  table_title_deploy_errors: 'デプロイエラー',
-  table_title_pushed_source: 'プッシュされたソース',
-  table_title_push_errors: 'プッシュエラー',
+  table_no_results_found: 'No results found',
+  table_title_deployed_source: 'Deployed Source',
+  table_title_deploy_errors: 'Deploy Errors',
+  table_title_pushed_source: 'Pushed Source',
+  table_title_push_errors: 'Push Errors',
   push_conflicts_error:
     '競合のためソースをプッシュできませんでした。組織のメタデータをローカルファイルで上書きしても良い場合は、 "SFDX: ソースをデフォルトのスクラッチ組織にプッシュし競合を上書き" を実行してください。',
   error_no_default_username:
