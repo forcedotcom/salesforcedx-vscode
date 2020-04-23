@@ -66,11 +66,21 @@ export class FilePathGatherer implements ParametersGatherer<string> {
 
 export type FileSelection = { file: string };
 export class FileSelector implements ParametersGatherer<FileSelection> {
+  private readonly displayMessage: string;
+  private readonly errorMessage: string;
   private readonly include: string;
   private readonly exclude?: string;
   private readonly maxResults?: number;
 
-  constructor(include: string, exclude?: string, maxResults?: number) {
+  constructor(
+    displayMessage: string,
+    errorMessage: string,
+    include: string,
+    exclude?: string,
+    maxResults?: number
+  ) {
+    this.displayMessage = displayMessage;
+    this.errorMessage = errorMessage;
     this.include = include;
     this.exclude = exclude;
     this.maxResults = maxResults;
@@ -90,7 +100,13 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
         description: file.fsPath
       };
     });
-    const selection = await vscode.window.showQuickPick(fileItems);
+    if (fileItems.length === 0) {
+      vscode.window.showErrorMessage(this.errorMessage);
+      return { type: 'CANCEL' };
+    }
+    const selection = await vscode.window.showQuickPick(fileItems, {
+      placeHolder: this.displayMessage
+    });
     return selection
       ? { type: 'CONTINUE', data: { file: selection.description.toString() } }
       : { type: 'CANCEL' };

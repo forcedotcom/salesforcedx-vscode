@@ -7,7 +7,7 @@ Apex extension allows you to run Apex tests to verify the functionality of your 
 
 ## Explore Your Apex Tests
 
-The Test view in the Side Bar provides several features such as LWC Tests and Apex Tests. To access the Test view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory. If the Test view is empty, check if the [Java setup](../getting-started/java-setup) is configured correctly.
+The Test view in the Side Bar provides several features such as LWC Tests and Apex Tests. To access the Test view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory. If the Test view is empty, check if the [Java setup](./en/getting-started/java-setup) is configured correctly.
 
 Use the Apex Tests feature to run one test method, test methods in one class, or all your Apex tests.
 
@@ -50,7 +50,7 @@ You can retrieve code coverage results for your Apex Classes and Apex Triggers e
 
 ![Apex test results with code coverage](./images/code_coverage_output.png)
 
-To see code coverage for your test, click the three-bars icon {% octicon three-bars %} that’s next to your Org alias at the bottom of the Side Bar and open the Apex Class or Apex Trigger being tested. Click the the three-bars icon to toggle between enabling and disabling code coverage highlighting.
+To see code coverage for your test, click the three-bars icon ({% octicon three-bars %}) that’s next to your Org alias at the bottom of the Side Bar and open the Apex Class or Apex Trigger being tested. Click the the three-bars icon to toggle between enabling and disabling code coverage highlighting.
 
 ![Enable Apex test visual code coverage](./images/code_coverage_footer.png)
 
