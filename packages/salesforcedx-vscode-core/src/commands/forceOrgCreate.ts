@@ -192,7 +192,11 @@ const preconditionChecker = new CompositePreconditionChecker(
   new DevUsernameChecker()
 );
 const parameterGatherer = new CompositeParametersGatherer(
-  new FileSelector('config/**/*-scratch-def.json'),
+  new FileSelector(
+    nls.localize('parameter_gatherer_enter_scratch_org_def_files'),
+    nls.localize('error_no_scratch_def'),
+    'config/**/*-scratch-def.json'
+  ),
   new AliasGatherer()
 );
 

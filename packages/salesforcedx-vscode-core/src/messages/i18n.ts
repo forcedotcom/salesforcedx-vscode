@@ -54,9 +54,11 @@ export const messages = {
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
-    'Enter an org alias or use default alias',
+    'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url:
-    'Enter a custom login URL or use default URL',
+    'Enter a custom login URL or use the default URL',
+  parameter_gatherer_enter_scratch_org_def_files:
+    'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
   parameter_gatherer_enter_project_name: 'Enter project name',
@@ -287,6 +289,8 @@ export const messages = {
     'Run "SFDX: Authorize an Org" to authorize your org again.',
   error_org_browser_init: 'Org Browser has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
+  error_no_scratch_def:
+    'No scratch definition files found. These files must be in the "config" folder and have file names that end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   force_list_metadata: 'SFDX: Force List Metadata',
 
   AccessControlPolicy: 'Access Control Policies',
@@ -483,10 +487,11 @@ export const messages = {
   conflict_detect_convert_org_source:
     'Conflict Detection: converting org source',
   conflict_detect_conflicts_during_deploy:
-    'Conflicts are detected while deploying metadata. The conflicted files are listed in the Output view.',
+    'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
   conflict_detect_conflicts_during_retrieve:
-    'Conflicts are detected while retrieving metadata. The conflicted files are listed in the Output view.',
+    'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
   conflict_detect_override: 'Override Conflicts',
+  conflict_detect_show_conflicts: 'Show Conflicts',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_command_hint:
@@ -494,6 +499,14 @@ export const messages = {
   conflict_detect_no_default_username: 'No default username for this project',
   conflict_detect_no_default_package_dir:
     'No default package directory for this project',
+  conflict_detect_view_init: 'Conflict detection view has not been initialized',
+  conflict_detect_not_enabled:
+    'Enable the Detect Conflicts at Sync setting to view org differences',
+  conflict_detect_root_title: 'Org Differences',
+  conflict_detect_view_root: '%s : %s file difference(s)',
+  conflict_detect_no_conflicts: 'No conflicts',
+  conflict_detect_diff_title: '%s//%s ↔ local//%s',
+  conflict_detect_diff_command_title: 'Compare Files',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_unsupported_type:

@@ -5,10 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const supportedToolingTypes = new Map([
-  ['Apexclass', 'ApexClassMember']
-]);
-
 /**
  * Enum that represents the status of a Tooling Container Deploy
  */
@@ -17,30 +13,6 @@ export enum DeployStatusEnum {
   Queued = 'Queued',
   Error = 'Error',
   Failed = 'Failed'
-}
-
-// what other parameters would be necessary
-export interface FilePathOpts {
-  filepath: string;
-  wait?: string;
-}
-
-export interface ManifestOpts {
-  manifestPath: string;
-  wait: string;
-}
-
-export interface DirectoryOpts {
-  directory: string;
-  wait: string;
-}
-
-export interface ToolingCreateResult {
-  id: string;
-  success: boolean;
-  errors: string[];
-  name: string;
-  message: string;
 }
 
 export interface ToolingRetrieveResult {

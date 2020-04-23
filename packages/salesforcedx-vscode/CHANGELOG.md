@@ -1,3 +1,41 @@
+# 48.11.0 - April 16, 2020
+
+## Fixed
+
+#### docs
+
+- Fix broken Java Setup link in [Apex Tests](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2119](https://github.com/forcedotcom/salesforcedx-vscode/pull/2119), [Issue #2108](https://github.com/forcedotcom/salesforcedx-vscode/issues/2108))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added a message to display info when selecting scratch org definition and an error message when no scratch org definition files exist. ([PR #2115](https://github.com/forcedotcom/salesforcedx-vscode/pull/2115))
+
+# 48.10.0 - April 9, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added tree visualization to [conflict detection beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/detect-conflicts) ([PR #2096](https://github.com/forcedotcom/salesforcedx-vscode/pull/2096))
+
+- Added support for Apex Triggers, Visualforce Pages, and Visualforce Components to [performance enhancements beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements)([PR #2111](https://github.com/forcedotcom/salesforcedx-vscode/pull/2111))
+
+# 48.9.0 - April 2, 2020
+
+## Fixed
+
+#### docs
+
+- Fixed documentation for [Prettier Setup Requirements](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/prettier) ([PR #2105](https://github.com/forcedotcom/salesforcedx-vscode/pull/2105), [Issue #2079](https://github.com/forcedotcom/salesforcedx-vscode/issues/2079))
+
+## Added
+
+#### docs
+
+- Added documentation for [Highlighting Apex Code Coverage](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/testing) ([PR #2104](https://github.com/forcedotcom/salesforcedx-vscode/pull/2104))
+
 # 48.8.0 - March 26, 2020
 
 ## Fixed
