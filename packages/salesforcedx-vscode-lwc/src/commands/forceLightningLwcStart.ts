@@ -114,26 +114,15 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       }
     });
 
-    // handler errors
-    execution.processExitSubject.subscribe(async exitCode => {
-      DevServerService.instance.clearServerHandler(serverHandler);
-
-      if (!serverStarted && !cancellationToken.isCancellationRequested) {
-        let message = nls.localize('force_lightning_lwc_start_failed');
-
-        // TODO proper exit codes in lwc-dev-server for address in use, auth/org error, etc.
-        if (exitCode === 127) {
-          message = nls.localize('force_lightning_lwc_start_not_found');
-        }
-
-        showError(new Error(message), logName, commandName);
-      } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
-        const message = nls.localize(
-          'force_lightning_lwc_start_exited',
-          exitCode
-        );
-        showError(new Error(message), logName, commandName);
+    execution.stderrSubject.subscribe(async data => {
+      if (data && data.toString().includes('Server start up failed')) {
+        this.handleErrors(cancellationToken, serverHandler, 1);
+        progress.complete();
       }
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      this.handleErrors(cancellationToken, serverHandler, exitCode);
     });
 
     notificationService.reportExecutionError(
@@ -147,6 +136,30 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       );
       this.showChannelOutput();
     });
+  }
+
+  private handleErrors(
+    cancellationToken: vscode.CancellationToken,
+    serverHandler: ServerHandler,
+    exitCode: number | null | undefined
+  ) {
+    DevServerService.instance.clearServerHandler(serverHandler);
+    if (!this.serverStarted && !cancellationToken.isCancellationRequested) {
+      let message = nls.localize('force_lightning_lwc_start_failed');
+
+      // TODO proper exit codes in lwc-dev-server for address in use, auth/org error, etc.
+      if (exitCode === 127) {
+        message = nls.localize('force_lightning_lwc_start_not_found');
+      }
+
+      showError(new Error(message), logName, commandName);
+    } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
+      const message = nls.localize(
+        'force_lightning_lwc_start_exited',
+        exitCode
+      );
+      showError(new Error(message), logName, commandName);
+    }
   }
 }
 

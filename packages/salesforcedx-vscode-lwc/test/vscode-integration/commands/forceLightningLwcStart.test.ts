@@ -192,6 +192,36 @@ describe('forceLightningLwcStart', () => {
         );
       });
 
+      it('shows the error message if server start up failed', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+
+        fakeExecution.stderrSubject.next('Server start up failed');
+        sinon.assert.notCalled(
+          notificationServiceStubs.showSuccessfulExecutionStub
+        );
+
+        sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+        sinon.assert.calledWith(
+          notificationServiceStubs.showErrorMessageStub,
+          sinon.match(
+            nls.localize(
+              'command_failure',
+              nls.localize(`force_lightning_lwc_start_text`)
+            )
+          )
+        );
+
+        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledWith(
+          channelServiceStubs.appendLineStub,
+          sinon.match(nls.localize('force_lightning_lwc_start_failed'))
+        );
+      });
+
       it('opens the browser once server is started', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
