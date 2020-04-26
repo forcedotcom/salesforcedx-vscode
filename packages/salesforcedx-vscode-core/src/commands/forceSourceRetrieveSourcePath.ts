@@ -118,13 +118,17 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
 // this supported types logic is temporary until we have a way of generating the metadata type from the path
 // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
 export function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
-  const filePath = explorerPath.fsPath;
+  // const filePath = explorerPath.fsPath;
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
-  const supportedType =
+  const supportedType = true; /*
     path.extname(filePath) === APEX_CLASS_EXTENSION ||
-    path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
-    path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
-    path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION;
+    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`) ||
+    (path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
+      filePath.includes(`${APEX_TRIGGER_EXTENSION}-meta.xml`)) ||
+    (path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
+      filePath.includes(`${VISUALFORCE_COMPONENT_EXTENSION}-meta.xml`)) ||
+    (path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION ||
+      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`)); */
   return betaDeployRetrieve && supportedType;
 }
 
