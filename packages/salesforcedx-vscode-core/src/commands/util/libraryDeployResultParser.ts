@@ -13,9 +13,9 @@ import {
   DeployStatusEnum,
   SourceResult
 } from '@salesforce/source-deploy-retrieve';
-import { nls } from '../messages';
+import { nls } from '../../messages';
 
-export class ToolingDeployParser {
+export class LibraryDeployResultParser {
   public result: DeployResult;
 
   constructor(deployResult: DeployResult) {

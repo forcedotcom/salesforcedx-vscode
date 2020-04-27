@@ -11,17 +11,21 @@ import {
   DeployStatusEnum,
   SourceClient
 } from '@salesforce/source-deploy-retrieve';
-import { ProgressLocation, window } from 'vscode';
+import { languages, ProgressLocation, window } from 'vscode';
 import { channelService } from '../../channels';
-import { ToolingDeployParser } from '../../deploys';
+import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { TelemetryData, telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
+import { LibraryDeployResultParser } from './libraryDeployResultParser';
 import { CommandletExecutor } from './sfdxCommandlet';
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  public static errorCollection = languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
   protected showChannelOutput = true;
   protected sourceClient: SourceClient | undefined;
   protected executionName: string = '';
@@ -62,7 +66,7 @@ export abstract class LibraryCommandletExecutor<T>
         }
       );
 
-      const parser = new ToolingDeployParser(result);
+      const parser = new LibraryDeployResultParser(result);
       const outputResult = await parser.outputResult();
       channelService.appendLine(outputResult);
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
@@ -71,8 +75,13 @@ export abstract class LibraryCommandletExecutor<T>
         result.State === DeployStatusEnum.Completed ||
         result.State === DeployStatusEnum.Queued
       ) {
+        LibraryCommandletExecutor.errorCollection.clear();
         await notificationService.showSuccessfulExecution(commandName);
       } else {
+        handleLibraryDiagnostics(
+          result,
+          LibraryCommandletExecutor.errorCollection
+        );
         notificationService.showFailedExecution(commandName);
       }
       return result;

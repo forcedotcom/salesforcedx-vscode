@@ -11,8 +11,8 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { ToolingDeployParser } from '../../../src/deploys';
-import { nls } from '../../../src/messages';
+import { LibraryDeployResultParser } from '../../../../src/commands/util/libraryDeployResultParser';
+import { nls } from '../../../../src/messages';
 
 describe('Tooling Deploy Parser', () => {
   const completeDeployResult: DeployResult = {
@@ -93,7 +93,7 @@ describe('Tooling Deploy Parser', () => {
   };
 
   it('should create array of success info for updated class', async () => {
-    const parser = new ToolingDeployParser(completeDeployResult);
+    const parser = new LibraryDeployResultParser(completeDeployResult);
     const successInfo = parser.buildSuccesses(
       completeDeployResult.DeployDetails!.componentSuccesses[0]
     );
@@ -113,7 +113,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create array of success info for created class', async () => {
-    const parser = new ToolingDeployParser(completeDeployResult);
+    const parser = new LibraryDeployResultParser(completeDeployResult);
     const successInfo = parser.buildSuccesses({
       problem: 'null',
       problemType: 'null',
@@ -141,7 +141,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create array of error info for apex class', async () => {
-    const parser = new ToolingDeployParser(failedDeployResult);
+    const parser = new LibraryDeployResultParser(failedDeployResult);
     const errorsInfo = parser.buildErrors(
       failedDeployResult.DeployDetails!.componentFailures
     );
@@ -157,7 +157,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with successful results', async () => {
-    const parser = new ToolingDeployParser(completeDeployResult);
+    const parser = new LibraryDeployResultParser(completeDeployResult);
 
     let mockResult = '=== Deployed Source\n';
     mockResult +=
@@ -174,7 +174,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with failed results', async () => {
-    const parser = new ToolingDeployParser(failedDeployResult);
+    const parser = new LibraryDeployResultParser(failedDeployResult);
 
     let errorResult = '=== Deploy Errors\n';
     errorResult +=
@@ -191,7 +191,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with error results', async () => {
-    const parser = new ToolingDeployParser(errorDeployResult);
+    const parser = new LibraryDeployResultParser(errorDeployResult);
 
     let errorResult = '=== Deploy Errors\n';
     errorResult +=
@@ -206,7 +206,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with queued results', async () => {
-    const parser = new ToolingDeployParser(queuedDeployResult);
+    const parser = new LibraryDeployResultParser(queuedDeployResult);
     const results = await parser.outputResult();
     expect(results).to.equal(nls.localize('beta_tapi_queue_status'));
   });

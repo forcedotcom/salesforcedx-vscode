@@ -6,8 +6,19 @@
  */
 
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
+
+export function getRange(
+  lineNumber: string,
+  columnNumber: string
+): vscode.Range {
+  const ln = Number(lineNumber);
+  const col = Number(columnNumber);
+  const pos = new vscode.Position(ln > 0 ? ln - 1 : 0, col > 0 ? col - 1 : 0);
+  return new vscode.Range(pos, pos);
+}
 
 export function handleDiagnosticErrors(
   errors: ForceSourceDeployErrorResponse,
@@ -70,12 +81,41 @@ export function handleDiagnosticErrors(
   return errorCollection;
 }
 
-export function getRange(
-  lineNumber: string,
-  columnNumber: string
-): vscode.Range {
-  const ln = Number(lineNumber);
-  const col = Number(columnNumber);
-  const pos = new vscode.Position(ln > 0 ? ln - 1 : 0, col > 0 ? col - 1 : 0);
-  return new vscode.Range(pos, pos);
+export function handleLibraryDiagnostics(
+  deployResult: DeployResult,
+  errorCollection: vscode.DiagnosticCollection
+): vscode.DiagnosticCollection {
+  errorCollection.clear();
+  const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
+
+  deployResult.DeployDetails!.componentFailures.forEach(err => {
+    const range = getRange(
+      err.lineNumber ? err.lineNumber.toString() : '1',
+      err.columnNumber ? err.columnNumber.toString() : '1'
+    );
+
+    const diagnostic = {
+      message: err.problem,
+      severity: vscode.DiagnosticSeverity.Error,
+      source: err.fileName,
+      range
+    } as vscode.Diagnostic;
+
+    // NOTE: This is a workaround while we fix DeployResults not providing full
+    // path info
+    const fileUri = deployResult.metadataFile.replace('-meta.xml', '');
+
+    if (!diagnosticMap.has(fileUri)) {
+      diagnosticMap.set(fileUri, []);
+    }
+
+    diagnosticMap.get(fileUri)!.push(diagnostic);
+  });
+
+  diagnosticMap.forEach((diagMap: vscode.Diagnostic[], file) => {
+    const fileUri = vscode.Uri.file(file);
+    errorCollection.set(fileUri, diagMap);
+  });
+
+  return errorCollection;
 }
