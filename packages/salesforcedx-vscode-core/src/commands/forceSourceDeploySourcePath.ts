@@ -13,7 +13,6 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { Deploy } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -135,13 +134,17 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
         'force_source_deploy_with_sourcepath_beta'
       );
 
-      if (this.orgConnection === undefined) {
-        throw new Error('Connection is not established');
+      if (this.sourceClient === undefined) {
+        throw new Error('SourceClient is not established');
       }
 
-      const deployLib = new Deploy(this.orgConnection);
-      deployLib.deploy = this.deployWrapper(deployLib.deploy);
-      await deployLib.deploy(response.data);
+      this.sourceClient.tooling.deployWithPaths = this.deployWrapper(
+        this.sourceClient.tooling.deployWithPaths
+      );
+
+      await this.sourceClient.tooling.deployWithPaths({
+        paths: [response.data]
+      });
       this.logMetric();
     } catch (e) {
       telemetryService.sendException(

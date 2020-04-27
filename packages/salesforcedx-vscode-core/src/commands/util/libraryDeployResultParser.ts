@@ -8,21 +8,21 @@ import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { nls } from '../messages';
 import {
   DeployResult,
   DeployStatusEnum,
-  ToolingRetrieveResult
-} from './deployUtil';
+  SourceResult
+} from '@salesforce/source-deploy-retrieve';
+import { nls } from '../../messages';
 
-export class ToolingDeployParser {
-  public result: ToolingRetrieveResult;
+export class LibraryDeployResultParser {
+  public result: DeployResult;
 
-  constructor(deployResult: ToolingRetrieveResult) {
+  constructor(deployResult: DeployResult) {
     this.result = deployResult;
   }
 
-  public buildSuccesses(componentSuccess: DeployResult) {
+  public buildSuccesses(componentSuccess: SourceResult) {
     const mdState =
       componentSuccess.changed && !componentSuccess.created
         ? 'Updated'
@@ -44,7 +44,7 @@ export class ToolingDeployParser {
     return success;
   }
 
-  public buildErrors(componentErrors: DeployResult[]) {
+  public buildErrors(componentErrors: SourceResult[]) {
     const failures = [];
     for (const err of componentErrors) {
       if (err.columnNumber && err.lineNumber) {
