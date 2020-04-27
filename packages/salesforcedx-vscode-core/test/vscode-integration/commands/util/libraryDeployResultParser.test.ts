@@ -5,24 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import {
-  ToolingDeployParser,
-  ToolingRetrieveResult
-} from '../../../src/deploys';
-import { nls } from '../../../src/messages';
+  DeployResult,
+  DeployStatusEnum
+} from '@salesforce/source-deploy-retrieve';
+import { expect } from 'chai';
+import * as path from 'path';
+import { LibraryDeployResultParser } from '../../../../src/commands/util/libraryDeployResultParser';
+import { nls } from '../../../../src/messages';
 
 describe('Tooling Deploy Parser', () => {
-  const completeDeployResult: ToolingRetrieveResult = {
-    State: 'Completed',
+  const completeDeployResult: DeployResult = {
+    State: DeployStatusEnum.Completed,
     ErrorMsg: null,
     isDeleted: false,
     DeployDetails: {
       componentFailures: [],
       componentSuccesses: [
         {
-          columnNumber: null,
-          lineNumber: null,
           problem: 'null',
           problemType: 'null',
           fileName: 'classes/testAPI.cls',
@@ -34,11 +34,12 @@ describe('Tooling Deploy Parser', () => {
           deleted: false
         }
       ]
-    }
+    },
+    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
   };
 
-  const failedDeployResult: ToolingRetrieveResult = {
-    State: 'Failed',
+  const failedDeployResult: DeployResult = {
+    State: DeployStatusEnum.Failed,
     ErrorMsg: null,
     isDeleted: false,
     DeployDetails: {
@@ -71,25 +72,28 @@ describe('Tooling Deploy Parser', () => {
         }
       ],
       componentSuccesses: []
-    }
+    },
+    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
   };
 
-  const queuedDeployResult = {
-    State: 'Queued',
+  const queuedDeployResult: DeployResult = {
+    State: DeployStatusEnum.Queued,
     isDeleted: false,
     DeployDetails: null,
-    ErrorMsg: null
+    ErrorMsg: null,
+    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
   };
 
-  const errorDeployResult = {
-    State: 'Error',
+  const errorDeployResult: DeployResult = {
+    State: DeployStatusEnum.Error,
     ErrorMsg: 'Unexpected error happened during deploy',
     isDeleted: false,
-    DeployDetails: { componentFailures: [], componentSuccesses: [] }
+    DeployDetails: { componentFailures: [], componentSuccesses: [] },
+    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
   };
 
   it('should create array of success info for updated class', async () => {
-    const parser = new ToolingDeployParser(completeDeployResult);
+    const parser = new LibraryDeployResultParser(completeDeployResult);
     const successInfo = parser.buildSuccesses(
       completeDeployResult.DeployDetails!.componentSuccesses[0]
     );
@@ -109,10 +113,8 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create array of success info for created class', async () => {
-    const parser = new ToolingDeployParser(completeDeployResult);
+    const parser = new LibraryDeployResultParser(completeDeployResult);
     const successInfo = parser.buildSuccesses({
-      columnNumber: null,
-      lineNumber: null,
       problem: 'null',
       problemType: 'null',
       fileName: 'classes/testAPI.cls',
@@ -139,7 +141,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create array of error info for apex class', async () => {
-    const parser = new ToolingDeployParser(failedDeployResult);
+    const parser = new LibraryDeployResultParser(failedDeployResult);
     const errorsInfo = parser.buildErrors(
       failedDeployResult.DeployDetails!.componentFailures
     );
@@ -155,7 +157,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with successful results', async () => {
-    const parser = new ToolingDeployParser(completeDeployResult);
+    const parser = new LibraryDeployResultParser(completeDeployResult);
 
     let mockResult = '=== Deployed Source\n';
     mockResult +=
@@ -172,7 +174,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with failed results', async () => {
-    const parser = new ToolingDeployParser(failedDeployResult);
+    const parser = new LibraryDeployResultParser(failedDeployResult);
 
     let errorResult = '=== Deploy Errors\n';
     errorResult +=
@@ -189,7 +191,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with error results', async () => {
-    const parser = new ToolingDeployParser(errorDeployResult);
+    const parser = new LibraryDeployResultParser(errorDeployResult);
 
     let errorResult = '=== Deploy Errors\n';
     errorResult +=
@@ -204,7 +206,7 @@ describe('Tooling Deploy Parser', () => {
   });
 
   it('should create a table with queued results', async () => {
-    const parser = new ToolingDeployParser(queuedDeployResult);
+    const parser = new LibraryDeployResultParser(queuedDeployResult);
     const results = await parser.outputResult();
     expect(results).to.equal(nls.localize('beta_tapi_queue_status'));
   });
