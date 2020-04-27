@@ -27,7 +27,7 @@
   "dependencies": {
     "@salesforce/core": "2.2.0",
     "@salesforce/salesforcedx-utils-vscode": "48.11.0",
-    "@salesforce/source-deploy-retrieve": "/Users/lcamposguajardo/github/DevTools/deploy-and-retrieve/salesforce-source-deploy-retrieve-v1.0.5.tgz",
+    "@salesforce/source-deploy-retrieve": "1.0.6",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
