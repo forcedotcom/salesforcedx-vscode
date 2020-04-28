@@ -20,8 +20,8 @@ import { notificationService } from '../../notifications';
 import { TelemetryData, telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import { LibraryDeployResultParser } from './libraryDeployResultParser';
-import { CommandletExecutor } from './sfdxCommandlet';
 import { outputRetrieveTable } from './retrieveParser';
+import { CommandletExecutor } from './sfdxCommandlet';
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {

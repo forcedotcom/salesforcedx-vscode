@@ -26,10 +26,10 @@ import { telemetryService } from '../telemetry';
 import {
   APEX_CLASS_EXTENSION,
   APEX_TRIGGER_EXTENSION,
-  VISUALFORCE_COMPONENT_EXTENSION,
-  VISUALFORCE_PAGE_EXTENSION,
   AURA_DIRECTORY,
-  LWC_DIRECTORY
+  LWC_DIRECTORY,
+  VISUALFORCE_COMPONENT_EXTENSION,
+  VISUALFORCE_PAGE_EXTENSION
 } from './templates/metadataTypeConstants';
 import {
   FilePathGatherer,
