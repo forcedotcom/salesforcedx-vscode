@@ -7,6 +7,7 @@
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  ApiResult,
   DeployResult,
   DeployStatusEnum,
   SourceClient
@@ -19,6 +20,7 @@ import { notificationService } from '../../notifications';
 import { TelemetryData, telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import { LibraryDeployResultParser } from './libraryDeployResultParser';
+import { outputRetrieveTable } from './retrieveParser';
 import { CommandletExecutor } from './sfdxCommandlet';
 
 export abstract class LibraryCommandletExecutor<T>
@@ -47,6 +49,30 @@ export abstract class LibraryCommandletExecutor<T>
     }
     const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
     this.sourceClient = new SourceClient(conn);
+  }
+
+  public retrieveWrapper(fn: (...args: any[]) => Promise<ApiResult>) {
+    const commandName = this.executionName;
+
+    return async function(...args: any[]): Promise<ApiResult> {
+      channelService.showCommandWithTimestamp(`Starting ${commandName}`);
+
+      const result = await window.withProgress(
+        {
+          title: commandName,
+          location: ProgressLocation.Notification
+        },
+        async () => {
+          // @ts-ignore
+          return (await fn.call(this, ...args)) as ApiResult;
+        }
+      );
+
+      channelService.appendLine(outputRetrieveTable(result));
+      channelService.showCommandWithTimestamp(`Finished ${commandName}`);
+      await notificationService.showSuccessfulExecution(commandName);
+      return result;
+    };
   }
 
   public deployWrapper(fn: (...args: any[]) => Promise<DeployResult>) {
