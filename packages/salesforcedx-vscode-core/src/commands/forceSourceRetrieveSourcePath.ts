@@ -14,6 +14,7 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -26,7 +27,9 @@ import {
   APEX_CLASS_EXTENSION,
   APEX_TRIGGER_EXTENSION,
   VISUALFORCE_COMPONENT_EXTENSION,
-  VISUALFORCE_PAGE_EXTENSION
+  VISUALFORCE_PAGE_EXTENSION,
+  AURA_DIRECTORY,
+  LWC_DIRECTORY
 } from './templates/metadataTypeConstants';
 import {
   FilePathGatherer,
@@ -118,9 +121,10 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
 // this supported types logic is temporary until we have a way of generating the metadata type from the path
 // once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
 export function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
-  // const filePath = explorerPath.fsPath;
+  const filePath = explorerPath.fsPath;
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
-  const supportedType = true; /*
+  const supportedType =
+    isAuraOrLWC(filePath) ||
     path.extname(filePath) === APEX_CLASS_EXTENSION ||
     filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`) ||
     (path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
@@ -128,8 +132,25 @@ export function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
     (path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
       filePath.includes(`${VISUALFORCE_COMPONENT_EXTENSION}-meta.xml`)) ||
     (path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION ||
-      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`)); */
+      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`));
   return betaDeployRetrieve && supportedType;
+}
+
+export function isAuraOrLWC(filePath: string) {
+  let res = false;
+  if (
+    !fs.statSync(filePath).isDirectory() ||
+    (!filePath.endsWith(AURA_DIRECTORY) && !filePath.endsWith(LWC_DIRECTORY))
+  ) {
+    const parent = path.dirname(filePath);
+    const grandParent = path.dirname(parent);
+    res =
+      parent.endsWith(AURA_DIRECTORY) ||
+      grandParent.endsWith(AURA_DIRECTORY) ||
+      parent.endsWith(LWC_DIRECTORY) ||
+      grandParent.endsWith(LWC_DIRECTORY);
+  }
+  return res;
 }
 
 export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<

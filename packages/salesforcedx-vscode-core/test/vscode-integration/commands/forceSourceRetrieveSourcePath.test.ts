@@ -10,6 +10,7 @@ import {
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
 import { Uri } from 'vscode';
@@ -120,6 +121,11 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
 
   beforeEach(() => {
     sandboxStub = createSandbox();
+    sandboxStub.stub(fs, 'statSync').returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
   });
 
   afterEach(() => {
@@ -203,6 +209,42 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
     const uriOne = Uri.parse('file:///bar.component');
+    const cmpProcessing = useBetaRetrieve(uriOne);
+    expect(cmpProcessing).to.equal(false);
+  });
+
+  it('Should return true for Aura Component URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const uriOne = Uri.parse('file:///project/aura/myCmp/bar.cmp');
+    const cmpProcessing = useBetaRetrieve(uriOne);
+    expect(cmpProcessing).to.equal(true);
+  });
+
+  it('Should return false for Aura Component URI when beta configuration is disabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(false);
+    const uriOne = Uri.parse('file:///project/aura/myCmp/bar.cmp');
+    const cmpProcessing = useBetaRetrieve(uriOne);
+    expect(cmpProcessing).to.equal(false);
+  });
+
+  it('Should return true for LWC Component URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const uriOne = Uri.parse('file:///project/lwc/myCmp/bar.js');
+    const cmpProcessing = useBetaRetrieve(uriOne);
+    expect(cmpProcessing).to.equal(true);
+  });
+
+  it('Should return false for LWC Component URI when beta configuration is disabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(false);
+    const uriOne = Uri.parse('file:///project/lwc/myCmp/bar.js');
     const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(false);
   });

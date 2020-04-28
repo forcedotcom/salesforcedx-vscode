@@ -20,3 +20,4 @@ In this beta release, performance enhancements are effective when you run the **
 - Apex Trigger
 - Visualforce Component
 - Visualforce Page
+- Lightning Components
