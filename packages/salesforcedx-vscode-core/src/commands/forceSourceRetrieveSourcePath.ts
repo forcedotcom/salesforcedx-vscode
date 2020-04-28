@@ -14,8 +14,10 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import * as fs from 'fs';
-import * as path from 'path';
+import {
+  RegistryAccess,
+  registryData
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -23,14 +25,6 @@ import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import {
-  APEX_CLASS_EXTENSION,
-  APEX_TRIGGER_EXTENSION,
-  AURA_DIRECTORY,
-  LWC_DIRECTORY,
-  VISUALFORCE_COMPONENT_EXTENSION,
-  VISUALFORCE_PAGE_EXTENSION
-} from './templates/metadataTypeConstants';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -123,34 +117,26 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
 export function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
   const filePath = explorerPath.fsPath;
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
-  const supportedType =
-    isAuraOrLWC(filePath) ||
-    path.extname(filePath) === APEX_CLASS_EXTENSION ||
-    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`) ||
-    (path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
-      filePath.includes(`${APEX_TRIGGER_EXTENSION}-meta.xml`)) ||
-    (path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
-      filePath.includes(`${VISUALFORCE_COMPONENT_EXTENSION}-meta.xml`)) ||
-    (path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION ||
-      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`));
-  return betaDeployRetrieve && supportedType;
-}
+  const registry = new RegistryAccess();
+  const component = registry.getComponentsFromPath(filePath)[0];
+  const typeName = component.type.name;
+  const {
+    auradefinitionbundle,
+    lightningcomponentbundle,
+    apexclass,
+    apexcomponent,
+    apexpage,
+    apextrigger
+  } = registryData.types;
 
-export function isAuraOrLWC(filePath: string) {
-  let res = false;
-  if (
-    !fs.statSync(filePath).isDirectory() ||
-    (!filePath.endsWith(AURA_DIRECTORY) && !filePath.endsWith(LWC_DIRECTORY))
-  ) {
-    const parent = path.dirname(filePath);
-    const grandParent = path.dirname(parent);
-    res =
-      parent.endsWith(AURA_DIRECTORY) ||
-      grandParent.endsWith(AURA_DIRECTORY) ||
-      parent.endsWith(LWC_DIRECTORY) ||
-      grandParent.endsWith(LWC_DIRECTORY);
-  }
-  return res;
+  const supportedType =
+    typeName === auradefinitionbundle.name ||
+    typeName === lightningcomponentbundle.name ||
+    typeName === apexclass.name ||
+    typeName === apexcomponent.name ||
+    typeName === apexpage.name ||
+    typeName === apextrigger.name;
+  return betaDeployRetrieve && supportedType;
 }
 
 export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<

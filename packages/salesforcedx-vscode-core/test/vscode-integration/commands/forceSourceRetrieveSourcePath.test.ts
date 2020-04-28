@@ -9,10 +9,11 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
-import * as fs from 'fs';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
@@ -118,14 +119,25 @@ describe('SourcePathChecker', () => {
 
 describe('Force Source Retrieve with Sourcepath Beta', () => {
   let sandboxStub: SinonSandbox;
+  let mockRegistry: SinonStub;
+  const apexClassMDComponent: MetadataComponent = {
+    type: {
+      name: 'ApexClass',
+      directoryName: 'classes',
+      inFolder: false,
+      suffix: 'cls'
+    },
+    fullName: 'myTestClass',
+    xml: path.join('file', 'path', 'myTestClass.cls-meta.xml'),
+    sources: [path.join('file', 'path', 'myTestClass.cls')]
+  };
 
   beforeEach(() => {
     sandboxStub = createSandbox();
-    sandboxStub.stub(fs, 'statSync').returns({
-      isDirectory() {
-        return false;
-      }
-    } as fs.Stats);
+    mockRegistry = sandboxStub.stub(
+      RegistryAccess.prototype,
+      'getComponentsFromPath'
+    );
   });
 
   afterEach(() => {
@@ -136,6 +148,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
+    mockRegistry.returns([]);
     const uriOne = Uri.parse('file:///bar.html');
     const fileProcessing = useBetaRetrieve(uriOne);
     expect(fileProcessing).to.equal(false);
@@ -145,7 +158,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const uriOne = Uri.parse('file:///bar.cls');
+    mockRegistry.returns([apexClassMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/myTestClass.cls');
     const apexClassProcessing = useBetaRetrieve(uriOne);
     expect(apexClassProcessing).to.equal(true);
   });
@@ -154,7 +168,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
-    const uriOne = Uri.parse('file:///bar.cls');
+    mockRegistry.returns([apexClassMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/myTestClass.cls');
     const apexClassProcessing = useBetaRetrieve(uriOne);
     expect(apexClassProcessing).to.equal(false);
   });
