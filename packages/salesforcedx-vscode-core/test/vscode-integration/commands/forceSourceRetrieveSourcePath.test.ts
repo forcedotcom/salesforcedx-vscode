@@ -128,8 +128,61 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       suffix: 'cls'
     },
     fullName: 'myTestClass',
-    xml: path.join('file', 'path', 'myTestClass.cls-meta.xml'),
-    sources: [path.join('file', 'path', 'myTestClass.cls')]
+    xml: path.join('file', 'path', 'classes', 'myTestClass.cls-meta.xml'),
+    sources: [path.join('file', 'path', 'classes', 'myTestClass.cls')]
+  };
+  const apexTriggerMDComponent: MetadataComponent = {
+    type: {
+      name: 'ApexTrigger',
+      directoryName: 'triggers',
+      inFolder: false,
+      suffix: 'trigger'
+    },
+    fullName: 'accTrigger',
+    xml: path.join('file', 'path', 'triggers', 'accTrigger.trigger-meta.xml'),
+    sources: [path.join('file', 'path', 'triggers', 'accTrigger.trigger')]
+  };
+  const pageMDComponent: MetadataComponent = {
+    type: {
+      name: 'ApexPage',
+      directoryName: 'pages',
+      inFolder: false,
+      suffix: 'page'
+    },
+    fullName: 'myPage',
+    xml: path.join('file', 'path', 'pages', 'myPage.page-meta.xml'),
+    sources: [path.join('file', 'path', 'pages', 'myPage.page')]
+  };
+  const vfComponentMDComponent: MetadataComponent = {
+    type: {
+      name: 'ApexComponent',
+      directoryName: 'components',
+      inFolder: false,
+      suffix: 'component'
+    },
+    fullName: 'myPage',
+    xml: path.join('file', 'path', 'components', 'VFCmp.component-meta.xml'),
+    sources: [path.join('file', 'path', 'components', 'VFCmp.component')]
+  };
+  const auraMDComponent: MetadataComponent = {
+    type: {
+      name: 'AuraDefinitionBundle',
+      directoryName: 'aura',
+      inFolder: false
+    },
+    fullName: 'testApp',
+    xml: path.join('file', 'path', 'aura', 'testApp.app-meta.xml'),
+    sources: [path.join('file', 'path', 'aura', 'testApp.app')]
+  };
+  const lwcMDComponent: MetadataComponent = {
+    type: {
+      name: 'LightningComponentBundle',
+      directoryName: 'lwc',
+      inFolder: false
+    },
+    fullName: 'testCmp',
+    xml: path.join('file', 'path', 'lwc', 'testCmp', 'testCmp.js-meta.xml'),
+    sources: [path.join('file', 'path', 'lwc', 'testCmp', 'testCmp.js')]
   };
 
   beforeEach(() => {
@@ -148,7 +201,18 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    mockRegistry.returns([]);
+    mockRegistry.returns([
+      {
+        type: {
+          name: 'Layout',
+          directoryName: 'layouts',
+          inFolder: false
+        },
+        fullName: 'Obj Layout',
+        xml: path.join('file', 'path', 'layouts', 'Obj Layout.layout-meta.xml'),
+        sources: [path.join('file', 'path', 'layouts', 'Obj Layout.layout')]
+      }
+    ]);
     const uriOne = Uri.parse('file:///bar.html');
     const fileProcessing = useBetaRetrieve(uriOne);
     expect(fileProcessing).to.equal(false);
@@ -159,7 +223,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
     mockRegistry.returns([apexClassMDComponent]);
-    const uriOne = Uri.parse('file:///file/path/myTestClass.cls');
+    const uriOne = Uri.parse('file:///file/path/classes/myTestClass.cls');
     const apexClassProcessing = useBetaRetrieve(uriOne);
     expect(apexClassProcessing).to.equal(true);
   });
@@ -169,7 +233,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
     mockRegistry.returns([apexClassMDComponent]);
-    const uriOne = Uri.parse('file:///file/path/myTestClass.cls');
+    const uriOne = Uri.parse('file:///file/path/classes/myTestClass.cls');
     const apexClassProcessing = useBetaRetrieve(uriOne);
     expect(apexClassProcessing).to.equal(false);
   });
@@ -178,7 +242,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const uriOne = Uri.parse('file:///bar.trigger');
+    mockRegistry.returns([apexTriggerMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/triggers/accTrigger.trigger');
     const triggerProcessing = useBetaRetrieve(uriOne);
     expect(triggerProcessing).to.equal(true);
   });
@@ -187,7 +252,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
-    const uriOne = Uri.parse('file:///bar.trigger');
+    mockRegistry.returns([apexTriggerMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/triggers/accTrigger.trigger');
     const triggerProcessing = useBetaRetrieve(uriOne);
     expect(triggerProcessing).to.equal(false);
   });
@@ -196,7 +262,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const uriOne = Uri.parse('file:///bar.page');
+    mockRegistry.returns([pageMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/pages/myPage.page');
     const pageProcessing = useBetaRetrieve(uriOne);
     expect(pageProcessing).to.equal(true);
   });
@@ -205,7 +272,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
-    const uriOne = Uri.parse('file:///bar.page');
+    mockRegistry.returns([pageMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/pages/myPage.page');
     const pageProcessing = useBetaRetrieve(uriOne);
     expect(pageProcessing).to.equal(false);
   });
@@ -214,7 +282,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const uriOne = Uri.parse('file:///bar.component');
+    mockRegistry.returns([vfComponentMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/components/VFCmp.component');
     const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(true);
   });
@@ -223,7 +292,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
-    const uriOne = Uri.parse('file:///bar.component');
+    mockRegistry.returns([vfComponentMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/components/VFCmp.component');
     const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(false);
   });
@@ -232,7 +302,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const uriOne = Uri.parse('file:///project/aura/myCmp/bar.cmp');
+    mockRegistry.returns([auraMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/aura/testApp.app');
     const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(true);
   });
@@ -241,7 +312,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
-    const uriOne = Uri.parse('file:///project/aura/myCmp/bar.cmp');
+    mockRegistry.returns([auraMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/aura/testApp.app');
     const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(false);
   });
@@ -250,7 +322,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const uriOne = Uri.parse('file:///project/lwc/myCmp/bar.js');
+    mockRegistry.returns([lwcMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/lwc/testCmp/testCmp.js');
     const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(true);
   });
@@ -259,7 +332,8 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
-    const uriOne = Uri.parse('file:///project/lwc/myCmp/bar.js');
+    mockRegistry.returns([lwcMDComponent]);
+    const uriOne = Uri.parse('file:///file/path/lwc/testCmp/testCmp.js');
     const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(false);
   });
