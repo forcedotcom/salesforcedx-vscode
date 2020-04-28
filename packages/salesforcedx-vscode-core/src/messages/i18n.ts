@@ -517,5 +517,8 @@ export const messages = {
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',
-  beta_tapi_queue_status: 'The deploy is still in the Queue'
+  beta_tapi_queue_status: 'The deploy is still in the Queue',
+  lib_retrieve_result_title: 'Retrieved Source',
+  lib_retrieve_result_parse_error:
+    'Not able to parse current results. Raw result: %s'
 };
