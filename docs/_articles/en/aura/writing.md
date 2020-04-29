@@ -12,7 +12,6 @@ Take advantage of the following Aura Components Extension for VS Code features:
 - [Linting](./en/aura/writing#linting)
 - [Code Navigation](./en/aura/writing#code-navigation)
 - [Outline view](./en/aura/writing/#outline-view)
-- [Lightning Explorer](./en/aura/writing/#lightning-explorer-beta)
 
 ## Code Completion
 
@@ -59,20 +58,3 @@ To jump to the location of a definition, right-click the item and select **Go to
 Outline view allows you to see the outline of your component—i.e. its HTML tags and JavaScript properties. Invoke it with Ctrl+Shift+O on Windows and Linux and Cmd+Shift+O on Mac.
 
 ![List of symbols in a .js file from an Aura bundle](./images/vscode_aura_outline.png)
-
-## Lightning Explorer (Beta)
-
-> NOTE: This feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
-
-Lightning Explorer lets you view reference documentation for both Aura components and Lightning web components. To enable it, go to **Preferences > Settings**. Enter `lightning explorer` in the search bar. Then, click the checkbox next to **salesforcedx-vscode-lightning:Show Lightning Explorer**.
-
-![Show Lightning Explorer](./images/vscode_aura_lightning_explorer.png)
-
-To use Lightning Explorer, click the lightning bolt icon on the left hand side of the screen. Click a namespace to see all of the available components. Lightning web components and Aura have different lightning icons.
-
-![Click Lightning Explorer](./images/vscode_aura_explorer_example.png)
-Under the c namespace, we've selected the Lightning web component `c-wire-get-object-info`. When you click on the name of the component, its corresponding file shows up in the main code panel.
-
-Here's the Aura component `force:inputField`. The blue icon to the right of the component name opens your browser to the component reference in the Component Library.
-![Open Component Library](./images/vscode_aura_explorer_docs.png)
-Your custom Aura components and documentation are also available in the Aura Components extension. To learn more about writing documentation for your Aura components, see the [Lightning Aura Components Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/components_documentation.htm).
