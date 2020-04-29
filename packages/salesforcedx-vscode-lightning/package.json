@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "48.7.0",
+  "version": "48.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,15 +27,12 @@
     "@salesforce/aura-language-server": "2.3.6",
     "@salesforce/lightning-lsp-common": "2.3.6",
     "@salesforce/lwc-language-server": "2.3.6",
-    "@salesforce/salesforcedx-utils-vscode": "48.7.0",
-    "change-case": "^3.1.0",
-    "open": "6.0.0",
+    "@salesforce/salesforcedx-utils-vscode": "48.11.0",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "^5.2.1",
-    "which": "^1.3.1"
+    "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "48.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "48.11.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
     "@types/node": "8.9.3",
@@ -69,8 +66,7 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "workspaceContains:**/workspace-user.xml",
-    "onView:salesforce-lightning-explorer"
+    "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
   "contributes": {
@@ -95,60 +91,10 @@
         "path": "./syntaxes/html.tmLanguage.json"
       }
     ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "salesforce-lightning-explorer",
-          "title": "%lightning_explorer_title%",
-          "icon": "resources/lightning.svg"
-        }
-      ]
-    },
-    "views": {
-      "salesforce-lightning-explorer": [
-        {
-          "id": "salesforce-lightning-components",
-          "name": "%lightning_explorer_name%",
-          "when": "config.salesforcedx-vscode-lightning.showLightningExplorer"
-        }
-      ]
-    },
-    "menus": {
-      "view/item/context": [
-        {
-          "command": "salesforce-lightning-quickopen",
-          "when": "view == salesforce-lightning-components && viewItem == external",
-          "group": "inline"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "salesforce-lightning-quickopen",
-          "when": "sfdx:project_opened"
-        },
-        {
-          "command": "salesforce-lightning-quickopen",
-          "when": "sfdx:internal_dev"
-        }
-      ]
-    },
-    "commands": [
-      {
-        "command": "salesforce-lightning-quickopen",
-        "title": "%lightning_open_component_title%",
-        "icon": "resources/open.svg"
-      }
-    ],
     "configuration": {
       "type": "object",
       "title": "%lightning_preferences%",
       "properties": {
-        "salesforcedx-vscode-lightning.showLightningExplorer": {
-          "type": "boolean",
-          "scope": "window",
-          "default": false,
-          "description": "%show_lightning_explorer_description%"
-        },
         "salesforcedx-vscode-lightning.activationMode": {
           "type": "string",
           "description": "%activation_mode_description%",

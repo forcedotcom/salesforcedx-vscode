@@ -66,6 +66,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands/util';
+import { registerConflictView, setupConflictView } from './conflict';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
@@ -532,6 +533,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
   await setupOrgBrowser(context);
+  await setupConflictView(context);
   if (isCLIInstalled()) {
     // Set context for defaultusername org
     await setupWorkspaceOrgType(defaultUsernameorAlias);
@@ -549,6 +551,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
+  context.subscriptions.push(registerConflictView());
 
   // Scratch Org Decorator
   if (hasRootWorkspace()) {

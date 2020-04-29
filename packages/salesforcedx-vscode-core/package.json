@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "48.7.0",
+  "version": "48.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,7 +26,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.2.0",
-    "@salesforce/salesforcedx-utils-vscode": "48.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "48.11.0",
+    "@salesforce/source-deploy-retrieve": "1.0.6",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.6",
     "glob": "^7.1.2",
@@ -36,7 +37,7 @@
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "48.7.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "48.11.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
     "@types/glob": "^5.0.30",
@@ -91,6 +92,11 @@
           "id": "metadata",
           "title": "Org Browser",
           "icon": "resources/dep.svg"
+        },
+        {
+          "id": "conflicts",
+          "title": "%conflict_detect_resolve_view%",
+          "icon": "resources/issues.svg"
         }
       ]
     },
@@ -105,6 +111,13 @@
         {
           "id": "metadata",
           "name": "Metadata",
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+        }
+      ],
+      "conflicts": [
+        {
+          "id": "conflicts",
+          "name": "Conflicts",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
         }
       ]
@@ -130,6 +143,11 @@
         {
           "command": "sfdx.force.source.retrieve.component",
           "when": "view == metadata && viewItem =~ /(type|component)/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdx.force.conflict.open",
+          "when": "view == conflicts && viewItem == conflict-actions",
           "group": "inline"
         }
       ],
@@ -477,6 +495,10 @@
         {
           "command": "sfdx.force.diff",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.conflict.open",
+          "when": "false"
         }
       ]
     },
@@ -720,6 +742,14 @@
       {
         "command": "sfdx.force.diff",
         "title": "%force_diff_against_org%"
+      },
+      {
+        "command": "sfdx.force.conflict.open",
+        "title": "%conflict_detect_open_file%",
+        "icon": {
+          "light": "resources/light/go-to-file.svg",
+          "dark": "resources/dark/go-to-file.svg"
+        }
       }
     ],
     "configuration": {
