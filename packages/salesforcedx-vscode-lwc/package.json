@@ -81,7 +81,6 @@
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
-    "workspaceContains:modules",
     "workspaceContains:sfdx-project.json",
     "workspaceContains:**/workspace-user.xml",
     "onView:salesforce-lightning-explorer",
