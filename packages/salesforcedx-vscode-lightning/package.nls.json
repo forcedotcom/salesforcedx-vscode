@@ -1,9 +1,7 @@
 {
   "lightning_open_component_title": "SFDX: Open Lightning Component",
-  "lightning_explorer_title": "Lightning Explorer",
   "lightning_preferences": "Salesforce Lightning",
   "lightning_explorer_name": "Lightning Components",
-  "show_lightning_explorer_description": "Preview Feature: Show the Lightning Explorer View",
   "activation_mode_description": "Configures when the Aura and LWC language servers (LSPs) should be active (requires restart)",
   "activation_mode_always_on": "Lighning LSPs will always be activate, regardless of vscode workspace structure",
   "activation_mode_autodetect": "Lighning LSPs will only become active if a valid vscode workspace is detected",
