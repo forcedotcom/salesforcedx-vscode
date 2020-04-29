@@ -6,10 +6,8 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { WorkspaceType } from '@salesforce/lightning-lsp-common/lib/shared';
 import * as path from 'path';
 import {
-  commands,
   ExtensionContext,
   ProgressLocation,
   Uri,
@@ -22,7 +20,6 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { sync as which } from 'which';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
