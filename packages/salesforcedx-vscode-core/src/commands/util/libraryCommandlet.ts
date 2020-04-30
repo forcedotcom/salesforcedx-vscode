@@ -5,22 +5,31 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ToolingDeployResult } from '@salesforce/source-deploy-retrieve';
-import { ProgressLocation, window } from 'vscode';
+import {
+  ApiResult,
+  DeployResult,
+  DeployStatusEnum,
+  SourceClient
+} from '@salesforce/source-deploy-retrieve';
+import { languages, ProgressLocation, window } from 'vscode';
 import { channelService } from '../../channels';
-import { ToolingDeployParser } from '../../deploys';
+import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { TelemetryData, telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
+import { LibraryDeployResultParser } from './libraryDeployResultParser';
+import { outputRetrieveTable } from './retrieveParser';
 import { CommandletExecutor } from './sfdxCommandlet';
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  public static errorCollection = languages.createDiagnosticCollection(
+    'deploy-errors'
+  );
   protected showChannelOutput = true;
-  protected orgConnection: Connection | undefined;
+  protected sourceClient: SourceClient | undefined;
   protected executionName: string = '';
   protected startTime: [number, number] | undefined;
   protected telemetryName: string | undefined;
@@ -38,13 +47,14 @@ export abstract class LibraryCommandletExecutor<T>
     if (!usernameOrAlias) {
       throw new Error(nls.localize('error_no_default_username'));
     }
-    this.orgConnection = await OrgAuthInfo.getConnection(usernameOrAlias);
+    const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
+    this.sourceClient = new SourceClient(conn);
   }
 
-  public deployWrapper(fn: (...args: any[]) => Promise<ToolingDeployResult>) {
+  public retrieveWrapper(fn: (...args: any[]) => Promise<ApiResult>) {
     const commandName = this.executionName;
 
-    return async function(...args: any[]): Promise<ToolingDeployResult> {
+    return async function(...args: any[]): Promise<ApiResult> {
       channelService.showCommandWithTimestamp(`Starting ${commandName}`);
 
       const result = await window.withProgress(
@@ -54,15 +64,52 @@ export abstract class LibraryCommandletExecutor<T>
         },
         async () => {
           // @ts-ignore
-          return (await fn.call(this, ...args)) as ToolingDeployResult;
+          return (await fn.call(this, ...args)) as ApiResult;
         }
       );
 
-      const parser = new ToolingDeployParser(result);
+      channelService.appendLine(outputRetrieveTable(result));
+      channelService.showCommandWithTimestamp(`Finished ${commandName}`);
+      await notificationService.showSuccessfulExecution(commandName);
+      return result;
+    };
+  }
+
+  public deployWrapper(fn: (...args: any[]) => Promise<DeployResult>) {
+    const commandName = this.executionName;
+
+    return async function(...args: any[]): Promise<DeployResult> {
+      channelService.showCommandWithTimestamp(`Starting ${commandName}`);
+
+      const result = await window.withProgress(
+        {
+          title: commandName,
+          location: ProgressLocation.Notification
+        },
+        async () => {
+          // @ts-ignore
+          return (await fn.call(this, ...args)) as DeployResult;
+        }
+      );
+
+      const parser = new LibraryDeployResultParser(result);
       const outputResult = await parser.outputResult();
       channelService.appendLine(outputResult);
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
-      await notificationService.showSuccessfulExecution(commandName);
+
+      if (
+        result.State === DeployStatusEnum.Completed ||
+        result.State === DeployStatusEnum.Queued
+      ) {
+        LibraryCommandletExecutor.errorCollection.clear();
+        await notificationService.showSuccessfulExecution(commandName);
+      } else {
+        handleLibraryDiagnostics(
+          result,
+          LibraryCommandletExecutor.errorCollection
+        );
+        notificationService.showFailedExecution(commandName);
+      }
       return result;
     };
   }
