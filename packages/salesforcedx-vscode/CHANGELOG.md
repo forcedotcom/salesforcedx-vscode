@@ -1,3 +1,24 @@
+# 48.13.0 - April 30, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Add check for local dev server start failure ([PR #2128](https://github.com/forcedotcom/salesforcedx-vscode/pull/2128))
+
+## Added
+
+#### docs
+
+- Beta for source retrieve on Apex, Visualforce, Aura and LWC ([PR #2102](https://github.com/forcedotcom/salesforcedx-vscode/pull/2102))
+
+#### salesforcedx-vscode-core
+
+- Beta for source retrieve on Apex, Visualforce, Aura and LWC ([PR #2102](https://github.com/forcedotcom/salesforcedx-vscode/pull/2102))
+
+- Add diagnostics for beta deploys ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143))
+
+
 # 48.11.0 - April 16, 2020
 
 ## Fixed
