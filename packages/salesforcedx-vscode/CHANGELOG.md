@@ -4,13 +4,13 @@
 
 #### salesforcedx-vscode-core
 
-- Fix for the incorrect success message issue  ([Issue #2124](https://github.com/forcedotcom/salesforcedx-vscode/issues/2124))
+- Fix displaying a success message when a Beta Deploy contains failures  ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143), [Issue #2124](https://github.com/forcedotcom/salesforcedx-vscode/issues/2124))
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Beta for source retrieve on Apex, Visualforce, Aura and LWC ([Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements))
+- Beta for source retrieve on Apex, Visualforce, Aura and LWC [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2102](https://github.com/forcedotcom/salesforcedx-vscode/pull/2102))
 
 - Add diagnostics for beta deploys ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143))
 
