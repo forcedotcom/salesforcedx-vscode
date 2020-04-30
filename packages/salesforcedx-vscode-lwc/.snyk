@@ -1,0 +1,968 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - eslint > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - eslint > inquirer > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - eslint > table > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/eslint-config-lwc > babel-eslint > @babel/traverse > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/template-compiler > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/eslint-config-lwc > babel-eslint > @babel/traverse > @babel/generator > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > @lwc/template-compiler > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-block-scoping > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-minify > babel-plugin-minify-dead-code-elimination > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/eslint-config-lwc > babel-eslint > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > @babel/core > @babel/helpers > @babel/traverse > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-unicode-regex > @babel/helper-regex > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > babel-plugin-transform-proxy-compat > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/eslint-config-lwc > babel-eslint > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-parameters > @babel/helper-call-delegate > @babel/traverse > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > jsdom > request-promise-native > request-promise-core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > babel-preset-jest > babel-plugin-jest-hoist > @types/babel__traverse > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/generator > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > jest-snapshot > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > jsdom > request-promise-native > request-promise-core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > jsdom > request-promise-native > request-promise-core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > jsdom > request-promise-native > request-promise-core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > babel-preset-jest > babel-plugin-jest-hoist > @types/babel__traverse > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > babel-preset-jest > babel-plugin-jest-hoist > @types/babel__traverse > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-preset-jest > babel-plugin-jest-hoist > @types/babel__traverse > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > jsdom > request-promise-native > request-promise-core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > babel-preset-jest > babel-plugin-jest-hoist > @types/babel__traverse > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > jsdom > request-promise-native > request-promise-core > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-preset-jest > babel-plugin-jest-hoist > @types/babel__traverse > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-config > jest-jasmine2 > jest-runtime > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-runtime > jest-config > jest-jasmine2 > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > jest-jasmine2 > jest-runtime > jest-config > @jest/test-sequencer > jest-runner > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > babel-jest > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > babel-plugin-istanbul > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-jsdom > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
+    - jest-editor-support > jest-config > @jest/test-sequencer > jest-runner > jest-jasmine2 > jest-runtime > jest-config > jest-environment-node > @jest/environment > @jest/transform > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-04-30T22:53:15.840Z'
