@@ -16,7 +16,8 @@
     "request-light": "0.2.4",
     "rxjs": "^5.4.1",
     "shelljs": "0.8.3",
-    "tree-kill": "^1.1.0"
+    "tree-kill": "^1.1.0",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -43,12 +44,15 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
-    "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json"
+    "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "nyc": {
     "reporter": [
       "text-summary",
       "lcov"
     ]
-  }
+  },
+  "snyk": true
 }
