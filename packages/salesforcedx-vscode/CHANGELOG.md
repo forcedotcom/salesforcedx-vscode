@@ -2,22 +2,17 @@
 
 ## Fixed
 
-#### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-core
 
-- Add check for local dev server start failure ([PR #2128](https://github.com/forcedotcom/salesforcedx-vscode/pull/2128))
+- Fix for the incorrect success message issue  ([Issue #2124](https://github.com/forcedotcom/salesforcedx-vscode/issues/2124))
 
 ## Added
 
-#### docs
-
-- Beta for source retrieve on Apex, Visualforce, Aura and LWC ([PR #2102](https://github.com/forcedotcom/salesforcedx-vscode/pull/2102))
-
 #### salesforcedx-vscode-core
 
-- Beta for source retrieve on Apex, Visualforce, Aura and LWC ([PR #2102](https://github.com/forcedotcom/salesforcedx-vscode/pull/2102))
+- Beta for source retrieve on Apex, Visualforce, Aura and LWC ([Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements))
 
 - Add diagnostics for beta deploys ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143))
-
 
 # 48.11.0 - April 16, 2020
 
