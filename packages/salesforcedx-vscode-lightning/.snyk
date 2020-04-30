@@ -1,0 +1,64 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - '@salesforce/aura-language-server > eslint > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/template-compiler > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > eslint > inquirer > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > eslint > table > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/template-compiler > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-block-scoping > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-minify > babel-plugin-minify-dead-code-elimination > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > @lwc/template-compiler > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-block-scoping > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-unicode-regex > @babel/helper-regex > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > babel-plugin-transform-proxy-compat > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-minify > babel-plugin-minify-dead-code-elimination > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > @babel/core > @babel/helpers > @babel/traverse > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-parameters > @babel/helper-call-delegate > @babel/traverse > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-unicode-regex > @babel/helper-regex > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > babel-plugin-transform-proxy-compat > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-parameters > @babel/helper-call-delegate > @babel/traverse > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > @babel/generator > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/generator > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/generator > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > @lwc/babel-plugin-component > @babel/plugin-proposal-class-properties > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
+    - '@salesforce/aura-language-server > @salesforce/lwc-language-server > @lwc/compiler > babel-preset-compat > @babel/plugin-transform-exponentiation-operator > @babel/helper-builder-binary-assignment-operator-visitor > @babel/helper-explode-assignable-expression > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
+        patched: '2020-04-30T22:49:46.217Z'
