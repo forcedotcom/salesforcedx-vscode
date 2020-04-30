@@ -36,7 +36,8 @@
     "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
     "vscode-extension-telemetry": "0.0.17",
-    "vscode-languageclient": "^5.2.1"
+    "vscode-languageclient": "^5.2.1",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "48.13.0",
@@ -77,7 +78,9 @@
     "test": "npm run test:unit && npm run test:vscode-integration",
     "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "test:vscode-integration": "node ../../scripts/download-vscode && node ../../scripts/install-vsix-dependencies dbaeumer.vscode-eslint && node ../../scripts/run-tests-with-recipes",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
@@ -345,5 +348,6 @@
         }
       }
     ]
-  }
+  },
+  "snyk": true
 }
