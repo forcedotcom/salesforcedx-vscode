@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
-const { checkVSCodeVersion, checkLernaInstall, checkBaseBranch } = require('./validation-utils');
+const {
+  checkVSCodeVersion,
+  checkLernaInstall
+  // checkBaseBranch
+} = require('./validation-utils');
 const logger = require('./logger-util');
 
 shell.set('-e');
@@ -11,18 +15,15 @@ checkVSCodeVersion();
 checkLernaInstall();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-checkBaseBranch('develop');
+// checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
 
 // Check if release branch has already been created
 const isRemoteReleaseBranchExist = shell
-  .exec(
-    `git ls-remote --heads origin ${releaseBranchName}`,
-    {
-      silent: true
-    }
-  )
+  .exec(`git ls-remote --heads origin ${releaseBranchName}`, {
+    silent: true
+  })
   .stdout.trim();
 
 if (isRemoteReleaseBranchExist) {
