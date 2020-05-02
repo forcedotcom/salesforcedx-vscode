@@ -15,7 +15,7 @@ checkVSCodeVersion();
 checkLernaInstall();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
-// checkBaseBranch('develop');
+checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
 
