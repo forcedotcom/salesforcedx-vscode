@@ -187,10 +187,8 @@ jobs:
       - run:
           name: Create release branch
           command: |
-            scripts/set-release-version.js
-            echo "new version => ${SALESFORCEDX_VSCODE_VERSION}"
             git branch
-          # scripts/create-release-branch.js
+            scripts/create-release-branch.js
 
 workflows:
   version: 2.1
