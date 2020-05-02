@@ -196,14 +196,13 @@ workflows:
   # run a build and a windows test on every commit
   commit-workflow:
     jobs:
-      - create-release-branch
-      #- build-all
-      #- run-tests:
-      #    run-unit-tests: true
-      #    context: vscode-test
-      #- run-tests:
-      #    run-unit-tests: false
-      #    context: vscode-test
+      - build-all
+      - run-tests:
+          run-unit-tests: true
+          context: vscode-test
+      - run-tests:
+          run-unit-tests: false
+          context: vscode-test
 
   # run a build/test every mid-night
   scheduled-workflow:
