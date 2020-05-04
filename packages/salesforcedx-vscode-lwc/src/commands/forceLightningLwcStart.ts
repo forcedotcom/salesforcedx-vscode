@@ -116,13 +116,18 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
 
     execution.stderrSubject.subscribe(async data => {
       if (data && data.toString().includes('Server start up failed')) {
-        this.handleErrors(cancellationToken, serverHandler, 1);
+        this.handleErrors(cancellationToken, serverHandler, serverStarted, 1);
         progress.complete();
       }
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      this.handleErrors(cancellationToken, serverHandler, exitCode);
+      this.handleErrors(
+        cancellationToken,
+        serverHandler,
+        serverStarted,
+        exitCode
+      );
     });
 
     notificationService.reportExecutionError(
@@ -141,10 +146,11 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   private handleErrors(
     cancellationToken: vscode.CancellationToken,
     serverHandler: ServerHandler,
+    serverStarted: boolean,
     exitCode: number | null | undefined
   ) {
     DevServerService.instance.clearServerHandler(serverHandler);
-    if (!this.serverStarted && !cancellationToken.isCancellationRequested) {
+    if (!serverStarted && !cancellationToken.isCancellationRequested) {
       let message = nls.localize('force_lightning_lwc_start_failed');
 
       // TODO proper exit codes in lwc-dev-server for address in use, auth/org error, etc.
