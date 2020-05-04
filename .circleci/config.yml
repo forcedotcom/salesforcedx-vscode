@@ -12,16 +12,38 @@ version: 2.1
 orbs:
   win: circleci/windows@2.2.0
 
+_refs:
+  defaults: &defaults
+    working_directory: ~/cli
+    docker:
+      - image: node:12
+  ssh-config: &ssh-config
+    fingerprints:
+      - '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
+  restore_cache: &restore_cache
+    keys:
+      - dependency-cache-v2-{{ checksum "package.json" }}
+      # if cache for exact version of 'package.json' is not present, then load the most recent cache
+      - dependency-cache-v2-
+  install: &install
+    name: Install dependencies
+    command: |
+      npm --version
+      node --version
+      npm install
+  gh-config: &gh-config
+    name: Configuring GitHub
+    command: |
+      git config credential.helper 'cache --timeout=120'
+      git config user.email "$GH_EMAIL"
+      git config user.name "Release Bot"
+
 commands:
   build-artifacts:
     description: 'Building and archiving extension artifacts.'
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - dependency-cache-v2-{{ checksum "package.json" }}
-            # if cache for exact version of 'package.json' is not present, then load the most recent cache
-            - dependency-cache-v2-
+      - restore_cache: *restore_cache
       - run: npm install
       - run:
           name: 'Compile in production mode'
@@ -154,6 +176,19 @@ jobs:
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }
+  create-release-branch:
+    <<: *defaults
+    steps:
+      - add_ssh_keys: *ssh-config
+      - checkout
+      - restore_cache: *restore_cache
+      - run: *gh-config
+      - run: *install
+      - run:
+          name: Create release branch
+          command: |
+            git branch
+            scripts/create-release-branch.js
 
 workflows:
   version: 2.1
@@ -187,3 +222,14 @@ workflows:
       - run-tests:
           run-unit-tests: false
           context: vscode-test
+
+  cut-release:
+    triggers:
+      - schedule:
+          cron: '0 19 * * 1'
+          filters:
+            branches:
+              only:
+                - develop
+    jobs:
+      - create-release-branch
