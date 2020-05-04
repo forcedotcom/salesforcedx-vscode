@@ -133,6 +133,43 @@ jobs:
     steps:
       - build-artifacts
 
+  unit-tests:
+    description: 'Run tests on Windows'
+    executor: win/default
+    environment:
+      - SFDX_AUTOUPDATE_DISABLE: true
+      - SFDX_DOMAIN_RETRY: 300
+      - NODE_VERSION: '12.4.0'
+    steps:
+      - build-win
+      - run:
+          name: 'Running unit tests'
+          shell: cmd.exe
+          command: npm run test:unit
+      - run:
+          name: 'Aggregate test results'
+          shell: bash.exe
+          command: |
+            npm run aggregateJUnit
+            junit-merge -d junit-aggregate -o junit-aggregate.xml
+      - store_test_results:
+          path: ./junit-aggregate/
+      - run:
+          name: 'Generate code coverage'
+          shell: bash.exe
+          command: |
+            codecov --disable=gcov
+      - run:
+          name: 'Fail build for test failures'
+          shell: powershell.exe
+          command: |
+            [xml]$results = Get-Content junit-aggregate.xml
+            $failure = $results.SelectSingleNode("//failure")
+            if ($failure -ne $null) { 
+              Write-Host "Forcing build failure due to test failure(s) :'("
+              $host.SetShouldExit(1)
+            }
+
   run-tests:
     description: 'Run tests on Windows'
     executor: win/default
@@ -239,14 +276,6 @@ jobs:
             git push origin v${GUS_BUILD}
             git push origin master
       - run: *gus-close-change-mgmt
-  test-checks: &test-checks
-    - build-all
-    - run-tests:
-        run-unit-tests: true
-        context: vscode-test
-    - run-tests:
-        run-unit-tests: false
-        context: vscode-test
 
   create-release-branch:
     <<: *defaults
@@ -280,7 +309,9 @@ workflows:
             branches:
               only:
                 - master
-          requires: *test-checks
+          requires:
+            - build-all
+            - unit-tests
 
   # run a build/test every mid-night
   scheduled-workflow:
