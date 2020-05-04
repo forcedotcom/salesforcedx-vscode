@@ -261,6 +261,19 @@ describe('forceLightningLwcStart', () => {
         );
       });
 
+      it('shows no error when server is stopping', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.stdoutSubject.next('Server up');
+        fakeExecution.processExitSubject.next(0);
+
+        sinon.assert.notCalled(notificationServiceStubs.showErrorMessageStub);
+        sinon.assert.notCalled(channelServiceStubs.appendLineStub);
+      });
+
       it('shows an error message when the process exists before server startup', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
