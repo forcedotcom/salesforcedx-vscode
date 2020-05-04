@@ -239,6 +239,14 @@ jobs:
             git push origin v${GUS_BUILD}
             git push origin master
       - run: *gus-close-change-mgmt
+  test-checks: &test-checks
+    - build-all
+    - run-tests:
+        run-unit-tests: true
+        context: vscode-test
+    - run-tests:
+        run-unit-tests: false
+        context: vscode-test
 
   create-release-branch:
     <<: *defaults
@@ -272,14 +280,7 @@ workflows:
             branches:
               only:
                 - master
-          requires:
-            - build-all
-            - run-tests:
-                run-unit-tests: true
-                context: vscode-test
-            - run-tests:
-                run-unit-tests: false
-                context: vscode-test
+          requires: *test-checks
 
   # run a build/test every mid-night
   scheduled-workflow:
