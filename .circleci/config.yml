@@ -298,13 +298,11 @@ workflows:
   commit-workflow:
     jobs:
       - build-all
-      - run-tests:
-          run-unit-tests: true
-          context: vscode-test
+      - unit-tests
       - run-tests:
           run-unit-tests: false
           context: vscode-test
-      - release:
+      - publish:
           filters:
             branches:
               only:
@@ -325,9 +323,7 @@ workflows:
                 - master
     jobs:
       - build-all
-      - run-tests:
-          run-unit-tests: true
-          context: vscode-test
+      - unit-tests
       - run-tests:
           run-unit-tests: false
           context: vscode-test
