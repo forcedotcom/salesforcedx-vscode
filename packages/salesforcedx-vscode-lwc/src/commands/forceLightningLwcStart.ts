@@ -84,6 +84,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     channelService.showChannelOutput();
 
     let serverStarted = false;
+    let printedError = false;
 
     const progress = new Subject();
     ProgressNotification.show(
@@ -115,7 +116,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     });
 
     execution.stderrSubject.subscribe(async data => {
-      if (data) {
+      if (!printedError && data) {
         let errorCode = -1;
         if (data.toString().includes('Server start up failed')) {
           errorCode = 1;
@@ -131,17 +132,21 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
             errorCode
           );
           progress.complete();
+          printedError = true;
         }
       }
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      this.handleErrors(
-        cancellationToken,
-        serverHandler,
-        serverStarted,
-        exitCode
-      );
+      if (!printedError) {
+        this.handleErrors(
+          cancellationToken,
+          serverHandler,
+          serverStarted,
+          exitCode
+        );
+        printedError = true;
+      }
     });
 
     notificationService.reportExecutionError(
