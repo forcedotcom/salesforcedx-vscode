@@ -43,7 +43,7 @@ _refs:
       npm install -g @salesforce/change-case-management
       export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
       echo "Gus build is ${GUS_BUILD}"
-      sfchangecase create -i 500B0000005YGshIAG --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
+      sfchangecase create -i ${GUS_TEMPLATE_ID} --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
       sfchangecase check --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
   gus-close-change-mgmt: &gus-close-change-mgmt
     name: 'Gus close change case management'
@@ -170,7 +170,7 @@ jobs:
               $host.SetShouldExit(1)
             }
 
-  run-tests:
+  integration-tests:
     description: 'Run tests on Windows'
     executor: win/default
     environment:
@@ -183,27 +183,17 @@ jobs:
         default: true
     steps:
       - build-win
-      - when:
-          condition: << parameters.run-unit-tests >>
-          steps:
-            - run:
-                name: 'Running unit tests'
-                shell: cmd.exe
-                command: npm run test:unit
-      - unless:
-          condition: << parameters.run-unit-tests >>
-          steps:
-            - run:
-                name: 'Authenticate to the default DevHub'
-                shell: bash.exe
-                command: |
-                  echo $SFDX_CI_DEVHUB_JWTKEY | base64 --decode > devhub.key
-                  sfdx force:auth:jwt:grant --clientid ${SFDX_CI_DEVHUB_CLIENTID} --username ${SFDX_CI_DEVHUB_USERNAME} --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
-                  rm devhub.key
-            - run:
-                name: 'Running integration tests'
-                shell: cmd.exe
-                command: npm run test:integration-tests-without-system-tests
+      - run:
+          name: 'Authenticate to the default DevHub'
+          shell: bash.exe
+          command: |
+            echo $SFDX_CI_DEVHUB_JWTKEY | base64 --decode > devhub.key
+            sfdx force:auth:jwt:grant --clientid ${SFDX_CI_DEVHUB_CLIENTID} --username ${SFDX_CI_DEVHUB_USERNAME} --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
+            rm devhub.key
+      - run:
+          name: 'Running integration tests'
+          shell: cmd.exe
+          command: npm run test:integration-tests-without-system-tests
       - run:
           name: 'Aggregate test results'
           shell: bash.exe
@@ -299,9 +289,7 @@ workflows:
     jobs:
       - build-all
       - unit-tests
-      - run-tests:
-          run-unit-tests: false
-          context: vscode-test
+      - integration-tests
       - publish:
           filters:
             branches:
@@ -310,6 +298,7 @@ workflows:
           requires:
             - build-all
             - unit-tests
+            - integration-tests
 
   # run a build/test every mid-night
   scheduled-workflow:
@@ -324,9 +313,7 @@ workflows:
     jobs:
       - build-all
       - unit-tests
-      - run-tests:
-          run-unit-tests: false
-          context: vscode-test
+      - integration-tests
 
   cut-release:
     triggers:
