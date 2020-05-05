@@ -121,7 +121,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         if (data.toString().includes('Server start up failed')) {
           errorCode = 1;
         }
-        if (data.toString().includes('EADDRINUSE: address already in use')) {
+        if (data.toString().includes('EADDRINUSE')) {
           errorCode = 98;
         }
         if (errorCode !== -1) {
