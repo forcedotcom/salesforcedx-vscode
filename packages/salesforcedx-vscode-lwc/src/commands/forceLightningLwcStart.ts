@@ -172,6 +172,9 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     if (!serverStarted && !cancellationToken.isCancellationRequested) {
       let message = nls.localize('force_lightning_lwc_start_failed');
 
+      if (exitCode === 112) {
+        message = nls.localize('force_lightning_lwc_inactive_scratch_org');
+      }
       if (exitCode === 127) {
         message = nls.localize('force_lightning_lwc_start_not_found');
       }
