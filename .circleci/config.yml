@@ -265,6 +265,13 @@ jobs:
             git tag v${GUS_BUILD}
             git push origin v${GUS_BUILD}
             git push origin master
+      - run:
+          name: 'Store artifacts that were published'
+          command: |
+            mkdir extensions
+            find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+      - store_artifacts:
+          path: ./extensions
       - run: *gus-close-change-mgmt
 
   create-release-branch:
