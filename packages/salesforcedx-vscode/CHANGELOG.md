@@ -1,10 +1,24 @@
+# 48.14.0 - May 7, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Removed Beta Lightning Explorer Feature ([PR #2148](https://github.com/forcedotcom/salesforcedx-vscode/pull/2148))
+
+#### docs
+
+- Removed documentation for Beta Lightning Explorer Feature ([PR #2148](https://github.com/forcedotcom/salesforcedx-vscode/pull/2148))
+
+## Added
+
 # 48.13.0 - April 30, 2020
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Fix displaying a success message when a Beta Deploy contains failures  ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143), [Issue #2124](https://github.com/forcedotcom/salesforcedx-vscode/issues/2124))
+- Fix displaying a success message when a Beta Deploy contains failures ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143), [Issue #2124](https://github.com/forcedotcom/salesforcedx-vscode/issues/2124))
 
 ## Added
 
