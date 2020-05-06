@@ -22,7 +22,7 @@ export const messages = {
   force_lightning_lwc_start_not_found:
     'To run this command, first install the @salesforce/lwc-dev-server plugin. For more info, see [https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).',
   force_lightning_lwc_start_addr_in_use:
-    'The local development server could not start because the address is already in use. To resolve either: \n1) Stop the local dev server if it is running in another instance.\n or 2) Change the default port [Configuration for Projects (Optional)](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_local_dev_setup).\n or 3) Kill the process running on the specified port.',
+    "The local development server couldn't start as the address is already in use. To resolve, do one of these\n 1) Stop the local dev server running on any another instance.\n or 2) Change the default port [Configuration for Projects (Optional)](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_local_dev_setup).\n 3) Kill the process running on the specified port.",
   force_lightning_lwc_start_failed:
     'The local development server was not able to start.',
   force_lightning_lwc_start_exited:
