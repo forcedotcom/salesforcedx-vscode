@@ -24,7 +24,7 @@ export const messages = {
   force_lightning_lwc_start_addr_in_use:
     "The local development server couldn't start as the address is already in use. To resolve, do one of these\n 1) Stop the local dev server running on any another instance.\n or 2) Change the default port [Configuration for Projects (Optional)](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_local_dev_setup).\n 3) Kill the process running on the specified port.",
   force_lightning_lwc_inactive_scratch_org:
-    'The local development server could not start because the scratch org is not active. To resolve, run "SFDX: Create a Default Scratch Org" to create a new scratch org.',
+    'The local development server couldn’t start as there’s no active scratch org. Run "SFDX: Create a Default Scratch Org" to create a scratch org.',
   force_lightning_lwc_start_failed:
     'The local development server was not able to start.',
   force_lightning_lwc_start_exited:
