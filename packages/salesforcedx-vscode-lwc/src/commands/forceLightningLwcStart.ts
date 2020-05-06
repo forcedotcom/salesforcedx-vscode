@@ -84,6 +84,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     channelService.showChannelOutput();
 
     let serverStarted = false;
+    let printedError = false;
 
     const progress = new Subject();
     ProgressNotification.show(
@@ -115,19 +116,37 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     });
 
     execution.stderrSubject.subscribe(async data => {
-      if (data && data.toString().includes('Server start up failed')) {
-        this.handleErrors(cancellationToken, serverHandler, serverStarted, 1);
-        progress.complete();
+      if (!printedError && data) {
+        let errorCode = -1;
+        if (data.toString().includes('Server start up failed')) {
+          errorCode = 1;
+        }
+        if (data.toString().includes('EADDRINUSE')) {
+          errorCode = 98;
+        }
+        if (errorCode !== -1) {
+          this.handleErrors(
+            cancellationToken,
+            serverHandler,
+            serverStarted,
+            errorCode
+          );
+          progress.complete();
+          printedError = true;
+        }
       }
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      this.handleErrors(
-        cancellationToken,
-        serverHandler,
-        serverStarted,
-        exitCode
-      );
+      if (!printedError) {
+        this.handleErrors(
+          cancellationToken,
+          serverHandler,
+          serverStarted,
+          exitCode
+        );
+        printedError = true;
+      }
     });
 
     notificationService.reportExecutionError(
@@ -153,9 +172,11 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     if (!serverStarted && !cancellationToken.isCancellationRequested) {
       let message = nls.localize('force_lightning_lwc_start_failed');
 
-      // TODO proper exit codes in lwc-dev-server for address in use, auth/org error, etc.
       if (exitCode === 127) {
         message = nls.localize('force_lightning_lwc_start_not_found');
+      }
+      if (exitCode === 98) {
+        message = nls.localize('force_lightning_lwc_start_addr_in_use');
       }
 
       showError(new Error(message), logName, commandName);

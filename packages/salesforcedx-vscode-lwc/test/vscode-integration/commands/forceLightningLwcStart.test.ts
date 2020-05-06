@@ -261,6 +261,29 @@ describe('forceLightningLwcStart', () => {
         );
       });
 
+      it('shows an error when the address is already in use', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.processExitSubject.next(98);
+
+        const commandName = nls.localize(`force_lightning_lwc_start_text`);
+
+        sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+        sinon.assert.calledWith(
+          notificationServiceStubs.showErrorMessageStub,
+          sinon.match(nls.localize('command_failure', commandName))
+        );
+
+        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledWith(
+          channelServiceStubs.appendLineStub,
+          sinon.match(nls.localize('force_lightning_lwc_start_addr_in_use'))
+        );
+      });
+
       it('shows no error when server is stopping', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
