@@ -82,11 +82,4 @@ describe('Test commands', () => {
     await auraExtension.activate();
     expect(auraExtension.isActive);
   });
-
-  it('quick open command', async () => {
-    expect(auraExtension.isActive);
-
-    const commandList = await vscode.commands.getCommands(true);
-    expect(commandList).to.include('salesforce-lightning-quickopen');
-  });
 });

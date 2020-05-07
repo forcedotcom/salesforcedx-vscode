@@ -84,6 +84,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     channelService.showChannelOutput();
 
     let serverStarted = false;
+    let printedError = false;
 
     const progress = new Subject();
     ProgressNotification.show(
@@ -114,25 +115,37 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       }
     });
 
-    // handler errors
-    execution.processExitSubject.subscribe(async exitCode => {
-      DevServerService.instance.clearServerHandler(serverHandler);
-
-      if (!serverStarted && !cancellationToken.isCancellationRequested) {
-        let message = nls.localize('force_lightning_lwc_start_failed');
-
-        // TODO proper exit codes in lwc-dev-server for address in use, auth/org error, etc.
-        if (exitCode === 127) {
-          message = nls.localize('force_lightning_lwc_start_not_found');
+    execution.stderrSubject.subscribe(async data => {
+      if (!printedError && data) {
+        let errorCode = -1;
+        if (data.toString().includes('Server start up failed')) {
+          errorCode = 1;
         }
+        if (data.toString().includes('EADDRINUSE')) {
+          errorCode = 98;
+        }
+        if (errorCode !== -1) {
+          this.handleErrors(
+            cancellationToken,
+            serverHandler,
+            serverStarted,
+            errorCode
+          );
+          progress.complete();
+          printedError = true;
+        }
+      }
+    });
 
-        showError(new Error(message), logName, commandName);
-      } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
-        const message = nls.localize(
-          'force_lightning_lwc_start_exited',
+    execution.processExitSubject.subscribe(async exitCode => {
+      if (!printedError) {
+        this.handleErrors(
+          cancellationToken,
+          serverHandler,
+          serverStarted,
           exitCode
         );
-        showError(new Error(message), logName, commandName);
+        printedError = true;
       }
     });
 
@@ -147,6 +160,33 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       );
       this.showChannelOutput();
     });
+  }
+
+  private handleErrors(
+    cancellationToken: vscode.CancellationToken,
+    serverHandler: ServerHandler,
+    serverStarted: boolean,
+    exitCode: number | null | undefined
+  ) {
+    DevServerService.instance.clearServerHandler(serverHandler);
+    if (!serverStarted && !cancellationToken.isCancellationRequested) {
+      let message = nls.localize('force_lightning_lwc_start_failed');
+
+      if (exitCode === 127) {
+        message = nls.localize('force_lightning_lwc_start_not_found');
+      }
+      if (exitCode === 98) {
+        message = nls.localize('force_lightning_lwc_start_addr_in_use');
+      }
+
+      showError(new Error(message), logName, commandName);
+    } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
+      const message = nls.localize(
+        'force_lightning_lwc_start_exited',
+        exitCode
+      );
+      showError(new Error(message), logName, commandName);
+    }
   }
 }
 
