@@ -224,10 +224,10 @@ jobs:
       - checkout
       - restore_cache: *restore_cache
       - run: *gh-config
-      - run: *install
       - run:
           name: 'Install build dependencies'
           command: |
+            npm install
             npm install -g lerna@3.13.1
             npm install -g vsce
             npm install -g shelljs@0.8.3
