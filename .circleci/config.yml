@@ -16,7 +16,7 @@ _refs:
   defaults: &defaults
     working_directory: ~/cli
     docker:
-      - image: node:12
+      - image: circleci/node:12.4.0
   ssh-config: &ssh-config
     fingerprints:
       - '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
@@ -40,17 +40,25 @@ _refs:
   gus-create-change-mgmt: &gus-create-change-mgmt
     name: 'Gus create change case management'
     command: |
-      npm install -g @salesforce/change-case-management
-      export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
-      echo "Gus build is ${GUS_BUILD}"
-      sfchangecase create -i ${GUS_TEMPLATE_ID} --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
-      sfchangecase check --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
+      if [ "$GUS_SKIP" == "false" ]; then
+        sudo npm install -g @salesforce/change-case-management
+        export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
+        echo "Gus build is ${GUS_BUILD}"
+        sfchangecase create -i ${GUS_TEMPLATE_ID} --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
+        sfchangecase check --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
+      else
+        echo "Gus change case management was skipped because of GUS_SKIP being true"
+      fi
   gus-close-change-mgmt: &gus-close-change-mgmt
     name: 'Gus close change case management'
     command: |
-      export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
-      echo "Gus build is ${GUS_BUILD}"
-      sfchangecase update --location ${REPO_LOCATION} --release offcore.tooling.${GUS_BUILD} --status 'Closed - Deploy Successful'
+      if [ "$GUS_SKIP" == "false" ]; then
+        export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
+        echo "Gus build is ${GUS_BUILD}"
+        sfchangecase update --location ${REPO_LOCATION} --release offcore.tooling.${GUS_BUILD} --status 'Closed - Deploy Successful'
+      else
+        echo "Gus change case management was skipped because of GUS_SKIP being true"
+      fi
 
 commands:
   build-artifacts:
@@ -223,8 +231,9 @@ jobs:
       - add_ssh_keys: *ssh-config
       - checkout
       - restore_cache: *restore_cache
+      - run: *gus-create-change-mgmt
       - run: *gh-config
-      - run: npm install
+      - run: *install
       - run:
           name: 'Compile in production mode'
           environment:
@@ -252,19 +261,20 @@ jobs:
           name: 'Publishing to the VS Code Marketplace.'
           command: npm run vscode:publish
       - run:
-          name: 'Create git tag (e.g. v48.1.0) & push changes back to master branch'
-          command: |
-            export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
-            git tag v${GUS_BUILD}
-            git push origin v${GUS_BUILD}
-            git push origin master
-      - run:
           name: 'Store artifacts that were published'
           command: |
             mkdir extensions
             find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
       - store_artifacts:
           path: ./extensions
+      - run:
+          name: 'Create git tag (e.g. v48.1.0) & push changes back to master branch'
+          command: |
+            export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
+            git tag v${GUS_BUILD}
+            git push origin v${GUS_BUILD}
+            git push origin master
+      - run: *gus-close-change-mgmt
 
   create-release-branch:
     <<: *defaults
