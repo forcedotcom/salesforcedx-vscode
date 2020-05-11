@@ -35,6 +35,16 @@ const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const logName = 'force_lightning_lwc_start';
 const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
+/**
+ * Hints for providing a user-friendly error message / action.
+ * Hints come from the stderr output of lwc-dev-server. (We should move this to lwc-dev-server later)
+ */
+export const enum errorHints {
+  SERVER_STARTUP_FALIED = 'Server start up failed',
+  ADDRESS_IN_USE = 'EADDRINUSE',
+  INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
+}
+
 export interface ForceLightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
@@ -44,6 +54,7 @@ export interface ForceLightningLwcStartOptions {
 
 export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   private readonly options: ForceLightningLwcStartOptions;
+  private errorHint?: string;
 
   constructor(options: ForceLightningLwcStartOptions = { openBrowser: true }) {
     super();
@@ -124,6 +135,9 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         if (data.toString().includes('EADDRINUSE')) {
           errorCode = 98;
         }
+        if (data.toString().includes(errorHints.INACTIVE_SCRATCH_ORG)) {
+          this.errorHint = errorHints.INACTIVE_SCRATCH_ORG;
+        }
         if (errorCode !== -1) {
           this.handleErrors(
             cancellationToken,
@@ -172,7 +186,10 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     if (!serverStarted && !cancellationToken.isCancellationRequested) {
       let message = nls.localize('force_lightning_lwc_start_failed');
 
-      if (exitCode === 112) {
+      if (
+        exitCode === 1 &&
+        this.errorHint === errorHints.INACTIVE_SCRATCH_ORG
+      ) {
         message = nls.localize('force_lightning_lwc_inactive_scratch_org');
       }
       if (exitCode === 127) {

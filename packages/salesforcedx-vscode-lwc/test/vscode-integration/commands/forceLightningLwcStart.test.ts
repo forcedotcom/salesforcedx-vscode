@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { DEV_SERVER_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
+  errorHints,
   forceLightningLwcStart,
   ForceLightningLwcStartExecutor
 } from '../../../src/commands/forceLightningLwcStart';
@@ -290,7 +291,8 @@ describe('forceLightningLwcStart', () => {
         cliCommandExecutorStub.returns(fakeExecution);
 
         executor.execute({ type: 'CONTINUE', data: {} });
-        fakeExecution.processExitSubject.next(112);
+        fakeExecution.stderrSubject.next(errorHints.INACTIVE_SCRATCH_ORG);
+        fakeExecution.processExitSubject.next(1);
 
         const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
