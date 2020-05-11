@@ -200,7 +200,7 @@ describe('forceLightningLwcStart', () => {
 
         executor.execute({ type: 'CONTINUE', data: {} });
 
-        fakeExecution.stderrSubject.next('Server start up failed');
+        fakeExecution.stderrSubject.next(errorHints.SERVER_STARTUP_FALIED);
         sinon.assert.notCalled(
           notificationServiceStubs.showSuccessfulExecutionStub
         );

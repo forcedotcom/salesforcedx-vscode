@@ -129,10 +129,10 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     execution.stderrSubject.subscribe(async data => {
       if (!printedError && data) {
         let errorCode = -1;
-        if (data.toString().includes('Server start up failed')) {
+        if (data.toString().includes(errorHints.SERVER_STARTUP_FALIED)) {
           errorCode = 1;
         }
-        if (data.toString().includes('EADDRINUSE')) {
+        if (data.toString().includes(errorHints.ADDRESS_IN_USE)) {
           errorCode = 98;
         }
         if (data.toString().includes(errorHints.INACTIVE_SCRATCH_ORG)) {
