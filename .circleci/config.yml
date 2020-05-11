@@ -47,7 +47,7 @@ _refs:
         sfchangecase create -i ${GUS_TEMPLATE_ID} --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
         sfchangecase check --release offcore.tooling.${GUS_BUILD} --location ${REPO_LOCATION}
       else
-        echo "Gus change case management was skipped because of GUS_SKIP being true"
+        echo "Gus change case management was skipped because GUS_SKIP is true"
       fi
   gus-close-change-mgmt: &gus-close-change-mgmt
     name: 'Gus close change case management'
@@ -57,7 +57,7 @@ _refs:
         echo "Gus build is ${GUS_BUILD}"
         sfchangecase update --location ${REPO_LOCATION} --release offcore.tooling.${GUS_BUILD} --status 'Closed - Deploy Successful'
       else
-        echo "Gus change case management was skipped because of GUS_SKIP being true"
+        echo "Gus change case management was skipped because GUS_SKIP is true"
       fi
 
 commands:
