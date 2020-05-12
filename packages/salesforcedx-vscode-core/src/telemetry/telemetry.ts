@@ -6,11 +6,12 @@
  */
 
 import * as util from 'util';
-import vscode = require('vscode');
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
+import { disableCLITelemetry } from '../util';
 import TelemetryReporter from './telemetryReporter';
+import vscode = require('vscode');
 
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
@@ -30,6 +31,7 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private context: vscode.ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
+  private cliAllowsTelemetry: boolean = true;
 
   public static getInstance() {
     if (!TelemetryService.instance) {
@@ -40,9 +42,11 @@ export class TelemetryService {
 
   public initializeService(
     context: vscode.ExtensionContext,
-    machineId: string
+    machineId: string,
+    cliAllowsTelemetry: boolean = true
   ): void {
     this.context = context;
+    this.cliAllowsTelemetry = cliAllowsTelemetry;
     const isDevMode = machineId === 'someValue.machineId';
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
@@ -62,6 +66,8 @@ export class TelemetryService {
       );
       this.context.subscriptions.push(this.reporter);
     }
+
+    this.setCliTelemetryEnabled(this.isTelemetryEnabled() && !isDevMode);
   }
 
   public getReporter(): TelemetryReporter | undefined {
@@ -69,7 +75,7 @@ export class TelemetryService {
   }
 
   public isTelemetryEnabled(): boolean {
-    return sfdxCoreSettings.getTelemetryEnabled();
+    return sfdxCoreSettings.getTelemetryEnabled() && this.cliAllowsTelemetry;
   }
 
   private getHasTelemetryMessageBeenShown(): boolean {
@@ -185,5 +191,11 @@ export class TelemetryService {
   public getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%d%d', hrend[0], hrend[1] / 1000000);
+  }
+
+  public setCliTelemetryEnabled(isEnabled: boolean) {
+    if (!isEnabled) {
+      disableCLITelemetry();
+    }
   }
 }
