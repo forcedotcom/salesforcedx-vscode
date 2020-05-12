@@ -93,7 +93,7 @@ describe('Task Service Unit Tests', () => {
         assert.calledOnce(channelServiceAppendLineStub);
         assert.calledWith(
           channelServiceAppendLineStub,
-          nls.localize('force_windows_command_prompt_messaging')
+          nls.localize('task_windows_command_prompt_messaging')
         );
       } else {
         assert.notCalled(channelServiceAppendLineStub);

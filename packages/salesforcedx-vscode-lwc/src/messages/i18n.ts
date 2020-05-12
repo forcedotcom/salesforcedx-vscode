@@ -55,5 +55,7 @@ export const messages = {
   debug_test_title: 'Debug Test',
   run_test_task_name: 'Run Test',
   watch_test_task_name: 'Watch Test',
-  default_task_name: 'LWC Test'
+  default_task_name: 'LWC Test',
+  task_windows_command_prompt_messaging:
+    'Default shell for running tasks is set to cmd.exe'
 };

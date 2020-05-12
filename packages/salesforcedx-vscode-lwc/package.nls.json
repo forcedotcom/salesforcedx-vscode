@@ -14,6 +14,5 @@
   "force_lightning_lwc_test_run_current_file_text": "SFDX: Run Current Lightning Web Component Test File",
   "force_lightning_lwc_test_debug_current_file_text": "SFDX: Debug Current Lightning Web Component Test File",
   "force_lightning_lwc_test_start_watching_text": "SFDX: Start Watching Lightning Web Component Test",
-  "force_lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test",
-  "force_windows_command_prompt_messaging": "Default shell for running tasks is set to cmd.exe"
+  "force_lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test"
 }

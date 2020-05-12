@@ -138,7 +138,7 @@ class TaskService {
     let taskShellExecutionOptions: vscode.ShellExecutionOptions | undefined;
     if (isWin32) {
       channelService.appendLine(
-        nls.localize('force_windows_command_prompt_messaging')
+        nls.localize('task_windows_command_prompt_messaging')
       );
       taskShellExecutionOptions = {
         executable: 'cmd.exe',
