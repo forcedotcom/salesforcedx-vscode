@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { DEV_SERVER_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
+  errorHints,
   forceLightningLwcStart,
   ForceLightningLwcStartExecutor
 } from '../../../src/commands/forceLightningLwcStart';
@@ -199,7 +200,7 @@ describe('forceLightningLwcStart', () => {
 
         executor.execute({ type: 'CONTINUE', data: {} });
 
-        fakeExecution.stderrSubject.next('Server start up failed');
+        fakeExecution.stderrSubject.next(errorHints.SERVER_STARTUP_FALIED);
         sinon.assert.notCalled(
           notificationServiceStubs.showSuccessfulExecutionStub
         );
@@ -281,6 +282,30 @@ describe('forceLightningLwcStart', () => {
         sinon.assert.calledWith(
           channelServiceStubs.appendLineStub,
           sinon.match(nls.localize('force_lightning_lwc_start_addr_in_use'))
+        );
+      });
+
+      it('shows an error when scratch org is inactive', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.stderrSubject.next(errorHints.INACTIVE_SCRATCH_ORG);
+        fakeExecution.processExitSubject.next(1);
+
+        const commandName = nls.localize(`force_lightning_lwc_start_text`);
+
+        sinon.assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+        sinon.assert.calledWith(
+          notificationServiceStubs.showErrorMessageStub,
+          sinon.match(nls.localize('command_failure', commandName))
+        );
+
+        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledWith(
+          channelServiceStubs.appendLineStub,
+          sinon.match(nls.localize('force_lightning_lwc_inactive_scratch_org'))
         );
       });
 
