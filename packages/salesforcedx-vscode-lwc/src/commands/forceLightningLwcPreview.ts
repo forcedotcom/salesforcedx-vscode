@@ -88,12 +88,16 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
 
   if (!sourceUri) {
-    const message = nls.localize(
-      'force_lightning_lwc_preview_file_undefined',
-      sourceUri
-    );
-    showError(new Error(message), logName, commandName);
-    return;
+    if (vscode.window.activeTextEditor) {
+      sourceUri = vscode.window.activeTextEditor.document.uri;
+    } else {
+      const message = nls.localize(
+        'force_lightning_lwc_preview_file_undefined',
+        sourceUri
+      );
+      showError(new Error(message), logName, commandName);
+      return;
+    }
   }
 
   const resourcePath = sourceUri.fsPath;
@@ -250,17 +254,7 @@ async function startServer(
   fullUrl: string,
   startTime: [number, number]
 ) {
-  if (
-    DevServerService.instance.isServerHandlerRegistered() &&
-    desktopSelected
-  ) {
-    try {
-      await openBrowser(fullUrl);
-      telemetryService.sendCommandEvent(logName, startTime);
-    } catch (e) {
-      showError(e, logName, commandName);
-    }
-  } else {
+  if (!DevServerService.instance.isServerHandlerRegistered()) {
     console.log(`${logName}: server was not running, starting...`);
     const preconditionChecker = new SfdxWorkspaceChecker();
     const parameterGatherer = new EmptyParametersGatherer();
@@ -277,6 +271,13 @@ async function startServer(
 
     await commandlet.run();
     telemetryService.sendCommandEvent(logName, startTime);
+  } else if (desktopSelected) {
+    try {
+      await openBrowser(fullUrl);
+      telemetryService.sendCommandEvent(logName, startTime);
+    } catch (e) {
+      showError(e, logName, commandName);
+    }
   }
 }
 
