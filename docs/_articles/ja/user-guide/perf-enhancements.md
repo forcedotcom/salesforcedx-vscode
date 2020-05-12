@@ -14,10 +14,10 @@ lang: ja
 1. **[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (Windows or Linux) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** を選択します。
 2. Salesforce Feature Previews にある、Experimental: Deploy Retrieve を選択します。
 
-In this beta release, performance enhancements are effective when you run the **SFDX: Deploy This Source to Org** and **SFDX: Retrieve This Source from Org** command with these metadata types:
+このベータ版リリースでは、以下のメタデータ型に対して **SFDX: Deploy This Source to Org (SFDX: このソースを組織にデプロイ)** または **SFDX: Retrieve This Source From Org (SFDX: このソースを組織から取得)** を実行した際に、パフォーマンス改善が有効になります。
 
-- Apex Class
-- Apex Trigger
-- Visualforce Component
-- Visualforce Page
-- Lightning Components
+- Apex クラス
+- Apex トリガ
+- Visualforce コンポーネント
+- Visualforce ページ
+- Lightning コンポーネント
