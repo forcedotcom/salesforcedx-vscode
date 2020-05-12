@@ -142,7 +142,7 @@ function getActivationMode(): string {
 }
 
 function registerCommands(
-  extensionContext: vscode.ExtensionContext
+  _extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   return vscode.Disposable.from(
     vscode.commands.registerCommand(

@@ -88,12 +88,16 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
 
   if (!sourceUri) {
-    const message = nls.localize(
-      'force_lightning_lwc_preview_file_undefined',
-      sourceUri
-    );
-    showError(new Error(message), logName, commandName);
-    return;
+    if (vscode.window.activeTextEditor) {
+      sourceUri = vscode.window.activeTextEditor.document.uri;
+    } else {
+      const message = nls.localize(
+        'force_lightning_lwc_preview_file_undefined',
+        sourceUri
+      );
+      showError(new Error(message), logName, commandName);
+      return;
+    }
   }
 
   let resourcePath = sourceUri.path;
@@ -145,7 +149,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
 
   const desktopSelected = platformSelection.id === PreviewPlatformType.Desktop;
   if (desktopSelected) {
-    startServer(true, fullUrl, startTime);
+    await startServer(true, fullUrl, startTime);
     return;
   }
 
@@ -179,7 +183,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     );
     return;
   }
-  startServer(false, fullUrl, startTime);
+  await startServer(false, fullUrl, startTime);
 
   // New target device entered
   if (targetName !== '') {
@@ -253,17 +257,7 @@ async function startServer(
   fullUrl: string,
   startTime: [number, number]
 ) {
-  if (
-    DevServerService.instance.isServerHandlerRegistered() &&
-    desktopSelected
-  ) {
-    try {
-      await openBrowser(fullUrl);
-      telemetryService.sendCommandEvent(logName, startTime);
-    } catch (e) {
-      showError(e, logName, commandName);
-    }
-  } else {
+  if (!DevServerService.instance.isServerHandlerRegistered()) {
     console.log(`${logName}: server was not running, starting...`);
     const preconditionChecker = new SfdxWorkspaceChecker();
     const parameterGatherer = new EmptyParametersGatherer();
@@ -280,6 +274,13 @@ async function startServer(
 
     await commandlet.run();
     telemetryService.sendCommandEvent(logName, startTime);
+  } else if (desktopSelected) {
+    try {
+      await openBrowser(fullUrl);
+      telemetryService.sendCommandEvent(logName, startTime);
+    } catch (e) {
+      showError(e, logName, commandName);
+    }
   }
 }
 
