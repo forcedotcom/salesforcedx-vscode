@@ -6,6 +6,8 @@ Similar to what vscode does, we are reporting on certain events that happen in t
 
 All extensions leverage the telemetryService in `salesforce-vscode-core` extension in order to send data. The service in `salesforce-vscode-core` is resposible of showing an information message to users and properly initializing the service for other extensions in this repository to leverage. In the same line as vscode, we provide the user an opt out mechanism. We check that user settings `telemetry.enableTelemetry` and `salesforcedx-vscode-core.telemetry.enabled` are enabled before initializing the service.
 
+Additionally, if telemetry is disabled for the Salesforce CLI via the `disableTelemetry` configuration setting, or the `SFDX_DISABLE_TELEMETRY` environment variable, the telemetryService will not send data.
+
 ## Adding telemetry to an extension
 
 - Add [vscode-extension-telemetry](https://github.com/Microsoft/vscode-extension-telemetry#readme) as a devDependency
