@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { nls } from '../../messages';
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const { channelService } = sfdxCoreExports;
 
 interface SfdxTaskDefinition extends vscode.TaskDefinition {
   sfdxTaskId: string;
@@ -126,7 +131,25 @@ class TaskService {
       sfdxTaskId: taskId
     };
     const taskSource = 'SFDX';
-    const taskShellExecution = new vscode.ShellExecution(cmd, args);
+    // https://github.com/forcedotcom/salesforcedx-vscode/issues/2097
+    // Git Bash shell doesn't handle command paths correctly.
+    // Always launch with command prompt (cmd.exe) in Windows.
+    const isWin32 = /^win32/.test(process.platform);
+    let taskShellExecutionOptions: vscode.ShellExecutionOptions | undefined;
+    if (isWin32) {
+      channelService.appendLine(
+        nls.localize('task_windows_command_prompt_messaging')
+      );
+      taskShellExecutionOptions = {
+        executable: 'cmd.exe',
+        shellArgs: ['/d', '/c']
+      };
+    }
+    const taskShellExecution = new vscode.ShellExecution(
+      cmd,
+      args,
+      taskShellExecutionOptions
+    );
     const task = new vscode.Task(
       taskDefinition,
       taskScope,
