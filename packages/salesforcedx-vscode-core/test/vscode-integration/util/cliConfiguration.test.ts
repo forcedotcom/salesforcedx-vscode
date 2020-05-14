@@ -102,18 +102,18 @@ describe('SFDX CLI Configuration utility', () => {
       whichStub.withArgs('sfdx').returns('');
 
       const response = await isCLITelemetryAllowed('');
-      expect(response).equal(true);
+      expect(response).to.equal(true);
     });
 
-    it('Should return false if telemetry is disabled', async () => {
+    it('Should return false if telemetry setting is disabled', async () => {
       whichStub.withArgs('sfdx').returns('Users/some/path/sfdx/cli');
 
       const config = new Map<string, string>();
-      config.set(SFDX_CONFIG_DISABLE_TELEMETRY, 'false');
+      config.set(SFDX_CONFIG_DISABLE_TELEMETRY, 'true');
       configGetSpy.returns(config);
 
       const response = await isCLITelemetryAllowed('');
-      expect(response).equal(true);
+      expect(response).to.equal(false);
     });
 
     it('Should return true if telementry setting is undefined', async () => {
@@ -121,7 +121,7 @@ describe('SFDX CLI Configuration utility', () => {
       configGetSpy.returns(new Map<string, string>());
 
       const response = await isCLITelemetryAllowed('');
-      expect(response).equal(true);
+      expect(response).to.equal(true);
     });
 
     it('Should return true if telementry setting is enabled', async () => {
@@ -132,7 +132,7 @@ describe('SFDX CLI Configuration utility', () => {
       configGetSpy.returns(config);
 
       const response = await isCLITelemetryAllowed('');
-      expect(response).equal(true);
+      expect(response).to.equal(true);
     });
 
     it('Should set an environment variable', async () => {

@@ -58,10 +58,8 @@ export async function isCLITelemetryAllowed(
       projectPath,
       SFDX_CONFIG_DISABLE_TELEMETRY
     );
-    const disabledConfig =
-      forceConfig.get(SFDX_CONFIG_DISABLE_TELEMETRY) || 'false';
-    const isDisabled = disabledConfig === 'true' ? true : false;
-    return !isDisabled;
+    const disabledConfig = forceConfig.get(SFDX_CONFIG_DISABLE_TELEMETRY) || '';
+    return disabledConfig !== 'true';
   }
   return true;
 }
