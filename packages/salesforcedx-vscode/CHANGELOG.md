@@ -1,12 +1,6 @@
 # 48.15.0 - May 14, 2020
 
-## Fixed
-
-#### salesforcedx-vscode-lwc
-
-- Added a better error message when starting the Local Dev server and another process is running on the same port ([PR #2172](https://github.com/forcedotcom/salesforcedx-vscode/pull/2172))
-
-## Added
+- We fixed some minor under-the-hood bugs.
 
 # 48.14.0 - May 7, 2020
 
