@@ -45,7 +45,7 @@ export const SANDBOX_URL = 'https://test.salesforce.com';
 export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
-  protected showChannelOutput = false;
+  protected showChannelOutput = isSFDXContainerMode();
 
   public build(data: AuthParams): Command {
     const command = new SfdxCommandBuilder().withDescription(

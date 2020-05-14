@@ -24,6 +24,12 @@ import { nls } from '../../../src/messages';
 const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
 
+class TestForceAuthWebLoginExecutor extends ForceAuthWebLoginExecutor {
+  public getShowChannelOutput() {
+    return this.showChannelOutput;
+  }
+}
+
 // tslint:disable:no-unused-expression
 describe('Force Auth Web Login', () => {
   it('Should build the auth web login command', async () => {
@@ -233,6 +239,13 @@ describe('Force Auth Web Login is based on environment variables', () => {
   describe('in container mode', () => {
     afterEach(() => {
       delete process.env.SFDX_CONTAINER_MODE;
+    });
+    it('Should expose the output channel when in container mode', () => {
+      const notContainerMode = new TestForceAuthWebLoginExecutor();
+      expect(notContainerMode.getShowChannelOutput()).to.be.false;
+      process.env.SFDX_CONTAINER_MODE = 'true';
+      const containerMode = new TestForceAuthWebLoginExecutor();
+      expect(containerMode.getShowChannelOutput()).to.be.true;
     });
     it('Should use force:auth:web:login when container mode is not defined', () => {
       const authWebLogin = new ForceAuthWebLoginExecutor();

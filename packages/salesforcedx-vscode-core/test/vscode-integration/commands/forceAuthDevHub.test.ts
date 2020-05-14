@@ -18,6 +18,12 @@ import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { ConfigSource, OrgAuthInfo } from '../../../src/util/index';
 
+class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
+  public getShowChannelOutput() {
+    return this.showChannelOutput;
+  }
+}
+
 // tslint:disable:no-unused-expression
 describe('Force Auth Web Login for Dev Hub', () => {
   it('Should build the auth web login command', async () => {
@@ -152,6 +158,13 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
   describe('in container mode', () => {
     afterEach(() => {
       delete process.env.SFDX_CONTAINER_MODE;
+    });
+    it('Should expose the output channel when in container mode', () => {
+      const notContainerMode = new TestForceAuthDevHubExecutor();
+      expect(notContainerMode.getShowChannelOutput()).to.be.false;
+      process.env.SFDX_CONTAINER_MODE = 'true';
+      const containerMode = new TestForceAuthDevHubExecutor();
+      expect(containerMode.getShowChannelOutput()).to.be.true;
     });
     it('Should use force:auth:web:login when container mode is not defined', () => {
       const authWebLogin = new ForceAuthDevHubExecutor();
