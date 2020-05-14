@@ -100,6 +100,12 @@ describe('Force LWC Test Run - Code Action', () => {
       await forceLwcTestRunActiveTextEditorTest();
 
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
+      const expectedOptions = /^win32/.test(process.platform)
+        ? {
+            executable: 'cmd.exe',
+            shellArgs: ['/d', '/c']
+          }
+        : undefined;
       const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(expectedCwd);
       assert.calledOnce(executeTaskStub);
       assert.calledWith(
@@ -132,7 +138,7 @@ describe('Force LWC Test Run - Code Action', () => {
       );
       assert.calledWith(
         executeTaskStub,
-        match.has('execution', match.has('options', undefined))
+        match.has('execution', match.has('options', expectedOptions))
       );
       unmockActiveTextEditorUri();
     });
