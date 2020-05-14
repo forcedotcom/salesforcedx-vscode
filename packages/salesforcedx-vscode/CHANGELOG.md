@@ -1,3 +1,7 @@
+# 48.15.0 - May 14, 2020
+
+- We fixed some minor under-the-hood bugs.
+
 # 48.14.0 - May 7, 2020
 
 ## Fixed
