@@ -47,7 +47,7 @@ export interface PreviewQuickPickItem extends vscode.QuickPickItem {
   platformName: string;
 }
 
-export const platformInput: PreviewQuickPickItem[] = [
+export const platformOptions: PreviewQuickPickItem[] = [
   {
     label: nls.localize('force_lightning_lwc_preview_desktop_label'),
     detail: nls.localize('force_lightning_lwc_preview_desktop_description'),
@@ -81,8 +81,10 @@ const logName = 'force_lightning_lwc_preview';
 const commandName = nls.localize('force_lightning_lwc_preview_text');
 export const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 export const rememberDeviceKey = 'rememberDevice';
+export const mobileEnabledKey = 'enablePreviewOnMobile';
 export const logLevelKey = 'logLevel';
 export const defaultLogLevel = 'warn';
+export const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
@@ -137,7 +139,13 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   }
 
   const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
-  const platformSelection = await vscode.window.showQuickPick(platformInput, {
+  const isMobileEnabled = getWorkspaceSettings().get(mobileEnabledKey) || false;
+  if (!isMobileEnabled) {
+    await startServer(true, fullUrl, startTime);
+    return;
+  }
+
+  const platformSelection = await vscode.window.showQuickPick(platformOptions, {
     placeHolder: nls.localize('force_lightning_lwc_platform_selection')
   });
   if (!platformSelection) {
@@ -240,7 +248,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   // listen for Android Emulator finished
   if (platformSelection.id === PreviewPlatformType.Android) {
     execution.stdoutSubject.subscribe(async data => {
-      if (data && data.toString().includes('Opening Browser')) {
+      if (data && data.toString().includes(androidSuccessString)) {
         notificationService.showSuccessfulExecution(
           execution.command.toString()
         );

@@ -17,5 +17,6 @@
   "force_lightning_lwc_test_stop_watching_text": "SFDX: Stop Watching Lightning Web Component Test",
   "force_lightning_lwc_preferences": "Lightning Web Components Preview",
   "force_lightning_lwc_remember_device_description": "Remember most recently used mobile device target.",
-  "force_lightning_lwc_mobile_log_level": "Log level used when calling SFDX Preview on Mobile command."
+  "force_lightning_lwc_mobile_log_level": "Log level used when calling SFDX Preview on Mobile command.",
+  "force_lightning_lwc_enable_mobile": "Warning: This feature is not publicly available."
 }
