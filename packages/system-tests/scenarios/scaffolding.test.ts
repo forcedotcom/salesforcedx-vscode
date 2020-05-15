@@ -150,10 +150,10 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  it('Should create Lightning app', async () => {
-    // Invoke SFDX: Create Lightning App command by name
+  it('Should create Aura app', async () => {
+    // Invoke SFDX: Create Aura App command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create Lightning App');
+    await common.type('>SFDX: Create Aura App');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.waitUI();
 
@@ -177,10 +177,10 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  it('Should create Lightning component', async () => {
-    // Invoke SFDX: Create Lightning Component command by name
+  it('Should create Aura component', async () => {
+    // Invoke SFDX: Create Aura Component command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create Lightning Component');
+    await common.type('>SFDX: Create Aura Component');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.waitUI();
 
@@ -204,10 +204,10 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  it('Should create Lightning event', async () => {
-    // Invoke SFDX: Create Lightning event command by name
+  it('Should create Aura event', async () => {
+    // Invoke SFDX: Create Aura event command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create Lightning Event');
+    await common.type('>SFDX: Create Aura Event');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.waitUI();
 
@@ -231,10 +231,10 @@ describe('Scaffolding commands', () => {
     }
   });
 
-  it('Should create Lightning interface', async () => {
-    // Invoke SFDX: Create Lightning interface command by name
+  it('Should create Aura interface', async () => {
+    // Invoke SFDX: Create Aura interface command by name
     await app.command('workbench.action.quickOpen');
-    await common.type('>SFDX: Create Lightning Interface');
+    await common.type('>SFDX: Create Aura Interface');
     await app.client.keys(['NULL', 'Enter', 'NULL'], false);
     await app.waitUI();
 
