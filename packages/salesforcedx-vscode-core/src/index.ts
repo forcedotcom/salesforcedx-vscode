@@ -442,13 +442,9 @@ async function setupOrgBrowser(
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  // Telemetry
-  const isCliTelemetryAllowed = await isCLITelemetryAllowed(
-    getRootWorkspacePath()
-  );
   const machineId =
     vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
-  telemetryService.initializeService(context, machineId, isCliTelemetryAllowed);
+  await telemetryService.initializeService(context, machineId);
   telemetryService.showTelemetryMessage();
 
   // Task View

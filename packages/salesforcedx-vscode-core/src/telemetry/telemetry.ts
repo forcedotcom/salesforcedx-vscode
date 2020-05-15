@@ -9,7 +9,11 @@ import * as util from 'util';
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
-import { disableCLITelemetry } from '../util';
+import {
+  disableCLITelemetry,
+  getRootWorkspacePath,
+  isCLITelemetryAllowed
+} from '../util';
 import TelemetryReporter from './telemetryReporter';
 import vscode = require('vscode');
 
@@ -40,13 +44,12 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
-  public initializeService(
+  public async initializeService(
     context: vscode.ExtensionContext,
-    machineId: string,
-    cliAllowsTelemetry: boolean = true
-  ): void {
+    machineId: string
+  ): Promise<void> {
     this.context = context;
-    this.cliAllowsTelemetry = cliAllowsTelemetry;
+    this.cliAllowsTelemetry = await this.checkCliTelemetry();
     const isDevMode = machineId === 'someValue.machineId';
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
@@ -191,6 +194,10 @@ export class TelemetryService {
   public getEndHRTime(hrstart: [number, number]): string {
     const hrend = process.hrtime(hrstart);
     return util.format('%d%d', hrend[0], hrend[1] / 1000000);
+  }
+
+  public async checkCliTelemetry(): Promise<boolean> {
+    return await isCLITelemetryAllowed(getRootWorkspacePath());
   }
 
   public setCliTelemetryEnabled(isEnabled: boolean) {
