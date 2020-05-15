@@ -31,13 +31,13 @@ const {
   SfdxWorkspaceChecker
 } = sfdxCoreExports;
 
-export enum PreviewPlatformType {
+enum PreviewPlatformType {
   Desktop = 1,
   Android,
   iOS
 }
 
-export interface PreviewQuickPickItem extends vscode.QuickPickItem {
+interface PreviewQuickPickItem extends vscode.QuickPickItem {
   label: string;
   detail: string;
   alwaysShow: boolean;
@@ -79,12 +79,12 @@ export const platformOptions: PreviewQuickPickItem[] = [
 
 const logName = 'force_lightning_lwc_preview';
 const commandName = nls.localize('force_lightning_lwc_preview_text');
-export const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
-export const rememberDeviceKey = 'rememberDevice';
-export const mobileEnabledKey = 'enablePreviewOnMobile';
-export const logLevelKey = 'logLevel';
-export const defaultLogLevel = 'warn';
-export const androidSuccessString = 'Launching... Opening Browser';
+const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
+const rememberDeviceKey = 'rememberDevice';
+const mobileEnabledKey = 'enablePreviewOnMobile';
+const logLevelKey = 'logLevel';
+const defaultLogLevel = 'warn';
+const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   const startTime = process.hrtime();
@@ -145,6 +145,46 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
+  await selectPlatformAndExecute(fullUrl, startTime, componentName);
+}
+
+async function startServer(
+  desktopSelected: boolean,
+  fullUrl: string,
+  startTime: [number, number]
+) {
+  if (!DevServerService.instance.isServerHandlerRegistered()) {
+    console.log(`${logName}: server was not running, starting...`);
+    const preconditionChecker = new SfdxWorkspaceChecker();
+    const parameterGatherer = new EmptyParametersGatherer();
+    const executor = new ForceLightningLwcStartExecutor({
+      openBrowser: desktopSelected,
+      fullUrl
+    });
+
+    const commandlet = new SfdxCommandlet(
+      preconditionChecker,
+      parameterGatherer,
+      executor
+    );
+
+    await commandlet.run();
+    telemetryService.sendCommandEvent(logName, startTime);
+  } else if (desktopSelected) {
+    try {
+      await openBrowser(fullUrl);
+      telemetryService.sendCommandEvent(logName, startTime);
+    } catch (e) {
+      showError(e, logName, commandName);
+    }
+  }
+}
+
+async function selectPlatformAndExecute(
+  fullUrl: string,
+  startTime: [number, number],
+  componentName: string
+) {
   const platformSelection = await vscode.window.showQuickPick(platformOptions, {
     placeHolder: nls.localize('force_lightning_lwc_platform_selection')
   });
@@ -257,38 +297,6 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
         );
       }
     });
-  }
-}
-
-async function startServer(
-  desktopSelected: boolean,
-  fullUrl: string,
-  startTime: [number, number]
-) {
-  if (!DevServerService.instance.isServerHandlerRegistered()) {
-    console.log(`${logName}: server was not running, starting...`);
-    const preconditionChecker = new SfdxWorkspaceChecker();
-    const parameterGatherer = new EmptyParametersGatherer();
-    const executor = new ForceLightningLwcStartExecutor({
-      openBrowser: desktopSelected,
-      fullUrl
-    });
-
-    const commandlet = new SfdxCommandlet(
-      preconditionChecker,
-      parameterGatherer,
-      executor
-    );
-
-    await commandlet.run();
-    telemetryService.sendCommandEvent(logName, startTime);
-  } else if (desktopSelected) {
-    try {
-      await openBrowser(fullUrl);
-      telemetryService.sendCommandEvent(logName, startTime);
-    } catch (e) {
-      showError(e, logName, commandName);
-    }
   }
 }
 
